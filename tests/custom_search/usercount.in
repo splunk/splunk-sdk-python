@@ -1,0 +1,272 @@
+authString:<auth><userId>itay</userId><username>itay</username><authToken>6e49d9164a4eced1a006f46d5710715c</authToken></auth>
+sessionKey:6e49d9164a4eced1a006f46d5710715c
+owner:itay
+namespace:custom_search
+keywords:%22%22%22sourcetype%3A%3Atop%22%22%20%22
+search:search%20sourcetype%3D%22top%22%20%7C%20head%202%20%7C%20usercount%20%7C%20head%20100%20%7C%20export
+sid:1310074215.71
+realtime:0
+preview:0
+truncated:0
+
+"_cd","_indextime","_kv","_raw","_serial","_si","_sourcetype","_time",eventtype,host,index,linecount,punct,source,sourcetype,"splunk_server","tag::eventtype",timestamp
+"28:138489",1310074203,1,"   PID  USER              PR    NI    VIRT     RES     SHR   S  pctCPU  pctMEM       cpuTIME  COMMAND
+   469  root               ?     ?   2378M   1568K    244K   ?     7.2       ?      00:00.15  top
+    95  _coreaudiod        ?     ?   2462M     12M    952K   ?     5.3       ?      88:47.70  coreaudiod
+  7722  itay               ?     ?   4506M    608M     99M   ?     3.9       ?      75:02.81  pycharm
+     0  root               ?     ?   6166M   1050M      0B   ?     2.0       ?      60:56.44  kernel_task
+ 85960  root               ?     ?   2390M   2600K    244K   ?     1.6       ?      04:42.80  activitymonitord
+ 94032  itay               ?     ?   1100M     43M     88M   ?     1.5       ?      00:27.58  Google
+ 10345  itay               ?     ?   1222M     75M    100M   ?     1.4       ?      38:39.42  Google
+ 85958  itay               ?     ?   2874M     26M     91M   ?     1.3       ?      03:44.59  Activity
+ 19720  itay               ?     ?   1219M    141M    102M   ?     1.1       ?      10:58.26  Microsoft
+  8359  itay               ?     ?   2442M     11M   1524K   ?     0.7       ?      08:34.42  Python
+ 52541  itay               ?     ?   1272M    134M    109M   ?     0.5       ?      11:44.82  Google
+ 66199  itay               ?     ?    715M     54M   3168K   ?     0.4       ?      01:22.79  python2.6
+ 10365  itay               ?     ?   1290M    108M    119M   ?     0.2       ?      08:53.26  Google
+ 19144  itay               ?     ?   1139M     64M    104M   ?     0.2       ?      05:53.00  Google
+ 66113  itay               ?     ?    740M     63M     17M   ?     0.1       ?      01:41.86  splunkd
+    76  _windowserver      ?     ?   3322M    246M     70M   ?     0.1       ?      25:15.38  WindowServer
+   330  itay               ?     ?   1162M     56M     74M   ?     0.1       ?      15:55.18  Adium
+    39  root               ?     ?   2718M    138M     17M   ?     0.1       ?      21:15.85  mds
+  1418  itay               ?     ?   4857M     26M     30M   ?     0.1       ?      03:04.60  Flux
+    25  root               ?     ?   2535M     52M     49M   ?     0.0       ?      01:28.19  coreservicesd
+ 10291  itay               ?     ?   1420M    154M    139M   ?     0.0       ?      22:05.20  Google
+    11  root               ?     ?   2456M   6448K   1068K   ?     0.0       ?      00:27.35  DirectoryService
+   375  itay               ?     ?   1133M    112M     50M   ?     0.0       ?      29:11.73  Dropbox
+  7423  itay               ?     ?    978M     18M     16M   ?     0.0       ?      00:53.77  VMware
+    44  root               ?     ?   2452M   6352K    244K   ?     0.0       ?      01:16.91  fseventsd
+   290  itay               ?     ?   1090M     39M     85M   ?     0.0       ?      00:00.82  Google
+ 47643  itay               ?     ?   2478M     26M     14M   ?     0.0       ?      06:17.06  mdworker
+   115  itay               ?     ?   3033M    127M     87M   ?     0.0       ?      05:18.22  Finder
+    12  root               ?     ?   2441M    860K    244K   ?     0.0       ?      00:12.83  notifyd
+ 17869  itay               ?     ?   1003M     39M     31M   ?     0.0       ?      01:54.09  Microsoft
+ 66114  itay               ?     ?    606M    604K     17M   ?     0.0       ?      00:02.78  splunkd
+ 94034  itay               ?     ?   1039M     15M     76M   ?     0.0       ?      00:00.37  Google
+   416  root               ?     ?    595M   1896K    240K   ?     0.0       ?      03:29.27  dbfseventsd
+   468  itay               ?     ?   2378M    632K    240K   ?     0.0       ?      00:00.00  awk
+   106  itay               ?     ?   2453M   1636K    560K   ?     0.0       ?      00:16.36  launchd
+ 20210  itay               ?     ?   2996M    198M     76M   ?     0.0       ?      01:06.58  Console
+ 31429  itay               ?     ?   1111M     60M     92M   ?     0.0       ?      03:38.82  Google
+  7730  itay               ?     ?    627M    832K    240K   ?     0.0       ?      00:10.83  fsnotifier
+    26  root               ?     ?   2456M   5700K   6888K   ?     0.0       ?      00:05.82  securityd
+    18  _mdnsresponder     ?     ?   2456M   3796K    328K   ?     0.0       ?      00:10.21  mDNSResponder
+     1  root               ?     ?   2453M   1676K    468K   ?     0.0       ?      04:22.42  launchd
+ 18745  itay               ?     ?   3076M    127M    101M   ?     0.0       ?      04:07.93  Sublime
+  1422  _locationd         ?     ?   2473M   5424K   8404K   ?     0.0       ?      00:08.54  locationd
+   209  root               ?     ?   2381M   3800K   3240K   ?     0.0       ?      00:03.04  httpd
+   467  itay               ?     ?   2378M    476K    240K   ?     0.0       ?      00:00.00  tee
+   216  root               ?     ?   2378M   1180K    248K   ?     0.0       ?      00:05.26  ntpd
+ 19748  itay               ?     ?   1010M     34M     33M   ?     0.0       ?      00:02.42  Alerts
+  7614  itay               ?     ?   3011M    226M     80M   ?     0.0       ?      05:56.74  Terminal
+   113  itay               ?     ?   2861M     48M     91M   ?     0.0       ?      03:11.94  Dock
+    43  root               ?     ?   2426M   1828K    300K   ?     0.0       ?      03:02.71  hidd
+ 42327  itay               ?     ?   1043M     41M     41M   ?     0.0       ?      01:41.83  Network
+ 19140  itay               ?     ?   1142M     58M     96M   ?     0.0       ?      01:27.03  Google
+  7410  itay               ?     ?   1164M     88M     55M   ?     0.0       ?      00:59.47  Skype
+ 47642  itay               ?     ?   2760M     16M     28M   ?     0.0       ?      00:57.27  Moom
+  7466  itay               ?     ?     13G     84M     62M   ?     0.0       ?      00:56.15  GitHub
+ 10341  itay               ?     ?   1099M     42M     89M   ?     0.0       ?      00:40.06  Google
+   114  itay               ?     ?   2976M     50M     81M   ?     0.0       ?      00:38.75  SystemUIServer
+    14  root               ?     ?   2477M   4284K   7140K   ?     0.0       ?      00:30.41  configd
+  1162  root               ?     ?   2455M     18M    552K   ?     0.0       ?      00:23.80  kextd
+ 19041  itay               ?     ?   1086M     34M     79M   ?     0.0       ?      00:18.80  Google
+   275  itay               ?     ?   2471M     11M     10M   ?     0.0       ?      00:16.40  AppleSpell
+ 46169  itay               ?     ?   1092M     41M     84M   ?     0.0       ?      00:14.56  Google
+ 52412  itay               ?     ?     11G     42M     49M   ?     0.0       ?      00:13.61  System
+    17  daemon             ?     ?   2450M   2268K    240K   ?     0.0       ?      00:12.86  distnoted
+   117  itay               ?     ?   2500M     12M   7756K   ?     0.0       ?      00:10.86  fontd
+ 32348  itay               ?     ?   1094M     37M     84M   ?     0.0       ?      00:09.84  Google
+    40  itay               ?     ?   2812M     11M     25M   ?     0.0       ?      00:09.34  loginwindow
+  3874  root               ?     ?   2380M   1432K   1324K   ?     0.0       ?      00:08.78  vmnet-natd
+    13  root               ?     ?   2450M   2260K    248K   ?     0.0       ?      00:07.34  diskarbitrationd
+   127  itay               ?     ?   2477M     13M     12M   ?     0.0       ?      00:05.33  UserEventAgent
+    15  root               ?     ?   2454M   1160K    248K   ?     0.0       ?      00:03.88  syslogd
+ 98749  itay               ?     ?   1100M     48M     89M   ?     0.0       ?      00:02.69  Google
+    16  root               ?     ?   2463M   5104K   6852K   ?     0.0       ?      00:02.67  blued
+ 91825  itay               ?     ?   1094M     38M     90M   ?     0.0       ?      00:02.09  Google
+   181  itay               ?     ?   2748M     11M     20M   ?     0.0       ?      00:01.84  TISwitcher
+ 88862  itay               ?     ?   1096M     42M     86M   ?     0.0       ?      00:01.62  Google
+ 91950  itay               ?     ?   1093M     38M     90M   ?     0.0       ?      00:01.32  Google
+ 19011  itay               ?     ?   1026M   9216K     67M   ?     0.0       ?      00:01.28  Google
+ 57631  root               ?     ?   2459M   2812K   6884K   ?     0.0       ?      00:01.24  taskgated
+ 66703  itay               ?     ?   2765M     15M     33M   ?     0.0       ?      00:01.08  TextEdit
+  7617  itay               ?     ?   2379M   2480K    824K   ?     0.0       ?      00:01.07  bash
+   135  itay               ?     ?   2743M   6732K     14M   ?     0.0       ?      00:01.03  AirPort
+ 83054  itay               ?     ?   1085M     33M     84M   ?     0.0       ?      00:00.95  Google
+  4044  itay               ?     ?    994M   6160K     26M   ?     0.0       ?      00:00.87  VMware
+    41  root               ?     ?   2403M   1140K    244K   ?     0.0       ?      00:00.84  KernelEventAgent
+   130  itay               ?     ?   2711M   3416K   1168K   ?     0.0       ?      00:00.68  ARDAgent
+   144  itay               ?     ?   2707M   4200K    304K   ?     0.0       ?      00:00.61  AppleVNCServer
+ 17872  itay               ?     ?    930M   2936K   1304K   ?     0.0       ?      00:00.60  Microsoft
+ 50255  itay               ?     ?   2381M   4520K    824K   ?     0.0       ?      00:00.57  bash
+  7414  itay               ?     ?   2719M   4528K     12M   ?     0.0       ?      00:00.42  VDCAssistant
+   614  itay               ?     ?   2428M   2456K    280K   ?     0.0       ?      00:00.41  ssh-agent
+    52  root               ?     ?   2403M   1124K    244K   ?     0.0       ?      00:00.41  autofsd
+ 95753  itay               ?     ?   2975M   9524K     15M   ?     0.0       ?      00:00.39  quicklookd
+  2664  _usbmuxd           ?     ?   2417M   1852K   1324K   ?     0.0       ?      00:00.39  usbmuxd
+  3864  root               ?     ?   2450M   2776K   1364K   ?     0.0       ?      00:00.31  vmnet-bridge
+ 53591  itay               ?     ?   2379M   2464K    824K   ?     0.0       ?      00:00.29  bash
+ 92488  itay               ?     ?   2379M   2392K    824K   ?     0.0       ?      00:00.21  bash
+ 63677  itay               ?     ?   2736M   7396K     12M   ?     0.0       ?      00:00.17  Image
+ 52415  root               ?     ?   2408M   3656K    348K   ?     0.0       ?      00:00.14  writeconfig
+ 99977  itay               ?     ?    660M   5660K     18M   ?     0.0       ?      00:00.09  mdworker32
+ 92513  itay               ?     ?   2382M   3840K   1340K   ?     0.0       ?      00:00.06  Python
+ 99904  _spotlight         ?     ?   2426M   3492K     10M   ?     0.0       ?      00:00.06  mdworker
+    82  root               ?     ?   2387M   1048K    288K   ?     0.0       ?      00:00.05  cvmsServ
+  3871  root               ?     ?   2380M    480K   1532K   ?     0.0       ?      00:00.03  vmnet-dhcpd
+  3867  root               ?     ?   2380M    312K   1532K   ?     0.0       ?      00:00.03  vmnet-dhcpd
+   118  itay               ?     ?   2379M    904K    256K   ?     0.0       ?      00:00.03  pboard
+ 50254  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.02  login
+ 99903  root               ?     ?   2420M   2700K    248K   ?     0.0       ?      00:00.01  cupsd
+  7616  root               ?     ?   2379M   1564K    312K   ?     0.0       ?      00:00.01  login
+ 92487  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.01  login
+ 53590  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.01  login
+    36  root               ?     ?   2398M   1816K    444K   ?     0.0       ?      00:00.01  RFBRegisterMDNS
+    46  root               ?     ?   2378M    816K    260K   ?     0.0       ?      00:00.00  dynamic_pager
+   449  itay               ?     ?   2378M    856K   1080K   ?     0.0       ?      00:00.00  bash
+   466  itay               ?     ?   2378M    508K   1080K   ?     0.0       ?      00:00.00  bash
+   213  _www               ?     ?   2381M    568K   3240K   ?     0.0       ?      00:00.00  httpd
+  3869  root               ?     ?   2380M    256K   1428K   ?     0.0       ?      00:00.00  vmnet-netifup
+  3876  root               ?     ?   2380M    256K   1428K   ?     0.0       ?      00:00.00  vmnet-netifup
+",0,"Octavian.local
+os",top,1310074203,"top usb_device_registration_Linux_syslog","Octavian.local",os,120,"__________________________________________________",top,top,"Octavian.local","Linux
+USB
+device
+os
+process
+registration
+report
+success
+syslog
+top",none
+"28:138067",1310074173,1,"   PID  USER              PR    NI    VIRT     RES     SHR   S  pctCPU  pctMEM       cpuTIME  COMMAND
+   369  root               ?     ?   2378M   1568K    244K   ?     7.3       ?      00:00.15  top
+    95  _coreaudiod        ?     ?   2462M     12M    952K   ?     5.4       ?      88:46.09  coreaudiod
+  7722  itay               ?     ?   4506M    608M     99M   ?     3.9       ?      75:01.67  pycharm
+     0  root               ?     ?   6166M   1050M      0B   ?     2.0       ?      60:55.68  kernel_task
+ 85960  root               ?     ?   2390M   2600K    244K   ?     1.7       ?      04:42.54  activitymonitord
+ 10345  itay               ?     ?   1222M     75M    100M   ?     1.4       ?      38:39.01  Google
+ 94032  itay               ?     ?   1100M     43M     88M   ?     1.3       ?      00:27.17  Google
+ 85958  itay               ?     ?   2873M     26M     91M   ?     1.3       ?      03:44.39  Activity
+ 19720  itay               ?     ?   1219M    141M    102M   ?     0.9       ?      10:56.41  Microsoft
+  8359  itay               ?     ?   2442M     11M   1524K   ?     0.7       ?      08:34.21  Python
+ 52541  itay               ?     ?   1272M    134M    109M   ?     0.5       ?      11:44.69  Google
+ 66199  itay               ?     ?    715M     54M   3168K   ?     0.3       ?      01:22.68  python2.6
+    76  _windowserver      ?     ?   3323M    247M     69M   ?     0.3       ?      25:14.69  WindowServer
+ 10291  itay               ?     ?   1420M    154M    139M   ?     0.2       ?      22:04.02  Google
+ 19144  itay               ?     ?   1139M     64M    104M   ?     0.2       ?      05:52.91  Google
+ 66113  itay               ?     ?    740M     62M     17M   ?     0.2       ?      01:41.76  splunkd
+ 10365  itay               ?     ?   1286M    103M    115M   ?     0.1       ?      08:52.76  Google
+   330  itay               ?     ?   1162M     56M     74M   ?     0.1       ?      15:55.09  Adium
+    39  root               ?     ?   2718M    138M     17M   ?     0.1       ?      21:15.77  mds
+    25  root               ?     ?   2535M     52M     49M   ?     0.1       ?      01:28.15  coreservicesd
+ 47642  itay               ?     ?   2760M     16M     28M   ?     0.1       ?      00:57.11  Moom
+  1418  itay               ?     ?   4857M     26M     30M   ?     0.1       ?      03:04.56  Flux
+    11  root               ?     ?   2456M   6448K   1068K   ?     0.0       ?      00:27.34  DirectoryService
+   290  itay               ?     ?   1094M     45M     89M   ?     0.0       ?      00:00.71  Google
+  7423  itay               ?     ?    978M     18M     16M   ?     0.0       ?      00:53.75  VMware
+ 47643  itay               ?     ?   2476M     26M     14M   ?     0.0       ?      06:17.03  mdworker
+   375  itay               ?     ?   1133M    112M     50M   ?     0.0       ?      29:11.70  Dropbox
+   115  itay               ?     ?   3033M    127M     87M   ?     0.0       ?      05:18.20  Finder
+ 66114  itay               ?     ?    606M    604K     17M   ?     0.0       ?      00:02.77  splunkd
+    12  root               ?     ?   2441M    860K    244K   ?     0.0       ?      00:12.83  notifyd
+   368  itay               ?     ?   2378M    632K    240K   ?     0.0       ?      00:00.00  awk
+ 20210  itay               ?     ?   2996M    198M     76M   ?     0.0       ?      01:06.58  Console
+    44  root               ?     ?   2452M   6352K    244K   ?     0.0       ?      01:16.90  fseventsd
+   106  itay               ?     ?   2453M   1636K    560K   ?     0.0       ?      00:16.35  launchd
+ 17869  itay               ?     ?   1003M     39M     31M   ?     0.0       ?      01:54.05  Microsoft
+ 94034  itay               ?     ?   1039M     15M     76M   ?     0.0       ?      00:00.36  Google
+   416  root               ?     ?    595M   1896K    240K   ?     0.0       ?      03:29.25  dbfseventsd
+ 18745  itay               ?     ?   3076M    127M    101M   ?     0.0       ?      04:07.93  Sublime
+ 31429  itay               ?     ?   1111M     60M     92M   ?     0.0       ?      03:38.81  Google
+  1422  _locationd         ?     ?   2473M   5424K   8404K   ?     0.0       ?      00:08.54  locationd
+   275  itay               ?     ?   2471M     11M     10M   ?     0.0       ?      00:16.40  AppleSpell
+  7730  itay               ?     ?    627M    832K    240K   ?     0.0       ?      00:10.83  fsnotifier
+    26  root               ?     ?   2456M   5700K   6888K   ?     0.0       ?      00:05.82  securityd
+    18  _mdnsresponder     ?     ?   2456M   3808K    328K   ?     0.0       ?      00:10.20  mDNSResponder
+     1  root               ?     ?   2453M   1676K    468K   ?     0.0       ?      04:22.36  launchd
+   367  itay               ?     ?   2378M    476K    240K   ?     0.0       ?      00:00.00  tee
+   209  root               ?     ?   2381M   3800K   3240K   ?     0.0       ?      00:03.03  httpd
+   216  root               ?     ?   2378M   1180K    248K   ?     0.0       ?      00:05.26  ntpd
+ 19748  itay               ?     ?   1010M     34M     33M   ?     0.0       ?      00:02.42  Alerts
+  7614  itay               ?     ?   3011M    226M     80M   ?     0.0       ?      05:56.74  Terminal
+   113  itay               ?     ?   2861M     48M     91M   ?     0.0       ?      03:11.89  Dock
+    43  root               ?     ?   2426M   1828K    300K   ?     0.0       ?      03:02.71  hidd
+ 42327  itay               ?     ?   1043M     41M     41M   ?     0.0       ?      01:41.83  Network
+ 19140  itay               ?     ?   1142M     58M     96M   ?     0.0       ?      01:27.03  Google
+  7410  itay               ?     ?   1164M     88M     55M   ?     0.0       ?      00:59.46  Skype
+  7466  itay               ?     ?     13G     84M     62M   ?     0.0       ?      00:56.14  GitHub
+ 10341  itay               ?     ?   1099M     42M     89M   ?     0.0       ?      00:40.06  Google
+   114  itay               ?     ?   2975M     50M     81M   ?     0.0       ?      00:38.74  SystemUIServer
+    14  root               ?     ?   2477M   4284K   7140K   ?     0.0       ?      00:30.41  configd
+  1162  root               ?     ?   2455M     18M    552K   ?     0.0       ?      00:23.80  kextd
+ 19041  itay               ?     ?   1086M     34M     79M   ?     0.0       ?      00:18.79  Google
+ 46169  itay               ?     ?   1092M     41M     84M   ?     0.0       ?      00:14.56  Google
+ 52412  itay               ?     ?     11G     42M     49M   ?     0.0       ?      00:13.61  System
+    17  daemon             ?     ?   2450M   2268K    240K   ?     0.0       ?      00:12.86  distnoted
+   117  itay               ?     ?   2500M     12M   7756K   ?     0.0       ?      00:10.86  fontd
+ 32348  itay               ?     ?   1094M     37M     84M   ?     0.0       ?      00:09.84  Google
+    40  itay               ?     ?   2812M     11M     25M   ?     0.0       ?      00:09.34  loginwindow
+  3874  root               ?     ?   2380M   1432K   1324K   ?     0.0       ?      00:08.78  vmnet-natd
+    13  root               ?     ?   2450M   2260K    248K   ?     0.0       ?      00:07.34  diskarbitrationd
+   127  itay               ?     ?   2477M     13M     12M   ?     0.0       ?      00:05.33  UserEventAgent
+    15  root               ?     ?   2454M   1160K    248K   ?     0.0       ?      00:03.88  syslogd
+ 98749  itay               ?     ?   1101M     48M     89M   ?     0.0       ?      00:02.69  Google
+    16  root               ?     ?   2463M   5116K   6852K   ?     0.0       ?      00:02.67  blued
+ 91825  itay               ?     ?   1094M     38M     90M   ?     0.0       ?      00:02.09  Google
+   181  itay               ?     ?   2748M     11M     20M   ?     0.0       ?      00:01.84  TISwitcher
+ 88862  itay               ?     ?   1096M     42M     86M   ?     0.0       ?      00:01.61  Google
+ 91950  itay               ?     ?   1093M     38M     90M   ?     0.0       ?      00:01.32  Google
+ 19011  itay               ?     ?   1026M   9216K     67M   ?     0.0       ?      00:01.28  Google
+ 57631  root               ?     ?   2459M   2812K   6884K   ?     0.0       ?      00:01.24  taskgated
+ 66703  itay               ?     ?   2765M     15M     33M   ?     0.0       ?      00:01.08  TextEdit
+  7617  itay               ?     ?   2379M   2480K    824K   ?     0.0       ?      00:01.07  bash
+   135  itay               ?     ?   2743M   6732K     14M   ?     0.0       ?      00:01.03  AirPort
+ 83054  itay               ?     ?   1086M     33M     84M   ?     0.0       ?      00:00.95  Google
+  4044  itay               ?     ?    994M   6160K     26M   ?     0.0       ?      00:00.87  VMware
+    41  root               ?     ?   2403M   1140K    244K   ?     0.0       ?      00:00.84  KernelEventAgent
+   130  itay               ?     ?   2711M   3416K   1168K   ?     0.0       ?      00:00.68  ARDAgent
+   144  itay               ?     ?   2707M   4200K    304K   ?     0.0       ?      00:00.61  AppleVNCServer
+ 17872  itay               ?     ?    930M   2936K   1304K   ?     0.0       ?      00:00.60  Microsoft
+ 50255  itay               ?     ?   2381M   4520K    824K   ?     0.0       ?      00:00.57  bash
+  7414  itay               ?     ?   2719M   4528K     12M   ?     0.0       ?      00:00.42  VDCAssistant
+   614  itay               ?     ?   2428M   2456K    280K   ?     0.0       ?      00:00.41  ssh-agent
+    52  root               ?     ?   2403M   1124K    244K   ?     0.0       ?      00:00.41  autofsd
+ 95753  itay               ?     ?   2975M   9524K     15M   ?     0.0       ?      00:00.39  quicklookd
+  2664  _usbmuxd           ?     ?   2417M   1852K   1324K   ?     0.0       ?      00:00.39  usbmuxd
+  3864  root               ?     ?   2450M   2776K   1364K   ?     0.0       ?      00:00.31  vmnet-bridge
+ 53591  itay               ?     ?   2379M   2464K    824K   ?     0.0       ?      00:00.29  bash
+ 92488  itay               ?     ?   2379M   2392K    824K   ?     0.0       ?      00:00.21  bash
+ 63677  itay               ?     ?   2736M   7396K     12M   ?     0.0       ?      00:00.17  Image
+ 52415  root               ?     ?   2408M   3656K    348K   ?     0.0       ?      00:00.14  writeconfig
+ 99977  itay               ?     ?    651M   5532K     18M   ?     0.0       ?      00:00.09  mdworker32
+ 92513  itay               ?     ?   2382M   3840K   1340K   ?     0.0       ?      00:00.06  Python
+ 99904  _spotlight         ?     ?   2425M   3480K     10M   ?     0.0       ?      00:00.06  mdworker
+    82  root               ?     ?   2387M   1048K    288K   ?     0.0       ?      00:00.05  cvmsServ
+  3871  root               ?     ?   2380M    480K   1532K   ?     0.0       ?      00:00.03  vmnet-dhcpd
+  3867  root               ?     ?   2380M    312K   1532K   ?     0.0       ?      00:00.03  vmnet-dhcpd
+   118  itay               ?     ?   2379M    904K    256K   ?     0.0       ?      00:00.03  pboard
+ 50254  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.02  login
+ 99903  root               ?     ?   2419M   2688K    248K   ?     0.0       ?      00:00.01  cupsd
+  7616  root               ?     ?   2379M   1564K    312K   ?     0.0       ?      00:00.01  login
+ 92487  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.01  login
+ 53590  root               ?     ?   2379M   1640K    312K   ?     0.0       ?      00:00.01  login
+    36  root               ?     ?   2398M   1816K    444K   ?     0.0       ?      00:00.01  RFBRegisterMDNS
+    46  root               ?     ?   2378M    816K    260K   ?     0.0       ?      00:00.00  dynamic_pager
+   350  itay               ?     ?   2378M    856K   1080K   ?     0.0       ?      00:00.00  bash
+   366  itay               ?     ?   2378M    508K   1080K   ?     0.0       ?      00:00.00  bash
+   213  _www               ?     ?   2381M    568K   3240K   ?     0.0       ?      00:00.00  httpd
+  3869  root               ?     ?   2380M    256K   1428K   ?     0.0       ?      00:00.00  vmnet-netifup
+  3876  root               ?     ?   2380M    256K   1428K   ?     0.0       ?      00:00.00  vmnet-netifup
+",1,"Octavian.local
+os",top,1310074173,"top usb_device_registration_Linux_syslog","Octavian.local",os,120,"__________________________________________________",top,top,"Octavian.local","Linux
+USB
+device
+os
+process
+registration
+report
+success
+syslog
+top",none

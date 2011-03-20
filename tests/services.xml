@@ -1,0 +1,111 @@
+<ns0:feed xmlns:ns0="http://www.w3.org/2005/Atom">
+  <ns0:title>services</ns0:title>
+  <ns0:id>https://localhost/services/</ns0:id>
+  <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+  <ns0:generator version="101089" />
+  <ns0:author>
+    <ns0:name>Splunk</ns0:name>
+  </ns0:author>
+  <ns0:entry>
+    <ns0:title>alerts</ns0:title>
+    <ns0:id>https://localhost/services/alerts</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/alerts" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>apps</ns0:title>
+    <ns0:id>https://localhost/services/apps</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/apps" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>authentication</ns0:title>
+    <ns0:id>https://localhost/services/authentication</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/authentication" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>authorization</ns0:title>
+    <ns0:id>https://localhost/services/authorization</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/authorization" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>data</ns0:title>
+    <ns0:id>https://localhost/services/data</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/data" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>deployment</ns0:title>
+    <ns0:id>https://localhost/services/deployment</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/deployment" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>licenser</ns0:title>
+    <ns0:id>https://localhost/services/licenser</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/licenser" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>messages</ns0:title>
+    <ns0:id>https://localhost/services/messages</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/messages" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>configs</ns0:title>
+    <ns0:id>https://localhost/services/configs</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/configs" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>saved</ns0:title>
+    <ns0:id>https://localhost/services/saved</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/saved" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>scheduled</ns0:title>
+    <ns0:id>https://localhost/services/scheduled</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/scheduled" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>search</ns0:title>
+    <ns0:id>https://localhost/services/search</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/search" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>server</ns0:title>
+    <ns0:id>https://localhost/services/server</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/server" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>streams</ns0:title>
+    <ns0:id>https://localhost/services/streams</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/streams" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>broker</ns0:title>
+    <ns0:id>https://localhost/services/broker</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/broker" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>clustering</ns0:title>
+    <ns0:id>https://localhost/services/clustering</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/clustering" rel="alternate" />
+  </ns0:entry>
+  <ns0:entry>
+    <ns0:title>masterlm</ns0:title>
+    <ns0:id>https://localhost/services/masterlm</ns0:id>
+    <ns0:updated>2011-07-01T16:52:51-07:00</ns0:updated>
+    <ns0:link href="/services/masterlm" rel="alternate" />
+  </ns0:entry>
+</ns0:feed>

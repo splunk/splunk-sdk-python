@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Top Sources
+../search.py "search index=twitter status_source=* | stats count(status_source) as count by status_source | sort -count | head 20" $*

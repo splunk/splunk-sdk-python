@@ -1,0 +1,13 @@
+*.pyc
+*.swp
+*.idea
+*.DS_Store*
+*coverage_html_report*
+.coverage.*
+proxypid
+proxy.log
+__stdout__
+.coverage
+MANIFEST
+build/*
+dist/*

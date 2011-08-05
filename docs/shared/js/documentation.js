@@ -11,6 +11,11 @@ $(function() {
     if(docUrl){
       $('#js-sidebar .js-topic a').each(function(){
         var url = $(this).attr('href').toString()
+        console.log(url.indexOf(docUrl[1]))
+        console.log(url)
+        console.log(url.length)
+        console.log(docUrl[1])
+        console.log(docUrl[1].length)
         if(url.indexOf(docUrl[1]) >= 0 && url.length == docUrl[1].length){
           $(this).parent('li').addClass('disable')
           var parentTopic = $(this).parentsUntil('div.sidebar-module > ul').last()

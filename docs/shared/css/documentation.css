@@ -372,20 +372,6 @@ div.sidebar-module ul ul li span {
   margin:3px 0 0 0;
   font-size:14px;
 }
-#footer p.rackspace {
-  margin:0;
-  width:230px;
-  padding:10px 10px 10px 56px;
-  font-size:12px;
-  color:#666;
-  background:url(../images/rackspace_logo.png) 10px 50% no-repeat #f1f1f1;
-  -webkit-border-radius:5px;
-  -moz-border-radius:5px;
-}
-#footer p.rackspace a {
-  text-decoration:underline;
-  color:#333;
-}
 
 #footer h2.logo a {
   background:url(http://dev.splunk.com/themes/devtheme/img/logo.png) no-repeat;
@@ -692,7 +678,7 @@ span.bash-output {
   position: relative;
 }
 .more-info > h4 {
-  background-image: url('../images/dropdown_sprites.jpg');
+  background-image: url(../images/dropdown_sprites.jpg);
   background-repeat: no-repeat;
   padding: .25em 0 .25em 25px;
   cursor: pointer;
@@ -786,7 +772,7 @@ span.bash-output {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: transparent url(images/popular_guide_sprites.png) 0 0 no-repeat;
+  background: transparent url(../images/popular_guide_sprites.png) 0 0 no-repeat;
 }
 
 .list-module a {
@@ -863,7 +849,7 @@ div.expandable > ul h3 > a:hover {
 
 div.expandable > ul h3 > a.collapsed,
 div.expandable > ul h3 > a.expanded {
-  background-image: url(/shared/images/expand-arrows.png);
+  background-image: url(../images/expand-arrows.png);
   background-position: 0px -3px;
   background-repeat: no-repeat;
   width: 13px;
@@ -876,7 +862,7 @@ div.expandable > ul h3 > a.expanded {
 }
 
 div.expandable > ul h3 > a.collapsed:hover {
-  background-image: url(/shared/images/expand-arrows.png);
+  background-image: url(../images/expand-arrows.png);
   background-position: 0px -43px;
   background-repeat: no-repeat;
   width: 13px;

@@ -863,7 +863,7 @@ div.expandable > ul h3 > a:hover {
 
 div.expandable > ul h3 > a.collapsed,
 div.expandable > ul h3 > a.expanded {
-  background-image: url(../shared/images/expand-arrows.png);
+  background-image: url(../images/expand-arrows.png);
   background-position: 0px -3px;
   background-repeat: no-repeat;
   width: 13px;
@@ -876,7 +876,7 @@ div.expandable > ul h3 > a.expanded {
 }
 
 div.expandable > ul h3 > a.collapsed:hover {
-  background-image: url(../shared/images/expand-arrows.png);
+  background-image: url(../images/expand-arrows.png);
   background-position: 0px -43px;
   background-repeat: no-repeat;
   width: 13px;

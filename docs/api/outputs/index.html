@@ -1,0 +1,2462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="imagetoolbar" content="false" />
+  <meta name="MSSmartTagsPreventParsing" content="true" />
+  <title>Outputs</title>
+  <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+  <link href="/css/960.css" rel="stylesheet" type="text/css" />
+  <link href="/css/uv_active4d.css" rel="stylesheet" type="text/css" />
+  <link href="/shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css">
+  <link href="/shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="/shared/js/jquery.js" type="text/javascript"></script>
+  <script src="/shared/js/documentation.js" type="text/javascript"></script>
+</head>
+<body class="api">
+  <div id="not-footer">
+
+    <div id="header-wrapper">
+      <div id="header">
+        <div>
+          <a class="logo" href="/"><img src="http://dev.splunk.com/themes/devtheme/img/logo.png"/></a>
+        </div>
+      </div><!-- #header -->
+    </div><!-- #header-wrapper -->
+
+    <div id="wrapper">
+      <div class="content">
+    <h1 id="outputs-apis">Outputs APIs</h1>
+
+<h2 name="dataoutputstcpdefault" id="dataoutputstcpdefault">data/outputs/tcp/default</h2>
+
+<p>Returns the current tcpout properties.</p>
+
+<pre><code>[GET] data/outputs/tcp/default
+</code></pre>
+
+<h3 id="parameters">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view outputs.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example">Example</h3>
+
+<p>Retrieves the default TCP output settings.</p>
+
+<h4 id="request">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/default
+</pre>
+<p></p>
+
+<h4 id="response">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-default<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/default<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:38:23-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>tcpout<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/default/tcpout<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-10T22:38:23-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/default/tcpout/disable</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">disable</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">autoLB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">defaultGroup</span><span class="dl">"</span></span><span class="ta">&gt;</span>spacecake_9998<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">forwardedindex.0.whitelist</span><span class="dl">"</span></span><span class="ta">&gt;</span>.*<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">forwardedindex.1.blacklist</span><span class="dl">"</span></span><span class="ta">&gt;</span>_.*<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">forwardedindex.2.whitelist</span><span class="dl">"</span></span><span class="ta">&gt;</span>_audit<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">forwardedindex.filter.disable</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">indexAndForward</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxQueueSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>500KB<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpdefault" id="dataoutputstcpdefault-1">data/outputs/tcp/default</h2>
+
+<p>Configures global tcpout properties.</p>
+
+<pre><code>[POST] data/outputs/tcp/default
+</code></pre>
+
+<h3 id="parameters-1">Parameters</h3>
+
+<dl>
+<dt>blockOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If disabled, data destined for forwarders will be thrown away if no forwarders in the group are reachable.</dd>
+  <dt>defaultGroup</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Comma-separated list of one or more target group names, specified later in [tcpout:<target_group>] stanzas of outputs.conf.spec file.<br><br>The forwarder sends all data to the specified groups. If you don't want to forward data automatically, don't set this attribute. Can be overridden by an inputs.conf _TCP_ROUTING setting, which in turn can be overridden by a props.conf/transforms.conf modifier.<br><br>Starting with 4.2, this attribute is no longer required.</target_group>
+</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Disables default tcpout settings</dd>
+  <dt>dropEventsOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If set to a positive number, wait the specified number of seconds before throwing out all new events until the output queue has space. Defaults to -1 (do not drop events).<br><br>CAUTION: Do not set this value to a positive integer if you are monitoring files.<br><br>Setting this to -1 or 0 causes the output queue to block when it gets full, whih causes further blocking up the processing chain. If any target group’s queue is blocked, no more data reaches any other target group.<br><br>Using auto load-balancing is the best way to minimize this condition, because, in that case, multiple receivers must be down (or jammed up) before queue blocking can occur.</dd>
+  <dt>heartbeatFrequency</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> How often (in seconds) to send a heartbeat packet to the receiving server.<br><br>Heartbeats are only sent if sendCookedData=true. Defaults to 30 seconds.</dd>
+  <dt>indexAndForward</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specifies whether to index all data locally, in addition to forwarding it. Defaults to false.<br><br>This is known as an “index-and-forward” configuration. This attribute is only available for heavy forwarders. It is available only at the top level [tcpout] stanza in outputs.conf. It cannot be overridden in a target group.</dd>
+  <dt>maxQueueSize</dt>
+  <dd>
+    <table><tbody><tr>
+<td>
+<em>Required</em> <strong>string</strong> Specify an integer or integer[KB</td>
+          <td>MB</td>
+          <td>GB].<br><br>Sets the maximum size of the forwarder’s output queue. It also sets the maximum size of the wait queue to 3x this value, if you have enabled indexer acknowledgment (useACK=true).<br><br>Although the wait queue and the output queues are both configured by this attribute, they are separate queues. The setting determines the maximum size of the queue’s in-memory (RAM) buffer.<br><br>For heavy forwarders sending parsed data, maxQueueSize is the maximum number of events. Since events are typically much shorter than data blocks, the memory consumed by the queue on a parsing forwarder will likely be much smaller than on a non-parsing forwarder, if you use this version of the setting.<br><br>If specified as a lone integer (for example, maxQueueSize=100), maxQueueSize indicates the maximum number of queued events (for parsed data) or blocks of data (for unparsed data). A block of data is approximately 64KB. For non-parsing forwarders, such as universal forwarders, that send unparsed data, maxQueueSize is the maximum number of data blocks.<br><br>If specified as an integer followed by KB, MB, or GB (for example, maxQueueSize=100MB), maxQueueSize indicates the maximum RAM allocated to the queue buffer. Defaults to 500KB (which means a maximum size of 500KB for the output queue and 1500KB for the wait queue, if any).</td>
+        </tr></tbody></table>
+</dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Configuration to be edited.  The only valid value is “tcpout”.</dd>
+  <dt>sendCookedData</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, events are cooked (have been processed by Splunk). If false, events are raw and untouched prior to sending. Defaults to true.<br><br>Set to false if you are sending to a third-party system.</dd>
+</dl><h3 id="status-codes-1">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to create output.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+</table><h3 id="example-1">Example</h3>
+
+<p>Can be used to edit default forwarding settings just as with POSTing to data/outputs/tcp/default/{name}.  Note that this action does not create a new entry, and that “tcpout” is the only valid name to specify here.</p>
+
+<h4 id="request-1">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/default/tcpout \
+	-d 'defaultGroup=west_coast_indexers'
+</pre>
+<p></p>
+
+<h4 id="response-1">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"></code></pre>
+
+<h2 name="dataoutputstcpdefaultname" id="dataoutputstcpdefaultname">data/outputs/tcp/default/{name}</h2>
+
+<p>Disable the default forwarding settings.</p>
+
+<pre><code>[DELETE] data/outputs/tcp/default/{name}
+</code></pre>
+
+<h3 id="parameters-2">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-2">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarding settings do not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to disable forwarding settings.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-2">Example</h3>
+
+<p>Disables the default forwarding settings stanza.  Note that “tcpout” is the only valid name here.</p>
+
+<h4 id="request-2">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/default/tcpout
+</pre>
+<p></p>
+
+<h4 id="response-2">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-default<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8085/services/data/outputs/tcp/default<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-19T20:09:02-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpdefaultname" id="dataoutputstcpdefaultname-1">data/outputs/tcp/default/{name}</h2>
+
+<p>Retrieve the named configuration.  The only valid name here is “tcpout”.</p>
+
+<pre><code>[GET] data/outputs/tcp/default/{name}
+</code></pre>
+
+<h3 id="parameters-3">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-3">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarding settings do not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view forwaring settings.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-3">Example</h3>
+
+<p>Retrieves the default forwarding settings.  This is identical to retrieving data/outputs/tcp/default.  Note that “tcpout” is the only valid name to retrieve at this endpoint.</p>
+
+<h4 id="request-3">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/default/tcpout
+</pre>
+<p></p>
+
+<h4 id="response-3">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"></code></pre>
+
+<h2 name="dataoutputstcpdefaultname" id="dataoutputstcpdefaultname-2">data/outputs/tcp/default/{name}</h2>
+
+<p>Configure global forwarding properties.</p>
+
+<pre><code>[POST] data/outputs/tcp/default/{name}
+</code></pre>
+
+<h3 id="parameters-4">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>blockOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>defaultGroup</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>dropEventsOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>heartbeatFrequency</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>indexAndForward</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxQueueSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sendCookedData</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-4">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarding settings do not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit forwarding settings.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-4">Example</h3>
+
+<p>Increases the default heartbeat frequency to 60 seconds.  Note that “tcpout” is the only valid name to edit at this endpoint.</p>
+
+<h4 id="request-4">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/default/tcpout \
+	-d heartbeatFrequency=60
+</pre>
+<p></p>
+
+<h4 id="response-4">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-default<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/default<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:43:53-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/default/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpgroup" id="dataoutputstcpgroup">data/outputs/tcp/group</h2>
+
+<p>Returns configuration information about target groups. </p>
+
+<pre><code>[GET] data/outputs/tcp/group
+</code></pre>
+
+<h3 id="parameters-5">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-5">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-5">Example</h3>
+
+<p>Display the list of output groups configured to send data via Splunk’s cooked format.</p>
+
+<h4 id="request-5">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/group
+</pre>
+<p></p>
+
+<h4 id="response-5">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-group<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/group<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:21:07-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>spacecake_9998<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-10T22:21:07-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/spacecake_9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">method</span><span class="dl">"</span></span><span class="ta">&gt;</span>autobalance<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">servers</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>spacecake:9998<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpgroup" id="dataoutputstcpgroup-1">data/outputs/tcp/group</h2>
+
+<p>Configures a group of one or more data forwarding destinations.</p>
+
+<pre><code>[POST] data/outputs/tcp/group
+</code></pre>
+
+<h3 id="parameters-6">Parameters</h3>
+
+<dl>
+<dt>autoLB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If set to true, forwarder performs automatic load balancing. In automatic mode, the forwarder selects a new indexer every autoLBFrequency seconds. If the connection to the current indexer is lost, the forwarder selects a new live indexer to forward data to.<br><br>Do not alter the default setting, unless you have some overriding need to use round-robin load balancing. Round-robin load balancing (autoLB=false) was previously the default load balancing method. Starting with release 4.2, however, round-robin load balancing has been deprecated, and the default has been changed to automatic load balancing (autoLB=true).</dd>
+  <dt>blockOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If disabled, data destined for forwarders will be thrown away if no forwarders in the group are reachable.</dd>
+  <dt>compressed</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, forwarder sends compressed data.<br><br>If set to true, the receiver port must also have compression turned on.</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, disables the group.</dd>
+  <dt>dropEventsOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If set to a positive number, wait the specified number of seconds before throwing out all new events until the output queue has space. Defaults to -1 (do not drop events).<br><br>CAUTION: Do not set this value to a positive integer if you are monitoring files.<br><br>Setting this to -1 or 0 causes the output queue to block when it gets full, which causes further blocking up the processing chain. If any target group’s queue is blocked, no more data reaches any other target group.<br><br>Using auto load-balancing is the best way to minimize this condition, because, in that case, multiple receivers must be down (or jammed up) before queue blocking can occur.</dd>
+  <dt>heartbeatFrequency</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> How often (in seconds) to send a heartbeat packet to the group.<br><br>Heartbeats are only sent if sendCookedData=true. Defaults to 30 seconds.</dd>
+  <dt>maxQueueSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specify either an integer or integer[KB|MB|GB].<br><br>Sets the maximum size of the forwarder’s output queue. It also sets the maximum size of the wait queue to 3x this value, if you have enabled indexer acknowledgment (useACK=true).<br><br>Although the wait queue and the output queues are both configured by this attribute, they are separate queues. The setting determines the maximum size of the queue’s in-memory (RAM) buffer.<br><br>For heavy forwarders sending parsed data, maxQueueSize is the maximum number of events. Since events are typically much shorter than data blocks, the memory consumed by the queue on a parsing forwarder will likely be much smaller than on a non-parsing forwarder, if you use this version of the setting.<br><br>If specified as a lone integer (for example, maxQueueSize=100), maxQueueSize indicates the maximum number of queued events (for parsed data) or blocks of data (for unparsed data). A block of data is approximately 64KB. For non-parsing forwarders, such as universal forwarders, that send unparsed data, maxQueueSize is the maximum number of data blocks.<br><br>If specified as an integer followed by KB, MB, or GB (for example, maxQueueSize=100MB), maxQueueSize indicates the maximum RAM allocated to the queue buffer. Defaults to 500KB (which means a maximum size of 500KB for the output queue and 1500KB for the wait queue, if any).</dd>
+  <dt>method</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Valid values: (tcpout | syslog | httpout)<br><br>Specifies the type of output processor.</dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The name of the group of receivers.</dd>
+  <dt>sendCookedData</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, send cooked events (events that have been processed by Splunk).<br><br>If false, events are raw and untouched prior to sending. Set to false if you are sending to a third-party system.<br><br>Defaults to true.</dd>
+  <dt>servers</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Comma-separated list of servers to include in the group.</dd>
+</dl><h3 id="status-codes-6">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to create group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-6">Example</h3>
+
+<p>Creates an auto-load balanced forwarding configuration consisting of two Splunk receivers.</p>
+
+<h4 id="request-6">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/group \
+	-d name=lan_receivers \
+	-d method=autobalance \
+	-d servers=10.3.3.3:9997,10.4.4.4:9997
+</pre>
+<p></p>
+
+<h4 id="response-6">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-group<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/group<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:21:23-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpgroupname" id="dataoutputstcpgroupname">data/outputs/tcp/group/{name}</h2>
+
+<p>Deletes the target group specified by {name}.</p>
+
+<pre><code>[DELETE] data/outputs/tcp/group/{name}
+</code></pre>
+
+<h3 id="parameters-7">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-7">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Group does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to delete group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-7">Example</h3>
+
+<p>Removes the lan_receivers forwarding configuration.</p>
+
+<h4 id="request-7">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/group/lan_receivers
+</pre>
+<p></p>
+
+<h4 id="response-7">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-group<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/group<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:32:47-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpgroupname" id="dataoutputstcpgroupname-1">data/outputs/tcp/group/{name}</h2>
+
+<p>Returns configuration information about the target group specified by {name}.</p>
+
+<pre><code>[GET] data/outputs/tcp/group/{name}
+</code></pre>
+
+<h3 id="parameters-8">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-8">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Group does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-8">Example</h3>
+
+<p>Displays the configuration for the newly created forwarder configuration.</p>
+
+<h4 id="request-8">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/group/lan_receivers
+</pre>
+<p></p>
+
+<h4 id="response-8">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-group<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/group<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:23:10-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>lan_receivers<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-10T22:23:10-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/group/lan_receivers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">autoLB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>autoLB<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>blockOnQueueFull<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>compressed<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>disabled<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>dropEventsOnQueueFull<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>heartbeatFrequency<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxPersistentQueueSizeInMegs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxQueueSize<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>method<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>persistentQueuePath<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sendCookedData<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>usePersistentQueue<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>servers<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">method</span><span class="dl">"</span></span><span class="ta">&gt;</span>autobalance<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">servers</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>10.3.3.3:9997<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>10.4.4.4:9997<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpgroupname" id="dataoutputstcpgroupname-2">data/outputs/tcp/group/{name}</h2>
+
+<p>Updates the configuration of the target group.</p>
+
+<pre><code>[POST] data/outputs/tcp/group/{name}
+</code></pre>
+
+<h3 id="parameters-9">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>autoLB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>blockOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>compressed</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>dropEventsOnQueueFull</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>heartbeatFrequency</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxQueueSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>method</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sendCookedData</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>servers</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-9">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Group does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-9">Example</h3>
+
+<p>Sets the memory buffer for the new forwarding group to 1 megabyte.  Note that the servers must be re-specified in this edit.</p>
+
+<h4 id="request-9">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/group/lan_receivers \
+	-d maxQueueSize=1024KB \
+	-d servers=10.3.3.3:9997,10.4.4.4:9997
+</pre>
+<p></p>
+
+<h4 id="response-9">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-group<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/group<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T22:26:02-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/group/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpserver" id="dataoutputstcpserver">data/outputs/tcp/server</h2>
+
+<p>Lists existing forwarded servers.</p>
+
+<pre><code>[GET] data/outputs/tcp/server
+</code></pre>
+
+<h3 id="parameters-10">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-10">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view forwarded servers.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-10">Example</h3>
+
+<p>Retrieves the list of forwarding targets that have been defined.</p>
+
+<h4 id="request-10">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server
+</pre>
+<p></p>
+
+<h4 id="response-10">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T21:34:59-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>spacecake:9998<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-10T21:34:59-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998/allconnections</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">allconnections</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/spacecake%3A9998/disable</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">disable</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destHost</span><span class="dl">"</span></span><span class="ta">&gt;</span>spacecake.splunk.com<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destIp</span><span class="dl">"</span></span><span class="ta">&gt;</span>10.1.1.73<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destPort</span><span class="dl">"</span></span><span class="ta">&gt;</span>9998<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">method</span><span class="dl">"</span></span><span class="ta">&gt;</span>autobalance<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sourcePort</span><span class="dl">"</span></span><span class="ta">&gt;</span>8085<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">status</span><span class="dl">"</span></span><span class="ta">&gt;</span>connect_fail<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpserver" id="dataoutputstcpserver-1">data/outputs/tcp/server</h2>
+
+<p>Creates a new forwarder output.</p>
+
+<pre><code>[POST] data/outputs/tcp/server
+</code></pre>
+
+<h3 id="parameters-11">Parameters</h3>
+
+<dl>
+<dt>backoffAtStartup</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Sets in seconds how long to wait to retry the first time a retry is needed. Compare to initialBackoff.</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, disables the forwarder.</dd>
+  <dt>initialBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Sets how long, in seconds, to wait to retry every time after the first retry. Compare to backoffAtStartup.</dd>
+  <dt>maxBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specifies the number of times in seconds before reaching the maximum backoff frequency.</dd>
+  <dt>maxNumberOfRetriesAtHighestBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specifies the number of times the system should retry after reaching the highest back-off period, before stopping completely. -1 (default value) means to try forever.<br><br>Caution: Splunk recommends that you not change this from the default, or the forwarder will completely stop forwarding to a downed URI at some point.</dd>
+  <dt>method</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Valid values: (clone | balance | autobalance)<br><br>The data distribution method used when two or more servers exist in the same forwarder group.  </dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> <host>:<port> of the Splunk receiver. <host> can be either an ip address or server name. <port> is the that port that the Splunk receiver is listening on.</port></host></port></host>
+</dd>
+  <dt>sslAltNameToCheck</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The alternate name to match in the remote server’s SSL certificate.</dd>
+  <dt>sslCertPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Path to the client certificate. If specified, connection uses SSL.</dd>
+  <dt>sslCipher</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> SSL Cipher in the form ALL:!aNULL:!eNULL:!LOW:!EXP:RC4+RSA:+HIGH:+MEDIUM</dd>
+  <dt>sslCommonNameToCheck</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Check the common name of the server’s certificate against this name.<br><br>If there is no match, assume that Splunk is not authenticated against this server. You must specify this setting if sslVerifyServerCert is true.</dd>
+  <dt>sslPassword</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The password associated with the CAcert.<br><br>The default Splunk CAcert uses the password “password.”</dd>
+  <dt>sslRootCAPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The path to the root certificate authority file (optional).</dd>
+  <dt>sslVerifyServerCert</dt>
+  <dd>
+<em>Required</em> <strong>string</strong>  If true, make sure that the server you are connecting to is a valid one (authenticated). Both the common name and the alternate name of the server are then checked for a match.</dd>
+</dl><h3 id="status-codes-11">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to create a forwarded server.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+</table><h3 id="example-11">Example</h3>
+
+<p>Creates a new data output directing data to port 9997 on the host “tiny”.</p>
+
+<h4 id="request-11">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server \
+	-d name=tiny:9997
+</pre>
+<p></p>
+
+<h4 id="response-11">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T21:35:13-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpservername" id="dataoutputstcpservername">data/outputs/tcp/server/{name}</h2>
+
+<p>Deletes the configuration for the forwarded server specified by {name}.</p>
+
+<pre><code>[DELETE] data/outputs/tcp/server/{name}
+</code></pre>
+
+<h3 id="parameters-12">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-12">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to delete forwarded server configuration.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-12">Example</h3>
+
+<p>Remove the configuration forwarding data to host tiny’s port 9997.</p>
+
+<h4 id="request-12">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/server/tiny:9997
+</pre>
+<p></p>
+
+<h4 id="response-12">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T21:35:41-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpservername" id="dataoutputstcpservername-1">data/outputs/tcp/server/{name}</h2>
+
+<p>Lists information aobut the forwarded server specified by {name}.</p>
+
+<pre><code>[GET] data/outputs/tcp/server/{name}
+</code></pre>
+
+<h3 id="parameters-13">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-13">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view forwarded server.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-13">Example</h3>
+
+<p>Retrieve configuration details for the output configured to port 9997 on host “tiny”.</p>
+
+<h4 id="request-13">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server/tiny:9997
+</pre>
+<p></p>
+
+<h4 id="response-13">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T21:35:24-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>tiny:9997<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-10T21:35:24-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997/allconnections</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">allconnections</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/server/tiny%3A9997/disable</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">disable</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>backoffAtStartup<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>disabled<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>initialBackoff<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxBackoff<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxNumberOfRetriesAtHighestBackoff<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>method<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslAltNameToCheck<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslCertPath<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslCipher<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslCommonNameToCheck<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslPassword<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslRootCAPath<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>sslVerifyServerCert<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">method</span><span class="dl">"</span></span><span class="ta">&gt;</span>autobalance<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpservername" id="dataoutputstcpservername-2">data/outputs/tcp/server/{name}</h2>
+
+<p>Configures the forwarded server specified by {name}.</p>
+
+<pre><code>[POST] data/outputs/tcp/server/{name}
+</code></pre>
+
+<h3 id="parameters-14">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>backoffAtStartup</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>initialBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxNumberOfRetriesAtHighestBackoff</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>method</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslAltNameToCheck</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslCertPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslCipher</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslCommonNameToCheck</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslPassword</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslRootCAPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>sslVerifyServerCert</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-14">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit configuratin for forwarded server.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-14">Example</h3>
+
+<p>For the forwarding configuration pointed to port 9997 on tiny, adjust the reconnect behavior to wait longer before attempting another connection.</p>
+
+<h4 id="request-14">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server/tiny:9997 \
+	-d initialBackoff=10
+</pre>
+<p></p>
+
+<h4 id="response-14">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-10T21:35:33-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpservernameallconnections" id="dataoutputstcpservernameallconnections">data/outputs/tcp/server/{name}/allconnections</h2>
+
+<p>List current connections to forwarded server specified by {name} </p>
+
+<pre><code>[GET] data/outputs/tcp/server/{name}/allconnections
+</code></pre>
+
+<h3 id="parameters-15">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-15">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed connections successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Output server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to list ouput connections.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-15">Example</h3>
+
+<p>List existing connections to forwarded server listening at localhost:9997</p>
+
+<h4 id="request-15">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server/localhost%3A9997/allconnections
+</pre>
+<p></p>
+
+<h4 id="response-15">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>tcpout-server<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-15T15:15:12-0700<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">101277</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>localhost:9997<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/server/localhost%3A9997<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-15T15:15:12-0700<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/localhost%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/localhost%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/localhost%3A9997/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/localhost%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/server/localhost%3A9997</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destHost</span><span class="dl">"</span></span><span class="ta">&gt;</span>localhost<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destIp</span><span class="dl">"</span></span><span class="ta">&gt;</span>127.0.0.1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">destPort</span><span class="dl">"</span></span><span class="ta">&gt;</span>9997<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sourcePort</span><span class="dl">"</span></span><span class="ta">&gt;</span>8089<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">status</span><span class="dl">"</span></span><span class="ta">&gt;</span>connect_done<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpsyslog" id="dataoutputstcpsyslog">data/outputs/tcp/syslog</h2>
+
+<p>Provides access to syslog data forwarding configurations.</p>
+
+<pre><code>[GET] data/outputs/tcp/syslog
+</code></pre>
+
+<h3 id="parameters-16">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-16">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view configuration of forwarded servers.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-16">Example</h3>
+
+<p>Retrieves the list of forwarding targets via syslog that have been defined.</p>
+
+<h4 id="request-16">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/syslog
+</pre>
+<p></p>
+
+<h4 id="response-16">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>syslog<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/syslog<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-21T22:16:11-0700<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">101277</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/syslog/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>west_coast_servers<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-21T22:16:11-0700<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">server</span><span class="dl">"</span></span><span class="ta">&gt;</span>syslogservers.splunk.com:514<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>tcp<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpsyslog" id="dataoutputstcpsyslog-1">data/outputs/tcp/syslog</h2>
+
+<p>Configures a forwarder to send data in standard syslog format.</p>
+
+<pre><code>[POST] data/outputs/tcp/syslog
+</code></pre>
+
+<h3 id="parameters-17">Parameters</h3>
+
+<dl>
+<dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, disables global syslog settings.</dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Name of the forwarder to send data in standard syslog format.</dd>
+  <dt>priority</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Sets syslog priority value.</dd>
+  <dt>server</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> host:port of the server where syslog data should be sent</dd>
+  <dt>timestampformat</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Format of timestamp to add at start of the events to be forwarded.</dd>
+  <dt>type</dt>
+  <dd>
+    <table><tbody><tr>
+<td>
+<em>Required</em> <strong>string</strong> Protocol to use to send syslog data. Valid values: (tcp</td>
+          <td>udp ).</td>
+        </tr></tbody></table>
+</dd>
+</dl><h3 id="status-codes-17">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to configure a forwarded server.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-17">Example</h3>
+
+<p>Create a new group for forwarding using syslog.</p>
+
+<h4 id="request-17">Request</h4>
+<pre class="terminal">
+curl -k -u admin:changeme https://localhost:8089/services/data/outputs/tcp/syslog \
+	-d name=east_coast_servers \
+	-d server=east.splunk.com:514
+</pre>
+<p></p>
+
+<h4 id="response-17">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>syslog<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:22090/services/data/outputs/tcp/syslog<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-21T23:00:26-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">104359</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/syslog/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpsyslogname" id="dataoutputstcpsyslogname">data/outputs/tcp/syslog/{name}</h2>
+
+<p>Deletes the configuration for the forwarder specified by {name} that sends data in syslog format.</p>
+
+<pre><code>[DELETE] data/outputs/tcp/syslog/{name}
+</code></pre>
+
+<h3 id="parameters-18">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-18">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server configuration does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to delete forwarded server configuration.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-18">Example</h3>
+
+<p>Remove the configuration for forwarding data to host syslog group west_coast_servers</p>
+
+<h4 id="request-18">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/syslog/west_coast_servers
+</pre>
+<p></p>
+
+<h4 id="response-18">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>syslog<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/syslog<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-21T22:20:52-0700<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">101277</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/syslog/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpsyslogname" id="dataoutputstcpsyslogname-1">data/outputs/tcp/syslog/{name}</h2>
+
+<p>Returns configuration information for the forwarder specified by {name} that sends data in standard syslog format.</p>
+
+<pre><code>[GET] data/outputs/tcp/syslog/{name}
+</code></pre>
+
+<h3 id="parameters-19">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-19">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view forwarded server configuration.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-19">Example</h3>
+
+<p>Retrieve configuration details for the syslog output configured for group west_coast_servers</p>
+
+<h4 id="request-19">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/syslog/west_coast_servers
+</pre>
+<p></p>
+
+<h4 id="response-19">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>syslog<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/syslog<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-21T22:30:33-0700<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">101277</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/syslog/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>west_coast_servers<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-21T22:30:33-0700<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/outputs/tcp/syslog/west_coast_servers</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">server</span><span class="dl">"</span></span><span class="ta">&gt;</span>syslogservers.splunk.com:514<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>tcp<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataoutputstcpsyslogname" id="dataoutputstcpsyslogname-2">data/outputs/tcp/syslog/{name}</h2>
+
+<p>Updates the configuration of the forwarder specified by {name} that sends data in syslog format.</p>
+
+<pre><code>[POST] data/outputs/tcp/syslog/{name}
+</code></pre>
+
+<h3 id="parameters-20">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>disabled</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>priority</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>server</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>timestampformat</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>type</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-20">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Forwarded server does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit forwarded server configuration.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-20">Example</h3>
+
+<p>For forwarding group west_coast_servers, modify type to udp</p>
+
+<h4 id="request-20">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/syslog/west_coast_servers \
+	-d type=udp
+</pre>
+<p></p>
+
+<h4 id="response-20">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>syslog<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/outputs/tcp/syslog<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-21T22:53:23-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">104359</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/outputs/tcp/syslog/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+      </div>
+
+    <div id="js-sidebar" class="sidebar-shell">
+      <div class="js-toggle-list sidebar-module expandable">
+        <ul>
+          <li class="js-topic">
+            <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/">Introduction</a></h3>
+            <ul class="js-guides">
+              <li><a href="/">About the Splunk REST API</a></li>
+              <li><a href="/accessing/">Accessing Splunk resources</a></li>
+              <li><a href="/howtouse/">How to use the Splunk REST API</a></li>
+              <li><a href="/apiexamples/">REST API Examples</a></li>
+            </ul>
+          </li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/applications/">Applications</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/applications/index.html/#appsappinstall">apps/appinstall</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplates">apps/apptemplates</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplatesname">apps/apptemplates/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocal">apps/local</a></li>
+    <li><a href="/api/applications/index.html/#appslocalname">apps/local/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnamesetup">apps/local/{name}/setup</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnameupdate">apps/local/{name}/update</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/configuration/">Configuration</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/configuration/index.html/#configsconffile">configs/conf-{file}</a></li>
+    <li><a href="/api/configuration/index.html/#configsconffilename">configs/conf-{file}/{name}</a></li>
+    <li><a href="/api/configuration/index.html/#properties">properties</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilename">properties/{file_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzaname">properties/{file_name}/{stanza_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzanamekeyname">properties/{file_name}/{stanza_name}/{key_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/deployment/">Deployment</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/deployment/index.html/#deploymentclient">deployment/client</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientname">deployment/client/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientnamereload">deployment/client/{name}/reload</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserver">deployment/server</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentservername">deployment/server/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclass">deployment/serverclass</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclassname">deployment/serverclass/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenants">deployment/tenants</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenantsname">deployment/tenants/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfig">search/distributed/config</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfigname">search/distributed/config/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeers">search/distributed/peers</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeersname">search/distributed/peers/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/indexes/">Indexes</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/indexes/index.html/#dataindexes">data/indexes</a></li>
+    <li><a href="/api/indexes/index.html/#dataindexesname">data/indexes/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/inputs/">Inputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/inputs/index.html/#datainputsad">data/inputs/ad</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsadname">data/inputs/ad/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitor">data/inputs/monitor</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitorname">data/inputs/monitor/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitornamemembers">data/inputs/monitor/{name}/members</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshot">data/inputs/oneshot</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshotname">data/inputs/oneshot/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistry">data/inputs/registry</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistryname">data/inputs/registry/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscript">data/inputs/script</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptname">data/inputs/script/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptrestart">data/inputs/script/restart</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcooked">data/inputs/tcp/cooked</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookedname">data/inputs/tcp/cooked/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookednameconnections">data/inputs/tcp/cooked/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpraw">data/inputs/tcp/raw</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawname">data/inputs/tcp/raw/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawnameconnections">data/inputs/tcp/raw/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpssl">data/inputs/tcp/ssl</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpsslname">data/inputs/tcp/ssl/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudp">data/inputs/udp</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpname">data/inputs/udp/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpnameconnections">data/inputs/udp/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollections">data/inputs/win-event-log-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollectionsname">data/inputs/win-event-log-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollections">data/inputs/win-wmi-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollectionsname">data/inputs/win-wmi-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmon">data/inputs/win-perfmon</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmonname">data/inputs/win-perfmon/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#receiverssimple">receivers/simple</a></li>
+    <li><a href="/api/inputs/index.html/#receiversstream">receivers/stream</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/knowledge/">Knowledge</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/knowledge/index.html/#datalookuptablefiles">data/lookup-table-files</a></li>
+    <li><a href="/api/knowledge/index.html/#datalookuptablefilesname">data/lookup-table-files/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractions">data/props/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractionsname">data/props/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliases">data/props/fieldaliases</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliasesname">data/props/fieldaliases/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookups">data/props/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookupsname">data/props/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperename">data/props/sourcetype-rename</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperenamename">data/props/sourcetype-rename/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractions">data/transforms/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractionsname">data/transforms/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookups">data/transforms/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookupsname">data/transforms/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#directory">directory</a></li>
+    <li><a href="/api/knowledge/index.html/#directoryname">directory/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypes">saved/eventtypes</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypesname">saved/eventtypes/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfields">search/fields</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldname">search/fields/{field_name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldnametags">search/fields/{field_name}/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtags">search/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtagstagname">search/tags/{tag_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/licensing/">Licensing</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/licensing/index.html/#licensergroups">licenser/groups</a></li>
+    <li><a href="/api/licensing/index.html/#licensergroupsname">licenser/groups/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicenses">licenser/licenses</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicensesname">licenser/licenses/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessages">licenser/messages</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessagesname">licenser/messages/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpools">licenser/pools</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpoolsname">licenser/pools/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslaves">licenser/slaves</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslavesname">licenser/slaves/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacks">licenser/stacks</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacksname">licenser/stacks/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/outputs/">Outputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefault">data/outputs/tcp/default</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefaultname">data/outputs/tcp/default/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroup">data/outputs/tcp/group</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroupname">data/outputs/tcp/group/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpserver">data/outputs/tcp/server</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservername">data/outputs/tcp/server/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservernameallconnections">data/outputs/tcp/server/{name}/allconnections</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslog">data/outputs/tcp/syslog</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslogname">data/outputs/tcp/syslog/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/search/">Search</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/search/index.html/#alertsfiredalerts">alerts/fired_alerts</a></li>
+    <li><a href="/api/search/index.html/#alertsfiredalertsname">alerts/fired_alerts/{name}</a></li>
+    <li><a href="/api/search/index.html/#datacommands">data/commands</a></li>
+    <li><a href="/api/search/index.html/#datacommandsname">data/commands/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearches">saved/searches</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesname">saved/searches/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnameacknowledge">saved/searches/{name}/acknowledge</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamedispatch">saved/searches/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamehistory">saved/searches/{name}/history</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamesuppress">saved/searches/{name}/suppress</a></li>
+    <li><a href="/api/search/index.html/#searchjobs">search/jobs</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchid">search/jobs/{search_id}</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidcontrol">search/jobs/{search_id}/control</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidevents">search/jobs/{search_id}/events</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresults">search/jobs/{search_id}/results</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresultspreview">search/jobs/{search_id}/results_preview</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsearch.log">search/jobs/{search_id}/search.log</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsummary">search/jobs/{search_id}/summary</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidtimeline">search/jobs/{search_id}/timeline</a></li>
+    <li><a href="/api/search/index.html/#searchjobsexport">search/jobs/export</a></li>
+    <li><a href="/api/search/index.html/#searchparser">search/parser</a></li>
+    <li><a href="/api/search/index.html/#searchtimeparser">search/timeparser</a></li>
+    <li><a href="/api/search/index.html/#searchtypeahead">search/typeahead</a></li>
+    <li><a href="/api/search/index.html/#scheduledviews">scheduled/views</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsname">scheduled/views/{name}</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamedispatch">scheduled/views/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamehistory">scheduled/views/{name}/history</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/system/">System</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/system/index.html/#messages">messages</a></li>
+    <li><a href="/api/system/index.html/#messagesname">messages/{name}</a></li>
+    <li><a href="/api/system/index.html/#servercontrol">server/control</a></li>
+    <li><a href="/api/system/index.html/#servercontrolrestart">server/control/restart</a></li>
+    <li><a href="/api/system/index.html/#serverinfo">server/info</a></li>
+    <li><a href="/api/system/index.html/#serverinfoname">server/info/{name}</a></li>
+    <li><a href="/api/system/index.html/#serverlogger">server/logger</a></li>
+    <li><a href="/api/system/index.html/#serverloggername">server/logger/{name}</a></li>
+    <li><a href="/api/system/index.html/#serversettings">server/settings</a></li>
+    <li><a href="/api/system/index.html/#serversettingsname">server/settings/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/users and access control/">Users and access control</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/users and access control/index.html/#authlogin">auth/login</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationauthtokens">authentication/auth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontext">authentication/current-context</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontextname">authentication/current-context/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokens">authentication/httpauth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokensname">authentication/httpauth-tokens/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilities">authorization/capabilities</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusers">authentication/users</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusersname">authentication/users/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilitiesname">authorization/capabilities/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationroles">authorization/roles</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationrolesname">authorization/roles/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswords">storage/passwords</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswordsname">storage/passwords/{name}</a></li>
+  </ul>
+</li>
+        </ul>
+      </div> <!-- /sidebar-module -->
+    </div><!-- /sidebar-shell -->
+
+    </div><!-- #wrapper -->
+
+  </div><!-- /not-footer -->
+
+  <div id="footer-wrapper">
+    <div id="footer">
+      <div class="left-col">
+        <h2 class="logo"><a href="http://dev.splunk.com">Brought to you by Splunk</a></h2>
+        <ul class="splunk-nav">
+          <li><a href="http://dev.splunk.com">Dev Portal</a></li>
+          <li><a href="http://blogs.splunk.com/" class="blog">Splunk Dev Blog</a></li>
+          <li><a href="mailto:devinfo@splunk.com">Contact</a></li>
+        </ul>
+        <p class="copyline">&copy; 2011 Splunk Inc. All rights reserved</p>
+      </div>
+    </div>
+  </div><!-- #footer-wrapper -->
+
+</body>
+</html>

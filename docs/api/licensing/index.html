@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="imagetoolbar" content="false" />
+  <meta name="MSSmartTagsPreventParsing" content="true" />
+  <title>Licensing</title>
+  <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+  <link href="/css/960.css" rel="stylesheet" type="text/css" />
+  <link href="/css/uv_active4d.css" rel="stylesheet" type="text/css" />
+  <link href="/shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css">
+  <link href="/shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="/shared/js/jquery.js" type="text/javascript"></script>
+  <script src="/shared/js/documentation.js" type="text/javascript"></script>
+</head>
+<body class="api">
+  <div id="not-footer">
+
+    <div id="header-wrapper">
+      <div id="header">
+        <div>
+          <a class="logo" href="/"><img src="http://dev.splunk.com/themes/devtheme/img/logo.png"/></a>
+        </div>
+      </div><!-- #header -->
+    </div><!-- #header-wrapper -->
+
+    <div id="wrapper">
+      <div class="content">
+    <h1 id="licensing-apis">Licensing APIs</h1>
+
+<h2 name="licensergroups" id="licensergroups">licenser/groups</h2>
+
+<p>Lists all licenser groups.</p>
+
+<pre><code>[GET] licenser/groups
+</code></pre>
+
+<h3 id="parameters">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser groups.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example">Example</h3>
+
+<p>Lists all the licenser groups for this Splunnk instance.</p>
+
+<h4 id="request">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/groups
+</pre>
+<p></p>
+
+<h4 id="response">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>groups<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/groups<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T09:45:35-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>Enterprise<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/groups/Enterprise<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-11T09:45:35-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">is_active</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>enterprise<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licensergroupsname" id="licensergroupsname">licenser/groups/{name}</h2>
+
+<p>Lists a specific licenser group.  A licenser group contains one or more licenser stacks that can operate concurrently.  Only one licenser group is active at any given time</p>
+
+<pre><code>[GET] licenser/groups/{name}
+</code></pre>
+
+<h3 id="parameters-1">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-1">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser groups does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser groups.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-1">Example</h3>
+
+<p>Return information about the Forwarder licenser group.</p>
+
+<h4 id="request-1">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/groups/Forwarder
+</pre>
+<p></p>
+
+<h4 id="response-1">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>groups<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/groups<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T09:47:18-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>Forwarder<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/groups/Forwarder<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-11T09:47:18-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/groups/Forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>is_active<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">is_active</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>forwarder<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licensergroupsname" id="licensergroupsname-1">licenser/groups/{name}</h2>
+
+<p>Activates specific licenser group with the side effect of deactivating the previously active one.</p>
+
+<p>There can only be a single active licenser group for a given instance of Splunk.  Use this to switch between, for example, free to enterprise, or download-trial to free.</p>
+
+<pre><code>[POST] licenser/groups/{name}
+</code></pre>
+
+<h3 id="parameters-2">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>is_active</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Active specific licenser group</dd>
+</dl><h3 id="status-codes-2">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser group does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit licenser group.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-2">Example</h3>
+
+<p>Make the Enterprise licenser group the active license group.</p>
+
+<h4 id="request-2">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/groups/Enterprise \
+	-d is_active=1
+</pre>
+<p></p>
+
+<h4 id="response-2">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>groups<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/groups<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T09:55:02-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserlicenses" id="licenserlicenses">licenser/licenses</h2>
+
+<p>Lists all licenses that have been added.  Only a subset of these licenses may be active however, this is simply listing all licenses in every stack/group, regardless of which group is active</p>
+
+<pre><code>[GET] licenser/licenses
+</code></pre>
+
+<h3 id="parameters-3">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-3">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenses.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-3">Example</h3>
+
+<p>List information about all licenses for the Splunk instance.</p>
+
+<h4 id="request-3">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/licenses
+</pre>
+<p></p>
+
+<h4 id="response-3">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>licenses<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T09:30:33-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>E08B . . . FA75BF<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses/E08B . . . FA75BF<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-11T09:30:33-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/E08B . . . FA75BF</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/E08B . . . FA75BF</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/E08B . . . FA75BF</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">creation_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1309852804<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">expiration_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1315641604<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">features</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Auth<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>FwdData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>LocalSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DistSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>ScheduledSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Alerting<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployClient<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployServer<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SplunkWeb<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SigningProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SyslogOutputProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>AllowDuplicateKeys<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">group_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>Trial<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Enterprise Download Trial<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">license_hash</span><span class="dl">"</span></span><span class="ta">&gt;</span>E08B . . . FA75BF<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">max_violations</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>524288000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sourcetypes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>download-trial<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">status</span><span class="dl">"</span></span><span class="ta">&gt;</span>VALID<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>download-trial<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">window_period</span><span class="dl">"</span></span><span class="ta">&gt;</span>30<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserlicenses" id="licenserlicenses-1">licenser/licenses</h2>
+
+<p>Add a license entitlement to this instance.</p>
+
+<pre><code>[POST] licenser/licenses
+</code></pre>
+
+<h3 id="parameters-4">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Path to license file on server. If the payload parameter is specified, the name parameter is ignored.</dd>
+  <dt>payload</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> String representation of license, encoded in xml</dd>
+</dl><h3 id="status-codes-4">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to add a license.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+</table><h3 id="example-4">Example</h3>
+
+<p>Adds a Splunk license entitlement from a downloaded Splunk license file.</p>
+
+<h4 id="request-4">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/licenses \
+	-d name=/Users/vgenovese/downloads/Splunk_enterprise.lic
+</pre>
+<p></p>
+
+<h4 id="response-4">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>licenses<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T09:41:32-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>CF6C50 . . . 72CE6C<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses/CF6C50 . . . 72CE6C<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-11T09:41:32-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/CF6C50 . . . 72CE6C</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/CF6C50 . . . 72CE6C</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/CF6C50 . . . 72CE6C</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">creation_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1306168427<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">expiration_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>2147483647<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">features</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Auth<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>FwdData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>LocalSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DistSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>ScheduledSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Alerting<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployClient<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployServer<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SplunkWeb<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SigningProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SyslogOutputProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>CanBeRemoteMaster<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">group_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>Enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">license_hash</span><span class="dl">"</span></span><span class="ta">&gt;</span>CF6C50 . . . 72CE6C<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">max_violations</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>10737418240<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sourcetypes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">status</span><span class="dl">"</span></span><span class="ta">&gt;</span>VALID<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">window_period</span><span class="dl">"</span></span><span class="ta">&gt;</span>30<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserlicensesname" id="licenserlicensesname">licenser/licenses/{name}</h2>
+
+<p>Delete the license with hash corresponding to {name}.</p>
+
+<p>NOTE: You cannot delete the last license out of an active group. First, deactivate the group (by switching to another group) and then perform the delete.</p>
+
+<pre><code>[DELETE] licenser/licenses/{name}
+</code></pre>
+
+<h3 id="parameters-5">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-5">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">License does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to delete license.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-5">Example</h3>
+
+<p>Deletes the specified license.
+Note: The hash for the license payload has been elided for readability</p>
+
+<h4 id="request-5">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/licenser/licenses/E4BF . . . FC639D
+</pre>
+<p></p>
+
+<h4 id="response-5">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+  <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+  <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>licenses<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-07T09:45:12-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserlicensesname" id="licenserlicensesname-1">licenser/licenses/{name}</h2>
+
+<p>List attributes of specific license.  The {name} portion of URL is actually the hash of the license payload.</p>
+
+<pre><code>[GET] licenser/licenses/{name}
+</code></pre>
+
+<h3 id="parameters-6">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-6">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">License does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view license.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-6">Example</h3>
+
+<p>This example lists the details of the Splunk Enterprise license.
+Note: The hash for the license payload has been elided for readability.</p>
+
+<h4 id="request-6">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://127.0.0.1:3339/services/licenser/licenses/E4BF . . . FC639D
+</pre>
+<p></p>
+
+<h4 id="response-6">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>licenses<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-05T15:57:08-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>E4BF . . . FC639D<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/licenses/E4BF . . . FC639D<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-05T15:57:08-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/E4BF . . . FC639D</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/licenses/E4BF . . . FC639D</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">creation_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1300901512<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span> . . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">expiration_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1314811912<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">features</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Auth<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>FwdData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvData<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>LocalSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DistSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>RcvSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>ScheduledSearch<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>Alerting<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployClient<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>DeployServer<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SplunkWeb<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SigningProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>SyslogOutputProcessor<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>AllowDuplicateKeys<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>CanBeRemoteMaster<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">group_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>Enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Internal License<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">license_hash</span><span class="dl">"</span></span><span class="ta">&gt;</span>E4BF . . . FC639D<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">max_violations</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>10737418240<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sourcetypes</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;s:list</span><span class="ta">/&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">status</span><span class="dl">"</span></span><span class="ta">&gt;</span>VALID<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">window_period</span><span class="dl">"</span></span><span class="ta">&gt;</span>30<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licensermessages" id="licensermessages">licenser/messages</h2>
+
+<p>Lists all messages/alerts/persisted warnings for this node.</p>
+
+<pre><code>[GET] licenser/messages
+</code></pre>
+
+<h3 id="parameters-7">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-7">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser messages.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-7">Example</h3>
+
+<p>This example lists messages from the Splunk Enterprise license.</p>
+
+<h4 id="request-7">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/messages
+</pre>
+<p></p>
+
+<h4 id="response-7">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>licensermessages<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/messages<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-08-02T03:50:46-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">105103</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>70a19a5cfe6d7c2a678089638dee7bea<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/messages/70a19a5cfe6d7c2a678089638dee7bea<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-08-02T03:50:46-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/messages/70a19a5cfe6d7c2a678089638dee7bea</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/messages/70a19a5cfe6d7c2a678089638dee7bea</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">category</span><span class="dl">"</span></span><span class="ta">&gt;</span>pool_warning_count<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">create_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1312282230<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span>This pool contains slave(s) with 3 warnings<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">pool_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">severity</span><span class="dl">"</span></span><span class="ta">&gt;</span>WARN<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slave_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licensermessagesname" id="licensermessagesname">licenser/messages/{name}</h2>
+
+<p>List specific message whose msgId corresponds to {name} component.</p>
+
+<pre><code>[GET] licenser/messages/{name}
+</code></pre>
+
+<h3 id="parameters-8">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-8">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser message does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser messages.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-8">Example</h3>
+
+<p>This example lists the message for corresponding msgID.</p>
+
+<h4 id="request-8">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://127.0.0.1:3339/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db
+</pre>
+<p></p>
+
+<h4 id="response-8">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+    <span class="ta">&lt;title&gt;</span>licensermessages<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://127.0.0.1:3339/services/licenser/messages<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-05-16T21:45:17-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">99678</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+        <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+    <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+    <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+    <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;entry&gt;</span>
+        <span class="ta">&lt;title&gt;</span>2702b33a1bd369ae9209a9ecf4cb39db<span class="ta">&lt;/title&gt;</span>
+        <span class="ta">&lt;id&gt;</span>https://127.0.0.1:3339/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db<span class="ta">&lt;/id&gt;</span>
+        <span class="ta">&lt;updated&gt;</span>2011-05-16T21:45:17-07:00<span class="ta">&lt;/updated&gt;</span>
+        <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;author&gt;</span>
+            <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+        <span class="ta">&lt;/author&gt;</span>
+        <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+            <span class="ta">&lt;s:dict&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">category</span><span class="dl">"</span></span><span class="ta">&gt;</span>license_window<span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">create_time</span><span class="dl">"</span></span><span class="ta">&gt;</span>1305607136<span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span>test warnings<span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . .<span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                    <span class="ta">&lt;s:dict&gt;</span>
+                        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                            <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+                        <span class="ta">&lt;/s:key&gt;</span>
+                        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                            <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+                        <span class="ta">&lt;/s:key&gt;</span>
+                        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                            <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+                        <span class="ta">&lt;/s:key&gt;</span>
+                    <span class="ta">&lt;/s:dict&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">pool_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">severity</span><span class="dl">"</span></span><span class="ta">&gt;</span>WARN<span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slave_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/content&gt;</span>
+    <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserpools" id="licenserpools">licenser/pools</h2>
+
+<p>Enumerates all pools.  A pool logically partitions the daily volume entitlements of a stack. You can use a pool to divide license privileges amongst multiple slaves</p>
+
+<pre><code>[GET] licenser/pools
+</code></pre>
+
+<h3 id="parameters-9">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-9">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser pools.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-9">Example</h3>
+
+<p>Lists the license pool configuration for this instance of Splunk.</p>
+
+<h4 id="request-9">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/pools
+</pre>
+<p></p>
+
+<h4 id="response-9">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>pools<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/pools<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T10:55:18-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>4<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  . . .
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>auto_generated_pool_enterprise<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:55:18-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto_generated_pool_enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span> . . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>MAX<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;s:list&gt;</span><span class="ta">&lt;s:item&gt;</span>*<span class="ta">&lt;/s:item&gt;</span><span class="ta">&lt;/s:list&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves_usage_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span><span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">1F3A34AE-75DA-4680-B184-5BF309843919</span><span class="dl">"</span></span><span class="ta">&gt;</span>26445659<span class="ta">&lt;/s:key&gt;</span><span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">used_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>26445659<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:55:18-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/s:key&gt;</span>
+       <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span> . . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>MAX<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;s:list&gt;</span><span class="ta">&lt;s:item&gt;</span>*<span class="ta">&lt;/s:item&gt;</span><span class="ta">&lt;/s:list&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves_usage_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>forwarder<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">used_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+  . . .
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserpools" id="licenserpools-1">licenser/pools</h2>
+
+<p>Create a license pool.</p>
+
+<pre><code>[POST] licenser/pools
+</code></pre>
+
+<h3 id="parameters-10">Parameters</h3>
+
+<dl>
+<dt>description</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> description of this pool</dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Edit the properties of the specified pool</dd>
+  <dt>quota</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Defines the byte quota of this pool.<br><br>Valid values:<br><br>MAX: maximum amount allowed by the license. You can only have one pool with MAX size in a stack.<br><br>Number[MB|GB]: Specify a specific size. For example, 552428800, or simply specify 50MB.</dd>
+  <dt>slaves</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Comma-separated list of slaveids that are members of this pool, or ‘*’ to accept all slaves.<br><br>You can also specify a comma-separated list guids to specify slaves that can connect to this pool.</dd>
+  <dt>stack_id</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Valid values: (download-trial | enterprise | forwarder | free)<br><br>Stack ID of the stack corresponding to this pool</dd>
+</dl><h3 id="status-codes-10">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Created successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to create licenser pools.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-10">Example</h3>
+
+<p>Create a license pool, myLicensePool, that accepts all enterprise license slaves and accepts the maximum number of bytes allowed for this license.</p>
+
+<h4 id="request-10">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/pools \
+	-d name=myLicensePool \
+	-d quota=MAX \
+	-d slaves=* \
+	-d stack_id=enterprise
+</pre>
+<p></p>
+
+<h4 id="response-10">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>pools<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/pools<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T11:31:47-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserpoolsname" id="licenserpoolsname">licenser/pools/{name}</h2>
+
+<p>Delete specified pool.  Deleting pools is not supported for every pool. Certain stacks have fixed pools which cannot be deleted.</p>
+
+<pre><code>[DELETE] licenser/pools/{name}
+</code></pre>
+
+<h3 id="parameters-11">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-11">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Deleted successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser pool does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to delete licenser pool.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-11">Example</h3>
+
+<p>Deletes the auto-generated enterprise license pool.
+Typically, you delete this pool to create a new enterprise license pool.</p>
+
+<h4 id="request-11">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass --request DELETE https://localhost:8089/services/licenser/pools/auto_generated_pool_enterprise
+</pre>
+<p></p>
+
+<h4 id="response-11">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>pools<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/pools<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T11:29:26-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>0<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserpoolsname" id="licenserpoolsname-1">licenser/pools/{name}</h2>
+
+<p>Lists details of the pool specified by {name}.</p>
+
+<p>A pool logically partitions the daily volume entitlements of a stack. A pool can be used to divide license privileges amongst multiple slaves</p>
+
+<pre><code>[GET] licenser/pools/{name}
+</code></pre>
+
+<h3 id="parameters-12">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-12">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser pool does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view licenser pools.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-12">Example</h3>
+
+<p>Display details of the automatically generated license pool for forwarders.</p>
+
+<h4 id="request-12">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/pools/auto_generated_pool_forwarder
+</pre>
+<p></p>
+
+<h4 id="response-12">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>pools<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/pools<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T11:03:37-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/pools/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T11:03:37-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/auto_generated_pool_forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span> . . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>append_slaves<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>description<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>quota<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>slaves<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>MAX<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;s:list&gt;</span><span class="ta">&lt;s:item&gt;</span>*<span class="ta">&lt;/s:item&gt;</span><span class="ta">&lt;/s:list&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves_usage_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>forwarder<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">used_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserpoolsname" id="licenserpoolsname-2">licenser/pools/{name}</h2>
+
+<p>Edit properties of the pool specified by {name}.</p>
+
+<pre><code>[POST] licenser/pools/{name}
+</code></pre>
+
+<h3 id="parameters-13">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>append_slaves</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Flag which controls whether newly specified slaves will be appended to existing slaves list or overwritten</dd>
+  <dt>description</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>quota</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>slaves</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-13">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Licenser pool does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit licenser pool.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-13">Example</h3>
+
+<p>Modify the byte quota for the license pool, myLicensePool, to allow 50 MB.</p>
+
+<h4 id="request-13">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/pools/myLicensePool \
+	-d quota=50MB
+</pre>
+<p></p>
+
+<h4 id="response-13">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml">. . .
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>myLicensePool<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8085/servicesNS/nobody/system/licenser/pools/myLicensePool<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-24T08:46:49-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/myLicensePool</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/myLicensePool</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/myLicensePool/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/myLicensePool</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/pools/myLicensePool</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">remove</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">description</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>append_slaves<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>description<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>quota<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>slaves<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>552428800<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;s:list&gt;</span><span class="ta">&lt;s:item&gt;</span>*<span class="ta">&lt;/s:item&gt;</span><span class="ta">&lt;/s:list&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">slaves_usage_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">1F3A34AE-75DA-4680-B184-5BF309843919</span><span class="dl">"</span></span><span class="ta">&gt;</span>39846322<span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_id</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">used_bytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>39846322<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span></code></pre>
+
+<h2 name="licenserslaves" id="licenserslaves">licenser/slaves</h2>
+
+<p>List all slaves registered to this license master.  Any slave that attempts to connect to master is reported, regardless of whether it is allocated to a master licenser pool.</p>
+
+<pre><code>[GET] licenser/slaves
+</code></pre>
+
+<h3 id="parameters-14">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>poolid</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Do not use.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+  <dt>stackid</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Do not use.</dd>
+</dl><h3 id="status-codes-14">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view license slaves.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-14">Example</h3>
+
+<p>This example lists all slaves to this Splunk server, which is a license master.</p>
+
+<h4 id="request-14">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/slaves
+</pre>
+<p></p>
+
+<h4 id="response-14">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+  <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+  <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>slaves<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/slaves<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-05-17T09:37:54-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">99849</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>74A43C7E-C33C-41F6-B027-E603D2C3FE68<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-05-17T09:37:54-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">app</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">can_write</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+              <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">modifiable</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">owner</span><span class="dl">"</span></span><span class="ta">&gt;</span>nobody<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">perms</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:dict&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">read</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                  <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">write</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                  <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+              <span class="ta">&lt;/s:dict&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sharing</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>thething-vishalp<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">pool_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_enterprise<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_free<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>enterprise<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>forwarder<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>free<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">warning_count</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserslavesname" id="licenserslavesname">licenser/slaves/{name}</h2>
+
+<p>List attributes of slave specified by {name}.</p>
+
+<pre><code>[GET] licenser/slaves/{name}
+</code></pre>
+
+<h3 id="parameters-15">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>poolid</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Do not use.</dd>
+  <dt>stackid</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> do not use</dd>
+</dl><h3 id="status-codes-15">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">License slave does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view license slave.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-15">Example</h3>
+
+<p>This example displays the details of a specific licenser slave.
+Use &lt;pre&gt;https://localhost:8089/services/licenser/slaves&lt;/pre&gt; to obtain the IDs of licenser slaves.</p>
+
+<h4 id="request-15">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68
+</pre>
+<p></p>
+
+<h4 id="response-15">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+    <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+    <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>slaves<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://127.0.0.1:8282/services/licenser/slaves<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-05-17T09:44:10-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">99849</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>74A43C7E-C33C-41F6-B027-E603D2C3FE68<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://127.0.0.1:8282/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-05-17T09:44:10-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">app</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">can_write</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">modifiable</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">owner</span><span class="dl">"</span></span><span class="ta">&gt;</span>nobody<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">perms</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:dict&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">read</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                  <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">write</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                  <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+              <span class="ta">&lt;/s:dict&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sharing</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>thething-vishalp<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">pool_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_enterprise<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_forwarder<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>auto_generated_pool_free<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">stack_ids</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:list&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>enterprise<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>forwarder<span class="ta">&lt;/s:item&gt;</span>
+            <span class="ta">&lt;s:item&gt;</span>free<span class="ta">&lt;/s:item&gt;</span>
+          <span class="ta">&lt;/s:list&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">warning_count</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserstacks" id="licenserstacks">licenser/stacks</h2>
+
+<p>Enumerate all license stacks.</p>
+
+<pre><code>[GET] licenser/stacks
+</code></pre>
+
+<h3 id="parameters-16">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+</dl><h3 id="status-codes-16">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view license stacks.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-16">Example</h3>
+
+<p>Displays the license stack configuration for an instance of Splunk.</p>
+
+<h4 id="request-16">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/licenser/stacks
+</pre>
+<p></p>
+
+<h4 id="response-16">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>stacks<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T10:37:33-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>4<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>download-trial<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks/download-trial<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:37:33-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/download-trial</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/download-trial</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Enterprise Download Trial<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>524288000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>download-trial<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>enterprise<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks/enterprise<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:37:33-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Internal License<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>10737418240<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>forwarder<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks/forwarder<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:37:33-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/forwarder</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Forwarder<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>1048576<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>forwarder<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>free<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks/free<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:37:33-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/free</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/free</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Free<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>524288000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>free<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="licenserstacksname" id="licenserstacksname">licenser/stacks/{name}</h2>
+
+<p>Retrieve details of specific license stacks.  A license stack is comprised of one or more licenses of the same “type”.  The daily indexing quota of a license stack is additive, so a stack represents the aggregate entitlement for a collection of licenses.</p>
+
+<pre><code>[GET] licenser/stacks/{name}
+</code></pre>
+
+<h3 id="parameters-17">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+</dl><h3 id="status-codes-17">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">License stack does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view license stacks.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-17">Example</h3>
+
+<p>This example lists details of the enterprise license stack.
+In this example, the enterprise license stack contains one entry.</p>
+
+<h4 id="request-17">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/enterprise
+</pre>
+<p></p>
+
+<h4 id="response-17">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>stacks<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-08T10:42:44-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102824</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>enterprise<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/licenser/stacks/enterprise<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-08T10:42:44-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>system<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/licenser/stacks/enterprise</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">app</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">can_write</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">modifiable</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">owner</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">perms</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:dict&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">read</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                    <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+                <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">write</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+                  <span class="ta">&lt;s:list&gt;</span>
+                    <span class="ta">&lt;s:item&gt;</span>admin<span class="ta">&lt;/s:item&gt;</span>
+                  <span class="ta">&lt;/s:list&gt;</span>
+                <span class="ta">&lt;/s:key&gt;</span>
+              <span class="ta">&lt;/s:dict&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sharing</span><span class="dl">"</span></span><span class="ta">&gt;</span>system<span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span> . . . <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">label</span><span class="dl">"</span></span><span class="ta">&gt;</span>Splunk Internal License<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quota</span><span class="dl">"</span></span><span class="ta">&gt;</span>10737418240<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">type</span><span class="dl">"</span></span><span class="ta">&gt;</span>enterprise<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+      </div>
+
+    <div id="js-sidebar" class="sidebar-shell">
+      <div class="js-toggle-list sidebar-module expandable">
+        <ul>
+          <li class="js-topic">
+            <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/">Introduction</a></h3>
+            <ul class="js-guides">
+              <li><a href="/">About the Splunk REST API</a></li>
+              <li><a href="/accessing/">Accessing Splunk resources</a></li>
+              <li><a href="/howtouse/">How to use the Splunk REST API</a></li>
+              <li><a href="/apiexamples/">REST API Examples</a></li>
+            </ul>
+          </li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/applications/">Applications</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/applications/index.html/#appsappinstall">apps/appinstall</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplates">apps/apptemplates</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplatesname">apps/apptemplates/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocal">apps/local</a></li>
+    <li><a href="/api/applications/index.html/#appslocalname">apps/local/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnamesetup">apps/local/{name}/setup</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnameupdate">apps/local/{name}/update</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/configuration/">Configuration</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/configuration/index.html/#configsconffile">configs/conf-{file}</a></li>
+    <li><a href="/api/configuration/index.html/#configsconffilename">configs/conf-{file}/{name}</a></li>
+    <li><a href="/api/configuration/index.html/#properties">properties</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilename">properties/{file_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzaname">properties/{file_name}/{stanza_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzanamekeyname">properties/{file_name}/{stanza_name}/{key_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/deployment/">Deployment</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/deployment/index.html/#deploymentclient">deployment/client</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientname">deployment/client/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientnamereload">deployment/client/{name}/reload</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserver">deployment/server</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentservername">deployment/server/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclass">deployment/serverclass</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclassname">deployment/serverclass/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenants">deployment/tenants</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenantsname">deployment/tenants/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfig">search/distributed/config</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfigname">search/distributed/config/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeers">search/distributed/peers</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeersname">search/distributed/peers/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/indexes/">Indexes</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/indexes/index.html/#dataindexes">data/indexes</a></li>
+    <li><a href="/api/indexes/index.html/#dataindexesname">data/indexes/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/inputs/">Inputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/inputs/index.html/#datainputsad">data/inputs/ad</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsadname">data/inputs/ad/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitor">data/inputs/monitor</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitorname">data/inputs/monitor/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitornamemembers">data/inputs/monitor/{name}/members</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshot">data/inputs/oneshot</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshotname">data/inputs/oneshot/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistry">data/inputs/registry</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistryname">data/inputs/registry/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscript">data/inputs/script</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptname">data/inputs/script/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptrestart">data/inputs/script/restart</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcooked">data/inputs/tcp/cooked</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookedname">data/inputs/tcp/cooked/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookednameconnections">data/inputs/tcp/cooked/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpraw">data/inputs/tcp/raw</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawname">data/inputs/tcp/raw/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawnameconnections">data/inputs/tcp/raw/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpssl">data/inputs/tcp/ssl</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpsslname">data/inputs/tcp/ssl/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudp">data/inputs/udp</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpname">data/inputs/udp/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpnameconnections">data/inputs/udp/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollections">data/inputs/win-event-log-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollectionsname">data/inputs/win-event-log-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollections">data/inputs/win-wmi-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollectionsname">data/inputs/win-wmi-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmon">data/inputs/win-perfmon</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmonname">data/inputs/win-perfmon/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#receiverssimple">receivers/simple</a></li>
+    <li><a href="/api/inputs/index.html/#receiversstream">receivers/stream</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/knowledge/">Knowledge</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/knowledge/index.html/#datalookuptablefiles">data/lookup-table-files</a></li>
+    <li><a href="/api/knowledge/index.html/#datalookuptablefilesname">data/lookup-table-files/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractions">data/props/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractionsname">data/props/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliases">data/props/fieldaliases</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliasesname">data/props/fieldaliases/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookups">data/props/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookupsname">data/props/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperename">data/props/sourcetype-rename</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperenamename">data/props/sourcetype-rename/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractions">data/transforms/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractionsname">data/transforms/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookups">data/transforms/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookupsname">data/transforms/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#directory">directory</a></li>
+    <li><a href="/api/knowledge/index.html/#directoryname">directory/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypes">saved/eventtypes</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypesname">saved/eventtypes/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfields">search/fields</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldname">search/fields/{field_name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldnametags">search/fields/{field_name}/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtags">search/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtagstagname">search/tags/{tag_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/licensing/">Licensing</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/licensing/index.html/#licensergroups">licenser/groups</a></li>
+    <li><a href="/api/licensing/index.html/#licensergroupsname">licenser/groups/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicenses">licenser/licenses</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicensesname">licenser/licenses/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessages">licenser/messages</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessagesname">licenser/messages/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpools">licenser/pools</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpoolsname">licenser/pools/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslaves">licenser/slaves</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslavesname">licenser/slaves/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacks">licenser/stacks</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacksname">licenser/stacks/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/outputs/">Outputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefault">data/outputs/tcp/default</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefaultname">data/outputs/tcp/default/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroup">data/outputs/tcp/group</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroupname">data/outputs/tcp/group/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpserver">data/outputs/tcp/server</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservername">data/outputs/tcp/server/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservernameallconnections">data/outputs/tcp/server/{name}/allconnections</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslog">data/outputs/tcp/syslog</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslogname">data/outputs/tcp/syslog/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/search/">Search</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/search/index.html/#alertsfiredalerts">alerts/fired_alerts</a></li>
+    <li><a href="/api/search/index.html/#alertsfiredalertsname">alerts/fired_alerts/{name}</a></li>
+    <li><a href="/api/search/index.html/#datacommands">data/commands</a></li>
+    <li><a href="/api/search/index.html/#datacommandsname">data/commands/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearches">saved/searches</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesname">saved/searches/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnameacknowledge">saved/searches/{name}/acknowledge</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamedispatch">saved/searches/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamehistory">saved/searches/{name}/history</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamesuppress">saved/searches/{name}/suppress</a></li>
+    <li><a href="/api/search/index.html/#searchjobs">search/jobs</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchid">search/jobs/{search_id}</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidcontrol">search/jobs/{search_id}/control</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidevents">search/jobs/{search_id}/events</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresults">search/jobs/{search_id}/results</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresultspreview">search/jobs/{search_id}/results_preview</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsearch.log">search/jobs/{search_id}/search.log</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsummary">search/jobs/{search_id}/summary</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidtimeline">search/jobs/{search_id}/timeline</a></li>
+    <li><a href="/api/search/index.html/#searchjobsexport">search/jobs/export</a></li>
+    <li><a href="/api/search/index.html/#searchparser">search/parser</a></li>
+    <li><a href="/api/search/index.html/#searchtimeparser">search/timeparser</a></li>
+    <li><a href="/api/search/index.html/#searchtypeahead">search/typeahead</a></li>
+    <li><a href="/api/search/index.html/#scheduledviews">scheduled/views</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsname">scheduled/views/{name}</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamedispatch">scheduled/views/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamehistory">scheduled/views/{name}/history</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/system/">System</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/system/index.html/#messages">messages</a></li>
+    <li><a href="/api/system/index.html/#messagesname">messages/{name}</a></li>
+    <li><a href="/api/system/index.html/#servercontrol">server/control</a></li>
+    <li><a href="/api/system/index.html/#servercontrolrestart">server/control/restart</a></li>
+    <li><a href="/api/system/index.html/#serverinfo">server/info</a></li>
+    <li><a href="/api/system/index.html/#serverinfoname">server/info/{name}</a></li>
+    <li><a href="/api/system/index.html/#serverlogger">server/logger</a></li>
+    <li><a href="/api/system/index.html/#serverloggername">server/logger/{name}</a></li>
+    <li><a href="/api/system/index.html/#serversettings">server/settings</a></li>
+    <li><a href="/api/system/index.html/#serversettingsname">server/settings/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/users and access control/">Users and access control</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/users and access control/index.html/#authlogin">auth/login</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationauthtokens">authentication/auth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontext">authentication/current-context</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontextname">authentication/current-context/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokens">authentication/httpauth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokensname">authentication/httpauth-tokens/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilities">authorization/capabilities</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusers">authentication/users</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusersname">authentication/users/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilitiesname">authorization/capabilities/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationroles">authorization/roles</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationrolesname">authorization/roles/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswords">storage/passwords</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswordsname">storage/passwords/{name}</a></li>
+  </ul>
+</li>
+        </ul>
+      </div> <!-- /sidebar-module -->
+    </div><!-- /sidebar-shell -->
+
+    </div><!-- #wrapper -->
+
+  </div><!-- /not-footer -->
+
+  <div id="footer-wrapper">
+    <div id="footer">
+      <div class="left-col">
+        <h2 class="logo"><a href="http://dev.splunk.com">Brought to you by Splunk</a></h2>
+        <ul class="splunk-nav">
+          <li><a href="http://dev.splunk.com">Dev Portal</a></li>
+          <li><a href="http://blogs.splunk.com/" class="blog">Splunk Dev Blog</a></li>
+          <li><a href="mailto:devinfo@splunk.com">Contact</a></li>
+        </ul>
+        <p class="copyline">&copy; 2011 Splunk Inc. All rights reserved</p>
+      </div>
+    </div>
+  </div><!-- #footer-wrapper -->
+
+</body>
+</html>

@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="Content-Language" content="en-us" />
+  <meta http-equiv="imagetoolbar" content="false" />
+  <meta name="MSSmartTagsPreventParsing" content="true" />
+  <title>Indexes</title>
+  <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+  <link href="/css/960.css" rel="stylesheet" type="text/css" />
+  <link href="/css/uv_active4d.css" rel="stylesheet" type="text/css" />
+  <link href="/shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css">
+  <link href="/shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="/shared/js/jquery.js" type="text/javascript"></script>
+  <script src="/shared/js/documentation.js" type="text/javascript"></script>
+</head>
+<body class="api">
+  <div id="not-footer">
+
+    <div id="header-wrapper">
+      <div id="header">
+        <div>
+          <a class="logo" href="/"><img src="http://dev.splunk.com/themes/devtheme/img/logo.png"/></a>
+        </div>
+      </div><!-- #header -->
+    </div><!-- #header-wrapper -->
+
+    <div id="wrapper">
+      <div class="content">
+    <h1 id="indexes-apis">Indexes APIs</h1>
+
+<h2 name="dataindexes" id="dataindexes">data/indexes</h2>
+
+<p>Lists the recognized indexes on the server.</p>
+
+<pre><code>[GET] data/indexes
+</code></pre>
+
+<h3 id="parameters">Parameters</h3>
+
+<dl>
+<dt>count</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum number of items to return.</dd>
+  <dt>offset</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Index for first item to return.</dd>
+  <dt>search</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Boolean predicate to filter results.</dd>
+  <dt>sort_dir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Direction to sort by (asc/desc).</dd>
+  <dt>sort_key</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Field to sort by.</dd>
+  <dt>sort_mode</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Collating sequence for the sort (auto, alpha, alpha_case, num).</dd>
+  <dt>summarize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, leaves out certain index details in order to provide a faster response.</dd>
+</dl><h3 id="status-codes">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">OK</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view indexes.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">TO DO: provide the rest of the status codes</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example">Example</h3>
+
+<p>Lists the indexes on this Splunk instance.</p>
+
+<h4 id="request">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/services/data/indexes
+</pre>
+<p></p>
+
+<h4 id="response">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>indexes<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/services/data/indexes<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-07-11T18:09:22-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">102807</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/indexes/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/services/data/indexes/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>_audit<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/system/data/indexes/_audit<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-07-11T18:09:22-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/indexes/_audit</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/indexes/_audit</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/indexes/_audit/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/indexes/_audit</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/system/data/indexes/_audit/disable</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">disable</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">assureUTF8</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignatureDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>_blocksignature<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/audit/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/temp/curl/splunk/var/lib/splunk/audit/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenDir</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenScript</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">compressRawdata</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">currentDBSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">defaultDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>main<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">enableRealtimeSearch</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">frozenTimePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>188697600<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/audit/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/temp/curl/splunk/var/lib/splunk/audit/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">indexThreads</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">isInternal</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">lastInitTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>1310432962.424512<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxConcurrentOptimizes</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxDataSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotIdleSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotSpanSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>7776000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMemMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMetaEntries</span><span class="dl">"</span></span><span class="ta">&gt;</span>1000000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxRunningProcessGroups</span><span class="dl">"</span></span><span class="ta">&gt;</span>20<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>2011-07-10T22:20:53-0700<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTotalDataSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>500000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxWarmDBCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>300<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">memPoolMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minRawFileSyncSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>disable<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>2011-07-10T14:33:00-0700<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">partialServiceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantineFutureSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>2592000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantinePastSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>77760000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rawChunkSizeBytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>131072<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rotatePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>60<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">serviceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>25<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">suppressBannerList</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sync</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">syncMeta</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/audit/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/temp/curl/splunk/var/lib/splunk/audit/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">throttleCheckPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>15<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">totalEventCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>230<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataindexes" id="dataindexes-1">data/indexes</h2>
+
+<p>Creates a new index with the given name.</p>
+
+<pre><code>[POST] data/indexes
+</code></pre>
+
+<h3 id="parameters-1">Parameters</h3>
+
+<dl>
+<dt>assureUTF8</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Verifies that all data retreived from the index is proper UTF8.<br><br>Will degrade indexing performance when enabled (set to true).<br><br>Can only be set globally</dd>
+  <dt>blockSignSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Controls how many events make up a block for block signatures.<br><br>If this is set to 0, block signing is disabled for this index.<br><br>A recommended value is 100.</dd>
+  <dt>coldPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> An absolute path that contains the colddbs for the index. The path must be readable and writable. Cold databases are opened as needed when searching. May be defined in terms of a volume definition (see volume section below).<br><br>Required. Splunk will not start if an index lacks a valid coldPath.</dd>
+  <dt>coldToFrozenDir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Destination path for the frozen archive. Use as an alternative to a coldToFrozenScript. Splunk automatically puts frozen buckets in this directory.<br><br>Bucket freezing policy is as follows:
+* New style buckets (4.2 and on): removes all files but the rawdata
+:To thaw, run &lt;pre&gt;splunk rebuild &lt;bucket dir&gt;&lt;/pre&gt; on the bucket, then move to the thawed directory
+* Old style buckets (Pre-4.2): gzip all the .data and .tsidx files
+:To thaw, gunzip the zipped files and move the bucket into the thawed directory<br><br>If both coldToFrozenDir and coldToFrozenScript are specified, coldToFrozenDir takes precedence</dd>
+  <dt>coldToFrozenScript</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Path to the archiving script.<br><br>If your script requires a program to run it (for example, python), specify the program followed by the path. The script must be in $SPLUNK_HOME/bin or one of its subdirectories.<br><br>Splunk ships with an example archiving script in $SPLUNK_HOME/bin called coldToFrozenExample.py. Splunk DOES NOT recommend using this example script directly. It uses a default path, and if modified in place any changes will be overwritten on upgrade.<br><br>Splunk recommends copying the example script to a new file in bin and modifying it for your system.  Most importantly, change the default archive path to an existing directory that fits your needs.<br><br>If your new script in bin/ is named myColdToFrozen.py, set this key to the following:<br><br>  coldToFrozenScript = “$SPLUNK_HOME/bin/python” “$SPLUNK_HOME/bin/myColdToFrozen.py”<br><br>By default, the example script has two possible behaviors when archiving:
+* For buckets created from version 4.2 and on, it removes all files except for rawdata. To thaw: cd to the frozen bucket and type <code>splunk rebuild .</code>, then copy the bucket to thawed for that index.  We recommend using the coldToFrozenDir parameter unless you need to perform a more advanced operation upon freezing buckets.
+* For older-style buckets, we simply gzip all the .tsidx files. To thaw: cd to the frozen bucket and unzip the tsidx files, then copy the bucket to thawed for that index</dd>
+  <dt>compressRawdata</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> This parameter is ignored. The splunkd process always compresses raw data.</dd>
+  <dt>frozenTimePeriodInSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Number of seconds after which indexed data rolls to frozen.  Defaults to 188697600 (6 years).<br><br>Freezing data means it is removed from the index.  If you need to archive your data, refer to coldToFrozenDir and coldToFrozenScript parameter documentation.</dd>
+  <dt>homePath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> An absolute path that contains the hot and warm buckets for the index.<br><br>Required. Splunk will not start if an index lacks a valid homePath.<br><br>CAUTION: Path MUST be readable and writable.</dd>
+  <dt>maxConcurrentOptimizes</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The number of concurrent optimize processes that can run against a hot bucket.<br><br>This number should be increased if instructed by Splunk Support.  Typically the default value should suffice.</dd>
+  <dt>maxDataSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The maximum size in MB for a hot DB to reach before a roll to warm is triggered. Specifying “auto” or “auto_high_volume” causes Splunk to autotune this parameter (recommended).Use “auto_high_volume” for high volume indexes (such as the main index); otherwise, use “auto”.  A “high volume index” would typically be considered one that gets over 10GB of data per day.
+* “auto” sets the size to 750MB.
+* “auto_high_volume” sets the size to 10GB on 64-bit, and 1GB on 32-bit systems.<br><br>Although the maximum value you can set this is 1048576 MB, which corresponds to 1 TB, a reasonable number ranges anywhere from 100 - 50000. Any number outside this range should be approved by Splunk Support before proceeding.<br><br>If you specify an invalid number or string, maxDataSize will be auto tuned.<br><br>NOTE: The precise size of your warm buckets may vary from maxDataSize, due to post-processing and timing issues with the rolling policy.</dd>
+  <dt>maxHotBuckets</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Maximum hot buckets that can exist per index. Defaults to 3.<br><br>When maxHotBuckets is exceeded, Splunk rolls the least recently used (LRU) hot bucket to warm. Both normal hot buckets and quarantined hot buckets count towards this total. This setting operates independently of maxHotIdleSecs, which can also cause hot buckets to roll.</dd>
+  <dt>maxHotIdleSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> “Maximum life, in seconds, of a hot bucket. Defaults to 0.<br><br>If a hot bucket exceeds maxHotIdleSecs, Splunk rolls it to warm. This setting operates independently of maxHotBuckets, which can also cause hot buckets to roll. A value of 0 turns off the idle check (equivalent to INFINITE idle time).</dd>
+  <dt>maxHotSpanSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Upper bound of target maximum timespan of hot/warm buckets in seconds. Defaults to 7776000 seconds (90 days).<br><br>NOTE: f you set this too small, you can get an explosion of hot/warm buckets in the filesystem. The system sets a lower bound implicitly for this parameter at 3600, but this is an advanced parameter that should be set with care and understanding of the characteristics of your data.</dd>
+  <dt>maxMemMB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The amount of memory, expressed in MB, to allocate for buffering a single tsidx file into memory before flushing to disk.  Defaults to 5. The default is recommended for all environments.<br><br>IMPORTANT:  Calculate this number carefully. Setting this number incorrectly may have adverse effects on your systems memory and/or splunkd stability/performance.</dd>
+  <dt>maxMetaEntries</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Sets the maximum number of unique lines in .data files in a bucket, which may help to reduce memory consumption. If set to 0, this setting is ignored (it is treated as infinite).<br><br>If exceeded, a hot bucket is rolled to prevent further increase. If your buckets are rolling due to Strings.data hitting this limit, the culprit may be the <code>punct</code> field in your data.  If you don’t use punct, it may be best to simply disable this (see props.conf.spec in $SPLUNK_HOME/etc/system/README).<br><br>There is a small time delta between when maximum is exceeded and bucket is rolled. This means a bucket may end up with epsilon more lines than specified, but this is not a major concern unless excess is significant.</dd>
+  <dt>maxRunningProcessGroups</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The indexer fires off helper processes like splunk-optimize, recover-metadata, and others. This parameter controls how many processes the indexer fires off at any given time.<br><br><b>CAUTION:</b> This is an advanced parameter, do NOT set this unless instructed by Splunk Support.</dd>
+  <dt>maxTotalDataSizeMB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The maximum size of an index (in MB). If an index grows larger than the maximum size, the oldest data is frozen.</dd>
+  <dt>maxWarmDBCount</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The maximum number of warm buckets. If this number is exceeded, the warm bucket/s with the lowest value for their latest times will be moved to cold.</dd>
+  <dt>minRawFileSyncSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specify an integer (or “disable”) for this parameter.<br><br>This parameter sets how frequently splunkd forces a filesystem sync while compressing journal slices.<br><br>During this interval, uncompressed slices are left on disk even after they are compressed. Then splunkd forces a filesystem sync of the compressed journal and removes the accumulated uncompressed files.<br><br>If 0 is specified, splunkd forces a filesystem sync after every slice completes compressing. Specifying “disable” disables syncing entirely: uncompressed slices are removed as soon as compression is complete.<br><br><b>NOTE:</b> Some filesystems are very inefficient at performing sync operations, so only enable this if you are sure it is needed</dd>
+  <dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> The name of the index to create.</dd>
+  <dt>partialServiceMetaPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Related to serviceMetaPeriod.  If set, it enables metadata sync every <integer> seconds, but only for records where the sync can be done efficiently in-place, without requiring a full re-write of the metadata file.  Records that require full re-write are be sync'ed at serviceMetaPeriod.<br><br><code>partialServiceMetaPeriod</code> specifies, in seconds, how frequently it should sync.  Zero means that this feature is turned off and serviceMetaPeriod is the only time when metadata sync happens.<br><br>If the value of partialServiceMetaPeriod is greater than serviceMetaPeriod, this setting has no effect.<br><br>By default it is turned off (zero).</integer>
+</dd>
+  <dt>quarantineFutureSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Events with timestamp of <code>quarantineFutureSecs</code> newer than “now” are dropped into quarantine bucket. Defaults to 2592000 (30 days).<br><br>This is a mechanism to prevent main hot buckets from being polluted with fringe events.</dd>
+  <dt>quarantinePastSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Events with timestamp of <code>quarantinePastSecs</code> older than “now” are dropped into quarantine bucket. Defaults to 77760000 (900 days).<br><br>This is a mechanism to prevent the main hot buckets from being polluted with fringe events.</dd>
+  <dt>rawChunkSizeBytes</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Target uncompressed size in bytes for individual raw slice in the rawdata journal of the index. Defaults to 131072 (128KB). 0 is not a valid value. If 0 is specified, <code>rawChunkSizeBytes</code> is set to the default value.<br><br>NOTE: rawChunkSizeBytes only specifies a target chunk size. The actual chunk size may be slightly larger by an amount proportional to an individual event size.<br><br>WARNING: This is an advanced parameter. Only change it if you are instructed to do so by Splunk Support.</dd>
+  <dt>rotatePeriodInSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> How frequently (in seconds) to check if a new hot bucket needs to be created. Also, how frequently to check if there are any warm/cold buckets that should be rolled/frozen.</dd>
+  <dt>serviceMetaPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Defines how frequently metadata is synced to disk, in seconds. Defaults to 25 (seconds).<br><br>You may want to set this to a higher value if the sum of your metadata file sizes is larger than many tens of megabytes, to avoid the hit on I/O in the indexing fast path.</dd>
+  <dt>suppressBannerList</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Specify a comma-separated list of indexes. This parameter suppresses index missing warning banner messages for the specified indexes. Defaults to empty.</dd>
+  <dt>syncMeta</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> When <code>true</code>, a sync operation is called before file descriptor is closed on metadata file updates. This functionality improves integrity of metadata files, especially in regards to operating system crashes/machine failures.<br><br><b>Note</b>: Do not change this parameter without the input of a Splunk Support.</dd>
+  <dt>thawedPath</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> An absolute path that contains the thawed (resurrected) databases for the index.<br><br>Cannot be defined in terms of a volume definition.<br><br>Required. Splunk will not start if an index lacks a valid <code>thawedPath&lt;/codePath&gt;.<br><br></code>
+</dd>
+  <dt>throttleCheckPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> Defines how frequently Splunk checks for index throttling condition, in seconds. Defaults to 15 (seconds).<br><br><b>Note</b>: Do not change this parameter without the input of a Splunk Support.</dd>
+</dl><h3 id="status-codes-1">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>201</strong></td>
+      <td style="text-align: left">Index created successfully; followed by header:</td>
+    </tr></tbody>
+</table><table>
+<thead><tr>
+<th><code>Location: /services/data/indexes/{name}</code></th>
+      <th> </th>
+      <th> </th>
+    </tr></thead>
+<tbody><tr>
+<td> </td>
+      <td><strong>403</strong></td>
+      <td>Insufficient permissions to create index.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>402</strong></td>
+      <td>The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>401</strong></td>
+      <td>Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>400</strong></td>
+      <td>Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>409</strong></td>
+      <td>The index name already exists.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>503</strong></td>
+      <td>This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td> </td>
+      <td><strong>500</strong></td>
+      <td>Internal server error.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-1">Example</h3>
+
+<p>The following example creates an index named Shadow.</p>
+
+<h4 id="request-1">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/indexes \
+	-d name=Shadow
+</pre>
+<p></p>
+
+<h4 id="response-1">Response</h4>
+<pre class="headers"><code>Status: 201 Object Created Successfully</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="pp">&lt;?xml-stylesheet type="text/xml" href="/static/atom.xsl"?&gt;</span>
+<span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>indexes<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/admin/search/data/indexes<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-05-13T13:09:27-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">98392</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/admin/search/data/indexes/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/admin/search/data/indexes/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>shadow<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/indexes/shadow<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-05-13T13:09:27-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">assureUTF8</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignatureDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>_blocksignature<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk/var/lib/splunk/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenDir</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenScript</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">compressRawdata</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">currentDBSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">defaultDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>main<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . .<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">enableRealtimeSearch</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">frozenTimePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>188697600<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk/var/lib/splunk/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">indexThreads</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">isInternal</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">lastInitTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>1305317367.331268<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxConcurrentOptimizes</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxDataSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotIdleSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotSpanSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>7776000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMemMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMetaEntries</span><span class="dl">"</span></span><span class="ta">&gt;</span>1000000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTime</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTotalDataSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>500000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxWarmDBCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>300<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">memPoolMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minRawFileSyncSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>disable<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minTime</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">partialServiceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantineFutureSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>2592000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantinePastSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>77760000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rawChunkSizeBytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>131072<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rotatePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>60<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">serviceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>25<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">suppressBannerList</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sync</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">syncMeta</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk/var/lib/splunk/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">throttleCheckPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>15<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">totalEventCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataindexesname" id="dataindexesname">data/indexes/{name}</h2>
+
+<p>Retrieves information about the named index.</p>
+
+<pre><code>[GET] data/indexes/{name}
+</code></pre>
+
+<h3 id="parameters-2">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>summarize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> If true, leaves out certain index details in order to provide a faster response.</dd>
+</dl><h3 id="status-codes-2">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Listed successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">Index does not exist.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to view index.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Internal server error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Request error.  See response body for details.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-2">Example</h3>
+
+<p>Lists information about the Shadow index.</p>
+
+<h4 id="request-2">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/indexes/shadow
+</pre>
+<p></p>
+
+<h4 id="response-2">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>indexes<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/indexes<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-08-01T12:25:34-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">105103</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="c">&lt;!-- opensearch nodes elided for brevity. --&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>shadow<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/indexes/shadow<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-08-01T11:47:55-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow/disable</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">disable</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">assureUTF8</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignatureDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>_blocksignature<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">bloomfilterTotalSizeKB</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/bin/splunk-current/var/lib/splunk/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenDir</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenScript</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">compressRawdata</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">currentDBSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">defaultDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>main<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">disabled</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="c">&lt;!-- eai:acl nodes elided for brevity. --&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:attributes</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+          <span class="ta">&lt;s:dict&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">optionalFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>assureUTF8<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>blockSignSize<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>coldToFrozenDir<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>coldToFrozenScript<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>compressRawdata<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>frozenTimePeriodInSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxConcurrentOptimizes<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxDataSize<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxHotBuckets<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxHotIdleSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxHotSpanSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxMemMB<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxMetaEntries<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxRunningProcessGroups<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxTotalDataSizeMB<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>maxWarmDBCount<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>minRawFileSyncSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>partialServiceMetaPeriod<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>quarantineFutureSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>quarantinePastSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>rawChunkSizeBytes<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>rotatePeriodInSecs<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>serviceMetaPeriod<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>suppressBannerList<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>syncMeta<span class="ta">&lt;/s:item&gt;</span>
+                <span class="ta">&lt;s:item&gt;</span>throttleCheckPeriod<span class="ta">&lt;/s:item&gt;</span>
+              <span class="ta">&lt;/s:list&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">requiredFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+            <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">wildcardFields</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+              <span class="ta">&lt;s:list</span><span class="ta">/&gt;</span>
+            <span class="ta">&lt;/s:key&gt;</span>
+          <span class="ta">&lt;/s:dict&gt;</span>
+        <span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">enableRealtimeSearch</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">frozenTimePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>188697600<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/bin/splunk-current/var/lib/splunk/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">indexThreads</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">isInternal</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">lastInitTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>1312226552.102920<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxConcurrentOptimizes</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxDataSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotIdleSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotSpanSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>7776000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMemMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMetaEntries</span><span class="dl">"</span></span><span class="ta">&gt;</span>1000000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxRunningProcessGroups</span><span class="dl">"</span></span><span class="ta">&gt;</span>20<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTime</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTotalDataSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>500000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxWarmDBCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>300<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">memPoolMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minRawFileSyncSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>disable<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minTime</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">numBloomfilters</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">numHotBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">numWarmBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">partialServiceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantineFutureSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>2592000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantinePastSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>77760000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rawChunkSizeBytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>131072<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rotatePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>60<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">serviceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>25<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">suppressBannerList</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sync</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">syncMeta</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/home/amrit/bin/splunk-current/var/lib/splunk/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">throttleCheckPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>15<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">totalEventCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+
+<h2 name="dataindexesname" id="dataindexesname-1">data/indexes/{name}</h2>
+
+<p>Updates the data index specified by <code>{name}</code> with information specified with index attributes.</p>
+
+<pre><code>[POST] data/indexes/{name}
+</code></pre>
+
+<h3 id="parameters-3">Parameters</h3>
+
+<dl>
+<dt>name</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> name</dd>
+  <dt>assureUTF8</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>blockSignSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>coldToFrozenDir</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>coldToFrozenScript</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>compressRawdata</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>frozenTimePeriodInSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxConcurrentOptimizes</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxDataSize</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxHotBuckets</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxHotIdleSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxHotSpanSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxMemMB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxMetaEntries</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxRunningProcessGroups</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxTotalDataSizeMB</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>maxWarmDBCount</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>minRawFileSyncSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>partialServiceMetaPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>quarantineFutureSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>quarantinePastSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>rawChunkSizeBytes</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>rotatePeriodInSecs</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>serviceMetaPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>suppressBannerList</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>syncMeta</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+  <dt>throttleCheckPeriod</dt>
+  <dd>
+<em>Required</em> <strong>string</strong> INHERITED</dd>
+</dl><h3 id="status-codes-3">Status Codes</h3>
+
+<table>
+<thead><tr>
+<th style="text-align: left">Status Code</th>
+      <th style="text-align: left">Description</th>
+    </tr></thead>
+<tbody><tr>
+<td style="text-align: left"><strong>200</strong></td>
+      <td style="text-align: left">Properties for the index were updated successfully.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>404</strong></td>
+      <td style="text-align: left">The specified index was not found.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>500</strong></td>
+      <td style="text-align: left">Unspecified error</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>403</strong></td>
+      <td style="text-align: left">Insufficient permissions to edit index.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>402</strong></td>
+      <td style="text-align: left">The Splunk license in use has disabled this feature.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>401</strong></td>
+      <td style="text-align: left">Authentication failure: must pass valid credentials with request.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>400</strong></td>
+      <td style="text-align: left">Some arguments were invalid</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>503</strong></td>
+      <td style="text-align: left">This feature has been disabled in Splunk configuration files.</td>
+    </tr></tbody>
+<tbody><tr>
+<td style="text-align: left"><strong>409</strong></td>
+      <td style="text-align: left">Request error: this operation is invalid for this item.  See response body for details.</td>
+    </tr></tbody>
+</table><h3 id="example-3">Example</h3>
+
+<p>The following example updates the maximum size of the index named “Shadow”, setting the size at 400000 MB.
+This index was created in the example for the POST operation for this endpoint.</p>
+
+<h4 id="request-3">Request</h4>
+<pre class="terminal">
+curl -k -u admin:pass \
+	-d maxTotalDataSizeMB=400000 https://localhost:8089/servicesNS/nobody/search/data/indexes/shadow
+</pre>
+<p></p>
+
+<h4 id="response-3">Response</h4>
+<pre class="headers"><code>Status: 200 Operating Successful</code></pre>
+
+<pre class="highlight"><code class="language-xml"><span class="pp">&lt;?xml-stylesheet type="text/xml" href="/static/atom.xsl"?&gt;</span>
+<span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
+      <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
+      <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+  <span class="ta">&lt;title&gt;</span>indexes<span class="ta">&lt;/title&gt;</span>
+  <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/indexes<span class="ta">&lt;/id&gt;</span>
+  <span class="ta">&lt;updated&gt;</span>2011-05-16T12:20:06-07:00<span class="ta">&lt;/updated&gt;</span>
+  <span class="ta">&lt;generator</span> <span class="an">version</span>=<span class="s"><span class="dl">"</span><span class="k">98392</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;author&gt;</span>
+    <span class="ta">&lt;name&gt;</span>Splunk<span class="ta">&lt;/name&gt;</span>
+  <span class="ta">&lt;/author&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/_new</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">create</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;opensearch:totalResults&gt;</span>1<span class="ta">&lt;/opensearch:totalResults&gt;</span>
+  <span class="ta">&lt;opensearch:itemsPerPage&gt;</span>30<span class="ta">&lt;/opensearch:itemsPerPage&gt;</span>
+  <span class="ta">&lt;opensearch:startIndex&gt;</span>0<span class="ta">&lt;/opensearch:startIndex&gt;</span>
+  <span class="ta">&lt;s:messages</span><span class="ta">/&gt;</span>
+  <span class="ta">&lt;entry&gt;</span>
+    <span class="ta">&lt;title&gt;</span>shadow<span class="ta">&lt;/title&gt;</span>
+    <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/indexes/shadow<span class="ta">&lt;/id&gt;</span>
+    <span class="ta">&lt;updated&gt;</span>2011-05-16T12:18:56-07:00<span class="ta">&lt;/updated&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">alternate</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;author&gt;</span>
+      <span class="ta">&lt;name&gt;</span>nobody<span class="ta">&lt;/name&gt;</span>
+    <span class="ta">&lt;/author&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">list</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow/_reload</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">_reload</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;link</span> <span class="an">href</span>=<span class="s"><span class="dl">"</span><span class="k">/servicesNS/nobody/search/data/indexes/shadow</span><span class="dl">"</span></span> <span class="an">rel</span>=<span class="s"><span class="dl">"</span><span class="k">edit</span><span class="dl">"</span></span><span class="ta">/&gt;</span>
+    <span class="ta">&lt;content</span> <span class="an">type</span>=<span class="s"><span class="dl">"</span><span class="k">text/xml</span><span class="dl">"</span></span><span class="ta">&gt;</span>
+      <span class="ta">&lt;s:dict&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">assureUTF8</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">blockSignatureDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>_blocksignature<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk4.3/var/lib/splunk/shadow/colddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenDir</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">coldToFrozenScript</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">compressRawdata</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">currentDBSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">defaultDatabase</span><span class="dl">"</span></span><span class="ta">&gt;</span>main<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">eai:acl</span><span class="dl">"</span></span><span class="ta">&gt;</span>. . .<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">enableRealtimeSearch</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">frozenTimePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>188697600<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">homePath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk4.3/var/lib/splunk/shadow/db<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">indexThreads</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">isInternal</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">lastInitTime</span><span class="dl">"</span></span><span class="ta">&gt;</span>1305573611.118477<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxConcurrentOptimizes</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxDataSize</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotBuckets</span><span class="dl">"</span></span><span class="ta">&gt;</span>3<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotIdleSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxHotSpanSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>7776000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMemMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>5<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxMetaEntries</span><span class="dl">"</span></span><span class="ta">&gt;</span>1000000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTime</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxTotalDataSizeMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>400000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">maxWarmDBCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>300<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">memPoolMB</span><span class="dl">"</span></span><span class="ta">&gt;</span>auto<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minRawFileSyncSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>disable<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">minTime</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">partialServiceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantineFutureSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>2592000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">quarantinePastSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>77760000<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rawChunkSizeBytes</span><span class="dl">"</span></span><span class="ta">&gt;</span>131072<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">rotatePeriodInSecs</span><span class="dl">"</span></span><span class="ta">&gt;</span>60<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">serviceMetaPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>25<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">suppressBannerList</span><span class="dl">"</span></span><span class="ta">&gt;</span><span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">sync</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">syncMeta</span><span class="dl">"</span></span><span class="ta">&gt;</span>1<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath</span><span class="dl">"</span></span><span class="ta">&gt;</span>$SPLUNK_DB/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">thawedPath_expanded</span><span class="dl">"</span></span><span class="ta">&gt;</span>/Applications/splunk4.3/var/lib/splunk/shadow/thaweddb<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">throttleCheckPeriod</span><span class="dl">"</span></span><span class="ta">&gt;</span>15<span class="ta">&lt;/s:key&gt;</span>
+        <span class="ta">&lt;s:key</span> <span class="an">name</span>=<span class="s"><span class="dl">"</span><span class="k">totalEventCount</span><span class="dl">"</span></span><span class="ta">&gt;</span>0<span class="ta">&lt;/s:key&gt;</span>
+      <span class="ta">&lt;/s:dict&gt;</span>
+    <span class="ta">&lt;/content&gt;</span>
+  <span class="ta">&lt;/entry&gt;</span>
+<span class="ta">&lt;/feed&gt;</span></code></pre>
+      </div>
+
+    <div id="js-sidebar" class="sidebar-shell">
+      <div class="js-toggle-list sidebar-module expandable">
+        <ul>
+          <li class="js-topic">
+            <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/">Introduction</a></h3>
+            <ul class="js-guides">
+              <li><a href="/">About the Splunk REST API</a></li>
+              <li><a href="/accessing/">Accessing Splunk resources</a></li>
+              <li><a href="/howtouse/">How to use the Splunk REST API</a></li>
+              <li><a href="/apiexamples/">REST API Examples</a></li>
+            </ul>
+          </li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/applications/">Applications</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/applications/index.html/#appsappinstall">apps/appinstall</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplates">apps/apptemplates</a></li>
+    <li><a href="/api/applications/index.html/#appsapptemplatesname">apps/apptemplates/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocal">apps/local</a></li>
+    <li><a href="/api/applications/index.html/#appslocalname">apps/local/{name}</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnamesetup">apps/local/{name}/setup</a></li>
+    <li><a href="/api/applications/index.html/#appslocalnameupdate">apps/local/{name}/update</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/configuration/">Configuration</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/configuration/index.html/#configsconffile">configs/conf-{file}</a></li>
+    <li><a href="/api/configuration/index.html/#configsconffilename">configs/conf-{file}/{name}</a></li>
+    <li><a href="/api/configuration/index.html/#properties">properties</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilename">properties/{file_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzaname">properties/{file_name}/{stanza_name}</a></li>
+    <li><a href="/api/configuration/index.html/#propertiesfilenamestanzanamekeyname">properties/{file_name}/{stanza_name}/{key_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/deployment/">Deployment</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/deployment/index.html/#deploymentclient">deployment/client</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientname">deployment/client/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentclientnamereload">deployment/client/{name}/reload</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserver">deployment/server</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentservername">deployment/server/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclass">deployment/serverclass</a></li>
+    <li><a href="/api/deployment/index.html/#deploymentserverclassname">deployment/serverclass/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenants">deployment/tenants</a></li>
+    <li><a href="/api/deployment/index.html/#deploymenttenantsname">deployment/tenants/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfig">search/distributed/config</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedconfigname">search/distributed/config/{name}</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeers">search/distributed/peers</a></li>
+    <li><a href="/api/deployment/index.html/#searchdistributedpeersname">search/distributed/peers/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/indexes/">Indexes</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/indexes/index.html/#dataindexes">data/indexes</a></li>
+    <li><a href="/api/indexes/index.html/#dataindexesname">data/indexes/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/inputs/">Inputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/inputs/index.html/#datainputsad">data/inputs/ad</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsadname">data/inputs/ad/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitor">data/inputs/monitor</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitorname">data/inputs/monitor/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsmonitornamemembers">data/inputs/monitor/{name}/members</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshot">data/inputs/oneshot</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsoneshotname">data/inputs/oneshot/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistry">data/inputs/registry</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsregistryname">data/inputs/registry/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscript">data/inputs/script</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptname">data/inputs/script/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsscriptrestart">data/inputs/script/restart</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcooked">data/inputs/tcp/cooked</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookedname">data/inputs/tcp/cooked/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpcookednameconnections">data/inputs/tcp/cooked/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpraw">data/inputs/tcp/raw</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawname">data/inputs/tcp/raw/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcprawnameconnections">data/inputs/tcp/raw/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpssl">data/inputs/tcp/ssl</a></li>
+    <li><a href="/api/inputs/index.html/#datainputstcpsslname">data/inputs/tcp/ssl/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudp">data/inputs/udp</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpname">data/inputs/udp/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputsudpnameconnections">data/inputs/udp/{name}/connections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollections">data/inputs/win-event-log-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswineventlogcollectionsname">data/inputs/win-event-log-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollections">data/inputs/win-wmi-collections</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinwmicollectionsname">data/inputs/win-wmi-collections/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmon">data/inputs/win-perfmon</a></li>
+    <li><a href="/api/inputs/index.html/#datainputswinperfmonname">data/inputs/win-perfmon/{name}</a></li>
+    <li><a href="/api/inputs/index.html/#receiverssimple">receivers/simple</a></li>
+    <li><a href="/api/inputs/index.html/#receiversstream">receivers/stream</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/knowledge/">Knowledge</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/knowledge/index.html/#datalookuptablefiles">data/lookup-table-files</a></li>
+    <li><a href="/api/knowledge/index.html/#datalookuptablefilesname">data/lookup-table-files/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractions">data/props/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsextractionsname">data/props/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliases">data/props/fieldaliases</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropsfieldaliasesname">data/props/fieldaliases/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookups">data/props/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropslookupsname">data/props/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperename">data/props/sourcetype-rename</a></li>
+    <li><a href="/api/knowledge/index.html/#datapropssourcetyperenamename">data/props/sourcetype-rename/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractions">data/transforms/extractions</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformsextractionsname">data/transforms/extractions/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookups">data/transforms/lookups</a></li>
+    <li><a href="/api/knowledge/index.html/#datatransformslookupsname">data/transforms/lookups/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#directory">directory</a></li>
+    <li><a href="/api/knowledge/index.html/#directoryname">directory/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypes">saved/eventtypes</a></li>
+    <li><a href="/api/knowledge/index.html/#savedeventtypesname">saved/eventtypes/{name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfields">search/fields</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldname">search/fields/{field_name}</a></li>
+    <li><a href="/api/knowledge/index.html/#searchfieldsfieldnametags">search/fields/{field_name}/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtags">search/tags</a></li>
+    <li><a href="/api/knowledge/index.html/#searchtagstagname">search/tags/{tag_name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/licensing/">Licensing</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/licensing/index.html/#licensergroups">licenser/groups</a></li>
+    <li><a href="/api/licensing/index.html/#licensergroupsname">licenser/groups/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicenses">licenser/licenses</a></li>
+    <li><a href="/api/licensing/index.html/#licenserlicensesname">licenser/licenses/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessages">licenser/messages</a></li>
+    <li><a href="/api/licensing/index.html/#licensermessagesname">licenser/messages/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpools">licenser/pools</a></li>
+    <li><a href="/api/licensing/index.html/#licenserpoolsname">licenser/pools/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslaves">licenser/slaves</a></li>
+    <li><a href="/api/licensing/index.html/#licenserslavesname">licenser/slaves/{name}</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacks">licenser/stacks</a></li>
+    <li><a href="/api/licensing/index.html/#licenserstacksname">licenser/stacks/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/outputs/">Outputs</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefault">data/outputs/tcp/default</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpdefaultname">data/outputs/tcp/default/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroup">data/outputs/tcp/group</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpgroupname">data/outputs/tcp/group/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpserver">data/outputs/tcp/server</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservername">data/outputs/tcp/server/{name}</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpservernameallconnections">data/outputs/tcp/server/{name}/allconnections</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslog">data/outputs/tcp/syslog</a></li>
+    <li><a href="/api/outputs/index.html/#dataoutputstcpsyslogname">data/outputs/tcp/syslog/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/search/">Search</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/search/index.html/#alertsfiredalerts">alerts/fired_alerts</a></li>
+    <li><a href="/api/search/index.html/#alertsfiredalertsname">alerts/fired_alerts/{name}</a></li>
+    <li><a href="/api/search/index.html/#datacommands">data/commands</a></li>
+    <li><a href="/api/search/index.html/#datacommandsname">data/commands/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearches">saved/searches</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesname">saved/searches/{name}</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnameacknowledge">saved/searches/{name}/acknowledge</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamedispatch">saved/searches/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamehistory">saved/searches/{name}/history</a></li>
+    <li><a href="/api/search/index.html/#savedsearchesnamesuppress">saved/searches/{name}/suppress</a></li>
+    <li><a href="/api/search/index.html/#searchjobs">search/jobs</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchid">search/jobs/{search_id}</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidcontrol">search/jobs/{search_id}/control</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidevents">search/jobs/{search_id}/events</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresults">search/jobs/{search_id}/results</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidresultspreview">search/jobs/{search_id}/results_preview</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsearch.log">search/jobs/{search_id}/search.log</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidsummary">search/jobs/{search_id}/summary</a></li>
+    <li><a href="/api/search/index.html/#searchjobssearchidtimeline">search/jobs/{search_id}/timeline</a></li>
+    <li><a href="/api/search/index.html/#searchjobsexport">search/jobs/export</a></li>
+    <li><a href="/api/search/index.html/#searchparser">search/parser</a></li>
+    <li><a href="/api/search/index.html/#searchtimeparser">search/timeparser</a></li>
+    <li><a href="/api/search/index.html/#searchtypeahead">search/typeahead</a></li>
+    <li><a href="/api/search/index.html/#scheduledviews">scheduled/views</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsname">scheduled/views/{name}</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamedispatch">scheduled/views/{name}/dispatch</a></li>
+    <li><a href="/api/search/index.html/#scheduledviewsnamehistory">scheduled/views/{name}/history</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/system/">System</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/system/index.html/#messages">messages</a></li>
+    <li><a href="/api/system/index.html/#messagesname">messages/{name}</a></li>
+    <li><a href="/api/system/index.html/#servercontrol">server/control</a></li>
+    <li><a href="/api/system/index.html/#servercontrolrestart">server/control/restart</a></li>
+    <li><a href="/api/system/index.html/#serverinfo">server/info</a></li>
+    <li><a href="/api/system/index.html/#serverinfoname">server/info/{name}</a></li>
+    <li><a href="/api/system/index.html/#serverlogger">server/logger</a></li>
+    <li><a href="/api/system/index.html/#serverloggername">server/logger/{name}</a></li>
+    <li><a href="/api/system/index.html/#serversettings">server/settings</a></li>
+    <li><a href="/api/system/index.html/#serversettingsname">server/settings/{name}</a></li>
+  </ul>
+</li>
+<li class="js-topic">
+  <h3><a href="#" class="js-expand-btn collapsed">&nbsp;</a><a href="/api/users and access control/">Users and access control</a></h3>
+  <ul class="js-guides">
+    <li><a href="/api/users and access control/index.html/#authlogin">auth/login</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationauthtokens">authentication/auth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontext">authentication/current-context</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationcurrentcontextname">authentication/current-context/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokens">authentication/httpauth-tokens</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationhttpauthtokensname">authentication/httpauth-tokens/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilities">authorization/capabilities</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusers">authentication/users</a></li>
+    <li><a href="/api/users and access control/index.html/#authenticationusersname">authentication/users/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationcapabilitiesname">authorization/capabilities/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationroles">authorization/roles</a></li>
+    <li><a href="/api/users and access control/index.html/#authorizationrolesname">authorization/roles/{name}</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswords">storage/passwords</a></li>
+    <li><a href="/api/users and access control/index.html/#storagepasswordsname">storage/passwords/{name}</a></li>
+  </ul>
+</li>
+        </ul>
+      </div> <!-- /sidebar-module -->
+    </div><!-- /sidebar-shell -->
+
+    </div><!-- #wrapper -->
+
+  </div><!-- /not-footer -->
+
+  <div id="footer-wrapper">
+    <div id="footer">
+      <div class="left-col">
+        <h2 class="logo"><a href="http://dev.splunk.com">Brought to you by Splunk</a></h2>
+        <ul class="splunk-nav">
+          <li><a href="http://dev.splunk.com">Dev Portal</a></li>
+          <li><a href="http://blogs.splunk.com/" class="blog">Splunk Dev Blog</a></li>
+          <li><a href="mailto:devinfo@splunk.com">Contact</a></li>
+        </ul>
+        <p class="copyline">&copy; 2011 Splunk Inc. All rights reserved</p>
+      </div>
+    </div>
+  </div><!-- #footer-wrapper -->
+
+</body>
+</html>

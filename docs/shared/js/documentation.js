@@ -6,19 +6,15 @@ $(function() {
 
   // hide list items at startup
   if($('body.api') && window.location){
-    var reg = /\/\/[^\/]+(\/.+)/g,
-        docUrl = reg.exec(window.location.toString())
-    if(docUrl){
-      $('#js-sidebar .js-topic a').each(function(){
-        var url = $(this).attr('href').toString()
-        if(url.indexOf(docUrl[1]) >= 0 && url.length == docUrl[1].length){
-          $(this).parent('li').addClass('disable')
-          var parentTopic = $(this).parentsUntil('div.sidebar-module > ul').last()
-          parentTopic.addClass('js-current')
-          parentTopic.find('.js-expand-btn').toggleClass('collapsed expanded')
-        }
-      })
-    }
+     $('#js-sidebar .js-topic h3 a').each(function(){
+       var url = $(this).attr('href').toString()
+       if (url == "./" || url == "../") {
+         $(this).parent().addClass('disable')
+         var parentTopic = $(this).parentsUntil('div.sidebar-module > ul').last()
+         parentTopic.addClass('js-current')
+         parentTopic.find('.js-expand-btn').toggleClass('collapsed expanded')
+       }
+     })
   }
 
   $('#js-sidebar .js-topic').each(function(){

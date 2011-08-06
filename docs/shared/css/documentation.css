@@ -388,7 +388,7 @@ div.sidebar-module ul ul li span {
 }
 
 #footer h2.logo a {
-  background:url(http://dev.splunk.com/themes/devtheme/img/logo.png) no-repeat;
+  background:url(../images/logo.png) no-repeat;
 }
 
 #footer div.left-col {

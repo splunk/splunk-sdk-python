@@ -372,23 +372,9 @@ div.sidebar-module ul ul li span {
   margin:3px 0 0 0;
   font-size:14px;
 }
-#footer p.rackspace {
-  margin:0;
-  width:230px;
-  padding:10px 10px 10px 56px;
-  font-size:12px;
-  color:#666;
-  background:url(../images/rackspace_logo.png) 10px 50% no-repeat #f1f1f1;
-  -webkit-border-radius:5px;
-  -moz-border-radius:5px;
-}
-#footer p.rackspace a {
-  text-decoration:underline;
-  color:#333;
-}
 
 #footer h2.logo a {
-  background:url(../images/logo.png) no-repeat;
+  background-image: url(../images/logo.png) no-repeat;
 }
 
 #footer div.left-col {

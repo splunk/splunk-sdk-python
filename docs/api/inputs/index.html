@@ -294,7 +294,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/inputs
 
 <h4 id="request-2">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/ad/newdc
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/ad/newdc
 </pre>
 <p></p>
 
@@ -834,7 +835,8 @@ The {name} field in the DELETE operation is specially URI-encoded. See the REST 
 
 <h4 id="request-7">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog
 </pre>
 <p></p>
 
@@ -912,7 +914,8 @@ The {name} field in the GET operation is specially URI-encoded. See the REST API
 
 <h4 id="request-8">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog
 </pre>
 <p></p>
 
@@ -1097,7 +1100,8 @@ The {name} field in the POST operation is specially URI-encoded. See the REST AP
 
 <h4 id="request-9">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog \
 	-d recursive=false
 </pre>
 <p></p>
@@ -1193,7 +1197,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-10">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog/members
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/monitor/%252Fvar%252Flog/members
 </pre>
 <p></p>
 
@@ -1497,7 +1502,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/inputs/oneshot \
 
 <h4 id="request-13">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/services/data/inputs/oneshot/%252Fvar%252Flog%252Fmessages
+curl -k -u admin:pass \
+	https://localhost:8089/services/data/inputs/oneshot/%252Fvar%252Flog%252Fmessages
 </pre>
 <p></p>
 
@@ -1833,7 +1839,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-16">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/registry/mykeys
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/registry/mykeys
 </pre>
 <p></p>
 
@@ -2464,7 +2471,8 @@ The {name} field in the DELETE operation is specially URI-encoded.  See the REST
 
 <h4 id="request-22">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk4.3%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk4.3%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh
 </pre>
 <p></p>
 
@@ -2545,7 +2553,8 @@ The {name} field in the POST operation is specially URI-encoded.  See the REST A
 
 <h4 id="request-23">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh
 </pre>
 <p></p>
 
@@ -2701,7 +2710,8 @@ The {name} field in the POST operation is specially URI-encoded.  See the REST A
 
 <h4 id="request-24">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/script/%252FApplications%252Fsplunk%252Fetc%252Fapps%252FmyApp%252Fbin%252FmyScript.sh \
 	-d interval=86400
 </pre>
 <p></p>
@@ -2990,7 +3000,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-27">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/tiny:9998
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/tiny:9998
 </pre>
 <p></p>
 
@@ -3142,7 +3153,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
     <span class="ta">&lt;/content&gt;</span>
   <span class="ta">&lt;/entry&gt;</span>
 <span class="ta">&lt;/feed&gt;</span>
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/fwd1.splunk.com%3A9997
+curl -k -u admin:pass \
+        https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/fwd1.splunk.com%3A9997
 <span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> 
       <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> 
       <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
@@ -3362,7 +3374,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-30">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/9998/connections
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/cooked/9998/connections
 </pre>
 <p></p>
 
@@ -3684,7 +3697,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-33">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/raw/44343
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/raw/44343
 </pre>
 <p></p>
 
@@ -3836,7 +3850,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
     <span class="ta">&lt;/content&gt;</span>
   <span class="ta">&lt;/entry&gt;</span>
 <span class="ta">&lt;/feed&gt;</span>
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/raw/host1.splunk.com%3A9998
+curl -k -u admin:pass \
+        https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/raw/host1.splunk.com%3A9998
 <span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span> <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span> <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
   <span class="ta">&lt;title&gt;</span>raw<span class="ta">&lt;/title&gt;</span>
   <span class="ta">&lt;id&gt;</span>https://localhost:8089/servicesNS/nobody/search/data/inputs/tcp/raw<span class="ta">&lt;/id&gt;</span>
@@ -4689,7 +4704,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-42">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/44321
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/44321
 </pre>
 <p></p>
 
@@ -4839,7 +4855,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
     <span class="ta">&lt;/content&gt;</span>
   <span class="ta">&lt;/entry&gt;</span>
 <span class="ta">&lt;/feed&gt;</span>
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/host1.splunk.com%3A9997
+curl -k -u admin:pass \
+        https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/host1.splunk.com%3A9997
 <span class="ta">&lt;feed</span> <span class="an">xmlns</span>=<span class="s"><span class="dl">"</span><span class="k">http://www.w3.org/2005/Atom</span><span class="dl">"</span></span>
       <span class="an">xmlns:s</span>=<span class="s"><span class="dl">"</span><span class="k">http://dev.splunk.com/ns/rest</span><span class="dl">"</span></span>
       <span class="an">xmlns:opensearch</span>=<span class="s"><span class="dl">"</span><span class="k">http://a9.com/-/spec/opensearch/1.1/</span><span class="dl">"</span></span><span class="ta">&gt;</span>
@@ -5066,7 +5083,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-45">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/9998/connections
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/udp/9998/connections
 </pre>
 <p></p>
 
@@ -5308,7 +5326,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/inputs/win-event-log-
 
 <h4 id="request-47">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections \
 	-d lookup_host=localhost \
 	-d name=mylogs \
 	-d logs=Application,System
@@ -5421,7 +5440,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-48">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs
 </pre>
 <p></p>
 
@@ -5501,7 +5521,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/
 
 <h4 id="request-49">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs
 </pre>
 <p></p>
 
@@ -5646,7 +5667,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-50">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-event-log-collections/mylogs \
 	-d lookup_host=localhost \
 	-d logs=Application
 </pre>
@@ -6000,7 +6022,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-53">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory
 </pre>
 <p></p>
 
@@ -6077,7 +6100,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/
 
 <h4 id="request-54">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory
 </pre>
 <p></p>
 
@@ -6229,7 +6253,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-55">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-perfmon/mymemory \
 	-d interval=10
 </pre>
 <p></p>
@@ -6481,7 +6506,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/inputs/win-wmi-collec
 
 <h4 id="request-57">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections \
 	-d classes=Win32_PerfFormattedData_PerfOS_Processor \
 	-d interval=5 \
 	-d lookup_host=localhost \
@@ -6583,7 +6609,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-58">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu
 </pre>
 <p></p>
 
@@ -6660,7 +6687,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/
 
 <h4 id="request-59">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu
 </pre>
 <p></p>
 
@@ -6827,7 +6855,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-60">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/nobody/search/data/inputs/win-wmi-collections/cpu \
 	-d classes=Win32_PerfFormattedData_PerfOS_Processor \
 	-d interval=5 \
 	-d lookup_host=localhost \
@@ -6941,7 +6970,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/data/input
 
 <h4 id="request-61">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass "https://localhost:8089/services/receivers/simple?source=www&amp;sourcetype=web_event" \
+curl -k -u admin:pass "https://localhost:8089/services/receivers/simple?source=www&amp;sourcetype=web_event \
+	curl -k -u admin:pass "https://localhost:8089/services/receivers/simple?source=www&amp;sourcetype=web_event" \
 	-d "Sun Jul 10 15:56:02 PDT 2011   User vishalp logged in successfully."
 </pre>
 <p></p>

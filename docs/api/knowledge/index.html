@@ -305,7 +305,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/lookup
 
 <h4 id="request-2">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv
 </pre>
 <p></p>
 
@@ -382,7 +383,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-3">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv
 </pre>
 <p></p>
 
@@ -508,7 +510,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/lookup
 
 <h4 id="request-4">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/lookup-table-files/lookup.csv \
 	-d eai:data=/opt/splunk/var/run/splunk/lookup_tmp/another-lookup-in-staging-dir.csv
 </pre>
 <p></p>
@@ -831,7 +834,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-7">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port
 </pre>
 <p></p>
 
@@ -907,7 +911,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-8">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port
 </pre>
 <p></p>
 
@@ -1031,7 +1036,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-9">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/extractions/ftp_log%20%3A%20EXTRACT-port \
 	-d "value=connection on port (?&lt;port_number&gt;\d+)"
 </pre>
 <p></p>
@@ -1350,7 +1356,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-12">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name
 </pre>
 <p></p>
 
@@ -1426,7 +1433,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-13">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name
 </pre>
 <p></p>
 
@@ -1549,7 +1557,8 @@ Alias the fields “hi and “bye” as “hello” and “goodbye”, respectiv
 
 <h4 id="request-14">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/fieldaliases/my_sourcetype%20%3A%20FIELDALIAS-alias_name \
 	-d alias.hi=hello \
 	-d alias.bye=goodbye
 </pre>
@@ -1887,7 +1896,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-17">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup
 </pre>
 <p></p>
 
@@ -1963,7 +1973,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-18">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup
 </pre>
 <p></p>
 
@@ -2098,7 +2109,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-19">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/lookups/my_sourcetype%20%3A%20LOOKUP-my_lookup \
 	-d overwrite=1 \
 	-d transform=other_transform \
 	-d lookup.field.input.bar= \
@@ -2420,7 +2432,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-22">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware
 </pre>
 <p></p>
 
@@ -2497,7 +2510,8 @@ This sourcetype was renamed to “hw” in the POST operation to this endpoint.<
 
 <h4 id="request-23">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware
 </pre>
 <p></p>
 
@@ -2621,7 +2635,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/
 
 <h4 id="request-24">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/props/sourcetype-rename/hardware \
 	-d value=hrdwr
 </pre>
 <p></p>
@@ -3001,7 +3016,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transf
 
 <h4 id="request-27">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform
 </pre>
 <p></p>
 
@@ -3078,7 +3094,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-28">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform
 </pre>
 <p></p>
 
@@ -3244,7 +3261,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transf
 
 <h4 id="request-29">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/extractions/my_transform \
 	-d REGEX="(?&lt;_KEY_1&gt;[a-z]*),(?&lt;_VAL_1&gt;[a-z]*)" \
 	-d SOURCE_KEY=_raw \
 	-d CLEAN_KEYS=false
@@ -3633,7 +3651,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transf
 
 <h4 id="request-32">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup
 </pre>
 <p></p>
 
@@ -3710,7 +3729,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/s
 
 <h4 id="request-33">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup
 </pre>
 <p></p>
 
@@ -3889,7 +3909,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transf
 
 <h4 id="request-34">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup \
+curl -k -u admin:pass \
+	https://localhost:8089/servicesNS/admin/search/data/transforms/lookups/my_lookup \
 	-d external_cmd=myscript.py \
 	-d fields_list=a,b,c
 </pre>
@@ -4498,7 +4519,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/saved/event
 
 <h4 id="request-39">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/saved/eventtypes/client-errors
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/saved/eventtypes/client-errors
 </pre>
 <p></p>
 
@@ -5118,7 +5140,8 @@ tags.conf has been updated to mark this tag disabled.</p>
 
 <h4 id="request-47">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/admin/search/search/tags/user
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/admin/search/search/tags/user
 </pre>
 <p></p>
 

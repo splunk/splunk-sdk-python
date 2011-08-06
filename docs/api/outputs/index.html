@@ -300,7 +300,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/default/t
 
 <h4 id="request-2">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/default/tcpout
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/data/outputs/tcp/default/tcpout
 </pre>
 <p></p>
 
@@ -777,7 +778,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/group \
 
 <h4 id="request-7">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/group/lan_receivers
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/data/outputs/tcp/group/lan_receivers
 </pre>
 <p></p>
 
@@ -1340,7 +1342,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server \
 
 <h4 id="request-12">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/server/tiny:9997
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/data/outputs/tcp/server/tiny:9997
 </pre>
 <p></p>
 
@@ -1668,7 +1671,8 @@ curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server/ti
 
 <h4 id="request-15">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/services/data/outputs/tcp/server/localhost%3A9997/allconnections
+curl -k -u admin:pass \
+	https://localhost:8089/services/data/outputs/tcp/server/localhost%3A9997/allconnections
 </pre>
 <p></p>
 
@@ -1981,7 +1985,8 @@ curl -k -u admin:changeme https://localhost:8089/services/data/outputs/tcp/syslo
 
 <h4 id="request-18">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/data/outputs/tcp/syslog/west_coast_servers
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/data/outputs/tcp/syslog/west_coast_servers
 </pre>
 <p></p>
 

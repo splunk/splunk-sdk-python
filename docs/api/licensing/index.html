@@ -664,7 +664,8 @@ Note: The hash for the license payload has been elided for readability</p>
 
 <h4 id="request-5">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/licenser/licenses/E4BF . . . FC639D
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/licenser/licenses/E4BF . . . FC639D
 </pre>
 <p></p>
 
@@ -988,7 +989,8 @@ curl -k -u admin:pass https://localhost:8089/services/licenser/messages
 
 <h4 id="request-8">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://127.0.0.1:3339/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db
+curl -k -u admin:pass \
+	https://127.0.0.1:3339/services/licenser/messages/2702b33a1bd369ae9209a9ecf4cb39db
 </pre>
 <p></p>
 
@@ -1342,7 +1344,8 @@ Typically, you delete this pool to create a new enterprise license pool.</p>
 
 <h4 id="request-11">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/licenser/pools/auto_generated_pool_enterprise
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/licenser/pools/auto_generated_pool_enterprise
 </pre>
 <p></p>
 
@@ -1825,7 +1828,8 @@ Use &lt;pre&gt;https://localhost:8089/services/licenser/slaves&lt;/pre&gt; to ob
 
 <h4 id="request-15">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/services/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68
+curl -k -u admin:pass \
+	https://localhost:8089/services/licenser/slaves/74A43C7E-C33C-41F6-B027-E603D2C3FE68
 </pre>
 <p></p>
 

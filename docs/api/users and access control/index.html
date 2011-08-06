@@ -618,7 +618,8 @@ curl -k -u admin:pass https://localhost:8089/services/authentication/httpauth-to
 
 <h4 id="request-6">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/authentication/httpauth-tokens/ddc919fd970184455f6c21819d5b1c82
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/authentication/httpauth-tokens/ddc919fd970184455f6c21819d5b1c82
 </pre>
 <p></p>
 
@@ -693,7 +694,8 @@ curl -k -u admin:pass --request DELETE https://localhost:8089/services/authentic
 
 <h4 id="request-7">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass https://localhost:8089/services/authentication/httpauth-tokens/ddc919fd970184455f6c21819d5b1c82
+curl -k -u admin:pass \
+	https://localhost:8089/services/authentication/httpauth-tokens/ddc919fd970184455f6c21819d5b1c82
 </pre>
 <p></p>
 
@@ -1929,7 +1931,8 @@ After deleting the role, run the GET operation for /authorization/roles to verif
 
 <h4 id="request-17">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/services/authorization/roles/SplunkUser
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/services/authorization/roles/SplunkUser
 </pre>
 <p></p>
 
@@ -2513,7 +2516,8 @@ curl -k -u admin:pass https://localhost:8089/servicesNS/nobody/search/storage/pa
 
 <h4 id="request-22">Request</h4>
 <pre class="terminal">
-curl -k -u admin:pass --request DELETE https://localhost:8089/servicesNS/nobody/search/storage/passwords/:splunker:
+curl -k -u admin:pass --request DELETE \
+	https://localhost:8089/servicesNS/nobody/search/storage/passwords/:splunker:
 </pre>
 <p></p>
 

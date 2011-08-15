@@ -14,6 +14,6 @@
 
 """Python library for Splunk."""
 
-__version_info__ = (0, 1, 0)
+__version_info__ = (0, 1, '0a')
 __version__ = ".".join(map(str, __version_info__))
 

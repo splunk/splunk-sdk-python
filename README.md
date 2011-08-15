@@ -110,7 +110,7 @@ as custom search commands, lookup functions, scripted inputs and custom REST
 handlers.
 
 You can find additional information about building applications on Splunk at 
-our developer portal at COMING SOON. 
+our developer portal at http://dev.splunk.com. 
 
 ### Hello Splunk
 
@@ -194,7 +194,7 @@ You can read more about our branching model on our
 You can find anything having to do with developing on Splunk at the Splunk
 developer portal:
 
-*   **COMING SOON**
+*   http://dev.splunk.com
 
 You can also find full reference documentation of the REST API:
 
@@ -202,16 +202,16 @@ You can also find full reference documentation of the REST API:
 
 For a gentle introduction to the Splunk product and some of its capabilities:
 
-*   **COMING SOON**
+*   http://docs.splunk.com/Documentation/Splunk/latest/User/SplunkOverview
 
 ## Community
 
-* Email: Stay connected with other developers building on Splunk: **COMING SOON**
+* Email: Stay connected with other developers building on Splunk: devinfo@splunk.com
 * Issues: https://github.com/splunk/splunk-sdk-python/issues
 * Answers: Check out this tag on Splunk answers for:  
     http://splunk-base.splunk.com/tags/python/
 * Blog:  http://blogs.splunk.com/dev/
-* Twitter: **COMING SOON**
+* Twitter: [@splunkdev](http://twitter.com)
 
 ### How to contribute
 

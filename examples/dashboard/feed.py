@@ -23,7 +23,7 @@
 import sys, datetime, urllib2, json
 from xml.etree import ElementTree
 
-import splunk
+import splunk.client
 import splunk.results as results
 from utils import parse, error
 

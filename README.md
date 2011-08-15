@@ -211,7 +211,7 @@ For a gentle introduction to the Splunk product and some of its capabilities:
 * Answers: Check out this tag on Splunk answers for:  
     http://splunk-base.splunk.com/tags/python/
 * Blog:  http://blogs.splunk.com/dev/
-* Twitter: [@splunkdev](http://twitter.com)
+* Twitter: [@splunkdev](http://twitter.com/#!/splunkdev)
 
 ### How to contribute
 

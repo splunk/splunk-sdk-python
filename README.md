@@ -88,7 +88,7 @@ command line, for example:
     password=changeme
 
 The `.splunkrc` file is a feature of the SDK examples and unit tests and not
-the Splunk platform or SDK libraries and is indended simply as convenience for
+the Splunk platform or SDK libraries and is intended simply as convenience for
 developers using the SDK. 
 
 The `.splunkrc` file should not be used for storing user credentials for apps

@@ -547,7 +547,7 @@ class Job(Endpoint):
     def searchlog(self, **kwargs):
         return self.get("search.log", **kwargs).body
 
-    def setpriority(self, value):
+    def set_priority(self, value):
         self.post('control', action="setpriority", priority=value)
         return self
 

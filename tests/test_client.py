@@ -312,7 +312,7 @@ class ServiceTestCase(unittest.TestCase):
         job.disable_preview()
         job.pause()
         job.set_ttl(1000)
-        job.setpriority(5)
+        job.set_priority(5)
         job.touch()
 
         # Assert that the properties got set properly

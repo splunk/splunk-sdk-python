@@ -547,7 +547,7 @@ class Job(Endpoint):
     def searchlog(self, **kwargs):
         return self.get("search.log", **kwargs).body
 
-    def setpriority(self, value):
+    def set_priority(self, value):
         self.post('control', action="setpriority", priority=value)
         return self
 
@@ -557,12 +557,13 @@ class Job(Endpoint):
     def timeline(self, **kwargs):
         return self.get("timeline", **kwargs).body
 
-    def touch(self,):
+    def touch(self):
         self.post("control", action="touch")
         return self
 
-    def setttl(self, value):
+    def set_ttl(self, value):
         self.post("control", action="setttl", ttl=value)
+        return self
 
     def unpause(self):
         self.post("control", action="unpause")

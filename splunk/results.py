@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 # Splices a list of strings and file-like objects into a single stream
-class ListStream:
+class ListStream(object):
     def __init__(self, *args):
         count = len(args)
         if count == 0:
@@ -57,7 +57,7 @@ class ListStream:
 # A file-like interface that will convert a stream of XML fragments, into
 # a well-formed XML document by injecting a root element into the stream.
 # This is basically an annoying hack and I'd love a better idea.
-class XMLStream:
+class XMLStream(object):
     def __init__(self, file_):
         self.file = XMLStream.prepare(file_)
 
@@ -104,7 +104,7 @@ class XMLStream:
 TAG = "TAG"         # kind, name, attrs
 END = "END"         # kind, name
 VAL = "VAL"         # kind, value
-class XMLReader:
+class XMLReader(object):
     def __init__(self, stream):
         self._items = pulldom.parse(XMLStream(stream), bufsize = 256)
         self._item = None   # The current item
@@ -225,7 +225,7 @@ class XMLReader:
 MESSAGE = "MESSAGE"
 RESULT = "RESULT"
 RESULTS = "RESULTS"
-class ResultsReader:
+class ResultsReader(object):
     """A forward-only, streaming search results reader."""
     def __init__(self, stream):
         self._reader = XMLReader(stream)

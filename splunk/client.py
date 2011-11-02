@@ -187,7 +187,7 @@ class Service(Context):
                 service.post(PATH_USERS, name=name, **kwargs),
             dtor=lambda service, name: service.delete(PATH_USERS + name))
 
-class Endpoint:
+class Endpoint(object):
     """The base class for all client layer endpoints."""
     def __init__(self, service, path):
         self.service = service

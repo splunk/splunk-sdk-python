@@ -101,7 +101,7 @@ def cmdline(argv, flags):
     """A cmdopts wrapper that takes a list of flags and builds the
        corresponding cmdopts rules to match those flags."""
     rules = dict([(flag, {'flags': ["--%s" % flag]}) for flag in flags])
-    return cmdline(argv, rules)
+    return parse(argv, rules)
 
 def output(stream):
     """Write the contents of the given stream to stdout."""

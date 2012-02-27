@@ -14,7 +14,6 @@
 
 """A generic ATOM response loader."""
 
-import sys
 from xml.etree.ElementTree import XML
 
 __all__ = ["load"]

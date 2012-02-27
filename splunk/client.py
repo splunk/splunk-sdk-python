@@ -28,12 +28,15 @@
 
 """Client interface to the Splunk REST API."""
 
+#
 # A note on collections ..
+#
 #   * Entities have a kind, name & key. The kind is a tag that indicates the
 #     "kind" of entity, name is a friendly name for the entity suitable for
 #     display and key is a unique identifier for the Entity within its host
 #     collection. In Splunk collections, name and key are frequently the same
 #     but not always (eg: inputs).
+#
 
 from time import sleep
 from urllib import urlencode, quote_plus
@@ -307,9 +310,10 @@ class Entity(Endpoint):
 
 class Conf(Entity):
     def submit(self, stanza):
-        """Populates a stanza in the .conf file"""
+        """Populates a stanza in the .conf file."""
         message = { 'method': "POST", 'body': stanza }
-        response = self.service.request(self.path, message)
+        self.service.request(self.path, message)
+        return self
 
 class Index(Entity):
     """Index class access to specific operations."""
@@ -346,6 +350,7 @@ class Index(Entity):
             sleep(1)
             if self['totalEventCount'] == '0': break
         self.update(**saved)
+        return self
 
     def submit(self, event, host=None, source=None, sourcetype=None):
         """Submits an event to the index via HTTP POST."""
@@ -360,7 +365,8 @@ class Index(Entity):
         # because we aren't really sending a "form".
         path = "receivers/simple?%s" % urlencode(args)
         message = { 'method': "POST", 'body': event }
-        response = self.service.request(path, message)
+        self.service.request(path, message)
+        return self
 
     # kwargs: host, host_regex, host_segment, rename-source, sourcetype
     def upload(self, filename, **kwargs):
@@ -368,7 +374,8 @@ class Index(Entity):
            must be accessible from the server."""
         kwargs['index'] = self.name
         path = 'data/inputs/oneshot'
-        response = self.service.post(path, name=filename, **kwargs)
+        self.service.post(path, name=filename, **kwargs)
+        return self
 
 class Input(Entity):
     # kwargs: key, kind, name, path, links
@@ -425,12 +432,12 @@ class Inputs(Endpoint):
 
     def create(self, kind, name, **kwargs):
         """Creates an input of the given kind, with the given name & args."""
-        response = self.post(self._kindmap[kind], name=name, **kwargs)
+        self.post(self._kindmap[kind], name=name, **kwargs)
         return self.refresh()[self.itemkey(kind, name)]
 
     def delete(self, key):
         """Deletes the input with the given key."""
-        response = self.service.delete(self._infos[key]['path'])
+        self.service.delete(self._infos[key]['path'])
         self.refresh()
         return self
 

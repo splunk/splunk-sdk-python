@@ -221,8 +221,8 @@ class HttpLib(object):
         }
         return self.request(url, message)
 
-    def request(self, url, headers=None, **kwargs):
-        response = self.handler(url, headers, **kwargs)
+    def request(self, url, message, **kwargs):
+        response = self.handler(url, message, **kwargs)
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response) 

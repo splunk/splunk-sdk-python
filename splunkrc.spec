@@ -5,7 +5,7 @@ host=127.0.0.1
 port=8089
 
 # Username to use when logging in
-user=admin
+username=admin
 
 # Password to use when logging in
 password=changed

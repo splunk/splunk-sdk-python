@@ -492,16 +492,13 @@ class ServiceTestCase(unittest.TestCase):
         users.delete("sdk-user")
         self.assertTrue("sdk-user" not in users())
 
+# Runs the given named test, useful for debugging.
 def runone(testname):
     suite = unittest.TestSuite()
     suite.addTest(ServiceTestCase(testname))
     unittest.TextTestRunner().run(suite)
         
-def main(argv):
-    global opts
-    opts = parse(argv, {}, ".splunkrc")
-    #runone('test_apps')
-    unittest.main()
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    #runone('test_apps')
+    unittest.main(argv=sys.argv[:1])

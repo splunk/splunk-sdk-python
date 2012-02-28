@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Copyright 2011 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -18,7 +20,6 @@ import sys
 import unittest
 import urllib2
 import uuid
-from xml.etree import ElementTree
 from xml.etree.ElementTree import XML
 
 import splunk.binding as binding
@@ -159,8 +160,7 @@ class BindingTestCase(unittest.TestCase): # Base class
         # This is a special case of "assertRaises", where we want to check
         # that HTTP calls return the right status.
         try:
-            returnVal = fn(*args, **kwargs)
-            return returnVal
+            return fn(*args, **kwargs)
         except HTTPError as e:
             error_msg = "Unexpected error code: %d" % e.status
             if (isinstance(allowed_error_codes, list)):
@@ -354,12 +354,7 @@ class UsersTestCase(BindingTestCase):
             self.delete(userpath)
             self.assertTrue(username not in self.users())
         
-def main():
-    global opts
+if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     # Don't pass the Splunk cmdline args to unittest
     unittest.main(argv=sys.argv[:1])
-
-if __name__ == "__main__":
-    main()
-

@@ -29,12 +29,16 @@ from utils import parse, error
 
 leftronic_access_key = ""
 
-def send_data(access_key, stream_name, point):
+def send_data(access_key, stream_name, point = None, command = None):
     data = {
         "accessKey": access_key,
-        "streamName": stream_name,
-        "point": point,
+        "streamName": stream_name
     }
+    
+    if not point is None:
+        data["point"] = point
+    if not command is None:
+        data["command"] = command   
 
     request = urllib2.Request("https://beta.leftronic.com/customSend/",
         data = json.dumps(data)
@@ -76,6 +80,7 @@ def geo(service):
 
     def iterate(job):
         reader = results.ResultsReader(job.preview())
+        points = []
         for kind,result in reader:
             if kind == results.RESULT:
                 lng, lat = result["coordinates_coordinates"].split(",")
@@ -83,8 +88,11 @@ def geo(service):
                     "latitude": lat,
                     "longitude": lng,
                 }
+                points.append(point)
 
-                send_data(access_key = leftronic_access_key, stream_name = "geo", point = point)
+                
+        send_data(access_key = leftronic_access_key, stream_name = "geo", command = "clear")
+        send_data(access_key = leftronic_access_key, stream_name = "geo", point = points)
 
     return (created_job, lambda job: iterate(job))
 

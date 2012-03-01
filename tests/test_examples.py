@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Copyright 2011 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -353,12 +355,8 @@ def wait_event_count(index, count, secs):
         secs -= 1 # Approximate
         done = index['totalEventCount'] == count
 
-def main():
-    global opts
-    opts = parse(sys.argv[:1], {}, ".splunkrc")
-
-    os.chdir("../examples")
-    unittest.main()
-
 if __name__ == "__main__":
-    main()
+    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    os.chdir("../examples")
+    # Don't pass the Splunk cmdline args to unittest
+    unittest.main(argv=sys.argv[:1])

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Copyright 2011 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -24,6 +26,12 @@ from utils import parse
 
 opts = None # Command line options
 
+def restart(service):
+    """Restart the given service and wait for it to wake back up."""
+    service.restart()
+    sleep(5) # Wait for service to notice restart
+    wait_for_restart(service)
+
 # When an event is submitted to an index it takes a while before the event
 # is registered by the index's totalEventCount.
 def wait_event_count(index, count, secs):
@@ -34,6 +42,16 @@ def wait_event_count(index, count, secs):
         sleep(1)
         secs -= 1 # Approximate
         done = index['totalEventCount'] == count
+
+def wait_for_restart(service):
+    retry = 30
+    while retry > 0:
+        retry -= 1
+        try:
+            service.login() # Awake yet?
+            return
+        except:
+            sleep(2)
 
 class ServiceTestCase(unittest.TestCase):
     def setUp(self):
@@ -55,6 +73,16 @@ class ServiceTestCase(unittest.TestCase):
         except Exception as e:
             self.fail("HTTPError not raised, caught %s instead", str(type(e)))
 
+    def create_app(self, name):
+        service = self.service
+        service.apps.create('sdk-tests')
+        restart(service)
+
+    def delete_app(self, name):
+        service = self.service
+        service.apps.delete(name)
+        restart(service)
+
     def tearDown(self):
         pass
 
@@ -64,11 +92,11 @@ class ServiceTestCase(unittest.TestCase):
         for app in service.apps: app.read()
 
         if 'sdk-tests' in service.apps.list():
-            service.apps.delete('sdk-tests')
+            self.delete_app('sdk-tests')
             
         self.assertTrue('sdk-tests' not in service.apps.list())
 
-        service.apps.create('sdk-tests')
+        self.create_app('sdk-tests')
         self.assertTrue('sdk-tests' in service.apps.list())
 
         testapp = service.apps['sdk-tests']
@@ -76,7 +104,7 @@ class ServiceTestCase(unittest.TestCase):
         testapp.update(author="Splunk")
         self.assertTrue(testapp['author'] == "Splunk")
 
-        service.apps.delete('sdk-tests')
+        self.delete_app('sdk-tests')
         self.assertTrue('sdk-tests' not in service.apps.list())
 
     def test_capabilities(self):
@@ -206,28 +234,31 @@ class ServiceTestCase(unittest.TestCase):
     def test_inputs(self):
         inputs = self.service.inputs;
 
-        for input in inputs: input.read()
+        for input_ in inputs: input_.read()
 
         # Scan inputs and look for some common attributes
-        attrs = [ 'disabled', 'index' ]
-        for input in inputs:
-            entity = input.read()
-            for attr in attrs: self.assertTrue(attr in entity.keys())
+        # Note: The disabled flag appears to be the only common attribute, as
+        # there are apparently cases where even index does not appear.
+        expected = ['disabled']
+        for input_ in inputs:
+            attrs = input_.read()
+            for attr in expected:  
+                self.assertTrue(attr in attrs.keys())
 
         for kind in inputs.kinds:
             for key in inputs.list(kind):
-                input = inputs[key]
-                self.assertEqual(input.kind, kind)
+                input_ = inputs[key]
+                self.assertEqual(input_.kind, kind)
 
         if inputs.contains('tcp:9999'): inputs.delete('tcp:9999')
         self.assertFalse(inputs.contains('tcp:9999'))
         inputs.create("tcp", "9999", host="sdk-test")
         self.assertTrue(inputs.contains('tcp:9999'))
-        input = inputs['tcp:9999']
-        self.assertEqual(input['host'], "sdk-test")
-        input.update(host="foo", sourcetype="bar")
-        self.assertEqual(input['host'], "foo")
-        self.assertEqual(input['sourcetype'], "bar")
+        input_ = inputs['tcp:9999']
+        self.assertEqual(input_['host'], "sdk-test")
+        input_.update(host="foo", sourcetype="bar")
+        self.assertEqual(input_['host'], "foo")
+        self.assertEqual(input_['sourcetype'], "bar")
         inputs.delete('tcp:9999')
         self.assertFalse(inputs.contains('tcp:9999'))
 
@@ -404,24 +435,8 @@ class ServiceTestCase(unittest.TestCase):
         self.assertFalse(messages.contains('sdk-test-message2'))
 
     def test_restart(self):
-        response = self.service.restart()
-        self.assertEqual(response.status, 200)
-
-        sleep(5) # Wait for server to notice restart
-
-        retry = 10
-        restarted = False
-        while retry > 0:
-            retry -= 1
-            try:
-                self.service.login() # Awake yet?
-                response = self.service.get('server')
-                self.assertEqual(response.status, 200)
-                restarted = True
-                break
-            except:
-                sleep(5)
-        self.assertTrue(restarted)
+        restart(self.service)
+        self.service.login() # Make sure we are awake
 
     def test_roles(self):
         roles = self.service.roles
@@ -477,16 +492,13 @@ class ServiceTestCase(unittest.TestCase):
         users.delete("sdk-user")
         self.assertTrue("sdk-user" not in users())
 
+# Runs the given named test, useful for debugging.
 def runone(testname):
     suite = unittest.TestSuite()
     suite.addTest(ServiceTestCase(testname))
     unittest.TextTestRunner().run(suite)
         
-def main(argv):
-    global opts
-    opts = parse(argv, {}, ".splunkrc")
-    #runone('test_messages')
-    unittest.main()
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    #runone('test_apps')
+    unittest.main(argv=sys.argv[:1])

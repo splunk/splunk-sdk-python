@@ -75,6 +75,7 @@ class Parser(OptionParser):
         for line in file:
             if line.startswith("#"): continue # Skip comment
             line = line.strip()
+            if len(line) == 0: continue # Skip blank line
             if not line.startswith("-"): line = "--" + line
             argv.append(line)
         self.parse(argv)

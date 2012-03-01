@@ -42,7 +42,7 @@ def prefix(**kwargs):
     port = kwargs.get("port", DEFAULT_PORT)
     return "%s://%s:%s" % (scheme, host, port)
 
-class Context:
+class Context(object):
     # kwargs: scheme, host, port, username, password, namespace
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler)
@@ -221,15 +221,15 @@ class HttpLib(object):
         }
         return self.request(url, message)
 
-    def request(self, url, headers=None, **kwargs):
-        response = self.handler(url, headers, **kwargs)
+    def request(self, url, message, **kwargs):
+        response = self.handler(url, message, **kwargs)
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response) 
         return response
 
 # Converts an httplib response into a file-like object.
-class ResponseReader:
+class ResponseReader(object):
     def __init__(self, response):
         self._response = response
 

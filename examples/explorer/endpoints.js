@@ -8,7 +8,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -22,28 +22,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -139,7 +139,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Returns a list of all unexpired triggered or fired instances of this alert.", 
+        "summary": "Returns a list of all unexpired triggered or fired instances of this alert.\n\nSpecify <code>-</code> for {name} to return all fired alerts. For example:\n\n<div class=\"samplecode\">\n<pre>\ncurl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/alerts/fired_alerts/-\n</pre>\n</div>\n", 
         "urlParams": {
           "name": {
             "required": "true", 
@@ -212,7 +212,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -226,28 +226,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -273,7 +273,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Lists app templates that are used to create apps from the Mangager interface in Splunk Web.\n\nAn app templates is valid as the \"template\" argument to POST to /services/apps/local. The app templates can be found by enumerating $SPLUNK_HOME/share/splunk/app_templates. Adding a new template takes effect without restarting splunkd or SplunkWeb.", 
+        "summary": "Lists app templates that are used to create apps from the Mangager interface in Splunk Web.\n\nAn app template is valid as the \"template\" argument to POST to /services/apps/local. The app templates can be found by enumerating $SPLUNK_HOME/share/splunk/app_templates. Adding a new template takes effect without restarting splunkd or SplunkWeb.", 
         "urlParams": {}
       }
     }, 
@@ -327,7 +327,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -348,28 +348,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -408,6 +408,13 @@ apis = {
             "summary": "For apps you intend to post to Splunkbase, enter the username of your splunk.com account.\n\nFor internal-use-only apps, include your full name and/or contact info (for example, email).", 
             "validation": ""
           }, 
+          "configured": {
+            "datatype": "Boolean", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Indicates if the application's custom setup has been performed.\n'''Note''': This parameter is new with Splunk 4.2.4.", 
+            "validation": ""
+          }, 
           "description": {
             "datatype": "String", 
             "default": "", 
@@ -419,7 +426,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Defines the name of the app shown in the Splunk GUI and Launcher.\n\n* Must be between 5 and 80 characters.\n* Must not include \"Splunk For\" prefix.\n\nExamples of good labels:\n    IMAP\n    SQL Server Integration Services\n    FISMA Compliance", 
+            "summary": "Defines the name of the app shown in the Splunk GUI and Launcher.\n\n* Must be between 5 and 80 characters.\n* Must not include \"Splunk For\" prefix.\n\nExamples of good labels:\n* IMAP\n* SQL Server Integration Services\n* FISMA Compliance", 
             "validation": ""
           }, 
           "manageable": {
@@ -440,7 +447,7 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (barebones &#124; sample_app)\n\nIndicates the app template to use when creating the app.\n\nSpecify either of the following:\n\n  barebones - contains basic framework for an app\n  sample_app - contains example views and searches\n\nYou can also specify any valid app template you may have previously added.", 
+            "summary": "Valid values: (barebones &#124; sample_app)\n\nIndicates the app template to use when creating the app.\n\nSpecify either of the following:\n\n* barebones - contains basic framework for an app\n* sample_app - contains example views and searches\n\nYou can also specify any valid app template you may have previously added.", 
             "validation": ""
           }, 
           "visible": {
@@ -583,6 +590,13 @@ apis = {
             "summary": "If set to true, Splunk checks Splunkbase for updates to this app.", 
             "validation": "validate(is_bool($check_for_updates$), \"Value of argument 'check_for_updates' must be a boolean\")"
           }, 
+          "configured": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": "validate(is_bool($configured$), \"Value of argument 'configured' must be a boolean\")"
+          }, 
           "description": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -608,7 +622,7 @@ apis = {
             "datatype": "version string", 
             "default": "", 
             "required": "false", 
-            "summary": "Specifies the version for the app. Each release of an app must change the version number.\n\nVersion numbers are a number followed by a sequence of numbers or dots. Pre-release versions can append a space and a single-word suffix like \"beta2\". Examples:\n\n   1.2\n   11.0.34\n   2.0 beta\n   1.3 beta2\n   1.0 b2\n   12.4 alpha\n   11.0.34.234.254", 
+            "summary": "Specifies the version for the app. Each release of an app must change the version number.\n\nVersion numbers are a number followed by a sequence of numbers or dots. Pre-release versions can append a space and a single-word suffix like \"beta2\". Examples:\n\n* 1.2\n* 11.0.34\n* 2.0 beta\n* 1.3 beta2\n* 1.0 b2\n* 12.4 alpha\n* 11.0.34.234.254", 
             "validation": ""
           }, 
           "visible": {
@@ -660,10 +674,67 @@ apis = {
       }
     }
   }, 
+  "apps/local/{name}/package": {
+    "methods": {
+      "GET": {
+        "config": "", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "200": {
+            "summary": "Package file for the app created successfully."
+          }, 
+          "400": {
+            "summary": "Request error.  See response body for details."
+          }, 
+          "401": {
+            "summary": "Authentication failure: must pass valid credentials with request."
+          }, 
+          "403": {
+            "summary": "Insufficient permissions to create package for the app."
+          }, 
+          "404": {
+            "summary": "App specified by {name} does not exist."
+          }, 
+          "409": {
+            "summary": "Request error: this operation is invalid for this item.  See response body for details."
+          }, 
+          "500": {
+            "summary": "Internal server error.  See response body for details."
+          }
+        }, 
+        "summary": "Archives the app specified by {name}, placing the archive in the following directory on your Splunk installation:\n\n:<code>$SPLUNK_HOME/etc/system/static/app-packages/{name}.spl</code>\n\nThe archive can then be downloaded from the management port of your Splunk installation:\n\n:<code>https://[Splunk Host]:[Management Port]/static/app-packages/{name}.spl</code>", 
+        "urlParams": {
+          "name": {
+            "required": "true", 
+            "summary": "name"
+          }
+        }
+      }
+    }
+  }, 
   "apps/local/{name}/setup": {
     "methods": {
       "GET": {
         "config": "", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -689,7 +760,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Returns any set up information for the app specified by {name}..", 
+        "summary": "Returns set up information for the app specified by {name}. In the response to this operation, the actual setup script is listed under the key value, \"eai:setup.\" \n\nSome apps contain setup scripts that must be run before the app is enabled. For example, the [http://splunk-base.splunk.com/apps/22314/splunk-for-unix-and-linux Splunk for Unix and Linux app], available from [http://splunk-base.splunk.com/ Splunkbase], contains a setup script. \n\nFor more information on setup scripts, see [[Documentation:Splunk:Developer:SetupApp|Configure a setup screen]] in the [[Documentation:Splunk:Developer:Whatsinthismanual|Splunk Developer manual]].", 
         "urlParams": {
           "name": {
             "required": "true", 
@@ -703,6 +774,15 @@ apis = {
     "methods": {
       "GET": {
         "config": "", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -785,7 +865,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -799,28 +879,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -945,7 +1025,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -959,28 +1039,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -1060,7 +1140,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -1074,28 +1154,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -1210,7 +1290,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -1224,28 +1304,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -1288,7 +1368,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Specify a default app for the user.\n\nThe default app specified here overrieds the default app inherited from the user's roles.", 
+            "summary": "Specify a default app for the user.\n\nThe default app specified here overrides the default app inherited from the user's roles.", 
             "validation": ""
           }, 
           "email": {
@@ -1319,18 +1399,25 @@ apis = {
             "summary": "A full name to associate with the user.", 
             "validation": ""
           }, 
+          "restart_background_jobs": {
+            "datatype": "Boolean", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Indicates whether to restart background search jobs when Splunk restarts.\n\nIf true, a background search job for this user that has not completed is restarted when Splunk restarts.", 
+            "validation": ""
+          }, 
           "roles": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "A role to assign to this user. To assign multiple roles, send them in separate 'roles' arguments.", 
+            "summary": "A role to assign to this user. To assign multiple roles, send them in separate <code>roles</code> parameters.\n\nWhen creating a user, at least one role is required. Either specify one or more roles with this parameter or create a role using the <code>createrole</code> parameter.", 
             "validation": ""
           }, 
           "tz": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Timezone to use when displaying dates for this user.", 
+            "summary": "Timezone to use when displaying dates for this user.\n'''Note''': This parameter is new with Splunk 4.3.", 
             "validation": ""
           }
         }, 
@@ -1362,11 +1449,11 @@ apis = {
             "summary": "This feature has been disabled in Splunk configuration files."
           }
         }, 
-        "summary": "Creates a new user.", 
+        "summary": "Creates a new user.\n\nWhen creating a user you must specify at least one role. You can specify one or more roles with the <code>roles</code> parameter, or you can use the <code>createrole</code> parameter to create a role for the user.\n\nRefer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities. ", 
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to Splunk users."
+    "summary": "Provides access to Splunk users.\n\nRefer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities. "
   }, 
   "authentication/users/{name}": {
     "methods": {
@@ -1471,6 +1558,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "restart_background_jobs": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "roles": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -1536,7 +1630,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -1550,28 +1644,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -1597,11 +1691,11 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "List all system capabiilities", 
+        "summary": "List all system capabiilities.\n\nRefer to the [[Documentation:Splunk:Admin:Addandeditroles#List_of_available_capabilities|List of available capabilities]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details.", 
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to Splunk's capability authorization system."
+    "summary": "Provides access to Splunk's capability authorization system.\n\nRefer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities."
   }, 
   "authorization/capabilities/{name}": {
     "methods": {
@@ -1651,7 +1745,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -1665,28 +1759,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -1712,7 +1806,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Lists all roles and the permissions for each role.", 
+        "summary": "Lists all roles and the permissions for each role. Refer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities. ", 
         "urlParams": {}
       }, 
       "POST": {
@@ -1722,7 +1816,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Specify a comma-separated list of capabilities to assign to this role.\n\nRoles inherit all capabilities from imported roles\n\nCapabilities available are:\n\n  admin_all_objects\n  change_authentication\n  change_own_password\n  delete_by_keyword\n  edit_deployment_client\n  edit _depoyment_server\n  edit_dist_peer\n  edit_forwarders\n  edit_httpauths\n  edit_input_defaults\n  edit_monitor\n  edit_scripted\n  edit_search_server\n  edit_splunktcp\n  edit_splunktcp_ssl\n  edit_tcp\n  edit_udp\n  edit_web_settings\n  get_metadata\n  get_typeahead\n  indexes_edit\n  license_edit\n  license_tab\n  list_deployment_client\n  list_forwarders\n  list_httpauths\n  list_inputs\n  request_remote_tok\n  rest_apps_management\n  rest_apps_view\n  rest_properties_get\n  rest_properties_set\n  restart_splunkd\n  rtsearch\n  schedule_search\n  search\n  use_file_operator", 
+            "summary": "A capability to assign to this role. To send multiple capabilities, send this argument multiple times.\n\nRoles inherit all capabilities from imported roles\n\nCapabilities available are:\n\n* admin_all_objects\n* change_authentication\n* change_own_password\n* delete_by_keyword\n* edit_deployment_client\n* edit _depoyment_server\n* edit_dist_peer\n* edit_forwarders\n* edit_httpauths\n* edit_input_defaults\n* edit_monitor\n* edit_scripted\n* edit_search_server\n* edit_splunktcp\n* edit_splunktcp_ssl\n* edit_tcp\n* edit_udp\n* edit_web_settings\n* get_metadata\n* get_typeahead\n* indexes_edit\n* license_edit\n* license_tab\n* list_deployment_client\n* list_forwarders\n* list_httpauths\n* list_inputs\n* request_remote_tok\n* rest_apps_management\n* rest_apps_view\n* rest_properties_get\n* rest_properties_set\n* restart_splunkd\n* rtsearch\n* schedule_search\n* search\n* use_file_operator", 
             "validation": ""
           }, 
           "defaultApp": {
@@ -1736,7 +1830,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Specify a comma-separated list of roles their associated capabilities that should be imported. By default a role imports no other roles. \n\nImporting other roles also imports the other aspects of that role, such as capabilities and allowed indexes to search. If you specify multiple roles, this role inherits from the parent with the broadest permissions.\n\nDefault Splunk roles are:\n\n  admin\n  can_delete\n  power\n  user\n\nYou can specify additional roles that have been created.", 
+            "summary": "Specify a role to import attributes from. Specify many of these separately to import multiple roles. By default a role imports no other roles.\n\nImporting other roles imports all aspects of that role, such as capabilities and allowed indexes to search. In combining multiple roles, the effective value for each attribute is value with the broadest permissions.\n\nDefault Splunk roles are:\n\n* admin\n* can_delete\n* power\n* user\n\nYou can specify additional roles that have been created.", 
             "validation": ""
           }, 
           "name": {
@@ -1771,14 +1865,14 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Comma-separated list of indexes this role has permissions to search.  These may be wildcarded, but the index name must begin with an underscore to match internal indexes.\n\nSearch indexes available by default from Splunk include:\n\n  All internal indexes\n  All non-internal indexes\n  _audit\n  _blocksignature\n  _internal\n  _thefishbucket\n  history\n  main\n\nYou can also specify other search indexes that have been added to the server.", 
+            "summary": "An index this role has permissions to search. To set several of these, pass this argument several times. These may be wildcarded, but the index name must begin with an underscore to match internal indexes.\n\nSearch indexes available by default from Splunk include:\n\n* All internal indexes\n* All non-internal indexes\n* _audit\n* _blocksignature\n* _internal\n* _thefishbucket\n* history\n* main\n\nYou can also specify other search indexes that have been added to the server.", 
             "validation": ""
           }, 
           "srchIndexesDefault": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Comma-separated list of search indexes that searches for this role default to when no index is specified.  These may be wildcarded, but the index name must begin with an underscore to match internal indexes.\n\nA user with this role can search other indexes using \"index= \" \n\nFor example, \"index=special_index\".\n\nSearch indexes available by default from Splunk include:\n\n  All internal indexes\n  All non-internal indexes\n  _audit\n  _blocksignature\n  _internal\n  _thefishbucket\n  history\n  main\n  other search indexes that have been added to the server\n\nThese indexes can be wildcarded, with the exception that '*' does not match internal indexes. To match internal indexes, start with '_'. All internal indexes are represented by '_*'.", 
+            "summary": "A search index that searches for this role default to when no index is specified. To set several of these, pass this argument multiple times. These may be wildcarded, but the index name must begin with an underscore to match internal indexes.\n\nA user with this role can search other indexes using \"index= \" \n\nFor example, \"index=special_index\".\n\nSearch indexes available by default from Splunk include:\n\n* All internal indexes\n* All non-internal indexes\n* _audit\n* _blocksignature\n* _internal\n* _thefishbucket\n* history\n* main\n* other search indexes that have been added to the server\n\nThese indexes can be wildcarded, with the exception that '*' does not match internal indexes. To match internal indexes, start with '_'. All internal indexes are represented by '_*'.", 
             "validation": ""
           }, 
           "srchJobsQuota": {
@@ -1824,11 +1918,11 @@ apis = {
             "summary": "This feature has been disabled in Splunk configuration files."
           }
         }, 
-        "summary": "Create a user role.", 
+        "summary": "Create a user role. Refer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities.", 
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to Splunk user roles."
+    "summary": "Provides access to Splunk user roles.\n\nRefer to [[Documentation:Splunk:Admin:Aboutusersandroles|About users and roles]] in the [[Documentation:Splunk:Admin:Whatsinthismanual|Splunk Admin manual]] for details about Splunk users, roles, and capabilities. "
   }, 
   "authorization/roles/{name}": {
     "methods": {
@@ -2090,11 +2184,11 @@ apis = {
       }, 
       "POST": {
         "params": {
-          "&lt;arbitrary_stanza&gt;": {
+          "&lt;key&gt;": {
             "datatype": "String", 
             "default": "", 
-            "required": "true", 
-            "summary": "This operation accepts an arbitrary set of key/value pairs to populate in the created stanza.  (There is no actual parameter named \"arbitrary_stanza\".)", 
+            "required": "false", 
+            "summary": "This operation accepts an arbitrary set of key/value pairs to populate in the created stanza.  (There is no actual parameter named \"key\".)", 
             "validation": ""
           }, 
           "name": {
@@ -2130,7 +2224,7 @@ apis = {
         }
       }
     }, 
-    "summary": "Provides raw access to Splunk's \".conf\" configuration files."
+    "summary": "Provides raw access to Splunk's \".conf\" configuration files.\n\nRefer to [[Documentation:Splunk:RESTAPI:RESTconfigurations|Accessing and updating Splunk configurations]] for a comparison of these endpoints with the <code>properties/</code> endpoints."
   }, 
   "configs/conf-{file}/{name}": {
     "methods": {
@@ -2194,11 +2288,11 @@ apis = {
       }, 
       "POST": {
         "params": {
-          "&lt;arbitrary_key&gt;": {
+          "&lt;key&gt;": {
             "datatype": "String", 
             "default": "", 
-            "required": "true", 
-            "summary": "This operation accepts an arbitrary set of key/value pairs to populate in set in this stanza.  (There is no actual parameter named \"arbitrary_key\".)", 
+            "required": "false", 
+            "summary": "This operation accepts an arbitrary set of key/value pairs to populate in the created stanza.  (There is no actual parameter named \"key\".)", 
             "validation": ""
           }
         }, 
@@ -2241,7 +2335,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -2255,28 +2349,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -2356,7 +2450,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -2370,28 +2464,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }, 
           "summarize": {
@@ -2455,14 +2549,14 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Destination path for the frozen archive. Use as an alternative to a coldToFrozenScript. Splunk automatically puts frozen buckets in this directory.\n\nBucket freezing policy is as follows:\n* New style buckets (4.2 and on): removes all files but the rawdata\n:To thaw, run <pre>splunk rebuild <bucket dir></pre> on the bucket, then move to the thawed directory\n* Old style buckets (Pre-4.2): gzip all the .data and .tsidx files\n:To thaw, gunzip the zipped files and move the bucket into the thawed directory\n\nIf both coldToFrozenDir and coldToFrozenScript are specified, coldToFrozenDir takes precedence", 
+            "summary": "Destination path for the frozen archive. Use as an alternative to a coldToFrozenScript. Splunk automatically puts frozen buckets in this directory.\n\nBucket freezing policy is as follows:\n* New style buckets (4.2 and on): removes all files but the rawdata\n:To thaw, run <code>splunk rebuild <bucket dir></code> on the bucket, then move to the thawed directory\n* Old style buckets (Pre-4.2): gzip all the .data and .tsidx files\n:To thaw, gunzip the zipped files and move the bucket into the thawed directory\n\nIf both coldToFrozenDir and coldToFrozenScript are specified, coldToFrozenDir takes precedence", 
             "validation": ""
           }, 
           "coldToFrozenScript": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Path to the archiving script.\n\nIf your script requires a program to run it (for example, python), specify the program followed by the path. The script must be in $SPLUNK_HOME/bin or one of its subdirectories.\n\nSplunk ships with an example archiving script in $SPLUNK_HOME/bin called coldToFrozenExample.py. Splunk DOES NOT recommend using this example script directly. It uses a default path, and if modified in place any changes will be overwritten on upgrade.\n\nSplunk recommends copying the example script to a new file in bin and modifying it for your system.  Most importantly, change the default archive path to an existing directory that fits your needs.\n\nIf your new script in bin/ is named myColdToFrozen.py, set this key to the following:\n\n  coldToFrozenScript = \"$SPLUNK_HOME/bin/python\" \"$SPLUNK_HOME/bin/myColdToFrozen.py\"\n\nBy default, the example script has two possible behaviors when archiving:\n* For buckets created from version 4.2 and on, it removes all files except for rawdata. To thaw: cd to the frozen bucket and type <code>splunk rebuild .</code>, then copy the bucket to thawed for that index.  We recommend using the coldToFrozenDir parameter unless you need to perform a more advanced operation upon freezing buckets.\n* For older-style buckets, we simply gzip all the .tsidx files. To thaw: cd to the frozen bucket and unzip the tsidx files, then copy the bucket to thawed for that index", 
+            "summary": "Path to the archiving script.\n\nIf your script requires a program to run it (for example, python), specify the program followed by the path. The script must be in $SPLUNK_HOME/bin or one of its subdirectories.\n\nSplunk ships with an example archiving script in $SPLUNK_HOME/bin called coldToFrozenExample.py. Splunk DOES NOT recommend using this example script directly. It uses a default path, and if modified in place any changes will be overwritten on upgrade.\n\nSplunk recommends copying the example script to a new file in bin and modifying it for your system.  Most importantly, change the default archive path to an existing directory that fits your needs.\n\nIf your new script in bin/ is named myColdToFrozen.py, set this key to the following:\n\n<code>coldToFrozenScript = \"$SPLUNK_HOME/bin/python\" \"$SPLUNK_HOME/bin/myColdToFrozen.py\"</code>\n\nBy default, the example script has two possible behaviors when archiving:\n* For buckets created from version 4.2 and on, it removes all files except for rawdata. To thaw: cd to the frozen bucket and type <code>splunk rebuild .</code>, then copy the bucket to thawed for that index.  We recommend using the coldToFrozenDir parameter unless you need to perform a more advanced operation upon freezing buckets.\n* For older-style buckets, we simply gzip all the .tsidx files. To thaw: cd to the frozen bucket and unzip the tsidx files, then copy the bucket to thawed for that index", 
             "validation": ""
           }, 
           "compressRawdata": {
@@ -2470,6 +2564,13 @@ apis = {
             "default": "true", 
             "required": "false", 
             "summary": "This parameter is ignored. The splunkd process always compresses raw data.", 
+            "validation": ""
+          }, 
+          "enableOnlineBucketRepair": {
+            "datatype": "Boolean", 
+            "default": "true", 
+            "required": "false", 
+            "summary": "Enables asynchronous \"online fsck\" bucket repair, which runs concurrently with Splunk.\n\nWhen enabled, you do not have to wait until buckets are repaired to start Splunk. However, you might observe a slight performance degratation.\n\n'''Note:''' This endpoint is new in Splunk 4.3.", 
             "validation": ""
           }, 
           "frozenTimePeriodInSecs": {
@@ -2484,6 +2585,13 @@ apis = {
             "default": "", 
             "required": "false", 
             "summary": "An absolute path that contains the hot and warm buckets for the index.\n\nRequired. Splunk will not start if an index lacks a valid homePath.\n\nCAUTION: Path MUST be readable and writable.", 
+            "validation": ""
+          }, 
+          "maxBloomBackfillBucketAge": {
+            "datatype": "Number", 
+            "default": "30d", 
+            "required": "false", 
+            "summary": "Valid values are: Integer[m|s|h|d]\n\nIf a warm or cold bucket is older than the specified age, do not create or rebuild its bloomfilter. Specify 0 to never rebuild bloomfilters.\n\nFor example, if a bucket is older than specified with maxBloomBackfillBucketAge, and the rebuilding of its bloomfilter started but did not finish, do not rebuild it.", 
             "validation": ""
           }, 
           "maxConcurrentOptimizes": {
@@ -2533,13 +2641,6 @@ apis = {
             "default": "1000000", 
             "required": "false", 
             "summary": "Sets the maximum number of unique lines in .data files in a bucket, which may help to reduce memory consumption. If set to 0, this setting is ignored (it is treated as infinite).\n\nIf exceeded, a hot bucket is rolled to prevent further increase. If your buckets are rolling due to Strings.data hitting this limit, the culprit may be the <code>punct</code> field in your data.  If you don't use punct, it may be best to simply disable this (see props.conf.spec in $SPLUNK_HOME/etc/system/README).\n\nThere is a small time delta between when maximum is exceeded and bucket is rolled. This means a bucket may end up with epsilon more lines than specified, but this is not a major concern unless excess is significant.", 
-            "validation": ""
-          }, 
-          "maxRunningProcessGroups": {
-            "datatype": "Number", 
-            "default": "20", 
-            "required": "false", 
-            "summary": "The indexer fires off helper processes like splunk-optimize, recover-metadata, and others. This parameter controls how many processes the indexer fires off at any given time.\n\n<b>CAUTION:</b> This is an advanced parameter, do NOT set this unless instructed by Splunk Support.", 
             "validation": ""
           }, 
           "maxTotalDataSizeMB": {
@@ -2610,13 +2711,6 @@ apis = {
             "default": "25", 
             "required": "false", 
             "summary": "Defines how frequently metadata is synced to disk, in seconds. Defaults to 25 (seconds).\n\nYou may want to set this to a higher value if the sum of your metadata file sizes is larger than many tens of megabytes, to avoid the hit on I/O in the indexing fast path.", 
-            "validation": ""
-          }, 
-          "suppressBannerList": {
-            "datatype": "String", 
-            "default": "", 
-            "required": "false", 
-            "summary": "Specify a comma-separated list of indexes. This parameter suppresses index missing warning banner messages for the specified indexes. Defaults to empty.", 
             "validation": ""
           }, 
           "syncMeta": {
@@ -2759,12 +2853,26 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "enableOnlineBucketRepair": {
+            "datatype": "INHERITED", 
+            "default": "true", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "frozenTimePeriodInSecs": {
             "datatype": "INHERITED", 
             "default": "188697600", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": "validate(isint(frozenTimePeriodInSecs) AND frozenTimePeriodInSecs >= 0,\"frozenTimePeriodInSecs must be a non-negative integer\")"
+          }, 
+          "maxBloomBackfillBucketAge": {
+            "datatype": "INHERITED", 
+            "default": "30d", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
           }, 
           "maxConcurrentOptimizes": {
             "datatype": "INHERITED", 
@@ -2811,13 +2919,6 @@ apis = {
           "maxMetaEntries": {
             "datatype": "INHERITED", 
             "default": "1000000", 
-            "required": "false", 
-            "summary": "INHERITED", 
-            "validation": ""
-          }, 
-          "maxRunningProcessGroups": {
-            "datatype": "INHERITED", 
-            "default": "20", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
@@ -2881,13 +2982,6 @@ apis = {
           "serviceMetaPeriod": {
             "datatype": "INHERITED", 
             "default": "25", 
-            "required": "false", 
-            "summary": "INHERITED", 
-            "validation": ""
-          }, 
-          "suppressBannerList": {
-            "datatype": "INHERITED", 
-            "default": "", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
@@ -2957,7 +3051,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -2976,9 +3070,9 @@ apis = {
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc | desc)\n\nIndicates whether to sort the entries returned in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
@@ -2990,9 +3084,9 @@ apis = {
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto | alpha | alpha_case | num)\n\nIndicates the collating sequence for sorting the returned entries.", 
             "validation": ""
           }
         }, 
@@ -3025,7 +3119,7 @@ apis = {
         "config": "admon", 
         "params": {
           "disabled": {
-            "datatype": "Number", 
+            "datatype": "Boolean", 
             "default": "1", 
             "required": "false", 
             "summary": "Indicates whether the monitoring is disabled.", 
@@ -3262,7 +3356,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -3276,28 +3370,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -3707,7 +3801,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -3721,28 +3815,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -3790,7 +3884,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -3804,28 +3898,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -3989,7 +4083,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -4008,9 +4102,9 @@ apis = {
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc | desc)\n\nIndicates whether to sort the entries returned in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
@@ -4022,9 +4116,9 @@ apis = {
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto | alpha | alpha_case | num)\n\nIndicates the collating sequence for sorting the returned entries.", 
             "validation": ""
           }
         }, 
@@ -4064,7 +4158,7 @@ apis = {
             "validation": ""
           }, 
           "disabled": {
-            "datatype": "Number", 
+            "datatype": "Boolean", 
             "default": "1", 
             "required": "false", 
             "summary": "Indicates whether the monitoring is disabled.", 
@@ -4322,7 +4416,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -4336,28 +4430,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -4415,13 +4509,20 @@ apis = {
             "default": "60", 
             "required": "true", 
             "summary": "Specify an integer or cron schedule. This parameter specifies how often to execute the specified script, in seconds or a valid cron schedule. If you specify a cron schedule, the script is not executed on start-up.", 
-            "validation": "is_pos_int(interval)OR is_cron(interval)"
+            "validation": "isint(interval)OR is_cron(interval)"
           }, 
           "name": {
             "datatype": "String", 
             "default": "", 
             "required": "true", 
             "summary": "Specify the name of the scripted input.", 
+            "validation": ""
+          }, 
+          "passAuth": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "User to run the script as.\n\nIf you provide a username, Splunk generates an auth token for that user and passes it to the script.", 
             "validation": ""
           }, 
           "rename-source": {
@@ -4628,7 +4729,14 @@ apis = {
             "default": "60", 
             "required": "false", 
             "summary": "INHERITED", 
-            "validation": "is_pos_int(interval)OR is_cron(interval)"
+            "validation": "isint(interval)OR is_cron(interval)"
+          }, 
+          "passAuth": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
           }, 
           "rename-source": {
             "datatype": "INHERITED", 
@@ -4702,7 +4810,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -4716,28 +4824,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -4780,7 +4888,7 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nSet the host for the remote server that is sending data.\n\n<code>ip</code> sets the host to the IP address of the remote server sending data. <code>dns</code> sets the host to the reverse DNS entry for the IP address of the remote server sending data. <code>none</code> leaves the host as specified in inputs.conf.\n\nDefault value is dns.", 
+            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nSet the host for the remote server that is sending data.\n\n<code>ip</code> sets the host to the IP address of the remote server sending data.\n\n<code>dns</code> sets the host to the reverse DNS entry for the IP address of the remote server sending data. \n\n<code>none</code> leaves the host as specified in inputs.conf, which is typically the Splunk system hostname.\n\nDefault value is <code>ip</code>.", 
             "validation": ""
           }, 
           "disabled": {
@@ -4797,7 +4905,7 @@ apis = {
             "summary": "The default value to fill in for events lacking a host value.", 
             "validation": ""
           }, 
-          "name": {
+          "port": {
             "datatype": "Number", 
             "default": "", 
             "required": "true", 
@@ -5046,7 +5154,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -5060,28 +5168,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -5124,7 +5232,7 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nSpecify the remote server that is the connection host.\n\nip: specifies the IP address of the remote server. \n\ndns: sets the host to the DNS entry of the remote server.\n\nnone: leaves the host as specified.", 
+            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nSet the host for the remote server that is sending data.\n\n<code>ip</code> sets the host to the IP address of the remote server sending data.\n\n<code>dns</code> sets the host to the reverse DNS entry for the IP address of the remote server sending data. \n\n<code>none</code> leaves the host as specified in inputs.conf, which is typically the Splunk system hostname.\n\nDefault value is <code>ip</code>.", 
             "validation": ""
           }, 
           "disabled": {
@@ -5159,7 +5267,14 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (parsingQueue &#124; indexQueue)\n\nSpecifies where the input processor should deposit the events it reads. Defaults to parsingQueue.\n\nSet queue to <code>parsingQueue</code> to apply props.conf and other parsing rules to your data.  For more information about props.conf and rules for timestamping and linebreaking, refer to <code>props.conf</code> and the online documentation at [[Documentation:Data:Editinputs.conf]]\n\nSet queue to <code>indexQueue</code> to send your data directly into the index.", 
+            "summary": "Valid values: (parsingQueue &#124; indexQueue)\n\nSpecifies where the input processor should deposit the events it reads. Defaults to parsingQueue.\n\nSet queue to <code>parsingQueue</code> to apply props.conf and other parsing rules to your data.  For more information about props.conf and rules for timestamping and linebreaking, refer to <code>props.conf</code> and the online documentation at [[Documentation:Splunk:Data:Editinputs.conf Edit inputs.conf]]\n\nSet queue to <code>indexQueue</code> to send your data directly into the index.", 
+            "validation": ""
+          }, 
+          "rawTcpDoneTimeout": {
+            "datatype": "Number", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Specifies in seconds the timeout value for adding a Done-key. Default value is 10 seconds.\n\nIf a connection over the port specified by <code>name</code> remains idle after receiving data for specified number of seconds, it adds a Done-key. This implies the last event has been completely received.", 
             "validation": ""
           }, 
           "restrictToHost": {
@@ -5335,6 +5450,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "rawTcpDoneTimeout": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "restrictToHost": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -5446,7 +5568,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -5460,28 +5582,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -5639,7 +5761,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -5653,28 +5775,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -5710,14 +5832,14 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nip: The <code>host</code> field for incoming events is set to the IP address of the remote server.  \n\ndns: The <code>host</code> field is set to the DNS entry of the remote server.  \n\nnone: The <code>host</code> field remains unchanged.  \n\nDefaults to <code>ip</code>.", 
+            "summary": "Valid values: (ip &#124; dns &#124; none)\n\nSet the host for the remote server that is sending data.\n\n<code>ip</code> sets the host to the IP address of the remote server sending data.\n\n<code>dns</code> sets the host to the reverse DNS entry for the IP address of the remote server sending data. \n\n<code>none</code> leaves the host as specified in inputs.conf, which is typically the Splunk system hostname.\n\nDefault value is <code>ip</code>.", 
             "validation": ""
           }, 
           "host": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "The value to populate in the host field for incoming events.", 
+            "summary": "The value to populate in the host field for incoming events. \n\nThis is used during parsing/indexing, in particular to set the host field. It is also the host field used at search time.", 
             "validation": ""
           }, 
           "index": {
@@ -5753,6 +5875,13 @@ apis = {
             "default": "", 
             "required": "false", 
             "summary": "Which queue events from this input should be sent to.  Generally this does not need to be changed.", 
+            "validation": ""
+          }, 
+          "restrictToHost": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Restrict incoming connections on this port to the host specified here.\n\nIf this is not set, the value specified in [udp://<remote server>:<port>] in inputs.conf is used.", 
             "validation": ""
           }, 
           "source": {
@@ -5921,6 +6050,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "restrictToHost": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "source": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -6025,7 +6161,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "lookup_host": {
@@ -6051,9 +6187,9 @@ apis = {
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc | desc)\n\nIndicates whether to sort the entries returned in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
@@ -6065,9 +6201,9 @@ apis = {
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto | alpha | alpha_case | num)\n\nIndicates the collating sequence for sorting the returned entries.", 
             "validation": ""
           }
         }, 
@@ -6085,9 +6221,6 @@ apis = {
           }, 
           "403": {
             "summary": "Insufficient permissions to view event log collections."
-          }, 
-          "404": {
-            "summary": "Event log collection does not exist."
           }, 
           "409": {
             "summary": "Request error: this operation is invalid for this item.  See response body for details."
@@ -6210,7 +6343,7 @@ apis = {
         }
       }, 
       "GET": {
-        "config": "inputs", 
+        "config": "wmi", 
         "params": {
           "lookup_host": {
             "datatype": "String", 
@@ -6335,7 +6468,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -6354,9 +6487,9 @@ apis = {
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc | desc)\n\nIndicates whether to sort the entries returned in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
@@ -6368,9 +6501,9 @@ apis = {
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto | alpha | alpha_case | num)\n\nIndicates the collating sequence for sorting the returned entries.", 
             "validation": ""
           }
         }, 
@@ -6410,7 +6543,7 @@ apis = {
             "validation": ""
           }, 
           "disabled": {
-            "datatype": "Number", 
+            "datatype": "Boolean", 
             "default": "", 
             "required": "false", 
             "summary": "Disables a given monitoring stanza.", 
@@ -6654,7 +6787,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -6673,9 +6806,9 @@ apis = {
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc | desc)\n\nIndicates whether to sort the entries returned in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
@@ -6687,9 +6820,9 @@ apis = {
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto | alpha | alpha_case | num)\n\nIndicates the collating sequence for sorting the returned entries.", 
             "validation": ""
           }
         }, 
@@ -6729,7 +6862,7 @@ apis = {
             "validation": ""
           }, 
           "disabled": {
-            "datatype": "Number", 
+            "datatype": "Boolean", 
             "default": "", 
             "required": "false", 
             "summary": "Disables the given collection.", 
@@ -6753,7 +6886,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "A comma-separated list of all instances of a given class for which data is to be gathered.", 
+            "summary": "Instances of a given class for which data is gathered.\n\nSpecify each instance as a separate argument to the POST operation.", 
             "validation": ""
           }, 
           "interval": {
@@ -6813,7 +6946,7 @@ apis = {
             "summary": "This feature has been disabled in Splunk configuration files."
           }
         }, 
-        "summary": "Creates of modifies existing WMI collection settings.", 
+        "summary": "Creates or modifies existing WMI collection settings.", 
         "urlParams": {}
       }
     }, 
@@ -7001,7 +7134,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -7015,28 +7148,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -7250,7 +7383,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -7264,28 +7397,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -7317,13 +7450,6 @@ apis = {
       "POST": {
         "config": "outputs", 
         "params": {
-          "blockOnQueueFull": {
-            "datatype": "Boolean", 
-            "default": "", 
-            "required": "false", 
-            "summary": "If disabled, data destined for forwarders will be thrown away if no forwarders in the group are reachable.", 
-            "validation": ""
-          }, 
           "defaultGroup": {
             "datatype": "String", 
             "default": "", 
@@ -7490,13 +7616,6 @@ apis = {
       "POST": {
         "config": "outputs", 
         "params": {
-          "blockOnQueueFull": {
-            "datatype": "INHERITED", 
-            "default": "", 
-            "required": "false", 
-            "summary": "INHERITED", 
-            "validation": ""
-          }, 
           "defaultGroup": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -7597,7 +7716,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -7611,28 +7730,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -7671,37 +7790,30 @@ apis = {
             "summary": "If set to true, forwarder performs automatic load balancing. In automatic mode, the forwarder selects a new indexer every autoLBFrequency seconds. If the connection to the current indexer is lost, the forwarder selects a new live indexer to forward data to.\n\nDo not alter the default setting, unless you have some overriding need to use round-robin load balancing. Round-robin load balancing (autoLB=false) was previously the default load balancing method. Starting with release 4.2, however, round-robin load balancing has been deprecated, and the default has been changed to automatic load balancing (autoLB=true).", 
             "validation": ""
           }, 
-          "blockOnQueueFull": {
-            "datatype": "Boolean", 
-            "default": "", 
-            "required": "false", 
-            "summary": "If disabled, data destined for forwarders will be thrown away if no forwarders in the group are reachable.", 
-            "validation": ""
-          }, 
           "compressed": {
             "datatype": "Boolean", 
-            "default": "", 
+            "default": "false", 
             "required": "false", 
             "summary": "If true, forwarder sends compressed data.\n\nIf set to true, the receiver port must also have compression turned on.", 
             "validation": ""
           }, 
           "disabled": {
             "datatype": "Boolean", 
-            "default": "", 
+            "default": "false", 
             "required": "false", 
             "summary": "If true, disables the group.", 
             "validation": ""
           }, 
           "dropEventsOnQueueFull": {
             "datatype": "Number", 
-            "default": "", 
+            "default": "-1", 
             "required": "false", 
             "summary": "If set to a positive number, wait the specified number of seconds before throwing out all new events until the output queue has space. Defaults to -1 (do not drop events).\n\nCAUTION: Do not set this value to a positive integer if you are monitoring files.\n\nSetting this to -1 or 0 causes the output queue to block when it gets full, which causes further blocking up the processing chain. If any target group's queue is blocked, no more data reaches any other target group.\n\nUsing auto load-balancing is the best way to minimize this condition, because, in that case, multiple receivers must be down (or jammed up) before queue blocking can occur.", 
             "validation": ""
           }, 
           "heartbeatFrequency": {
             "datatype": "Number", 
-            "default": "", 
+            "default": "30", 
             "required": "false", 
             "summary": "How often (in seconds) to send a heartbeat packet to the group.\n\nHeartbeats are only sent if sendCookedData=true. Defaults to 30 seconds.", 
             "validation": ""
@@ -7717,7 +7829,7 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (tcpout &#124; syslog &#124; httpout)\n\nSpecifies the type of output processor.", 
+            "summary": "Valid values: (tcpout &#124; syslog)\n\nSpecifies the type of output processor.", 
             "validation": ""
           }, 
           "name": {
@@ -7729,7 +7841,7 @@ apis = {
           }, 
           "sendCookedData": {
             "datatype": "Boolean", 
-            "default": "", 
+            "default": "true", 
             "required": "false", 
             "summary": "If true, send cooked events (events that have been processed by Splunk).\n\nIf false, events are raw and untouched prior to sending. Set to false if you are sending to a third-party system.\n\nDefaults to true.", 
             "validation": ""
@@ -7858,37 +7970,30 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
-          "blockOnQueueFull": {
-            "datatype": "INHERITED", 
-            "default": "", 
-            "required": "false", 
-            "summary": "INHERITED", 
-            "validation": ""
-          }, 
           "compressed": {
             "datatype": "INHERITED", 
-            "default": "", 
+            "default": "false", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
           }, 
           "disabled": {
             "datatype": "INHERITED", 
-            "default": "", 
+            "default": "false", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
           }, 
           "dropEventsOnQueueFull": {
             "datatype": "INHERITED", 
-            "default": "", 
+            "default": "-1", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
           }, 
           "heartbeatFrequency": {
             "datatype": "INHERITED", 
-            "default": "", 
+            "default": "30", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
@@ -7909,7 +8014,7 @@ apis = {
           }, 
           "sendCookedData": {
             "datatype": "INHERITED", 
-            "default": "", 
+            "default": "true", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
@@ -7972,7 +8077,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -7986,28 +8091,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -8428,7 +8533,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -8442,28 +8547,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -8510,7 +8615,7 @@ apis = {
             "validation": ""
           }, 
           "priority": {
-            "datatype": "integer", 
+            "datatype": "Number", 
             "default": "", 
             "required": "false", 
             "summary": "Sets syslog priority value.", 
@@ -8534,7 +8639,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Protocol to use to send syslog data. Valid values: (tcp | udp ).", 
+            "summary": "Protocol to use to send syslog data. Valid values: (tcp &#124; udp ).", 
             "validation": ""
           }
         }, 
@@ -8733,7 +8838,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -8747,28 +8852,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -8996,7 +9101,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -9010,28 +9115,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -9063,6 +9168,13 @@ apis = {
       "POST": {
         "config": "", 
         "params": {
+          "alias.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "The alias for a given field. For example, supply a value of \"bar\" for an argument \"alias.foo\" to alias \"foo\" to \"bar\".", 
+            "validation": ""
+          }, 
           "name": {
             "datatype": "String", 
             "default": "", 
@@ -9186,6 +9298,15 @@ apis = {
       }, 
       "POST": {
         "config": "", 
+        "params": {
+          "alias.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -9236,7 +9357,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -9250,28 +9371,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -9303,6 +9424,20 @@ apis = {
       "POST": {
         "config": "", 
         "params": {
+          "lookup.field.input.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "A column in the lookup table to match against. Supply a non-empty value if the corresponding field has a different name in your actual events.\n\n'''Note:''' This parameter is new in Splunk 4.3.", 
+            "validation": ""
+          }, 
+          "lookup.field.output.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "A column in the lookup table to output. Supply a non-empty value if the field should have a different name in your actual events.\n\n'''Note:''' This parameter is new in Splunk 4.3.", 
+            "validation": ""
+          }, 
           "name": {
             "datatype": "String", 
             "default": "", 
@@ -9441,6 +9576,20 @@ apis = {
       "POST": {
         "config": "", 
         "params": {
+          "lookup.field.input.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
+          "lookup.field.output.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "overwrite": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -9506,7 +9655,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -9520,28 +9669,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -9755,7 +9904,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -9769,28 +9918,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -10102,7 +10251,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -10116,28 +10265,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -10491,7 +10640,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -10505,28 +10654,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -10609,7 +10758,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "URI of the deployment server for this deployment client.\n\nInclude the management port the server is listening on. For example:\n\n  deployment_server_uri:mgmtPort\n\nThe default management port is 8089.", 
+            "summary": "URI of the deployment server for this deployment client.\n\nInclude the management port the server is listening on. For example:\n\n<code>deployment_server_uri:mgmtPort</code>\n\nThe default management port is 8089.", 
             "validation": ""
           }
         }, 
@@ -10702,7 +10851,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -10716,28 +10865,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -10874,7 +11023,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -10888,28 +11037,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -11043,7 +11192,7 @@ apis = {
             "datatype": "Enum", 
             "default": "", 
             "required": "false", 
-            "summary": "Valid values: (whitelist &#124; blacklist)\n\nDetermines the order of execution of filters. If filterType is whitelist, all whitelist filters are applied first, followed by blacklist filters. If filterType is blacklist, all blacklist filters are applied first, followed by whitelist filters.\n\nThe whitelist setting indicates a filtering strategy that pulls in a subset:\n\n* Items are not considered to match the server class  by default.\n* Items that match any whitelist entry, and do not match any blacklist entry, are considered to match the server class.\n* Items that match any blacklist entry are not considered to match the server class, regardless of whitelist.\n\nThe blacklist setting indicates a filtering strategy that rules out a subset:\n\n* Items are considered to match the server class by default.\n* Items that match any blacklist entry, and do not match any whitelist entry, are considered to not match the server class.\n* Items that match any whitelist entry are considered to match the server class.\n\nMore briefly:\n\n  whitelist: default no-match -> whitelists enable -> blacklists disable\n\n  blacklist: default match -> blacklists disable-> whitelists enable\n\nYou can override this value at the serverClass and serverClass:app levels. If you specify whitelist at the global level, and then specify blacklist for an individual server class, the setting becomes blacklist for that server class, and you have to provide another filter in that server class definition to replace the one you overrode.", 
+            "summary": "Valid values: (whitelist &#124; blacklist)\n\nDetermines the order of execution of filters. If filterType is whitelist, all whitelist filters are applied first, followed by blacklist filters. If filterType is blacklist, all blacklist filters are applied first, followed by whitelist filters.\n\nThe whitelist setting indicates a filtering strategy that pulls in a subset:\n\n* Items are not considered to match the server class  by default.\n* Items that match any whitelist entry, and do not match any blacklist entry, are considered to match the server class.\n* Items that match any blacklist entry are not considered to match the server class, regardless of whitelist.\n\nThe blacklist setting indicates a filtering strategy that rules out a subset:\n\n* Items are considered to match the server class by default.\n* Items that match any blacklist entry, and do not match any whitelist entry, are considered to not match the server class.\n* Items that match any whitelist entry are considered to match the server class.\n\nMore briefly:\n\nwhitelist: default no-match -> whitelists enable -> blacklists disable<br>\nblacklist: default match -> blacklists disable-> whitelists enable\n\nYou can override this value at the serverClass and serverClass:app levels. If you specify whitelist at the global level, and then specify blacklist for an individual server class, the setting becomes blacklist for that server class, and you have to provide another filter in that server class definition to replace the one you overrode.", 
             "validation": ""
           }, 
           "name": {
@@ -11494,7 +11643,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -11508,28 +11657,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -11666,7 +11815,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -11680,28 +11829,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -11731,7 +11880,7 @@ apis = {
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to user configurable objects.\n\nThese objects includes search commands, UI views, UI navigation, saved searches and event types. This is useful to see which objects are provided by all apps, or a specific app when the call is namespaced. The specific configuration in restmap.conf is <code>showInDirSvc</code>. "
+    "summary": "Provides access to user configurable objects.\n\nThese objects includes search commands, UI views, UI navigation, saved searches and event types. This is useful to see which objects are provided by all apps, or a specific app when the call is namespaced. The specific configuration in restmap.conf is <code>showInDirSvc</code>.\n\n'''Note:''' This endpoint is new for Splunk 4.3. It replaces the deprecated endpoint accessible from <code>/admin/directory</code>."
   }, 
   "directory/{name}": {
     "methods": {
@@ -11772,6 +11921,72 @@ apis = {
       }
     }
   }, 
+  "indexing/preview": {
+    "methods": {
+      "GET": {
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "200": {
+            "summary": "Listed successfully."
+          }
+        }, 
+        "summary": "Return a list of all data preview jobs. Data returned includes the Splunk management URI to access each preview job.\n\nUse the data preview job ID as the search_id parameter in [[Documentation:Splunk:RESTAPI:RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview|GET /search/jobs/{search_id}/results_preview]] to preview events from the source file.\n\n'''Note: ''' Use the POST operation of this endpoint to create a data preview job and return the corresponding data preview job ID.", 
+        "urlParams": {}
+      }, 
+      "POST": {
+        "params": {
+          "input.path": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "True", 
+            "summary": "The absolute file path to a local file that you want to preview data returned from indexing.", 
+            "validation": ""
+          }, 
+          "props.&lt;props_attr&gt;": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "False", 
+            "summary": "Define a new sourcetype in props.conf for preview data that you are indexing.\n\nTypically, you first examine preveiw data events returned from GET /search/jobs/{job_id}events. Then you define new sourcetypes as needed with this endpoint.", 
+            "validation": ""
+          }
+        }, 
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "201": {
+            "summary": "Created successfully."
+          }
+        }, 
+        "summary": "Create a preview data job for the specified source file, returning the preview data job ID. Use the preview job ID as the search_id parameter in [[Documentation:Splunk:RESTAPI:RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview|GET /search/jobs/{search_id}/results_preview]] to obtain a data preview.\n\nYou can optionally define sourcetypes for preview data job in props.conf.", 
+        "urlParams": {}
+      }
+    }, 
+    "summary": "Preview events from a source file before you index the file.\n\nTypically, you create a data preview job for a source file. Use the resulting data preview job ID as the search_id parameter in [[Documentation:Splunk:RESTAPI:RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview|GET /search/jobs/{search_id}/results_preview]] to preview events that would be generated from indexing the source file.\n\nYou can also check the status of a data preview job with GET /search/jobs/{search_id} to obtain information such as the dispatchState, doneProgress, and eventCount. For more information, see [[Documentation:Splunk:RESTAPI:RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D|GET /search/jobs/{search_id}]].\n\n'''Note:''' This endpoint is new in Splunk 4.3."
+  }, 
+  "indexing/preview/{job_id}": {
+    "methods": {
+      "GET": {
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "200": {
+            "summary": "Listed successfully."
+          }, 
+          "404": {
+            "summary": "Specified job ID does not exist."
+          }
+        }, 
+        "summary": "Returns the props.conf settings for the data preview job specified by {job_id}.", 
+        "urlParams": {
+          "job_id": {
+            "required": "true", 
+            "summary": "job_id"
+          }
+        }
+      }
+    }
+  }, 
   "licenser/groups": {
     "methods": {
       "GET": {
@@ -11781,7 +11996,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -11795,28 +12010,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -11946,7 +12161,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -11960,28 +12175,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -12145,7 +12360,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -12159,28 +12374,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -12260,7 +12475,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -12274,28 +12489,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -12551,7 +12766,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -12572,28 +12787,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }, 
           "stackid": {
@@ -12696,7 +12911,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -12710,28 +12925,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -12811,7 +13026,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -12825,28 +13040,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -12872,7 +13087,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Enumerate all systemwide messages. This is typically used for splunkd to advertise issues involving license quotas, license expirations, misconfigured indexes and disk space to users in SplunkWeb.", 
+        "summary": "Enumerate all systemwide messages. This is typically used for splunkd to advertise issues such as license quotas, license expirations, misconfigured indexes, and disk space.", 
         "urlParams": {}
       }, 
       "POST": {
@@ -12882,14 +13097,14 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "true", 
-            "summary": "The primary key of this message. It is not displayed in SplunkWeb.", 
+            "summary": "The primary key of this message.", 
             "validation": ""
           }, 
           "value": {
             "datatype": "String", 
             "default": "", 
             "required": "true", 
-            "summary": "The text of the message displayed in SplunkWeb.", 
+            "summary": "The text of the message.", 
             "validation": ""
           }
         }, 
@@ -12925,7 +13140,7 @@ apis = {
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to messages typically displayed as bulletin board messages in SplunkWeb.\n\nThese messages are shown at the top of the screen in SplunkWeb. Most messages are created by splunkd to inform the user of system problems."
+    "summary": "Provides access to Splunk system messages. Most messages are created by splunkd to inform the user of system problems.\n\nSplunk Web typically displays these as bulletin board messages."
   }, 
   "messages/{name}": {
     "methods": {
@@ -12956,7 +13171,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Deletes a message identified by {name}. After deleting the message, it no longer appears in SplunkWeb.", 
+        "summary": "Deletes a message identified by {name}.", 
         "urlParams": {
           "name": {
             "required": "true", 
@@ -13038,7 +13253,7 @@ apis = {
         "urlParams": {}
       }
     }, 
-    "summary": "Provides access to configuration files."
+    "summary": "Provides access to configuration files.\n\nRefer to [[Documentation:Splunk:RESTAPI:RESTconfigurations|Accessing and updating Splunk configurations]] for a comparison of these endpoints with the <code>configs/conf-{file}</code> endpoints.\n\n'''Note: ''' The DELETE operation from the <code>properties</code> endpoint is deprecated and will be removed from future releases. Instead, use the DELETE operation from the [[Documentation:Splunk:RESTAPI:RESTconfig#DELETE_configs.2Fconf-.7Bfile.7D.2F.7Bname.7D|configs/conf-{file}/{name} endpoint]]."
   }, 
   "properties/{file_name}": {
     "methods": {
@@ -13373,7 +13588,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -13387,28 +13602,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -13678,7 +13893,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "earliest_time": {
@@ -13706,28 +13921,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -13759,6 +13974,13 @@ apis = {
       "POST": {
         "config": "savedsearches", 
         "params": {
+          "action.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Wildcard argument that accepts any action.", 
+            "validation": ""
+          }, 
           "action.email": {
             "datatype": "Boolean", 
             "default": "0", 
@@ -13819,7 +14041,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Sets the hostname used in the web link (url) sent in email actions.\n\nThis value accepts two forms:\n\n  hostname (for example, splunkserver, splunkserver.example.com)\n\n  protocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nWhen this value is a simple hostname, the protocol and port which are configured within splunk are used to construct the base of the url.\n\nWhen this value begins with 'http://', it is used verbatim. NOTE: This means the correct port must be specified if it is not the default port for http or https. This is useful in cases when the Splunk server is not aware of how to construct an externally referencable url, such as SSO environments, other proxies, or when the Splunk server hostname is not generally resolvable.\n\nDefaults to current hostname provided by the operating system, or if that fails \"localhost\". When set to empty, default behavior is used.", 
+            "summary": "Sets the hostname used in the web link (url) sent in email actions.\n\nThis value accepts two forms:\n\nhostname (for example, splunkserver, splunkserver.example.com)\n\nprotocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nWhen this value is a simple hostname, the protocol and port which are configured within splunk are used to construct the base of the url.\n\nWhen this value begins with 'http://', it is used verbatim. NOTE: This means the correct port must be specified if it is not the default port for http or https. This is useful in cases when the Splunk server is not aware of how to construct an externally referencable url, such as SSO environments, other proxies, or when the Splunk server hostname is not generally resolvable.\n\nDefaults to current hostname provided by the operating system, or if that fails \"localhost\". When set to empty, default behavior is used.", 
             "validation": ""
           }, 
           "action.email.inline": {
@@ -13848,6 +14070,13 @@ apis = {
             "default": "", 
             "required": "false", 
             "summary": "Valid values are Integer&#91;m&#124;s&#124;h&#124;d&#93;.\n\nSpecifies the maximum amount of time the execution of an email action takes before the action is aborted. Defaults to 5m.", 
+            "validation": ""
+          }, 
+          "action.email.pdfview": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "The name of the view to deliver if sendpdf is enabled", 
             "validation": ""
           }, 
           "action.email.preprocess_results": {
@@ -13941,6 +14170,13 @@ apis = {
             "summary": "Indicates whether to use TLS (transport layer security) when communicating with the SMTP server (starttls).\n\nDefaults to false.", 
             "validation": ""
           }, 
+          "action.email.width_sort_columns": {
+            "datatype": "Boolean", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Indicates whether columns should be sorted from least wide to mos wide, left to right.\n\nOnly valid if format=text.", 
+            "validation": ""
+          }, 
           "action.populate_lookup": {
             "datatype": "Boolean", 
             "default": "0", 
@@ -13955,11 +14191,18 @@ apis = {
             "summary": "The search command (or pipeline) which is responsible for executing the action.\n\nGenerally the command is a template search pipeline which is realized with values from the saved search. To reference saved search field values wrap them in $, for example to reference the savedsearch name use $name$, to reference the search use $search$.", 
             "validation": ""
           }, 
+          "action.populate_lookup.dest": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Lookup name of path of the lookup to populate", 
+            "validation": ""
+          }, 
           "action.populate_lookup.hostname": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\n  hostname (for example, splunkserver, splunkserver.example.com)\n\n  protocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
+            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\nhostname (for example, splunkserver, splunkserver.example.com)\n\nprotocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
             "validation": ""
           }, 
           "action.populate_lookup.maxresults": {
@@ -14008,7 +14251,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\n  hostname (for example, splunkserver, splunkserver.example.com)\n\n  protocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
+            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\nhostname (for example, splunkserver, splunkserver.example.com)\n\nprotocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
             "validation": ""
           }, 
           "action.rss.maxresults": {
@@ -14053,11 +14296,18 @@ apis = {
             "summary": "The search command (or pipeline) which is responsible for executing the action.\n\nGenerally the command is a template search pipeline which is realized with values from the saved search. To reference saved search field values wrap them in $, for example to reference the savedsearch name use $name$, to reference the search use $search$.", 
             "validation": ""
           }, 
+          "action.script.filename": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "File name of the script to call. Required if script action is enabled", 
+            "validation": ""
+          }, 
           "action.script.hostname": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\n  hostname (for example, splunkserver, splunkserver.example.com)\n\n  protocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
+            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\nhostname (for example, splunkserver, splunkserver.example.com)\n\nprotocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
             "validation": ""
           }, 
           "action.script.maxresults": {
@@ -14113,7 +14363,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\n  hostname (for example, splunkserver, splunkserver.example.com)\n\n  protocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
+            "summary": "Sets the hostname used in the web link (url) sent in alert actions.\n\nThis value accepts two forms:\n\nhostname (for example, splunkserver, splunkserver.example.com)\n\nprotocol://hostname:port (for example, http://splunkserver:8000, https://splunkserver.example.com:443)\n\nSee action.email.hostname for details.", 
             "validation": ""
           }, 
           "action.summary_index.inline": {
@@ -14176,7 +14426,7 @@ apis = {
             "datatype": "Enum", 
             "default": "3", 
             "required": "false", 
-            "summary": "Valid values: (1 &#124; 2 &#124; 3 &#124; 4 &#124; 5 &#124; 6)\n\nSets the alert severity level.\n\nValid values are:\n\n  1 DEBUG\n  2 INFO\n  3 WARN\n  4 ERROR\n  5 SEVERE\n  6 FATAL", 
+            "summary": "Valid values: (1 &#124; 2 &#124; 3 &#124; 4 &#124; 5 &#124; 6)\n\nSets the alert severity level.\n\nValid values are:\n\n1 DEBUG\n2 INFO\n3 WARN\n4 ERROR\n5 SEVERE\n6 FATAL", 
             "validation": ""
           }, 
           "alert.suppress": {
@@ -14184,6 +14434,13 @@ apis = {
             "default": "0", 
             "required": "false", 
             "summary": "Indicates whether alert suppression is enabled for this schedules search.", 
+            "validation": ""
+          }, 
+          "alert.suppress.fields": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Comma delimited list of fields to use for suppression when doing per result alerting. Required if suppression is turned on and per result alerting is enabled.", 
             "validation": ""
           }, 
           "alert.suppress.period": {
@@ -14228,6 +14485,13 @@ apis = {
             "summary": "What to base the alert on, overriden by alert_condition if it is specified. Valid values are: always, custom, number of events, number of hosts, number of sources ", 
             "validation": ""
           }, 
+          "args.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Wildcard argument that accepts any saved search template argument, such as args.username=foobar when the search is search $username$.", 
+            "validation": ""
+          }, 
           "cron_schedule": {
             "datatype": "String", 
             "default": "", 
@@ -14247,6 +14511,13 @@ apis = {
             "default": "0", 
             "required": "false", 
             "summary": "Indicates if the saved search is enabled.\n\nDisabled saved searches are not visible in Splunk Web.", 
+            "validation": ""
+          }, 
+          "dispatch.*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Wildcard argument that accepts any dispatch related argument.", 
             "validation": ""
           }, 
           "dispatch.buckets": {
@@ -14353,6 +14624,13 @@ apis = {
             "required": "false", 
             "summary": "The maximum number of concurrent instances of this search the scheduler is allowed to run.", 
             "validation": "validate(isint($max_concurrent$) AND $max_concurrent$>=0, \"Value of argument 'max_concurrent' must be a non-negative integer\")"
+          }, 
+          "name": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "true", 
+            "summary": "Use this parameter to specify multiple actions.\n\nFor example, you can specify:\n\ncurl -k -u admin:pass https://localhost:8089/servicesNS/admin/search/saved/searches -d name=MySavedSearch42 --data-urlencode search=\"index=_internal source=*metrics.log\" -d action.email.cc=receiver@example.com&action.email.bcc=receiver@example.com\n", 
+            "validation": ""
           }, 
           "next_scheduled_time": {
             "datatype": "String", 
@@ -14543,6 +14821,13 @@ apis = {
       "POST": {
         "config": "savedsearches", 
         "params": {
+          "action.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "action.email": {
             "datatype": "INHERITED", 
             "default": "0", 
@@ -14628,6 +14913,13 @@ apis = {
             "validation": ""
           }, 
           "action.email.maxtime": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
+          "action.email.pdfview": {
             "datatype": "INHERITED", 
             "default": "", 
             "required": "false", 
@@ -14725,6 +15017,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "action.email.width_sort_columns": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "action.populate_lookup": {
             "datatype": "INHERITED", 
             "default": "0", 
@@ -14733,6 +15032,13 @@ apis = {
             "validation": ""
           }, 
           "action.populate_lookup.command": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
+          "action.populate_lookup.dest": {
             "datatype": "INHERITED", 
             "default": "", 
             "required": "false", 
@@ -14831,6 +15137,13 @@ apis = {
             "validation": ""
           }, 
           "action.script.command": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
+          "action.script.filename": {
             "datatype": "INHERITED", 
             "default": "", 
             "required": "false", 
@@ -14970,6 +15283,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "alert.suppress.fields": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "alert.suppress.period": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -15012,6 +15332,13 @@ apis = {
             "summary": "INHERITED", 
             "validation": ""
           }, 
+          "args.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
           "cron_schedule": {
             "datatype": "INHERITED", 
             "default": "", 
@@ -15029,6 +15356,13 @@ apis = {
           "disabled": {
             "datatype": "INHERITED", 
             "default": "0", 
+            "required": "false", 
+            "summary": "INHERITED", 
+            "validation": ""
+          }, 
+          "dispatch.*": {
+            "datatype": "INHERITED", 
+            "default": "", 
             "required": "false", 
             "summary": "INHERITED", 
             "validation": ""
@@ -15247,6 +15581,15 @@ apis = {
     "methods": {
       "POST": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15292,6 +15635,15 @@ apis = {
     "methods": {
       "POST": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15337,6 +15689,15 @@ apis = {
     "methods": {
       "GET": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15372,10 +15733,67 @@ apis = {
       }
     }
   }, 
+  "saved/searches/{name}/scheduled_times": {
+    "methods": {
+      "GET": {
+        "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "200": {
+            "summary": "Scheduled times returned successfully."
+          }, 
+          "400": {
+            "summary": "Request error.  See response body for details."
+          }, 
+          "401": {
+            "summary": "Authentication failure: must pass valid credentials with request."
+          }, 
+          "403": {
+            "summary": "Insufficient permissions to get scheduled times."
+          }, 
+          "404": {
+            "summary": "Scheduled times do not exist."
+          }, 
+          "409": {
+            "summary": "Request error: this operation is invalid for this item.  See response body for details."
+          }, 
+          "500": {
+            "summary": "Internal server error.  See response body for details."
+          }
+        }, 
+        "summary": "Returns the scheduled times for a saved search. Specify a time range for the data returned using earliest_time and latest_time parameters.", 
+        "urlParams": {
+          "name": {
+            "required": "true", 
+            "summary": "name"
+          }
+        }
+      }
+    }
+  }, 
   "saved/searches/{name}/suppress": {
     "methods": {
       "GET": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15420,7 +15838,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -15434,28 +15852,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -15562,6 +15980,13 @@ apis = {
       "POST": {
         "config": "savedsearches", 
         "params": {
+          "action.email*": {
+            "datatype": "String", 
+            "default": "", 
+            "required": "false", 
+            "summary": "Wildcard argument that accepts any email action.", 
+            "validation": ""
+          }, 
           "action.email.to": {
             "datatype": "String", 
             "default": "", 
@@ -15650,6 +16075,15 @@ apis = {
     "methods": {
       "POST": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15695,6 +16129,15 @@ apis = {
     "methods": {
       "GET": {
         "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
         "request": "", 
         "response": "", 
         "returns": {
@@ -15730,6 +16173,54 @@ apis = {
       }
     }
   }, 
+  "scheduled/views/{name}/scheduled_times": {
+    "methods": {
+      "GET": {
+        "config": "savedsearches", 
+        "params": {
+          "&lt;arbitrary_key&gt;": {
+            "datatype": "UNDONE", 
+            "default": "", 
+            "required": "false", 
+            "summary": "UNDONE", 
+            "validation": ""
+          }
+        }, 
+        "request": "", 
+        "response": "", 
+        "returns": {
+          "200": {
+            "summary": "Scheduled times returned successfully."
+          }, 
+          "400": {
+            "summary": "Request error.  See response body for details."
+          }, 
+          "401": {
+            "summary": "Authentication failure: must pass valid credentials with request."
+          }, 
+          "403": {
+            "summary": "Insufficient permissions to access scheduled times."
+          }, 
+          "404": {
+            "summary": "Scheudled times do not exist."
+          }, 
+          "409": {
+            "summary": "Request error: this operation is invalid for this item.  See response body for details."
+          }, 
+          "500": {
+            "summary": "Internal server error.  See response body for details."
+          }
+        }, 
+        "summary": "Returns the scheduled times for a scheduled view. Specify a time range for the data returned using earliest_time and latest_time parameters.", 
+        "urlParams": {
+          "name": {
+            "required": "true", 
+            "summary": "name"
+          }
+        }
+      }
+    }
+  }, 
   "search/distributed/config": {
     "methods": {
       "GET": {
@@ -15739,7 +16230,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -15753,28 +16244,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -16058,7 +16549,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "discoveredPeersOnly": {
@@ -16079,28 +16570,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -16126,7 +16617,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Returns a list of configured search peers that this search head is configured to distribute searches to.", 
+        "summary": "Returns a list of configured search peers that this search head is configured to distribute searches to. This includes configured search peers that have been disabled.", 
         "urlParams": {}
       }, 
       "POST": {
@@ -16150,7 +16641,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "true", 
-            "summary": "A username with admin privileges in the search peer server.\n\nThis is used to exchange certificates.", 
+            "summary": "The username of a user with admin privileges in the search peer server.\n\nThis is used to exchange certificates.", 
             "validation": ""
           }
         }, 
@@ -16394,17 +16885,17 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "The tag to attach to this <code>field_name:field_value</code> combination.", 
+            "summary": "The tag to attach to this <code>field_name:value</code> combination.", 
             "validation": ""
           }, 
           "delete": {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "The tag to remove to this <code>field_name::field_value</code> combination.", 
+            "summary": "The tag to remove to this <code>field_name::value</code> combination.", 
             "validation": ""
           }, 
-          "field_value": {
+          "value": {
             "datatype": "String", 
             "default": "", 
             "required": "true", 
@@ -16422,7 +16913,7 @@ apis = {
             "summary": "Request error.  See response body for details."
           }
         }, 
-        "summary": "Update the tags associated with the field specified by {field_name}.\n\nThe <code>field_value</code> parameter specifies the specific value on which to bind tag actions. Multiple tags can be attached by passing multiple add or delete form parameters. The server processes all of the adds first, and then processes the deletes.", 
+        "summary": "Update the tags associated with the field specified by {field_name}.\n\nThe <code>value</code> parameter specifies the specific value on which to bind tag actions. Multiple tags can be attached by passing multiple add or delete form parameters. The server processes all of the adds first, and then processes the deletes.\n\nYou must specify at least one <code>add</code> or <code>delete</code> parameter.", 
         "urlParams": {
           "field_name": {
             "required": "true", 
@@ -16535,7 +17026,7 @@ apis = {
             "datatype": "String", 
             "default": "current system time", 
             "required": "false", 
-            "summary": "Specify a time string to set the absolute time used for any relative time specifier in the search. Defaults to the current system time.", 
+            "summary": "Specify a time string to set the absolute time used for any relative time specifier in the search. Defaults to the current system time.\n\nYou can specify a relative time modifier for this parameter. For example, specify <code>+2d</code> to specify the current time plus two days.\n\nIf you specify a relative time modifier both in this parameter and in the search string, the search string modifier takes precedence.\n\nRefer to [[Documentation:Splunk:SearchReference:SearchTimeModifiers|Time modifiers for search]] for details on specifying relative time modifiers.", 
             "validation": ""
           }, 
           "reduce_freq": {
@@ -16665,7 +17156,7 @@ apis = {
             "summary": "Created successfully."
           }
         }, 
-        "summary": "Starts a new search, returning the search ID (<code>&lt;sid&gt;</code>).\n\nThe search parameter is a search language string that specifies the search.", 
+        "summary": "Starts a new search, returning the search ID (<code>&lt;sid&gt;</code>).\n\nThe search parameter is a search language string that specifies the search. Often you create a search specifying just the search parameter. Use the other parameters to customize a search to specific needs.\n\nUse the returned  (<code>&lt;sid&gt;</code>) in the following endpoints to view and manage the search:\n\n:search/jobs/{search_id}: View the status of this search job.\n\n:search/jobs/{search_id}/control: Execute job control commands, such as pause, cancel, preview, and others.\n\n:search/jobs/{search_id}/events: View a set of untransformed events for the search.\n\n:search/jobs/{search_id}/results: View results of the search.\n\n:search/jobs/{search_id}/results_preview: Preview results of a search that has not completed\n\n:search/jobs/{search_id}/search.log: View the log file generated by the search.\n\n:search/jobs/{search_id}/summary: View field summary information\n\n:search/jobs/{search_id}/timeline: View event distribution over time.", 
         "urlParams": {}
       }
     }, 
@@ -16748,7 +17239,7 @@ apis = {
           "now": {
             "datatype": "String", 
             "default": "", 
-            "required": "fals", 
+            "required": "false", 
             "summary": "Same as for POST search/jobs.", 
             "validation": ""
           }, 
@@ -16865,11 +17356,11 @@ apis = {
             "summary": "Searched successfully."
           }
         }, 
-        "summary": "Performs a search identical to POST search/jobs, except the search is blocking and does not leave a job behind.", 
+        "summary": "Performs a search identical to POST search/jobs, except the search does not create a search ID (<sid>) and the search streams results as they become available. Streaming of results is based on the search string.\n \nFor non-streaming searches, previews of the final results are available if preview is enabled. If preview is not enabled, it is better to use search/jobs with exec_mode=oneshot.", 
         "urlParams": {}
       }
     }, 
-    "summary": "Allows for running synchronous searches."
+    "summary": "Allows for streaming of search results as the become available."
   }, 
   "search/jobs/{search_id}": {
     "methods": {
@@ -16962,7 +17453,7 @@ apis = {
           "earliest_time": {
             "datatype": "String", 
             "default": "", 
-            "required": "", 
+            "required": "false", 
             "summary": "A time string representing the earliest (inclusive), respectively, time bounds for the results to be returned. If not specified, the range applies to all results found.", 
             "validation": ""
           }, 
@@ -16976,7 +17467,7 @@ apis = {
           "field_list": {
             "datatype": "String", 
             "default": "<code>*</code>", 
-            "required": "", 
+            "required": "false", 
             "summary": "Deprecated. Consider using <code>f</code>.\n\nA comma-separated list of the fields to return for the event set.", 
             "validation": ""
           }, 
@@ -17057,7 +17548,7 @@ apis = {
             "summary": "Search job does not exist."
           }
         }, 
-        "summary": "Primary method for a client to fetch a set of UNTRANSFORMED events for the search job specified by {search_id}.", 
+        "summary": "Returns the events of the search specified by {search_id}. These events are the data from the search pipeline before the first \"transforming\" search command. This is the primary method for a client to fetch a set of UNTRANSFORMED events for the search job.\n\nThis endpoint is only valid if the status_buckets > 0 or the search has no transforming commands.\n\n", 
         "urlParams": {
           "search_id": {
             "required": "true", 
@@ -17127,7 +17618,7 @@ apis = {
             "summary": "Search job does not exist."
           }
         }, 
-        "summary": "This is the primary method for a client to fetch a set of TRANSFORMED events. If the dispatched search does not include a transforming command, the effect is the same as get_events, albeit with fewer options.", 
+        "summary": "Returns the results of the search specified by {search_id}. This is the table that exists after all processing from the search pipeline has completed.\n\nThis is the primary method for a client to fetch a set of TRANSFORMED events. If the dispatched search does not include a transforming command, the effect is the same as get_events, however with fewer options.", 
         "urlParams": {
           "search_id": {
             "required": "true", 
@@ -17197,7 +17688,7 @@ apis = {
             "summary": "Search job does not exist."
           }
         }, 
-        "summary": "Same as the <code>search/jobs/results</code> endpoint, except if the job is not done, returns preview results (if possible).", 
+        "summary": "Returns the intermediate preview results of the search specified by {search_id}. When the job is complete, this gives the same response as /search/jobs/{search_id}/results.\n\nThis endpoint is only valid if preview is enabled. ", 
         "urlParams": {
           "search_id": {
             "required": "true", 
@@ -17256,7 +17747,7 @@ apis = {
           "f": {
             "datatype": "String", 
             "default": "", 
-            "required": "", 
+            "required": "false", 
             "summary": "A field to return for the event set.\n\nYou can pass multiple <code>POST f</code> arguments if multiple field are required. If <code>field_list</code> and <code>f</code> are provided, the union of the lists is used.", 
             "validation": ""
           }, 
@@ -17323,7 +17814,7 @@ apis = {
             "summary": "Summary for search job does not exist."
           }
         }, 
-        "summary": "Returns \"getFieldsAndStats\" output of the so-far-read events.", 
+        "summary": "Returns \"getFieldsAndStats\" output of the so-far-read events.\n\nThis endpoint is only valid when status_buckets > 0. To guarantee a set of fields in the summary, when creating the search, use the <code>required_fields_list</code> or <code>rf</code> parameters.", 
         "urlParams": {
           "search_id": {
             "required": "true", 
@@ -17365,7 +17856,7 @@ apis = {
             "summary": "Timeline for search job does not exist."
           }
         }, 
-        "summary": "Returns timeline data of the so-far-read untransformed events.", 
+        "summary": "Returns event distribution over time of the so-far-read untransformed events.\n\nThis endpoint is only valid when status_buckets > 0. To guarantee a set of fields in the summary, when creating the search, use the <code>required_fields_list</code> or <code>rf</code> parameters.", 
         "urlParams": {
           "search_id": {
             "required": "true", 
@@ -17420,6 +17911,9 @@ apis = {
         "returns": {
           "200": {
             "summary": "Listed successfully."
+          }, 
+          "400": {
+            "summary": "Request error.  See response body for details."
           }
         }, 
         "summary": "Parses Splunk search language and returns semantic map.", 
@@ -17589,9 +18083,9 @@ apis = {
           }, 
           "output_mode": {
             "datatype": "String", 
-            "default": "", 
+            "default": "xml", 
             "required": "false", 
-            "summary": "Format for the output. Select from either:\n\n  xml:  XML format\n  json:  JSON format\n", 
+            "summary": "Valid values: (xml &#124; json)\n\nFormat for the output.", 
             "validation": ""
           }, 
           "prefix": {
@@ -17636,7 +18130,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -17650,28 +18144,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -17750,7 +18244,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -17764,28 +18258,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -17811,7 +18305,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Enumerates the following information about the running splunkd: \n\n  build\n  cpu_arch (CPU architecure)\n  guid (GUID for this splunk instance)\n  isFree\n  isTrial\n  licenseKeys (hashes)\n  licenseSignature\n  licenseState\n  master_guid (GUID of the license master)\n  mode\n  os_build\n  os_name\n  os_version\n  serverName\n  version", 
+        "summary": "Enumerates the following information about the running splunkd: \n\n  build\n  cpu_arch (CPU architecure)\n  guid (GUID for this splunk instance)\n  isFree\n  isTrial\n  licenseKeys (hashes)\n  licenseSignature\n  licenseState\n  license_labels\n  master_guid (GUID of the license master)\n  mode\n  os_build\n  os_name\n  os_version\n  rtsearch_enabled\n  serverName\n  version", 
         "urlParams": {}
       }
     }, 
@@ -17865,7 +18359,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -17879,28 +18373,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -18030,7 +18524,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -18044,28 +18538,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -18126,7 +18620,7 @@ apis = {
             "summary": "Internal server error.  See response body for details."
           }
         }, 
-        "summary": "Returns the server configuration of this instance of Splunk.", 
+        "summary": "Returns the server configuration of this instance of Splunk.\n\n\"settings\" is the only valid value for {name} in this endpoint. This endpoint returns the same information as [[Documentation:Splunk:RESTAPI:RESTsystem#GET_server.2Fsettings|GET server/settings]].", 
         "urlParams": {
           "name": {
             "required": "true", 
@@ -18141,7 +18635,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Path to the default index for this instance of Splunk.\n\nThe default location is:\n\n  $SPLUNK_HOME/var/lib/splunk/defaultdb/db/", 
+            "summary": "Path to the default index for this instance of Splunk.\n\nThe default location is:\n\n$SPLUNK_HOME/var/lib/splunk/defaultdb/db/", 
             "validation": "is_dir(SPLUNK_DB)"
           }, 
           "enableSplunkWebSSL": {
@@ -18197,7 +18691,7 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Specify a time range string to set the amount of time before a user session times out, expressed as a search-like time range. Default is 1h (one hour).\n\nFor example:\n\n  24h: (24 hours)\n  3d: (3 days)\n  7200s: (7200 seconds, or two hours)\n", 
+            "summary": "Specify a time range string to set the amount of time before a user session times out, expressed as a search-like time range. Default is 1h (one hour).\n\nFor example:\n\n24h: (24 hours)\n\n3d: (3 days)\n\n7200s: (7200 seconds, or two hours)\n", 
             "validation": ""
           }, 
           "startwebserver": {
@@ -18246,7 +18740,7 @@ apis = {
             "summary": "This feature has been disabled in Splunk configuration files."
           }
         }, 
-        "summary": "Updates the server configuration of this instance of Splunk.", 
+        "summary": "Updates the server configuration of this instance of Splunk.\n\n\"settings\" is the only valid value for {name} in this endpoint.", 
         "urlParams": {
           "name": {
             "required": "true", 
@@ -18265,7 +18759,7 @@ apis = {
             "datatype": "Number", 
             "default": "30", 
             "required": "false", 
-            "summary": "Maximum number of items to return.", 
+            "summary": "Indicates the maximum number of entries to return. To return all entries, specify 0.", 
             "validation": ""
           }, 
           "offset": {
@@ -18279,28 +18773,28 @@ apis = {
             "datatype": "String", 
             "default": "", 
             "required": "false", 
-            "summary": "Boolean predicate to filter results.", 
+            "summary": "Search expression to filter the response. The response matches field values against the search expression. For example:\n\nsearch=foo matches any object that has \"foo\" as a substring in a field.\nsearch=field_name%3Dfield_value restricts the match to a single field. URI-encoding is required in this example.", 
             "validation": ""
           }, 
           "sort_dir": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "asc", 
             "required": "false", 
-            "summary": "Direction to sort by (asc/desc).", 
+            "summary": "Valid values: (asc &#124; desc)\n\nIndicates whether to sort returned entries in ascending or descending order.", 
             "validation": ""
           }, 
           "sort_key": {
             "datatype": "String", 
             "default": "name", 
             "required": "false", 
-            "summary": "Field to sort by.", 
+            "summary": "Field to use for sorting.", 
             "validation": ""
           }, 
           "sort_mode": {
             "datatype": "Enum", 
-            "default": "name", 
+            "default": "auto", 
             "required": "false", 
-            "summary": "Collating sequence for the sort (auto, alpha, alpha_case, num).", 
+            "summary": "Valid values: (auto &#124; alpha &#124; alpha_case &#124; num)\n\nIndicates the collating sequence for sorting the returned entries.\nauto: If all values of the field are numbers, collate numerically. Otherwise, collate alphabetically.\nalpha: Collate alphabetically.\nalpha_case: Collate alphabetically, case-sensitive.\nnum: Collate numerically.", 
             "validation": ""
           }
         }, 
@@ -18386,7 +18880,7 @@ apis = {
         "urlParams": {}
       }
     }, 
-    "summary": "Allows for management of secure credentials. The password is encrypted with a secret key that resides on the same machine. The clear text passwords can be accessed by users that have access to this service. NOTE: only users with admin priviledges can access this endpoint"
+    "summary": "Allows for management of secure credentials. The password is encrypted with a secret key that resides on the same machine. The clear text passwords can be accessed by users that have access to this service. Only users with admin priviledges can access this endpoint.\n\n'''Note:''' This endpoint is new for Splunk 4.3. It replaces the deprecated endpoint accessible from <code>/admin/passwords/</code>."
   }, 
   "storage/passwords/{name}": {
     "methods": {
@@ -18513,4 +19007,3 @@ apis = {
     }
   }
 }
-;

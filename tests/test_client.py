@@ -469,28 +469,43 @@ class ServiceTestCase(unittest.TestCase):
     def test_users(self):
         users = self.service.users
         roles = self.service.roles
+
+        # Verify that we can read the users collection
         for user in users:
             entity = user.read()
             for role in entity.roles:
                 self.assertTrue(role in roles())
 
-        self.assertTrue("sdk-user" not in users())
+        if "sdk-user" in users(): users.delete("sdk-user")
 
+        self.assertTrue("sdk-user" not in users())
         user = users.create("sdk-user", password="changeme", roles="power")
         self.assertTrue("sdk-user" in users())
 
-        entity = user.read()
-        self.assertTrue(entity.has_key('email'))
-        self.assertTrue(entity.has_key('password'))
-        self.assertTrue(entity.has_key('realname'))
-        self.assertTrue(entity.has_key('roles'))
+        # Verify the new user has the expected attributes
+        attrs = user.read()
+        self.assertTrue(attrs.has_key('email'))
+        self.assertTrue(attrs.has_key('password'))
+        self.assertTrue(attrs.has_key('realname'))
+        self.assertTrue(attrs.has_key('roles'))
 
+        # Verify that we can update the user
         self.assertTrue(user['email'] is None)
         user.update(email="foo@bar.com")
         self.assertTrue(user['email'] == "foo@bar.com")
 
+        # Verify that we can delete the user
         users.delete("sdk-user")
         self.assertTrue("sdk-user" not in users())
+
+        # Splunk lowercases new users names, verify this works as expected
+        self.assertTrue("sdk-user" not in users())
+        self.assertTrue("SDK-User" not in users())
+        user = users.create("SDK-User", password="changeme", roles="power")
+        self.assertTrue(user.name == "sdk-user")
+        self.assertTrue("SDK-User" not in users())
+        self.assertTrue("sdk-user" in users())
+        users.delete("sdk-user")
 
 # Runs the given named test, useful for debugging.
 def runone(testname):
@@ -500,5 +515,5 @@ def runone(testname):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone('test_apps')
+    #runone('test_users')
     unittest.main(argv=sys.argv[:1])

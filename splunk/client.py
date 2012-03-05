@@ -183,12 +183,7 @@ class Service(Context):
 
     @property
     def users(self):
-        return Collection(self, PATH_USERS, "users",
-            item=lambda service, name: 
-                Entity(service, PATH_USERS + name, name),
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_USERS, name=name, **kwargs),
-            dtor=lambda service, name: service.delete(PATH_USERS + name))
+        return Users(self)
 
 class Endpoint(object):
     """The base class for all client layer endpoints."""
@@ -607,6 +602,20 @@ class Message(Entity):
         # The message value is contained in a entity property whose key is
         # the name of the message.
         return self[self.name]
+
+class Users(Collection):
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_USERS, "users",
+            item=lambda service, name: 
+                Entity(service, PATH_USERS + name, name),
+            ctor=lambda service, name, **kwargs:
+                service.post(PATH_USERS, name=name, **kwargs),
+            dtor=lambda service, name: service.delete(PATH_USERS + name))
+
+    # Splunk automatically lowercases new user names so we need to match that 
+    # behavior here to ensure that the subsequent member lookup works correctly.
+    def create(self, name, **kwargs):
+        return Collection.create(self, name.lower(), **kwargs)
 
 class SplunkError(Exception): 
     pass

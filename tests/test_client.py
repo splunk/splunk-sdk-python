@@ -438,6 +438,16 @@ class ServiceTestCase(unittest.TestCase):
         self.assertFalse(messages.contains('sdk-test-message1'))
         self.assertFalse(messages.contains('sdk-test-message2'))
 
+        # Verify that message names with spaces work correctly
+        if messages.contains('sdk test message'):
+            messages.delete('sdk test message')
+        self.assertFalse(messages.contains('sdk test message'))
+        messages.create('sdk test message', value="xyzzy")
+        self.assertTrue(messages.contains('sdk test message'))
+        self.assertEqual(messages['sdk test message'].value, "xyzzy")
+        messages.delete('sdk test message')
+        self.assertFalse(messages.contains('sdk test message'))
+
         # Verify that create raises a ValueError on invalid name args
         with self.assertRaises(ValueError):
             messages.create(None, value="What?")

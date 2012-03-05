@@ -39,7 +39,7 @@
 #
 
 from time import sleep
-from urllib import urlencode, quote_plus
+from urllib import urlencode, quote
 from urlparse import urlparse
 
 from splunk.binding import Context, HTTPError
@@ -70,9 +70,14 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+# Construct a resource path from the given base path + resource name
+def _path(base, name):
+    if not base.endswith('/'): base = base + '/'
+    return base + quote(name)
+
 # Constructs a path from the given conf & stanza
 def _path_stanza(conf, stanza):
-    return PATH_STANZA % (conf, quote_plus(stanza))
+    return PATH_STANZA % (conf, quote(stanza))
 
 # kwargs: scheme, host, port, username, password, namespace
 def connect(**kwargs):
@@ -93,10 +98,11 @@ class Service(Context):
         """Return a collection of applications."""
         return Collection(self, PATH_APPS, "apps",
             item=lambda service, name: 
-                Entity(service, PATH_APPS + name, name),
+                Entity(service, _path(PATH_APPS, name), name),
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_APPS, name=name, **kwargs),
-            dtor=lambda service, name: service.delete(PATH_APPS + name))
+            dtor=lambda service, name: 
+                service.delete(_path(PATH_APPS, name)))
 
     @property
     def confs(self):
@@ -146,7 +152,7 @@ class Service(Context):
         """Returns a collection of logging categories."""
         return Collection(self, PATH_LOGGER, "loggers",
             item=lambda service, name: 
-                Entity(service, PATH_LOGGER + name, name))
+                Entity(service, _path(PATH_LOGGER, name), name))
 
     @property
     def messages(self):
@@ -156,7 +162,7 @@ class Service(Context):
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_MESSAGES, name=name, **kwargs), # value
             dtor=lambda service, name:
-                service.delete(PATH_MESSAGES + name))
+                service.delete(_path(PATH_MESSAGES, name)))
 
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
@@ -171,10 +177,11 @@ class Service(Context):
     def roles(self):
         return Collection(self, PATH_ROLES, "roles",
             item=lambda service, name: 
-                Entity(service, PATH_ROLES + name, name),
+                Entity(service, _path(PATH_ROLES, name), name),
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_ROLES, name=name, **kwargs),
-            dtor=lambda service, name: service.delete(PATH_ROLES + name))
+            dtor=lambda service, name: 
+                service.delete(_path(PATH_ROLES, name)))
 
     @property
     def settings(self):
@@ -315,7 +322,7 @@ class Conf(Entity):
 class Index(Entity):
     """Index class access to specific operations."""
     def __init__(self, service, name):
-        Entity.__init__(self, service, PATH_INDEXES + name, name)
+        Entity.__init__(self, service, _path(PATH_INDEXES, name), name)
         self.roll_hot_buckets = lambda: self.post("roll-hot-buckets")
 
     def attach(self, host=None, source=None, sourcetype=None):
@@ -597,7 +604,7 @@ class Jobs(Collection):
 
 class Message(Entity):
     def __init__(self, service, name):
-        Entity.__init__(self, service, PATH_MESSAGES + name, name)
+        Entity.__init__(self, service, _path(PATH_MESSAGES, name), name)
 
     @property
     def value(self):
@@ -618,10 +625,11 @@ class Users(Collection):
     def __init__(self, service):
         Collection.__init__(self, service, PATH_USERS, "users",
             item=lambda service, name: 
-                Entity(service, PATH_USERS + name, name),
+                Entity(service, _path(PATH_USERS, name), name),
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_USERS, name=name, **kwargs),
-            dtor=lambda service, name: service.delete(PATH_USERS + name))
+            dtor=lambda service, name: 
+                service.delete(_path(PATH_USERS, name)))
 
     # Splunk automatically lowercases new user names so we need to match that 
     # behavior here to ensure that the subsequent member lookup works correctly.

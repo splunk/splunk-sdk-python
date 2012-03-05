@@ -229,6 +229,8 @@ class Collection(Endpoint):
 
     def create(self, name, **kwargs):
         if self.ctor is None: raise NotSupportedError
+        if not isinstance(name, basestring): 
+            raise ValueError("Invalid argument: 'name'")
         self.ctor(self.service, name, **kwargs)
         return self[name]
 

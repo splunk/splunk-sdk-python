@@ -417,22 +417,32 @@ class ServiceTestCase(unittest.TestCase):
 
     def test_messages(self):
         messages = self.service.messages
+
         if messages.contains('sdk-test-message1'):
             messages.delete('sdk-test-message1')
         if messages.contains('sdk-test-message2'):
             messages.delete('sdk-test-message2')
         self.assertFalse(messages.contains('sdk-test-message1'))
         self.assertFalse(messages.contains('sdk-test-message2'))
+
         messages.create('sdk-test-message1', value="Hello!")
         self.assertTrue(messages.contains('sdk-test-message1'))
         self.assertEqual(messages['sdk-test-message1'].value, "Hello!")
+
         messages.create('sdk-test-message2', value="World!")
         self.assertTrue(messages.contains('sdk-test-message2'))
         self.assertEqual(messages['sdk-test-message2'].value, "World!")
+
         messages.delete('sdk-test-message1')
         messages.delete('sdk-test-message2')
         self.assertFalse(messages.contains('sdk-test-message1'))
         self.assertFalse(messages.contains('sdk-test-message2'))
+
+        # Verify that create raises a ValueError on invalid name args
+        with self.assertRaises(ValueError):
+            messages.create(None, value="What?")
+            messages.create(42, value="Who, me?")
+            messages.create([1,2,3], value="Who, me?")
 
     def test_restart(self):
         restart(self.service)
@@ -531,5 +541,5 @@ def runone(testname):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone('test_settings')
+    #runone('test_messages')
     unittest.main(argv=sys.argv[:1])

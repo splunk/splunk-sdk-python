@@ -458,15 +458,31 @@ class ServiceTestCase(unittest.TestCase):
         self.assertTrue("sdk-tester" not in roles())
 
     def test_settings(self):
-        settings = self.service.settings.read()
+        settings = self.service.settings
+
+        # Verify that settings contains the keys we expect
         keys = [
             "SPLUNK_DB", "SPLUNK_HOME", "enableSplunkWebSSL", "host",
             "httpport", "mgmtHostPort", "minFreeSpace", "pass4SymmKey",
             "serverName", "sessionTimeout", "startwebserver", "trustedIP"
         ]
-        for key in keys: self.assertTrue(key in settings.keys())
+        attrs = settings.read()
+        for key in keys: self.assertTrue(key in attrs.keys())
+
+        # Verify that we can update the settings
+        original = settings['sessionTimeout']
+        self.assertTrue(original != "42h")
+        settings.update(sessionTimeout="42h")
+        updated = settings['sessionTimeout']
+        self.assertEquals(updated, "42h")
+
+        # Restore (and verify) original value
+        settings.update(sessionTimeout=original)
+        updated = settings['sessionTimeout']
+        self.assertEquals(updated, original)
 
     def test_users(self):
+
         users = self.service.users
         roles = self.service.roles
 
@@ -515,5 +531,5 @@ def runone(testname):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone('test_users')
+    #runone('test_settings')
     unittest.main(argv=sys.argv[:1])

@@ -179,7 +179,7 @@ class Service(Context):
     @property
     def settings(self):
         """Return the server settings entity."""
-        return Entity(self, "server/settings")
+        return Settings(self)
 
     @property
     def users(self):
@@ -602,6 +602,15 @@ class Message(Entity):
         # The message value is contained in a entity property whose key is
         # the name of the message.
         return self[self.name]
+
+class Settings(Entity):
+    def __init__(self, service):
+        Entity.__init__(self, service, "server/settings")
+
+    # Updates on the settings endpoint are POSTed to server/settings/settings.
+    def update(self, **kwargs):
+        self.service.post("server/settings/settings", **kwargs)
+        return self
 
 class Users(Collection):
     def __init__(self, service):

@@ -45,6 +45,16 @@ RULES_SPLUNK = {
         'default': "8089",
         'help': "Port number (default 8089)" 
     },
+    'app': {
+        'flags': ["--app"], 
+        'default': None,
+        'help': "The app context (optional)"
+    },
+    'owner': {
+        'flags': ["--owner"], 
+        'default': None,
+        'help': "The user context (optional)"
+    },
     'username': {
         'flags': ["--username"],
         'default': None,
@@ -54,10 +64,6 @@ RULES_SPLUNK = {
         'flags': ["--password"], 
         'default': None,
         'help': "Password to login with" 
-    },
-    'namespace': {
-        'flags': ["--namespace"], 
-        'default': None,
     },
 }
 

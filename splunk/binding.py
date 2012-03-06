@@ -43,7 +43,7 @@ def prefix(**kwargs):
     return "%s://%s:%s" % (scheme, host, port)
 
 class Context(object):
-    # kwargs: scheme, host, port, username, password, namespace
+    # kwargs: scheme, host, port, app, owner, username, password
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler)
         self.token = None
@@ -51,9 +51,10 @@ class Context(object):
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = kwargs.get("port", DEFAULT_PORT)
+        self.app = kwargs.get("app", None)
+        self.owner = kwargs.get("owner", None)
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
-        self.namespace = kwargs.get("namespace", None)
 
     # Shared per-context request headers
     def _headers(self):
@@ -104,17 +105,14 @@ class Context(object):
 
     def fullpath(self, path):
         """If the given path is a fragment, qualify with segments corresponding
-           to the binding context's namespace."""
+           to the binding context's namespace args."""
         if path.startswith('/'): 
             return path
-        if self.namespace is None: 
+        if self.app is None and self.owner is None:
             return "/services/%s" % path
-        username, appname = self.namespace.split(':')
-        if username == "*": 
-            username = '-'
-        if appname == "*": 
-            appname = '-'
-        return "/servicesNS/%s/%s/%s" % (username, appname, path)
+        oname = "-" if self.owner is None else self.owner
+        aname = "-" if self.app is None else self.app
+        return "/servicesNS/%s/%s/%s" % (oname, aname, path)
 
     # Convet the given path into a fully qualified URL by first qualifying
     # the given path with namespace segments if necessarry and then prefixing
@@ -123,7 +121,7 @@ class Context(object):
         """Converts the given path or path fragment into a complete URL."""
         return self.prefix + self.fullpath(path)
 
-# kwargs: scheme, host, port, username, password, namespace
+# kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
     """Establishes an authenticated context with the given host."""
     return Context(**kwargs).login() 

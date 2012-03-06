@@ -142,14 +142,14 @@ class BindingTestCase(unittest.TestCase): # Base class
     def tearDown(self):
         pass
 
-    def connect(self, username, password, namespace = None):
+    def connect(self, username, password, **kwargs):
         return binding.connect(
             scheme=self.context.scheme,
             host=self.context.host,
             port=self.context.port,
             username=username,
             password=password,
-            namespace=namespace)
+            **kwargs)
 
     def get(self, path, **kwargs):
         response = self.context.get(path, **kwargs)
@@ -258,7 +258,7 @@ class UsersTestCase(BindingTestCase):
                 status=400) 
 
             # Connect as test user
-            usercx = self.connect(username, password, "%s:-" % username)
+            usercx = self.connect(username, password, owner=username)
 
             # Make sure the new context works
             response = usercx.get('/services')
@@ -305,7 +305,7 @@ class UsersTestCase(BindingTestCase):
         self.create_user(username, password, "user")
         try:
             # Connect as test user
-            usercx = self.connect(username, password, "%s:-" % username)
+            usercx = self.connect(username, password, owner=username)
 
             # User changes their own password
             response = usercx.post(userpath, password="changed")
@@ -317,13 +317,13 @@ class UsersTestCase(BindingTestCase):
 
             # Try to connect with original password ..
             self.assertRaises(HTTPError,
-                self.connect, username, password, "%s:-" % username)
+                self.connect, username, password, owner=username)
 
             # Admin changes it back
             self.update(userpath, password=password)
 
             # And now we can connect again with original password ..
-            self.connect(username, password, "%s:-" % username)
+            self.connect(username, password, owner=username)
 
         finally:
             self.delete(userpath)

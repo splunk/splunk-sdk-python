@@ -79,7 +79,7 @@ def _path(base, name):
 def _path_stanza(conf, stanza):
     return PATH_STANZA % (conf, quote(stanza))
 
-# kwargs: scheme, host, port, username, password, namespace
+# kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
     """Establishes an authenticated connection to the specified service."""
     return Service(**kwargs).login()

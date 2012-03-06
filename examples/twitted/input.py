@@ -237,8 +237,9 @@ def main():
     global verbose
     verbose = kwargs['verbose']
 
-    # Force the namespace
-    kwargs['namespace'] = "%s:twitted" % kwargs['username']
+    # Force the owner namespace, if not provided
+    if 'owner' not in kwargs.keys():
+        kwargs['owner'] = kwargs['username']
 
     if verbose > 0: print "Initializing Splunk .."
     service = splunk.client.connect(**kwargs)

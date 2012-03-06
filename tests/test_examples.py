@@ -74,7 +74,7 @@ class ExamplesTestCase(unittest.TestCase):
             "conf.py --help",
             "conf.py",
             "conf.py viewstates",
-            'conf.py --namespace="admin:search" viewstates',
+            'conf.py --app=search --owner=admin viewstates',
             "conf.py create server SDK-STANZA",
             "conf.py create server SDK-STANZA testkey=testvalue",
             "conf.py delete server SDK-STANZA"

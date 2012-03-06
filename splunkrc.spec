@@ -13,5 +13,8 @@ password=changed
 # Access scheme (OPTIONAL)
 scheme=https
 
-# Namespace to use (OPTIONAL)
-namespace=*:*
+# Application context (OPTIONAL)
+#app=<appname>
+
+# User context (OPTIONAL)
+#owner=<username>

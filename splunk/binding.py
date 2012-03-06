@@ -184,9 +184,12 @@ def encode(**kwargs):
 
 # Crack the given url into (scheme, host, port, path)
 def spliturl(url):
-    scheme, part = url.split(':', 1)
-    host, path = urllib.splithost(part)
-    host, port = urllib.splitnport(host, 80)
+    scheme, opaque = urllib.splittype(url)
+    netloc, path = urllib.splithost(opaque)
+    host, port = urllib.splitport(netloc)
+    # Strip brackets if its an IPv6 address
+    if host.startswith('[') and host.endswith(']'): host = host[1:-1]
+    if port is None: port = DEFAULT_PORT
     return scheme, host, port, path
 
 # Given an HTTP request handler, this wrapper objects provides a related

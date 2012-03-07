@@ -19,12 +19,28 @@ import sys
 from time import sleep
 import unittest
 
-import splunk.client
+import splunk.client as client
 from splunk.binding import HTTPError
 import splunk.results as results
 from utils import parse
 
 opts = None # Command line options
+
+def create_app(service, name):
+    service.apps.create(name)
+    restart(service)
+
+def create_user(service, name, password="changeme", roles="power"):
+    service.users.create(name, password=password, roles=roles)
+
+def delete_app(service, name):
+    if (name in service.apps()):
+        service.apps.delete(name)
+        restart(service)
+
+def delete_user(service, name):
+    if (name in service.users()):
+        service.users.delete(name)
 
 def restart(service):
     """Restart the given service and wait for it to wake back up."""
@@ -53,10 +69,86 @@ def wait_for_restart(service):
         except:
             sleep(2)
 
+# Verify that we can instantiate and connect to a service, test basic 
+# interaction with the service and make sure we can connect and interact 
+# with a variety of namespace configurations.
 class ServiceTestCase(unittest.TestCase):
+    def test(self):
+        kwargs = opts.kwargs.copy()
+
+        # Verify connect with no namespace
+        service = client.connect(**kwargs)
+        service.apps()
+
+        # Verify namespace permutations using standard app & owner args 
+        kwargs.update({ 'app': "search", 'owner': None })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': "search", 'owner': "-" })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': None, 'owner': "admin" })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': "-", 'owner': "admin" })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': "search", 'owner': "admin" })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        app = "sdk-tests" # app = "SDK App"
+        user = "sdk-user" # user = "SDK User"
+        delete_app(service, app)
+        delete_user(service, user)
+
+        self.assertTrue(app not in service.apps())
+        self.assertTrue(user not in service.users())
+
+        # App & owner dont exist, verify that the following errors
+        kwargs.update({ 'app': app, 'owner': user })
+        with self.assertRaises(HTTPError):
+            service_ns = client.connect(**kwargs)
+            service_ns.apps()
+
+        # Validate namespace permutations with new app & user
+        create_app(service, app)
+        create_user(service, user)
+
+        kwargs.update({ 'app': app, 'owner': None })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': app, 'owner': "-" })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': None, 'owner': user })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': "-", 'owner': user })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        kwargs.update({ 'app': app, 'owner': user })
+        service_ns = client.connect(**kwargs)
+        service_ns.apps()
+
+        # Cleanup
+        delete_app(service, app)
+        delete_user(service, user)
+
+        self.assertTrue(app not in service.apps())
+        self.assertTrue(user not in service.users())
+
+class ClientTestCase(unittest.TestCase):
     def setUp(self):
-        self.service = splunk.client.Service(**opts.kwargs)
-        self.service.login()
+        self.service = client.connect(**opts.kwargs)
 
     def assertHttp(self, allowed_error_codes, fn, *args, **kwargs):
         # This is a special case of "assertRaises", where we want to check
@@ -73,16 +165,6 @@ class ServiceTestCase(unittest.TestCase):
         except Exception as e:
             self.fail("HTTPError not raised, caught %s instead", str(type(e)))
 
-    def create_app(self, name):
-        service = self.service
-        service.apps.create('sdk-tests')
-        restart(service)
-
-    def delete_app(self, name):
-        service = self.service
-        service.apps.delete(name)
-        restart(service)
-
     def tearDown(self):
         pass
 
@@ -91,12 +173,10 @@ class ServiceTestCase(unittest.TestCase):
 
         for app in service.apps: app.read()
 
-        if 'sdk-tests' in service.apps.list():
-            self.delete_app('sdk-tests')
-            
+        delete_app(service, 'sdk-tests')
         self.assertTrue('sdk-tests' not in service.apps.list())
 
-        self.create_app('sdk-tests')
+        create_app(service, 'sdk-tests')
         self.assertTrue('sdk-tests' in service.apps.list())
 
         testapp = service.apps['sdk-tests']
@@ -104,7 +184,7 @@ class ServiceTestCase(unittest.TestCase):
         testapp.update(author="Splunk")
         self.assertTrue(testapp['author'] == "Splunk")
 
-        self.delete_app('sdk-tests')
+        delete_app(service, 'sdk-tests')
         self.assertTrue('sdk-tests' not in service.apps.list())
 
     def test_capabilities(self):
@@ -502,7 +582,6 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEquals(updated, original)
 
     def test_users(self):
-
         users = self.service.users
         roles = self.service.roles
 
@@ -544,12 +623,12 @@ class ServiceTestCase(unittest.TestCase):
         users.delete("sdk-user")
 
 # Runs the given named test, useful for debugging.
-def runone(testname):
+def runone(test):
     suite = unittest.TestSuite()
-    suite.addTest(ServiceTestCase(testname))
+    suite.addTest(test)
     unittest.TextTestRunner().run(suite)
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone('test_messages')
+    #runone(ServiceTestCase("test"))
     unittest.main(argv=sys.argv[:1])

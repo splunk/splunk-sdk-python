@@ -40,6 +40,7 @@ def prefix(**kwargs):
     scheme = kwargs.get("scheme", DEFAULT_SCHEME)
     host = kwargs.get("host", DEFAULT_HOST)
     port = kwargs.get("port", DEFAULT_PORT)
+    if ':' in host: host = '[' + host + ']' # Encode ipv6 address literal
     return "%s://%s:%s" % (scheme, host, port)
 
 class Context(object):
@@ -62,8 +63,7 @@ class Context(object):
 
     def connect(self):
         """Open a connection (socket) to the service (host:port)."""
-        cn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        cn.connect((self.host, int(self.port)))
+        cn = socket.create_connection((self.host, int(self.port)))
         return ssl.wrap_socket(cn) if self.scheme == "https" else cn
 
     def delete(self, path, **kwargs):

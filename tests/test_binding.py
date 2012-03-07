@@ -190,6 +190,9 @@ class BindingTestCase(unittest.TestCase): # Base class
         # Just check to make sure the service is alive
         self.assertEqual(self.get("/services").status, 200)
 
+        # Make sure we can open a socket to the service
+        self.context.connect().close()
+
     def test_logout(self):
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)

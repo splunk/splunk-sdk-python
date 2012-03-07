@@ -72,11 +72,8 @@ try:
     pprint(service.apps.list())
 except urllib2.URLError as e:
     if e.reason.errno == 1 and sys.version_info < (2, 6, 3):
-        # There is a bug in Python < 2.6.3 that does not
-        # allow proxies with HTTPS. As such, this test will
-        # fail.
-        # You can read more at the following URL:
-        # http://bugs.python.org/issue1424152
+        # There is a bug in Python < 2.6.3 that does not allow proxies with
+        # HTTPS. You can read more at: http://bugs.python.org/issue1424152
         pass
     else:
         raise

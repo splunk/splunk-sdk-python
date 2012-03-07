@@ -13,6 +13,9 @@ Any help will be greatly appreciated.       SUZUKI Hisao
              * Added very simple FTP file retrieval
              * Added custom logging methods
              * Added code to make this a standalone application
+
+2012/03/07 - Modified by Brad Lovering
+            * Added basic support for IPv6
 """
  
 __version__ = "0.3.1"
@@ -47,25 +50,32 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.__base_handle()
  
-    def _connect_to(self, netloc, soc):
-        i = netloc.find(':')
-        if i >= 0:
-            host_port = netloc[:i], int(netloc[i+1:])
+    def _connect_to(self, netloc):
+        i = netloc.rfind(':')
+        j = netloc.rfind(']')
+        if i > j:
+            host = netloc[:i]
+            port = int(netloc[i+1:])
         else:
-            host_port = netloc, 80
+            host = netloc
+            port = 80
+        if host[0] == '[' and host[-1] == ']':
+            host = host[1:-1]
+        host_port = (host, port)
         self.server.logger.log (logging.INFO, "connect to %s:%d", host_port[0], host_port[1])
-        try: soc.connect(host_port)
+        try: 
+            return socket.create_connection(host_port)
         except socket.error, arg:
             try: msg = arg[1]
             except: msg = arg
             self.send_error(404, msg)
-            return 0
-        return 1
+        return None
  
     def do_CONNECT(self):
-        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        soc = None
         try:
-            if self._connect_to(self.path, soc):
+            soc = self._connect_to(self.path)
+            if soc:
                 self.log_request(200)
                 self.wfile.write(self.protocol_version +
                                  " 200 Connection established\r\n")
@@ -73,7 +83,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.wfile.write("\r\n")
                 self._read_write(soc, 300)
         finally:
-            soc.close()
+            if soc: soc.close()
             self.connection.close()
  
     def do_GET(self):
@@ -82,10 +92,11 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         if scm not in ('http', 'ftp') or fragment or not netloc:
             self.send_error(400, "bad url %s" % self.path)
             return
-        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        soc = None
         try:
             if scm == 'http':
-                if self._connect_to(netloc, soc):
+                soc = self._connect_to(netloc)
+                if soc:
                     self.log_request()
                     soc.send("%s %s %s\r\n" % (self.command,
                                                urlparse.urlunparse(('', '', path,
@@ -117,7 +128,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     self.server.logger.log (logging.WARNING, "FTP Exception: %s",
                                             e)
         finally:
-            soc.close()
+            if soc: soc.close()
             self.connection.close()
  
     def _read_write(self, soc, max_idling=20, local=False):

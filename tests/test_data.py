@@ -18,7 +18,7 @@ from os import path
 import sys
 import unittest
 
-import splunk.data as data
+import splunklib.data as data
 
 class TestCase(unittest.TestCase):
     def test_elems(self):

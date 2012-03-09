@@ -15,8 +15,9 @@
 # under the License.
 
 import urllib2, sys
-import splunk.client, utils
-import splunk.results as results
+import splunklib.client as client
+import splunklib.results as results
+import utils
 
 __all__ = [
     "TimeRange",
@@ -39,7 +40,7 @@ class TimeRange:
 class AnalyticsRetriever:
     def __init__(self, application_name, splunk_info, index = ANALYTICS_INDEX_NAME):
         self.application_name = application_name
-        self.splunk = splunk.client.connect(**splunk_info)
+        self.splunk = client.connect(**splunk_info)
         self.index = index
 
     def applications(self):

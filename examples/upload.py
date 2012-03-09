@@ -19,7 +19,7 @@
 from os import path
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import *
 
@@ -56,7 +56,7 @@ def main(argv):
     opts = parse(argv, RULES, ".splunkrc", usage=usage)
 
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
-    service = splunk.client.connect(**kwargs_splunk)
+    service = client.connect(**kwargs_splunk)
 
     name = opts.kwargs['index']
     if not service.indexes.contains(name):

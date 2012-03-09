@@ -21,9 +21,9 @@ from pprint import pprint
 import sys
 import time
 
-import splunk.client as client
-import splunk.data as data
-import splunk.results as results
+import splunklib.client as client
+import splunklib.data as data
+import splunklib.results as results
 
 import utils
 

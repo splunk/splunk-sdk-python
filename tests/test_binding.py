@@ -22,9 +22,9 @@ import urllib2
 import uuid
 from xml.etree.ElementTree import XML
 
-import splunk.binding as binding
-from splunk.binding import HTTPError
-import splunk.data as data
+import splunklib.binding as binding
+from splunklib.binding import HTTPError
+import splunklib.data as data
 
 from utils import parse
 
@@ -95,11 +95,11 @@ class ModuleTestCase(unittest.TestCase):
     # Verify that the library modules contain what we expect (more or less)
     def test_names(self):
         modules = [
-            "splunk",
-            "splunk.binding",
-            "splunk.client",
-            "splunk.data",
-            "splunk.results"
+            "splunklib",
+            "splunklib.binding",
+            "splunklib.client",
+            "splunklib.data",
+            "splunklib.results"
         ]
         for module in modules:
             self.assertTrue(check_module(module, module + ".baseline"))

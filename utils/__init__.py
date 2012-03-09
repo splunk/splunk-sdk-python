@@ -47,12 +47,10 @@ RULES_SPLUNK = {
     },
     'app': {
         'flags': ["--app"], 
-        'default': None,
         'help': "The app context (optional)"
     },
     'owner': {
         'flags': ["--owner"], 
-        'default': None,
         'help': "The user context (optional)"
     },
     'username': {

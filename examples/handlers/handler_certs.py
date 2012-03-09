@@ -40,7 +40,7 @@ import sys
 import urllib
 import urlparse
 
-import splunk.client as client
+import splunklib.client as client
 
 import utils
 

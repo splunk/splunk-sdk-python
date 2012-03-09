@@ -20,8 +20,8 @@ from pprint import pprint
 import socket
 import sys
 
-from splunk.client import connect
-import splunk.results as results
+from splunklib.client import connect
+import splunklib.results as results
 
 import utils
 

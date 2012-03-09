@@ -22,7 +22,7 @@ from pprint import pprint
 import sys
 import time
 
-import splunk.results as results
+import splunklib.results as results
 
 def pretty():
     reader = results.ResultsReader(sys.stdin)

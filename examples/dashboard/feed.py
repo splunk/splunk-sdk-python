@@ -23,8 +23,8 @@
 import sys, datetime, urllib2, json
 from xml.etree import ElementTree
 
-import splunk.client
-import splunk.results as results
+import splunklib.client as client
+import splunklib.results as results
 from utils import parse, error
 
 leftronic_access_key = ""
@@ -168,7 +168,7 @@ def main(argv):
     opts = parse(argv, {}, ".splunkrc")
 
     # Connect to Splunk
-    service = splunk.client.connect(**opts.kwargs)
+    service = client.connect(**opts.kwargs)
     
     # This is the list of dashboard streams
     streams = [

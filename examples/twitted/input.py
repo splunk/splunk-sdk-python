@@ -23,7 +23,7 @@ import json
 import socket
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import error, parse
 
@@ -242,7 +242,7 @@ def main():
         kwargs['owner'] = kwargs['username']
 
     if verbose > 0: print "Initializing Splunk .."
-    service = splunk.client.connect(**kwargs)
+    service = client.connect(**kwargs)
 
     # Create the index if it doesn't exist
     if "twitter" not in service.indexes.list():

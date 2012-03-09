@@ -29,22 +29,22 @@
 """Client interface to the Splunk REST API."""
 
 #
-# A note on collections ..
+# A note on collections:
 #
-#   * Entities have a kind, name & key. The kind is a tag that indicates the
-#     "kind" of entity, name is a friendly name for the entity suitable for
-#     display and key is a unique identifier for the Entity within its host
-#     collection. In Splunk collections, name and key are frequently the same
-#     but not always (eg: inputs).
+#  Entities have a kind, name & key. The kind is a tag that indicates the
+#  "kind" of entity, name is a friendly name for the entity suitable for
+#  display and key is a unique identifier for the Entity within its host
+#  collection. In Splunk collections, name and key are frequently the same
+#  but not always (eg: inputs).
 #
 
 from time import sleep
 from urllib import urlencode, quote
 from urlparse import urlparse
 
-from splunk.binding import Context, HTTPError
-import splunk.data as data
-from splunk.data import record
+from splunklib.binding import Context, HTTPError
+import splunklib.data as data
+from splunklib.data import record
 
 __all__ = [
     "connect",

@@ -30,19 +30,19 @@ except ImportError:
     pass
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 import utils
 
 class Session(InteractiveInterpreter):
     def __init__(self, **kwargs):
-        self.service = splunk.client.connect(**kwargs)
+        self.service = client.connect(**kwargs)
         self.delete = self.service.delete
         self.get = self.service.get
         self.post = self.service.post
         locals = {
             'service': self.service,
-            'connect': splunk.client.connect,
+            'connect': client.connect,
             'delete': self.delete,
             'get': self.get,
             'post': self.post,

@@ -19,9 +19,9 @@ import sys
 from time import sleep
 import unittest
 
-import splunk.client as client
-from splunk.binding import HTTPError
-import splunk.results as results
+import splunklib.client as client
+from splunklib.binding import HTTPError
+import splunklib.results as results
 from utils import parse
 
 opts = None # Command line options

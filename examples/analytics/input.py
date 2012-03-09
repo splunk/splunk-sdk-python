@@ -16,7 +16,8 @@
 
 import urllib2, sys
 from datetime import datetime
-import splunk.client, utils
+import splunklib.client as client
+import utils
 
 __all__ = [
     "AnalyticsTracker",
@@ -33,7 +34,7 @@ PROPERTY_PREFIX = "analytics_prop__"
 class AnalyticsTracker:
     def __init__(self, application_name, splunk_info, index = ANALYTICS_INDEX_NAME):
         self.application_name = application_name
-        self.splunk = splunk.client.connect(**splunk_info)
+        self.splunk = client.connect(**splunk_info)
         self.index = index
 
         if self.index not in self.splunk.indexes.list():

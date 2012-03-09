@@ -18,13 +18,13 @@
 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import parse
 
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    service = splunk.client.connect(**opts.kwargs)
+    service = client.connect(**opts.kwargs)
 
     info = service.info
     for key in sorted(info.keys()):

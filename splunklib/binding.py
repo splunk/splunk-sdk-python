@@ -21,7 +21,7 @@ import urllib
 
 from xml.etree.ElementTree import XML
 
-from splunk.data import record
+from splunklib.data import record
 
 __all__ = [
     "connect",

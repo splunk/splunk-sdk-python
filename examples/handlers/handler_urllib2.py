@@ -21,7 +21,7 @@ from StringIO import StringIO
 import sys
 import urllib2
 
-import splunk.client as client
+import splunklib.client as client
 
 import utils
 

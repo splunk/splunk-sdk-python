@@ -19,14 +19,14 @@
 import sys
 from xml.etree import ElementTree
 
-import splunk.binding
+import splunklib.binding as binding
 
 import utils
 
 # Invoke the url using the given opts parameters
 def invoke(path, **kwargs):
     message = { "method": kwargs.get("method", "GET"), }
-    return splunk.binding.connect(**kwargs).request(path, message)
+    return binding.connect(**kwargs).request(path, message)
 
 def print_response(response):
     if response.status != 200:

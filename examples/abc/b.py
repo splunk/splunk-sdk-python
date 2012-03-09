@@ -16,7 +16,7 @@
 
 from xml.etree import ElementTree
 
-import splunk.binding as binding
+import splunklib.binding as binding
 
 HOST = "localhost"
 PORT = 8089

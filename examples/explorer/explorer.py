@@ -37,21 +37,20 @@ def main(argv):
 
     opts = utils.parse(argv, redirect_port_args, ".splunkrc", usage=usage)
 
-    # We have to provide a sensible value for namespace
-    namespace = opts.kwargs["namespace"]
-    namespace = namespace if namespace else "-"
-
-    # Encode these arguments
-    args = urllib.urlencode([
-            ("scheme", opts.kwargs["scheme"]),
+    args = [("scheme", opts.kwargs["scheme"]),
             ("host", opts.kwargs["host"]),
             ("port", opts.kwargs["port"]),
             ("redirecthost", "localhost"),
             ("redirectport", opts.kwargs["redirectport"]),
             ("username", opts.kwargs["username"]),
-            ("password", opts.kwargs["password"]),
-            ("namespace", namespace)
-        ]),
+            ("password", opts.kwargs["password"])]
+    if 'app' in opts.kwargs.keys():
+        args.append(('app', opts.kwargs['app']))
+    if 'owner' in opts.kwargs.keys():
+        args.append(('owner', opts.kwargs['owner']))
+
+    # Encode these arguments
+    args = urllib.urlencode(args)
 
     # Launch the browser
     webbrowser.open("file://%s" % os.path.join(os.getcwd(), "explorer.html?%s" % args))

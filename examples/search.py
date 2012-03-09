@@ -21,8 +21,8 @@ from pprint import pprint
 import sys
 from time import sleep
 
-from splunk.binding import HTTPError
-import splunk.client as client
+from splunklib.binding import HTTPError
+import splunklib.client as client
 
 from utils import *
 

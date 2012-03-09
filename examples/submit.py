@@ -18,7 +18,7 @@
 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import *
 
@@ -45,7 +45,7 @@ def main(argv):
     index = opts.args[0]
 
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
-    service = splunk.client.connect(**kwargs_splunk)
+    service = client.connect(**kwargs_splunk)
 
     if not service.indexes.contains(index):
         error("Index '%s' does not exist." % index)

@@ -26,8 +26,8 @@ import time
 import os
 
 # splunk support files
-import splunk.binding as binding
-from splunk.binding import connect
+import splunklib.binding as binding
+from splunklib.binding import connect
 from utils import parse
 
 # hidden file

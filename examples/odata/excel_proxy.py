@@ -30,8 +30,8 @@ import xml.dom.minidom
 import socket
 
 # splunk support files
-import splunk.binding as binding
-from splunk.binding import connect
+import splunklib.binding as binding
+from splunklib.binding import connect
 
 import utils
 

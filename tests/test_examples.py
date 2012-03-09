@@ -22,7 +22,7 @@ import time
 import unittest 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import parse
 
@@ -282,7 +282,7 @@ class ExamplesTestCase(unittest.TestCase):
         # Create a tracker
         tracker = analytics.input.AnalyticsTracker("sdk-test", opts.kwargs, index = "sdk-test")
 
-        service = splunk.client.connect(**opts.kwargs)
+        service = client.connect(**opts.kwargs)
 
         # Before we start, we'll clean the index
         index = service.indexes["sdk-test"]

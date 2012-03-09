@@ -21,7 +21,7 @@
 
 import sys
 
-from splunk.binding import connect
+from splunklib.binding import connect
 
 from utils import parse
 

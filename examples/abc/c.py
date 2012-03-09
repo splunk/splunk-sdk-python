@@ -14,7 +14,7 @@
 
 """Retrieves a list of installed apps from Splunk using the client module."""
 
-import splunk.client as client
+import splunklib.client as client
 
 HOST = "localhost"
 PORT = 8089

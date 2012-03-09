@@ -20,7 +20,7 @@ import socket
 import sys
 import time
 import datetime
-from splunk.client import connect
+from splunklib.client import connect
 from utils import parse
 
 SPLUNK_HOST = "localhost"

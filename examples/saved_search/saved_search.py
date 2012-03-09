@@ -20,7 +20,7 @@
 import sys
 import urllib
 
-import splunk.binding as binding
+import splunklib.binding as binding
 
 import utils
 

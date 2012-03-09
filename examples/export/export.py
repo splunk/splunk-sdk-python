@@ -108,7 +108,7 @@ def query(context, start, end, span, index):
     retry = True
     while retry:
         result = context.get('search/jobs/export', search=squery, 
-                              output_mode="csv")
+                              output_mode="csv", time_format="%s")
         if result.status != 200:
             print "Failed to get event counts, HTTP status=%d, retrying"\
                    % result.status
@@ -160,7 +160,6 @@ def get_buckets(context, start, end, index, limit, span):
     # eventcount,starttime,timequantum
     for line in lines:
         elements = line.split(",")
-       
         # extract the element components
         enumevents = int(elements[0])
         estarttime = int(elements[1])

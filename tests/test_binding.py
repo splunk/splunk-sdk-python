@@ -133,8 +133,79 @@ class ProtocolTestCase(unittest.TestCase):
             for path in paths:
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
+
+class NamespaceTestCase(unittest.TestCase):
+    def test(self):
+        tests = [
+            ({ },
+             { 'sharing': None, 'owner': None, 'app': None }),
+
+            ({ 'owner': "Bob" },
+             { 'sharing': None, 'owner': "Bob", 'app': None }),
+
+            ({ 'app': "search" },
+             { 'sharing': None, 'owner': None, 'app': "search" }),
+
+            ({ 'owner': "Bob", 'app': "search" },
+             { 'sharing': None, 'owner': "Bob", 'app': "search" }),
+
+            ({ 'sharing': "user" },
+             { 'sharing': "user", 'owner': None, 'app': None }),
+
+            ({ 'sharing': "user", 'owner': "Bob" },
+             { 'sharing': "user", 'owner': "Bob", 'app': None }),
+
+            ({ 'sharing': "user", 'app': "search" },
+             { 'sharing': "user", 'owner': None, 'app': "search" }),
+
+            ({ 'sharing': "user", 'owner': "Bob", 'app': "search" },
+             { 'sharing': "user", 'owner': "Bob", 'app': "search" }),
+
+            ({ 'sharing': "app" },
+             { 'sharing': "app", 'owner': "nobody", 'app': None }),
+
+            ({ 'sharing': "app", 'owner': "Bob" },
+             { 'sharing': "app", 'owner': "nobody", 'app': None }),
+
+            ({ 'sharing': "app", 'app': "search" },
+             { 'sharing': "app", 'owner': "nobody", 'app': "search" }),
+
+            ({ 'sharing': "app", 'owner': "Bob", 'app': "search" },
+             { 'sharing': "app", 'owner': "nobody", 'app': "search" }),
+
+            ({ 'sharing': "global" },
+             { 'sharing': "global", 'owner': "nobody", 'app': None }),
+
+            ({ 'sharing': "global", 'owner': "Bob" },
+             { 'sharing': "global", 'owner': "nobody", 'app': None }),
+
+            ({ 'sharing': "global", 'app': "search" },
+             { 'sharing': "global", 'owner': "nobody", 'app': "search" }),
+
+            ({ 'sharing': "global", 'owner': "Bob", 'app': "search" },
+             { 'sharing': "global", 'owner': "nobody", 'app': "search" }),
+
+            ({ 'sharing': "system" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': "system", 'owner': "Bob" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': "system", 'app': "search" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': "system", 'owner': "Bob", 'app': "search" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" })]
+
+        for kwargs, expected in tests:
+            namespace = binding.namespace(**kwargs)
+            for k,v in expected.iteritems():
+                self.assertEqual(namespace[k], v)
+
+        with self.assertRaises(ValueError):
+            binding.namespace(sharing="gobble")
     
-class BindingTestCase(unittest.TestCase): # Base class
+class BindingTestCase(unittest.TestCase):
     def setUp(self):
         global opts
         self.context = binding.connect(**opts.kwargs)

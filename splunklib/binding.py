@@ -14,6 +14,34 @@
 
 """Low-level 'binding' interface to the Splunk REST API."""
 
+#
+# A note on namespaces:
+#
+# Every Splunk resource belongs to a namespace. The namespace is specified by
+# the pair of values `owner` and `app` and is governed by a `sharing` mode. 
+# The possible values for `sharing` are: "user", "app", "global" and "system", 
+# which map to the following combinations of `owner` and `app` values.
+#
+#     `user`   => {owner}, {app}
+#     `app`    => nobody, {app}
+#     `global` => nobody, {app}
+#     `system` => nobody, system
+#
+# `nobody` is a special user name that basically means no-user and `system` is 
+# the name reserved for system resources.
+#
+# "-" is a wildcard that can be used for both `owner` and `app` values and
+# refers to all users and all apps, respectively.
+#
+# In general, when you specify a namespace you can specify any combination of 
+# these three values and the library will reconcile the triple, overriding the
+# provided values as appropriate.
+#
+# Finally, if no namspacing is specified the library will make use of the
+# `/services` branch of the REST API which provides a non-namespaced view of
+# Splunk resources.
+#
+
 import httplib
 import socket
 import ssl
@@ -34,14 +62,36 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
-# Construct an URL prefix from the given scheme, host and port.
 # kwargs: scheme, host, port
 def prefix(**kwargs):
+    """Returns an URL prefix constructed from the given scheme, host & port."""
     scheme = kwargs.get("scheme", DEFAULT_SCHEME)
     host = kwargs.get("host", DEFAULT_HOST)
     port = kwargs.get("port", DEFAULT_PORT)
     if ':' in host: host = '[' + host + ']' # Encode ipv6 address literal
     return "%s://%s:%s" % (scheme, host, port)
+
+# kwargs: sharing, owner, app
+def namespace(**kwargs):
+    """Returns a reconciled dict of namespace values built from the given
+       kwargs, which may contain any of `sharing`, `owner` and `app`."""
+    sharing = kwargs.get('sharing', None)
+    if sharing in ["system"]:
+        return { 
+            'sharing': sharing, 
+            'owner': "nobody", 
+            'app': "system" }
+    if sharing in ["global", "app"]:
+        return { 
+            'sharing': sharing, 
+            'owner': "nobody", 
+            'app': kwargs.get('app', None)}
+    if sharing in ["user", None]:
+        return { 
+            'sharing': sharing, 
+            'owner': kwargs.get('owner', None),
+            'app': kwargs.get('app', None)}
+    raise ValueError("Invalid value for argument: 'sharing'")
 
 class Context(object):
     # kwargs: scheme, host, port, app, owner, username, password
@@ -52,8 +102,13 @@ class Context(object):
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = kwargs.get("port", DEFAULT_PORT)
-        self.app = kwargs.get("app", None)
-        self.owner = kwargs.get("owner", None)
+
+        # The default namespace values for this context
+        result = namespace(**kwargs)
+        self.app = result['app']
+        self.owner = result['owner']
+        self.sharing = result['sharing']
+
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
 

@@ -147,6 +147,7 @@ In order to run the sample, you can simply execute:
 
 	./server.py
 
-And navigate to http://localhost:8080. I suggest you input some
+And navigate to http://localhost:8080/applications. I suggest you input some
 events in beforehand, though `server.py` logs some events itself
 as you navigate the site (it's meta analytics!).
+

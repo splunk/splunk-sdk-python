@@ -6,7 +6,7 @@
 
 *{ margin:0; padding:0;}
 body{ font:100% normal Arial, Helvetica, sans-serif; background:#161712;}
-form,input,select,textarea{margin:0; padding:0; color:#fff;}
+form,input,select,textarea{margin:0; padding:0;}
 
 /* API RESPONSE CSS */
 

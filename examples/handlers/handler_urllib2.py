@@ -43,5 +43,5 @@ def request(url, message, **kwargs):
 
 opts = utils.parse(sys.argv[1:], {}, ".splunkrc")
 service = client.connect(handler=request, **opts.kwargs)
-pprint(service.apps.list())
+pprint([app.name for app in service.apps])
 

@@ -223,23 +223,25 @@ class Collection(Endpoint):
 
     def __getitem__(self, key):
         if self.item is None: raise NotSupportedError
-        if not self.contains(key): raise KeyError, key
-        return self.item(self.service, key)
+        for item in self.list():
+            if item.name == key: return item
+        raise KeyError, key
 
     def __iter__(self):
-        # Don't invoke __getitem__ below, we don't need the extra round-trip
-        # to validate that the key exists, because we just it from the list.
-        for name in self.list(): yield self.item(self.service, name)
+        for item in self.list(): yield item
 
     def contains(self, name):
-        return name in self.list()
+        """Answers if the given entity name exists in the collection."""
+        for item in self.list():
+            if item.name == name: return True
+        return False
 
     def create(self, name, **kwargs):
         if self.ctor is None: raise NotSupportedError
         if not isinstance(name, basestring): 
             raise ValueError("Invalid argument: 'name'")
         self.ctor(self.service, name, **kwargs)
-        return self[name]
+        return self[name] # UNDONE: Extra round-trip to retrieve entity
 
     def delete(self, name):
         if self.dtor is None: raise NotSupportedError
@@ -256,13 +258,12 @@ class Collection(Endpoint):
         })
 
     def list(self):
-        """Returns a list of collection keys."""
+        """Returns a list of collection members."""
         response = self.get(count=-1)
         entry = load(response).feed.get('entry', None)
         if entry is None: return []
-        if not isinstance(entry, list): 
-            entry = [entry]
-        return [item.title for item in entry]
+        if not isinstance(entry, list): entry = [entry]
+        return [self.item(self.service, item.title) for item in entry]
 
 def _filter_content(content, *args):
     if len(args) > 0: # We have filter args
@@ -406,6 +407,8 @@ INPUT_KINDMAP = {
 
 # Inputs is a kinded collection, which is a heterogenous collection where
 # each item is tagged with a kind.
+# UNDONE: The collection currently fabricates a key by combining kind & name,
+#  but that is not really "correct" as ultimately the entity key is its path.
 class Inputs(Endpoint):
     """A collection of Splunk inputs."""
     def __init__(self, service, kindmap=None):
@@ -432,7 +435,9 @@ class Inputs(Endpoint):
 
     def contains(self, key):
         """Answers if the given key exists in the collection."""
-        return key in self.list()
+        for item in self.list():
+            if item.key == key: return True
+        return False
 
     def create(self, kind, name, **kwargs):
         """Creates an input of the given kind, with the given name & args."""
@@ -471,11 +476,11 @@ class Inputs(Endpoint):
 
     # args: kind*
     def list(self, *args):
-        """Returns a list of collection keys, optionally filtered by kind."""
-        if len(args) == 0: return self._infos.keys()
-        return [k for k, v in self._infos.iteritems() if v['kind'] in args]
+        """Returns a list of Input entities, optionally filtered by kind."""
+        kinds = args if len(args) > 0 else self._kindmap.keys()
+        return [Input(self.service, **self._infos[k])
+            for k, v in self._infos.iteritems() if v['kind'] in kinds]
 
-    # Refreshes the 
     def refresh(self):
         """Refreshes the internal directory of entities and entity metadata."""
         self._infos = {}
@@ -586,21 +591,34 @@ class Jobs(Collection):
         Collection.__init__(self, service, PATH_JOBS, "jobs",
             item=lambda service, sid: Job(service, sid))
 
+    # UNDONE: We could share more if we parameterized itemname
+    def __getitem__(self, key):
+        if self.item is None: raise NotSupportedError
+        for item in self.list():
+            if item.sid == key: return item
+        raise KeyError, key
+
+    # UNDONE: We could share more if we parameterized itemname
+    def contains(self, sid):
+        """Answers if the given sid exists in the collection."""
+        for item in self.list():
+            if item.sid == sid: return True
+        return False
+
     def create(self, query, **kwargs):
         response = self.post(search=query, **kwargs)
-
         if kwargs.get("exec_mode", None) == "oneshot":
             return response.body
-
         sid = load(response).response.sid
         return Job(self.service, sid)
 
     def list(self):
+        """Returns a list of Job entities."""
         response = self.get()
         entry = load(response, MATCH_ENTRY_CONTENT)
         if entry is None: return []
         if not isinstance(entry, list): entry = [entry]
-        return [item.sid for item in entry]
+        return [Job(self.service, item.sid) for item in entry]
 
 class Message(Entity):
     def __init__(self, service, name):

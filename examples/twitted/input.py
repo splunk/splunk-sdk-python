@@ -245,7 +245,7 @@ def main():
     service = client.connect(**kwargs)
 
     # Create the index if it doesn't exist
-    if "twitter" not in service.indexes.list():
+    if not service.indexes.contains("twitter"):
         if verbose > 0: print "Creating index 'twitter' .."
         service.indexes.create("twitter")
 
@@ -253,7 +253,7 @@ def main():
     input_host = kwargs.get("inputhost", DEFAULT_SPLUNK_HOST)
     input_port = int(kwargs.get("inputport", DEFAULT_SPLUNK_PORT))
     input_name = "tcp:%s" % (input_port)
-    if input_name not in service.inputs.list():
+    if not service.inputs.contains(input_name):
         if verbose > 0: print "Creating input '%s'" % input_name
         service.inputs.create(
             "tcp", input_port, index="twitter", sourcetype="twitter")

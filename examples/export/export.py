@@ -86,13 +86,12 @@ def query(context, start, end, span, index):
 
     # generate a search
     squery = "search * index=%s " % index
-    squery = squery + "timeformat=%s "
 
     # if start/end specified, use them
     if start != 0:
-        squery = squery + "starttime=%d " % start
+        squery = squery + "earliest_time=%d " % start
     if end != 0:
-        squery = squery + "endtime=%d " % end
+        squery = squery + "latest_time=%d " % end
 
     # span is in seconds for buckets
     squery = squery + "| timechart "
@@ -378,13 +377,12 @@ def export(options, context, bucket_list):
                     print "PROCESSING BUCKET:------ %s" % str(bucket)
                 # generate a search.
                 squery = "search * index=%s " % options.kwargs['index']
-                squery = squery + "timeformat=%s "
 
                 start = bucket[1]
                 quantum = bucket[2]
 
-                squery = squery + "starttime=%d " % start
-                squery = squery + "endtime=%d " % (start+quantum)
+                squery = squery + "earliest_time=%d " % start
+                squery = squery + "latest_time=%d " % (start+quantum)
     
                 # issue query to splunkd
                 # count=0 overrides the maximum number of events

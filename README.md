@@ -140,15 +140,13 @@ The second layer is referred to as the _client_ layer and builds on the
 _binding_ layer to provide a friendlier interface to Splunk that abstracts 
 away some of the lower level details of the _binding_ layer.
 
-    from pprint import pprint
-
     import splunk.client as client
 
     # host defaults to localhost and port defaults to 8089
     service = client.connect(username="admin", password="changeme")
 
     for user in service.users:
-        pprint(user())
+        print user.name
 
 ### Unit tests
 

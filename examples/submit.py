@@ -48,7 +48,7 @@ def main(argv):
     service = client.connect(**kwargs_splunk)
 
     if not service.indexes.contains(index):
-        error("Index '%s' does not exist." % index)
+        error("Index '%s' does not exist." % index, 2)
 
     kwargs_submit = dslice(opts.kwargs, 
         {'eventhost':'host'}, 'source', 'sourcetype')

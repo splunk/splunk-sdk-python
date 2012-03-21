@@ -69,7 +69,7 @@ opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
 proxy = opts.kwargs['proxy']
 try:
     service = client.connect(handler=handler(proxy), **opts.kwargs)
-    pprint(service.apps.list())
+    pprint([app.name for app in service.apps])
 except urllib2.URLError as e:
     if e.reason.errno == 1 and sys.version_info < (2, 6, 3):
         # There is a bug in Python < 2.6.3 that does not allow proxies with

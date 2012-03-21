@@ -15,6 +15,12 @@
   conflict with the SDK prevented installing the SDK into Splunk Python sandbox
   for use by Splunk extensions.
 
+* Collections interface changed so that Collection.list and the corresponding
+  collection callable return a list of member Entity objects instead of a list 
+  of member entity names. This change was a result of consistent user feedback 
+  indicating that people expected to see eg: `service.apps()` return a list of
+  apps and not a list of app names.
+
 * Update all classes in the core library modules to use new-style classes
 * Rename Job.setpriority to Job.set_priority
 * Rename Job.setttl to Job.set_ttl

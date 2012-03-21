@@ -34,12 +34,12 @@ def create_user(service, name, password="changeme", roles="power"):
     service.users.create(name, password=password, roles=roles)
 
 def delete_app(service, name):
-    if (name in service.apps()):
+    if (service.apps.contains(name)):
         service.apps.delete(name)
         restart(service)
 
 def delete_user(service, name):
-    if (name in service.users()):
+    if (service.users.contains(name)):
         service.users.delete(name)
 
 def restart(service):
@@ -101,13 +101,12 @@ class ServiceTestCase(unittest.TestCase):
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        app = "sdk-tests" # app = "SDK App"
-        user = "sdk-user" # user = "SDK User"
+        app = "sdk-tests"
+        user = "sdk-user"
         delete_app(service, app)
         delete_user(service, user)
-
-        self.assertTrue(app not in service.apps())
-        self.assertTrue(user not in service.users())
+        self.assertFalse(service.apps.contains(app))
+        self.assertFalse(service.users.contains(user))
 
         # App & owner dont exist, verify that the following errors
         kwargs.update({ 'app': app, 'owner': user })
@@ -143,8 +142,8 @@ class ServiceTestCase(unittest.TestCase):
         delete_app(service, app)
         delete_user(service, user)
 
-        self.assertTrue(app not in service.apps())
-        self.assertTrue(user not in service.users())
+        self.assertFalse(service.apps.contains(app))
+        self.assertFalse(service.users.contains(user))
 
 class ClientTestCase(unittest.TestCase):
     def setUp(self):
@@ -174,10 +173,10 @@ class ClientTestCase(unittest.TestCase):
         for app in service.apps: app.read()
 
         delete_app(service, 'sdk-tests')
-        self.assertTrue('sdk-tests' not in service.apps.list())
+        self.assertFalse(service.apps.contains('sdk-tests'))
 
         create_app(service, 'sdk-tests')
-        self.assertTrue('sdk-tests' in service.apps.list())
+        self.assertTrue(service.apps.contains('sdk-tests'))
 
         testapp = service.apps['sdk-tests']
         self.assertTrue(testapp['author'] != "Splunk")
@@ -185,7 +184,7 @@ class ClientTestCase(unittest.TestCase):
         self.assertTrue(testapp['author'] == "Splunk")
 
         delete_app(service, 'sdk-tests')
-        self.assertTrue('sdk-tests' not in service.apps.list())
+        self.assertFalse(service.apps.contains('sdk-tests'))
 
     def test_capabilities(self):
         expected = [
@@ -212,7 +211,7 @@ class ClientTestCase(unittest.TestCase):
         for conf in service.confs:
             for stanza in conf: stanza.read()
             # no need to read every conf file for the test
-            break;
+            break
 
         self.assertTrue(service.confs.contains('props'))
         props = service.confs['props']
@@ -243,9 +242,9 @@ class ClientTestCase(unittest.TestCase):
 
         for index in service.indexes: index.read()
 
-        if not "sdk-tests" in service.indexes.list():
+        if not service.indexes.contains("sdk-tests"):
             service.indexes.create("sdk-tests")
-        self.assertTrue("sdk-tests" in service.indexes())
+        self.assertTrue(service.indexes.contains("sdk-tests"))
 
         # Scan indexes and make sure the entities look familiar
         attrs = [
@@ -312,7 +311,7 @@ class ClientTestCase(unittest.TestCase):
             self.assertTrue(metadata.has_key('eai:attributes'))
 
     def test_inputs(self):
-        inputs = self.service.inputs;
+        inputs = self.service.inputs
 
         for input_ in inputs: input_.read()
 
@@ -326,8 +325,7 @@ class ClientTestCase(unittest.TestCase):
                 self.assertTrue(attr in attrs.keys())
 
         for kind in inputs.kinds:
-            for key in inputs.list(kind):
-                input_ = inputs[key]
+            for input_ in inputs.list(kind):
                 self.assertEqual(input_.kind, kind)
 
         if inputs.contains('tcp:9999'): inputs.delete('tcp:9999')
@@ -378,15 +376,17 @@ class ClientTestCase(unittest.TestCase):
             sleep(1)
 
     def test_jobs(self):
-        for job in self.service.jobs: job.read()
+        jobs = self.service.jobs
 
-        if not "sdk-tests" in self.service.indexes():
+        for job in jobs: job.read()
+
+        if not self.service.indexes.contains("sdk-tests"):
             self.service.indexes.create("sdk-tests")
         self.service.indexes['sdk-tests'].clean()
 
         # Make sure we can create a job
-        job = self.service.jobs.create("search index=sdk-tests")
-        self.assertTrue(job.sid in self.service.jobs())
+        job = jobs.create("search index=sdk-tests")
+        self.assertTrue(jobs.contains(job.sid))
 
         # Scan jobs and make sure the entities look familiar
         attrs = [
@@ -402,13 +402,13 @@ class ClientTestCase(unittest.TestCase):
             'runDuration', 'scanCount', 'searchProviders', 'sid',
             'statusBuckets', 'ttl'
         ]
-        for job in self.service.jobs:
+        for job in jobs:
             entity = job.read()
             for attr in attrs: self.assertTrue(attr in entity.keys())
 
         # Make sure we can cancel the job
         job.cancel()
-        self.assertTrue(job.sid not in self.service.jobs())
+        self.assertFalse(jobs.contains(job.sid))
 
         # Search for non-existant data
         job = self.runjob("search index=sdk-tests TERM_DOES_NOT_EXIST", 10)
@@ -417,7 +417,8 @@ class ClientTestCase(unittest.TestCase):
         job.finalize()
         
         # Create a new job
-        job = self.service.jobs.create("search * | head 1 | stats count")
+        job = jobs.create("search * | head 1 | stats count")
+        self.assertTrue(jobs.contains(job.sid))
 
         # Set various properties on it
         job.disable_preview()
@@ -540,22 +541,24 @@ class ClientTestCase(unittest.TestCase):
 
     def test_roles(self):
         roles = self.service.roles
+
         capabilities = self.service.capabilities
         for role in roles:
             entity = role.read()
             for capability in entity.capabilities:
                 self.assertTrue(capability in capabilities)
 
-        self.assertTrue("sdk-tester" not in roles())
+        if roles.contains("sdk-tester"): roles.delete("sdk-tester")
+        self.assertFalse(roles.contains("sdk-tester"))
 
         role = roles.create("sdk-tester")
-        self.assertTrue("sdk-tester" in roles())
+        self.assertTrue(roles.contains("sdk-tester"))
 
         entity = role.read()
         self.assertTrue(entity.has_key('capabilities'))
 
         roles.delete("sdk-tester")
-        self.assertTrue("sdk-tester" not in roles())
+        self.assertFalse(roles.contains("sdk-tester"))
 
     def test_settings(self):
         settings = self.service.settings
@@ -589,13 +592,13 @@ class ClientTestCase(unittest.TestCase):
         for user in users:
             entity = user.read()
             for role in entity.roles:
-                self.assertTrue(role in roles())
+                self.assertTrue(roles.contains(role))
 
-        if "sdk-user" in users(): users.delete("sdk-user")
+        if users.contains("sdk-user"):  users.delete("sdk-user")
+        self.assertFalse(users.contains("sdk-user"))
 
-        self.assertTrue("sdk-user" not in users())
         user = users.create("sdk-user", password="changeme", roles="power")
-        self.assertTrue("sdk-user" in users())
+        self.assertTrue(users.contains("sdk-user"))
 
         # Verify the new user has the expected attributes
         attrs = user.read()
@@ -611,16 +614,19 @@ class ClientTestCase(unittest.TestCase):
 
         # Verify that we can delete the user
         users.delete("sdk-user")
-        self.assertTrue("sdk-user" not in users())
+        self.assertFalse(users.contains("sdk-user"))
 
         # Splunk lowercases new users names, verify this works as expected
-        self.assertTrue("sdk-user" not in users())
-        self.assertTrue("SDK-User" not in users())
+        self.assertFalse(users.contains("sdk-user"))
+        self.assertFalse(users.contains("SDK-User"))
+
         user = users.create("SDK-User", password="changeme", roles="power")
         self.assertTrue(user.name == "sdk-user")
-        self.assertTrue("SDK-User" not in users())
-        self.assertTrue("sdk-user" in users())
+        self.assertFalse(users.contains("SDK-User"))
+        self.assertTrue(users.contains("sdk-user"))
+
         users.delete("sdk-user")
+        self.assertFalse(users.contains("sdk-user"))
 
 # Runs the given named test, useful for debugging.
 def runone(test):
@@ -630,5 +636,5 @@ def runone(test):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone(ServiceTestCase("test"))
+    #runone(ClientTestCase("test_inputs"))
     unittest.main(argv=sys.argv[:1])

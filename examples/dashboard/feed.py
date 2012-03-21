@@ -161,9 +161,6 @@ def top_tags(service):
     return (created_job, lambda job: iterate(job))
 
 def main(argv):
-    global urllib2
-    usage = "async.py <sync | async>"
-
     # Parse the command line args.
     opts = parse(argv, {}, ".splunkrc")
 

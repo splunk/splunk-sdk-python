@@ -99,7 +99,8 @@ class Program:
 
         def read(index):
             print index.name
-            for key, value in index.read().iteritems(): 
+            for key in sorted(index.content.keys()): 
+                value = index.content[key]
                 print "    %s: %s" % (key, value)
 
         if len(argv) == 0:

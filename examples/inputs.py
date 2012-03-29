@@ -28,9 +28,9 @@ def main():
 
     for item in service.inputs:
         print "%s (%s)" % (item.name, item.kind)
-        entity = item.read()
-        for key in sorted(entity.keys()):
-            value = entity[key]
+        content = item.content
+        for key in sorted(content.keys()):
+            value = content[key]
             print "    %s: %s" % (key, value)
 
 if __name__ == "__main__":

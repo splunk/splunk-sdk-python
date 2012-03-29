@@ -76,7 +76,7 @@ def main(argv):
 
     job = service.jobs.create(search, **kwargs_create)
     while True:
-        stats = job.read(
+        stats = job.refresh()(
             'isDone', 
             'doneProgress', 
             'scanCount', 

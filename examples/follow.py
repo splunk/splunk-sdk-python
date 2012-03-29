@@ -33,6 +33,7 @@ def follow(job, count, items):
         total = count()
         if total <= offset:
             time.sleep(1) # Wait for something to show up
+            job.refresh()
             continue
         stream = items(offset+1)
         reader = results.ResultsReader(stream)
@@ -63,13 +64,12 @@ def main():
     # Wait for the job to transition out of QUEUED and PARSING so that
     # we can if its a transforming search, or not.
     while True:
-        entity = job.read()
-        state = entity['dispatchState']
-        if state not in ['QUEUED', 'PARSING']:
+        job.refresh()
+        if job['dispatchState'] not in ['QUEUED', 'PARSING']:
             break
         time.sleep(2) # Wait
         
-    if entity['reportSearch'] is not None: # Is it a transforming search?
+    if job['reportSearch'] is not None: # Is it a transforming search?
         count = lambda: int(job['numPreviews'])
         items = lambda _: job.preview()
     else:

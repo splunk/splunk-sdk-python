@@ -56,8 +56,9 @@ def wait_event_count(index, count, secs):
     done = False
     while not done and secs > 0:
         sleep(1)
-        secs -= 1 # Approximate
+        index.refresh()
         done = index['totalEventCount'] == count
+        secs -= 1 # Approximate
 
 def wait_for_restart(service):
     retry = 30
@@ -170,7 +171,7 @@ class ClientTestCase(unittest.TestCase):
     def test_apps(self):
         service = self.service
 
-        for app in service.apps: app.read()
+        for app in service.apps: app.refresh()
 
         delete_app(service, 'sdk-tests')
         self.assertFalse(service.apps.contains('sdk-tests'))
@@ -181,6 +182,7 @@ class ClientTestCase(unittest.TestCase):
         testapp = service.apps['sdk-tests']
         self.assertTrue(testapp['author'] != "Splunk")
         testapp.update(author="Splunk")
+        testapp.refresh()
         self.assertTrue(testapp['author'] == "Splunk")
 
         delete_app(service, 'sdk-tests')
@@ -209,21 +211,26 @@ class ClientTestCase(unittest.TestCase):
         service = self.service
 
         for conf in service.confs:
-            for stanza in conf: stanza.read()
-            # no need to read every conf file for the test
+            for stanza in conf: stanza.refresh()
+            # no need to refresh every conf file for the test
             break
 
         self.assertTrue(service.confs.contains('props'))
         props = service.confs['props']
 
+        if 'sdk-tests' in props: props.delete('sdk-tests')
+        self.assertFalse('sdk-tests' in props)
+
         stanza = props.create('sdk-tests')
         self.assertTrue(props.contains('sdk-tests'))
         self.assertEqual(stanza.name,'sdk-tests')
-        self.assertTrue('maxDist' in stanza.read().keys())
+        self.assertTrue('maxDist' in stanza.content)
         value = int(stanza['maxDist'])
-        stanza.update(maxDist = value+1)
-        self.assertEqual(stanza['maxDist'], str(value+1))
-        stanza['maxDist'] = value
+        stanza.update(maxDist=value+1)
+        stanza.refresh()
+        self.assertEqual(stanza['maxDist'], str(value + 1))
+        stanza.update(maxDist=value)
+        stanza.refresh()
         self.assertEqual(stanza['maxDist'], str(value))
 
         props.delete('sdk-tests')
@@ -240,7 +247,7 @@ class ClientTestCase(unittest.TestCase):
     def test_indexes(self):
         service = self.service
 
-        for index in service.indexes: index.read()
+        for index in service.indexes: index.refresh()
 
         if not service.indexes.contains("sdk-tests"):
             service.indexes.create("sdk-tests")
@@ -264,21 +271,20 @@ class ClientTestCase(unittest.TestCase):
             'maxTotalDataSizeMB'
         ]
         for index in service.indexes:
-            entity = index.read()
-            for attr in attrs: self.assertTrue(attr in entity.keys())
+            for attr in attrs: self.assertTrue(attr in index.content)
 
         index = service.indexes['sdk-tests']
 
-        entity = index.read()
-        self.assertEqual(index['disabled'], entity.disabled)
-
         index.disable()
+        index.refresh()
         self.assertEqual(index['disabled'], '1')
 
         index.enable()
+        index.refresh()
         self.assertEqual(index['disabled'], '0')
             
         index.clean()
+        index.refresh()
         self.assertEqual(index['totalEventCount'], '0')
 
         cn = index.attach()
@@ -291,14 +297,15 @@ class ClientTestCase(unittest.TestCase):
         wait_event_count(index, '2', 30)
         self.assertEqual(index['totalEventCount'], '2')
 
-        # test must run on machine where splunkd runs,
-        # otherwise an failure is expected
+        # The following test must run on machine where splunkd runs,
+        # otherwise a failure is expected
         testpath = path.dirname(path.abspath(__file__))
         index.upload(path.join(testpath, "testfile.txt"))
         wait_event_count(index, '3', 30)
         self.assertEqual(index['totalEventCount'], '3')
 
         index.clean()
+        index.refresh()
         self.assertEqual(index['totalEventCount'], '0')
 
     def test_indexes_metadata(self):
@@ -306,39 +313,40 @@ class ClientTestCase(unittest.TestCase):
         self.assertTrue(metadata.has_key('eai:acl'))
         self.assertTrue(metadata.has_key('eai:attributes'))
         for index in self.service.indexes:
-            metadata = index.readmeta()
+            metadata = index.metadata
             self.assertTrue(metadata.has_key('eai:acl'))
             self.assertTrue(metadata.has_key('eai:attributes'))
 
     def test_inputs(self):
         inputs = self.service.inputs
 
-        for input_ in inputs: input_.read()
+        for input_ in inputs: input_.refresh()
 
         # Scan inputs and look for some common attributes
         # Note: The disabled flag appears to be the only common attribute, as
         # there are apparently cases where even index does not appear.
-        expected = ['disabled']
+        attrs = ['disabled']
         for input_ in inputs:
-            attrs = input_.read()
-            for attr in expected:  
-                self.assertTrue(attr in attrs.keys())
+            for attr in attrs:  
+                self.assertTrue(attr in input_.content)
 
         for kind in inputs.kinds:
             for input_ in inputs.list(kind):
                 self.assertEqual(input_.kind, kind)
 
-        if inputs.contains('tcp:9999'): inputs.delete('tcp:9999')
-        self.assertFalse(inputs.contains('tcp:9999'))
+        if inputs.contains('9999'): inputs.delete('9999')
+        self.assertFalse(inputs.contains('9999'))
         inputs.create("tcp", "9999", host="sdk-test")
-        self.assertTrue(inputs.contains('tcp:9999'))
-        input_ = inputs['tcp:9999']
+        self.assertTrue(inputs.contains('9999'))
+        input_ = inputs['9999']
+        self.assertEqual(input_.kind, "tcp")
         self.assertEqual(input_['host'], "sdk-test")
         input_.update(host="foo", sourcetype="bar")
+        input_.refresh()
         self.assertEqual(input_['host'], "foo")
         self.assertEqual(input_['sourcetype'], "bar")
-        inputs.delete('tcp:9999')
-        self.assertFalse(inputs.contains('tcp:9999'))
+        inputs.delete('9999')
+        self.assertFalse(inputs.contains('9999'))
 
     def runjob(self, query, secs):
         """Create a job to run the given search and wait up to (approximately)
@@ -350,13 +358,14 @@ class ClientTestCase(unittest.TestCase):
         done = False
         while not done and secs > 0:
             sleep(1)
-            secs -= 1 # Approximate
+            job.refresh()
             done = bool(int(job['isDone']))
+            secs -= 1 # Approximate
         return job
 
     def check_properties(self, job, properties, secs = 10):
         while secs > 0 and len(properties) > 0:
-            read_props = job()
+            read_props = job.refresh().content
             asserted = []
 
             # Try and check every property we specified. If we fail,
@@ -378,7 +387,7 @@ class ClientTestCase(unittest.TestCase):
     def test_jobs(self):
         jobs = self.service.jobs
 
-        for job in jobs: job.read()
+        for job in jobs: job.refresh()
 
         if not self.service.indexes.contains("sdk-tests"):
             self.service.indexes.create("sdk-tests")
@@ -403,8 +412,7 @@ class ClientTestCase(unittest.TestCase):
             'statusBuckets', 'ttl'
         ]
         for job in jobs:
-            entity = job.read()
-            for attr in attrs: self.assertTrue(attr in entity.keys())
+            for attr in attrs: self.assertTrue(attr in job.content)
 
         # Make sure we can cancel the job
         job.cancel()
@@ -426,6 +434,7 @@ class ClientTestCase(unittest.TestCase):
         job.set_ttl(1000)
         job.set_priority(5)
         job.touch()
+        job.refresh()
 
         # Assert that the properties got set properly
         self.check_properties(job, {
@@ -439,6 +448,7 @@ class ClientTestCase(unittest.TestCase):
         job.enable_preview()
         job.unpause()
         job.finalize()
+        job.refresh()
 
         # Assert that they got set properly
         self.check_properties(job, {
@@ -482,9 +492,11 @@ class ClientTestCase(unittest.TestCase):
 
         saved = logger['level']
         for level in levels:
-            logger['level'] = level
+            logger.update(level=level)
+            logger.refresh()
             self.assertEqual(service.loggers['AuditLogger']['level'], level)
         logger.update(level=saved)
+        logger.refresh()
         self.assertEqual(service.loggers['AuditLogger']['level'], saved)
 
     def test_parse(self):
@@ -544,8 +556,7 @@ class ClientTestCase(unittest.TestCase):
 
         capabilities = self.service.capabilities
         for role in roles:
-            entity = role.read()
-            for capability in entity.capabilities:
+            for capability in role.content.capabilities:
                 self.assertTrue(capability in capabilities)
 
         if roles.contains("sdk-tester"): roles.delete("sdk-tester")
@@ -554,8 +565,7 @@ class ClientTestCase(unittest.TestCase):
         role = roles.create("sdk-tester")
         self.assertTrue(roles.contains("sdk-tester"))
 
-        entity = role.read()
-        self.assertTrue(entity.has_key('capabilities'))
+        self.assertTrue(role.content.has_key('capabilities'))
 
         roles.delete("sdk-tester")
         self.assertFalse(roles.contains("sdk-tester"))
@@ -569,20 +579,21 @@ class ClientTestCase(unittest.TestCase):
             "httpport", "mgmtHostPort", "minFreeSpace", "pass4SymmKey",
             "serverName", "sessionTimeout", "startwebserver", "trustedIP"
         ]
-        attrs = settings.read()
-        for key in keys: self.assertTrue(key in attrs.keys())
+        for key in keys: self.assertTrue(key in settings.content)
 
         # Verify that we can update the settings
         original = settings['sessionTimeout']
         self.assertTrue(original != "42h")
         settings.update(sessionTimeout="42h")
+        settings.refresh()
         updated = settings['sessionTimeout']
-        self.assertEquals(updated, "42h")
+        self.assertEqual(updated, "42h")
 
         # Restore (and verify) original value
         settings.update(sessionTimeout=original)
+        settings.refresh()
         updated = settings['sessionTimeout']
-        self.assertEquals(updated, original)
+        self.assertEqual(updated, original)
 
     def test_users(self):
         users = self.service.users
@@ -590,26 +601,25 @@ class ClientTestCase(unittest.TestCase):
 
         # Verify that we can read the users collection
         for user in users:
-            entity = user.read()
-            for role in entity.roles:
+            for role in user.content.roles:
                 self.assertTrue(roles.contains(role))
 
-        if users.contains("sdk-user"):  users.delete("sdk-user")
+        if users.contains("sdk-user"): users.delete("sdk-user")
         self.assertFalse(users.contains("sdk-user"))
 
         user = users.create("sdk-user", password="changeme", roles="power")
         self.assertTrue(users.contains("sdk-user"))
 
         # Verify the new user has the expected attributes
-        attrs = user.read()
-        self.assertTrue(attrs.has_key('email'))
-        self.assertTrue(attrs.has_key('password'))
-        self.assertTrue(attrs.has_key('realname'))
-        self.assertTrue(attrs.has_key('roles'))
+        self.assertTrue('email' in user.content)
+        self.assertTrue('password' in user.content)
+        self.assertTrue('realname' in user.content)
+        self.assertTrue('roles' in user.content)
 
         # Verify that we can update the user
         self.assertTrue(user['email'] is None)
         user.update(email="foo@bar.com")
+        user.refresh()
         self.assertTrue(user['email'] == "foo@bar.com")
 
         # Verify that we can delete the user
@@ -636,5 +646,5 @@ def runone(test):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone(ClientTestCase("test_inputs"))
+    #runone(ClientTestCase("test_indexes"))
     unittest.main(argv=sys.argv[:1])

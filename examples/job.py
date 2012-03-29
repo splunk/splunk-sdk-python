@@ -151,12 +151,11 @@ class Program:
            list the properties of the specified jobs."""
 
         def read(job):
-            entity = job.read()
-            for key in sorted(entity.keys()):
+            for key in sorted(job.content.keys()):
                 # Ignore some fields that make the output hard to read and
                 # that are available via other commands.
                 if key in ["performance"]: continue
-                print "%s: %s" % (key, entity[key])
+                print "%s: %s" % (key, job.content[key])
 
         if len(argv) == 0:
             index = 0

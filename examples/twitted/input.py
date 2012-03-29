@@ -252,7 +252,7 @@ def main():
     # Create the TCP input if it doesn't exist
     input_host = kwargs.get("inputhost", DEFAULT_SPLUNK_HOST)
     input_port = int(kwargs.get("inputport", DEFAULT_SPLUNK_PORT))
-    input_name = "tcp:%s" % (input_port)
+    input_name = str(input_port)
     if not service.inputs.contains(input_name):
         if verbose > 0: print "Creating input '%s'" % input_name
         service.inputs.create(

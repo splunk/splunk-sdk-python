@@ -10,10 +10,67 @@
 
 ### Breaking changes
 
-* Renamed the core module from `splunk` to `splunklib`. The Splunk product 
-  already ships with an internal Python module named `splunk` and the name 
-  conflict with the SDK prevented installing the SDK into Splunk Python sandbox
-  for use by Splunk extensions.
+* The core module was renamed from `splunk` to `splunklib`. The Splunk product 
+  ships with an internal Python module named `splunk` and the name conflict 
+  with the SDK prevented installing the SDK into Splunk Python sandbox for use 
+  by Splunk extensions. This module name change enables the Python SDK to be 
+  installed on the Splunk server.
+
+* State caching - the client module was modified to enable Entity state
+  caching which required changes to the Entity interface and changes to the
+  typical usage pattern. 
+  
+  Previously, entity state values where retrieved with a call to `Entity.read`
+  which would issue a round-trip to the server and return a dictionary of values
+  corresponding to the entity `content` field and, in a similar way, a call to
+  `Entity.readmeta` would issue in a round-trip and return a dictionary
+  contianing entity metadata values. 
+  
+  With the change to enable state caching, the entity is instantiated with a
+  copy of its entire state record, which can be accessed using a variety of
+  properties:
+
+    * `Entity.state` returns the entire state record
+    * `Entity.content` returns the content field of the state record
+    * `Entity.metadata` returns the metadata field of the state record
+
+  `Entity.refresh` is a new method that issues a round-trip to the server
+  and updates the local, cached state record.
+
+  `Entity.read` still exists but has been changed slightly to return the
+  entire state record and not just the content field. Note that `read` does
+  not update the cached state record. The `read` method is basically a thin
+  wrapper over the corresponding HTTP GET that returns a parsed entity state
+  record instaed of the raw HTTP response.
+
+  The entity _callable_ returns the `content` field as before, but now returns
+  the value from the local state cache instead of issuing a round-trip as it
+  did before.
+
+  It is important to note that refreshing the local state cache is always 
+  explicit and always requires a call to `Entity.refresh`. So, for example
+  if you call `Entity.update` and then attempt to retrieve local values, you 
+  will not see the newly updated values, you will see the previously cached
+  values. The interface is designed to give the caller complete control of
+  when round-trips are issued and enable multiple updates to be made before
+  refreshing the entity.
+  
+  The `update` and action methods are all designed to support a _fluent_ style
+  of programming, so for example you can write:
+
+    entity.update(attr=value).refresh()
+
+  And
+
+    entity.disable().refresh()
+  
+  An important benefit and one of the primary motivations for this change is
+  that iterating a collection of entities now results in a single round-trip
+  to the server, because every entity collection member is initialized with
+  the result of the initial GET on the collection resource instead of requiring
+  N+1 round-trips (one for each entity + one for the collection), which was the
+  case in the previous model. This is a significant improvement for many
+  common scenarios.
 
 * Collections interface changed so that Collection.list and the corresponding
   collection callable return a list of member Entity objects instead of a list 

@@ -53,7 +53,7 @@ class Twitter:
             'User-Agent': "twitted.py/0.1",
             'Accept': "*/*",
         }
-        connection = httplib.HTTPConnection(TWITTER_STREAM_HOST)
+        connection = httplib.HTTPSConnection(TWITTER_STREAM_HOST)
         connection.request("GET", TWITTER_STREAM_PATH, "", headers)
         response = connection.getresponse()
         if response.status != 200:

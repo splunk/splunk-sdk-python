@@ -221,8 +221,8 @@ class Collection(Endpoint):
         self.ctor = ctor # Item constructor
         self.dtor = dtor # Item desteructor
 
-    def __call__(self):
-        return self.list()
+    def __call__(self, **kwargs):
+        return self.list(**kwargs)
 
     def __contains__(self, name):
         return self.contains(name)
@@ -277,10 +277,9 @@ class Collection(Endpoint):
             'eai:attributes': content['eai:attributes']
         }
 
-    def list(self, **kwargs):
-        """Returns a list of collection members."""
-        count = kwargs.get('count', -1)
-        response = self.get(count=count)
+    # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
+    def list(self, count=0, **kwargs):
+        response = self.get(count=count, **kwargs)
         return self._load_list(response)
 
 # kwargs: path, app, owner, sharing, state
@@ -535,7 +534,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
-                response = self.service.get(self.kindpath(kind), count=-1)
+                response = self.service.get(self.kindpath(kind), count=0)
             except HTTPError as e:
                 if e.status == 404: 
                     continue # No inputs of this kind
@@ -643,16 +642,15 @@ class Jobs(Collection):
     def __init__(self, service):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
 
+    def __iter__(self):
+        for item in self.list(): yield item
+
     def create(self, query, **kwargs):
         response = self.post(search=query, **kwargs)
         if kwargs.get("exec_mode", None) == "oneshot":
             return response.body
         sid = _load_atom(response).response.sid
         return Job(self.service, PATH_JOBS + sid)
-
-    def list(self, **kwargs):
-        """Returns a list of search Job entities."""
-        return self._load_list(self.get()) # No count argument allowed
 
 class Message(Entity):
     def __init__(self, service, name, **kwargs):

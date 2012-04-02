@@ -24,6 +24,7 @@ os.environ["COVERAGE_PROCESS_START"] = "../tests/.coveragerc"
 files = [
     "test_data.py",
     "test_binding.py",
+    "test_collection.py",
     "test_client.py",
     "test_examples.py",
 ]

@@ -38,8 +38,8 @@
 # provided values as appropriate.
 #
 # Finally, if no namspacing is specified the library will make use of the
-# `/services` branch of the REST API which provides a non-namespaced view of
-# Splunk resources.
+# `/services` branch of the REST API which provides a namespaced view of
+# Splunk resources equivelent to using owner={currentUser} and app={defaultApp}
 #
 
 import httplib
@@ -77,20 +77,20 @@ def namespace(**kwargs):
        kwargs, which may contain any of `sharing`, `owner` and `app`."""
     sharing = kwargs.get('sharing', None)
     if sharing in ["system"]:
-        return { 
+        return record({
             'sharing': sharing, 
             'owner': "nobody", 
-            'app': "system" }
+            'app': "system" })
     if sharing in ["global", "app"]:
-        return { 
+        return record({ 
             'sharing': sharing, 
             'owner': "nobody", 
-            'app': kwargs.get('app', None)}
+            'app': kwargs.get('app', None)})
     if sharing in ["user", None]:
-        return { 
+        return record({
             'sharing': sharing, 
             'owner': kwargs.get('owner', None),
-            'app': kwargs.get('app', None)}
+            'app': kwargs.get('app', None)})
     raise ValueError("Invalid value for argument: 'sharing'")
 
 class Context(object):
@@ -102,13 +102,7 @@ class Context(object):
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = kwargs.get("port", DEFAULT_PORT)
-
-        # The default namespace values for this context
-        result = namespace(**kwargs)
-        self.app = result['app']
-        self.owner = result['owner']
-        self.sharing = result['sharing']
-
+        self.namespace = namespace(**kwargs)
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
 
@@ -158,15 +152,27 @@ class Context(object):
         self.token = None
         return self
 
-    def fullpath(self, path):
-        """If the given path is a fragment, qualify with segments corresponding
-           to the binding context's namespace args."""
+    def fullpath(self, path, **kwargs):
+        """Returns a full resource path given a potential path fragment and
+           then completing with namespace segments using the namespace args,
+           if provided, otherwise using the context namespace values."""
         if path.startswith('/'): 
             return path
-        if self.app is None and self.owner is None:
+
+        # Use namespace kwargs if any provided, otherwise use context defaults
+        if 'app' in kwargs or 'owner' in kwargs or 'sharing' in kwargs:
+            ns = namespace(**kwargs)
+        else:
+            ns = self.namespace
+
+        # If no app or owner are specified, then use the /services endpoint
+        if ns.app is None and ns.owner is None:
             return "/services/%s" % path
-        oname = "-" if self.owner is None else self.owner
-        aname = "-" if self.app is None else self.app
+
+        # At least one of app or owner is specified, so use the /serviceNS
+        # endpoint and if only one is specified, then wildcard the other.
+        oname = "-" if ns.owner is None else ns.owner
+        aname = "-" if ns.app is None else ns.app
         return "/servicesNS/%s/%s/%s" % (oname, aname, path)
 
     # Convet the given path into a fully qualified URL by first qualifying

@@ -22,6 +22,7 @@ import os
 os.environ["COVERAGE_PROCESS_START"] = "../tests/.coveragerc"
 
 files = [
+    "test_module.py",
     "test_data.py",
     "test_binding.py",
     "test_collection.py",

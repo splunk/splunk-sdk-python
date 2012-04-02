@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from os import path
 from StringIO import StringIO
 import sys
 import unittest
@@ -56,6 +55,15 @@ def entry_titles(text):
     if not isinstance(entry, list): entry = [entry]
     return [item.title for item in entry]
 
+def isatom(body):
+    """Answers if the given response body looks like ATOM."""
+    root = XML(body)
+    return \
+        root.tag == XNAME_FEED and \
+        root.find(XNAME_AUTHOR) is not None and \
+        root.find(XNAME_ID) is not None and \
+        root.find(XNAME_TITLE) is not None
+
 def uname():
     """Creates a unique name."""
     return str(uuid.uuid1())
@@ -78,45 +86,116 @@ def urllib2_handler(url, message, **kwargs):
         'body': StringIO(response.read())
     }
 
-def read_module_baseline(filename):
-    fd = open(filename, "r")
-    baseline = fd.read().replace("\n", "")
-    fd.close()
-    return baseline
+class BaseTestCase(unittest.TestCase):
+    def assertHttp(self, allowed_error_codes, fn, *args, **kwargs):
+        # This is a special case of "assertRaises", where we want to check
+        # that HTTP calls return the right status.
+        try:
+            return fn(*args, **kwargs)
+        except HTTPError as e:
+            error_msg = "Unexpected error code: %d" % e.status
+            if (isinstance(allowed_error_codes, list)):
+                self.assertTrue(e.status in allowed_error_codes, error_msg)
+            else:
+                self.assertTrue(e.status == allowed_error_codes, error_msg)
+        except Exception as e:
+            self.fail("HTTPError not raised, caught %s instead", str(type(e)))
+        return None
 
-def check_module(modulename, filename):
-    __import__(modulename)
-    module = sys.modules[modulename]
-    names = str(dir(module))
-    baseline = read_module_baseline(filename)
-    return names == baseline
+class TestCase(BaseTestCase):
+    def setUp(self):
+        self.context = binding.connect(**opts.kwargs)
 
-class ModuleTestCase(unittest.TestCase):
-    # Verify that the library modules contain what we expect (more or less)
-    def test_names(self):
-        modules = [
-            "splunklib",
-            "splunklib.binding",
-            "splunklib.client",
-            "splunklib.data",
-            "splunklib.results"
-        ]
-        for module in modules:
-            self.assertTrue(check_module(module, module + ".baseline"))
+    # Verify that we can connect to the service.
+    def test_connect(self):
+        # Just check to make sure the service is alive
+        self.assertEqual(self.context.get("/services").status, 200)
 
-def isatom(body):
-    """Answers if the given response body looks like ATOM."""
-    root = XML(body)
-    return \
-        root.tag == XNAME_FEED and \
-        root.find(XNAME_AUTHOR) is not None and \
-        root.find(XNAME_ID) is not None and \
-        root.find(XNAME_TITLE) is not None
+        # Make sure we can open a socket to the service
+        self.context.connect().close()
 
-class ProtocolTestCase(unittest.TestCase):
-    def test(self):
-        global opts
+    # Verify that Context.fullpath behaves as expected.
+    def test_fullpath(self):
+        context = self.context
 
+        # Verify that Context.fullpath works as expected.
+
+        path = context.fullpath("foo", owner=None, app=None)
+        self.assertEqual(path, "/services/foo")
+
+        path = context.fullpath("foo", owner="me", app=None)
+        self.assertEqual(path, "/servicesNS/me/-/foo")
+
+        path = context.fullpath("foo", owner=None, app="MyApp")
+        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp")
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp", sharing=None)
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp", sharing="user")
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp", sharing="app")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp",sharing="global")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+        path = context.fullpath("foo", owner="me", app="MyApp",sharing="system")
+        self.assertEqual(path, "/servicesNS/nobody/system/foo")
+
+        # Verify constructing resource paths using context defaults
+
+        kwargs = opts.kwargs.copy()
+        if 'app' in kwargs: del kwargs['app']
+        if 'owner' in kwargs: del kwargs['owner']
+
+        context = binding.connect(**kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/services/foo")
+
+        context = binding.connect(owner="me", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/me/-/foo")
+
+        context = binding.connect(app="MyApp", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+
+        context = binding.connect(owner="me", app="MyApp", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing=None, **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="user", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="app", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="global", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="system", **kwargs)
+        path = context.fullpath("foo")
+        self.assertEqual(path, "/servicesNS/nobody/system/foo")
+
+    # Verify pluggable HTTP reqeust handlers.
+    def test_handlers(self):
         paths = [
             "/services", 
             "authentication/users", 
@@ -134,8 +213,18 @@ class ProtocolTestCase(unittest.TestCase):
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
 
-class NamespaceTestCase(unittest.TestCase):
-    def test(self):
+    def test_logout(self):
+        response = self.context.get("/services")
+        self.assertEqual(response.status, 200)
+
+        self.context.logout()
+        self.assertHttp(401, self.context.get, "/services")
+
+        self.context.login()
+        response = self.context.get("/services")
+        self.assertEqual(response.status, 200)
+
+    def test_namespace(self):
         tests = [
             ({ },
              { 'sharing': None, 'owner': None, 'app': None }),
@@ -199,20 +288,14 @@ class NamespaceTestCase(unittest.TestCase):
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
-            for k,v in expected.iteritems():
+            for k, v in expected.iteritems():
                 self.assertEqual(namespace[k], v)
 
         with self.assertRaises(ValueError):
             binding.namespace(sharing="gobble")
-    
-class BindingTestCase(unittest.TestCase):
-    def setUp(self):
-        global opts
-        self.context = binding.connect(**opts.kwargs)
 
-    def tearDown(self):
-        pass
-
+# Use the binding layer to test some more extensive interactions with Splunk.
+class UsersTestCase(BaseTestCase):
     def connect(self, username, password, **kwargs):
         return binding.connect(
             scheme=self.context.scheme,
@@ -222,61 +305,21 @@ class BindingTestCase(unittest.TestCase):
             password=password,
             **kwargs)
 
-    def get(self, path, **kwargs):
-        response = self.context.get(path, **kwargs)
-        self.assertEqual(response.status, 200)
-        return response
-
-    def assertHttp(self, allowed_error_codes, fn, *args, **kwargs):
-        # This is a special case of "assertRaises", where we want to check
-        # that HTTP calls return the right status.
-        try:
-            return fn(*args, **kwargs)
-        except HTTPError as e:
-            error_msg = "Unexpected error code: %d" % e.status
-            if (isinstance(allowed_error_codes, list)):
-                self.assertTrue(e.status in allowed_error_codes, error_msg)
-            else:
-                self.assertTrue(e.status == allowed_error_codes, error_msg)
-        except Exception as e:
-            self.fail("HTTPError not raised, caught %s instead", str(type(e)))
-        return None
-
     def create(self, path, **kwargs):
         status = kwargs.get('status', 201)
         response = self.assertHttp(status, self.context.post, path, **kwargs)
         return response
+
+    def create_user(self, username, password, roles):
+        self.assertFalse(username in self.users())
+        self.create(PATH_USERS, name=username, password=password, roles=roles)
+        self.assertTrue(username in self.users())
 
     def delete(self, path, **kwargs):
         status = kwargs.get('status', 200) 
         response = self.assertHttp(status, self.context.delete, path, **kwargs)
         return response
 
-    def update(self, path, **kwargs):
-        status = kwargs.get('status', 200)
-        response = self.assertHttp(status, self.context.post, path, **kwargs)
-        return response
-
-    def test(self):
-        # Just check to make sure the service is alive
-        self.assertEqual(self.get("/services").status, 200)
-
-        # Make sure we can open a socket to the service
-        self.context.connect().close()
-
-    def test_logout(self):
-        response = self.context.get("/services")
-        self.assertEqual(response.status, 200)
-
-        self.context.logout()
-        self.assertHttp(401, self.context.get, "/services")
-
-        self.context.login()
-        response = self.context.get("/services")
-        self.assertEqual(response.status, 200)
-
-# Use the binding layer to test some more extensive interactions with Splunk.
-class UsersTestCase(BindingTestCase):
     def eqroles(self, username, roles):
         """Answer if the given user is in exactly the given roles."""
         user = self.user(username)
@@ -286,11 +329,19 @@ class UsersTestCase(BindingTestCase):
             if not role in user.roles: 
                 return False
         return True
-        
-    def create_user(self, username, password, roles):
-        self.assertFalse(username in self.users())
-        self.create(PATH_USERS, name=username, password=password, roles=roles)
-        self.assertTrue(username in self.users())
+
+    def get(self, path, **kwargs):
+        response = self.context.get(path, **kwargs)
+        self.assertEqual(response.status, 200)
+        return response
+
+    def setUp(self):
+        self.context = binding.connect(**opts.kwargs)
+
+    def update(self, path, **kwargs):
+        status = kwargs.get('status', 200)
+        response = self.assertHttp(status, self.context.post, path, **kwargs)
+        return response
 
     def user(self, username):
         """Returns entity value for given user name."""

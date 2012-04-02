@@ -11,11 +11,6 @@ access = read : [ * ]
 owner = nobody
 version = 20110524
 
-[viewstates/flashtimeline%3Agog4blsi]
-access = read : [ * ]
-owner = nobody
-version = 20110524
-
 [savedsearches/Top%20Sources]
 owner = admin
 version = 20110524
@@ -72,11 +67,6 @@ version = 4.3
 
 [savedsearches/Users%2C%20most%20deletes]
 owner = admin
-version = 4.3
-
-[viewstates/flashtimeline%3Agoxlh8hx]
-access = read : [ * ]
-owner = nobody
 version = 4.3
 
 [viewstates/flashtimeline%3Agoxlionw]

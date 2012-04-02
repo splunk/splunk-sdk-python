@@ -26,17 +26,17 @@ if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = client.connect(**opts.kwargs)
 
-    info = service.info
-    for key in sorted(info.keys()):
-        value = info[key]
+    content = service.info
+    for key in sorted(content.keys()):
+        value = content[key]
         if isinstance(value, list):
             print "%s:" % key
             for item in value: print "    %s" % item
         else:
             print "%s: %s" % (key, value)
 
-    settings = service.settings.read()
     print "Settings:"
-    for key in sorted(settings.keys()):
-        value = settings[key]
+    content = service.settings.content
+    for key in sorted(content.keys()):
+        value = content[key]
         print "    %s: %s" % (key, value)

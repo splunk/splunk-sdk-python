@@ -151,12 +151,11 @@ class Program:
            list the properties of the specified jobs."""
 
         def read(job):
-            entity = job.read()
-            for key in sorted(entity.keys()):
+            for key in sorted(job.content.keys()):
                 # Ignore some fields that make the output hard to read and
                 # that are available via other commands.
                 if key in ["performance"]: continue
-                print "%s: %s" % (key, entity[key])
+                print "%s: %s" % (key, job.content[key])
 
         if len(argv) == 0:
             index = 0
@@ -183,9 +182,9 @@ class Program:
         """Convert the given search specifier into a search-id (sid)."""
         if spec.startswith('@'):
             index = int(spec[1:])
-            sids = self.service.jobs.list()
-            if index < len(sids):
-                return sids[index]
+            jobs = self.service.jobs()
+            if index < len(jobs):
+                return jobs[index].sid
         return spec # Assume it was already a valid sid
         
     def lookup(self, spec):

@@ -160,6 +160,10 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
+    def __call__(self, *args):
+        if len(args) == 0: return self
+        return Record((key, self[key]) for key in args)
+
     def __getattr__(self, name):
         try:
             return self[name]

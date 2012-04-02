@@ -111,8 +111,7 @@ class Program:
             for stanza in conf:
                 if (spres and argv[1] == stanza.name) or not spres:
                     print "[%s]" % stanza.name
-                    entity = stanza.read()
-                    for key, value in entity.iteritems():
+                    for key, value in stanza.content.iteritems():
                         if (kpres and argv[2] == key) or not kpres:
                             print "%s = %s" % (key, value)
                 print

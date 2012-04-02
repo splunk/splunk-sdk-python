@@ -110,5 +110,5 @@ def handler(ca_file=None):
 opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
 ca_file = opts.kwargs['ca_file']
 service = client.connect(handler=handler(ca_file), **opts.kwargs)
-pprint(service.apps.list())
+pprint([app.name for app in service.apps])
 

@@ -28,19 +28,10 @@
 
 """Client interface to the Splunk REST API."""
 
-#
-# A note on collections:
-#
-#  Entities have a kind, name & key. The kind is a tag that indicates the
-#  "kind" of entity, name is a friendly name for the entity suitable for
-#  display and key is a unique identifier for the Entity within its host
-#  collection. In Splunk collections, name and key are frequently the same
-#  but not always (eg: inputs).
-#
+# UNDONE: Add Collection.refresh and list caching
 
 from time import sleep
 from urllib import urlencode, quote
-from urlparse import urlparse
 
 from splunklib.binding import Context, HTTPError
 import splunklib.data as data
@@ -48,6 +39,8 @@ from splunklib.data import record
 
 __all__ = [
     "connect",
+    "NotSupportedError",
+    "OperationError",
     "Service"
 ]
 
@@ -70,6 +63,13 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+# Filter the given state content record according to the given arg list.
+def _filter_content(content, *args):
+    if len(args) > 0:
+        return record((k, content[k]) for k in args)
+    return record((k, v) for k, v in content.iteritems()
+        if k not in ['eai:acl', 'eai:attributes', 'type'])
+
 # Construct a resource path from the given base path + resource name
 def _path(base, name):
     if not base.endswith('/'): base = base + '/'
@@ -79,14 +79,34 @@ def _path(base, name):
 def _path_stanza(conf, stanza):
     return PATH_STANZA % (conf, quote(stanza))
 
+# Load the given response body into an Atom specific record
+def _load_atom(response, match=None):
+    return data.load(response.body.read(), match)
+
+# Parse the given atom entry record into a generic entity state record
+def _parse_atom_entry(entry):
+    title = entry.get('title', None)
+
+    elink = entry.get('link', [])
+    elink = elink if isinstance(elink, list) else [elink]
+    links = record((link.rel, link.href) for link in elink)
+
+    econtent = entry.get('content', {})
+    content = record((k, v) for k, v in econtent.iteritems()
+        if k not in ['eai:acl', 'eai:attributes', 'type'])
+    metadata = dict((k, econtent.get(k, None)) 
+        for k in ['eai:acl', 'eai:attributes'])
+
+    return record({
+        'title': title,
+        'links': links,
+        'content': content,
+        'metadata': metadata })
+
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
     """Establishes an authenticated connection to the specified service."""
     return Service(**kwargs).login()
-
-# Response utilities
-def load(response, match=None):
-    return data.load(response.body.read(), match)
 
 class Service(Context):
     """The Splunk service."""
@@ -96,9 +116,8 @@ class Service(Context):
     @property
     def apps(self):
         """Return a collection of applications."""
-        return Collection(self, PATH_APPS, "apps",
-            item=lambda service, name: 
-                Entity(service, _path(PATH_APPS, name), name),
+        return Collection(self, PATH_APPS,
+            item=Entity,
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_APPS, name=name, **kwargs),
             dtor=lambda service, name: 
@@ -107,28 +126,19 @@ class Service(Context):
     @property
     def confs(self):
         """Return a collection of configs."""
-        return Collection(self, PATH_CONFS, "confs",
-            item=lambda service, conf: 
-                Collection(service, PATH_CONF % conf, conf,
-                    item=lambda service, stanza:
-                        Conf(service, _path_stanza(conf, stanza), stanza),
-                    ctor=lambda service, stanza, **kwargs:
-                        service.post(PATH_CONF % conf, name=stanza, **kwargs),
-                    dtor=lambda service, stanza:
-                        service.delete(_path_stanza(conf, stanza))))
+        return Confs(self)
 
     @property
     def capabilities(self):
         """Returns a list of all Splunk capabilities."""
         response = self.get(PATH_CAPABILITIES)
-        return load(response, MATCH_ENTRY_CONTENT).capabilities
+        return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
     def indexes(self):
         """Return a collection of indexes."""
-        return Collection(self, PATH_INDEXES, "indexes",
-            item=lambda service, name: 
-                Index(service, name),
+        return Collection(self, PATH_INDEXES,
+            item=Index,
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_INDEXES, name=name, **kwargs))
 
@@ -136,7 +146,7 @@ class Service(Context):
     def info(self):
         """Returns server information."""
         response = self.get("server/info")
-        return _filter_content(load(response, MATCH_ENTRY_CONTENT))
+        return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
 
     @property
     def inputs(self):
@@ -150,15 +160,13 @@ class Service(Context):
     @property
     def loggers(self):
         """Returns a collection of logging categories."""
-        return Collection(self, PATH_LOGGER, "loggers",
-            item=lambda service, name: 
-                Entity(service, _path(PATH_LOGGER, name), name))
+        return Collection(self, PATH_LOGGER, item=Entity)
 
     @property
     def messages(self):
         """Returns a collection of service messages."""
-        return Collection(self, PATH_MESSAGES, "messages",
-            item=lambda service, name: Message(service, name),
+        return Collection(self, PATH_MESSAGES,
+            item=Message,
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_MESSAGES, name=name, **kwargs), # value
             dtor=lambda service, name:
@@ -175,9 +183,8 @@ class Service(Context):
 
     @property
     def roles(self):
-        return Collection(self, PATH_ROLES, "roles",
-            item=lambda service, name: 
-                Entity(service, _path(PATH_ROLES, name), name),
+        return Collection(self, PATH_ROLES,
+            item=Entity,
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_ROLES, name=name, **kwargs),
             dtor=lambda service, name: 
@@ -200,20 +207,16 @@ class Endpoint(object):
 
     def get(self, relpath="", **kwargs):
         """A generic HTTP GET to the endpoint and optional relative path."""
-        response = self.service.get("%s%s" % (self.path, relpath), **kwargs)
-        return response
+        return self.service.get("%s%s" % (self.path, relpath), **kwargs)
 
     def post(self, relpath="", **kwargs):
         """A generic HTTP POST to the endpoint and optional relative path."""
-        response = self.service.post("%s%s" % (self.path, relpath), **kwargs)
-        return response
+        return self.service.post("%s%s" % (self.path, relpath), **kwargs)
 
 class Collection(Endpoint):
     """A generic implementation of the Splunk collection protocol."""
-    def __init__(self, service, path, name=None, 
-                 item=None, ctor=None, dtor=None):
+    def __init__(self, service, path, item=None, ctor=None, dtor=None):
         Endpoint.__init__(self, service, path)
-        if name is not None: self.name = name
         self.item = item # Item accessor
         self.ctor = ctor # Item constructor
         self.dtor = dtor # Item desteructor
@@ -221,25 +224,44 @@ class Collection(Endpoint):
     def __call__(self):
         return self.list()
 
+    def __contains__(self, name):
+        return self.contains(name)
+
     def __getitem__(self, key):
-        if self.item is None: raise NotSupportedError
-        if not self.contains(key): raise KeyError, key
-        return self.item(self.service, key)
+        for item in self.list():
+            if item.name == key: return item
+        raise KeyError, key
 
     def __iter__(self):
-        # Don't invoke __getitem__ below, we don't need the extra round-trip
-        # to validate that the key exists, because we just it from the list.
-        for name in self.list(): yield self.item(self.service, name)
+        for item in self.list(): yield item
+
+    # Load an entity list from the given response
+    def _load_list(self, response):
+        entries = _load_atom(response).feed.get('entry', None)
+        if entries is None: return []
+        if not isinstance(entries, list): entries = [entries]
+        entities = []
+        for entry in entries:
+            state = _parse_atom_entry(entry)
+            entity = self.item(
+                self.service, 
+                state.links.alternate,
+                state=state)
+            entities.append(entity)
+        return entities
 
     def contains(self, name):
-        return name in self.list()
+        """Answers if the given entity name exists in the collection."""
+        for item in self.list():
+            if item.name == name: return True
+        return False
 
     def create(self, name, **kwargs):
         if self.ctor is None: raise NotSupportedError
         if not isinstance(name, basestring): 
             raise ValueError("Invalid argument: 'name'")
         self.ctor(self.service, name, **kwargs)
-        return self[name]
+        return self[name] # UNDONE: Extra round-trip to retrieve entity
 
     def delete(self, name):
         if self.dtor is None: raise NotSupportedError
@@ -248,82 +270,136 @@ class Collection(Endpoint):
 
     def itemmeta(self):
         """Returns metadata for members of the collection."""
-        response = self.get("/_new")
-        content = load(response, MATCH_ENTRY_CONTENT)
-        return record({
+        response = self.get("_new")
+        content = _load_atom(response, MATCH_ENTRY_CONTENT)
+        return {
             'eai:acl': content['eai:acl'],
             'eai:attributes': content['eai:attributes']
-        })
+        }
 
-    def list(self):
-        """Returns a list of collection keys."""
-        response = self.get(count=-1)
-        entry = load(response).feed.get('entry', None)
-        if entry is None: return []
-        if not isinstance(entry, list): 
-            entry = [entry]
-        return [item.title for item in entry]
+    def list(self, **kwargs):
+        """Returns a list of collection members."""
+        count = kwargs.get('count', -1)
+        response = self.get(count=count)
+        return self._load_list(response)
 
-def _filter_content(content, *args):
-    if len(args) > 0: # We have filter args
-        result = record({})
-        for key in args: result[key] = content[key]
-    else:
-        # Eliminate some noise by default
-        result = content
-        if result.has_key('eai:acl'):
-            del result['eai:acl']
-        if result.has_key('eai:attributes'):
-            del result['eai:attributes']
-        if result.has_key('type'):
-            del result['type']
-    return result
-
+# kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
-    """A generic implementation of the Splunk 'entity' protocol."""
-    def __init__(self, service, path, name=None):
+    """A generic implementation of the Splunk entity protocol."""
+    def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
-        if name is not None: self.name = name
-        self.disable = lambda: self.post("disable")
-        self.enable = lambda: self.post("enable")
-        self.reload = lambda: self.post("_reload")
+        self._state = None
+        self.refresh(kwargs.get('state', None)) # "Prefresh"
 
-    def __call__(self):
-        return self.read()
+    def __call__(self, *args):
+        return self.content(*args)
 
     def __getitem__(self, key):
-        return self.read()[key]
+        return self.content[key]
 
-    def __setitem__(self, key, value):
-        self.update(**{ key: value })
+    #
+    # Given that update doesn't automatically refresh the cached local state,
+    # this operation now violates the principle of least suprise, because it
+    # allows you to do what appears to be a local assignment, which is then
+    # not reflected in the value you see if you do a subsaquent __getitem__ 
+    # without an explicit refresh.
+    #
+    # def __setitem__(self, key, value):
+    #     self.update(**{ key: value })
+    #
 
-    def read(self, *args):
-        """Read and return the current entity value, optionally returning
-           only the requested fields, if specified."""
-        response = self.get()
-        content = load(response, MATCH_ENTRY_CONTENT)
-        return _filter_content(content, *args)
+    # Load the Atom entry record from the given response - this is a method
+    # because the "entry" record varies slightly by entity and this allows
+    # for a subclass to override and handle any special cases.
+    def _load_atom_entry(self, response):
+        return _load_atom(response, XNAME_ENTRY).entry
 
-    def readmeta(self):
-        """Return the entity's metadata."""
-        return self.read('eai:acl', 'eai:attributes')
+    # Load the entity state record from the given response
+    def _load_state(self, response):
+        entry = self._load_atom_entry(response)
+        return _parse_atom_entry(entry)
+
+    def refresh(self, state=None):
+        """Refresh the cached state of this entity, using either the given
+           state record, or by calling `read` if no state record is provided."""
+        self._state = state if state is not None else self.read()
+        return self
+
+    @property
+    def content(self):
+        """Return the contents of the entity."""
+        return {} if self._state is None else self._state.content
+
+    def disable(self):
+        self.post("disable")
+        return self
+
+    def enable(self):
+        self.post("enable")
+        return self
+
+    @property
+    def links(self):
+        """Return a dictionary of related resources."""
+        return {} if self._state is None else self._state.links
+
+    @property
+    def metadata(self):
+        """Return the entity metadata."""
+        return {} if self._state is None else self._state.metadata
+
+    @property
+    def name(self):
+        """Return the entity name."""
+        return None if self._state is None else self._state.title
+
+    def read(self):
+        """Read the current entity state from the server."""
+        return self._load_state(self.get())
+
+    def reload(self):
+        self.post("_reload")
+        return self
+
+    @property
+    def state(self):
+        return self._state
 
     def update(self, **kwargs):
+        """Update the entity using the given kwargs."""
         self.post(**kwargs)
         return self
 
-class Conf(Entity):
+class Stanza(Entity):
+    """A single config stanza."""
     def submit(self, stanza):
         """Populates a stanza in the .conf file."""
         message = { 'method': "POST", 'body': stanza }
         self.service.request(self.path, message)
         return self
 
+class Conf(Collection):
+    """A single config, which is a collection of stanzas."""
+    def __init__(self, service, name):
+        self.name = name
+        Collection.__init__(self, service, PATH_CONF % name,
+            item=Stanza,
+            ctor=lambda service, stanza, **kwargs:
+                service.post(PATH_CONF % name, name=stanza, **kwargs),
+            dtor=lambda service, stanza:
+                service.delete(_path_stanza(name, stanza)))
+
+class Confs(Collection):
+    """A collection of configs."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_CONFS, 
+            item=lambda service, path, **kwargs: 
+                Conf(service, kwargs['state'].title))
+
 class Index(Entity):
     """Index class access to specific operations."""
-    def __init__(self, service, name):
-        Entity.__init__(self, service, _path(PATH_INDEXES, name), name)
-        self.roll_hot_buckets = lambda: self.post("roll-hot-buckets")
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
 
     def attach(self, host=None, source=None, sourcetype=None):
         """Opens a stream for writing events to the index."""
@@ -347,13 +423,17 @@ class Index(Entity):
 
     def clean(self):
         """Delete the contents of the index."""
-        saved = self.read('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
+        saved = self.refresh()('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
         self.roll_hot_buckets()
         while True: # Wait until event count goes to zero
             sleep(1)
-            if self['totalEventCount'] == '0': break
+            if self.refresh()['totalEventCount'] == '0': break
         self.update(**saved)
+        return self
+
+    def roll_hot_buckets(self):
+        self.post("roll-hot-buckets")
         return self
 
     def submit(self, event, host=None, source=None, sourcetype=None):
@@ -382,11 +462,10 @@ class Index(Entity):
         return self
 
 class Input(Entity):
-    # kwargs: key, kind, name, path, links
-    def __init__(self, service, **kwargs):
-        Entity.__init__(self, service, kwargs['path'], kwargs['name'])
-        self.key = kwargs['key']
-        self.kind = kwargs['kind']
+    # kwargs: path, kind
+    def __init__(self, service, path, kind, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+        self.kind = kind
 
 # Directory of known input kinds that maps from input kind to path relative 
 # to data/inputs, eg: inputs of kind 'splunktcp' map to a relative path
@@ -404,61 +483,39 @@ INPUT_KINDMAP = {
     'win-wmi-collections': "win-wmi-collections"
 }
 
-# Inputs is a kinded collection, which is a heterogenous collection where
-# each item is tagged with a kind.
-class Inputs(Endpoint):
-    """A collection of Splunk inputs."""
+# Inputs is a "kinded" collection, which is a heterogenous collection where
+# each item is tagged with a kind, that provides a single merged view of all
+# input kinds.
+# UNDONE: contains needs to take a kind arg to disambiguate
+class Inputs(Collection):
+    """A merged view of all Splunk inputs."""
     def __init__(self, service, kindmap=None):
-        Endpoint.__init__(self, service, PATH_INPUTS)
-        if kindmap is None: kindmap = INPUT_KINDMAP
-        self._kindmap = kindmap
-        self._infos = None
-        self.refresh()
+        Collection.__init__(self, service, PATH_INPUTS)
+        self._kindmap = kindmap if kindmap is not None else INPUT_KINDMAP
         
     # args: kind*
     def __call__(self, *args):
         return self.list(*args)
 
-    def __getitem__(self, key):
-        info = self._infos.get(key, None)
-        if info is None: raise KeyError, key
-        return Input(self.service, **info)
-
-    def __iter__(self):
-        # Don't invoke __getitem__ below, we don't need the extra round-trip
-        # to validate that the key exists, because we just it from the list.
-        for info in self._infos.itervalues(): 
-            yield Input(self.service, **info)
-
-    def contains(self, key):
-        """Answers if the given key exists in the collection."""
-        return key in self.list()
-
     def create(self, kind, name, **kwargs):
         """Creates an input of the given kind, with the given name & args."""
-        self.post(self._kindmap[kind], name=name, **kwargs)
-        return self.refresh()[self.itemkey(kind, name)]
+        kindpath = self.kindpath(kind)
+        self.service.post(kindpath, name=name, **kwargs)
+        return Input(self.service, _path(kindpath, name), kind)
 
-    def delete(self, key):
-        """Deletes the input with the given key."""
-        self.service.delete(self._infos[key]['path'])
-        self.refresh()
+    def delete(self, name):
+        """Deletes the input with the given name."""
+        self.service.delete(self[name].path) # UNDONE: Should be item.remove()
         return self
-
-    def itemkey(self, kind, name):
-        """Constructs a key from the given kind and item name."""
-        if not kind in self._kindmap.keys(): 
-            raise ValueError("Unknown kind '%s'" % kind)
-        return "%s:%s" % (kind, name)
 
     def itemmeta(self, kind):
         """Returns metadata for members of the given kind."""
         response = self.get("%s/_new" % self._kindmap[kind])
-        content = load(response, MATCH_ENTRY_CONTENT)
-        return record({
+        content = _load_atom(response, MATCH_ENTRY_CONTENT)
+        return {
             'eai:acl': content['eai:acl'],
             'eai:attributes': content['eai:attributes']
-        })
+        }
 
     @property
     def kinds(self):
@@ -471,55 +528,40 @@ class Inputs(Endpoint):
 
     # args: kind*
     def list(self, *args):
-        """Returns a list of collection keys, optionally filtered by kind."""
-        if len(args) == 0: return self._infos.keys()
-        return [k for k, v in self._infos.iteritems() if v['kind'] in args]
+        """Returns a list of Input entities, optionally filtered by kind."""
+        kinds = args if len(args) > 0 else self._kindmap.keys()
 
-    # Refreshes the 
-    def refresh(self):
-        """Refreshes the internal directory of entities and entity metadata."""
-        self._infos = {}
-        for kind in self.kinds:
-
+        entities = []
+        for kind in kinds:
             response = None
             try:
                 response = self.service.get(self.kindpath(kind), count=-1)
             except HTTPError as e:
                 if e.status == 404: 
-                    continue # Nothing of this kind
+                    continue # No inputs of this kind
                 else: 
                     raise
                 
-            entry = load(response).feed.get('entry', None)
-            if entry is None: continue
-            if not isinstance(entry, list): entry = [entry]
-            for item in entry:
-                name = item.title
-                key = self.itemkey(kind, name)
-                path = urlparse(item.id).path
-                links = dict([(link.rel, link.href) for link in item.link])
-                self._infos[key] = {
-                    'key': key,
-                    'kind': kind,
-                    'name': name,
-                    'path': path,
-                    'links': links,
-                }
-        return self
+            # UNDONE: Should use _load_list for the following, but need to
+            # pass kind to the `item` method.
+            entries = _load_atom(response).feed.get('entry', None)
+            if entries is None: continue # No inputs to process
+            if not isinstance(entries, list): entries = [entries]
+            for entry in entries:
+                state = _parse_atom_entry(entry)
+                path = state.links.alternate
+                entity = Input(self.service, path, kind, state=state)
+                entities.append(entity)
 
-# The Splunk Job is not an enity, but we are able to make the interface look
-# a lot like one.
-class Job(Endpoint): 
-    """Job class access to specific operations."""
-    def __init__(self, service, sid):
-        Endpoint.__init__(self, service, PATH_JOBS + sid)
-        self.sid = sid
+        return entities
 
-    def __call__(self):
-        return self.read()
+class Job(Entity): 
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
 
-    def __getitem__(self, key):
-        return self.read()[key]
+    # The Job entry record is returned at the root of the response
+    def _load_atom_entry(self, response):
+        return _load_atom(response).entry
 
     def cancel(self):
         self.post("control", action="cancel")
@@ -540,6 +582,10 @@ class Job(Endpoint):
         self.post("control", action="finalize")
         return self
 
+    @property
+    def name(self):
+        return self.sid
+
     def pause(self):
         self.post("control", action="pause")
         return self
@@ -547,10 +593,18 @@ class Job(Endpoint):
     def preview(self, **kwargs):
         return self.get("results_preview", **kwargs).body
 
-    def read(self, *args):
-        response = self.get()
-        content = load(response).entry.content
-        return _filter_content(content, *args)
+    def read(self):
+        # If the search job is newly created, it is possible that we will 
+        # get 204s (No Content) until the job is ready to respond.
+        count = 0
+        while count < 10:
+            response = self.get()
+            if response.status == 204: 
+                sleep(1) 
+                count += 1
+                continue
+            return self._load_state(response)
+        raise OperationError, "Operation timed out."
 
     def results(self, **kwargs):
         return self.get("results", **kwargs).body
@@ -561,6 +615,10 @@ class Job(Endpoint):
     def set_priority(self, value):
         self.post('control', action="setpriority", priority=value)
         return self
+
+    @property
+    def sid(self):
+        return self.content.get('sid', None)
 
     def summary(self, **kwargs):
         return self.get("summary", **kwargs).body
@@ -583,28 +641,22 @@ class Job(Endpoint):
 class Jobs(Collection):
     """A collection of search jobs."""
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_JOBS, "jobs",
-            item=lambda service, sid: Job(service, sid))
+        Collection.__init__(self, service, PATH_JOBS, item=Job)
 
     def create(self, query, **kwargs):
         response = self.post(search=query, **kwargs)
-
         if kwargs.get("exec_mode", None) == "oneshot":
             return response.body
+        sid = _load_atom(response).response.sid
+        return Job(self.service, PATH_JOBS + sid)
 
-        sid = load(response).response.sid
-        return Job(self.service, sid)
-
-    def list(self):
-        response = self.get()
-        entry = load(response, MATCH_ENTRY_CONTENT)
-        if entry is None: return []
-        if not isinstance(entry, list): entry = [entry]
-        return [item.sid for item in entry]
+    def list(self, **kwargs):
+        """Returns a list of search Job entities."""
+        return self._load_list(self.get()) # No count argument allowed
 
 class Message(Entity):
-    def __init__(self, service, name):
-        Entity.__init__(self, service, _path(PATH_MESSAGES, name), name)
+    def __init__(self, service, name, **kwargs):
+        Entity.__init__(self, service, _path(PATH_MESSAGES, name), **kwargs)
 
     @property
     def value(self):
@@ -613,30 +665,38 @@ class Message(Entity):
         return self[self.name]
 
 class Settings(Entity):
-    def __init__(self, service):
-        Entity.__init__(self, service, "server/settings")
+    def __init__(self, service, **kwargs):
+        Entity.__init__(self, service, "server/settings", **kwargs)
 
     # Updates on the settings endpoint are POSTed to server/settings/settings.
     def update(self, **kwargs):
         self.service.post("server/settings/settings", **kwargs)
         return self
 
+# Splunk automatically lowercases new user names so we need to match that 
+# behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_USERS, "users",
-            item=lambda service, name: 
-                Entity(service, _path(PATH_USERS, name), name),
+        Collection.__init__(self, service, PATH_USERS,
+            item=Entity,
             ctor=lambda service, name, **kwargs:
                 service.post(PATH_USERS, name=name, **kwargs),
             dtor=lambda service, name: 
                 service.delete(_path(PATH_USERS, name)))
 
-    # Splunk automatically lowercases new user names so we need to match that 
-    # behavior here to ensure that the subsequent member lookup works correctly.
+    def __getitem__(self, key):
+        return Collection.__getitem__(self, key.lower())
+
+    def contains(self, name):
+        return Collection.contains(self, name.lower())
+
     def create(self, name, **kwargs):
         return Collection.create(self, name.lower(), **kwargs)
 
-class SplunkError(Exception): 
+    def delete(self, name):
+        return Collection.delete(self, name.lower())
+
+class OperationError(Exception): 
     pass
 
 class NotSupportedError(Exception): 

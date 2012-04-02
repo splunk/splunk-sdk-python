@@ -60,7 +60,7 @@ def main(argv):
 
     name = opts.kwargs['index']
     if not service.indexes.contains(name):
-        error("Index '%s' does not exist." % name)
+        error("Index '%s' does not exist." % name, 2)
     index = service.indexes[name]
 
     kwargs_submit = dslice(opts.kwargs, 

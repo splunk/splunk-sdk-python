@@ -673,6 +673,8 @@ class Settings(Entity):
         self.service.post("server/settings/settings", **kwargs)
         return self
 
+# Splunk automatically lowercases new user names so we need to match that 
+# behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
     def __init__(self, service):
         Collection.__init__(self, service, PATH_USERS,
@@ -682,10 +684,17 @@ class Users(Collection):
             dtor=lambda service, name: 
                 service.delete(_path(PATH_USERS, name)))
 
-    # Splunk automatically lowercases new user names so we need to match that 
-    # behavior here to ensure that the subsequent member lookup works correctly.
+    def __getitem__(self, key):
+        return Collection.__getitem__(self, key.lower())
+
+    def contains(self, name):
+        return Collection.contains(self, name.lower())
+
     def create(self, name, **kwargs):
         return Collection.create(self, name.lower(), **kwargs)
+
+    def delete(self, name):
+        return Collection.delete(self, name.lower())
 
 class OperationError(Exception): 
     pass

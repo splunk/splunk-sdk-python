@@ -626,16 +626,20 @@ class ClientTestCase(unittest.TestCase):
         users.delete("sdk-user")
         self.assertFalse(users.contains("sdk-user"))
 
-        # Splunk lowercases new users names, verify this works as expected
+        # Splunk lowercases user names, verify the casing works as expected
         self.assertFalse(users.contains("sdk-user"))
         self.assertFalse(users.contains("SDK-User"))
 
         user = users.create("SDK-User", password="changeme", roles="power")
         self.assertTrue(user.name == "sdk-user")
-        self.assertFalse(users.contains("SDK-User"))
+        self.assertTrue(users.contains("SDK-User"))
         self.assertTrue(users.contains("sdk-user"))
 
-        users.delete("sdk-user")
+        user = users['SDK-User']
+        self.assertTrue(user.name == "sdk-user")
+
+        users.delete("SDK-User")
+        self.assertFalse(users.contains("SDK-User"))
         self.assertFalse(users.contains("sdk-user"))
 
 # Runs the given named test, useful for debugging.
@@ -646,5 +650,5 @@ def runone(test):
         
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone(ClientTestCase("test_indexes"))
+    #runone(ClientTestCase("test_users"))
     unittest.main(argv=sys.argv[:1])

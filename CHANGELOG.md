@@ -7,6 +7,10 @@
 * Support for IPv6, can now connect to a splunkd listening on an IPv6 address.
 * Improvements to entity state management
 * Improvements to usability of entity collections 
+* Support for collection paging - collection now support the stanrad paging
+  arguments: count, offset, search, sort_dir, sort_key and sort_mode. Note
+  that Inputs and Jobs are not pageable collections and only support basic
+  enumeration and iteration.
 * Improvements to unit tests
 
 ### Breaking changes

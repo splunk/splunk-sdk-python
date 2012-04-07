@@ -27,6 +27,7 @@ files = [
     "test_binding.py",
     "test_collection.py",
     "test_client.py",
+    "test_event_type.py",
     "test_examples.py",
 ]
 

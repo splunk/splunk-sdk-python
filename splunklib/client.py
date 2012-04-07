@@ -51,6 +51,7 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_EVENT_TYPES = "saved/eventtypes"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
@@ -131,6 +132,10 @@ class Service(Context):
         """Returns a list of all Splunk capabilities."""
         response = self.get(PATH_CAPABILITIES)
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
+
+    @property
+    def event_types(self):
+        return Collection(self, PATH_EVENT_TYPES)
 
     @property
     def indexes(self):

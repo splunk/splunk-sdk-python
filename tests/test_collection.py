@@ -80,6 +80,9 @@ class TestCase(unittest.TestCase):
     def test_apps(self):
         self.check_collection(self.service.apps)
 
+    def test_event_types(self):
+        self.check_collection(self.service.event_types)
+
     def test_indexes(self):
         self.check_collection(self.service.indexes)
 

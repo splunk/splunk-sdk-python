@@ -421,15 +421,22 @@ class Index(Entity):
         cn.write("\r\n")
         return cn
 
-    def clean(self):
+    def clean(self, timeout=60):
         """Delete the contents of the index."""
         saved = self.refresh()('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
         self.roll_hot_buckets()
-        while True: # Wait until event count goes to zero
+
+        # Wait until the event count goes to zero
+        count = 0
+        while self.content.totalEventCount != '0' and count < timeout:
             sleep(1)
-            if self.refresh()['totalEventCount'] == '0': break
-        self.update(**saved)
+            count += 1
+            self.refresh()
+
+        self.update(**saved) # Restore original values
+        if self.content.totalEventCount != '0':
+            raise OperationError, "Operation timed out."
         return self
 
     def roll_hot_buckets(self):

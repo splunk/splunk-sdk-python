@@ -29,7 +29,6 @@ Commands:
     disable [<index>]+
     enable [<index>]+
     list [<index>]*
-    reload [<index>]+
     update <index> [options]
 
 Examples:
@@ -119,16 +118,12 @@ class Program:
             'disable': self.disable,
             'enable': self.enable,
             'list': self.list,
-            'reload': self.reload,
             'update': self.update,
         }
         handler = handlers.get(command, None)
         if handler is None:
             error("Unrecognized command: %s" % command, 2)
         handler(argv[1:])
-
-    def reload(self, argv):
-        self.foreach(argv, lambda index: index.reload())
 
     def foreach(self, argv, func):
         """Apply the function to each index named in the argument vector."""

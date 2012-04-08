@@ -14,9 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import difflib
 import os
-from pprint import pprint
 from subprocess import PIPE, Popen
 import time
 import unittest 
@@ -28,17 +26,17 @@ from utils import parse
 
 opts = None # Command line options
 
-def assertMultiLineEqual(test, first, second, msg=None):
+def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    test.assertTrue(isinstance(first, basestring), 
+    testcase.assertTrue(isinstance(first, basestring), 
         'First argument is not a string')
-    test.assertTrue(isinstance(second, basestring), 
+    testcase.assertTrue(isinstance(second, basestring), 
         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
     second = second.replace("\r", "")
     if first != second:
-        test.fail("Multiline strings are not equal: %s" % msg)
+        testcase.fail("Multiline strings are not equal: %s" % message)
 
 # Run the given python script and return its exit code. 
 def run(script, stdin=None, stdout=PIPE, stderr=None):
@@ -69,15 +67,13 @@ def wait_event_count(index, count, secs):
 # Rudimentary sanity check for each of the examples
 class TestCase(unittest.TestCase):
     def check_commands(self, *args):
-        for arg in args: self.assertEquals(run(arg), 0)
+        for arg in args: 
+            self.assertEquals(run(arg), 0)
 
     def setUp(self):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
         run("index.py create sdk-tests-two")
-
-    def tearDown(self):
-        pass
 
     def test_async(self):
         result = run("async/async.py sync")
@@ -111,6 +107,11 @@ class TestCase(unittest.TestCase):
             "event_types.py --help",
             "event_types.py")
         
+    def test_fired_alerts(self):
+        self.check_commands(
+            "fired_alerts.py --help",
+            "fired_alerts.py")
+        
     def test_follow(self):
         self.check_commands("follow.py --help")
 
@@ -123,7 +124,9 @@ class TestCase(unittest.TestCase):
             "handlers/handler_proxy.py --help")
 
         # Run the cert handler example with a bad cert file, should error.
-        result = run("handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", stderr=PIPE)
+        result = run(
+            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", 
+            stderr=PIPE)
         self.assertNotEquals(result, 0)
 
         # The proxy handler example requires that there be a proxy available
@@ -140,7 +143,8 @@ class TestCase(unittest.TestCase):
             process.kill()
 
         # Run it again without the proxy and it should fail.
-        result = run("handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
+        result = run(
+            "handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
         self.assertNotEquals(result, 0)
 
     def test_index(self):
@@ -177,12 +181,18 @@ class TestCase(unittest.TestCase):
 
     def test_oneshot(self):
         self.check_commands(["oneshot.py", "search * | head 10"])
+
+    def test_saved_searches(self):
+        self.check_commands(
+            "saved_searches.py --help",
+            "saved_searches.py")
         
     def test_search(self):
         self.check_commands(
             "search.py --help",
             ["search.py", "search * | head 10"],
-            ["search.py", "search * | head 10 | stats count", '--output_mode=csv'])
+            ["search.py", 
+             "search * | head 10 | stats count", '--output_mode=csv'])
 
     def test_spcmd(self):
         self.check_commands(
@@ -234,7 +244,7 @@ class TestCase(unittest.TestCase):
             output = output_file.read()
 
             message = "%s != %s" % (output_file.name, baseline_file.name)
-            assertMultiLineEqual(self, baseline, output, message)
+            check_multiline(self, baseline, output, message)
 
             # Cleanup
             baseline_file.close()
@@ -273,7 +283,8 @@ class TestCase(unittest.TestCase):
         import analytics
 
         # Create a tracker
-        tracker = analytics.input.AnalyticsTracker("sdk-test", opts.kwargs, index = "sdk-test")
+        tracker = analytics.input.AnalyticsTracker(
+            "sdk-test", opts.kwargs, index = "sdk-test")
 
         service = client.connect(**opts.kwargs)
 
@@ -288,7 +299,8 @@ class TestCase(unittest.TestCase):
         wait_event_count(index, 2, 10)
 
         # Now, we create a retriever to retrieve the events
-        retriever = analytics.output.AnalyticsRetriever("sdk-test", opts.kwargs, index = "sdk-test")    
+        retriever = analytics.output.AnalyticsRetriever(
+            "sdk-test", opts.kwargs, index = "sdk-test")    
         
         # Assert applications
         applications = retriever.applications()
@@ -329,7 +341,8 @@ class TestCase(unittest.TestCase):
             self.assertEqual(count, expected_property_values[name])
             
         # Assert event over time
-        over_time = retriever.events_over_time(time_range = analytics.output.TimeRange.MONTH)
+        over_time = retriever.events_over_time(
+            time_range = analytics.output.TimeRange.MONTH)
         self.assertEquals(len(over_time), 1)
         self.assertEquals(len(over_time["test_event"]), 1)
         self.assertEquals(over_time["test_event"][0]["count"], 2)

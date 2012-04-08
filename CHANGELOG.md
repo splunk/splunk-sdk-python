@@ -13,7 +13,13 @@
   enumeration and iteration.
 * Support for event types:
     - Added Service.event_types + units
-    - Added examples/event_types.py and
+    - Added examples/event_types.py
+* Support for fired alerts:
+    - Added Service.fired_alerts + units
+    - Added examples/fired_alerts.py
+* Support for saved searches:
+    - Added Service.saved_searches + units
+    - Added examples/saved_searches.py
 
 ### Breaking changes
 

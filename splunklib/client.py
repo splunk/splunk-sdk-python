@@ -51,13 +51,15 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
-PATH_EVENT_TYPES = "saved/eventtypes"
+PATH_EVENT_TYPES = "saved/eventtypes/"
+PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
 PATH_LOGGER = "server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_ROLES = "authentication/roles/"
+PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
 
@@ -83,9 +85,19 @@ def _path(base, name):
 def _path_conf(conf):
     return PATH_CONF % conf
 
-# Load the given response body into an Atom specific record
+# Load an atom record from the body of the given response
 def _load_atom(response, match=None):
     return data.load(response.body.read(), match)
+
+# Load an array of atom entries from the body of the given response
+def _load_atom_entries(response):
+    entries = _load_atom(response).feed.get('entry', None)
+    if entries is None: return None
+    return entries if isinstance(entries, list) else [entries]
+
+# Load the sid from the body of the given response
+def _load_sid(response):
+    return _load_atom(response).response.sid
 
 # Parse the given atom entry record into a generic entity state record
 def _parse_atom_entry(entry):
@@ -138,6 +150,10 @@ class Service(Context):
         return Collection(self, PATH_EVENT_TYPES)
 
     @property
+    def fired_alerts(self):
+        return Collection(self, PATH_FIRED_ALERTS)
+
+    @property
     def indexes(self):
         """Return a collection of indexes."""
         return Collection(self, PATH_INDEXES, item=Index)
@@ -179,6 +195,10 @@ class Service(Context):
     @property
     def roles(self):
         return Collection(self, PATH_ROLES)
+
+    @property
+    def saved_searches(self):
+        return SavedSearches(self)
 
     @property
     def settings(self):
@@ -248,7 +268,7 @@ class Entity(Endpoint):
     @property
     def content(self):
         """Return the contents of the entity."""
-        return {} if self._state is None else self._state.content
+        return self.state.content
 
     def disable(self):
         self.post("disable")
@@ -261,17 +281,17 @@ class Entity(Endpoint):
     @property
     def links(self):
         """Return a dictionary of related resources."""
-        return {} if self._state is None else self._state.links
+        return self.state.links
 
     @property
     def metadata(self):
         """Return the entity metadata."""
-        return {} if self._state is None else self._state.metadata
+        return self.state.metadata
 
     @property
     def name(self):
         """Return the entity name."""
-        return None if self._state is None else self._state.title
+        return self.state.title
 
     def read(self):
         """Read the current entity state from the server."""
@@ -283,6 +303,7 @@ class Entity(Endpoint):
 
     @property
     def state(self):
+        if self._state is None: self.refresh()
         return self._state
 
     def update(self, **kwargs):
@@ -312,9 +333,8 @@ class Collection(Endpoint):
 
     # Load an entity list from the given response
     def _load_list(self, response):
-        entries = _load_atom(response).feed.get('entry', None)
+        entries = _load_atom_entries(response)
         if entries is None: return []
-        if not isinstance(entries, list): entries = [entries]
         entities = []
         for entry in entries:
             state = _parse_atom_entry(entry)
@@ -524,9 +544,8 @@ class Inputs(Collection):
                 
             # UNDONE: Should use _load_list for the following, but need to
             # pass kind to the `item` method.
-            entries = _load_atom(response).feed.get('entry', None)
+            entries = _load_atom_entries(response)
             if entries is None: continue # No inputs to process
-            if not isinstance(entries, list): entries = [entries]
             for entry in entries:
                 state = _parse_atom_entry(entry)
                 path = state.links.alternate
@@ -627,7 +646,7 @@ class Jobs(Collection):
         response = self.post(search=query, **kwargs)
         if kwargs.get("exec_mode", None) == "oneshot":
             return response.body
-        sid = _load_atom(response).response.sid
+        sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
 
 class Message(Entity):
@@ -639,6 +658,44 @@ class Message(Entity):
         # The message value is contained in a entity property whose key is
         # the name of the message.
         return self[self.name]
+
+class SavedSearch(Entity):
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+
+    def acknowledge(self):
+        self.post("acknowledge")
+        return self
+
+    def dispatch(self, **kwargs):
+        response = self.post("dispatch", **kwargs)
+        sid = _load_sid(response)
+        return Job(self.service, PATH_JOBS + sid)
+
+    def history(self):
+        response = self.get("history")
+        entries = _load_atom_entries(response)
+        if entries is None: return []
+        jobs = []
+        for entry in entries:
+            job = Job(self.service, PATH_JOBS + entry.title)
+            jobs.append(job)
+        return jobs
+
+    def update(self, search=None, **kwargs):
+        # Updates to a saved search *require* that the search string be 
+        # passed, so we pass the current search string if a value wasn't
+        # provided by the caller.
+        if search is None: search = self.content.search
+        Entity.update(self, search=search, **kwargs)
+
+class SavedSearches(Collection):
+    def __init__(self, service):
+        Collection.__init__(
+            self, service, PATH_SAVED_SEARCHES, item=SavedSearch)
+
+    def create(self, name, search, **kwargs):
+        return Collection.create(self, name, search=search, **kwargs)
 
 class Settings(Entity):
     def __init__(self, service, **kwargs):

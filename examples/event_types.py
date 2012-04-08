@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A command line utility that lists Splunk Event Types."""
+"""A command line utility that lists Splunk event types."""
 
 import sys
 

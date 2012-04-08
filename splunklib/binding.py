@@ -298,6 +298,9 @@ class ResponseReader(object):
     def __str__(self):
         return self.read()
 
+    def close(self):
+        self._response.close()
+
     def read(self, size = None):
         return self._response.read(size)
 

@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A command line utility for interacting with Splunk inputs."""
+"""A command line utility that lists saved searches."""
 
 import sys
 
@@ -26,14 +26,19 @@ def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = connect(**opts.kwargs)
 
-    for item in service.inputs:
-        header =  "%s (%s)" % (item.name, item.kind)
+    for saved_search in service.saved_searches:
+        header = saved_search.name
         print header
         print '='*len(header)
-        content = item.content
+        content = saved_search.content
         for key in sorted(content.keys()):
             value = content[key]
             print "%s: %s" % (key, value)
+        history = saved_search.history()
+        if len(history) > 0:
+            print "history:"
+            for job in history:
+                print "    %s" % job.name
         print
 
 if __name__ == "__main__":

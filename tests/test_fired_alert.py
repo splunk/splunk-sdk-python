@@ -14,29 +14,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A command line utility for interacting with Splunk inputs."""
-
 import sys
+import unittest
 
-from splunklib.client import connect
-
+import splunklib.client as client
 from utils import parse
 
-def main():
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    service = connect(**opts.kwargs)
+opts = None # Command line options
 
-    for item in service.inputs:
-        header =  "%s (%s)" % (item.name, item.kind)
-        print header
-        print '='*len(header)
-        content = item.content
-        for key in sorted(content.keys()):
-            value = content[key]
-            print "%s: %s" % (key, value)
-        print
+class TestCase(unittest.TestCase):
+    def test(self):
+        fired_alerts = client.connect(**opts.kwargs).fired_alerts
+
+        for fired_alert in fired_alerts:
+            fired_alert.content
 
 if __name__ == "__main__":
-    main()
-
-
+    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    unittest.main(argv=sys.argv[:1])

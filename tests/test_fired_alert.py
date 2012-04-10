@@ -117,13 +117,11 @@ class TestCase(unittest.TestCase):
             wait(search, lambda search: alert_count(search) == count)
             self.assertEqual(alert_count(search), count)
 
-            # And now .. after all that trouble, verify that we see the 
-            # expected alerts!
+            # And now .. after all that trouble, verify that we see the alerts!
             self.assertTrue(search_name in fired_alerts)
-            alerts = fired_alerts[search_name]
-            self.assertEqual(alerts.name, search_name)
-            actual = int(alerts.content.triggered_alert_count)
-            self.assertEqual(actual, count)
+            alert_group = fired_alerts[search_name]
+            self.assertEqual(alert_group.name, search_name)
+            self.assertEqual(alert_group.count, count)
 
         # Cleanup
         searches.delete(search_name)
@@ -132,10 +130,11 @@ class TestCase(unittest.TestCase):
 
     def test_read(self):
         service = client.connect(**opts.kwargs)
-        fired_alerts = service.fired_alerts
 
-        for fired_alert in fired_alerts:
-            fired_alert.content
+        for alert_group in service.fired_alerts:
+            alert_group.count
+            for alert in alert_group.alerts:
+                alert.content
 
 if __name__ == "__main__":
     opts = parse(sys.argv[1:], {}, ".splunkrc")

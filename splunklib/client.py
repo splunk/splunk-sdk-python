@@ -151,7 +151,7 @@ class Service(Context):
 
     @property
     def fired_alerts(self):
-        return Collection(self, PATH_FIRED_ALERTS)
+        return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
 
     @property
     def indexes(self):
@@ -371,7 +371,7 @@ class Collection(Endpoint):
         }
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
-    def list(self, count=0, **kwargs):
+    def list(self, count=-1, **kwargs):
         response = self.get(count=count, **kwargs)
         return self._load_list(response)
 
@@ -395,6 +395,22 @@ class Stanza(Entity):
         message = { 'method': "POST", 'body': stanza }
         self.service.request(self.path, message)
         return self
+
+class AlertGroup(Entity):
+    """An entity that represents a group of fired alerts that can be accessed
+       through the `alerts` property."""
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+
+    @property
+    def alerts(self):
+        """Returns a collection of triggered alert instances."""
+        return Collection(self.service, self.path)
+
+    @property
+    def count(self):
+        """Returns the count of triggered alerts."""
+        return int(self.content.triggered_alert_count)
 
 class Index(Entity):
     """Index class access to specific operations."""
@@ -542,7 +558,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
-                response = self.service.get(self.kindpath(kind), count=0)
+                response = self.service.get(self.kindpath(kind), count=-1)
             except HTTPError as e:
                 if e.status == 404: 
                     continue # No inputs of this kind
@@ -655,6 +671,9 @@ class Jobs(Collection):
             return response.body
         sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count, **kwargs)
 
 class Message(Entity):
     def __init__(self, service, name, **kwargs):

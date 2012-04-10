@@ -26,13 +26,17 @@ def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = connect(**opts.kwargs)
 
-    for item in service.fired_alerts:
-        print "[%s]" % item.name
-        content = item.content
-        for key in sorted(content.keys()):
-            value = content[key]
-            print "%s: %s" % (key, value)
-        print
+    for group in service.fired_alerts:
+        header = "%s (count: %d)" % (group.name, group.count)
+        print "%s" % header
+        print '='*len(header)
+        alerts = group.alerts
+        for alert in alerts.list():
+            content = alert.content
+            for key in sorted(content.keys()):
+                value = content[key]
+                print "%s: %s" % (key, value)
+            print
 
 if __name__ == "__main__":
     main()

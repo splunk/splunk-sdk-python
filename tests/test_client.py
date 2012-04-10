@@ -352,7 +352,7 @@ class ClientTestCase(unittest.TestCase):
         """Create a job to run the given search and wait up to (approximately)
            the given number of seconds for it to complete.""" 
         job = self.service.jobs.create(query)
-        return self.wait_for_completion(job, secs = secs)
+        return self.wait_for_completion(job, secs=secs)
 
     def wait_for_completion(self, job, secs = 30):
         done = False

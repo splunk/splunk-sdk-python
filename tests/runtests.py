@@ -17,6 +17,7 @@
 """Runs all the Splunk Python SDK unit tests."""
 
 import os
+import sys
 
 # Set up the environment for coverage, even though it might not get used
 os.environ["COVERAGE_PROCESS_START"] = "../tests/.coveragerc"
@@ -27,10 +28,13 @@ files = [
     "test_binding.py",
     "test_collection.py",
     "test_client.py",
+    "test_event_type.py",
+    "test_fired_alert.py",
+    "test_saved_search.py",
     "test_examples.py",
 ]
 
 for file in files: 
-    command = "python %s" % file
-    print "Running Test: %s" % file
-    os.system(command)
+    sys.stdout.write("Running: %s " % file)
+    sys.stdout.flush()
+    os.system("python %s" % file)

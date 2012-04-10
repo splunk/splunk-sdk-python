@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A command line utility for interacting with Splunk inputs."""
+"""A command line utility that lists Splunk event types."""
 
 import sys
 
@@ -26,10 +26,9 @@ def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = connect(**opts.kwargs)
 
-    for item in service.inputs:
-        header =  "%s (%s)" % (item.name, item.kind)
-        print header
-        print '='*len(header)
+    for item in service.event_types:
+        print "%s" % item.name
+        print '='*len(item.name)
         content = item.content
         for key in sorted(content.keys()):
             value = content[key]

@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A command line utility for interacting with Splunk inputs."""
+"""A command line utility that prints out fired alerts."""
 
 import sys
 
@@ -26,15 +26,17 @@ def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = connect(**opts.kwargs)
 
-    for item in service.inputs:
-        header =  "%s (%s)" % (item.name, item.kind)
-        print header
+    for group in service.fired_alerts:
+        header = "%s (count: %d)" % (group.name, group.count)
+        print "%s" % header
         print '='*len(header)
-        content = item.content
-        for key in sorted(content.keys()):
-            value = content[key]
-            print "%s: %s" % (key, value)
-        print
+        alerts = group.alerts
+        for alert in alerts.list():
+            content = alert.content
+            for key in sorted(content.keys()):
+                value = content[key]
+                print "%s: %s" % (key, value)
+            print
 
 if __name__ == "__main__":
     main()

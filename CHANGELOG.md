@@ -11,7 +11,15 @@
   `count`, `offset`, `search`, `sort_dir`, `sort_key` and `sort_mode`. Note
   that `Inputs` and `Jobs` are not pageable collections and only support basic
   enumeration and iteration.
-* Improvements to unit tests
+* Support for event types:
+    - Added Service.event_types + units
+    - Added examples/event_types.py
+* Support for fired alerts:
+    - Added Service.fired_alerts + units
+    - Added examples/fired_alerts.py
+* Support for saved searches:
+    - Added Service.saved_searches + units
+    - Added examples/saved_searches.py
 
 ### Breaking changes
 

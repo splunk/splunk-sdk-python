@@ -29,6 +29,9 @@
 """Client interface to the Splunk REST API."""
 
 # UNDONE: Add Collection.refresh and list caching
+# UNDONE: Resolve conflict between Collection.delete and name of REST method
+# UNDONE: Add Endpoint.delete
+# UNDONE: Add Entity.remove
 
 from time import sleep
 from urllib import urlencode, quote
@@ -48,12 +51,15 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_EVENT_TYPES = "saved/eventtypes/"
+PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
 PATH_LOGGER = "server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_ROLES = "authentication/roles/"
+PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
 
@@ -75,13 +81,23 @@ def _path(base, name):
     if not base.endswith('/'): base = base + '/'
     return base + quote(name)
 
-# Constructs a path from the given conf & stanza
-def _path_stanza(conf, stanza):
-    return PATH_STANZA % (conf, quote(stanza))
+# Returns a path to the resource corresponding to the given conf name
+def _path_conf(conf):
+    return PATH_CONF % conf
 
-# Load the given response body into an Atom specific record
+# Load an atom record from the body of the given response
 def _load_atom(response, match=None):
     return data.load(response.body.read(), match)
+
+# Load an array of atom entries from the body of the given response
+def _load_atom_entries(response):
+    entries = _load_atom(response).feed.get('entry', None)
+    if entries is None: return None
+    return entries if isinstance(entries, list) else [entries]
+
+# Load the sid from the body of the given response
+def _load_sid(response):
+    return _load_atom(response).response.sid
 
 # Parse the given atom entry record into a generic entity state record
 def _parse_atom_entry(entry):
@@ -116,12 +132,7 @@ class Service(Context):
     @property
     def apps(self):
         """Return a collection of applications."""
-        return Collection(self, PATH_APPS,
-            item=Entity,
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_APPS, name=name, **kwargs),
-            dtor=lambda service, name: 
-                service.delete(_path(PATH_APPS, name)))
+        return Collection(self, PATH_APPS)
 
     @property
     def confs(self):
@@ -135,12 +146,17 @@ class Service(Context):
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
+    def event_types(self):
+        return Collection(self, PATH_EVENT_TYPES)
+
+    @property
+    def fired_alerts(self):
+        return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
+
+    @property
     def indexes(self):
         """Return a collection of indexes."""
-        return Collection(self, PATH_INDEXES,
-            item=Index,
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_INDEXES, name=name, **kwargs))
+        return Collection(self, PATH_INDEXES, item=Index)
 
     @property
     def info(self):
@@ -160,17 +176,12 @@ class Service(Context):
     @property
     def loggers(self):
         """Returns a collection of logging categories."""
-        return Collection(self, PATH_LOGGER, item=Entity)
+        return Collection(self, PATH_LOGGER)
 
     @property
     def messages(self):
         """Returns a collection of service messages."""
-        return Collection(self, PATH_MESSAGES,
-            item=Message,
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_MESSAGES, name=name, **kwargs), # value
-            dtor=lambda service, name:
-                service.delete(_path(PATH_MESSAGES, name)))
+        return Collection(self, PATH_MESSAGES, item=Message)
 
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
@@ -183,12 +194,11 @@ class Service(Context):
 
     @property
     def roles(self):
-        return Collection(self, PATH_ROLES,
-            item=Entity,
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_ROLES, name=name, **kwargs),
-            dtor=lambda service, name: 
-                service.delete(_path(PATH_ROLES, name)))
+        return Collection(self, PATH_ROLES)
+
+    @property
+    def saved_searches(self):
+        return SavedSearches(self)
 
     @property
     def settings(self):
@@ -212,75 +222,6 @@ class Endpoint(object):
     def post(self, relpath="", **kwargs):
         """A generic HTTP POST to the endpoint and optional relative path."""
         return self.service.post("%s%s" % (self.path, relpath), **kwargs)
-
-class Collection(Endpoint):
-    """A generic implementation of the Splunk collection protocol."""
-    def __init__(self, service, path, item=None, ctor=None, dtor=None):
-        Endpoint.__init__(self, service, path)
-        self.item = item # Item accessor
-        self.ctor = ctor # Item constructor
-        self.dtor = dtor # Item desteructor
-
-    def __call__(self, **kwargs):
-        return self.list(**kwargs)
-
-    def __contains__(self, name):
-        return self.contains(name)
-
-    def __getitem__(self, key):
-        for item in self.list():
-            if item.name == key: return item
-        raise KeyError, key
-
-    def __iter__(self):
-        for item in self.list(): yield item
-
-    # Load an entity list from the given response
-    def _load_list(self, response):
-        entries = _load_atom(response).feed.get('entry', None)
-        if entries is None: return []
-        if not isinstance(entries, list): entries = [entries]
-        entities = []
-        for entry in entries:
-            state = _parse_atom_entry(entry)
-            entity = self.item(
-                self.service, 
-                state.links.alternate,
-                state=state)
-            entities.append(entity)
-        return entities
-
-    def contains(self, name):
-        """Answers if the given entity name exists in the collection."""
-        for item in self.list():
-            if item.name == name: return True
-        return False
-
-    def create(self, name, **kwargs):
-        if self.ctor is None: raise NotSupportedError
-        if not isinstance(name, basestring): 
-            raise ValueError("Invalid argument: 'name'")
-        self.ctor(self.service, name, **kwargs)
-        return self[name] # UNDONE: Extra round-trip to retrieve entity
-
-    def delete(self, name):
-        if self.dtor is None: raise NotSupportedError
-        self.dtor(self.service, name)
-        return self
-
-    def itemmeta(self):
-        """Returns metadata for members of the collection."""
-        response = self.get("_new")
-        content = _load_atom(response, MATCH_ENTRY_CONTENT)
-        return {
-            'eai:acl': content['eai:acl'],
-            'eai:attributes': content['eai:attributes']
-        }
-
-    # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
-    def list(self, count=0, **kwargs):
-        response = self.get(count=count, **kwargs)
-        return self._load_list(response)
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
@@ -327,7 +268,7 @@ class Entity(Endpoint):
     @property
     def content(self):
         """Return the contents of the entity."""
-        return {} if self._state is None else self._state.content
+        return self.state.content
 
     def disable(self):
         self.post("disable")
@@ -340,17 +281,17 @@ class Entity(Endpoint):
     @property
     def links(self):
         """Return a dictionary of related resources."""
-        return {} if self._state is None else self._state.links
+        return self.state.links
 
     @property
     def metadata(self):
         """Return the entity metadata."""
-        return {} if self._state is None else self._state.metadata
+        return self.state.metadata
 
     @property
     def name(self):
         """Return the entity name."""
-        return None if self._state is None else self._state.title
+        return self.state.title
 
     def read(self):
         """Read the current entity state from the server."""
@@ -362,12 +303,90 @@ class Entity(Endpoint):
 
     @property
     def state(self):
+        if self._state is None: self.refresh()
         return self._state
 
     def update(self, **kwargs):
         """Update the entity using the given kwargs."""
         self.post(**kwargs)
         return self
+
+class Collection(Endpoint):
+    """A generic implementation of the Splunk collection protocol."""
+    def __init__(self, service, path, item=Entity):
+        Endpoint.__init__(self, service, path)
+        self.item = item # Item accessor
+
+    def __call__(self, **kwargs):
+        return self.list(**kwargs)
+
+    def __contains__(self, name):
+        return self.contains(name)
+
+    def __getitem__(self, key):
+        for item in self.list():
+            if item.name == key: return item
+        raise KeyError, key
+
+    def __iter__(self):
+        for item in self.list(): yield item
+
+    # Load an entity list from the given response
+    def _load_list(self, response):
+        entries = _load_atom_entries(response)
+        if entries is None: return []
+        entities = []
+        for entry in entries:
+            state = _parse_atom_entry(entry)
+            entity = self.item(
+                self.service, 
+                state.links.alternate,
+                state=state)
+            entities.append(entity)
+        return entities
+
+    def contains(self, name):
+        """Answers if the given entity name exists in the collection."""
+        for item in self.list():
+            if item.name == name: return True
+        return False
+
+    def create(self, name, **kwargs):
+        if not isinstance(name, basestring): 
+            raise ValueError("Invalid argument: 'name'")
+        self.post(name=name, **kwargs)
+        return self[name] # UNDONE: Extra round-trip to retrieve entity
+
+    def delete(self, name):
+        self.service.delete(_path(self.path, name))
+        return self
+
+    def itemmeta(self):
+        """Returns metadata for members of the collection."""
+        response = self.get("_new")
+        content = _load_atom(response, MATCH_ENTRY_CONTENT)
+        return {
+            'eai:acl': content['eai:acl'],
+            'eai:attributes': content['eai:attributes']
+        }
+
+    # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
+    def list(self, count=-1, **kwargs):
+        response = self.get(count=count, **kwargs)
+        return self._load_list(response)
+
+class Conf(Collection):
+    """A single config, which is a collection of stanzas."""
+    def __init__(self, service, name):
+        self.name = name
+        Collection.__init__(self, service, _path_conf(name), item=Stanza)
+
+class Confs(Collection):
+    """A collection of configs."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_CONFS, 
+            item=lambda service, path, **kwargs:
+                Conf(service, kwargs['state'].title))
 
 class Stanza(Entity):
     """A single config stanza."""
@@ -377,23 +396,21 @@ class Stanza(Entity):
         self.service.request(self.path, message)
         return self
 
-class Conf(Collection):
-    """A single config, which is a collection of stanzas."""
-    def __init__(self, service, name):
-        self.name = name
-        Collection.__init__(self, service, PATH_CONF % name,
-            item=Stanza,
-            ctor=lambda service, stanza, **kwargs:
-                service.post(PATH_CONF % name, name=stanza, **kwargs),
-            dtor=lambda service, stanza:
-                service.delete(_path_stanza(name, stanza)))
+class AlertGroup(Entity):
+    """An entity that represents a group of fired alerts that can be accessed
+       through the `alerts` property."""
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
 
-class Confs(Collection):
-    """A collection of configs."""
-    def __init__(self, service):
-        Collection.__init__(self, service, PATH_CONFS, 
-            item=lambda service, path, **kwargs: 
-                Conf(service, kwargs['state'].title))
+    @property
+    def alerts(self):
+        """Returns a collection of triggered alert instances."""
+        return Collection(self.service, self.path)
+
+    @property
+    def count(self):
+        """Returns the count of triggered alerts."""
+        return int(self.content.triggered_alert_count)
 
 class Index(Entity):
     """Index class access to specific operations."""
@@ -420,15 +437,22 @@ class Index(Entity):
         cn.write("\r\n")
         return cn
 
-    def clean(self):
+    def clean(self, timeout=60):
         """Delete the contents of the index."""
         saved = self.refresh()('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
         self.roll_hot_buckets()
-        while True: # Wait until event count goes to zero
+
+        # Wait until the event count goes to zero
+        count = 0
+        while self.content.totalEventCount != '0' and count < timeout:
             sleep(1)
-            if self.refresh()['totalEventCount'] == '0': break
-        self.update(**saved)
+            count += 1
+            self.refresh()
+
+        self.update(**saved) # Restore original values
+        if self.content.totalEventCount != '0':
+            raise OperationError, "Operation timed out."
         return self
 
     def roll_hot_buckets(self):
@@ -534,7 +558,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
-                response = self.service.get(self.kindpath(kind), count=0)
+                response = self.service.get(self.kindpath(kind), count=-1)
             except HTTPError as e:
                 if e.status == 404: 
                     continue # No inputs of this kind
@@ -543,9 +567,8 @@ class Inputs(Collection):
                 
             # UNDONE: Should use _load_list for the following, but need to
             # pass kind to the `item` method.
-            entries = _load_atom(response).feed.get('entry', None)
+            entries = _load_atom_entries(response)
             if entries is None: continue # No inputs to process
-            if not isinstance(entries, list): entries = [entries]
             for entry in entries:
                 state = _parse_atom_entry(entry)
                 path = state.links.alternate
@@ -642,15 +665,15 @@ class Jobs(Collection):
     def __init__(self, service):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
 
-    def __iter__(self):
-        for item in self.list(): yield item
-
     def create(self, query, **kwargs):
         response = self.post(search=query, **kwargs)
         if kwargs.get("exec_mode", None) == "oneshot":
             return response.body
-        sid = _load_atom(response).response.sid
+        sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count, **kwargs)
 
 class Message(Entity):
     def __init__(self, service, name, **kwargs):
@@ -661,6 +684,45 @@ class Message(Entity):
         # The message value is contained in a entity property whose key is
         # the name of the message.
         return self[self.name]
+
+class SavedSearch(Entity):
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+
+    def acknowledge(self):
+        self.post("acknowledge")
+        return self
+
+    def dispatch(self, **kwargs):
+        response = self.post("dispatch", **kwargs)
+        sid = _load_sid(response)
+        return Job(self.service, PATH_JOBS + sid)
+
+    def history(self):
+        response = self.get("history")
+        entries = _load_atom_entries(response)
+        if entries is None: return []
+        jobs = []
+        for entry in entries:
+            job = Job(self.service, PATH_JOBS + entry.title)
+            jobs.append(job)
+        return jobs
+
+    def update(self, search=None, **kwargs):
+        # Updates to a saved search *require* that the search string be 
+        # passed, so we pass the current search string if a value wasn't
+        # provided by the caller.
+        if search is None: search = self.content.search
+        Entity.update(self, search=search, **kwargs)
+        return self
+
+class SavedSearches(Collection):
+    def __init__(self, service):
+        Collection.__init__(
+            self, service, PATH_SAVED_SEARCHES, item=SavedSearch)
+
+    def create(self, name, search, **kwargs):
+        return Collection.create(self, name, search=search, **kwargs)
 
 class Settings(Entity):
     def __init__(self, service, **kwargs):
@@ -675,12 +737,7 @@ class Settings(Entity):
 # behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_USERS,
-            item=Entity,
-            ctor=lambda service, name, **kwargs:
-                service.post(PATH_USERS, name=name, **kwargs),
-            dtor=lambda service, name: 
-                service.delete(_path(PATH_USERS, name)))
+        Collection.__init__(self, service, PATH_USERS)
 
     def __getitem__(self, key):
         return Collection.__getitem__(self, key.lower())

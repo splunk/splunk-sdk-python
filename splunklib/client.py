@@ -695,6 +695,7 @@ class SavedSearch(Entity):
         # provided by the caller.
         if search is None: search = self.content.search
         Entity.update(self, search=search, **kwargs)
+        return self
 
 class SavedSearches(Collection):
     def __init__(self, service):

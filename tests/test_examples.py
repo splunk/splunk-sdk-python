@@ -73,7 +73,6 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
-        run("index.py create sdk-tests-two")
 
     def test_async(self):
         result = run("async/async.py sync")
@@ -152,10 +151,10 @@ class TestCase(unittest.TestCase):
             "index.py --help",
             "index.py",
             "index.py list",
-            "index.py list sdk-tests-two",
-            "index.py disable sdk-tests-two",
-            "index.py enable sdk-tests-two",
-            "index.py clean sdk-tests-two")
+            "index.py list sdk-tests",
+            "index.py disable sdk-tests",
+            "index.py enable sdk-tests",
+            "index.py clean sdk-tests")
 
     def test_info(self):
         self.check_commands(

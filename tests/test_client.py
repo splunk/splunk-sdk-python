@@ -15,20 +15,17 @@
 # under the License.
 
 from os import path
-import sys
 from time import sleep
-import unittest
 
 import splunklib.client as client
 from splunklib.binding import HTTPError
 import splunklib.results as results
-from utils import parse
 
-opts = None # Command line options
+import testlib
 
 def create_app(service, name):
     service.apps.create(name)
-    restart(service)
+    testlib.restart(service)
 
 def create_user(service, name, password="changeme", roles="power"):
     service.users.create(name, password=password, roles=roles)
@@ -36,46 +33,18 @@ def create_user(service, name, password="changeme", roles="power"):
 def delete_app(service, name):
     if (service.apps.contains(name)):
         service.apps.delete(name)
-        restart(service)
+        testlib.restart(service)
 
 def delete_user(service, name):
     if (service.users.contains(name)):
         service.users.delete(name)
 
-def restart(service):
-    """Restart the given service and wait for it to wake back up."""
-    service.restart()
-    sleep(5) # Wait for service to notice restart
-    wait_for_restart(service)
-
-# When an event is submitted to an index it takes a while before the event
-# is registered by the index's totalEventCount.
-def wait_event_count(index, count, secs):
-    """Wait up to the given number of secs for the given index's
-       totalEventCount to reach the given value."""
-    done = False
-    while not done and secs > 0:
-        sleep(1)
-        index.refresh()
-        done = index['totalEventCount'] == count
-        secs -= 1 # Approximate
-
-def wait_for_restart(service):
-    retry = 30
-    while retry > 0:
-        retry -= 1
-        try:
-            service.login() # Awake yet?
-            return
-        except:
-            sleep(2)
-
 # Verify that we can instantiate and connect to a service, test basic 
 # interaction with the service and make sure we can connect and interact 
 # with a variety of namespace configurations.
-class ServiceTestCase(unittest.TestCase):
+class ServiceTestCase(testlib.TestCase):
     def test(self):
-        kwargs = opts.kwargs.copy()
+        kwargs = self.opts.kwargs.copy()
 
         # Verify connect with no namespace
         service = client.connect(**kwargs)
@@ -146,30 +115,9 @@ class ServiceTestCase(unittest.TestCase):
         self.assertFalse(service.apps.contains(app))
         self.assertFalse(service.users.contains(user))
 
-class ClientTestCase(unittest.TestCase):
-    def setUp(self):
-        self.service = client.connect(**opts.kwargs)
-
-    def assertHttp(self, allowed_error_codes, fn, *args, **kwargs):
-        # This is a special case of "assertRaises", where we want to check
-        # that HTTP calls return the right status.
-        try:
-            returnVal = fn(*args, **kwargs)
-            return returnVal
-        except HTTPError as e:
-            error_msg = "Unexpected error code: %d" % e.status
-            if (isinstance(allowed_error_codes, list)):
-                self.assertTrue(e.status in allowed_error_Codes, error_msg)
-            else:
-                self.assertTrue(e.status == allowed_error_codes, error_msg)
-        except Exception as e:
-            self.fail("HTTPError not raised, caught %s instead", str(type(e)))
-
-    def tearDown(self):
-        pass
-
+class ClientTestCase(testlib.TestCase):
     def test_apps(self):
-        service = self.service
+        service = client.connect(**self.opts.kwargs)
 
         for app in service.apps: app.refresh()
 
@@ -189,6 +137,8 @@ class ClientTestCase(unittest.TestCase):
         self.assertFalse(service.apps.contains('sdk-tests'))
 
     def test_capabilities(self):
+        service = client.connect(**self.opts.kwargs)
+
         expected = [
             "admin_all_objects", "change_authentication", 
             "change_own_password", "delete_by_keyword",
@@ -204,11 +154,12 @@ class ClientTestCase(unittest.TestCase):
             "rest_apps_view", "rest_properties_get", "rest_properties_set",
             "restart_splunkd", "rtsearch", "schedule_search", "search",
             "use_file_operator" ]
-        capabilities = self.service.capabilities
+
+        capabilities = service.capabilities
         for item in expected: self.assertTrue(item in capabilities)
 
     def test_confs(self):
-        service = self.service
+        service = client.connect(**self.opts.kwargs)
 
         for conf in service.confs:
             for stanza in conf: stanza.refresh()
@@ -237,7 +188,9 @@ class ClientTestCase(unittest.TestCase):
         self.assertFalse(props.contains('sdk-tests')) 
 
     def test_info(self):
-        info = self.service.info
+        service = client.connect(**self.opts.kwargs)
+
+        info = service.info
         keys = [
             "build", "cpu_arch", "guid", "isFree", "isTrial", "licenseKeys",
             "licenseSignature", "licenseState", "master_guid", "mode", 
@@ -245,7 +198,7 @@ class ClientTestCase(unittest.TestCase):
         for key in keys: self.assertTrue(key in info.keys())
 
     def test_indexes(self):
-        service = self.service
+        service = client.connect(**self.opts.kwargs)
 
         for index in service.indexes: index.refresh()
 
@@ -290,18 +243,18 @@ class ClientTestCase(unittest.TestCase):
         cn = index.attach()
         cn.write("Hello World!")
         cn.close()
-        wait_event_count(index, '1', 30)
+        testlib.wait(index, lambda index: index['totalEventCount'] == '1')
         self.assertEqual(index['totalEventCount'], '1')
 
         index.submit("Hello again!!")
-        wait_event_count(index, '2', 30)
+        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
         self.assertEqual(index['totalEventCount'], '2')
 
         # The following test must run on machine where splunkd runs,
         # otherwise a failure is expected
         testpath = path.dirname(path.abspath(__file__))
         index.upload(path.join(testpath, "testfile.txt"))
-        wait_event_count(index, '3', 30)
+        testlib.wait(index, lambda index: index['totalEventCount'] == '3')
         self.assertEqual(index['totalEventCount'], '3')
 
         index.clean()
@@ -309,16 +262,19 @@ class ClientTestCase(unittest.TestCase):
         self.assertEqual(index['totalEventCount'], '0')
 
     def test_indexes_metadata(self):
-        metadata = self.service.indexes.itemmeta()
+        service = client.connect(**self.opts.kwargs)
+
+        metadata = service.indexes.itemmeta()
         self.assertTrue(metadata.has_key('eai:acl'))
         self.assertTrue(metadata.has_key('eai:attributes'))
-        for index in self.service.indexes:
+        for index in service.indexes:
             metadata = index.metadata
             self.assertTrue(metadata.has_key('eai:acl'))
             self.assertTrue(metadata.has_key('eai:attributes'))
 
     def test_inputs(self):
-        inputs = self.service.inputs
+        service = client.connect(**self.opts.kwargs)
+        inputs = service.inputs
 
         for input_ in inputs: input_.refresh()
 
@@ -348,36 +304,20 @@ class ClientTestCase(unittest.TestCase):
         inputs.delete('9999')
         self.assertFalse(inputs.contains('9999'))
 
-    def runjob(self, query, secs):
-        """Create a job to run the given search and wait up to (approximately)
-           the given number of seconds for it to complete.""" 
-        job = self.service.jobs.create(query)
-        return self.wait_for_completion(job, secs=secs)
-
-    def wait_for_completion(self, job, secs = 30):
-        done = False
-        while not done and secs > 0:
-            sleep(1)
-            job.refresh()
-            done = bool(int(job['isDone']))
-            secs -= 1 # Approximate
-        return job
-
+    # UNDONE: Shouldnt the following assert something on exit?
     def check_properties(self, job, properties, secs = 10):
         while secs > 0 and len(properties) > 0:
-            read_props = job.refresh().content
-            asserted = []
+            content = job.refresh().content
 
             # Try and check every property we specified. If we fail,
             # we'll try again later. If we succeed, delete it so we
             # don't check it again.
-            for prop_name in properties.keys():
+            for k, v in properties.items():
                 try:
-                    expected_value = properties[prop_name]
-                    self.assertEqual(read_props[prop_name], expected_value)
+                    self.assertEqual(content[k], v)
                     
                     # Since we succeeded, delete it
-                    del properties[prop_name]
+                    del properties[k]
                 except:
                     pass
 
@@ -385,13 +325,14 @@ class ClientTestCase(unittest.TestCase):
             sleep(1)
 
     def test_jobs(self):
-        jobs = self.service.jobs
+        service = client.connect(**self.opts.kwargs)
 
+        jobs = service.jobs
         for job in jobs: job.refresh()
 
-        if not self.service.indexes.contains("sdk-tests"):
-            self.service.indexes.create("sdk-tests")
-        self.service.indexes['sdk-tests'].clean()
+        if not service.indexes.contains("sdk-tests"):
+            service.indexes.create("sdk-tests")
+        service.indexes['sdk-tests'].clean()
 
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests")
@@ -419,9 +360,10 @@ class ClientTestCase(unittest.TestCase):
         self.assertFalse(jobs.contains(job.sid))
 
         # Search for non-existant data
-        job = self.runjob("search index=sdk-tests TERM_DOES_NOT_EXIST", 10)
-        self.assertTrue(bool(int(job['isDone'])))
-        self.assertEqual(int(job['eventCount']), 0)
+        job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
+        testlib.wait(job, lambda job: job['isDone'] == '1')
+        self.assertEqual(job['isDone'], '1')
+        self.assertEqual(job['eventCount'], '0')
         job.finalize()
         
         # Create a new job
@@ -459,13 +401,15 @@ class ClientTestCase(unittest.TestCase):
 
         # Run a new job to get the results, but we also make
         # sure that there is at least one event in the index already
-        index = self.service.indexes['sdk-tests']
+        index = service.indexes['sdk-tests']
         old_event_count = int(index['totalEventCount'])
         if old_event_count == 0:
             index.submit("test event")
-            wait_event_count(index, 1, 10)
+            testlib.wait(index, lambda index: index['totalEventCount'] == '1')
 
-        job = self.runjob("search index=sdk-tests | head 1 | stats count", 10)
+        job = jobs.create("search index=sdk-tests | head 1 | stats count")
+        testlib.wait(job, lambda job: job['isDone'] == '1')
+        self.assertEqual(job['isDone'], '1')
 
         # Fetch the results
         reader = results.ResultsReader(job.results())
@@ -481,7 +425,7 @@ class ClientTestCase(unittest.TestCase):
         self.assertEqual(int(result["count"]), 1)
 
     def test_loggers(self):
-        service = self.service
+        service = client.connect(**self.opts.kwargs)
 
         levels = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
         for logger in service.loggers:
@@ -500,16 +444,26 @@ class ClientTestCase(unittest.TestCase):
         self.assertEqual(service.loggers['AuditLogger']['level'], saved)
 
     def test_parse(self):
-        response = self.service.parse("search *")
+        service = client.connect(**self.opts.kwargs)
+
+        response = service.parse("search *")
         self.assertEqual(response.status, 200)
 
-        response = self.service.parse("search index=twitter status_count=* | stats count(status_source) as count by status_source | sort -count | head 20")
+        response = service.parse("search index=twitter status_count=* | stats count(status_source) as count by status_source | sort -count | head 20")
         self.assertEqual(response.status, 200)
 
-        self.assertHttp(400, self.service.parse, "xyzzy")
+        try:
+            service.parse("xyzzy")
+            self.fail()
+        except HTTPError, e:
+            self.assertEqual(e.status, 400)
+        except:
+            self.fail()
 
     def test_messages(self):
-        messages = self.service.messages
+        service = client.connect(**self.opts.kwargs)
+
+        messages = service.messages
 
         if messages.contains('sdk-test-message1'):
             messages.delete('sdk-test-message1')
@@ -545,16 +499,19 @@ class ClientTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             messages.create(None, value="What?")
             messages.create(42, value="Who, me?")
-            messages.create([1,2,3], value="Who, me?")
+            messages.create([1, 2,  3], value="Who, me?")
 
     def test_restart(self):
-        restart(self.service)
-        self.service.login() # Make sure we are awake
+        service = client.connect(**self.opts.kwargs)
+        testlib.restart(service)
+        service.login() # Make sure we are awake
 
     def test_roles(self):
-        roles = self.service.roles
+        service = client.connect(**self.opts.kwargs)
 
-        capabilities = self.service.capabilities
+        roles = service.roles
+
+        capabilities = service.capabilities
         for role in roles:
             for capability in role.content.capabilities:
                 self.assertTrue(capability in capabilities)
@@ -571,7 +528,8 @@ class ClientTestCase(unittest.TestCase):
         self.assertFalse(roles.contains("sdk-tester"))
 
     def test_settings(self):
-        settings = self.service.settings
+        service = client.connect(**self.opts.kwargs)
+        settings = service.settings
 
         # Verify that settings contains the keys we expect
         keys = [
@@ -596,8 +554,9 @@ class ClientTestCase(unittest.TestCase):
         self.assertEqual(updated, original)
 
     def test_users(self):
-        users = self.service.users
-        roles = self.service.roles
+        service = client.connect(**self.opts.kwargs)
+        users = service.users
+        roles = service.roles
 
         # Verify that we can read the users collection
         for user in users:
@@ -642,13 +601,5 @@ class ClientTestCase(unittest.TestCase):
         self.assertFalse(users.contains("SDK-User"))
         self.assertFalse(users.contains("sdk-user"))
 
-# Runs the given named test, useful for debugging.
-def runone(test):
-    suite = unittest.TestSuite()
-    suite.addTest(test)
-    unittest.TextTestRunner().run(suite)
-        
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    #runone(ClientTestCase("test_users"))
-    unittest.main(argv=sys.argv[:1])
+    testlib.main()

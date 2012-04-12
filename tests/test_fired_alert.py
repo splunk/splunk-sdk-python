@@ -14,14 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys
-from time import sleep
-import unittest
-
 import splunklib.client as client
-from utils import parse
 
-opts = None # Command line options
+import testlib
 
 def event_count(index):
     return int(index.content.totalEventCount)
@@ -29,20 +24,9 @@ def event_count(index):
 def alert_count(search):
     return int(search.content.get('triggered_alert_count', 0))
 
-# UNDONE: move the following (duplicated) routine into utility module
-def wait(entity, predicate, timeout=60):
-    secs = 0
-    while not predicate(entity):
-        if secs > timeout:
-            raise Exception, "Operation timed out."
-        sleep(1)
-        secs += 1
-        entity.refresh()
-    return entity
-
-class TestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
     def test_crud(self):
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
 
         searches = service.saved_searches
         fired_alerts = service.fired_alerts
@@ -83,7 +67,7 @@ class TestCase(unittest.TestCase):
         # Clear out any search history that may have matched due to reuse of 
         # the saved search name.
         for job in search.history(): job.cancel()
-        wait(search, lambda search: len(search.history()) == 0)
+        testlib.wait(search, lambda search: len(search.history()) == 0)
         self.assertEqual(len(search.history()), 0)
 
         # Now schedule the saved search
@@ -94,7 +78,7 @@ class TestCase(unittest.TestCase):
 
         # Wait for the saved search to run. When it runs we will see a new job
         # show up in the search's history.
-        wait(search, lambda search: len(search.history()) == 1)
+        testlib.wait(search, lambda search: len(search.history()) == 1)
         self.assertEqual(len(search.history()), 1)
 
         # When it first runs the alert count should be zero.
@@ -110,11 +94,11 @@ class TestCase(unittest.TestCase):
             # for the indexer to process.
             self.assertTrue(event_count(index) <= count)
             index.submit("Hello #%d!!!" % count)
-            wait(index, lambda index: event_count(index) == count)
+            testlib.wait(index, lambda index: event_count(index) == count)
 
             # Wait for the saved search to register the triggered alert
             self.assertTrue(alert_count(search) <= count)
-            wait(search, lambda search: alert_count(search) == count)
+            testlib.wait(search, lambda search: alert_count(search) == count)
             self.assertEqual(alert_count(search), count)
 
             # And now .. after all that trouble, verify that we see the alerts!
@@ -129,7 +113,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse(search_name in fired_alerts)
 
     def test_read(self):
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
 
         for alert_group in service.fired_alerts:
             alert_group.count
@@ -137,5 +121,4 @@ class TestCase(unittest.TestCase):
                 alert.content
 
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    unittest.main(argv=sys.argv[:1])
+    testlib.main()

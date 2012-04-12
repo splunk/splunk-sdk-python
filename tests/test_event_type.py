@@ -14,21 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys
-import unittest
-
 import splunklib.client as client
-from utils import parse
 
-opts = None # Command line options
+import testlib
 
-class TestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
     def check_content(self, entity, **kwargs):
         for k, v in kwargs.iteritems(): 
             self.assertEqual(entity[k], str(v))
 
     def test(self):
-        event_types = client.connect(**opts.kwargs).event_types
+        event_types = client.connect(**self.opts.kwargs).event_types
 
         if 'sdk-test' in event_types:
             event_types.delete('sdk-test')
@@ -66,6 +62,4 @@ class TestCase(unittest.TestCase):
         self.assertFalse('sdk-teset' in event_types)
 
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    unittest.main(argv=sys.argv[:1])
-
+    testlib.main()

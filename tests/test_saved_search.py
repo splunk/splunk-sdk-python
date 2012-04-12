@@ -14,32 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys
-from time import sleep
-import unittest
-
 import splunklib.client as client
-from utils import parse
 
-opts = None # Command line options
+import testlib
 
-def wait(entity, predicate, timeout=30):
-    secs = 0
-    done = False
-    while not done and secs < timeout:
-        sleep(1)
-        secs += 1
-        entity.refresh()
-        done = predicate(entity)
-    return entity
-
-class TestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
     def check_content(self, entity, **kwargs):
         for k, v in kwargs.iteritems(): 
             self.assertEqual(entity[k], str(v))
 
     def test_crud(self):
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches
 
         if 'sdk-test1' in saved_searches:
@@ -71,7 +56,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse('sdk-test1' in saved_searches)
 
     def test_dispatch(self):
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches
 
         if 'sdk-test1' in saved_searches:
@@ -84,14 +69,14 @@ class TestCase(unittest.TestCase):
         self.assertTrue('sdk-test1' in saved_searches)
 
         job = saved_search.dispatch()
-        wait(job, lambda job: bool(int(job['isDone'])))
+        testlib.wait(job, lambda job: bool(int(job['isDone'])))
         job.results().close()
         job.cancel()
 
         # Dispatch with some additional options
         kwargs = { 'dispatch.buckets': 100 }
         job = saved_search.dispatch(**kwargs)
-        wait(job, lambda job: bool(int(job['isDone'])))
+        testlib.wait(job, lambda job: bool(int(job['isDone'])))
         job.timeline().close()
         job.cancel()
 
@@ -99,7 +84,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse('sdk-test1' in saved_searches)
 
     def test_history(self):
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches
 
         if 'sdk-test1' in saved_searches:
@@ -149,7 +134,8 @@ class TestCase(unittest.TestCase):
         self.assertFalse('sdk-test1' in saved_searches)
 
     def test_read(self):
-        saved_searches = client.connect(**opts.kwargs).saved_searches
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
 
         if 'sdk-test1' in saved_searches:
             saved_searches.delete('sdk-test1')
@@ -195,5 +181,4 @@ class TestCase(unittest.TestCase):
         self.assertFalse('sdk-test1' in saved_searches)
 
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    unittest.main(argv=sys.argv[:1])
+    testlib.main()

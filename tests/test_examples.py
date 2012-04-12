@@ -17,14 +17,11 @@
 import os
 from subprocess import PIPE, Popen
 import time
-import unittest 
 import sys
 
 import splunklib.client as client
 
-from utils import parse
-
-opts = None # Command line options
+import testlib 
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -53,24 +50,15 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     script = ["python"] + script
     return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr)
 
-# When an event is submitted to an index it takes a while before the event
-# is registered by the index's totalEventCount.
-def wait_event_count(index, count, secs):
-    """Wait up to the given number of secs for the given index's
-       totalEventCount to reach the given value."""
-    done = False
-    while not done and secs > 0:
-        time.sleep(1)
-        secs -= 1 # Approximate
-        done = index['totalEventCount'] == count
-
 # Rudimentary sanity check for each of the examples
-class TestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
     def check_commands(self, *args):
         for arg in args: 
             self.assertEquals(run(arg), 0)
 
     def setUp(self):
+        testlib.TestCase.setUp(self)
+
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
@@ -283,9 +271,9 @@ class TestCase(unittest.TestCase):
 
         # Create a tracker
         tracker = analytics.input.AnalyticsTracker(
-            "sdk-test", opts.kwargs, index = "sdk-test")
+            "sdk-test", self.opts.kwargs, index = "sdk-test")
 
-        service = client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
 
         # Before we start, we'll clean the index
         index = service.indexes["sdk-test"]
@@ -295,11 +283,11 @@ class TestCase(unittest.TestCase):
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
         # Wait until the events get indexed
-        wait_event_count(index, 2, 10)
+        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(
-            "sdk-test", opts.kwargs, index = "sdk-test")    
+            "sdk-test", self.opts.kwargs, index = "sdk-test")    
         
         # Assert applications
         applications = retriever.applications()
@@ -350,7 +338,5 @@ class TestCase(unittest.TestCase):
         index.clean()
  
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
     os.chdir("../examples")
-    # Don't pass the Splunk cmdline args to unittest
-    unittest.main(argv=sys.argv[:1])
+    testlib.main()

@@ -28,8 +28,10 @@ files = [
     "test_binding.py",
     "test_collection.py",
     "test_client.py",
+    "test_app.py",
     "test_event_type.py",
     "test_fired_alert.py",
+    "test_user.py",
     "test_saved_search.py",
     "test_examples.py",
 ]

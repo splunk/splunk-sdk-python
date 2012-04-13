@@ -23,21 +23,10 @@ import splunklib.results as results
 
 import testlib
 
-def create_app(service, name):
-    service.apps.create(name)
-    testlib.restart(service)
-
-def create_user(service, name, password="changeme", roles="power"):
-    service.users.create(name, password=password, roles=roles)
-
 def delete_app(service, name):
     if (service.apps.contains(name)):
         service.apps.delete(name)
         testlib.restart(service)
-
-def delete_user(service, name):
-    if (service.users.contains(name)):
-        service.users.delete(name)
 
 # Verify that we can instantiate and connect to a service, test basic 
 # interaction with the service and make sure we can connect and interact 
@@ -71,71 +60,51 @@ class ServiceTestCase(testlib.TestCase):
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        app = "sdk-tests"
-        user = "sdk-user"
-        delete_app(service, app)
-        delete_user(service, user)
-        self.assertFalse(service.apps.contains(app))
-        self.assertFalse(service.users.contains(user))
+        appname = "sdk-test-app"
+        username = "sdk-test-user"
+        delete_app(service, appname)
+        if username in service.users: service.users.delete(username)
+        self.assertFalse(service.apps.contains(appname))
+        self.assertFalse(service.users.contains(username))
 
         # App & owner dont exist, verify that the following errors
-        kwargs.update({ 'app': app, 'owner': user })
+        kwargs.update({ 'app': appname, 'owner': username })
         with self.assertRaises(HTTPError):
             service_ns = client.connect(**kwargs)
             service_ns.apps()
 
         # Validate namespace permutations with new app & user
-        create_app(service, app)
-        create_user(service, user)
+        service.apps.create(appname)
+        service.users.create(username, password="changeme", roles="power")
 
-        kwargs.update({ 'app': app, 'owner': None })
+        kwargs.update({ 'app': appname, 'owner': None })
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        kwargs.update({ 'app': app, 'owner': "-" })
+        kwargs.update({ 'app': appname, 'owner': "-" })
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        kwargs.update({ 'app': None, 'owner': user })
+        kwargs.update({ 'app': None, 'owner': username })
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        kwargs.update({ 'app': "-", 'owner': user })
+        kwargs.update({ 'app': "-", 'owner': username })
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
-        kwargs.update({ 'app': app, 'owner': user })
+        kwargs.update({ 'app': appname, 'owner': username })
         service_ns = client.connect(**kwargs)
         service_ns.apps()
 
         # Cleanup
-        delete_app(service, app)
-        delete_user(service, user)
+        delete_app(service, appname)
+        service.users.delete(username)
 
-        self.assertFalse(service.apps.contains(app))
-        self.assertFalse(service.users.contains(user))
+        self.assertFalse(service.apps.contains(appname))
+        self.assertFalse(service.users.contains(username))
 
 class ClientTestCase(testlib.TestCase):
-    def test_apps(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for app in service.apps: app.refresh()
-
-        delete_app(service, 'sdk-tests')
-        self.assertFalse(service.apps.contains('sdk-tests'))
-
-        create_app(service, 'sdk-tests')
-        self.assertTrue(service.apps.contains('sdk-tests'))
-
-        testapp = service.apps['sdk-tests']
-        self.assertTrue(testapp['author'] != "Splunk")
-        testapp.update(author="Splunk")
-        testapp.refresh()
-        self.assertTrue(testapp['author'] == "Splunk")
-
-        delete_app(service, 'sdk-tests')
-        self.assertFalse(service.apps.contains('sdk-tests'))
-
     def test_capabilities(self):
         service = client.connect(**self.opts.kwargs)
 
@@ -163,8 +132,7 @@ class ClientTestCase(testlib.TestCase):
 
         for conf in service.confs:
             for stanza in conf: stanza.refresh()
-            # no need to refresh every conf file for the test
-            break
+            break # no need to refresh every conf file for the test
 
         self.assertTrue(service.confs.contains('props'))
         props = service.confs['props']
@@ -552,54 +520,6 @@ class ClientTestCase(testlib.TestCase):
         settings.refresh()
         updated = settings['sessionTimeout']
         self.assertEqual(updated, original)
-
-    def test_users(self):
-        service = client.connect(**self.opts.kwargs)
-        users = service.users
-        roles = service.roles
-
-        # Verify that we can read the users collection
-        for user in users:
-            for role in user.content.roles:
-                self.assertTrue(roles.contains(role))
-
-        if users.contains("sdk-user"): users.delete("sdk-user")
-        self.assertFalse(users.contains("sdk-user"))
-
-        user = users.create("sdk-user", password="changeme", roles="power")
-        self.assertTrue(users.contains("sdk-user"))
-
-        # Verify the new user has the expected attributes
-        self.assertTrue('email' in user.content)
-        self.assertTrue('password' in user.content)
-        self.assertTrue('realname' in user.content)
-        self.assertTrue('roles' in user.content)
-
-        # Verify that we can update the user
-        self.assertTrue(user['email'] is None)
-        user.update(email="foo@bar.com")
-        user.refresh()
-        self.assertTrue(user['email'] == "foo@bar.com")
-
-        # Verify that we can delete the user
-        users.delete("sdk-user")
-        self.assertFalse(users.contains("sdk-user"))
-
-        # Splunk lowercases user names, verify the casing works as expected
-        self.assertFalse(users.contains("sdk-user"))
-        self.assertFalse(users.contains("SDK-User"))
-
-        user = users.create("SDK-User", password="changeme", roles="power")
-        self.assertTrue(user.name == "sdk-user")
-        self.assertTrue(users.contains("SDK-User"))
-        self.assertTrue(users.contains("sdk-user"))
-
-        user = users['SDK-User']
-        self.assertTrue(user.name == "sdk-user")
-
-        users.delete("SDK-User")
-        self.assertFalse(users.contains("SDK-User"))
-        self.assertFalse(users.contains("sdk-user"))
 
 if __name__ == "__main__":
     testlib.main()

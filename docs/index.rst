@@ -6,6 +6,23 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+splunklib.binding
+-----------------
+
+.. automodule:: splunklib.binding
+
+.. autofunction:: prefix
+.. autofunction:: namespace
+.. autofunction:: connect
+
+.. autoclass:: Context
+    :members:
+
+.. autoclass:: HTTPError
+
+splunklib.client
+----------------
+
 .. automodule:: splunklib.client
 
 .. autofunction:: connect
@@ -21,6 +38,24 @@ Contents:
 
 .. autoclass:: Service
     :members:
+
+splunklib.data
+--------------
+
+.. automodule:: splunklib.data
+
+.. autofunction:: load
+
+.. autoclass:: Record
+
+.. autofunction:: record
+
+splunklib.results
+-----------------
+
+.. automodule:: splunklib.results
+
+.. autoclass:: ResultsReader
 
 Indices and tables
 ==================

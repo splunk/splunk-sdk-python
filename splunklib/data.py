@@ -12,7 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A generic ATOM response loader."""
+"""An ATOM response loader for the Splunk REST API.
+
+This module provides a simple utility :func:`load` that reads ATOM XML data
+like that returned by the Splunk REST API and returns it as a native Python
+`dict`.
+"""
 
 from xml.etree.ElementTree import XML
 
@@ -160,6 +165,9 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
+    """A generic utiliity class that enables *dot* access to members of 
+    a Python dict.
+    """
     def __call__(self, *args):
         if len(args) == 0: return self
         return Record((key, self[key]) for key in args)
@@ -183,6 +191,7 @@ class Record(dict):
         return result
 
 def record(value=None): 
+    """Returns a record instance constructed using the given value."""
     if value is None: value = {}
     return Record(value)
 

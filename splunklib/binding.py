@@ -12,7 +12,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Low-level 'binding' interface to the Splunk REST API."""
+"""Low-level *binding* interface for the Splunk REST API.
+
+This module is designed to enable client side interaction with the Splunk
+REST API at the level of HTTP requests and responses and provides some simple
+helpers for things like Splunk authentication and the use of Splunk namespaces.
+This module is specifically designed to be *lightweight* and faithful to the 
+underlying REST API. If you are looking for a *friendlier* interface to the
+Splunk REST API then you should consider the :mod:splunklib.client module.
+"""
 
 #
 # A note on namespaces:

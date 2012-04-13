@@ -26,7 +26,7 @@
 # Entity state, are written so that they may be used in a fluent style.
 #
 
-"""Client interface to the Splunk REST API."""
+"""Client interface for the Splunk REST API."""
 
 # UNDONE: Add Collection.refresh and list caching
 # UNDONE: Resolve conflict between Collection.delete and name of REST method
@@ -121,12 +121,46 @@ def _parse_atom_entry(entry):
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
-    """Establishes an authenticated connection to the specified service."""
+    """Establishes an authenticated connection to a Splunk :class:`Service`.
+
+    :param `host`: host name (default `localhost`)
+    :param `port`: port number (default 8089)
+    :param `scheme`: scheme for accessing service (default `https`)
+    :param `owner`: owner namespace (optional)
+    :param `app`: app context (optional)
+    :param `token`: session token (optional) - enables sharing session tokens
+                    between multiple :class:`Service` istances
+    :param `username`: username to login with
+    :param `password`: password to login with
+    :return: An initialized :class:`Service` instance
+    """
     return Service(**kwargs).login()
 
 class Service(Context):
-    """The Splunk service."""
+    """Representation of a Splunk service at a given address (`host:port`)
+    accessed using a given protocol "scheme" (`http` or `https`). 
+    
+    A service instance also captures an optional namespace context consisting 
+    of an optional owner name (or "-" wildcard) and optional app name (or "-" 
+    wildcard. In order to access :class:`Service` members the instance must
+    be authenticated by presenting credentials using the :meth:`login` method 
+    or by constructing the instance using the :func:`connect` function which 
+    both creates and authenticates the instance.
+    """
+
     def __init__(self, **kwargs):
+        """Constructs a new :class:`Service` instance using the given 
+        arguments.
+
+        :param `host`: host name (default `localhost`)
+        :param `port`: port number (default 8089)
+        :param `scheme`: scheme for accessing service (default `https`)
+        :param `owner`: owner namespace (optional)
+        :param `app`: app context (optional)
+        :param `token`: session token (optional)
+        :param `username`: username to login with
+        :param `password`: password to login with
+        """
         Context.__init__(self, **kwargs)
 
     @property
@@ -136,21 +170,24 @@ class Service(Context):
 
     @property
     def confs(self):
-        """Return a collection of configs."""
+        """Return a collection of configurations."""
         return Confs(self)
 
     @property
     def capabilities(self):
-        """Returns a list of all Splunk capabilities."""
+        """Returns a list of system capabilities."""
         response = self.get(PATH_CAPABILITIES)
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
     def event_types(self):
+        """Returns a collection of saved event types."""
         return Collection(self, PATH_EVENT_TYPES)
 
     @property
     def fired_alerts(self):
+        """Returns a collection of alerts that have been fired by the service.
+        """
         return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
 
     @property
@@ -160,12 +197,13 @@ class Service(Context):
 
     @property
     def info(self):
-        """Returns server information."""
+        """Returns information about the sevice."""
         response = self.get("server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
 
     @property
     def inputs(self):
+        """Returns a collection of configured inputs."""
         return Inputs(self)
 
     @property
@@ -175,7 +213,8 @@ class Service(Context):
 
     @property
     def loggers(self):
-        """Returns a collection of logging categories."""
+        """Returns a collection of service logging categories and their status.
+        """
         return Collection(self, PATH_LOGGER)
 
     @property
@@ -185,28 +224,39 @@ class Service(Context):
 
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
-        """Test a search query through the parser."""
+        """Parse the given search query and return a semantic map of the search.
+
+        :param query: the search query to parse
+        :param kwargs: optional arguments to pass to the `search/parser` 
+                       endpoint
+        :return: semantic map of the parsed search query
+        """
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self):
-        """Restart the service."""
+        """Restart the service. The service will be unavailable until it has
+        successfully restarted.
+        """
         return self.get("server/control/restart")
 
     @property
     def roles(self):
+        """Returns a collection of user roles."""
         return Collection(self, PATH_ROLES)
 
     @property
     def saved_searches(self):
+        """Returns a collection of saved searches."""
         return SavedSearches(self)
 
     @property
     def settings(self):
-        """Return the server settings entity."""
+        """Returns configuration settings for the service."""
         return Settings(self)
 
     @property
     def users(self):
+        """Returns a collection of users."""
         return Users(self)
 
 class Endpoint(object):

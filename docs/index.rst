@@ -8,6 +8,8 @@ Contents:
 
 .. automodule:: splunklib.client
 
+.. autofunction:: connect
+
 .. autoclass:: Collection
     :members:
 

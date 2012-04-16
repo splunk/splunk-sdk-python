@@ -4,7 +4,8 @@
 
 ### Features
 
-* Support for IPv6, can now connect to a splunkd listening on an IPv6 address.
+* Support for IPv6 - it is now possible to connect to a Splunk instance 
+  listening on an IPv6 address.
 * Improvements to entity state management
 * Improvements to usability of entity collections
 * Support for collection paging - collections now support the paging arguments:
@@ -20,6 +21,7 @@
 * Support for saved searches:
     - Added Service.saved_searches + units
     - Added examples/saved_searches.py
+* Sphinx based SDK API docs build and improved source code docstrings.
 
 ### Breaking changes
 

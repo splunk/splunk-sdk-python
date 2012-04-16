@@ -12,7 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A generic ATOM response loader."""
+"""An ATOM response loader for the Splunk REST API.
+
+This module provides a simple utility :func:`load` that reads ATOM XML data
+like that returned by the Splunk REST API and returns it as a native Python
+`dict`.
+"""
 
 from xml.etree.ElementTree import XML
 
@@ -52,9 +57,15 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Load the given XML text into a Python structure, optionally loading 
-       only the matching sub-elements if a match string is given. The match
-       string consists of either a tag name or path."""
+    """Load the given XML text into a native Python structure (dict or list), 
+    optionally loading nly the matching sub-elements if a match string is
+    given. The match string consists of either a tag name or path.
+
+    :param `text`: text (XML) to load
+    :type `text`: string
+    :param `match`: tag name or path (optional)
+    :type `match`: string
+    """
     if text is None: return None
     text = text.strip()
     if len(text) == 0: return None
@@ -160,6 +171,9 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
+    """A generic utiliity class that enables dot access to members of 
+    a Python dictionary.
+    """
     def __call__(self, *args):
         if len(args) == 0: return self
         return Record((key, self[key]) for key in args)
@@ -183,6 +197,11 @@ class Record(dict):
         return result
 
 def record(value=None): 
+    """Returns a record instance constructed using the given value.
+    
+    :param `value`: initial record value
+    :type `value`: dict
+    """
     if value is None: value = {}
     return Record(value)
 

@@ -121,22 +121,18 @@ class Context(object):
     authenticated by presenting credentials using the :meth:`login` method
     or by constructing the instance using the :func:`connect` function 
     which both creates and authenticates the instance.
+
+    :param `host`: host name (default `localhost`)
+    :param `port`: port number (default 8089)
+    :param `scheme`: scheme for accessing service (default `https`)
+    :param `owner`: owner namespace (optional)
+    :param `app`: app context (optional)
+    :param `token`: session token to reuse (optional)
+    :param `username`: username to login with
+    :param `password`: password to login with
+    :param `handler`: HTTP request handler (optional)
     """
-
-    # kwargs: scheme, host, port, app, owner, username, password
     def __init__(self, handler=None, **kwargs):
-        """Constructs a new :class:`Context` instance using the given arguments.
-
-        :param `host`: host name (default `localhost`)
-        :param `port`: port number (default 8089)
-        :param `scheme`: scheme for accessing service (default `https`)
-        :param `owner`: owner namespace (optional)
-        :param `app`: app context (optional)
-        :param `token`: session token (optional)
-        :param `username`: username to login with
-        :param `password`: password to login with
-        :param `handler`: HTTP request handler (optional)
-        """
         self.http = HttpLib(handler)
         self.token = None
         self.prefix = prefix(**kwargs)

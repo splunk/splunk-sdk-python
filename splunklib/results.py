@@ -12,7 +12,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A progressive XML reader."""
+"""A streaming XML reader for Splunk search results.
+
+Splunk search results can be returned in a variety of formats including XML,
+JSON and CSV. XML search results are returned as a stream of XML *fragments*
+and not as a single XML document in order to facilitate streaming of search
+results. This module provies support for incrimentally reading a single result
+record at a time from such a result stream, which provides a friendly iterator
+based interface for accessing serach results that also has the important benefit
+of avoiding buffering of the result set, which can be very large.
+
+In order to use the reader, simply instantiate the reader on a search result 
+stream::
+
+    reader = ResultsReader(result_stream)
+    for item in reader:
+        pprint(item)
+"""
 
 from cStringIO import StringIO
 import xml.dom.pulldom as pulldom

@@ -11,14 +11,15 @@ splunklib.binding
 
 .. automodule:: splunklib.binding
 
-.. autofunction:: prefix
-.. autofunction:: namespace
 .. autofunction:: connect
 
 .. autoclass:: Context
     :members:
 
+.. autofunction:: handler
+
 .. autoclass:: HTTPError
+    :members:
 
 splunklib.client
 ----------------
@@ -84,7 +85,7 @@ splunklib.client
 .. autoclass:: NotSupportedError
     :members:
 
-.. autoclass:: OpeartionError
+.. autoclass:: OperationError
     :members:
 
 splunklib.data

@@ -26,7 +26,8 @@
 # Entity state, are written so that they may be used in a fluent style.
 #
 
-"""Client interface for the Splunk REST API."""
+"""This module provides a client interface for the `Splunk REST API
+<http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_."""
 
 # UNDONE: Add Collection.refresh and list caching
 # UNDONE: Resolve conflict between Collection.delete and name of REST method
@@ -121,51 +122,60 @@ def _parse_atom_entry(entry):
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
-    """Establishes an authenticated connection to a Splunk :class:`Service`.
+    """Establishes an authenticated connection to a Splunk :class:`Service`
+    instance.
 
-    :param `host`: host name (default `localhost`)
-    :param `port`: port number (default 8089)
-    :param `scheme`: scheme for accessing service (default `https`)
-    :param `owner`: owner namespace (optional)
-    :param `app`: app context (optional)
-    :param `token`: session token to reuse (optional)
-    :param `username`: username to login with
-    :param `password`: password to login with
-    :return: An initialized :class:`Service` instance
+    :param `host`: The host name (the default is *localhost*).
+    :param `port`: The port number (the default is *8089*).
+    :param `scheme`: The scheme for accessing the service (the default is 
+                     *https*).
+    :param `owner`: The owner namespace (optional).
+    :param `app`: The app context (optional).
+    :param `token`: The current session token (optional). Session tokens can be 
+                    shared across multiple service instances.
+    :param `username`: The Splunk account username, which is used to 
+                       authenticate the Splunk instance.
+    :param `password`: The password, which is used to authenticate the Splunk 
+                       instance.
+    :return: An initialized :class:`Service` instance.
     """
     return Service(**kwargs).login()
 
 class Service(Context):
-    """Representation of a Splunk service at a given address (`host:port`)
-    accessed using a given protocol "scheme" (`http` or `https`). 
+    """This class represents a Splunk service instance at a given address 
+    (host:port), accessed using the *http* or *https* protocol scheme.
     
-    A service instance also captures an optional namespace context consisting 
-    of an optional owner name (or "-" wildcard) and optional app name (or "-" 
-    wildcard. In order to access :class:`Service` members the instance must
-    be authenticated by presenting credentials using the :meth:`login` method 
-    or by constructing the instance using the :func:`connect` function which 
+    A :class:`Service` instance also captures an optional namespace context 
+    consisting of an optional owner name (or "-" wildcard) and optional app name
+    (or "-" wildcard). To access :class:`Service` members, the instance must
+    be authenticated by presenting credentials using the :meth:`login` method,
+    or by constructing the instance using the :func:`connect` function, which 
     both creates and authenticates the instance.
 
-    :param `host`: host name (default `localhost`)
-    :param `port`: port number (default 8089)
-    :param `scheme`: scheme for accessing service (default `https`)
-    :param `owner`: owner namespace (optional)
-    :param `app`: app context (optional)
-    :param `token`: session token to reuse (optional)
-    :param `username`: username to login with
-    :param `password`: password to login with
+    :param `host`: The host name (the default is *localhost*).
+    :param `port`: The port number (the default is *8089*).
+    :param `scheme`: The scheme for accessing the service (the default is 
+                     *https*).
+    :param `owner`: The owner namespace (optional).
+    :param `app`: The app context (optional).
+    :param `token`: The current session token (optional). Session tokens can be 
+                    shared across multiple service instances.
+    :param `username`: The Splunk account username, which is used to 
+                       authenticate the Splunk instance.
+    :param `password`: The password, which is used to authenticate the Splunk 
+                       instance.
     """
     def __init__(self, **kwargs):
         Context.__init__(self, **kwargs)
 
     @property
     def apps(self):
-        """Returns a collection of applications."""
+        """Returns a collection of Splunk applications."""
         return Collection(self, PATH_APPS)
 
     @property
     def confs(self):
-        """Returns a collection of configurations."""
+        """Returns a collection of Splunk configurations."""
         return Confs(self)
 
     @property
@@ -192,7 +202,7 @@ class Service(Context):
 
     @property
     def info(self):
-        """Returns information about the sevice."""
+        """Returns information about the service."""
         response = self.get("server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
 
@@ -219,17 +229,17 @@ class Service(Context):
 
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
-        """Parse the given search query and return a semantic map of the search.
+        """Parses a search query and returns a semantic map of the search.
 
-        :param `query`: the search query to parse
-        :param `kwargs`: optional arguments to pass to the `search/parser` 
-                       endpoint
-        :return: semantic map of the parsed search query
+        :param `query`: The search query to parse.
+        :param `kwargs`: Optional arguments to pass to the ``search/parser`` 
+                       endpoint.
+        :return: A semantic map of the parsed search query.
         """
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self):
-        """Restart the service. The service will be unavailable until it has
+        """Restarts the service. The service will be unavailable until it has
         successfully restarted.
         """
         return self.get("server/control/restart")
@@ -255,32 +265,32 @@ class Service(Context):
         return Users(self)
 
 class Endpoint(object):
-    """Base class for all client objects."""
+    """This class is a base class for all client objects."""
     def __init__(self, service, path):
         self.service = service
         self.path = path if path.endswith('/') else path + '/'
 
     def get(self, relpath="", **kwargs):
-        """Issue a GET request to the endpoint, using the optional relative
-        path if given and optional query arguments.
+        """Issues a ``GET`` request to an endpoint, using a relative path and 
+        query arguments if provided.
 
-        :param `relpath`: a path relative to the endpoint (optional)
-        :param `kwargs`: query arguments (optional)
+        :param `relpath`: A path relative to the endpoint (optional).
+        :param `kwargs`: Query arguments (optional).
         """
         return self.service.get("%s%s" % (self.path, relpath), **kwargs)
 
     def post(self, relpath="", **kwargs):
-        """Issue a POST request to the given endpoint, using the optional 
-        relative path if given and optional form arguments.
+        """Issues a ``POST`` request to an endpoint, using a relative path and 
+        form arguments if provided.
         
-        :param `relpath`: a path relative to the endpoint (optional)
-        :param `kwargs`: form arguments (optional)
+        :param `relpath`: A path relative to the endpoint (optional).
+        :param `kwargs`: Form arguments (optional).
         """
         return self.service.post("%s%s" % (self.path, relpath), **kwargs)
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
-    """Base class for all Entity objects."""
+    """This class is a base class for all entity objects."""
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
@@ -294,9 +304,9 @@ class Entity(Endpoint):
 
     #
     # Given that update doesn't automatically refresh the cached local state,
-    # this operation now violates the principle of least suprise, because it
+    # this operation now violates the principle of least surprise, because it
     # allows you to do what appears to be a local assignment, which is then
-    # not reflected in the value you see if you do a subsaquent __getitem__ 
+    # not reflected in the value you see if you do a subsequent __getitem__ 
     # without an explicit refresh.
     #
     # def __setitem__(self, key, value):
@@ -315,8 +325,9 @@ class Entity(Endpoint):
         return _parse_atom_entry(entry)
 
     def refresh(self, state=None):
-        """Refresh the cached state of this entity, using either the given
-        state record, or by calling `read` if no state record is provided."""
+        """Refreshes the cached state of this entity, using either the given
+        state record, or by calling :meth:`read` if no state record is provided.
+        """
         self._state = state if state is not None else self.read()
         return self
 
@@ -351,11 +362,11 @@ class Entity(Endpoint):
         return self.state.title
 
     def read(self):
-        """Read the current entity state from the server."""
+        """Reads the current state of the entity from the server."""
         return self._load_state(self.get())
 
     def reload(self):
-        """Invoke the entity's reload action."""
+        """Reloads the entity."""
         self.post("_reload")
         return self
 
@@ -366,12 +377,12 @@ class Entity(Endpoint):
         return self._state
 
     def update(self, **kwargs):
-        """Update the entity using the given kwargs."""
+        """Updates the entity with the arguments you provide."""
         self.post(**kwargs)
         return self
 
 class Collection(Endpoint):
-    """A collection of entities."""
+    """This class contains a collection of entities."""
     def __init__(self, service, path, item=Entity):
         Endpoint.__init__(self, service, path)
         self.item = item # Item accessor
@@ -391,7 +402,7 @@ class Collection(Endpoint):
         for item in self.list(): yield item
 
     def _load_list(self, response):
-        """Load an entity list from the given response."""
+        """Loads an entity list from a response."""
         entries = _load_atom_entries(response)
         if entries is None: return []
         entities = []
@@ -405,20 +416,20 @@ class Collection(Endpoint):
         return entities
 
     def contains(self, name):
-        """Answers if the given entity name exists in the collection.
+        """Indicates whether an entity name exists in the collection.
         
-        :param `name`: entity name 
+        :param `name`: The entity name.
         """
         for item in self.list():
             if item.name == name: return True
         return False
 
     def create(self, name, **kwargs):
-        """Create an entity in this collection.
+        """Creates an entity in this collection.
 
-        :param `name`: name of the entity to create
-        :param `kwargs`: additional entity specific arguments (optional)
-        :return: the created entity
+        :param `name`: The name of the entity to create.
+        :param `kwargs`: Additional entity-specific arguments (optional).
+        :return: The new entity.
         """
         if not isinstance(name, basestring): 
             raise ValueError("Invalid argument: 'name'")
@@ -426,9 +437,9 @@ class Collection(Endpoint):
         return self[name] # UNDONE: Extra round-trip to retrieve entity
 
     def delete(self, name):
-        """Remove an entity from the collection.
+        """Removes an entity from the collection.
         
-        :param `name`: name of the entity to remove
+        :param `name`: The name of the entity to remove.
         """
         self.service.delete(_path(self.path, name))
         return self
@@ -444,35 +455,36 @@ class Collection(Endpoint):
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=-1, **kwargs):
-        """Returns contents of the collection.
+        """Returns the contents of the collection.
 
-        :param `count`: the maximum number of items to return (optional)
-        :param `offset`: offset of the first item to return (optional)
-        :param `search`: search expression to filter response (optioanl)
-        :param `sort_dir`: direction to sort returned items (asc, desc)
-                           (optional)
-        :param `sort_key`: field to use for sorting (optional)
-        :param `sort_mode`: collating sequence for sorting returned items
-                            (auto, alpha, alpha_case, num) (optional)
+        :param `count`: The maximum number of items to return (optional).
+        :param `offset`: The offset of the first item to return (optional).
+        :param `search`: The search expression to filter responses (optional).
+        :param `sort_dir`: The direction to sort returned items: *asc* or *desc*
+                           (optional).
+        :param `sort_key`: The field to use for sorting (optional).
+        :param `sort_mode`: The collating sequence for sorting returned items:
+                            *auto*, *alpha*, *alpha_case*, *num* (optional).
         """
         response = self.get(count=count, **kwargs)
         return self._load_list(response)
 
 class Conf(Collection):
-    """A single config, which is a collection of stanzas."""
+    """This class contains a single configuration, which is a collection of 
+    stanzas."""
     def __init__(self, service, name):
         self.name = name
         Collection.__init__(self, service, _path_conf(name), item=Stanza)
 
 class Confs(Collection):
-    """A collection of configs."""
+    """This class contains a collection of configurations."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_CONFS, 
             item=lambda service, path, **kwargs:
                 Conf(service, kwargs['state'].title))
 
 class Stanza(Entity):
-    """A single config stanza."""
+    """This class contains a single configuration stanza."""
     def submit(self, stanza):
         """Populates a stanza in the .conf file."""
         message = { 'method': "POST", 'body': stanza }
@@ -480,8 +492,8 @@ class Stanza(Entity):
         return self
 
 class AlertGroup(Entity):
-    """An entity that represents a group of fired alerts that can be accessed
-    through the :meth:`alerts` property."""
+    """This class contains an entity that represents a group of fired alerts 
+    that can be accessed through the :meth:`alerts` property."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
@@ -496,16 +508,17 @@ class AlertGroup(Entity):
         return int(self.content.triggered_alert_count)
 
 class Index(Entity):
-    """Index class access to specific operations."""
+    """This class is an index class used to access specific operations."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
     def attach(self, host=None, source=None, sourcetype=None):
-        """Opens a stream for writing events to the index.
+        """Opens a stream (a writable socket) for writing events to the index.
 
-        :param `host`: host value for events written to the stream
-        :param `source`: source value for events written to the stream
-        :param `sourcetype`: sourcetype value for events written to the stream
+        :param `host`: The host value for events written to the stream.
+        :param `source`: The source value for events written to the stream.
+        :param `sourcetype`: The sourcetype value for events written to the 
+                            stream.
         """
         args = { 'index': self.name }
         if host is not None: args['host'] = host
@@ -526,9 +539,10 @@ class Index(Entity):
         return cn
 
     def clean(self, timeout=60):
-        """Delete the contents of the index.
+        """Deletes the contents of the index.
         
-        :param `timeout`: operation timeout in seconds (default 60) 
+        :param `timeout`: The time-out period for the operation, in seconds (the
+                          default is 60).
         """
         saved = self.refresh()('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
@@ -547,16 +561,16 @@ class Index(Entity):
         return self
 
     def roll_hot_buckets(self):
-        """Invoke the `roll-hot-buckets` action."""
+        """Performs rolling hot buckets for this index."""
         self.post("roll-hot-buckets")
         return self
 
     def submit(self, event, host=None, source=None, sourcetype=None):
-        """Submits an event to the index via HTTP POST.
+        """Submits an event to the index using ``HTTP POST``.
 
-        :param `host`: host value for POSTed event
-        :param `source`: source value for POSTed event
-        :param `sourcetype`: sourcetype value for POSTed event
+        :param `host`: The host value of the event.
+        :param `source`: The source value of the event.
+        :param `sourcetype`: The sourcetype value of the event.
         """
         args = { 'index': self.name }
         if host is not None: args['host'] = host
@@ -574,13 +588,16 @@ class Index(Entity):
 
     # kwargs: host, host_regex, host_segment, rename-source, sourcetype
     def upload(self, filename, **kwargs):
-        """Uploads a file to the index using the 'oneshot' input. 
+        """Uploads a file for immediate indexing. 
         
-        .. note: The file must be accessible from the server.
+        .. Note: The file must be locally accessible from the server.
         
-        :param `filename`: name of the file to upload
-        :param `kwargs`: additional arguments to pass to the `oneshot` endpoint
-                         (optional)
+        :param `filename`: The name of the file to upload. The file can be 
+                           a plain, compressed, or archived file.
+        :param `kwargs`: Additional arguments (optional). For details, see the 
+                         `POST data/inputs/oneshot 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTinput#POST_data.2Finputs.2Foneshot>`_
+                         endpoint in the Splunk REST API documentation.
         """
         kwargs['index'] = self.name
         path = 'data/inputs/oneshot'
@@ -588,9 +605,9 @@ class Index(Entity):
         return self
 
 class Input(Entity):
-    """Representation of a Splunk input. This class is the base for all typed 
-    input classes and is also used when the client does not recognize an input 
-    kind."""
+    """This class represents a Splunk input. This class is the base for all 
+    typed input classes and is also used when the client does not recognize an
+    input kind."""
     def __init__(self, service, path, kind, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
         self.kind = kind
@@ -616,9 +633,9 @@ INPUT_KINDMAP = {
 # input kinds.
 # UNDONE: contains needs to take a kind arg to disambiguate
 class Inputs(Collection):
-    """Representation of a collection of inputs. The collection is heterogeneous
-    and each member of the collection contains a `kind` property that indicates
-    the specific kind of the input."""
+    """This class represents a collection of inputs. The collection is 
+    heterogeneous and each member of the collection contains a *kind* property
+    that indicates the specific type of input."""
 
     def __init__(self, service, kindmap=None):
         Collection.__init__(self, service, PATH_INPUTS)
@@ -629,28 +646,32 @@ class Inputs(Collection):
         return self.list(*args)
 
     def create(self, kind, name, **kwargs):
-        """Creates an input of the given kind, with the given name & args."""
-        """Creates an input of the given kind in this collection.
+        """Creates an input of a specific kind in this collection, with any 
+        arguments you specify. 
 
-        :param `kind`: the kind of input to create
-        :param `name`: name of the entity to create
-        :param `kwargs`: additional entity specific arguments (optional)
-        :return: the created input
+        :param `kind`: The kind of input to create.
+        :param `name`: The input name.
+        :param `kwargs`: Additional entity-specific arguments (optional). For
+                         valid arguments, see the POST requests for the
+                         `/data/inputs/ 
+                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>`_ 
+                         endpoints in the Splunk REST API documentation.
+        :return: The new input.
         """
         kindpath = self.kindpath(kind)
         self.service.post(kindpath, name=name, **kwargs)
         return Input(self.service, _path(kindpath, name), kind)
 
     def delete(self, name):
-        """Remove an input from the collection.
+        """Removes an input from the collection.
         
-        :param `name`: name of the input to remove
+        :param `name`: The name of the input to remove.
         """
         self.service.delete(self[name].path) # UNDONE: Should be item.remove()
         return self
 
     def itemmeta(self, kind):
-        """Returns metadata for members of the given kind."""
+        """Returns metadata for the members of a given kind."""
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return {
@@ -660,22 +681,23 @@ class Inputs(Collection):
 
     @property
     def kinds(self):
-        """Returns the list of kinds that this collection may contain."""
+        """Returns the list of input kinds that this collection may 
+        contain."""
         return self._kindmap.keys()
 
     def kindpath(self, kind):
-        """Returns the path to resources of the given kind.
+        """Returns a path to the resources for a given input kind.
 
-        :param `kind`: the input kind
+        :param `kind`: The input kind.
         """
         return self.path + self._kindmap[kind]
 
     # args: kind*
     def list(self, *args):
-        """Returns a list of inputs that belong to the collection, optionally
-        filtered by input kind.
+        """Returns a list of inputs that belong to the collection. You can also
+        filter by one or more input kinds.
 
-        :param `args`: input kinds to return (optional)
+        :param `args`: The input kinds to return (optional).
         """
         kinds = args if len(args) > 0 else self._kindmap.keys()
 
@@ -703,7 +725,7 @@ class Inputs(Collection):
         return entities
 
 class Job(Entity): 
-    """Representation of a search job."""
+    """This class represents a search job."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
@@ -712,26 +734,28 @@ class Job(Entity):
         return _load_atom(response).entry
 
     def cancel(self):
-        """Invoke the job's `cancel` action."""
+        """Stops the current search and deletes the result cache."""
         self.post("control", action="cancel")
         return self
 
     def disable_preview(self):
-        """Invoke the job's `disablepreview` action.."""
+        """Disables preview for this job."""
         self.post("control", action="disablepreview")
         return self
 
     def events(self, **kwargs):
-        """Returns a stream containing the job's matched events."""
+        """Returns an InputStream IO handle for this job's events."""
         return self.get("events", **kwargs).body
 
     def enable_preview(self):
-        """Invoke the job's `enablepreview` action."""
+        """Enables preview for this job (although doing so might slow search 
+        considerably)."""
         self.post("control", action="enablepreview")
         return self
 
     def finalize(self):
-        """Invoke the job's `finalize` action."""
+        """Stops the job and provides intermediate results available for 
+        retrieval."""
         self.post("control", action="finalize")
         return self
 
@@ -741,14 +765,18 @@ class Job(Entity):
         return self.sid
 
     def pause(self):
-        """Invoke the job's `pause` action."""
+        """Suspends the current search."""
         self.post("control", action="pause")
         return self
 
     def preview(self, **kwargs):
-        """Returns a stream containing the job's preview results.
+        """Returns the InputStream IO handle to the preview results for this 
+        job.
 
-        :param `kwargs`: additional preview arguments (optional)
+        :param `kwargs`: Additional preview arguments (optional). For details, 
+                         see the `GET search/jobs/{search_id}/results_preview 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
+                         endpoint in the REST API documentation.
         """
         return self.get("results_preview", **kwargs).body
 
@@ -768,66 +796,81 @@ class Job(Entity):
         raise OperationError, "Operation timed out."
 
     def results(self, **kwargs):
-        """Returns a stream containing the job's search results.
+        """Returns an InputStream IO handle to the search results for this job.
 
-        :param `kwargs`: additional results arguments (optional)
+        :param `kwargs`: Additional results arguments (optional). For details, 
+                         see the `GET search/jobs/{search_id}/results 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_ 
+                         endpoint in the REST API documentation.
         """
         return self.get("results", **kwargs).body
 
     def searchlog(self, **kwargs):
-        """Returns a stream containing the job's search log.
+        """Returns an InputStream IO handle to the search log for this job.
 
-        :param `kwargs`: additional searchlog arguments (optional)
+        :param `kwargs`: Additional search log arguments (optional). For 
+                         details, see the 
+                         `GET search/jobs/{search_id}/search.log 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsearch.log>`_ 
+                         endpoint in the REST API documentation.
         """
         return self.get("search.log", **kwargs).body
 
     def set_priority(self, value):
-        """Set the job's search priority.
+        """Sets this job's search priority in the range of 0-10.
 
-        :param `value`: priority
+        :param `value`: The search priority.
         """
         self.post('control', action="setpriority", priority=value)
         return self
 
     @property
     def sid(self):
-        """Returns the job's search-id (sid)."""
+        """Returns this job's search ID (sid)."""
         return self.content.get('sid', None)
 
     def summary(self, **kwargs):
-        """Returns a stream containing the job's summary.
+        """Returns an InputStream IO handle to the job's summary.
         
-        :param `kwargs`: additional summary arguments (optional)
+        :param `kwargs`: Additional summary arguments (optional). For details, 
+                         see the `GET search/jobs/{search_id}/summary 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsummary>`_ 
+                         endpoint in the REST API documentation.
         """
         return self.get("summary", **kwargs).body
 
     def timeline(self, **kwargs):
-        """Returns a sream containing the job's timeline result.
+        """Returns an InputStream IO handle to the job's timeline results.
 
-        :param `kwargs`: additional timeline arguments (optional)
+        :param `kwargs`: Additional timeline arguments (optional). For details, 
+                         see the `GET search/jobs/{search_id}/timeline 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Ftimeline>`_ 
+                         endpoint in the REST API documentation.
         """
         return self.get("timeline", **kwargs).body
 
     def touch(self):
-        """Invoke the job's `touch` action."""
+        """Extends the expiration time of the search to the current time plus 
+        the time-to-live value (now + ttl)."""
         self.post("control", action="touch")
         return self
 
     def set_ttl(self, value):
-        """Set the job's time-to-live (ttl) value.
+        """Set the job's time-to-live (ttl) value, which is the time before the 
+        search job expires and is still available.
 
-        :param `value`: ttl
+        :param `value`: The ttl value, in seconds.
         """
         self.post("control", action="setttl", ttl=value)
         return self
 
     def unpause(self):
-        """Invoke the job's `unpause` action."""
+        """Resumes the current search, if paused."""
         self.post("control", action="unpause")
         return self
 
 class Jobs(Collection):
-    """Representation of a collection of search jobs."""
+    """This class represents a collection of search jobs."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
 
@@ -851,20 +894,24 @@ class Message(Entity):
         return self[self.name]
 
 class SavedSearch(Entity):
-    """Representation of a saved search."""
+    """This class represents a saved search."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
     def acknowledge(self):
-        """Invokes the saved search's `acknowledge` action."""
+        """Acknowledges the suppression of alerts from this saved search and 
+        resumes alerting."""
         self.post("acknowledge")
         return self
 
     def dispatch(self, **kwargs):
-        """Dispatch the saved search and return the created search job.
+        """Runs the saved search and returns the resulting search job.
 
-        :param `kwargs`: additional dispatch arguments (optional)
-        :return: the newly dispatched search job
+        :param `kwargs`: Additional dispatch arguments (optional). For details, 
+                         see the `POST saved/searches/{name}/dispatch
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#POST_saved.2Fsearches.2F.7Bname.7D.2Fdispatch>`_ 
+                         endpoint in the REST API documentation.
+        :return: The new search job.
         """
         response = self.post("dispatch", **kwargs)
         sid = _load_sid(response)
@@ -873,7 +920,7 @@ class SavedSearch(Entity):
     def history(self):
         """Returns a list of search jobs corresponding to this saved search.
 
-        :return: a list of :class:`Job` objects
+        :return: A list of :class:`Job` objects.
         """
         response = self.get("history")
         entries = _load_atom_entries(response)
@@ -885,10 +932,10 @@ class SavedSearch(Entity):
         return jobs
 
     def update(self, search=None, **kwargs):
-        """Update the saved search.
+        """Updates the saved search with any additional arguments.
 
-        :param `search`: the search string of this saved search (optional)
-        :param `kwargs`: additional update arguments (optional)
+        :param `search`: The search string of this saved search (optional).
+        :param `kwargs`: Additional update arguments (optional). 
         """
         # Updates to a saved search *require* that the search string be 
         # passed, so we pass the current search string if a value wasn't
@@ -898,7 +945,7 @@ class SavedSearch(Entity):
         return self
 
 class SavedSearches(Collection):
-    """Representation of a collection of saved searches."""
+    """This class represents a collection of saved searches."""
     def __init__(self, service):
         Collection.__init__(
             self, service, PATH_SAVED_SEARCHES, item=SavedSearch)
@@ -907,7 +954,7 @@ class SavedSearches(Collection):
         return Collection.create(self, name, search=search, **kwargs)
 
 class Settings(Entity):
-    """Representation of configuration settings for a Splunk service."""
+    """This class represents configuration settings for a Splunk service."""
     def __init__(self, service, **kwargs):
         Entity.__init__(self, service, "server/settings", **kwargs)
 
@@ -919,7 +966,7 @@ class Settings(Entity):
 # Splunk automatically lowercases new user names so we need to match that 
 # behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
-    """Representation of a Splunk user."""
+    """This class represents a Splunk user."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_USERS)
 
@@ -936,7 +983,7 @@ class Users(Collection):
         return Collection.delete(self, name.lower())
 
 class OperationError(Exception): 
-    """Raised for a failed operation, such as a timeout."""
+    """Raised for a failed operation, such as a time out."""
     pass
 
 class NotSupportedError(Exception): 

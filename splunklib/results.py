@@ -12,18 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A streaming XML reader for Splunk search results.
+"""This module provides a streaming XML reader for Splunk search results.
 
 Splunk search results can be returned in a variety of formats including XML,
-JSON and CSV. XML search results are returned as a stream of XML *fragments*
-and not as a single XML document in order to facilitate streaming of search
-results. This module provies support for incrimentally reading a single result
-record at a time from such a result stream, which provides a friendly iterator
-based interface for accessing serach results that also has the important benefit
-of avoiding buffering of the result set, which can be very large.
+JSON, and CSV. Search results in XML format are returned as a stream of XML 
+*fragments*, not as a single XML document, to make it easier to stream search 
+results. This module supports incrementally reading one result record at a time 
+from such a result stream. This module also provides a friendly iterator-based 
+interface for accessing search results while avoiding buffering of the result 
+set, which can be very large.
 
-In order to use the reader, simply instantiate the reader on a search result 
-stream::
+To use the reader, instantiate **ResultsReader** on a search result stream::
 
     reader = ResultsReader(result_stream)
     for item in reader:
@@ -182,8 +181,8 @@ class XMLReader(object):
         return self.kind == VAL
 
     def next(self):
-        """An iterator interface to the reader, returns a tuple of values
-           corresponding to the current item."""
+        """An iterator interface to the reader that returns a tuple of values
+           that correspond to the current item."""
         if self.read() is None: 
             raise StopIteration
         return self.item
@@ -242,7 +241,7 @@ MESSAGE = "MESSAGE"
 RESULT = "RESULT"
 RESULTS = "RESULTS"
 class ResultsReader(object):
-    """A forward-only, streaming search results reader."""
+    """A class that provides a forward-only, streaming search results reader."""
     def __init__(self, stream):
         self._reader = XMLReader(stream)
         self.kind = None

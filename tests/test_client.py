@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from os import path
 from time import sleep
 
 import splunklib.client as client
@@ -22,11 +21,6 @@ from splunklib.binding import HTTPError
 import splunklib.results as results
 
 import testlib
-
-def delete_app(service, name):
-    if (service.apps.contains(name)):
-        service.apps.delete(name)
-        testlib.restart(service)
 
 # Verify that we can instantiate and connect to a service, test basic 
 # interaction with the service and make sure we can connect and interact 
@@ -62,7 +56,7 @@ class ServiceTestCase(testlib.TestCase):
 
         appname = "sdk-test-app"
         username = "sdk-test-user"
-        delete_app(service, appname)
+        testlib.delete_app(service, appname)
         if username in service.users: service.users.delete(username)
         self.assertFalse(service.apps.contains(appname))
         self.assertFalse(service.users.contains(username))
@@ -98,7 +92,7 @@ class ServiceTestCase(testlib.TestCase):
         service_ns.apps()
 
         # Cleanup
-        delete_app(service, appname)
+        testlib.delete_app(service, appname)
         service.users.delete(username)
 
         self.assertFalse(service.apps.contains(appname))
@@ -127,34 +121,6 @@ class ClientTestCase(testlib.TestCase):
         capabilities = service.capabilities
         for item in expected: self.assertTrue(item in capabilities)
 
-    def test_confs(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for conf in service.confs:
-            for stanza in conf: stanza.refresh()
-            break # no need to refresh every conf file for the test
-
-        self.assertTrue(service.confs.contains('props'))
-        props = service.confs['props']
-
-        if 'sdk-tests' in props: props.delete('sdk-tests')
-        self.assertFalse('sdk-tests' in props)
-
-        stanza = props.create('sdk-tests')
-        self.assertTrue(props.contains('sdk-tests'))
-        self.assertEqual(stanza.name,'sdk-tests')
-        self.assertTrue('maxDist' in stanza.content)
-        value = int(stanza['maxDist'])
-        stanza.update(maxDist=value+1)
-        stanza.refresh()
-        self.assertEqual(stanza['maxDist'], str(value + 1))
-        stanza.update(maxDist=value)
-        stanza.refresh()
-        self.assertEqual(stanza['maxDist'], str(value))
-
-        props.delete('sdk-tests')
-        self.assertFalse(props.contains('sdk-tests')) 
-
     def test_info(self):
         service = client.connect(**self.opts.kwargs)
 
@@ -164,113 +130,6 @@ class ClientTestCase(testlib.TestCase):
             "licenseSignature", "licenseState", "master_guid", "mode", 
             "os_build", "os_name", "os_version", "serverName", "version" ]
         for key in keys: self.assertTrue(key in info.keys())
-
-    def test_indexes(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for index in service.indexes: index.refresh()
-
-        if not service.indexes.contains("sdk-tests"):
-            service.indexes.create("sdk-tests")
-        self.assertTrue(service.indexes.contains("sdk-tests"))
-
-        # Scan indexes and make sure the entities look familiar
-        attrs = [
-            'thawedPath', 'quarantineFutureSecs',
-            'isInternal', 'maxHotBuckets', 'disabled', 'homePath',
-            'compressRawdata', 'maxWarmDBCount', 'frozenTimePeriodInSecs',
-            'memPoolMB', 'maxHotSpanSecs', 'minTime', 'blockSignatureDatabase',
-            'serviceMetaPeriod', 'coldToFrozenDir', 'quarantinePastSecs',
-            'maxConcurrentOptimizes', 'maxMetaEntries', 'minRawFileSyncSecs',
-            'maxMemMB', 'maxTime', 'partialServiceMetaPeriod', 'maxHotIdleSecs',
-            'coldToFrozenScript', 'thawedPath_expanded', 'coldPath_expanded',
-            'defaultDatabase', 'throttleCheckPeriod', 'totalEventCount',
-            'enableRealtimeSearch', 'indexThreads', 'maxDataSize',
-            'currentDBSizeMB', 'homePath_expanded', 'blockSignSize',
-            'syncMeta', 'assureUTF8', 'rotatePeriodInSecs', 'sync',
-            'suppressBannerList', 'rawChunkSizeBytes', 'coldPath',
-            'maxTotalDataSizeMB'
-        ]
-        for index in service.indexes:
-            for attr in attrs: self.assertTrue(attr in index.content)
-
-        index = service.indexes['sdk-tests']
-
-        index.disable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '1')
-
-        index.enable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '0')
-            
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
-
-        cn = index.attach()
-        cn.write("Hello World!")
-        cn.close()
-        testlib.wait(index, lambda index: index['totalEventCount'] == '1')
-        self.assertEqual(index['totalEventCount'], '1')
-
-        index.submit("Hello again!!")
-        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
-        self.assertEqual(index['totalEventCount'], '2')
-
-        # The following test must run on machine where splunkd runs,
-        # otherwise a failure is expected
-        testpath = path.dirname(path.abspath(__file__))
-        index.upload(path.join(testpath, "testfile.txt"))
-        testlib.wait(index, lambda index: index['totalEventCount'] == '3')
-        self.assertEqual(index['totalEventCount'], '3')
-
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
-
-    def test_indexes_metadata(self):
-        service = client.connect(**self.opts.kwargs)
-
-        metadata = service.indexes.itemmeta()
-        self.assertTrue(metadata.has_key('eai:acl'))
-        self.assertTrue(metadata.has_key('eai:attributes'))
-        for index in service.indexes:
-            metadata = index.metadata
-            self.assertTrue(metadata.has_key('eai:acl'))
-            self.assertTrue(metadata.has_key('eai:attributes'))
-
-    def test_inputs(self):
-        service = client.connect(**self.opts.kwargs)
-        inputs = service.inputs
-
-        for input_ in inputs: input_.refresh()
-
-        # Scan inputs and look for some common attributes
-        # Note: The disabled flag appears to be the only common attribute, as
-        # there are apparently cases where even index does not appear.
-        attrs = ['disabled']
-        for input_ in inputs:
-            for attr in attrs:  
-                self.assertTrue(attr in input_.content)
-
-        for kind in inputs.kinds:
-            for input_ in inputs.list(kind):
-                self.assertEqual(input_.kind, kind)
-
-        if inputs.contains('9999'): inputs.delete('9999')
-        self.assertFalse(inputs.contains('9999'))
-        inputs.create("tcp", "9999", host="sdk-test")
-        self.assertTrue(inputs.contains('9999'))
-        input_ = inputs['9999']
-        self.assertEqual(input_.kind, "tcp")
-        self.assertEqual(input_['host'], "sdk-test")
-        input_.update(host="foo", sourcetype="bar")
-        input_.refresh()
-        self.assertEqual(input_['host'], "foo")
-        self.assertEqual(input_['sourcetype'], "bar")
-        inputs.delete('9999')
-        self.assertFalse(inputs.contains('9999'))
 
     # UNDONE: Shouldnt the following assert something on exit?
     def check_properties(self, job, properties, secs = 10):
@@ -307,7 +166,7 @@ class ClientTestCase(testlib.TestCase):
         self.assertTrue(jobs.contains(job.sid))
 
         # Scan jobs and make sure the entities look familiar
-        attrs = [
+        keys = [
             'cursorTime', 'delegate', 'diskUsage', 'dispatchState',
             'doneProgress', 'dropCount', 'earliestTime', 'eventAvailableCount',
             'eventCount', 'eventFieldCount', 'eventIsStreaming',
@@ -321,7 +180,7 @@ class ClientTestCase(testlib.TestCase):
             'statusBuckets', 'ttl'
         ]
         for job in jobs:
-            for attr in attrs: self.assertTrue(attr in job.content)
+            for key in keys: self.assertTrue(key in job.content)
 
         # Make sure we can cancel the job
         job.cancel()
@@ -427,47 +286,6 @@ class ClientTestCase(testlib.TestCase):
             self.assertEqual(e.status, 400)
         except:
             self.fail()
-
-    def test_messages(self):
-        service = client.connect(**self.opts.kwargs)
-
-        messages = service.messages
-
-        if messages.contains('sdk-test-message1'):
-            messages.delete('sdk-test-message1')
-        if messages.contains('sdk-test-message2'):
-            messages.delete('sdk-test-message2')
-        self.assertFalse(messages.contains('sdk-test-message1'))
-        self.assertFalse(messages.contains('sdk-test-message2'))
-
-        messages.create('sdk-test-message1', value="Hello!")
-        self.assertTrue(messages.contains('sdk-test-message1'))
-        self.assertEqual(messages['sdk-test-message1'].value, "Hello!")
-
-        messages.create('sdk-test-message2', value="World!")
-        self.assertTrue(messages.contains('sdk-test-message2'))
-        self.assertEqual(messages['sdk-test-message2'].value, "World!")
-
-        messages.delete('sdk-test-message1')
-        messages.delete('sdk-test-message2')
-        self.assertFalse(messages.contains('sdk-test-message1'))
-        self.assertFalse(messages.contains('sdk-test-message2'))
-
-        # Verify that message names with spaces work correctly
-        if messages.contains('sdk test message'):
-            messages.delete('sdk test message')
-        self.assertFalse(messages.contains('sdk test message'))
-        messages.create('sdk test message', value="xyzzy")
-        self.assertTrue(messages.contains('sdk test message'))
-        self.assertEqual(messages['sdk test message'].value, "xyzzy")
-        messages.delete('sdk test message')
-        self.assertFalse(messages.contains('sdk test message'))
-
-        # Verify that create raises a ValueError on invalid name args
-        with self.assertRaises(ValueError):
-            messages.create(None, value="What?")
-            messages.create(42, value="Who, me?")
-            messages.create([1, 2,  3], value="Who, me?")
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)

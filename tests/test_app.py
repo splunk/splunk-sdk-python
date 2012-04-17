@@ -18,11 +18,6 @@ import splunklib.client as client
 
 import testlib
 
-def delete_app(service, name):
-    if (service.apps.contains(name)):
-        service.apps.delete(name)
-        testlib.restart(service)
-
 class TestCase(testlib.TestCase):
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
@@ -41,7 +36,7 @@ class TestCase(testlib.TestCase):
 
         appname = "sdk-test-app"
 
-        delete_app(service, appname)
+        testlib.delete_app(service, appname)
         self.assertFalse(appname in service.apps)
 
         kwargs = {
@@ -72,7 +67,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(app['manageable'], "0")
         self.assertEqual(app['visible'], "0")
 
-        delete_app(service, appname)
+        testlib.delete_app(service, appname)
         self.assertFalse(appname in service.apps)
 
 if __name__ == "__main__":

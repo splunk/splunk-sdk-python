@@ -22,6 +22,15 @@ import unittest
 
 from utils import parse
 
+def delete_app(service, name):
+    """Delete the app with the given name at the given service."""
+    apps = service.apps
+    if name in apps:
+        app = apps[name]
+        app.disable()
+        apps.delete(name)
+        restart(service)
+
 def restart(service, timeout=60):
     """Restart the given service and wait for it to wake back up."""
     service.restart()

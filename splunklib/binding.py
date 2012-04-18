@@ -12,14 +12,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Low-level *binding* interface for the Splunk REST API.
+"""This module contains a low-level *binding* interface to the `Splunk REST API
+<http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_.
 
-This module is designed to enable client side interaction with the Splunk
-REST API at the level of HTTP requests and responses and provides some simple
+This module is designed to enable client-side interaction with the Splunk
+REST API at the level of HTTP requests and responses, and it provides simple
 helpers for things like Splunk authentication and the use of Splunk namespaces.
-This module is specifically designed to be *lightweight* and faithful to the 
-underlying REST API. If you are looking for a *friendlier* interface to the
-Splunk REST API then you should consider the :mod:splunklib.client module.
+
+This module is specifically designed to be lightweight and faithful to the 
+underlying Splunk REST API. If you want a friendlier interface to the Splunk 
+REST API, consider using the :mod:`splunklib.client` module.
 """
 
 #
@@ -71,12 +73,13 @@ DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
 def prefix(**kwargs):
-    """Returns an URL prefix constructed from the given arguments.
+    """Returns a URL prefix (such as *https://localhost:8089*) that is 
+    constructed from the arguments you provide.
 
-    :param `scheme`: URL scheme (http or https)
-    :param `host`: host name
-    :param `port`: prot number
-    :return: URL prefix, for example https://localhost:8089
+    :param `scheme`: The URL scheme (*http* or *https*).
+    :param `host`: The host name.
+    :param `port`: The port number.
+    :return: The URL prefix.
     """
     scheme = kwargs.get("scheme", DEFAULT_SCHEME)
     host = kwargs.get("host", DEFAULT_HOST)
@@ -86,12 +89,13 @@ def prefix(**kwargs):
 
 # kwargs: sharing, owner, app
 def namespace(**kwargs):
-    """Returns a reconciled dict of namespace values built from the given
-    arguments.
+    """Returns a reconciled dictionary of namespace values built from the 
+    arguments you provide.
 
-    :param `sharing`: sharing mode (system, global, app, user) (default user)
-    :param `owner`: owner context (optional)
-    :param `app`: app context (optional)
+    :param `sharing`: The sharing mode: *system*, *global*, *app*, or *user*
+                      (the default is *user*). 
+    :param `owner`: The owner context (optional).
+    :param `app`: The app context (optional).
     """
     sharing = kwargs.get('sharing', None)
     if sharing in ["system"]:
@@ -112,25 +116,29 @@ def namespace(**kwargs):
     raise ValueError("Invalid value for argument: 'sharing'")
 
 class Context(object):
-    """A binding context to a corresponding Splunk service that can be used to
-    issue HTTP requests.
+    """This class provides a binding context to a corresponding Splunk service
+    that can be used to issue HTTP requests.
             
-    A context also captures optional namespace context consisting of an
+    A context also captures an optional namespace context consisting of an
     optional owner name (or "-" wildcard) and optional app name (or "-" 
-    wildcard. In order to use the :class:`Context` it instance must be
+    wildcard). To use the :class:`Context` class, the instance must be
     authenticated by presenting credentials using the :meth:`login` method
-    or by constructing the instance using the :func:`connect` function 
-    which both creates and authenticates the instance.
+    or by constructing the instance using the :func:`connect` function, which
+    both creates and authenticates the instance.
 
-    :param `host`: host name (default `localhost`)
-    :param `port`: port number (default 8089)
-    :param `scheme`: scheme for accessing service (default `https`)
-    :param `owner`: owner namespace (optional)
-    :param `app`: app context (optional)
-    :param `token`: session token to reuse (optional)
-    :param `username`: username to login with
-    :param `password`: password to login with
-    :param `handler`: HTTP request handler (optional)
+    :param `host`: The host name (the default is *localhost*).
+    :param `port`: The port number (the default is *8089*).
+    :param `scheme`: The scheme for accessing the service (the default is 
+                     *https*).
+    :param `owner`: The owner namespace (optional).
+    :param `app`: The app context (optional).
+    :param `token`: The current session token (optional). Session tokens can be 
+                    shared across multiple service instances.
+    :param `username`: The Splunk account username, which is used to 
+                       authenticate the Splunk instance.
+    :param `password`: The password, which is used to authenticate the Splunk 
+                       instance.
+    :param `handler`: The HTTP request handler (optional).
     """
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler)
@@ -153,34 +161,34 @@ class Context(object):
         return ssl.wrap_socket(cn) if self.scheme == "https" else cn
 
     def delete(self, path, **kwargs):
-        """Issue a DELETE request to the given path.
+        """Issues a ``DELETE`` request to a REST endpoint you specify.
         
-        :param `path`: resource path 
-        :param `kwargs`: request arguments (optional)
+        :param `path`: The resource path (REST endpoint).
+        :param `kwargs`: Request arguments (optional).
         """
         return self.http.delete(self.url(path), self._headers(), **kwargs)
 
     def get(self, path, **kwargs):
-        """Issue a GET request to the given path.
+        """Issues a ``GET`` request to a REST endpoint you specify.
 
-        :param `path`: resource path 
-        :param `kwargs`: query arguments (optional)
+        :param `path`: The resource path (REST endpoint). 
+        :param `kwargs`: Query arguments (optional).
         """
         return self.http.get(self.url(path), self._headers(), **kwargs)
 
     def post(self, path, **kwargs):
-        """Issue a POST request to the given path.
+        """Issues a ``POST`` request to a REST endpoint you specify.
 
-        :param `path`: resource path 
-        :param `kwargs`: form arguments (optional)
+        :param `path`: The resource path (REST endpoint). 
+        :param `kwargs`: Form arguments (optional).
         """
         return self.http.post(self.url(path), self._headers(), **kwargs)
 
     def request(self, path, message):
-        """Issue the given HTTP request message to the given endpoint.
+        """Issues an ``HTTP`` request message to a REST endpoint you specify.
         
-        :param `path`: resource path 
-        :param `request`: request message
+        :param `path`: The resource path (REST endpoint). 
+        :param `request`: The request message.
         """
         return self.http.request(
             self.url(path), {
@@ -189,8 +197,8 @@ class Context(object):
                 'body': message.get("body", "")})
 
     def login(self):
-        """Issue a Splunk login request using the context's credentials and
-        store the session token for use on subsequent requests.
+        """Issues a Splunk login request using the context's credentials and
+        stores the session token for use on subsequent requests.
         """
         response = self.http.post(
             self.url("/services/auth/login"),
@@ -202,18 +210,18 @@ class Context(object):
         return self
 
     def logout(self):
-        """Forget the current session token."""
+        """Forgets the current session token."""
         self.token = None
         return self
 
     def fullpath(self, path, **kwargs):
-        """Returns a full resource path given a potential path fragment and
-        then completing with namespace segments using the namespace args,
-        if provided, otherwise using the context namespace values.
+        """Returns a full REST endpoint using an endpoint path or path fragment,
+        then adds namespace segments by either using any namespace arguments 
+        that are provided or the context namespace values.
         
-        :param `path`: resource path, potentially a fragment
-        :param `kwargs`: optional namespace arguments to use for path 
-                         completion (sharing, owner, app)
+        :param `path`: The resource path (REST endpoint), possibly a fragment.
+        :param `kwargs`: Namespace arguments to use for completing the path: 
+                         *sharing*, *owner*, and *app* (optional).
         """
         if path.startswith('/'): 
             return path
@@ -234,13 +242,15 @@ class Context(object):
         aname = "-" if ns.app is None else ns.app
         return "/servicesNS/%s/%s/%s" % (oname, aname, path)
 
-    # Convet the given path into a fully qualified URL by first qualifying
+    # Convert the given path into a fully qualified URL by first qualifying
     # the given path with namespace segments if necessarry and then prefixing
     # with the scheme, host and port.
     def url(self, path):
-        """Converts the given path or path fragment into a complete URL.
+        """Converts a REST endpoint (from a path or path fragment) into a 
+        complete URL.
 
-        :param `path`: resource path to convert to a full URL
+        :param `path`: The resource path (REST endpoint) to convert to a full 
+                       URL.
         """
         return self.prefix + self.fullpath(path)
 
@@ -248,16 +258,19 @@ class Context(object):
 def connect(**kwargs):
     """Establishes an authenticated context with the host.
 
-    :param `host`: host name (default `localhost`)
-    :param `port`: port number (default 8089)
-    :param `scheme`: scheme for accessing service (default `https`)
-    :param `owner`: owner namespace (optional)
-    :param `app`: app context (optional)
-    :param `token`: session token (optional) - enables sharing session tokens
-                    between multiple :class:`Service` istances
-    :param `username`: username to login with
-    :param `password`: password to login with
-    :return: An initialized :class:`Context` instance
+    :param `host`: The host name (the default is *localhost*).
+    :param `port`: The port number (the default is *8089*).
+    :param `scheme`: The scheme for accessing the service (the default is 
+                     *https*).
+    :param `owner`: The owner namespace (optional).
+    :param `app`: The app context (optional).
+    :param `token`: The current session token (optional). Session tokens can be 
+                    shared across multiple service instances.
+    :param `username`: The Splunk account username, which is used to 
+                       authenticate the Splunk instance.
+    :param `password`: The password, which is used to authenticate the Splunk 
+                       instance.
+    :return: An initialized :class:`Context` instance.
     """
     return Context(**kwargs).login() 
 
@@ -269,7 +282,7 @@ def read_error_message(response):
     return body, XML(body).findtext("./messages/msg")
 
 class HTTPError(Exception):
-    """Raised for HTTP responses that return an error."""
+    """This class is raised for HTTP responses that return an error."""
     def __init__(self, response):
         status = response.status
         reason = response.reason
@@ -381,11 +394,11 @@ class ResponseReader(object):
 
 def handler(key_file=None, cert_file=None, timeout=None):
     """Returns an instance of the default HTTP request handler that uses
-    the given argument values.
+    the argument values you provide.
 
-    :param `key_file`: key file (optional)
-    :param `cert_file`: cert file (optional)
-    :param `timeout`: request timeout (optional)
+    :param `key_file`: The key file (optional).
+    :param `cert_file`: The cert file (optional).
+    :param `timeout`: The request time-out period (optional).
     """
 
     def connect(scheme, host, port):

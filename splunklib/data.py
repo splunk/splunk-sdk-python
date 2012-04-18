@@ -12,11 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""An ATOM response loader for the Splunk REST API.
+"""This module provides an Atom Feed response loader.
 
-This module provides a simple utility :func:`load` that reads ATOM XML data
-like that returned by the Splunk REST API and returns it as a native Python
-`dict`.
+A simple :func:`load` utility reads Atom Feed XML data (the format returned by
+the Splunk REST API), and converts it to a native Python dictionary or list.
 """
 
 from xml.etree.ElementTree import XML
@@ -57,13 +56,13 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Load the given XML text into a native Python structure (dict or list), 
-    optionally loading nly the matching sub-elements if a match string is
-    given. The match string consists of either a tag name or path.
+    """Loads XML text into a native Python structure (*dict* or *list*). If you
+    provide an optional **match** string (a tag name or path), only the matching
+    sub-elements are loaded. 
 
-    :param `text`: text (XML) to load
+    :param `text`: The XML text to load.
     :type `text`: string
-    :param `match`: tag name or path (optional)
+    :param `match`: A tag name or path to match (optional).
     :type `match`: string
     """
     if text is None: return None
@@ -171,7 +170,7 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
-    """A generic utiliity class that enables dot access to members of 
+    """A generic utility class that enables dot access to members of 
     a Python dictionary.
     """
     def __call__(self, *args):
@@ -197,9 +196,10 @@ class Record(dict):
         return result
 
 def record(value=None): 
-    """Returns a record instance constructed using the given value.
+    """Returns a **record** instance constructed with an initial value that you
+    provide.
     
-    :param `value`: initial record value
+    :param `value`: An initial record value.
     :type `value`: dict
     """
     if value is None: value = {}

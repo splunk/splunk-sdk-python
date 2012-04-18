@@ -98,7 +98,10 @@ class TestCase(testlib.TestCase):
 
             # Wait for the saved search to register the triggered alert
             self.assertTrue(alert_count(search) <= count)
-            testlib.wait(search, lambda search: alert_count(search) == count)
+            testlib.wait(
+                search, 
+                lambda search: alert_count(search) == count, 
+                timeout=120)
             self.assertEqual(alert_count(search), count)
 
             # And now .. after all that trouble, verify that we see the alerts!

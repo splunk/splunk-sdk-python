@@ -19,6 +19,27 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+
+        confs = service.confs
+
+        # Make sure the collection contains some of the expected entries
+        self.assertTrue('eventtypes' in confs)
+        self.assertTrue('indexes' in confs)
+        self.assertTrue('inputs' in confs)
+        self.assertTrue('props' in confs)
+        self.assertTrue('transforms' in confs)
+        self.assertTrue('savedsearches' in confs)
+
+        for conf in confs:
+            conf.name
+            conf.path
+            for stanza in conf: 
+                stanza.name
+                stanza.path
+                stanza.content
+                stanza.metadata
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
@@ -43,28 +64,6 @@ class TestCase(testlib.TestCase):
 
         props.delete('sdk-tests')
         self.assertFalse(props.contains('sdk-tests')) 
-
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        confs = service.confs
-
-        # Make sure the collection contains some of the expected entries
-        self.assertTrue('eventtypes' in confs)
-        self.assertTrue('indexes' in confs)
-        self.assertTrue('inputs' in confs)
-        self.assertTrue('props' in confs)
-        self.assertTrue('transforms' in confs)
-        self.assertTrue('savedsearches' in confs)
-
-        for conf in confs:
-            conf.name
-            conf.path
-            for stanza in conf: 
-                stanza.name
-                stanza.path
-                stanza.content
-                stanza.metadata
 
 if __name__ == "__main__":
     testlib.main()

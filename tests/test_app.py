@@ -19,17 +19,19 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
+    def check_app(self, app):
+        app.name
+        app.path
+        app.content
+        app.metadata
+
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
 
         for app in service.apps:
-            app.name
-            app.path
-            app.content
-            app.metadata
-
-        for app in service.apps:
+            self.check_app(app)
             app.refresh()
+            self.check_app(app)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)

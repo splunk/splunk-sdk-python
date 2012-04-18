@@ -15,12 +15,12 @@
 # under the License.
 
 from os import path
-import sys
-import unittest
 
 import splunklib.data as data
 
-class TestCase(unittest.TestCase):
+import testlib
+
+class TestCase(testlib.TestCase):
     def test_elems(self):
         result = data.load("")
         self.assertTrue(result is None)
@@ -195,5 +195,5 @@ class TestCase(unittest.TestCase):
             {'content': [{'n1':"v1"}, {'n2':"v2"}, {'n3':"v3"}, {'n4':"v4"}]})
 
 if __name__ == "__main__":
-    unittest.main()
+    testlib.main()
 

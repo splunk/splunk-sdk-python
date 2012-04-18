@@ -14,18 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys
-import unittest
-
 import splunklib.client as client
-from utils import parse
 
-opts = None # Command line options
+import testlib
 
-class TestCase(unittest.TestCase):
-    def setUp(self):
-        self.service = client.connect(**opts.kwargs)
-
+class TestCase(testlib.TestCase):
     # Verify that the given collections interface behaves as expected
     def check_collection(self, collection):
         # Check various collection options
@@ -53,6 +46,7 @@ class TestCase(unittest.TestCase):
         count = 0
         for i in xrange(total):
             item = collection.list(offset=i, count=1)
+            self.assertEqual(len(item), 1)
             count += 1
         self.assertEqual(count, total)
 
@@ -78,38 +72,46 @@ class TestCase(unittest.TestCase):
         self.assertEqual(seen, count)
 
     def test_apps(self):
-        self.check_collection(self.service.apps)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.apps)
 
     def test_event_types(self):
-        self.check_collection(self.service.event_types)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.event_types)
 
     def test_indexes(self):
-        self.check_collection(self.service.indexes)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.indexes)
 
     def test_inputs(self):
         # The Inputs collection is an aggregated view of the various REST API
         # input endpoints, and does not support the paging interface.
-        count = len(self.service.inputs.list())
-        self.check_iterable(self.service.inputs, count)
+        service = client.connect(**self.opts.kwargs)
+        count = len(service.inputs.list())
+        self.check_iterable(service.inputs, count)
 
     def test_jobs(self):
         # The Jobs REST API endpoint does not support the paging interface.
-        count = len(self.service.jobs.list())
-        self.check_iterable(self.service.jobs, count)
+        service = client.connect(**self.opts.kwargs)
+        count = len(service.jobs.list())
+        self.check_iterable(service.jobs, count)
 
     def test_loggers(self):
-        self.check_collection(self.service.loggers)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.loggers)
 
     def test_messages(self):
-        self.check_collection(self.service.messages)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.messages)
 
     def test_roles(self):
-        self.check_collection(self.service.roles)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.roles)
 
     def test_users(self):
-        self.check_collection(self.service.users)
+        service = client.connect(**self.opts.kwargs)
+        self.check_collection(service.users)
 
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
-    unittest.main(argv=sys.argv[:1])
+    testlib.main()
 

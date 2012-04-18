@@ -15,7 +15,8 @@
 # under the License.
 
 import sys
-import unittest
+
+import testlib
 
 def read_baseline(filename):
     fd = open(filename, "r")
@@ -23,7 +24,7 @@ def read_baseline(filename):
     fd.close()
     return baseline
 
-class TestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
     def check_module(self, modulename):
         __import__(modulename)
         module = sys.modules[modulename]
@@ -47,4 +48,4 @@ class TestCase(unittest.TestCase):
         self.check_module("splunklib.results")
 
 if __name__ == "__main__":
-    unittest.main()
+    testlib.main()

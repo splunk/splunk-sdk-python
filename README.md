@@ -126,7 +126,7 @@ including:
 
 You can see an example use of the library here:
 
-    import splunk.binding as binding
+    import splunklib.binding as binding
 
     # host defaults to localhost and port defaults to 8089
     context = binding.connect(username="admin", password="changeme")
@@ -140,7 +140,7 @@ The second layer is referred to as the _client_ layer and builds on the
 _binding_ layer to provide a friendlier interface to Splunk that abstracts 
 away some of the lower level details of the _binding_ layer.
 
-    import splunk.client as client
+    import splunklib.client as client
 
     # host defaults to localhost and port defaults to 8089
     service = client.connect(username="admin", password="changeme")
@@ -161,20 +161,34 @@ Alternatively, you can read more about our testing "framework"
 
 ### Layout of the repository
 
-<dl>
-<dt>./docs</dt>
-<dd>Contains a few detailed notes specific to the SDK. In general documentation
-    about developing on Splunk can be found on dev.splunk.com.</dd>
-<dt>./examples</dt>
-<dd>Contains s variety of Splunk samples demonstrating the various library
-    modules.</dd>
-<dt>./splunk</dt>
-<dd>The Splunk library modules.</dd>
-<dt>./tests</dt>
-<dd>The SDK unit tests.</dd>
-<dt>./utils</dt>
-<dd>Generic utility code shared by the examples and unit tests.</dd>
-</dl>
+<table>
+
+<tr>
+<td>docs</td>
+<td>Source for Sphinx based docs and build</td>
+</tr>
+
+<tr>
+<td>examples</td>
+<td>Examples demonstrating various SDK features</td>
+<tr>
+
+<tr>
+<td>splunklib</td>
+<td>Source for the Splunk library modules</td>
+<tr>
+
+<tr>
+<td>tests</td>
+<td>Source for unit tests</td>
+<tr>
+
+<tr>
+<td>utils</td>
+<td>Source for utilities shared by the examples and unit tests</td>
+<tr>
+
+</table>
 
 ### Changelog
 
@@ -204,12 +218,36 @@ For a gentle introduction to the Splunk product and some of its capabilities:
 
 ## Community
 
-* Email: Stay connected with other developers building on Splunk: devinfo@splunk.com
-* Issues: https://github.com/splunk/splunk-sdk-python/issues
-* Answers: Check out this tag on Splunk answers for:  
-    http://splunk-base.splunk.com/tags/python/
-* Blog:  http://blogs.splunk.com/dev/
-* Twitter: [@splunkdev](http://twitter.com)
+tay connected with other developers building on Splunk.
+
+<table>
+
+<tr>
+<td><em>Email</em></td>
+<td>devinfo@splunk.com</td>
+</tr>
+
+<tr>
+<td><em>Issues</em>
+<td><span>https://github.com/splunk/splunk-sdk-java/issues/</span></td>
+</tr>
+
+<tr>
+<td><em>Answers</em>
+<td><span>http://splunk-base.splunk.com/tags/java/</span></td>
+</tr>
+
+<tr>
+<td><em>Blog</em>
+<td><span>http://blogs.splunk.com/dev/</span></td>
+</tr>
+
+<tr>
+<td><em>Twitter</em>
+<td>@splunkdev</td>
+</tr>
+
+</table>
 
 ### How to contribute
 

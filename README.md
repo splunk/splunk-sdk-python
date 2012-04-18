@@ -43,21 +43,21 @@ already have a copy you can download one from http://www.splunk.com/download.
 
 You can get a copy of the SDK sources by cloning into the repository with git:
 
-    git clone https://github.com/splunk/splunk-sdk-python.git
+> git clone https://github.com/splunk/splunk-sdk-python.git
 
 #### Installing
 
 You can install the Splunk SDK libraries by using `easy_install` or `pip`:
 
-    [sudo] easy_install splunk-sdk
+> [sudo] easy_install splunk-sdk
 
 Or
 
-    [sudo] pip install splunk-sdk
+> [sudo] pip install splunk-sdk
 
 Alternatively, you can use `setup.py` on the sources you cloned from GitHub:
 
-    [sudo] python setup.py install
+> [sudo] python setup.py install
 
 However, it's not necessarry to install the libraries in order to run the
 examples and unit tests from the SDK.
@@ -153,8 +153,8 @@ away some of the lower level details of the _binding_ layer.
 The SDK contains a small but growing collection of unit tests. Running the
 tests is simple and rewarding:
 
-    cd tests
-    ./runtests.py
+> cd tests<br>
+> python runtests.py
 
 Alternatively, you can read more about our testing "framework" 
 [here](https://github.com/splunk/splunk-sdk-python/tree/master/tests).
@@ -218,7 +218,7 @@ For a gentle introduction to the Splunk product and some of its capabilities:
 
 ## Community
 
-tay connected with other developers building on Splunk.
+Stay connected with other developers building on Splunk.
 
 <table>
 

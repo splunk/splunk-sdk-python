@@ -31,7 +31,7 @@ def delete_app(service, name):
         apps.delete(name)
         restart(service)
 
-def restart(service, timeout=60):
+def restart(service, timeout=120):
     """Restart the given service and wait for it to wake back up."""
     service.restart()
     sleep(5) # Wait for service to notice restart

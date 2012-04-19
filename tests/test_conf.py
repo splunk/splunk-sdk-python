@@ -41,26 +41,105 @@ class TestCase(testlib.TestCase):
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
 
-        self.assertTrue('props' in service.confs)
-        props = service.confs['props']
+        # There is no way to delete a conf file via the REST API, so we 
+        # create a test app to use as the context fo the conf test and then 
+        # we cleanup by deleting the app.
 
-        if 'sdk-tests' in props: props.delete('sdk-tests')
-        self.assertFalse('sdk-tests' in props)
+        app_name = "sdk-test-app"
 
-        stanza = props.create('sdk-tests')
-        self.assertTrue(props.contains('sdk-tests'))
-        self.assertEqual(stanza.name,'sdk-tests')
-        self.assertTrue('maxDist' in stanza.content)
-        value = int(stanza['maxDist'])
-        stanza.update(maxDist=value+1)
-        stanza.refresh()
-        self.assertEqual(stanza['maxDist'], str(value + 1))
-        stanza.update(maxDist=value)
-        stanza.refresh()
-        self.assertEqual(stanza['maxDist'], str(value))
+        # Delete any lingering test app
+        testlib.delete_app(service, app_name)
+        self.assertFalse(app_name in service.apps)
 
-        props.delete('sdk-tests')
-        self.assertFalse(props.contains('sdk-tests')) 
+        # Create a fresh test app
+        service.apps.create(app_name)
+        self.assertTrue(app_name in service.apps)
+
+        # Connect using the test app context
+        kwargs = self.opts.kwargs.copy()
+        kwargs['app'] = app_name
+        kwargs['owner'] = "nobody"
+        kwargs['sharing'] = "app"
+        service = client.connect(**kwargs)
+
+        conf_name = "sdk-test-conf"
+
+        confs = service.confs
+        self.assertFalse(conf_name in confs)
+
+        conf = confs.create(conf_name)
+        self.assertTrue(conf_name in confs)
+        self.assertEqual(conf.name, conf_name)
+
+        stanzas = conf.list()
+        self.assertEqual(len(stanzas), 0)
+
+        conf.create("stanza1")
+        self.assertEqual(len(conf.list()), 1)
+        self.assertTrue("stanza1" in conf)
+        self.assertFalse("stanza2" in conf)
+        self.assertFalse("stanza3" in conf)
+
+        conf.create("stanza2")
+        self.assertEqual(len(conf.list()), 2)
+        self.assertTrue("stanza1" in conf)
+        self.assertTrue("stanza2" in conf)
+        self.assertFalse("stanza3" in conf)
+
+        conf.create("stanza3")
+        self.assertEqual(len(conf.list()), 3)
+        self.assertTrue("stanza1" in conf)
+        self.assertTrue("stanza2" in conf)
+        self.assertTrue("stanza3" in conf)
+
+        stanza1 = conf['stanza1']
+        self.assertFalse('key1' in stanza1.content)
+        self.assertFalse('key2' in stanza1.content)
+        self.assertFalse('key3' in stanza1.content)
+
+        stanza1.update(key1="value1")
+        stanza1.refresh()
+        self.assertTrue('key1' in stanza1.content)
+        self.assertFalse('key2' in stanza1.content)
+        self.assertFalse('key3' in stanza1.content)
+        self.check_content(stanza1, key1="value1")
+
+        stanza1.update(key2="value2")
+        stanza1.refresh()
+        self.assertTrue('key1' in stanza1.content)
+        self.assertTrue('key2' in stanza1.content)
+        self.assertFalse('key3' in stanza1.content)
+        self.check_content(stanza1, key1="value1", key2="value2")
+
+        stanza1.update(key3=42)
+        stanza1.refresh()
+        self.assertTrue('key1' in stanza1.content)
+        self.assertTrue('key2' in stanza1.content)
+        self.assertTrue('key3' in stanza1.content)
+        self.check_content(stanza1, key1="value1", key2="value2", key3=42)
+
+        conf.delete("stanza3")
+        self.assertEqual(len(conf.list()), 2)
+        self.assertTrue("stanza1" in conf)
+        self.assertTrue("stanza2" in conf)
+        self.assertFalse("stanza3" in conf)
+
+        conf.delete("stanza2")
+        self.assertEqual(len(conf.list()), 1)
+        self.assertTrue("stanza1" in conf)
+        self.assertFalse("stanza2" in conf)
+        self.assertFalse("stanza3" in conf)
+
+        conf.delete("stanza1")
+        self.assertEqual(len(conf.list()), 0)
+        self.assertFalse("stanza1" in conf)
+        self.assertFalse("stanza2" in conf)
+        self.assertFalse("stanza3" in conf)
+
+        # Reconnect using original context so we can cleaup the test app
+        service = client.connect(**self.opts.kwargs)
+        testlib.delete_app(service, app_name)
+        self.assertFalse(app_name in service.apps)
 
 if __name__ == "__main__":
     testlib.main()

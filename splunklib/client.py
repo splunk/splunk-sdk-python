@@ -494,6 +494,12 @@ class Confs(Collection):
             item=lambda service, path, **kwargs:
                 Conf(service, kwargs['state'].title))
 
+    def create(self, name, **kwargs):
+        if not isinstance(name, basestring): 
+            raise ValueError("Invalid argument: 'name'")
+        self.post(__conf=name, **kwargs)
+        return self[name] # UNDONE: Extra round-trip to retrieve entity
+
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):

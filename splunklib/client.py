@@ -108,17 +108,37 @@ def _parse_atom_entry(entry):
     elink = elink if isinstance(elink, list) else [elink]
     links = record((link.rel, link.href) for link in elink)
 
-    econtent = entry.get('content', {})
-    content = record((k, v) for k, v in econtent.iteritems()
+    # Retrieve entity content values
+    content = entry.get('content', {})
+
+    # Host entry metadata
+    metadata = _parse_atom_metadata(content)
+
+    # Filter some of the noise out of the content record
+    content = record((k, v) for k, v in content.iteritems()
         if k not in ['eai:acl', 'eai:attributes', 'type'])
-    metadata = dict((k, econtent.get(k, None)) 
-        for k in ['eai:acl', 'eai:attributes'])
 
     return record({
         'title': title,
         'links': links,
-        'content': content,
-        'metadata': metadata })
+        'access': metadata.access,
+        'fields': metadata.fields,
+        'content': content
+    })
+
+# Parse the metadata fields out of the given atom entry content record
+def _parse_atom_metadata(content):
+    # Hoist access metadata
+    access = content.get('eai:acl', None)
+
+    # Hoist content metadata (and cleanup some naming)
+    attributes = content.get('eai:attributes', {})
+    fields = record({
+        'required': attributes.get('requiredFields', []),
+        'optional': attributes.get('optionalFields', []),
+        'wildcard': attributes.get('wildcardFields', [])})
+
+    return record({'access': access, 'fields': fields})
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
@@ -220,7 +240,7 @@ class Service(Context):
     def loggers(self):
         """Returns a collection of service logging categories and their status.
         """
-        return Collection(self, PATH_LOGGER)
+        return Loggers(self)
 
     @property
     def messages(self):
@@ -233,7 +253,7 @@ class Service(Context):
 
         :param `query`: The search query to parse.
         :param `kwargs`: Optional arguments to pass to the ``search/parser`` 
-                       endpoint.
+                         endpoint.
         :return: A semantic map of the parsed search query.
         """
         return self.get("search/parser", q=query, **kwargs)
@@ -302,17 +322,6 @@ class Entity(Endpoint):
     def __getitem__(self, key):
         return self.content[key]
 
-    #
-    # Given that update doesn't automatically refresh the cached local state,
-    # this operation now violates the principle of least surprise, because it
-    # allows you to do what appears to be a local assignment, which is then
-    # not reflected in the value you see if you do a subsequent __getitem__ 
-    # without an explicit refresh.
-    #
-    # def __setitem__(self, key, value):
-    #     self.update(**{ key: value })
-    #
-
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows
     # for a subclass to override and handle any special cases.
@@ -332,6 +341,11 @@ class Entity(Endpoint):
         return self
 
     @property
+    def access(self):
+        """Returns entity access metadata."""
+        return self.state.access
+
+    @property
     def content(self):
         """Returns the contents of the entity."""
         return self.state.content
@@ -347,14 +361,14 @@ class Entity(Endpoint):
         return self
 
     @property
+    def fields(self):
+        """Returns entity content metadata."""
+        return self.state.fields
+
+    @property
     def links(self):
         """Returns a dictionary of related resources."""
         return self.state.links
-
-    @property
-    def metadata(self):
-        """Returns the entity metadata."""
-        return self.state.metadata
 
     @property
     def name(self):
@@ -448,10 +462,7 @@ class Collection(Endpoint):
         """Returns metadata for members of the collection."""
         response = self.get("_new")
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
-        return {
-            'eai:acl': content['eai:acl'],
-            'eai:attributes': content['eai:attributes']
-        }
+        return _parse_atom_metadata(content)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=-1, **kwargs):
@@ -674,10 +685,7 @@ class Inputs(Collection):
         """Returns metadata for the members of a given kind."""
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
-        return {
-            'eai:acl': content['eai:acl'],
-            'eai:attributes': content['eai:attributes']
-        }
+        return _parse_atom_metadata(content)
 
     @property
     def kinds(self):
@@ -884,9 +892,17 @@ class Jobs(Collection):
     def list(self, count=0, **kwargs):
         return Collection.list(self, count, **kwargs)
 
+class Loggers(Collection):
+    """This class represents a collection of service logging categories."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_LOGGER)
+
+    def itemmeta(self):
+        raise NotSupportedError
+
 class Message(Entity):
-    def __init__(self, service, name, **kwargs):
-        Entity.__init__(self, service, _path(PATH_MESSAGES, name), **kwargs)
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
 
     @property
     def value(self):

@@ -19,21 +19,25 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
-    def check_content(self, entity, **kwargs):
-        for k, v in kwargs.iteritems(): 
-            self.assertEqual(entity[k], str(v))
+    def check_event_type(self, event_type):
+        self.check_entity(event_type)
+        keys = ['description', 'priority', 'search']
+        for key in keys: self.assertTrue(key, event_type)
 
-    def test(self):
-        event_types = client.connect(**self.opts.kwargs).event_types
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+
+        for event_type in service.event_types:
+            self.check_event_type(event_type)
+
+    def test_crud(self):
+        service = client.connect(**self.opts.kwargs)
+
+        event_types = service.event_types
 
         if 'sdk-test' in event_types:
             event_types.delete('sdk-test')
         self.assertFalse('sdk-test' in event_types)
-
-        for event_type in event_types:
-            event_type.content.description
-            event_type.content.priority
-            event_type.content.search
 
         kwargs = {}
         kwargs['search'] = "index=_internal *"

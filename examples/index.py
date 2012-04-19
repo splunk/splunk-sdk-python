@@ -70,12 +70,11 @@ class Program:
             print "Index '%s' already exists" % name
             return
 
-        # Read item metadata and construct command line parser rules that 
+        # Read index metadata and construct command line parser rules that 
         # correspond to each editable field.
 
         # Request editable fields
-        itemmeta = self.service.indexes.itemmeta()
-        fields = itemmeta['eai:attributes'].optionalFields
+        fields = self.service.indexes.itemmeta().fields.optional
 
         # Build parser rules
         rules = dict([(field, {'flags': ["--%s" % field]}) for field in fields])
@@ -142,15 +141,16 @@ class Program:
         if len(argv) == 0: 
             error("Command requires an index name", 2)
         name = argv[0]
+
         if not self.service.indexes.contains(name):
             error("Index '%s' does not exist" % name, 2)
         index = self.service.indexes[name]
 
-        # Read entity metadata and construct command line parser rules that 
+        # Read index metadata and construct command line parser rules that 
         # correspond to each editable field.
 
         # Request editable fields
-        fields = index.readmeta()['eai:attributes'].optionalFields
+        fields = self.service.indexes.itemmeta().fields.optional
 
         # Build parser rules
         rules = dict([(field, {'flags': ["--%s" % field]}) for field in fields])

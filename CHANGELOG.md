@@ -50,7 +50,8 @@ properties:
 
 * `Entity.state` returns the entire state record
 * `Entity.content` returns the content field of the state record
-* `Entity.metadata` returns the metadata field of the state record
+* `Entity.access` returns entity access metadata
+* `Entity.fields` returns entity content metadata
 
 `Entity.refresh` is a new method that issues a round-trip to the server
 and updates the local, cached state record.

@@ -19,12 +19,10 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
-    def check_entity(self, entity):
-        entity.name
-        entity.path
-        entity.metadata
-        entity.content
-        entity.kind
+    def check_input(self, entity):
+        self.check_entity(entity)
+
+        self.assertTrue(entity.kind is not None)
 
         # Note: The disabled flag appears to be the only common content
         # attribute, as there are apparently cases where even index does 
@@ -95,9 +93,9 @@ class TestCase(testlib.TestCase):
         inputs = service.inputs
 
         for item in inputs: 
-            self.check_entity(item)
+            self.check_input(item)
             item.refresh()
-            self.check_entity(item)
+            self.check_input(item)
 
         for kind in inputs.kinds:
             for item in inputs.list(kind):

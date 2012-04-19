@@ -43,10 +43,7 @@ class TestCase(testlib.TestCase):
             sleep(1)
 
     def check_job(self, job):
-        job.name
-        job.path
-        job.metadata
-        job.content
+        self.check_entity(job)
 
         keys = [
             'cursorTime', 'delegate', 'diskUsage', 'dispatchState',

@@ -21,6 +21,14 @@ import testlib
 class TestCase(testlib.TestCase):
     # Verify that the given collections interface behaves as expected
     def check_collection(self, collection):
+        # Check item metadata
+        try:
+            metadata = collection.itemmeta()
+            self.assertTrue(isinstance(metadata, dict))
+            self.assertTrue(isinstance(metadata.access, dict))
+            self.assertTrue(isinstance(metadata.fields, dict))
+        except client.NotSupportedError: pass
+
         # Check various collection options
         collection.list() # Default
         collection.list(search="title=*")

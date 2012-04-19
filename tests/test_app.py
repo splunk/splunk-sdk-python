@@ -20,10 +20,7 @@ import testlib
 
 class TestCase(testlib.TestCase):
     def check_app(self, app):
-        app.name
-        app.path
-        app.content
-        app.metadata
+        self.check_entity(app)
 
     def test_read(self):
         service = client.connect(**self.opts.kwargs)

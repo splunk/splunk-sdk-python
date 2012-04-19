@@ -16,6 +16,7 @@
 
 """Shared unit test utilities."""
 
+import re
 import sys
 from time import sleep
 import unittest
@@ -57,6 +58,46 @@ def wait(entity, predicate, timeout=60):
     return entity
 
 class TestCase(unittest.TestCase):
+    def check_content(self, entity, **kwargs):
+        for k, v in kwargs.iteritems(): 
+            self.assertEqual(entity[k], str(v))
+
+    def check_entity(self, entity):
+        self.assertTrue(entity.name is not None)
+        self.assertTrue(entity.path is not None)
+
+        self.assertTrue(entity.state is not None)
+        self.assertTrue(entity.content is not None)
+
+        # Verify access metadata
+
+        entity.access.app
+        entity.access.owner
+        entity.access.sharing
+
+        # Verify content metadata
+
+        # In some cases, the REST API does not return field metadata for when
+        # entities are intially listed by a collection, so we refresh to make
+        # sure the metadata is available.
+        entity.refresh()
+
+        self.assertTrue(isinstance(entity.fields.required, list))
+        self.assertTrue(isinstance(entity.fields.optional, list))
+        self.assertTrue(isinstance(entity.fields.wildcard, list))
+
+        # Verify that all required fields appear in entity content
+
+        for field in entity.fields.required:
+            try:
+                self.assertTrue(field in entity.content)
+            except:
+                # Check for known exceptions
+                if "configs/conf-times" in entity.path:
+                    if field in ["is_sub_menu"]:
+                        continue
+                raise
+
     def setUp(self):
         self.opts = parse([], {}, ".splunkrc")
 

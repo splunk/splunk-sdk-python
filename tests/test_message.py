@@ -19,6 +19,17 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
+    def check_message(self, message):
+        self.check_entity(message)
+
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+
+        for message in service.messages:
+            self.check_message(message)
+            message.refresh()
+            self.check_message(message)
+
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
 
@@ -59,16 +70,6 @@ class TestCase(testlib.TestCase):
             messages.create(None, value="What?")
             messages.create(42, value="Who, me?")
             messages.create([1, 2,  3], value="Who, me?")
-
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for message in service.messages:
-            message.name
-            message.path
-            message.metadata
-            message.content
-            message.value
 
 if __name__ == "__main__":
     testlib.main()

@@ -19,9 +19,54 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
-    def check_content(self, entity, **kwargs):
-        for k, v in kwargs.iteritems(): 
-            self.assertEqual(entity[k], str(v))
+    def check_saved_search(self, saved_search):
+        self.check_entity(saved_search)
+        saved_search.content['alert.expires']
+        saved_search.content['alert.severity']
+        saved_search.content['alert.track']
+        saved_search.content.alert_type
+        saved_search.content['dispatch.buckets']
+        saved_search.content['dispatch.lookups']
+        saved_search.content['dispatch.max_count']
+        saved_search.content['dispatch.max_time']
+        saved_search.content['dispatch.reduce_freq']
+        saved_search.content['dispatch.spawn_process']
+        saved_search.content['dispatch.time_format']
+        saved_search.content['dispatch.ttl']
+        saved_search.content.max_concurrent
+        saved_search.content.realtime_schedule
+        saved_search.content.restart_on_searchpeer_add
+        saved_search.content.run_on_startup
+        saved_search.content.search
+        saved_search.content['action.email']
+        saved_search.content['action.populate_lookup']
+        saved_search.content['action.rss']
+        saved_search.content['action.script']
+        saved_search.content['action.summary_index']
+        saved_search.content.is_scheduled
+        saved_search.content.is_visible
+
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        # Make sure there is at least one saved search to read
+        search = "search index=sdk-tests * earliest=-1m"
+        saved_search = saved_searches.create('sdk-test1', search)
+        self.assertEqual('sdk-test1', saved_search.name)
+        self.assertTrue('sdk-test1' in saved_searches)
+
+        for saved_search in saved_searches:
+            self.check_saved_search(saved_search)
+            saved_search.refresh()
+            self.check_saved_search(saved_search)
+
+        saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
@@ -129,53 +174,6 @@ class TestCase(testlib.TestCase):
         self.assertEqual(len(history), 0)
         self.assertFalse(contains(history, job1.sid))
         self.assertFalse(contains(history, job2.sid))
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        # Make sure there is at least one saved search to read
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertTrue('sdk-test1' in saved_searches)
-
-        for saved_search in saved_searches:
-            saved_search.name
-            saved_search.path
-            saved_search.metadata
-            saved_search.content
-            saved_search.content['alert.expires']
-            saved_search.content['alert.severity']
-            saved_search.content['alert.track']
-            saved_search.content.alert_type
-            saved_search.content['dispatch.buckets']
-            saved_search.content['dispatch.lookups']
-            saved_search.content['dispatch.max_count']
-            saved_search.content['dispatch.max_time']
-            saved_search.content['dispatch.reduce_freq']
-            saved_search.content['dispatch.spawn_process']
-            saved_search.content['dispatch.time_format']
-            saved_search.content['dispatch.ttl']
-            saved_search.content.max_concurrent
-            saved_search.content.realtime_schedule
-            saved_search.content.restart_on_searchpeer_add
-            saved_search.content.run_on_startup
-            saved_search.content.search
-            saved_search.content['action.email']
-            saved_search.content['action.populate_lookup']
-            saved_search.content['action.rss']
-            saved_search.content['action.script']
-            saved_search.content['action.summary_index']
-            saved_search.content.is_scheduled
-            saved_search.content.is_visible
 
         saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)

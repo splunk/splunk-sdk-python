@@ -21,14 +21,15 @@ import testlib
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 
 class TestCase(testlib.TestCase):
+    def check_logger(self, logger):
+        self.check_entity(logger)
+        self.assertTrue(logger['level'] in LEVELS)
+
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
         
         for logger in service.loggers:
-            logger.name
-            logger.path
-            logger.content
-            self.assertTrue(logger['level'] in LEVELS)
+            self.check_logger(logger)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)

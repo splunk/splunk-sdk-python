@@ -31,6 +31,9 @@ class TestCase(testlib.TestCase):
         searches = service.saved_searches
         fired_alerts = service.fired_alerts
 
+        if 'sdk-tests' not in service.indexes:
+            service.indexes.create("sdk-tests")
+
         # Clean out the test index
         index = service.indexes['sdk-tests']
         index.clean()

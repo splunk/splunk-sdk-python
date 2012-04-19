@@ -21,7 +21,8 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
-    def check_entity(self, index):
+    def check_index(self, index):
+        self.check_entity(index)
         keys = [
             'thawedPath', 'quarantineFutureSecs',
             'isInternal', 'maxHotBuckets', 'disabled', 'homePath',
@@ -39,6 +40,14 @@ class TestCase(testlib.TestCase):
             'maxTotalDataSizeMB'
         ]
         for key in keys: self.assertTrue(key in index.content)
+
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+
+        for index in service.indexes: 
+            self.check_index(index)
+            index.refresh()
+            self.check_index(index)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
@@ -81,25 +90,6 @@ class TestCase(testlib.TestCase):
         index.clean()
         index.refresh()
         self.assertEqual(index['totalEventCount'], '0')
-
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for index in service.indexes: 
-            self.check_entity(index)
-            index.refresh()
-            self.check_entity(index)
-
-    def test_meta(self):
-        service = client.connect(**self.opts.kwargs)
-
-        metadata = service.indexes.itemmeta()
-        self.assertTrue(metadata.has_key('eai:acl'))
-        self.assertTrue(metadata.has_key('eai:attributes'))
-        for index in service.indexes:
-            metadata = index.metadata
-            self.assertTrue(metadata.has_key('eai:acl'))
-            self.assertTrue(metadata.has_key('eai:attributes'))
 
 if __name__ == "__main__":
     testlib.main()

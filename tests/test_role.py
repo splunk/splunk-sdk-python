@@ -20,10 +20,7 @@ import testlib
 
 class TestCase(testlib.TestCase):
     def check_role(self, role):
-        role.name
-        role.path
-        role.metadata
-        role.content
+        self.check_entity(role)
 
         service = role.service
         capabilities = service.capabilities

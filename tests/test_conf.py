@@ -36,10 +36,7 @@ class TestCase(testlib.TestCase):
             conf.name
             conf.path
             for stanza in conf: 
-                stanza.name
-                stanza.path
-                stanza.content
-                stanza.metadata
+                self.check_entity(stanza)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)

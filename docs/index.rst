@@ -97,6 +97,10 @@ splunklib.client
     :inherited-members:
     :undoc-members:
 
+.. autoclass:: Loggers
+    :members:
+    :inherited-members:
+
 .. autoclass:: Message
     :members:
     :inherited-members:

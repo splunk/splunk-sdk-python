@@ -19,7 +19,17 @@ import splunklib.client as client
 import testlib
 
 class TestCase(testlib.TestCase):
-    def test(self):
+    def check_user(self, user):
+        self.check_entity(user)
+        self.assertTrue('email' in user)
+        self.assertTrue('password' in user)
+        self.assertTrue('realname' in user)
+        self.assertTrue('roles' in user)
+
+    def test_read(self):
+        service = client.connect(**self.opts.kwargs)
+
+    def test_crud(self):
         service = client.connect(**self.opts.kwargs)
 
         users = service.users
@@ -34,13 +44,7 @@ class TestCase(testlib.TestCase):
         self.assertFalse(users.contains("sdk-user"))
 
         user = users.create("sdk-user", password="changeme", roles="power")
-        self.assertTrue(users.contains("sdk-user"))
-
-        # Verify the new user has the expected attributes
-        self.assertTrue('email' in user.content)
-        self.assertTrue('password' in user.content)
-        self.assertTrue('realname' in user.content)
-        self.assertTrue('roles' in user.content)
+        self.assertTrue('sdk-user' in users)
 
         # Verify that we can update the user
         self.assertTrue(user['email'] is None)

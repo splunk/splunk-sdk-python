@@ -1,6 +1,6 @@
 # Splunk Python SDK Changelog
 
-## develop
+## 0.8.0 (beta)
 
 ### Features
 
@@ -131,11 +131,11 @@ API reference under the section on accessing Splunk resources at:
 * Fix handling of resource names that are not valid URL segments by quoting the
   resource name when constructing its path
 
-## v0.1.0a
+## 0.1.0a (preview)
 
 * Fix a bug in the dashboard example
 * Ramp up README with more info
 
-## v0.1.0
+## 0.1.0 (preview)
 
 * Initial Python SDK release

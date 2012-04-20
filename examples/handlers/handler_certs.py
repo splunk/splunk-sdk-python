@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -40,7 +40,7 @@ import sys
 import urllib
 import urlparse
 
-import splunk.client as client
+import splunklib.client as client
 
 import utils
 
@@ -70,10 +70,14 @@ class HTTPSConnection(httplib.HTTPSConnection):
             self.sock = ssl.wrap_socket(
                 sock, None, None, cert_reqs=ssl.CERT_NONE)
 
+# Crack the given url into (scheme, host, port, path)
 def spliturl(url):
-    scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-    host, port = urllib.splitnport(netloc, 8089)
-    path = url[url.find(path):]
+    scheme, opaque = urllib.splittype(url)
+    netloc, path = urllib.splithost(opaque)
+    host, port = urllib.splitport(netloc)
+    # Strip brackets if its an IPv6 address
+    if host.startswith('[') and host.endswith(']'): host = host[1:-1]
+    if port is None: port = DEFAULT_PORT
     return scheme, host, port, path
 
 def handler(ca_file=None):
@@ -106,5 +110,5 @@ def handler(ca_file=None):
 opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
 ca_file = opts.kwargs['ca_file']
 service = client.connect(handler=handler(ca_file), **opts.kwargs)
-pprint(service.apps.list())
+pprint([app.name for app in service.apps])
 

@@ -1,4 +1,4 @@
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -45,6 +45,14 @@ RULES_SPLUNK = {
         'default': "8089",
         'help': "Port number (default 8089)" 
     },
+    'app': {
+        'flags': ["--app"], 
+        'help': "The app context (optional)"
+    },
+    'owner': {
+        'flags': ["--owner"], 
+        'help': "The user context (optional)"
+    },
     'username': {
         'flags': ["--username"],
         'default': None,
@@ -54,10 +62,6 @@ RULES_SPLUNK = {
         'flags': ["--password"], 
         'default': None,
         'help': "Password to login with" 
-    },
-    'namespace': {
-        'flags': ["--namespace"], 
-        'default': None,
     },
 }
 

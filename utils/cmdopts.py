@@ -1,4 +1,4 @@
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -75,6 +75,7 @@ class Parser(OptionParser):
         for line in file:
             if line.startswith("#"): continue # Skip comment
             line = line.strip()
+            if len(line) == 0: continue # Skip blank line
             if not line.startswith("-"): line = "--" + line
             argv.append(line)
         self.parse(argv)

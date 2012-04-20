@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,18 +23,22 @@
 import sys, datetime, urllib2, json
 from xml.etree import ElementTree
 
-import splunk.client
-import splunk.results as results
+import splunklib.client as client
+import splunklib.results as results
 from utils import parse, error
 
 leftronic_access_key = ""
 
-def send_data(access_key, stream_name, point):
+def send_data(access_key, stream_name, point = None, command = None):
     data = {
         "accessKey": access_key,
-        "streamName": stream_name,
-        "point": point,
+        "streamName": stream_name
     }
+    
+    if not point is None:
+        data["point"] = point
+    if not command is None:
+        data["command"] = command   
 
     request = urllib2.Request("https://beta.leftronic.com/customSend/",
         data = json.dumps(data)
@@ -76,6 +80,7 @@ def geo(service):
 
     def iterate(job):
         reader = results.ResultsReader(job.preview())
+        points = []
         for kind,result in reader:
             if kind == results.RESULT:
                 lng, lat = result["coordinates_coordinates"].split(",")
@@ -83,8 +88,11 @@ def geo(service):
                     "latitude": lat,
                     "longitude": lng,
                 }
+                points.append(point)
 
-                send_data(access_key = leftronic_access_key, stream_name = "geo", point = point)
+                
+        send_data(access_key = leftronic_access_key, stream_name = "geo", command = "clear")
+        send_data(access_key = leftronic_access_key, stream_name = "geo", point = points)
 
     return (created_job, lambda job: iterate(job))
 
@@ -153,14 +161,11 @@ def top_tags(service):
     return (created_job, lambda job: iterate(job))
 
 def main(argv):
-    global urllib2
-    usage = "async.py <sync | async>"
-
     # Parse the command line args.
     opts = parse(argv, {}, ".splunkrc")
 
     # Connect to Splunk
-    service = splunk.client.connect(**opts.kwargs)
+    service = client.connect(**opts.kwargs)
     
     # This is the list of dashboard streams
     streams = [

@@ -1,4 +1,4 @@
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,7 +16,7 @@
 
 from xml.etree import ElementTree
 
-import splunk.binding as binding
+import splunklib.binding as binding
 
 HOST = "localhost"
 PORT = 8089

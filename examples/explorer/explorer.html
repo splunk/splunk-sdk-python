@@ -219,17 +219,17 @@ var submitForm = function() {
         // Replace the parameters with the POST body
         params = postBody;
 
-        // And we delete the namespace temporarily
-        var namespace = $("#server-namespace").val();
+        // And we delete the app namespace temporarily
+        var app = $("#server-app").val();
     }
 
     execute = function() {    
-        // Save the old namespace
-        var namespace = $("#server-namespace").val();
+        // Save the old app namespace
+        var app = $("#server-app").val();
 
         if (nonFormRequest) {
-            // If it is a non-form request, we have to erase the namespace
-            $("#server-namespace").val(null);
+            // If it is a non-form request, we have to erase the app namespace
+            $("#server-app").val(null);
         }
 
         request(path, api.method, params, function(data, textStatus, xhr) {
@@ -238,8 +238,8 @@ var submitForm = function() {
             //prettyPrint();
         });
 
-        // And we can restore the namespace regardless
-        $("#server-namespace").val(namespace);
+        // And we can restore the app namespace regardless
+        $("#server-app").val(app);
     };
 
     // If we haven't logged in yet, then log in,
@@ -310,21 +310,21 @@ var makeUrl = function(path) {
     var host = $("#server-host").val();
     var port = $("#server-port").val();
     var owner = $("#server-owner").val();
-    var namespace = $("#server-namespace").val();
+    var app = $("#server-app").val();
 
     if (startsWith(path, "/")) {
         path = path;
         return path;
     }
 
-    if (!namespace) {
+    if (app === "" && owner === "") {
         path = "services/" + path;
     }
     else {
-        var owner = (owner === "*" ? "-" : owner);
-        var namespace = (namespace === "*" ? "-" : namespace);
+        var owner = owner === "" ? "-" : owner;
+        var app = app === "" ? "-" : app;
     
-        path = "servicesNS/" + owner + "/" + namespace + "/" + path;
+        path = "servicesNS/" + owner + "/" + app + "/" + path;
     }
 
     return scheme + "://" + host + ":" + port + "/" + path;
@@ -490,11 +490,11 @@ $(document).ready(function() {
     </div>
     <div class="server-info-field">
         <h3>owner</h3> 
-        <input id="server-owner" value="-"/>
+        <input id="server-owner" value=""/>
     </div>
     <div class="server-info-field">
-        <h3>namespace</h3> 
-        <input id="server-namespace" value="-"/>
+        <h3>app</h3> 
+        <input id="server-app" value=""/>
     </div>
     <div class="server-info-field">
         <h3>Username</h3> 

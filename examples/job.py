@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,7 +24,7 @@
 from pprint import pprint
 import sys
 
-from splunk.client import connect
+from splunklib.client import connect
 from utils import error, parse, cmdline
 
 HELP_EPILOG = """
@@ -101,7 +101,7 @@ def cmdline(argv, flags):
     """A cmdopts wrapper that takes a list of flags and builds the
        corresponding cmdopts rules to match those flags."""
     rules = dict([(flag, {'flags': ["--%s" % flag]}) for flag in flags])
-    return cmdline(argv, rules)
+    return parse(argv, rules)
 
 def output(stream):
     """Write the contents of the given stream to stdout."""
@@ -151,12 +151,11 @@ class Program:
            list the properties of the specified jobs."""
 
         def read(job):
-            entity = job.read()
-            for key in sorted(entity.keys()):
+            for key in sorted(job.content.keys()):
                 # Ignore some fields that make the output hard to read and
                 # that are available via other commands.
                 if key in ["performance"]: continue
-                print "%s: %s" % (key, entity[key])
+                print "%s: %s" % (key, job.content[key])
 
         if len(argv) == 0:
             index = 0
@@ -183,9 +182,9 @@ class Program:
         """Convert the given search specifier into a search-id (sid)."""
         if spec.startswith('@'):
             index = int(spec[1:])
-            sids = self.service.jobs.list()
-            if index < len(sids):
-                return sids[index]
+            jobs = self.service.jobs()
+            if index < len(jobs):
+                return jobs[index].sid
         return spec # Assume it was already a valid sid
         
     def lookup(self, spec):

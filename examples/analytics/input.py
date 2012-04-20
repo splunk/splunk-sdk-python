@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,7 +16,8 @@
 
 import urllib2, sys
 from datetime import datetime
-import splunk.client, utils
+import splunklib.client as client
+import utils
 
 __all__ = [
     "AnalyticsTracker",
@@ -33,20 +34,20 @@ PROPERTY_PREFIX = "analytics_prop__"
 class AnalyticsTracker:
     def __init__(self, application_name, splunk_info, index = ANALYTICS_INDEX_NAME):
         self.application_name = application_name
-        self.splunk = splunk.client.connect(**splunk_info)
+        self.splunk = client.connect(**splunk_info)
         self.index = index
 
-        if self.index not in self.splunk.indexes.list():
+        if not self.splunk.indexes.contains(self.index):
             self.splunk.indexes.create(self.index)
+        assert(self.splunk.indexes.contains(self.index))
 
-        assert(self.index in self.splunk.indexes.list())
-
-        if ANALYTICS_SOURCETYPE not in self.splunk.confs["props"].list():
+        if not self.splunk.confs['props'].contains(ANALYTICS_SOURCETYPE):
             self.splunk.confs["props"].create(ANALYTICS_SOURCETYPE)
             stanza = self.splunk.confs["props"][ANALYTICS_SOURCETYPE]
             stanza.submit("LINE_BREAKER = (%s)" % EVENT_TERMINATOR)
             stanza.submit("CHARSET = UTF-8")
             stanza.submit("SHOULD_LINEMERGE = false")
+        assert(self.splunk.confs['props'].contains(ANALYTICS_SOURCETYPE))
 
     @staticmethod
     def encode(props):

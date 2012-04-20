@@ -5,7 +5,7 @@ host=127.0.0.1
 port=8089
 
 # Username to use when logging in
-user=admin
+username=admin
 
 # Password to use when logging in
 password=changed
@@ -13,5 +13,8 @@ password=changed
 # Access scheme (OPTIONAL)
 scheme=https
 
-# Namespace to use (OPTIONAL)
-namespace=*:*
+# Application context (OPTIONAL)
+#app=<appname>
+
+# User context (OPTIONAL)
+#owner=<username>

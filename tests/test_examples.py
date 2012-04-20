@@ -1,4 +1,6 @@
-# Copyright 2011 Splunk, Inc.
+#!/usr/bin/env python
+#
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,31 +14,26 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import difflib
 import os
-from pprint import pprint
 from subprocess import PIPE, Popen
 import time
-import unittest 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
-from utils import parse
+import testlib 
 
-opts = None # Command line options
-
-def assertMultiLineEqual(test, first, second, msg=None):
+def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    test.assertTrue(isinstance(first, basestring), 
+    testcase.assertTrue(isinstance(first, basestring), 
         'First argument is not a string')
-    test.assertTrue(isinstance(second, basestring), 
+    testcase.assertTrue(isinstance(second, basestring), 
         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
     second = second.replace("\r", "")
     if first != second:
-        test.fail("Multiline strings are not equal: %s" % msg)
+        testcase.fail("Multiline strings are not equal: %s" % message)
 
 # Run the given python script and return its exit code. 
 def run(script, stdin=None, stdout=PIPE, stderr=None):
@@ -54,30 +51,16 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr)
 
 # Rudimentary sanity check for each of the examples
-class ExamplesTestCase(unittest.TestCase):
+class TestCase(testlib.TestCase):
+    def check_commands(self, *args):
+        for arg in args: 
+            self.assertEquals(run(arg), 0)
+
     def setUp(self):
+        testlib.TestCase.setUp(self)
+
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
-        run("index.py create sdk-tests-two")
-
-    def tearDown(self):
-        pass
-
-    def test_binding1(self):
-        result = run("binding1.py")
-        self.assertEquals(result, 0)
-
-    def test_conf(self):
-        commands = [
-            "conf.py --help",
-            "conf.py",
-            "conf.py viewstates",
-            'conf.py --namespace="admin:search" viewstates',
-            "conf.py create server SDK-STANZA",
-            "conf.py create server SDK-STANZA testkey=testvalue",
-            "conf.py delete server SDK-STANZA"
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
 
     def test_async(self):
         result = run("async/async.py sync")
@@ -92,22 +75,45 @@ class ExamplesTestCase(unittest.TestCase):
         except:
             pass
 
-    def test_follow(self):
-        result = run("follow.py --help")
+    def test_binding1(self):
+        result = run("binding1.py")
         self.assertEquals(result, 0)
 
+    def test_conf(self):
+        self.check_commands(
+            "conf.py --help",
+            "conf.py",
+            "conf.py viewstates",
+            'conf.py --app=search --owner=admin viewstates',
+            "conf.py create server SDK-STANZA",
+            "conf.py create server SDK-STANZA testkey=testvalue",
+            "conf.py delete server SDK-STANZA")
+
+    def test_event_types(self):
+        self.check_commands(
+            "event_types.py --help",
+            "event_types.py")
+        
+    def test_fired_alerts(self):
+        self.check_commands(
+            "fired_alerts.py --help",
+            "fired_alerts.py")
+        
+    def test_follow(self):
+        self.check_commands("follow.py --help")
+
     def test_handlers(self):
-        commands = [
+        self.check_commands(
             "handlers/handler_urllib2.py",
             "handlers/handler_debug.py",
             "handlers/handler_certs.py",
             "handlers/handler_certs.py --ca_file=handlers/cacert.pem",
-            "handlers/handler_proxy.py --help",
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "handlers/handler_proxy.py --help")
 
         # Run the cert handler example with a bad cert file, should error.
-        result = run("handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", stderr=PIPE)
+        result = run(
+            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", 
+            stderr=PIPE)
         self.assertNotEquals(result, 0)
 
         # The proxy handler example requires that there be a proxy available
@@ -124,92 +130,78 @@ class ExamplesTestCase(unittest.TestCase):
             process.kill()
 
         # Run it again without the proxy and it should fail.
-        result = run("handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
+        result = run(
+            "handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
         self.assertNotEquals(result, 0)
 
     def test_index(self):
-        commands = [
+        self.check_commands(
             "index.py --help",
             "index.py",
             "index.py list",
-            "index.py list sdk-tests-two",
-            "index.py disable sdk-tests-two",
-            "index.py enable sdk-tests-two",
-            "index.py clean sdk-tests-two",
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "index.py list sdk-tests",
+            "index.py disable sdk-tests",
+            "index.py enable sdk-tests",
+            "index.py clean sdk-tests")
 
     def test_info(self):
-        result = run("info.py")
-        self.assertEquals(result, 0)
+        self.check_commands(
+            "info.py --help",
+            "info.py")
 
     def test_inputs(self):
-        commands = [
+        self.check_commands(
             "inputs.py --help",
-            "inputs.py",
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "inputs.py")
         
     def test_job(self):
-        commands = [
+        self.check_commands(
             "job.py --help",
             "job.py",
             "job.py list",
-            "job.py list @0",
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "job.py list @0")
         
     def test_loggers(self):
-        commands = [
+        self.check_commands(
             "loggers.py --help",
-            "loggers.py",
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "loggers.py")
 
     def test_oneshot(self):
-        result = run(["oneshot.py", "search * | head 10"])
-        self.assertEquals(result, 0)
+        self.check_commands(["oneshot.py", "search * | head 10"])
+
+    def test_saved_searches(self):
+        self.check_commands(
+            "saved_searches.py --help",
+            "saved_searches.py")
         
     def test_search(self):
-        commands = [
+        self.check_commands(
             "search.py --help",
             ["search.py", "search * | head 10"],
-            ["search.py", "search * | head 10 | stats count", '--output_mode=csv']
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            ["search.py", 
+             "search * | head 10 | stats count", '--output_mode=csv'])
 
     def test_spcmd(self):
-        result = run("spcmd.py --help")
-        self.assertEquals(result, 0)
-
-        result = run("spcmd.py -e\"get('authentication/users')\"")
-        self.assertEquals(result, 0)
+        self.check_commands(
+            "spcmd.py --help",
+            "spcmd.py -e\"get('authentication/users')\"")
 
     def test_spurl(self):
-        result = run("spurl.py")
-        self.assertEquals(result, 0)
-
-        result = run("spurl.py --help")
-        self.assertEquals(result, 0)
-
-        result = run("spurl.py /services")
-        self.assertEquals(result, 0)
-
-        result = run("spurl.py apps/local")
-        self.assertEquals(result, 0)
+        self.check_commands(
+            "spurl.py --help",
+            "spurl.py",
+            "spurl.py /services",
+            "spurl.py apps/local")
 
     def test_submit(self):
-        result = run("submit.py --help")
-        self.assertEquals(result, 0)
+        self.check_commands("submit.py --help")
 
     def test_upload(self):
         # Note: test must run on machine where splunkd runs,
         # or a failure is expected
-        commands = [
+        self.check_commands(
             "upload.py --help",
-            "upload.py --index=sdk-tests ./upload.py"
-        ]
-        for command in commands: self.assertEquals(run(command), 0)
+            "upload.py --index=sdk-tests ./upload.py")
 
     # The following tests are for the custom_search examples. The way
     # the tests work mirrors how Splunk would invoke them: they pipe in
@@ -239,7 +231,7 @@ class ExamplesTestCase(unittest.TestCase):
             output = output_file.read()
 
             message = "%s != %s" % (output_file.name, baseline_file.name)
-            assertMultiLineEqual(self, baseline, output, message)
+            check_multiline(self, baseline, output, message)
 
             # Cleanup
             baseline_file.close()
@@ -278,9 +270,10 @@ class ExamplesTestCase(unittest.TestCase):
         import analytics
 
         # Create a tracker
-        tracker = analytics.input.AnalyticsTracker("sdk-test", opts.kwargs, index = "sdk-test")
+        tracker = analytics.input.AnalyticsTracker(
+            "sdk-test", self.opts.kwargs, index = "sdk-test")
 
-        service = splunk.client.connect(**opts.kwargs)
+        service = client.connect(**self.opts.kwargs)
 
         # Before we start, we'll clean the index
         index = service.indexes["sdk-test"]
@@ -290,10 +283,11 @@ class ExamplesTestCase(unittest.TestCase):
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
         # Wait until the events get indexed
-        wait_event_count(index, 2, 10)
+        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
 
         # Now, we create a retriever to retrieve the events
-        retriever = analytics.output.AnalyticsRetriever("sdk-test", opts.kwargs, index = "sdk-test")    
+        retriever = analytics.output.AnalyticsRetriever(
+            "sdk-test", self.opts.kwargs, index = "sdk-test")    
         
         # Assert applications
         applications = retriever.applications()
@@ -334,7 +328,8 @@ class ExamplesTestCase(unittest.TestCase):
             self.assertEqual(count, expected_property_values[name])
             
         # Assert event over time
-        over_time = retriever.events_over_time(time_range = analytics.output.TimeRange.MONTH)
+        over_time = retriever.events_over_time(
+            time_range = analytics.output.TimeRange.MONTH)
         self.assertEquals(len(over_time), 1)
         self.assertEquals(len(over_time["test_event"]), 1)
         self.assertEquals(over_time["test_event"][0]["count"], 2)
@@ -342,23 +337,6 @@ class ExamplesTestCase(unittest.TestCase):
         # Now that we're done, we'll clean the index 
         index.clean()
  
-# When an event is submitted to an index it takes a while before the event
-# is registered by the index's totalEventCount.
-def wait_event_count(index, count, secs):
-    """Wait up to the given number of secs for the given index's
-       totalEventCount to reach the given value."""
-    done = False
-    while not done and secs > 0:
-        time.sleep(1)
-        secs -= 1 # Approximate
-        done = index['totalEventCount'] == count
-
-def main():
-    global opts
-    opts = parse(sys.argv[:1], {}, ".splunkrc")
-
-    os.chdir("../examples")
-    unittest.main()
-
 if __name__ == "__main__":
-    main()
+    os.chdir("../examples")
+    testlib.main()

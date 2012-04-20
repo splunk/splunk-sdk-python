@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -26,8 +26,8 @@ import time
 import os
 
 # splunk support files
-import splunk.binding as binding
-from splunk.binding import connect
+import splunklib.binding as binding
+from splunklib.binding import connect
 from utils import parse
 
 # hidden file
@@ -86,13 +86,12 @@ def query(context, start, end, span, index):
 
     # generate a search
     squery = "search * index=%s " % index
-    squery = squery + "timeformat=%s "
 
     # if start/end specified, use them
     if start != 0:
-        squery = squery + "starttime=%d " % start
+        squery = squery + "earliest_time=%d " % start
     if end != 0:
-        squery = squery + "endtime=%d " % end
+        squery = squery + "latest_time=%d " % end
 
     # span is in seconds for buckets
     squery = squery + "| timechart "
@@ -108,7 +107,7 @@ def query(context, start, end, span, index):
     retry = True
     while retry:
         result = context.get('search/jobs/export', search=squery, 
-                              output_mode="csv")
+                              output_mode="csv", time_format="%s")
         if result.status != 200:
             print "Failed to get event counts, HTTP status=%d, retrying"\
                    % result.status
@@ -160,7 +159,6 @@ def get_buckets(context, start, end, index, limit, span):
     # eventcount,starttime,timequantum
     for line in lines:
         elements = line.split(",")
-       
         # extract the element components
         enumevents = int(elements[0])
         estarttime = int(elements[1])
@@ -379,13 +377,12 @@ def export(options, context, bucket_list):
                     print "PROCESSING BUCKET:------ %s" % str(bucket)
                 # generate a search.
                 squery = "search * index=%s " % options.kwargs['index']
-                squery = squery + "timeformat=%s "
 
                 start = bucket[1]
                 quantum = bucket[2]
 
-                squery = squery + "starttime=%d " % start
-                squery = squery + "endtime=%d " % (start+quantum)
+                squery = squery + "earliest_time=%d " % start
+                squery = squery + "latest_time=%d " % (start+quantum)
     
                 # issue query to splunkd
                 # count=0 overrides the maximum number of events

@@ -1,4 +1,4 @@
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,7 +12,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A progressive XML reader."""
+"""This module provides a streaming XML reader for Splunk search results.
+
+Splunk search results can be returned in a variety of formats including XML,
+JSON, and CSV. Search results in XML format are returned as a stream of XML 
+*fragments*, not as a single XML document, to make it easier to stream search 
+results. This module supports incrementally reading one result record at a time 
+from such a result stream. This module also provides a friendly iterator-based 
+interface for accessing search results while avoiding buffering of the result 
+set, which can be very large.
+
+To use the reader, instantiate **ResultsReader** on a search result stream::
+
+    reader = ResultsReader(result_stream)
+    for item in reader:
+        pprint(item)
+"""
 
 from cStringIO import StringIO
 import xml.dom.pulldom as pulldom
@@ -22,7 +37,7 @@ __all__ = [
 ]
 
 # Splices a list of strings and file-like objects into a single stream
-class ListStream:
+class ListStream(object):
     def __init__(self, *args):
         count = len(args)
         if count == 0:
@@ -57,7 +72,7 @@ class ListStream:
 # A file-like interface that will convert a stream of XML fragments, into
 # a well-formed XML document by injecting a root element into the stream.
 # This is basically an annoying hack and I'd love a better idea.
-class XMLStream:
+class XMLStream(object):
     def __init__(self, file_):
         self.file = XMLStream.prepare(file_)
 
@@ -104,7 +119,7 @@ class XMLStream:
 TAG = "TAG"         # kind, name, attrs
 END = "END"         # kind, name
 VAL = "VAL"         # kind, value
-class XMLReader:
+class XMLReader(object):
     def __init__(self, stream):
         self._items = pulldom.parse(XMLStream(stream), bufsize = 256)
         self._item = None   # The current item
@@ -166,8 +181,8 @@ class XMLReader:
         return self.kind == VAL
 
     def next(self):
-        """An iterator interface to the reader, returns a tuple of values
-           corresponding to the current item."""
+        """An iterator interface to the reader that returns a tuple of values
+           that correspond to the current item."""
         if self.read() is None: 
             raise StopIteration
         return self.item
@@ -225,8 +240,8 @@ class XMLReader:
 MESSAGE = "MESSAGE"
 RESULT = "RESULT"
 RESULTS = "RESULTS"
-class ResultsReader:
-    """A forward-only, streaming search results reader."""
+class ResultsReader(object):
+    """A class that provides a forward-only, streaming search results reader."""
     def __init__(self, stream):
         self._reader = XMLReader(stream)
         self.kind = None

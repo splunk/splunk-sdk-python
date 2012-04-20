@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,7 +16,7 @@
 
 from distutils.core import setup
 
-import splunk
+import splunklib
 
 setup(
     author="Splunk, Inc.",
@@ -29,11 +29,11 @@ setup(
 
     name="splunk-sdk",
 
-    packages = ["splunk"],
+    packages = ["splunklib"],
 
     url="http://github.com/splunk/splunk-sdk-python",
 
-    version=splunk.__version__,
+    version=splunklib.__version__,
 
     classifiers = [
         "Programming Language :: Python",

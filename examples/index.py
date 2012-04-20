@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@
 
 import sys
 
-from splunk.client import connect
+from splunklib.client import connect
 
 from utils import *
 
@@ -29,7 +29,6 @@ Commands:
     disable [<index>]+
     enable [<index>]+
     list [<index>]*
-    reload [<index>]+
     update <index> [options]
 
 Examples:
@@ -71,12 +70,11 @@ class Program:
             print "Index '%s' already exists" % name
             return
 
-        # Read item metadata and construct command line parser rules that 
+        # Read index metadata and construct command line parser rules that 
         # correspond to each editable field.
 
         # Request editable fields
-        itemmeta = self.service.indexes.itemmeta()
-        fields = itemmeta['eai:attributes'].optionalFields
+        fields = self.service.indexes.itemmeta().fields.optional
 
         # Build parser rules
         rules = dict([(field, {'flags': ["--%s" % field]}) for field in fields])
@@ -99,7 +97,8 @@ class Program:
 
         def read(index):
             print index.name
-            for key, value in index.read().iteritems(): 
+            for key in sorted(index.content.keys()): 
+                value = index.content[key]
                 print "    %s: %s" % (key, value)
 
         if len(argv) == 0:
@@ -118,16 +117,12 @@ class Program:
             'disable': self.disable,
             'enable': self.enable,
             'list': self.list,
-            'reload': self.reload,
             'update': self.update,
         }
         handler = handlers.get(command, None)
         if handler is None:
             error("Unrecognized command: %s" % command, 2)
         handler(argv[1:])
-
-    def reload(self, argv):
-        self.foreach(argv, lambda index: index.reload())
 
     def foreach(self, argv, func):
         """Apply the function to each index named in the argument vector."""
@@ -146,15 +141,16 @@ class Program:
         if len(argv) == 0: 
             error("Command requires an index name", 2)
         name = argv[0]
+
         if not self.service.indexes.contains(name):
             error("Index '%s' does not exist" % name, 2)
         index = self.service.indexes[name]
 
-        # Read entity metadata and construct command line parser rules that 
+        # Read index metadata and construct command line parser rules that 
         # correspond to each editable field.
 
         # Request editable fields
-        fields = index.readmeta()['eai:attributes'].optionalFields
+        fields = self.service.indexes.itemmeta().fields.optional
 
         # Build parser rules
         rules = dict([(field, {'flags': ["--%s" % field]}) for field in fields])

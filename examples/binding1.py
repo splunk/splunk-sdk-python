@@ -1,4 +1,6 @@
-# Copyright 2011 Splunk, Inc.
+#!/usr/bin/env python
+#
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -19,7 +21,7 @@
 
 import sys
 
-from splunk.binding import connect
+from splunklib.binding import connect
 
 from utils import parse
 

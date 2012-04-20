@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -19,14 +19,14 @@
 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import error, parse
 
 def main(argv):
     usage = "usage: %prog [options]"
     opts = parse(argv, {}, ".splunkrc", usage=usage)
-    service = splunk.client.connect(**opts.kwargs)
+    service = client.connect(**opts.kwargs)
 
     for logger in service.loggers:
         print "%s (%s)" % (logger.name, logger['level'])

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -31,7 +31,7 @@ from StringIO import StringIO
 import sys
 import urllib2
 
-import splunk.client as client
+import splunklib.client as client
 
 import utils
 
@@ -69,14 +69,11 @@ opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
 proxy = opts.kwargs['proxy']
 try:
     service = client.connect(handler=handler(proxy), **opts.kwargs)
-    pprint(service.apps.list())
+    pprint([app.name for app in service.apps])
 except urllib2.URLError as e:
     if e.reason.errno == 1 and sys.version_info < (2, 6, 3):
-        # There is a bug in Python < 2.6.3 that does not
-        # allow proxies with HTTPS. As such, this test will
-        # fail.
-        # You can read more at the following URL:
-        # http://bugs.python.org/issue1424152
+        # There is a bug in Python < 2.6.3 that does not allow proxies with
+        # HTTPS. You can read more at: http://bugs.python.org/issue1424152
         pass
     else:
         raise

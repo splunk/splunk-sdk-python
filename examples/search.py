@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -21,8 +21,8 @@ from pprint import pprint
 import sys
 from time import sleep
 
-from splunk.binding import HTTPError
-import splunk.client as client
+from splunklib.binding import HTTPError
+import splunklib.client as client
 
 from utils import *
 
@@ -76,7 +76,7 @@ def main(argv):
 
     job = service.jobs.create(search, **kwargs_create)
     while True:
-        stats = job.read(
+        stats = job.refresh()(
             'isDone', 
             'doneProgress', 
             'scanCount', 

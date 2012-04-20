@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,7 +23,7 @@ import json
 import socket
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import error, parse
 
@@ -237,22 +237,23 @@ def main():
     global verbose
     verbose = kwargs['verbose']
 
-    # Force the namespace
-    kwargs['namespace'] = "%s:twitted" % kwargs['username']
+    # Force the owner namespace, if not provided
+    if 'owner' not in kwargs.keys():
+        kwargs['owner'] = kwargs['username']
 
     if verbose > 0: print "Initializing Splunk .."
-    service = splunk.client.connect(**kwargs)
+    service = client.connect(**kwargs)
 
     # Create the index if it doesn't exist
-    if "twitter" not in service.indexes.list():
+    if not service.indexes.contains("twitter"):
         if verbose > 0: print "Creating index 'twitter' .."
         service.indexes.create("twitter")
 
     # Create the TCP input if it doesn't exist
     input_host = kwargs.get("inputhost", DEFAULT_SPLUNK_HOST)
     input_port = int(kwargs.get("inputport", DEFAULT_SPLUNK_PORT))
-    input_name = "tcp:%s" % (input_port)
-    if input_name not in service.inputs.list():
+    input_name = str(input_port)
+    if not service.inputs.contains(input_name):
         if verbose > 0: print "Creating input '%s'" % input_name
         service.inputs.create(
             "tcp", input_port, index="twitter", sourcetype="twitter")

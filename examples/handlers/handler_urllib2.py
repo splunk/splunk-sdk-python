@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -21,7 +21,7 @@ from StringIO import StringIO
 import sys
 import urllib2
 
-import splunk.client as client
+import splunklib.client as client
 
 import utils
 
@@ -43,5 +43,5 @@ def request(url, message, **kwargs):
 
 opts = utils.parse(sys.argv[1:], {}, ".splunkrc")
 service = client.connect(handler=request, **opts.kwargs)
-pprint(service.apps.list())
+pprint([app.name for app in service.apps])
 

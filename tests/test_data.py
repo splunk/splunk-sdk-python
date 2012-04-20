@@ -1,4 +1,6 @@
-# Copyright 2011 Splunk, Inc.
+#!/usr/bin/env python
+#
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,12 +15,12 @@
 # under the License.
 
 from os import path
-import sys
-import unittest
 
-import splunk.data as data
+import splunklib.data as data
 
-class TestCase(unittest.TestCase):
+import testlib
+
+class TestCase(testlib.TestCase):
     def test_elems(self):
         result = data.load("")
         self.assertTrue(result is None)
@@ -193,5 +195,5 @@ class TestCase(unittest.TestCase):
             {'content': [{'n1':"v1"}, {'n2':"v2"}, {'n3':"v3"}, {'n4':"v4"}]})
 
 if __name__ == "__main__":
-    unittest.main()
+    testlib.main()
 

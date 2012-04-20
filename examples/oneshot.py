@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,11 +17,11 @@
 """A command line utility for executing oneshot Splunk searches."""
 
 from pprint import pprint
-import sys
 import socket
+import sys
 
-from splunk.client import connect
-import splunk.results as results
+from splunklib.client import connect
+import splunklib.results as results
 
 import utils
 
@@ -37,12 +37,10 @@ def pretty(response):
 def main():
     usage = "usage: oneshot.py <search>"
     opts = utils.parse(sys.argv[1:], {}, ".splunkrc", usage=usage)
-    opts.kwargs["namespace"] = "*:*" # Override namespace
-
     if len(opts.args) != 1:
         utils.error("Search expression required", 2)
-    search = opts.args[0]
 
+    search = opts.args[0]
     service = connect(**opts.kwargs)
     socket.setdefaulttimeout(None)
     response = service.jobs.create(search, exec_mode="oneshot")

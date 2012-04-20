@@ -1,4 +1,4 @@
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,9 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A generic ATOM response loader."""
+"""This module provides an Atom Feed response loader.
 
-import sys
+A simple :func:`load` utility reads Atom Feed XML data (the format returned by
+the Splunk REST API), and converts it to a native Python dictionary or list.
+"""
+
 from xml.etree.ElementTree import XML
 
 __all__ = ["load"]
@@ -53,9 +56,15 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Load the given XML text into a Python structure, optionally loading 
-       only the matching sub-elements if a match string is given. The match
-       string consists of either a tag name or path."""
+    """Loads XML text into a native Python structure (*dict* or *list*). If you
+    provide an optional **match** string (a tag name or path), only the matching
+    sub-elements are loaded. 
+
+    :param `text`: The XML text to load.
+    :type `text`: string
+    :param `match`: A tag name or path to match (optional).
+    :type `match`: string
+    """
     if text is None: return None
     text = text.strip()
     if len(text) == 0: return None
@@ -161,6 +170,13 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
+    """A generic utility class that enables dot access to members of 
+    a Python dictionary.
+    """
+    def __call__(self, *args):
+        if len(args) == 0: return self
+        return Record((key, self[key]) for key in args)
+
     def __getattr__(self, name):
         try:
             return self[name]
@@ -180,6 +196,12 @@ class Record(dict):
         return result
 
 def record(value=None): 
+    """Returns a **record** instance constructed with an initial value that you
+    provide.
+    
+    :param `value`: An initial record value.
+    :type `value`: dict
+    """
     if value is None: value = {}
     return Record(value)
 

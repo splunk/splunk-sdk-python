@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,8 +20,8 @@
 from pprint import pprint
 import sys
 
-from splunk.client import connect
-import splunk.results as results
+from splunklib.client import connect
+import splunklib.results as results
 
 import utils
 

@@ -1,4 +1,4 @@
-# The Splunk Software Development Kit for Python (Preview Release)
+# The Splunk Software Development Kit for Python (Beta Release)
 
 This SDK contains library code and examples designed to enable developers to
 build applications using Splunk.
@@ -16,25 +16,10 @@ The Splunk developer platform enables developers to take advantage of the same
 technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
-
 ## License
 
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
-
-## This SDK is a Preview Release
-
-1.  This Preview release a pre-beta release.  There will also be a beta release 
-    prior to a general release.  It is incomplete and may have bugs.
-
-2.  The Apache license only applies to the SDK and no other Software provided 
-    by Splunk.
-
-3.  Splunk in using the Apache license is not providing any warranties, 
-    indemnification or accepting any liabilities  with the Preview SDK.
-
-4.  Splunk is not accepting any Contributions to the Preview release of the SDK.  
-    All Contributions during the Preview SDK will be returned without review.
 
 ## Getting Started
 
@@ -43,21 +28,21 @@ already have a copy you can download one from http://www.splunk.com/download.
 
 You can get a copy of the SDK sources by cloning into the repository with git:
 
-    git clone https://github.com/splunk/splunk-sdk-python.git
+> git clone https://github.com/splunk/splunk-sdk-python.git
 
 #### Installing
 
 You can install the Splunk SDK libraries by using `easy_install` or `pip`:
 
-    [sudo] easy_install splunk-sdk
+> [sudo] easy_install splunk-sdk
 
 Or
 
-    [sudo] pip install splunk-sdk
+> [sudo] pip install splunk-sdk
 
 Alternatively, you can use `setup.py` on the sources you cloned from GitHub:
 
-    [sudo] python setup.py install
+> [sudo] python setup.py install
 
 However, it's not necessarry to install the libraries in order to run the
 examples and unit tests from the SDK.
@@ -88,7 +73,7 @@ command line, for example:
     password=changeme
 
 The `.splunkrc` file is a feature of the SDK examples and unit tests and not
-the Splunk platform or SDK libraries and is indended simply as convenience for
+the Splunk platform or SDK libraries and is intended simply as convenience for
 developers using the SDK. 
 
 The `.splunkrc` file should not be used for storing user credentials for apps
@@ -122,11 +107,11 @@ including:
 * A pluggable HTTP component that can be user-supplied.
 * Handles authentication and namespace URL management
 * Accessible low-level HTTP interface for use by developers who want
-    to be close to the wire.
+ to be close to the wire.
 
 You can see an example use of the library here:
 
-    import splunk.binding as binding
+    import splunklib.binding as binding
 
     # host defaults to localhost and port defaults to 8089
     context = binding.connect(username="admin", password="changeme")
@@ -140,43 +125,55 @@ The second layer is referred to as the _client_ layer and builds on the
 _binding_ layer to provide a friendlier interface to Splunk that abstracts 
 away some of the lower level details of the _binding_ layer.
 
-    from pprint import pprint
-
-    import splunk.client as client
+    import splunklib.client as client
 
     # host defaults to localhost and port defaults to 8089
     service = client.connect(username="admin", password="changeme")
 
     for user in service.users:
-        pprint(user())
+        print user.name
 
 ### Unit tests
 
 The SDK contains a small but growing collection of unit tests. Running the
 tests is simple and rewarding:
 
-    cd tests
-    ./runtests.py
+> cd tests<br>
+> python runtests.py
 
 Alternatively, you can read more about our testing "framework" 
 [here](https://github.com/splunk/splunk-sdk-python/tree/master/tests).
 
 ### Layout of the repository
 
-<dl>
-<dt>./docs</dt>
-<dd>Contains a few detailed notes specific to the SDK. In general documentation
-    about developing on Splunk can be found on dev.splunk.com.</dd>
-<dt>./examples</dt>
-<dd>Contains s variety of Splunk samples demonstrating the various library
-    modules.</dd>
-<dt>./splunk</dt>
-<dd>The Splunk library modules.</dd>
-<dt>./tests</dt>
-<dd>The SDK unit tests.</dd>
-<dt>./utils</dt>
-<dd>Generic utility code shared by the examples and unit tests.</dd>
-</dl>
+<table>
+
+<tr>
+<td>docs</td>
+<td>Source for Sphinx based docs and build</td>
+</tr>
+
+<tr>
+<td>examples</td>
+<td>Examples demonstrating various SDK features</td>
+<tr>
+
+<tr>
+<td>splunklib</td>
+<td>Source for the Splunk library modules</td>
+<tr>
+
+<tr>
+<td>tests</td>
+<td>Source for unit tests</td>
+<tr>
+
+<tr>
+<td>utils</td>
+<td>Source for utilities shared by the examples and unit tests</td>
+<tr>
+
+</table>
 
 ### Changelog
 
@@ -194,36 +191,70 @@ You can read more about our branching model on our
 You can find anything having to do with developing on Splunk at the Splunk
 developer portal:
 
-*   http://dev.splunk.com
+* http://dev.splunk.com
 
-You can also find full reference documentation of the REST API:
+Reference documentation for the Python SDK:
 
-*   http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI
+* http://splunk.github.com/splunk-sdk-python/docs/0.8.0
 
-For a gentle introduction to the Splunk product and some of its capabilities:
+Reference documentation for the Splunk REST API:
 
-*   http://docs.splunk.com/Documentation/Splunk/latest/User/SplunkOverview
+* http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI
+
+Overview of Splunk and links to additional product information:
+
+* http://docs.splunk.com/Documentation/Splunk/latest/User/SplunkOverview
 
 ## Community
 
-* Email: Stay connected with other developers building on Splunk: devinfo@splunk.com
-* Issues: https://github.com/splunk/splunk-sdk-python/issues
-* Answers: Check out this tag on Splunk answers for:  
-    http://splunk-base.splunk.com/tags/python/
-* Blog:  http://blogs.splunk.com/dev/
-* Twitter: [@splunkdev](http://twitter.com/#!/splunkdev)
+Stay connected with other developers building on Splunk.
+
+<table>
+
+<tr>
+<td><em>Email</em></td>
+<td>devinfo@splunk.com</td>
+</tr>
+
+<tr>
+<td><em>Issues</em>
+<td><span>https://github.com/splunk/splunk-sdk-java/issues/</span></td>
+</tr>
+
+<tr>
+<td><em>Answers</em>
+<td><span>http://splunk-base.splunk.com/tags/java/</span></td>
+</tr>
+
+<tr>
+<td><em>Blog</em>
+<td><span>http://blogs.splunk.com/dev/</span></td>
+</tr>
+
+<tr>
+<td><em>Twitter</em>
+<td>@splunkdev</td>
+</tr>
+
+</table>
 
 ### How to contribute
 
-We aren't ready to accept code contributions yet, but will be shortly.  Check 
-this README for more updates soon.
+If you would like to contribute to the SDK, please follow one of the links 
+provided below.
+
+* [Individual contributions](http://dev.splunk.com/goto/individualcontributions)
+
+* [Company contributions](http://dev.splunk.com/view/companycontributions/SP-CAAAEDR)
 
 ### Support
 
-* SDKs in Preview will not be Splunk supported.  Once the Python SDK moves to 
-an Open Beta we will provide more detail on support.  
-
-* Issues should be filed here:  https://github.com/splunk/splunk-sdk-python/issues
+1. You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Send an email to support@splunk.com and please include the SDK you are referring to in the subject. 
+2. If you are not covered under an existing maintenance/support agreement you can find help through the broader community at:
+<br>Splunk answers - http://splunk-base.splunk.com/answers/ Specific tags (SDK, java, python, javascript) are available to identify your questions
+<br>Splunk dev google group - http://groups.google.com/group/splunkdev
+3. Splunk will NOT provide support for SDKs if the core library (this is the code in the splunklib directory) has been modified. If you modify an SDK and want support, you can find help through the broader community and Splunk answers (see above). We also want to know about why you modified the core library. You can send feedback to: devinfo@splunk.com
 
 ### Contact Us
+
 You can reach the Dev Platform team at devinfo@splunk.com

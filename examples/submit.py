@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@
 
 import sys
 
-import splunk.client
+import splunklib.client as client
 
 from utils import *
 
@@ -45,10 +45,10 @@ def main(argv):
     index = opts.args[0]
 
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
-    service = splunk.client.connect(**kwargs_splunk)
+    service = client.connect(**kwargs_splunk)
 
     if not service.indexes.contains(index):
-        error("Index '%s' does not exist." % index)
+        error("Index '%s' does not exist." % index, 2)
 
     kwargs_submit = dslice(opts.kwargs, 
         {'eventhost':'host'}, 'source', 'sourcetype')

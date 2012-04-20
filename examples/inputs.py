@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@
 
 import sys
 
-from splunk.client import connect
+from splunklib.client import connect
 
 from utils import parse
 
@@ -27,11 +27,14 @@ def main():
     service = connect(**opts.kwargs)
 
     for item in service.inputs:
-        print "%s (%s)" % (item.name, item.kind)
-        entity = item.read()
-        for key in sorted(entity.keys()):
-            value = entity[key]
-            print "    %s: %s" % (key, value)
+        header =  "%s (%s)" % (item.name, item.kind)
+        print header
+        print '='*len(header)
+        content = item.content
+        for key in sorted(content.keys()):
+            value = content[key]
+            print "%s: %s" % (key, value)
+        print
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@
 
 import sys
 
-from splunk.client import connect
+from splunklib.client import connect
 from utils import error, parse
 
 class Program:
@@ -111,8 +111,7 @@ class Program:
             for stanza in conf:
                 if (spres and argv[1] == stanza.name) or not spres:
                     print "[%s]" % stanza.name
-                    entity = stanza.read()
-                    for key, value in entity.iteritems():
+                    for key, value in stanza.content.iteritems():
                         if (kpres and argv[2] == key) or not kpres:
                             print "%s = %s" % (key, value)
                 print

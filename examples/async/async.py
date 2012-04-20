@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Splunk, Inc.
+# Copyright 2011-2012 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,7 +24,8 @@ import sys, datetime
 import urllib
 from time import sleep
 
-import splunk.client
+import splunklib.binding as binding
+import splunklib.client as client
 from utils import parse, error
 
 # Placeholder for a specific implementation of `urllib2`,
@@ -68,7 +69,7 @@ def main(argv):
 
 
     # Create the service instance using our custom HTTP request handler.
-    service = splunk.client.Service(handler=request, **opts.kwargs)
+    service = client.Service(handler=request, **opts.kwargs)
     service.login()
 
     # Record the current time at the start of the
@@ -186,7 +187,7 @@ def request(url, message, **kwargs):
         'status': response.code, 
         'reason': response.msg,
         'headers': response.info().dict,
-        'body': splunk.binding.ResponseReader(response)
+        'body': binding.ResponseReader(response)
     }
 
 if __name__ == "__main__":

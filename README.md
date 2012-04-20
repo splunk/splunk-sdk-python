@@ -195,7 +195,7 @@ developer portal:
 
 Reference documentation for the Python SDK:
 
-* http://splunk.github.com/splunk-sdk-python/docs
+* http://splunk.github.com/splunk-sdk-python/docs/0.8.0
 
 Reference documentation for the Splunk REST API:
 

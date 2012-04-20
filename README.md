@@ -1,4 +1,4 @@
-# The Splunk Software Development Kit for Python (Preview Release)
+# The Splunk Software Development Kit for Python (Beta Release)
 
 This SDK contains library code and examples designed to enable developers to
 build applications using Splunk.
@@ -16,25 +16,10 @@ The Splunk developer platform enables developers to take advantage of the same
 technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
-
 ## License
 
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
-
-## This SDK is a Preview Release
-
-1.  This Preview release a pre-beta release.  There will also be a beta release 
-    prior to a general release.  It is incomplete and may have bugs.
-
-2.  The Apache license only applies to the SDK and no other Software provided 
-    by Splunk.
-
-3.  Splunk in using the Apache license is not providing any warranties, 
-    indemnification or accepting any liabilities  with the Preview SDK.
-
-4.  Splunk is not accepting any Contributions to the Preview release of the SDK.  
-    All Contributions during the Preview SDK will be returned without review.
 
 ## Getting Started
 
@@ -122,7 +107,7 @@ including:
 * A pluggable HTTP component that can be user-supplied.
 * Handles authentication and namespace URL management
 * Accessible low-level HTTP interface for use by developers who want
-    to be close to the wire.
+ to be close to the wire.
 
 You can see an example use of the library here:
 
@@ -251,15 +236,17 @@ Stay connected with other developers building on Splunk.
 
 ### How to contribute
 
-We aren't ready to accept code contributions yet, but will be shortly.  Check 
-this README for more updates soon.
+If you would like to contribute to the SDK, please follow one of the links 
+provided below.
+
+* [Individual contributions](http://dev.splunk.com/goto/individualcontributions)
+
+* [Company contributions](http://dev.splunk.com/view/companycontributions/SP-CAAAEDR)
 
 ### Support
 
-* SDKs in Preview will not be Splunk supported.  Once the Python SDK moves to 
-an Open Beta we will provide more detail on support.  
-
-* Issues should be filed here:  https://github.com/splunk/splunk-sdk-python/issues
+* Issues should be filed here: https://github.com/splunk/splunk-sdk-python/issues
 
 ### Contact Us
+
 You can reach the Dev Platform team at devinfo@splunk.com

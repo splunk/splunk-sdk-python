@@ -122,7 +122,7 @@ API reference under the section on accessing Splunk resources at:
 
 ### Bug fixes
 
-* Fix for GitHub Issues: 10, 12, 17, 21
+* Fix for GitHub Issues: 2, 10, 12, 15, 17, 18, 21
 * Fix for incorrect handling of mixed case new user names (need to account for
   fact that Splunk automatically lowercases)
 * Fix for Service.settings so that updates get sent to the correct endpoint

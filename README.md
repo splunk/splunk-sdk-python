@@ -191,15 +191,19 @@ You can read more about our branching model on our
 You can find anything having to do with developing on Splunk at the Splunk
 developer portal:
 
-*   http://dev.splunk.com
+* http://dev.splunk.com
 
-You can also find full reference documentation of the REST API:
+Reference documentation for the Python SDK:
 
-*   http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI
+* http://splunk.github.com/splunk-sdk-python/
 
-For a gentle introduction to the Splunk product and some of its capabilities:
+Reference documentation for the Splunk REST API:
 
-*   http://docs.splunk.com/Documentation/Splunk/latest/User/SplunkOverview
+* http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI
+
+Overview of Splunk and links to additional product information:
+
+* http://docs.splunk.com/Documentation/Splunk/latest/User/SplunkOverview
 
 ## Community
 

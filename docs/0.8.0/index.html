@@ -1,0 +1,3066 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Splunk Software Development Kit for Python &mdash; Splunk Python SDK 0.8.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="top" title="Splunk Python SDK 0.8.0 documentation" href="#" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="#">
+          <span>Splunk Python SDK 0.8.0 documentation</span></a></h1>
+        <h2 class="heading"><span>Splunk Software Development Kit for Python</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="splunk-software-development-kit-for-python">
+<h1>Splunk Software Development Kit for Python<a class="headerlink" href="#splunk-software-development-kit-for-python" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<div class="section" id="module-splunklib.binding">
+<span id="splunklib-binding"></span><h2>splunklib.binding<a class="headerlink" href="#module-splunklib.binding" title="Permalink to this headline">¶</a></h2>
+<p>This module contains a low-level <em>binding</em> interface to the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents">Splunk REST API</a>.</p>
+<p>This module is designed to enable client-side interaction with the Splunk
+REST API at the level of HTTP requests and responses, and it provides simple
+helpers for things like Splunk authentication and the use of Splunk namespaces.</p>
+<p>This module is specifically designed to be lightweight and faithful to the 
+underlying Splunk REST API. If you want a friendlier interface to the Splunk 
+REST API, consider using the <a class="reference internal" href="#module-splunklib.client" title="splunklib.client"><tt class="xref py py-mod docutils literal"><span class="pre">splunklib.client</span></tt></a> module.</p>
+<dl class="function">
+<dt id="splunklib.binding.connect">
+<tt class="descclassname">splunklib.binding.</tt><tt class="descname">connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establishes an authenticated context with the host.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>host</strong> &#8211; The host name (the default is <em>localhost</em>).</li>
+<li><strong>port</strong> &#8211; The port number (the default is <em>8089</em>).</li>
+<li><strong>scheme</strong> &#8211; The scheme for accessing the service (the default is 
+<em>https</em>).</li>
+<li><strong>owner</strong> &#8211; The owner namespace (optional).</li>
+<li><strong>app</strong> &#8211; The app context (optional).</li>
+<li><strong>token</strong> &#8211; The current session token (optional). Session tokens can be 
+shared across multiple service instances.</li>
+<li><strong>username</strong> &#8211; The Splunk account username, which is used to 
+authenticate the Splunk instance.</li>
+<li><strong>password</strong> &#8211; The password, which is used to authenticate the Splunk 
+instance.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An initialized <a class="reference internal" href="#splunklib.binding.Context" title="splunklib.binding.Context"><tt class="xref py py-class docutils literal"><span class="pre">Context</span></tt></a> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.binding.Context">
+<em class="property">class </em><tt class="descclassname">splunklib.binding.</tt><tt class="descname">Context</tt><big>(</big><em>handler=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class provides a binding context to a corresponding Splunk service
+that can be used to issue HTTP requests.</p>
+<p>A context also captures an optional namespace context consisting of an
+optional owner name (or &#8220;-&#8221; wildcard) and optional app name (or &#8220;-&#8221; 
+wildcard). To use the <a class="reference internal" href="#splunklib.binding.Context" title="splunklib.binding.Context"><tt class="xref py py-class docutils literal"><span class="pre">Context</span></tt></a> class, the instance must be
+authenticated by presenting credentials using the <a class="reference internal" href="#splunklib.binding.Context.login" title="splunklib.binding.Context.login"><tt class="xref py py-meth docutils literal"><span class="pre">login()</span></tt></a> method
+or by constructing the instance using the <a class="reference internal" href="#splunklib.binding.connect" title="splunklib.binding.connect"><tt class="xref py py-func docutils literal"><span class="pre">connect()</span></tt></a> function, which
+both creates and authenticates the instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The host name (the default is <em>localhost</em>).</li>
+<li><strong>port</strong> &#8211; The port number (the default is <em>8089</em>).</li>
+<li><strong>scheme</strong> &#8211; The scheme for accessing the service (the default is 
+<em>https</em>).</li>
+<li><strong>owner</strong> &#8211; The owner namespace (optional).</li>
+<li><strong>app</strong> &#8211; The app context (optional).</li>
+<li><strong>token</strong> &#8211; The current session token (optional). Session tokens can be 
+shared across multiple service instances.</li>
+<li><strong>username</strong> &#8211; The Splunk account username, which is used to 
+authenticate the Splunk instance.</li>
+<li><strong>password</strong> &#8211; The password, which is used to authenticate the Splunk 
+instance.</li>
+<li><strong>handler</strong> &#8211; The HTTP request handler (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="splunklib.binding.Context.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.binding.Context.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an open connection (socket) to the service.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.delete">
+<tt class="descname">delete</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">DELETE</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Request arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.fullpath">
+<tt class="descname">fullpath</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.fullpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a full REST endpoint using an endpoint path or path fragment,
+then adds namespace segments by either using any namespace arguments 
+that are provided or the context namespace values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint), possibly a fragment.</li>
+<li><strong>kwargs</strong> &#8211; Namespace arguments to use for completing the path: 
+<em>sharing</em>, <em>owner</em>, and <em>app</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.get">
+<tt class="descname">get</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.login">
+<tt class="descname">login</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.binding.Context.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a Splunk login request using the context&#8217;s credentials and
+stores the session token for use on subsequent requests.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.logout">
+<tt class="descname">logout</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.binding.Context.logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forgets the current session token.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.post">
+<tt class="descname">post</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.request">
+<tt class="descname">request</tt><big>(</big><em>path</em>, <em>message</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues an <tt class="docutils literal"><span class="pre">HTTP</span></tt> request message to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>request</strong> &#8211; The request message.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.binding.Context.url">
+<tt class="descname">url</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#splunklib.binding.Context.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a REST endpoint (from a path or path fragment) into a 
+complete URL.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; The resource path (REST endpoint) to convert to a full 
+URL.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="splunklib.binding.handler">
+<tt class="descclassname">splunklib.binding.</tt><tt class="descname">handler</tt><big>(</big><em>key_file=None</em>, <em>cert_file=None</em>, <em>timeout=None</em><big>)</big><a class="headerlink" href="#splunklib.binding.handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of the default HTTP request handler that uses
+the argument values you provide.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key_file</strong> &#8211; The key file (optional).</li>
+<li><strong>cert_file</strong> &#8211; The cert file (optional).</li>
+<li><strong>timeout</strong> &#8211; The request time-out period (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.binding.HTTPError">
+<em class="property">class </em><tt class="descclassname">splunklib.binding.</tt><tt class="descname">HTTPError</tt><big>(</big><em>response</em><big>)</big><a class="headerlink" href="#splunklib.binding.HTTPError" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is raised for HTTP responses that return an error.</p>
+<dl class="attribute">
+<dt id="splunklib.binding.HTTPError.args">
+<tt class="descname">args</tt><a class="headerlink" href="#splunklib.binding.HTTPError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.binding.HTTPError.message">
+<tt class="descname">message</tt><a class="headerlink" href="#splunklib.binding.HTTPError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-splunklib.client">
+<span id="splunklib-client"></span><h2>splunklib.client<a class="headerlink" href="#module-splunklib.client" title="Permalink to this headline">¶</a></h2>
+<p>This module provides a client interface for the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents">Splunk REST API</a>.</p>
+<dl class="function">
+<dt id="splunklib.client.connect">
+<tt class="descclassname">splunklib.client.</tt><tt class="descname">connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establishes an authenticated connection to a Splunk <a class="reference internal" href="#splunklib.client.Service" title="splunklib.client.Service"><tt class="xref py py-class docutils literal"><span class="pre">Service</span></tt></a>
+instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>host</strong> &#8211; The host name (the default is <em>localhost</em>).</li>
+<li><strong>port</strong> &#8211; The port number (the default is <em>8089</em>).</li>
+<li><strong>scheme</strong> &#8211; The scheme for accessing the service (the default is 
+<em>https</em>).</li>
+<li><strong>owner</strong> &#8211; The owner namespace (optional).</li>
+<li><strong>app</strong> &#8211; The app context (optional).</li>
+<li><strong>token</strong> &#8211; The current session token (optional). Session tokens can be 
+shared across multiple service instances.</li>
+<li><strong>username</strong> &#8211; The Splunk account username, which is used to 
+authenticate the Splunk instance.</li>
+<li><strong>password</strong> &#8211; The password, which is used to authenticate the Splunk 
+instance.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An initialized <a class="reference internal" href="#splunklib.client.Service" title="splunklib.client.Service"><tt class="xref py py-class docutils literal"><span class="pre">Service</span></tt></a> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Collection">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Collection</tt><big>(</big><em>service</em>, <em>path</em>, <em>item=&lt;class 'splunklib.client.Entity'&gt;</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains a collection of entities.</p>
+<dl class="method">
+<dt id="splunklib.client.Collection.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an entity in this collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; The name of the entity to create.</li>
+<li><strong>kwargs</strong> &#8211; Additional entity-specific arguments (optional).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The new entity.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Collection.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Collection.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Collection.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Endpoint">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Endpoint</tt><big>(</big><em>service</em>, <em>path</em><big>)</big><a class="headerlink" href="#splunklib.client.Endpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is a base class for all client objects.</p>
+<dl class="method">
+<dt id="splunklib.client.Endpoint.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Endpoint.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Endpoint.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Endpoint.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Entity">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Entity</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is a base class for all entity objects.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Entity.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Entity.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Entity.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Entity.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Entity.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Entity.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Entity.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Entity.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Entity.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Entity.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Entity.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Entity.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Entity.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Entity.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Entity.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Entity.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Entity.read" title="splunklib.client.Entity.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Entity.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Entity.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Entity.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Entity.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Entity.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Service">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Service</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Splunk service instance at a given address 
+(host:port), accessed using the <em>http</em> or <em>https</em> protocol scheme.</p>
+<p>A <a class="reference internal" href="#splunklib.client.Service" title="splunklib.client.Service"><tt class="xref py py-class docutils literal"><span class="pre">Service</span></tt></a> instance also captures an optional namespace context 
+consisting of an optional owner name (or &#8220;-&#8221; wildcard) and optional app name
+(or &#8220;-&#8221; wildcard). To access <a class="reference internal" href="#splunklib.client.Service" title="splunklib.client.Service"><tt class="xref py py-class docutils literal"><span class="pre">Service</span></tt></a> members, the instance must
+be authenticated by presenting credentials using the <a class="reference internal" href="#splunklib.client.Service.login" title="splunklib.client.Service.login"><tt class="xref py py-meth docutils literal"><span class="pre">login()</span></tt></a> method,
+or by constructing the instance using the <a class="reference internal" href="#splunklib.client.connect" title="splunklib.client.connect"><tt class="xref py py-func docutils literal"><span class="pre">connect()</span></tt></a> function, which 
+both creates and authenticates the instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The host name (the default is <em>localhost</em>).</li>
+<li><strong>port</strong> &#8211; The port number (the default is <em>8089</em>).</li>
+<li><strong>scheme</strong> &#8211; The scheme for accessing the service (the default is 
+<em>https</em>).</li>
+<li><strong>owner</strong> &#8211; The owner namespace (optional).</li>
+<li><strong>app</strong> &#8211; The app context (optional).</li>
+<li><strong>token</strong> &#8211; The current session token (optional). Session tokens can be 
+shared across multiple service instances.</li>
+<li><strong>username</strong> &#8211; The Splunk account username, which is used to 
+authenticate the Splunk instance.</li>
+<li><strong>password</strong> &#8211; The password, which is used to authenticate the Splunk 
+instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="splunklib.client.Service.apps">
+<tt class="descname">apps</tt><a class="headerlink" href="#splunklib.client.Service.apps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of Splunk applications.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.capabilities">
+<tt class="descname">capabilities</tt><a class="headerlink" href="#splunklib.client.Service.capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of system capabilities.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.confs">
+<tt class="descname">confs</tt><a class="headerlink" href="#splunklib.client.Service.confs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of Splunk configurations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Service.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an open connection (socket) to the service.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.delete">
+<tt class="descname">delete</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">DELETE</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Request arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.event_types">
+<tt class="descname">event_types</tt><a class="headerlink" href="#splunklib.client.Service.event_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of saved event types.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.fired_alerts">
+<tt class="descname">fired_alerts</tt><a class="headerlink" href="#splunklib.client.Service.fired_alerts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of alerts that have been fired by the service.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.fullpath">
+<tt class="descname">fullpath</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.fullpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a full REST endpoint using an endpoint path or path fragment,
+then adds namespace segments by either using any namespace arguments 
+that are provided or the context namespace values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint), possibly a fragment.</li>
+<li><strong>kwargs</strong> &#8211; Namespace arguments to use for completing the path: 
+<em>sharing</em>, <em>owner</em>, and <em>app</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.get">
+<tt class="descname">get</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.indexes">
+<tt class="descname">indexes</tt><a class="headerlink" href="#splunklib.client.Service.indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of indexes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.info">
+<tt class="descname">info</tt><a class="headerlink" href="#splunklib.client.Service.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns information about the service.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.inputs">
+<tt class="descname">inputs</tt><a class="headerlink" href="#splunklib.client.Service.inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of configured inputs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.jobs">
+<tt class="descname">jobs</tt><a class="headerlink" href="#splunklib.client.Service.jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of current search jobs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.loggers">
+<tt class="descname">loggers</tt><a class="headerlink" href="#splunklib.client.Service.loggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of service logging categories and their status.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.login">
+<tt class="descname">login</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Service.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a Splunk login request using the context&#8217;s credentials and
+stores the session token for use on subsequent requests.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.logout">
+<tt class="descname">logout</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Service.logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forgets the current session token.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.messages">
+<tt class="descname">messages</tt><a class="headerlink" href="#splunklib.client.Service.messages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of service messages.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.parse">
+<tt class="descname">parse</tt><big>(</big><em>query</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a search query and returns a semantic map of the search.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>query</strong> &#8211; The search query to parse.</li>
+<li><strong>kwargs</strong> &#8211; Optional arguments to pass to the <tt class="docutils literal"><span class="pre">search/parser</span></tt> 
+endpoint.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A semantic map of the parsed search query.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.post">
+<tt class="descname">post</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.request">
+<tt class="descname">request</tt><big>(</big><em>path</em>, <em>message</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues an <tt class="docutils literal"><span class="pre">HTTP</span></tt> request message to a REST endpoint you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The resource path (REST endpoint).</li>
+<li><strong>request</strong> &#8211; The request message.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.restart">
+<tt class="descname">restart</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Service.restart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restarts the service. The service will be unavailable until it has
+successfully restarted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.roles">
+<tt class="descname">roles</tt><a class="headerlink" href="#splunklib.client.Service.roles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of user roles.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.saved_searches">
+<tt class="descname">saved_searches</tt><a class="headerlink" href="#splunklib.client.Service.saved_searches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of saved searches.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.settings">
+<tt class="descname">settings</tt><a class="headerlink" href="#splunklib.client.Service.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns configuration settings for the service.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Service.url">
+<tt class="descname">url</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#splunklib.client.Service.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a REST endpoint (from a path or path fragment) into a 
+complete URL.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; The resource path (REST endpoint) to convert to a full 
+URL.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Service.users">
+<tt class="descname">users</tt><a class="headerlink" href="#splunklib.client.Service.users" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of users.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.AlertGroup">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">AlertGroup</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains an entity that represents a group of fired alerts 
+that can be accessed through the <a class="reference internal" href="#splunklib.client.AlertGroup.alerts" title="splunklib.client.AlertGroup.alerts"><tt class="xref py py-meth docutils literal"><span class="pre">alerts()</span></tt></a> property.</p>
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.AlertGroup.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.alerts">
+<tt class="descname">alerts</tt><a class="headerlink" href="#splunklib.client.AlertGroup.alerts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a collection of triggered alert instances.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.AlertGroup.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.count">
+<tt class="descname">count</tt><a class="headerlink" href="#splunklib.client.AlertGroup.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the count of triggered alerts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.AlertGroup.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.AlertGroup.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.AlertGroup.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.AlertGroup.read" title="splunklib.client.AlertGroup.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.AlertGroup.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.AlertGroup.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.AlertGroup.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.AlertGroup.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Conf">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Conf</tt><big>(</big><em>service</em>, <em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains a single configuration, which is a collection of 
+stanzas.</p>
+<dl class="method">
+<dt id="splunklib.client.Conf.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an entity in this collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; The name of the entity to create.</li>
+<li><strong>kwargs</strong> &#8211; Additional entity-specific arguments (optional).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The new entity.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Conf.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Conf.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Conf.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Confs">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Confs</tt><big>(</big><em>service</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains a collection of configurations.</p>
+<dl class="method">
+<dt id="splunklib.client.Confs.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Confs.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Confs.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Confs.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Stanza">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Stanza</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains a single configuration stanza.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Stanza.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Stanza.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Stanza.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Stanza.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Stanza.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Stanza.read" title="splunklib.client.Stanza.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Stanza.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Stanza.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.submit">
+<tt class="descname">submit</tt><big>(</big><em>stanza</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.submit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populates a stanza in the .conf file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Stanza.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Stanza.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Index">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Index</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Index" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is an index class used to access specific operations.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Index.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Index.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.attach">
+<tt class="descname">attach</tt><big>(</big><em>host=None</em>, <em>source=None</em>, <em>sourcetype=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.attach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a stream (a writable socket) for writing events to the index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The host value for events written to the stream.</li>
+<li><strong>source</strong> &#8211; The source value for events written to the stream.</li>
+<li><strong>sourcetype</strong> &#8211; The sourcetype value for events written to the 
+stream.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.clean">
+<tt class="descname">clean</tt><big>(</big><em>timeout=60</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the contents of the index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timeout</strong> &#8211; The time-out period for the operation, in seconds (the
+default is 60).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Index.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Index.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Index.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Index.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Index.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Index.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Index.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Index.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Index.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Index.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Index.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Index.read" title="splunklib.client.Index.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Index.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.roll_hot_buckets">
+<tt class="descname">roll_hot_buckets</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Index.roll_hot_buckets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs rolling hot buckets for this index.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Index.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Index.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.submit">
+<tt class="descname">submit</tt><big>(</big><em>event</em>, <em>host=None</em>, <em>source=None</em>, <em>sourcetype=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.submit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submits an event to the index using <tt class="docutils literal"><span class="pre">HTTP</span> <span class="pre">POST</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The host value of the event.</li>
+<li><strong>source</strong> &#8211; The source value of the event.</li>
+<li><strong>sourcetype</strong> &#8211; The sourcetype value of the event.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Index.upload">
+<tt class="descname">upload</tt><big>(</big><em>filename</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Index.upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads a file for immediate indexing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> &#8211; The name of the file to upload. The file can be 
+a plain, compressed, or archived file.</li>
+<li><strong>kwargs</strong> &#8211; Additional arguments (optional). For details, see the 
+<a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTinput#POST_data.2Finputs.2Foneshot">POST data/inputs/oneshot</a>
+endpoint in the Splunk REST API documentation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Input">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Input</tt><big>(</big><em>service</em>, <em>path</em>, <em>kind</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Input" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Splunk input. This class is the base for all 
+typed input classes and is also used when the client does not recognize an
+input kind.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Input.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Input.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Input.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Input.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Input.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Input.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Input.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Input.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Input.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Input.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Input.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Input.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Input.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Input.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Input.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Input.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Input.read" title="splunklib.client.Input.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Input.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Input.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Input.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Input.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Input.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Inputs">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Inputs</tt><big>(</big><em>service</em>, <em>kindmap=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a collection of inputs. The collection is 
+heterogeneous and each member of the collection contains a <em>kind</em> property
+that indicates the specific type of input.</p>
+<dl class="method">
+<dt id="splunklib.client.Inputs.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.create">
+<tt class="descname">create</tt><big>(</big><em>kind</em>, <em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an input of a specific kind in this collection, with any 
+arguments you specify.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kind</strong> &#8211; The kind of input to create.</li>
+<li><strong>name</strong> &#8211; The input name.</li>
+<li><strong>kwargs</strong> &#8211; Additional entity-specific arguments (optional). For
+valid arguments, see the POST requests for the
+<a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput">/data/inputs/</a> 
+endpoints in the Splunk REST API documentation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The new input.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an input from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the input to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><em>kind</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for the members of a given kind.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.kindpath">
+<tt class="descname">kindpath</tt><big>(</big><em>kind</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.kindpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a path to the resources for a given input kind.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kind</strong> &#8211; The input kind.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Inputs.kinds">
+<tt class="descname">kinds</tt><a class="headerlink" href="#splunklib.client.Inputs.kinds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of input kinds that this collection may 
+contain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.list">
+<tt class="descname">list</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of inputs that belong to the collection. You can also
+filter by one or more input kinds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; The input kinds to return (optional).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Inputs.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Inputs.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Job">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Job</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a search job.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Job.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Job.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.cancel">
+<tt class="descname">cancel</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.cancel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the current search and deletes the result cache.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Job.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.disable_preview">
+<tt class="descname">disable_preview</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.disable_preview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables preview for this job.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.enable_preview">
+<tt class="descname">enable_preview</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.enable_preview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables preview for this job (although doing so might slow search 
+considerably).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.events">
+<tt class="descname">events</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an InputStream IO handle for this job&#8217;s events.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Job.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.finalize">
+<tt class="descname">finalize</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the job and provides intermediate results available for 
+retrieval.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Job.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Job.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the search job.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.pause">
+<tt class="descname">pause</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Suspends the current search.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.preview">
+<tt class="descname">preview</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.preview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the InputStream IO handle to the preview results for this 
+job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional preview arguments (optional). For details, 
+see the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview">GET search/jobs/{search_id}/results_preview</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the job&#8217;s current state record, corresponding to the
+current state of the server-side resource.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Job.read" title="splunklib.client.Job.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.results">
+<tt class="descname">results</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an InputStream IO handle to the search results for this job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional results arguments (optional). For details, 
+see the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults">GET search/jobs/{search_id}/results</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.searchlog">
+<tt class="descname">searchlog</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.searchlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an InputStream IO handle to the search log for this job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional search log arguments (optional). For 
+details, see the 
+<a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsearch.log">GET search/jobs/{search_id}/search.log</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.set_priority">
+<tt class="descname">set_priority</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.set_priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets this job&#8217;s search priority in the range of 0-10.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; The search priority.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.set_ttl">
+<tt class="descname">set_ttl</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.set_ttl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the job&#8217;s time-to-live (ttl) value, which is the time before the 
+search job expires and is still available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; The ttl value, in seconds.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.sid">
+<tt class="descname">sid</tt><a class="headerlink" href="#splunklib.client.Job.sid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns this job&#8217;s search ID (sid).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Job.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Job.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.summary">
+<tt class="descname">summary</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an InputStream IO handle to the job&#8217;s summary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional summary arguments (optional). For details, 
+see the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsummary">GET search/jobs/{search_id}/summary</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.timeline">
+<tt class="descname">timeline</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.timeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an InputStream IO handle to the job&#8217;s timeline results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional timeline arguments (optional). For details, 
+see the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Ftimeline">GET search/jobs/{search_id}/timeline</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.touch">
+<tt class="descname">touch</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.touch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the expiration time of the search to the current time plus 
+the time-to-live value (now + ttl).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.unpause">
+<tt class="descname">unpause</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Job.unpause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resumes the current search, if paused.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Job.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Job.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Jobs">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Jobs</tt><big>(</big><em>service</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a collection of search jobs.</p>
+<dl class="method">
+<dt id="splunklib.client.Jobs.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.create">
+<tt class="descname">create</tt><big>(</big><em>query</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.list">
+<tt class="descname">list</tt><big>(</big><em>count=0</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Jobs.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Jobs.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Loggers">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Loggers</tt><big>(</big><em>service</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a collection of service logging categories.</p>
+<dl class="method">
+<dt id="splunklib.client.Loggers.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Loggers.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an entity in this collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; The name of the entity to create.</li>
+<li><strong>kwargs</strong> &#8211; Additional entity-specific arguments (optional).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The new entity.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Loggers.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Loggers.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Loggers.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Loggers.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Loggers.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Message">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Message</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Message" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="splunklib.client.Message.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Message.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Message.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Message.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Message.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Message.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Message.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Message.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Message.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Message.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Message.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Message.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Message.read" title="splunklib.client.Message.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Message.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Message.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Message.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Message.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the entity with the arguments you provide.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Message.value">
+<tt class="descname">value</tt><a class="headerlink" href="#splunklib.client.Message.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the message value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.SavedSearch">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">SavedSearch</tt><big>(</big><em>service</em>, <em>path</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a saved search.</p>
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.SavedSearch.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.acknowledge">
+<tt class="descname">acknowledge</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.acknowledge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acknowledges the suppression of alerts from this saved search and 
+resumes alerting.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.SavedSearch.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.dispatch">
+<tt class="descname">dispatch</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.dispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the saved search and returns the resulting search job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Additional dispatch arguments (optional). For details, 
+see the <a class="reference external" href="http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#POST_saved.2Fsearches.2F.7Bname.7D.2Fdispatch">POST saved/searches/{name}/dispatch</a> 
+endpoint in the REST API documentation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The new search job.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.SavedSearch.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.history">
+<tt class="descname">history</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of search jobs corresponding to this saved search.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of <a class="reference internal" href="#splunklib.client.Job" title="splunklib.client.Job"><tt class="xref py py-class docutils literal"><span class="pre">Job</span></tt></a> objects.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.SavedSearch.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.SavedSearch.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.SavedSearch.read" title="splunklib.client.SavedSearch.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.SavedSearch.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.SavedSearch.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearch.update">
+<tt class="descname">update</tt><big>(</big><em>search=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearch.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the saved search with any additional arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>search</strong> &#8211; The search string of this saved search (optional).</li>
+<li><strong>kwargs</strong> &#8211; Additional update arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.SavedSearches">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">SavedSearches</tt><big>(</big><em>service</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a collection of saved searches.</p>
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether an entity name exists in the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The entity name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>search</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an entity from the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the entity to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.SavedSearches.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.SavedSearches.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Settings">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Settings</tt><big>(</big><em>service</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents configuration settings for a Splunk service.</p>
+<dl class="attribute">
+<dt id="splunklib.client.Settings.access">
+<tt class="descname">access</tt><a class="headerlink" href="#splunklib.client.Settings.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity access metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Settings.content">
+<tt class="descname">content</tt><a class="headerlink" href="#splunklib.client.Settings.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the entity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Settings.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Settings.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the entity at this endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Settings.fields">
+<tt class="descname">fields</tt><a class="headerlink" href="#splunklib.client.Settings.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns entity content metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Settings.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Settings.links">
+<tt class="descname">links</tt><a class="headerlink" href="#splunklib.client.Settings.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of related resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Settings.name">
+<tt class="descname">name</tt><a class="headerlink" href="#splunklib.client.Settings.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Settings.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Settings.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the current state of the entity from the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.refresh">
+<tt class="descname">refresh</tt><big>(</big><em>state=None</em><big>)</big><a class="headerlink" href="#splunklib.client.Settings.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the cached state of this entity, using either the given
+state record, or by calling <a class="reference internal" href="#splunklib.client.Settings.read" title="splunklib.client.Settings.read"><tt class="xref py py-meth docutils literal"><span class="pre">read()</span></tt></a> if no state record is provided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.reload">
+<tt class="descname">reload</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Settings.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the entity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.Settings.state">
+<tt class="descname">state</tt><a class="headerlink" href="#splunklib.client.Settings.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the entity&#8217;s state record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Settings.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Settings.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.Users">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">Users</tt><big>(</big><em>service</em><big>)</big><a class="headerlink" href="#splunklib.client.Users" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Splunk user.</p>
+<dl class="method">
+<dt id="splunklib.client.Users.contains">
+<tt class="descname">contains</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.create">
+<tt class="descname">create</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.delete">
+<tt class="descname">delete</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.get">
+<tt class="descname">get</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">GET</span></tt> request to an endpoint, using a relative path and 
+query arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Query arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.itemmeta">
+<tt class="descname">itemmeta</tt><big>(</big><big>)</big><a class="headerlink" href="#splunklib.client.Users.itemmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns metadata for members of the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.list">
+<tt class="descname">list</tt><big>(</big><em>count=-1</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the collection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>count</strong> &#8211; The maximum number of items to return (optional).</li>
+<li><strong>offset</strong> &#8211; The offset of the first item to return (optional).</li>
+<li><strong>search</strong> &#8211; The search expression to filter responses (optional).</li>
+<li><strong>sort_dir</strong> &#8211; The direction to sort returned items: <em>asc</em> or <em>desc</em>
+(optional).</li>
+<li><strong>sort_key</strong> &#8211; The field to use for sorting (optional).</li>
+<li><strong>sort_mode</strong> &#8211; The collating sequence for sorting returned items:
+<em>auto</em>, <em>alpha</em>, <em>alpha_case</em>, <em>num</em> (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="splunklib.client.Users.post">
+<tt class="descname">post</tt><big>(</big><em>relpath=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#splunklib.client.Users.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Issues a <tt class="docutils literal"><span class="pre">POST</span></tt> request to an endpoint, using a relative path and 
+form arguments if provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>relpath</strong> &#8211; A path relative to the endpoint (optional).</li>
+<li><strong>kwargs</strong> &#8211; Form arguments (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.NotSupportedError">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">NotSupportedError</tt><a class="headerlink" href="#splunklib.client.NotSupportedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised for operations that are not supported on a given object.</p>
+<dl class="attribute">
+<dt id="splunklib.client.NotSupportedError.args">
+<tt class="descname">args</tt><a class="headerlink" href="#splunklib.client.NotSupportedError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.NotSupportedError.message">
+<tt class="descname">message</tt><a class="headerlink" href="#splunklib.client.NotSupportedError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.client.OperationError">
+<em class="property">class </em><tt class="descclassname">splunklib.client.</tt><tt class="descname">OperationError</tt><a class="headerlink" href="#splunklib.client.OperationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised for a failed operation, such as a time out.</p>
+<dl class="attribute">
+<dt id="splunklib.client.OperationError.args">
+<tt class="descname">args</tt><a class="headerlink" href="#splunklib.client.OperationError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="splunklib.client.OperationError.message">
+<tt class="descname">message</tt><a class="headerlink" href="#splunklib.client.OperationError.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-splunklib.data">
+<span id="splunklib-data"></span><h2>splunklib.data<a class="headerlink" href="#module-splunklib.data" title="Permalink to this headline">¶</a></h2>
+<p>This module provides an Atom Feed response loader.</p>
+<p>A simple <a class="reference internal" href="#splunklib.data.load" title="splunklib.data.load"><tt class="xref py py-func docutils literal"><span class="pre">load()</span></tt></a> utility reads Atom Feed XML data (the format returned by
+the Splunk REST API), and converts it to a native Python dictionary or list.</p>
+<dl class="function">
+<dt id="splunklib.data.load">
+<tt class="descclassname">splunklib.data.</tt><tt class="descname">load</tt><big>(</big><em>text</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#splunklib.data.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads XML text into a native Python structure (<em>dict</em> or <em>list</em>). If you
+provide an optional <strong>match</strong> string (a tag name or path), only the matching
+sub-elements are loaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> (<em>string</em>) &#8211; The XML text to load.</li>
+<li><strong>match</strong> (<em>string</em>) &#8211; A tag name or path to match (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="splunklib.data.record">
+<tt class="descclassname">splunklib.data.</tt><tt class="descname">record</tt><big>(</big><em>value=None</em><big>)</big><a class="headerlink" href="#splunklib.data.record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <strong>record</strong> instance constructed with an initial value that you
+provide.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>dict</em>) &#8211; An initial record value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="splunklib.data.Record">
+<em class="property">class </em><tt class="descclassname">splunklib.data.</tt><tt class="descname">Record</tt><a class="headerlink" href="#splunklib.data.Record" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generic utility class that enables dot access to members of 
+a Python dictionary.</p>
+<dl class="staticmethod">
+<dt id="splunklib.data.Record.fromkv">
+<em class="property">static </em><tt class="descname">fromkv</tt><big>(</big><em>k</em>, <em>v</em><big>)</big><a class="headerlink" href="#splunklib.data.Record.fromkv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-splunklib.results">
+<span id="splunklib-results"></span><h2>splunklib.results<a class="headerlink" href="#module-splunklib.results" title="Permalink to this headline">¶</a></h2>
+<p>This module provides a streaming XML reader for Splunk search results.</p>
+<p>Splunk search results can be returned in a variety of formats including XML,
+JSON, and CSV. Search results in XML format are returned as a stream of XML 
+<em>fragments</em>, not as a single XML document, to make it easier to stream search 
+results. This module supports incrementally reading one result record at a time 
+from such a result stream. This module also provides a friendly iterator-based 
+interface for accessing search results while avoiding buffering of the result 
+set, which can be very large.</p>
+<p>To use the reader, instantiate <strong>ResultsReader</strong> on a search result stream:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">reader</span> <span class="o">=</span> <span class="n">ResultsReader</span><span class="p">(</span><span class="n">result_stream</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">pprint</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="splunklib.results.ResultsReader">
+<em class="property">class </em><tt class="descclassname">splunklib.results.</tt><tt class="descname">ResultsReader</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#splunklib.results.ResultsReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class that provides a forward-only, streaming search results reader.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, Splunk Inc..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

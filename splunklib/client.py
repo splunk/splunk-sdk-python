@@ -53,6 +53,7 @@ PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
 PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
+PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
@@ -207,7 +208,7 @@ class Service(Context):
 
     @property
     def deployment_tenants(self):
-        return Collection(self, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
+        return DeploymentTenants(self)
 
     @property
     def event_types(self):
@@ -278,6 +279,10 @@ class Service(Context):
     def saved_searches(self):
         """Returns a collection of saved searches."""
         return SavedSearches(self)
+
+    @property
+    def serverclasses(self):
+        return DeploymentServerClasses(self)
 
     @property
     def settings(self):
@@ -1018,7 +1023,7 @@ class NotSupportedError(Exception):
     pass
 
 class DeploymentTenant(Entity):
-    """Represents a DeploymentTenant."""
+    """Binding for /deployments/tenants/{name}."""
     @property
     def check_new(self):
         """Will the server inform clients of updated configuration?"""
@@ -1027,6 +1032,7 @@ class DeploymentTenant(Entity):
     @property
     def disabled(self):
         """Is this tenant disabled?"""
+        print self.state.content['disabled']
         return self.state.content['disabled'] == 1
 
     @property
@@ -1034,13 +1040,88 @@ class DeploymentTenant(Entity):
         """Criterion for allowing clients access to this deployment server."""
         return self.state.content['whitelist.0']
 
+    def update(self, **kwargs):
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        self.service.post(PATH_DEPLOYMENT_TENANTS + self.name, **kwargs)
+        return self
+
 class DeploymentTenants(Collection):
-    """Multitenant configuration of this Splunk instance."""
+    """Multitenant configuration of this Splunk instance.
+
+    Binding for /deployments/tenants.
+    """
     def __init__(self, service):
         Collection.__init__(self, service, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
 
     def list(self, count=0, **kwargs):
-        Collection.list(self, count=count, **kwargs)
+        return Collection.list(self, count=count, **kwargs)
 
+class DeploymentServerClass(Entity):
+    """Represents a deployment server class.
+
+    Binds /deployments/serverclass/{name}.
+    """
+    def delete(self, **kwargs):
+        raise NotSupportedError("Cannot delete server classes via the REST API")
+
+    @property
+    def whitelist(self):
+        if 'whitelist' in self.content:
+            return self.content.whitelist.split(',')
+        else:
+            return None
+
+    @property
+    def blacklist(self):
+        if 'blacklist' in self.content:
+            return self.content.blacklist.split(',')
+        else:
+            return None
+
+    @property
+    def filter_type(self):
+        return self.content.get('filterType', None)
+
+    @property
+    def endpoint(self):
+        return self.content.get('endpoint', None)
+    
+    @property
+    def tmpfolder(self):
+        return self.content.get('tmpfolder', None)
+
+    @property
+    def repository_location(self):
+        return self.content.get('repositoryLocation', None)
+
+    @property
+    def target_repository_location(self):
+        return self.content.get('targetRepositoryLocation', None)
+
+    @property
+    def continue_matching(self):
+        return self.content.get('continueMatching', None)
+
+class DeploymentServerClasses(Collection):
+    """Binding for /deployment/serverclasses"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=DeploymentServerClass)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+    def create(self, name, **kwargs):
+        if 'blacklist' in kwargs:
+            for i,v in enumerate(kwargs['blacklist']):
+                kwargs['blacklist.%d' % i] = v
+            kwargs.pop('blacklist')
+        if 'whitelist' in kwargs:
+            for i,v in enumerate(kwargs['whitelist']):
+                kwargs['whitelist.%d' % i] = v
+            kwargs.pop('whitelist')
+        if not 'filterType' in kwargs:
+            kwargs['filterType'] = 'blacklist'
+        return Collection.create(self, name, **kwargs)
 
 

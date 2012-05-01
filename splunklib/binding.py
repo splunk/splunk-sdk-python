@@ -47,7 +47,7 @@ REST API, consider using the :mod:`splunklib.client` module.
 # these three values and the library will reconcile the triple, overriding the
 # provided values as appropriate.
 #
-# Finally, if no namspacing is specified the library will make use of the
+# Finally, if no namespacing is specified the library will make use of the
 # `/services` branch of the REST API which provides a namespaced view of
 # Splunk resources equivelent to using owner={currentUser} and app={defaultApp}
 #
@@ -296,7 +296,7 @@ class HTTPError(Exception):
         self.body = body
 
 #
-# The HTTP interface used by the Splunk binding layer abstracts the unerlying
+# The HTTP interface used by the Splunk binding layer abstracts the underlying
 # HTTP library using request & response 'messages' which are implemented as
 # dictionaries with the following structure:
 #

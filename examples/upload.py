@@ -18,7 +18,7 @@
 
 from os import path
 import sys
-
+sys.path.insert(0, '../')
 import splunklib.client as client
 
 from utils import *

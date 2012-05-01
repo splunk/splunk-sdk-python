@@ -23,6 +23,7 @@
 
 from pprint import pprint
 import sys
+sys.path.insert(0, '../')
 
 from splunklib.client import connect
 from utils import error, parse, cmdline

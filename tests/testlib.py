@@ -21,6 +21,10 @@ import sys
 from time import sleep
 import unittest
 
+# Run the test suite on the SDK without installing it.
+sys.path.insert(0, '../') 
+sys.path.insert(0, '../examples')
+
 from utils import parse
 
 def delete_app(service, name):

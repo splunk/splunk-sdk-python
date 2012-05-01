@@ -19,11 +19,11 @@ import urllib2
 import uuid
 from xml.etree.ElementTree import XML
 
+import testlib
+
 import splunklib.binding as binding
 from splunklib.binding import HTTPError
 import splunklib.data as data
-
-import testlib
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"

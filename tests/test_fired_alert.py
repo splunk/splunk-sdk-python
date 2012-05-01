@@ -14,9 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import splunklib.client as client
-
 import testlib
+
+import splunklib.client as client
 
 def event_count(index):
     return int(index.content.totalEventCount)

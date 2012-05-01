@@ -52,6 +52,7 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
@@ -203,6 +204,10 @@ class Service(Context):
         """Returns a list of system capabilities."""
         response = self.get(PATH_CAPABILITIES)
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
+
+    @property
+    def deployment_tenants(self):
+        return Collection(self, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
 
     @property
     def event_types(self):
@@ -1011,4 +1016,31 @@ class OperationError(Exception):
 class NotSupportedError(Exception): 
     """Raised for operations that are not supported on a given object."""
     pass
+
+class DeploymentTenant(Entity):
+    """Represents a DeploymentTenant."""
+    @property
+    def check_new(self):
+        """Will the server inform clients of updated configuration?"""
+        return self.state.content.get('check-new', False)
+
+    @property
+    def disabled(self):
+        """Is this tenant disabled?"""
+        return self.state.content['disabled'] == 1
+
+    @property
+    def whitelist0(self):
+        """Criterion for allowing clients access to this deployment server."""
+        return self.state.content['whitelist.0']
+
+class DeploymentTenants(Collection):
+    """Multitenant configuration of this Splunk instance."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
+
+    def list(self, count=0, **kwargs):
+        Collection.list(self, count=count, **kwargs)
+
+
 

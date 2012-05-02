@@ -359,5 +359,29 @@ class TestCase(testlib.TestCase):
 
         context.delete(PATH_USERS + username)
         
+    # Verify that we can pass a pre-existing token
+    def test_preexisting_token(self):
+        context = binding.connect(**self.opts.kwargs)
+        token = context.token
+        
+        # Ensure the context works
+        response = context.get("/services")
+        self.assertEqual(response.status, 200)
+        
+        # Create a new opts dictionary and stash the token there
+        opts = self.opts.kwargs.copy()
+        opts["token"] = token
+        
+        # We create a new context
+        newContext = binding.Context(**opts)
+        
+        # Ensure the new context works
+        response = newContext.get("/services")
+        self.assertEqual(response.status, 200)
+        
+        # Make sure we can open a socket to the service
+        context.connect().close()
+        newContext.connect().close()
+        
 if __name__ == "__main__":
     testlib.main()

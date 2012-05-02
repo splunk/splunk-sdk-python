@@ -140,9 +140,9 @@ class Context(object):
                        instance.
     :param `handler`: The HTTP request handler (optional).
     """
-    def __init__(self, handler=None, **kwargs):
+    def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
-        self.token = None
+        self.token = kwargs.get("token", None)
         self.prefix = prefix(**kwargs)
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)

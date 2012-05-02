@@ -36,6 +36,7 @@
 
 from time import sleep
 from urllib import urlencode, quote
+from collections import defaultdict
 
 from splunklib.binding import Context, HTTPError
 import splunklib.data as data
@@ -52,6 +53,10 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
+PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
+PATH_DEPLOYMENT_SERVERS = "deployment/server/"
+PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
@@ -191,7 +196,7 @@ class Service(Context):
     @property
     def apps(self):
         """Returns a collection of Splunk applications."""
-        return Collection(self, PATH_APPS)
+        return Collection(self, PATH_APPS, item=Application)
 
     @property
     def confs(self):
@@ -203,6 +208,18 @@ class Service(Context):
         """Returns a list of system capabilities."""
         response = self.get(PATH_CAPABILITIES)
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
+
+    @property
+    def deployment_clients(self):
+        return DeploymentCollection(self, PATH_DEPLOYMENT_CLIENTS, item=DeploymentClient)
+
+    @property
+    def deployment_servers(self):
+        return DeploymentCollection(self, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
+
+    @property
+    def deployment_tenants(self):
+        return DeploymentCollection(self, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
 
     @property
     def event_types(self):
@@ -275,6 +292,10 @@ class Service(Context):
         return SavedSearches(self)
 
     @property
+    def serverclasses(self):
+        return DeploymentServerClasses(self)
+
+    @property
     def settings(self):
         """Returns configuration settings for the service."""
         return Settings(self)
@@ -311,6 +332,10 @@ class Endpoint(object):
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
     """This class is a base class for all entity objects."""
+    # Subclasses can override this to provide the default values for
+    # optional fields.
+    defaults = {} 
+
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
@@ -319,8 +344,30 @@ class Entity(Endpoint):
     def __call__(self, *args):
         return self.content(*args)
 
+    def __getattr__(self, attr):
+        return self._lookup(attr, try_attr=False)
+
     def __getitem__(self, key):
-        return self.content[key]
+        return self._lookup(key)
+
+    def _restify(self, key):
+        return key.replace('_', '-')
+
+    def _lookup(self, key, try_attr=True):
+        # 1. Is there a method on the object that we can call?
+        if try_attr and key in dir(self):
+            return getattr(self, key)
+        # 2. When we replace _ with -, is there an exact match to some
+        # key in the content?
+        rkey = self._restify(key)
+        found = gethierarchy(self.content, rkey)
+        if found != {}:
+            return found
+        # 3. Look in defaults for a key.
+        if rkey in self.defaults:
+            return self.defaults[rkey]
+        # 5. Throw an error.
+        raise KeyError("No such attribute %s of %s" % (key, self.__class__.__name__))
 
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows
@@ -740,6 +787,8 @@ class Inputs(Collection):
 
 class Job(Entity): 
     """This class represents a search job."""
+    defaults = {'sid': None}
+
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
@@ -837,11 +886,6 @@ class Job(Entity):
         """
         self.post('control', action="setpriority", priority=value)
         return self
-
-    @property
-    def sid(self):
-        """Returns this job's search ID (sid)."""
-        return self.content.get('sid', None)
 
     def summary(self, **kwargs):
         """Returns an InputStream IO handle to the job's summary.
@@ -966,6 +1010,9 @@ class SavedSearch(Entity):
         Entity.update(self, search=search, **kwargs)
         return self
 
+class SavedSearchSchedule(Entity):
+    pass
+
 class SavedSearches(Collection):
     """This class represents a collection of saved searches."""
     def __init__(self, service):
@@ -1011,4 +1058,233 @@ class OperationError(Exception):
 class NotSupportedError(Exception): 
     """Raised for operations that are not supported on a given object."""
     pass
+
+class DeploymentCollection(Collection):
+    def __init__(self, service, path, item):
+        Collection.__init__(self, service, path, item=item)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create %s with the REST API." % self.__class__.__name__)
+
+    def delete(self, name):
+        raise NotSupportedError("Cannot delete %s with the REST API." % self.__class__.__name__)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+class DeploymentTenant(Entity):
+    """Binding for /deployments/tenants/{name}."""
+    @property
+    def check_new(self):
+        """Will the server inform clients of updated configuration?"""
+        return self.state.content.get('check-new', False)
+
+    @property
+    def disabled(self):
+        """Is this tenant disabled?"""
+        print self.state.content['disabled']
+        return self.state.content['disabled'] == 1
+
+    @property
+    def whitelist0(self):
+        """Criterion for allowing clients access to this deployment server."""
+        return self.state.content['whitelist.0']
+
+    def update(self, **kwargs):
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        self.service.post(PATH_DEPLOYMENT_TENANTS + self.name, **kwargs)
+        return self
+
+class DeploymentServerClass(Entity):
+    """Represents a deployment server class.
+
+    Binds /deployments/serverclass/{name}.
+    """
+    defaults = {'endpoint': None, 
+                'tmpfolder': None,
+                'filterType': None,
+                'targetRepositoryLocation': None,
+                'repositoryLocation': None,
+                'continueMatching': None}
+
+    @property
+    def blacklist(self):
+        if 'blacklist' in self.content:
+            return self.content.blacklist.split(',')
+        else:
+            return None
+
+    def delete(self, **kwargs):
+        raise NotSupportedError("Cannot delete server classes via the REST API")
+
+    @property
+    def whitelist(self):
+        if 'whitelist' in self.content:
+            return self.content.whitelist.split(',')
+        else:
+            return None
+
+class DeploymentServerClasses(DeploymentCollection):
+    """Binding for /deployment/serverclasses"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=DeploymentServerClass)
+
+    def create(self, name, **kwargs):
+        if 'blacklist' in kwargs:
+            for i,v in enumerate(kwargs['blacklist']):
+                kwargs['blacklist.%d' % i] = v
+            kwargs.pop('blacklist')
+        if 'whitelist' in kwargs:
+            for i,v in enumerate(kwargs['whitelist']):
+                kwargs['whitelist.%d' % i] = v
+            kwargs.pop('whitelist')
+        if not 'filterType' in kwargs:
+            kwargs['filterType'] = 'blacklist'
+        return Collection.create(self, name, **kwargs)
+
+class DeploymentServer(Entity):
+    """Binding for /deployment/server/{name}"""
+    @property
+    def whitelist(self):
+        return self.content.get('whitelist.0', None)
+
+    @property
+    def check_new(self):
+        return self.content.get('check-new', False)
+
+    @property
+    def disabled(self):
+        if 'disabled' in self.content:
+            return self.content['disabled'] == 1
+        else:
+            return None
+
+    def update(self, **kwargs):
+        if 'disabled' in kwargs:
+            kwargs['disabled'] = '1' if kwargs['disabled'] else '0'
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        if 'whitelist' in kwargs:
+            kwargs['whitelist.0'] = kwargs.pop('whitelist')
+        self.service.post(PATH_DEPLOYMENT_SERVERS + self.name, **kwargs)
+        return self
+
+class DeploymentServers(DeploymentCollection):
+    """Binding for /deployment/server"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
+
+    # Override this because Collection defaults to count=-1
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create deployment servers with the REST API.")
+
+class DeploymentClient(Entity):
+    """Binding for /deployment/client/{name}"""
+    def disable(self):
+        self.service.post(PATH_DEPLOYMENT_CLIENTS + self.name, {'disabled': '1'})
+        return self
+
+    @property
+    def disabled(self):
+        if 'disabled' in self.content:
+            return self.content['disabled'] == 1
+        else:
+            return None
+
+    def enable(self):
+        self.service.post(PATH_DEPLOYMENT_CLIENTS + self.name, {'disabled': '0'})
+        return self
+
+    def reload(self):
+        self.service.get(PATH_DEPLOYMENT_CLIENTS + self.name + "/reload")
+        return self
+
+    @property
+    def serverclasses(self):
+        if 'serverClasses' in self.content:
+            return self.content['serverClasses'].split(',')
+        else:
+            return []
+
+    @property
+    def target_uri(self):
+        return self.content.get('targetUri', None)
+
+
+class Application(Entity):
+    """Binding for /apps/local/{name}."""
+    # TODO: This doesn't work.
+    # @property
+    # def check_for_updates(self):
+    #     return self.content.get('check_for_updates', False) == '1'
+
+    @property
+    def setupInfo(self):
+        return self.content.get('eai:setup', None)
+
+    def package(self):
+        return ApplicationPackage(self.service, self.name)
+
+
+class ApplicationPackage(Entity):
+    """Create a compressed archive of an application on the server.
+
+    Usually an ApplicationPackage is created by calling
+    Application.package(). It has three fields:
+
+      - `appname` :: The name of the application packaged (e.g., `search`, `Splunk_for_Exchange`).
+      - `url` :: A URL at which you can download the packaged application.
+      - `filepath` :: An absolute path on disk to the packaged application.
+    """
+    def __init__(self, service, appname):
+        Entity.__init__(self, service, PATH_APPS + appname + "/package")
+    # 'name' is used by the SDK for the title of the endpoint, so we
+    # have to give a different label for the application name.
+    @property
+    def appname(self):
+        return self.content['name']
+
+    @property
+    def filepath(self):
+        return self.content['path']
+
+# This endpoint is almost undocumented, and there doesn't seem to be a
+# good way to test it.
+class ApplicationUpdate(Entity):
+    """Binding for /apps/local/{name}/update."""
+    defaults = {"update.appurl": None,
+                "update.checksum": None,
+                "update.checksum.type": None,
+                "update.homepage": None,
+                "update.name": None,
+                "update.size": None,
+                "update.version": None,
+                "update.implicit_id_required": None}
+
+    def _lookup(self, key):
+        return Entity._lookup("update." + key)
+
+def gethierarchy(dct, key, sep='.'):
+    def tree(): return defaultdict(tree)
+    if key in dct:
+        return dct[key]
+    key = key + sep
+    result = tree()
+    for k,v in dct.iteritems():
+        if not k.startswith(key):
+            continue
+        suffix = k[len(key):]
+        if '.' in suffix:
+            ks = suffix.split(sep)
+            z = result
+            for x in ks[:-1]:
+                z = z[x]
+            z[ks[-1]] = v
+        else:
+            result[suffix] = v
+    return result
 

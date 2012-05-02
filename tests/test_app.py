@@ -14,9 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import splunklib.client as client
-
 import testlib
+
+import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def check_app(self, app):
@@ -65,6 +65,17 @@ class TestCase(testlib.TestCase):
         self.assertEqual(app['label'], "SDK Test")
         self.assertEqual(app['manageable'], "0")
         self.assertEqual(app['visible'], "0")
+
+        self.assertEqual(app.setupInfo, None)
+
+        pkg = app.package()
+
+        print pkg.appname
+        print pkg.url
+        print pkg.path
+        self.assertEqual(pkg.appname, "sdk-test-app")
+        self.assertTrue(pkg.url.endswith("static/app-packages/sdk-test-app.spl"))
+        self.assertTrue(pkg.filepath.endswith("etc/system/static/app-packages/sdk-test-app.spl"))
 
         testlib.delete_app(service, appname)
         self.assertFalse(appname in service.apps)

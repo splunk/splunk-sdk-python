@@ -10,12 +10,12 @@ in `test_examples.py`.
 There are no dependencies to run the tests. You can simply execute:
 
     cd tests
-    python runtests.py
+    python -m unittest discover
 
-or:
+or, if you have py.test installed,
 
     cd tests
-    ./runtests.py
+    py.test
 
 ## Code Coverage
 
@@ -39,7 +39,17 @@ as follows:
     coverage combine
     coverage report
 
-Should you want to get an HTML report:
+If you are using py.test, youcan replace 
+
+    coverage run runtests.py 
+
+with 
+
+    coverage run `which py.test`
+
+which provides better reporting, and lets you specify any additional
+options, such as a particular file to test. Should you want to get an
+HTML report:
 
     coverage html
 

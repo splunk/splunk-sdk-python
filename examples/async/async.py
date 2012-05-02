@@ -23,6 +23,7 @@
 import sys, datetime
 import urllib
 from time import sleep
+sys.path.insert(0, '../')
 
 import splunklib.binding as binding
 import splunklib.client as client

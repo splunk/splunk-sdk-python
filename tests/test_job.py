@@ -16,10 +16,10 @@
 
 from time import sleep
 
+import testlib
+
 import splunklib.client as client
 import splunklib.results as results
-
-import testlib
 
 class TestCase(testlib.TestCase):
     # UNDONE: Shouldn't the following assert something on exit?

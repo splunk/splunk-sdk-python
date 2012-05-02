@@ -19,6 +19,7 @@
 from pprint import pprint
 
 import sys
+sys.path.insert(0, '../')
 from time import sleep
 
 from splunklib.binding import HTTPError

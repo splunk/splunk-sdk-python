@@ -14,15 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Runs all the Splunk Python SDK unit tests."""
-
-import os
-import sys
-import unittest
 import testlib
 
-# Set up the environment for coverage, even though it might not get used
-os.environ["COVERAGE_PROCESS_START"] = "../tests/.coveragerc"
+import splunklib.client as client
 
-unittest.TextTestRunner().run(unittest.TestLoader().discover('.'))
-
+class TestCase(testlib.TestCase):
+    def test_gethierarchy(test):
+        test.assertEqual(client.gethierarchy({'apple':0,
+                                              'pear.alpha':1,
+                                              'pear.beta':2,
+                                              'pear.gamma.meep':3},
+                                             'pear'),
+                         {'alpha':1, 'beta':2, 'gamma': {'meep':3}})

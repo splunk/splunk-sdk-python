@@ -19,9 +19,9 @@ from subprocess import PIPE, Popen
 import time
 import sys
 
-import splunklib.client as client
-
 import testlib 
+
+import splunklib.client as client
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -48,7 +48,7 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     if isinstance(script, str):
         script = script.split()
     script = ["python"] + script
-    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr)
+    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
 
 # Rudimentary sanity check for each of the examples
 class TestCase(testlib.TestCase):

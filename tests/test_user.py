@@ -14,9 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import splunklib.client as client
-
 import testlib
+
+import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def check_user(self, user):

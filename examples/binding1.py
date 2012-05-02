@@ -20,6 +20,7 @@
    entities and 'method-like' endpoints."""
 
 import sys
+sys.path.insert(0, '../')
 
 from splunklib.binding import connect
 

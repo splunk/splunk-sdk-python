@@ -44,6 +44,7 @@ class TestCase(testlib.TestCase):
         else:
             sc = service.serverclasses[name]
         sc.refresh()
+        self.assertRaises(client.NotSupportedError, client.DeploymentServerClass.delete, sc)
         self.assertEqual(sc.whitelist, ['*.wanda.biz', 'ftw.*.leroy.ru'])
         self.assertEqual(sc.blacklist, ['*.gov', '*.ch'])
         self.assertEqual(sc.filter_type, 'blacklist')
@@ -52,8 +53,30 @@ class TestCase(testlib.TestCase):
         self.assertTrue(sc.repository_location.endswith('etc/deployment-apps'))
         self.assertEqual(sc.continue_matching, None)
         
+    def test_server(self):
+        name = 'pythonsdk_server'
+        service = client.connect(**self.opts.kwargs)
+        self.assertRaises(client.NotSupportedError, 
+                          client.DeploymentCollection.create,
+                          service.deployment_servers, name, 
+                          check_new=True, disabled=True)
+        servers = service.deployment_servers.list()
+        if len(servers) > 0:
+            for s in servers:
+                self.assertTrue(isinstance(s.whitelist, str))
+                self.assertTrue(isinstance(s.check_new, bool) or s.check_new is None)
+                print s.disabled
+                self.assertTrue(isinstance(s.disabled, bool) or s.disabled is None)
 
-        
+    def test_client(self):
+        service = client.connect(**self.opts.kwargs)
+        clients = service.deployment_clients.list()
+        self.assertRaises(client.NotSupportedError, service.deployment_clients.delete, 'asdf')
+        if len(clients) > 0:
+            for c in clients:
+                self.assertTrue(c.disabled is None or isinstance(c.disabled, bool))
+                self.assertTrue(isinstance(c.serverclasses, list))
+                self.assertTrue(c.target_uri is None or isinstance(c.disabled, str))
         
 if __name__ == "__main__":
     testlib.main()

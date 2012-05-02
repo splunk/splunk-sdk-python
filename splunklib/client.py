@@ -52,7 +52,9 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
 PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
+PATH_DEPLOYMENT_SERVERS = "deployment/server/"
 PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
@@ -193,7 +195,7 @@ class Service(Context):
     @property
     def apps(self):
         """Returns a collection of Splunk applications."""
-        return Collection(self, PATH_APPS)
+        return Collection(self, PATH_APPS, item=Application)
 
     @property
     def confs(self):
@@ -207,8 +209,16 @@ class Service(Context):
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
+    def deployment_clients(self):
+        return DeploymentCollection(self, PATH_DEPLOYMENT_CLIENTS, item=DeploymentClient)
+
+    @property
+    def deployment_servers(self):
+        return DeploymentCollection(self, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
+
+    @property
     def deployment_tenants(self):
-        return DeploymentTenants(self)
+        return DeploymentCollection(self, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
 
     @property
     def event_types(self):
@@ -321,6 +331,10 @@ class Endpoint(object):
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
     """This class is a base class for all entity objects."""
+    # Subclasses can override this to provide the default values for
+    # optional fields.
+    defaults = {} 
+
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
@@ -329,8 +343,14 @@ class Entity(Endpoint):
     def __call__(self, *args):
         return self.content(*args)
 
+    def __getattr__(self, attr):
+        return self[attr]
+
     def __getitem__(self, key):
-        return self.content[key]
+        if key in self.content:
+            return self.content[key]
+        else:
+            return self.defaults[key]
 
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows
@@ -750,6 +770,8 @@ class Inputs(Collection):
 
 class Job(Entity): 
     """This class represents a search job."""
+    defaults = {'sid': None}
+
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
@@ -847,11 +869,6 @@ class Job(Entity):
         """
         self.post('control', action="setpriority", priority=value)
         return self
-
-    @property
-    def sid(self):
-        """Returns this job's search ID (sid)."""
-        return self.content.get('sid', None)
 
     def summary(self, **kwargs):
         """Returns an InputStream IO handle to the job's summary.
@@ -1022,6 +1039,19 @@ class NotSupportedError(Exception):
     """Raised for operations that are not supported on a given object."""
     pass
 
+class DeploymentCollection(Collection):
+    def __init__(self, service, path, item):
+        Collection.__init__(self, service, path, item=item)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create %s with the REST API." % self.__class__.__name__)
+
+    def delete(self, name):
+        raise NotSupportedError("Cannot delete %s with the REST API." % self.__class__.__name__)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
 class DeploymentTenant(Entity):
     """Binding for /deployments/tenants/{name}."""
     @property
@@ -1046,22 +1076,12 @@ class DeploymentTenant(Entity):
         self.service.post(PATH_DEPLOYMENT_TENANTS + self.name, **kwargs)
         return self
 
-class DeploymentTenants(Collection):
-    """Multitenant configuration of this Splunk instance.
-
-    Binding for /deployments/tenants.
-    """
-    def __init__(self, service):
-        Collection.__init__(self, service, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
-
-    def list(self, count=0, **kwargs):
-        return Collection.list(self, count=count, **kwargs)
-
 class DeploymentServerClass(Entity):
     """Represents a deployment server class.
 
     Binds /deployments/serverclass/{name}.
     """
+    defaults = {'endpoint': None, 'tmpfolder': None}
     def delete(self, **kwargs):
         raise NotSupportedError("Cannot delete server classes via the REST API")
 
@@ -1084,14 +1104,6 @@ class DeploymentServerClass(Entity):
         return self.content.get('filterType', None)
 
     @property
-    def endpoint(self):
-        return self.content.get('endpoint', None)
-    
-    @property
-    def tmpfolder(self):
-        return self.content.get('tmpfolder', None)
-
-    @property
     def repository_location(self):
         return self.content.get('repositoryLocation', None)
 
@@ -1103,13 +1115,10 @@ class DeploymentServerClass(Entity):
     def continue_matching(self):
         return self.content.get('continueMatching', None)
 
-class DeploymentServerClasses(Collection):
+class DeploymentServerClasses(DeploymentCollection):
     """Binding for /deployment/serverclasses"""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=DeploymentServerClass)
-
-    def list(self, count=0, **kwargs):
-        return Collection.list(self, count=count, **kwargs)
 
     def create(self, name, **kwargs):
         if 'blacklist' in kwargs:
@@ -1124,4 +1133,147 @@ class DeploymentServerClasses(Collection):
             kwargs['filterType'] = 'blacklist'
         return Collection.create(self, name, **kwargs)
 
+class DeploymentServer(Entity):
+    """Binding for /deployment/server/{name}"""
+    @property
+    def whitelist(self):
+        return self.content.get('whitelist.0', None)
 
+    @property
+    def check_new(self):
+        return self.content.get('check-new', False)
+
+    @property
+    def disabled(self):
+        if 'disabled' in self.content:
+            return self.content['disabled'] == 1
+        else:
+            return None
+
+    def update(self, **kwargs):
+        if 'disabled' in kwargs:
+            kwargs['disabled'] = '1' if kwargs['disabled'] else '0'
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        if 'whitelist' in kwargs:
+            kwargs['whitelist.0'] = kwargs.pop('whitelist')
+        self.service.post(PATH_DEPLOYMENT_SERVERS + self.name, **kwargs)
+        return self
+
+class DeploymentServers(DeploymentCollection):
+    """Binding for /deployment/server"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
+
+    # Override this because Collection defaults to count=-1
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create deployment servers with the REST API.")
+
+class DeploymentClient(Entity):
+    """Binding for /deployment/client/{name}"""
+    def disable(self):
+        self.service.post(PATH_DEPLOYMENT_CLIENTS + self.name, {'disabled': '1'})
+        return self
+
+    @property
+    def disabled(self):
+        if 'disabled' in self.content:
+            return self.content['disabled'] == 1
+        else:
+            return None
+
+    def enable(self):
+        self.service.post(PATH_DEPLOYMENT_CLIENTS + self.name, {'disabled': '0'})
+        return self
+
+    def reload(self):
+        self.service.get(PATH_DEPLOYMENT_CLIENTS + self.name + "/reload")
+        return self
+
+    @property
+    def serverclasses(self):
+        if 'serverClasses' in self.content:
+            return self.content['serverClasses'].split(',')
+        else:
+            return []
+
+    @property
+    def target_uri(self):
+        return self.content.get('targetUri', None)
+
+
+class Application(Entity):
+    """Binding for /apps/local/{name}."""
+    # TODO: This doesn't work.
+    # @property
+    # def check_for_updates(self):
+    #     return self.content.get('check_for_updates', False) == '1'
+
+    @property
+    def setupInfo(self):
+        return self.content.get('eai:setup', None)
+
+    def package(self):
+        return ApplicationPackage(self.service, self.name)
+
+
+class ApplicationPackage(Entity):
+    """Create a compressed archive of an application on the server.
+
+    Usually an ApplicationPackage is created by calling
+    Application.package(). It has three fields:
+
+      - `appname` :: The name of the application packaged (e.g., `search`, `Splunk_for_Exchange`).
+      - `url` :: A URL at which you can download the packaged application.
+      - `path` :: An absolute path on disk to the packaged application.
+    """
+    def __init__(self, service, appname):
+        Entity.__init__(self, service, PATH_APPS + appname + "/package")
+    # 'name' is used by the SDK for the title of the endpoint, so we
+    # have to give a different label for the application name.
+    @property
+    def appname(self):
+        return self.content['name']
+
+    @property
+    def filepath(self):
+        return self.content['path']
+
+# This endpoint is almost undocumented, and there doesn't seem to be a
+# good way to test it.
+class ApplicationUpdate(Entity):
+    """Binding for /apps/local/{name}/update."""
+    @property
+    def app_url(self):
+        return self.content.get('update.appurl', None)
+
+    @property
+    def checksum(self):
+        return self.content.get('update.checksum', None)
+
+    @property
+    def checksum_type(self):
+        return self.content.get('update.checksum.type', None)
+
+    @property
+    def homepage(self):
+        return self.content.get('update.homepage', None)
+
+    @property
+    def update_name(self):
+        return self.content.get('update.name', None)
+
+    @property
+    def size(self):
+        return self.content.get('update.size', None)
+
+    @property
+    def version(self):
+        return self.content.get('update.version', None)
+
+    @property
+    def implicit_id_required(self):
+        return self.content.get('update.implicit_id_required', False)

@@ -36,6 +36,7 @@
 
 from time import sleep
 from urllib import urlencode, quote
+from collections import defaultdict
 
 from splunklib.binding import Context, HTTPError
 import splunklib.data as data
@@ -344,13 +345,29 @@ class Entity(Endpoint):
         return self.content(*args)
 
     def __getattr__(self, attr):
-        return self[attr]
+        return self._lookup(attr, try_attr=False)
 
     def __getitem__(self, key):
-        if key in self.content:
-            return self.content[key]
-        else:
-            return self.defaults[key]
+        return self._lookup(key)
+
+    def _restify(self, key):
+        return key.replace('_', '-')
+
+    def _lookup(self, key, try_attr=True):
+        # 1. Is there a method on the object that we can call?
+        if try_attr and key in dir(self):
+            return getattr(self, key)
+        # 2. When we replace _ with -, is there an exact match to some
+        # key in the content?
+        rkey = self._restify(key)
+        found = gethierarchy(self.content, rkey)
+        if found != {}:
+            return found
+        # 3. Look in defaults for a key.
+        if rkey in self.defaults:
+            return self.defaults[rkey]
+        # 5. Throw an error.
+        raise KeyError("No such attribute %s of %s" % (key, self.__class__.__name__))
 
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows
@@ -993,6 +1010,9 @@ class SavedSearch(Entity):
         Entity.update(self, search=search, **kwargs)
         return self
 
+class SavedSearchSchedule(Entity):
+    pass
+
 class SavedSearches(Collection):
     """This class represents a collection of saved searches."""
     def __init__(self, service):
@@ -1081,7 +1101,20 @@ class DeploymentServerClass(Entity):
 
     Binds /deployments/serverclass/{name}.
     """
-    defaults = {'endpoint': None, 'tmpfolder': None}
+    defaults = {'endpoint': None, 
+                'tmpfolder': None,
+                'filterType': None,
+                'targetRepositoryLocation': None,
+                'repositoryLocation': None,
+                'continueMatching': None}
+
+    @property
+    def blacklist(self):
+        if 'blacklist' in self.content:
+            return self.content.blacklist.split(',')
+        else:
+            return None
+
     def delete(self, **kwargs):
         raise NotSupportedError("Cannot delete server classes via the REST API")
 
@@ -1091,29 +1124,6 @@ class DeploymentServerClass(Entity):
             return self.content.whitelist.split(',')
         else:
             return None
-
-    @property
-    def blacklist(self):
-        if 'blacklist' in self.content:
-            return self.content.blacklist.split(',')
-        else:
-            return None
-
-    @property
-    def filter_type(self):
-        return self.content.get('filterType', None)
-
-    @property
-    def repository_location(self):
-        return self.content.get('repositoryLocation', None)
-
-    @property
-    def target_repository_location(self):
-        return self.content.get('targetRepositoryLocation', None)
-
-    @property
-    def continue_matching(self):
-        return self.content.get('continueMatching', None)
 
 class DeploymentServerClasses(DeploymentCollection):
     """Binding for /deployment/serverclasses"""
@@ -1228,7 +1238,7 @@ class ApplicationPackage(Entity):
 
       - `appname` :: The name of the application packaged (e.g., `search`, `Splunk_for_Exchange`).
       - `url` :: A URL at which you can download the packaged application.
-      - `path` :: An absolute path on disk to the packaged application.
+      - `filepath` :: An absolute path on disk to the packaged application.
     """
     def __init__(self, service, appname):
         Entity.__init__(self, service, PATH_APPS + appname + "/package")
@@ -1246,34 +1256,35 @@ class ApplicationPackage(Entity):
 # good way to test it.
 class ApplicationUpdate(Entity):
     """Binding for /apps/local/{name}/update."""
-    @property
-    def app_url(self):
-        return self.content.get('update.appurl', None)
+    defaults = {"update.appurl": None,
+                "update.checksum": None,
+                "update.checksum.type": None,
+                "update.homepage": None,
+                "update.name": None,
+                "update.size": None,
+                "update.version": None,
+                "update.implicit_id_required": None}
 
-    @property
-    def checksum(self):
-        return self.content.get('update.checksum', None)
+    def _lookup(self, key):
+        return Entity._lookup("update." + key)
 
-    @property
-    def checksum_type(self):
-        return self.content.get('update.checksum.type', None)
+def gethierarchy(dct, key, sep='.'):
+    def tree(): return defaultdict(tree)
+    if key in dct:
+        return dct[key]
+    key = key + sep
+    result = tree()
+    for k,v in dct.iteritems():
+        if not k.startswith(key):
+            continue
+        suffix = k[len(key):]
+        if '.' in suffix:
+            ks = suffix.split(sep)
+            z = result
+            for x in ks[:-1]:
+                z = z[x]
+            z[ks[-1]] = v
+        else:
+            result[suffix] = v
+    return result
 
-    @property
-    def homepage(self):
-        return self.content.get('update.homepage', None)
-
-    @property
-    def update_name(self):
-        return self.content.get('update.name', None)
-
-    @property
-    def size(self):
-        return self.content.get('update.size', None)
-
-    @property
-    def version(self):
-        return self.content.get('update.version', None)
-
-    @property
-    def implicit_id_required(self):
-        return self.content.get('update.implicit_id_required', False)

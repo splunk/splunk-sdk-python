@@ -46,12 +46,13 @@ class TestCase(testlib.TestCase):
         sc.refresh()
         self.assertRaises(client.NotSupportedError, client.DeploymentServerClass.delete, sc)
         self.assertEqual(sc.whitelist, ['*.wanda.biz', 'ftw.*.leroy.ru'])
+        self.assertEqual(sc['whitelist'], ['*.wanda.biz', 'ftw.*.leroy.ru'])
         self.assertEqual(sc.blacklist, ['*.gov', '*.ch'])
-        self.assertEqual(sc.filter_type, 'blacklist')
+        self.assertEqual(sc.filterType, 'blacklist')
         self.assertEqual(sc.endpoint, None)
         self.assertEqual(sc.tmpfolder, None)
-        self.assertTrue(sc.repository_location.endswith('etc/deployment-apps'))
-        self.assertEqual(sc.continue_matching, None)
+        self.assertTrue(sc.repositoryLocation.endswith('etc/deployment-apps'))
+        self.assertEqual(sc.continueMatching, None)
         
     def test_server(self):
         name = 'pythonsdk_server'

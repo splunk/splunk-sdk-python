@@ -19,6 +19,8 @@ import webbrowser
 import sys
 import os
 
+sys.path.insert(0, '../../') # Use splunklib and utils without installing
+
 import utils
 import urllib
 

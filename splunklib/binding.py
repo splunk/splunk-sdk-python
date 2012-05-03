@@ -234,13 +234,15 @@ class Context(object):
 
         # If no app or owner are specified, then use the /services endpoint
         if ns.app is None and ns.owner is None:
-            return "/services/%s" % path
+            return "/services/%s" % urllib.quote(path)
 
         # At least one of app or owner is specified, so use the /serviceNS
         # endpoint and if only one is specified, then wildcard the other.
         oname = "-" if ns.owner is None else ns.owner
         aname = "-" if ns.app is None else ns.app
-        return "/servicesNS/%s/%s/%s" % (oname, aname, path)
+        return "/servicesNS/%s/%s/%s" % (urllib.quote(oname), 
+                                         urllib.quote(aname),
+                                         urllib.quote(path))
 
     # Convert the given path into a fully qualified URL by first qualifying
     # the given path with namespace segments if necessarry and then prefixing

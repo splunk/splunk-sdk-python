@@ -88,6 +88,8 @@ class TestCase(testlib.TestCase):
         saved_search.refresh()
         self.check_content(saved_search, is_visible=0)
 
+        self.assertRaises(ValueError, saved_search.update, saved_search, name="Anything")
+
         saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)
 

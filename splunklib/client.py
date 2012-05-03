@@ -391,7 +391,18 @@ class Entity(Endpoint):
         return self._state
 
     def update(self, **kwargs):
-        """Updates the entity with the arguments you provide."""
+        """Updates the entity with the arguments you provide.
+
+        Note that you cannot update the ``name`` field of an Entity,
+        due to a peculiarity of the REST API.
+        """
+        # The peculiarity in question: the REST API creates a new
+        # Entity if we pass name in the dictionary, instead of the
+        # expected behavior of updating this Entity. Therefore we
+        # check for 'name' in kwargs and throw an error if it is
+        # there.
+        if 'name' in kwargs:
+            raise ValueError("Cannot update the name of an Entity via the REST API.")
         self.post(**kwargs)
         return self
 

@@ -17,6 +17,7 @@
 """An example that prints Splunk service info & settings."""
 
 import sys
+sys.path.insert(0, '../')
 
 import splunklib.client as client
 

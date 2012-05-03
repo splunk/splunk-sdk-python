@@ -16,9 +16,9 @@
 
 from os import path
 
-import splunklib.client as client
-
 import testlib
+
+import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def check_index(self, index):

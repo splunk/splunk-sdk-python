@@ -17,6 +17,7 @@
 """A command line utility that lists saved searches."""
 
 import sys
+sys.path.insert(0, '../')
 
 from splunklib.client import connect
 

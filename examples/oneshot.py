@@ -19,6 +19,7 @@
 from pprint import pprint
 import socket
 import sys
+sys.path.insert(0, '../')
 
 from splunklib.client import connect
 import splunklib.results as results

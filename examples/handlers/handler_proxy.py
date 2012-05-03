@@ -29,6 +29,7 @@
 from pprint import pprint
 from StringIO import StringIO
 import sys
+sys.path.insert(0, '../')
 import urllib2
 
 import splunklib.client as client

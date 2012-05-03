@@ -37,6 +37,7 @@ from StringIO import StringIO
 import ssl
 import socket
 import sys
+sys.path.insert(0, '../')
 import urllib
 import urlparse
 

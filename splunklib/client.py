@@ -52,6 +52,10 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_CONFS = "properties/"
+PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
+PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
+PATH_DEPLOYMENT_SERVERS = "deployment/server/"
+PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
@@ -191,7 +195,7 @@ class Service(Context):
     @property
     def apps(self):
         """Returns a collection of Splunk applications."""
-        return Collection(self, PATH_APPS)
+        return Collection(self, PATH_APPS, item=Application)
 
     @property
     def confs(self):
@@ -497,6 +501,17 @@ class Entity(Endpoint):
 
         Note that you cannot update the ``name`` field of an Entity,
         due to a peculiarity of the REST API.
+
+        Many of the fields in the REST API are not valid Python
+        identifiers, which means you cannot pass them as keyword
+        arguments. That is, Python will fail to parse the following::
+
+            x.update(check-new=False, email.to='boris@utopia.net')
+
+        However, you can always explicitly use a dictionary to pass
+        such keys::
+
+            x.update(**{'check-new': False, 'email.to': 'boris@utopia.net'})
         """
         # The peculiarity in question: the REST API creates a new
         # Entity if we pass name in the dictionary, instead of the
@@ -1124,4 +1139,136 @@ class OperationError(Exception):
 class NotSupportedError(Exception): 
     """Raised for operations that are not supported on a given object."""
     pass
+
+class DeploymentCollection(Collection):
+    def __init__(self, service, path, item):
+        Collection.__init__(self, service, path, item=item)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create %s with the REST API." % self.__class__.__name__)
+
+    def delete(self, name):
+        raise NotSupportedError("Cannot delete %s with the REST API." % self.__class__.__name__)
+
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+class DeploymentTenant(Entity):
+    """Binding for /deployments/tenants/{name}."""
+    @property
+    def check_new(self):
+        """Will the server inform clients of updated configuration?"""
+        return self.state.content.get('check-new', False)
+
+    def update(self, **kwargs):
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        self.service.post(PATH_DEPLOYMENT_TENANTS + self.name, **kwargs)
+        return self
+
+class DeploymentServerClass(Entity):
+    """Represents a deployment server class.
+
+    Binds /deployments/serverclass/{name}.
+    """
+    defaults = {'endpoint': None, 
+                'tmpfolder': None,
+                'filterType': None,
+                'targetRepositoryLocation': None,
+                'repositoryLocation': None,
+                'continueMatching': None}
+
+    @property
+    def blacklist(self):
+        if 'blacklist' in self.content:
+            return self.content.blacklist.split(',')
+        else:
+            return None
+
+    def delete(self, **kwargs):
+        raise NotSupportedError("Cannot delete server classes via the REST API")
+
+    @property
+    def whitelist(self):
+        if 'whitelist' in self.content:
+            return self.content.whitelist.split(',')
+        else:
+            return None
+
+class DeploymentServerClasses(DeploymentCollection):
+    """Binding for /deployment/serverclasses"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=DeploymentServerClass)
+
+    def create(self, name, **kwargs):
+        if 'blacklist' in kwargs:
+            for i,v in enumerate(kwargs['blacklist']):
+                kwargs['blacklist.%d' % i] = v
+            kwargs.pop('blacklist')
+        if 'whitelist' in kwargs:
+            for i,v in enumerate(kwargs['whitelist']):
+                kwargs['whitelist.%d' % i] = v
+            kwargs.pop('whitelist')
+        if not 'filterType' in kwargs:
+            kwargs['filterType'] = 'blacklist'
+        return Collection.create(self, name, **kwargs)
+
+class DeploymentServer(Entity):
+    """Binding for /deployment/server/{name}"""
+    @property
+    def whitelist(self):
+        return self.content.get('whitelist.0', None)
+
+    @property
+    def check_new(self):
+        return self.content.get('check-new', False)
+
+    def update(self, **kwargs):
+        if 'disabled' in kwargs:
+            kwargs['disabled'] = '1' if kwargs['disabled'] else '0'
+        if 'check_new' in kwargs:
+            kwargs['check-new'] = kwargs.pop('check_new')
+        if 'whitelist' in kwargs:
+            kwargs['whitelist.0'] = kwargs.pop('whitelist')
+        self.service.post(PATH_DEPLOYMENT_SERVERS + self.name, **kwargs)
+        return self
+
+class DeploymentServers(DeploymentCollection):
+    """Binding for /deployment/server"""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
+
+    # Override this because Collection defaults to count=-1
+    def list(self, count=0, **kwargs):
+        return Collection.list(self, count=count, **kwargs)
+
+    def create(self, name, **kwargs):
+        raise NotSupportedError("Cannot create deployment servers with the REST API.")
+
+class DeploymentClient(Entity):
+    """Binding for /deployment/client/{name}"""
+    @property
+    def serverClasses(self):
+        if 'serverClasses' in self.content:
+            return self.content['serverClasses'].split(',')
+        else:
+            return []
+
+class Application(Entity):
+    """Binding for /apps/local/{name}."""
+    @property
+    def setupInfo(self):
+        return self.content.get('eai:setup', None)
+
+    def package(self):
+        response = self.get("package")
+        data = self._load_atom_entry(response)
+        rec = _parse_atom_entry(data)
+        return rec.content
+
+    def updateInfo(self):
+        pass
+
+    
+
 

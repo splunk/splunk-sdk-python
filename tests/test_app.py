@@ -76,5 +76,13 @@ class TestCase(testlib.TestCase):
         testlib.delete_app(service, appname)
         self.assertFalse(appname in service.apps)
 
+    def test_package(self):
+        service = client.connect(**self.opts.kwargs)
+        app = service.apps['search']
+        p = app.package()
+        self.assertEqual(p.name, 'search')
+        self.assertTrue(p.path.endswith('search.spl'))
+        self.assertTrue(p.url.endswith('search.spl'))
+
 if __name__ == "__main__":
     testlib.main()

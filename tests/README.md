@@ -7,6 +7,14 @@ Each distinct area of the SDK is tested in a single file. For example,
 `splunk.client` is tested in `test_client.py`, while the examples are tested
 in `test_examples.py`.
 
+Before running the test suite, make sure the instance of Splunk you
+are testing against doesn't have new events being dumped continuously
+into it. Several of the tests rely on a stable event count. It's best
+to test against a clean install of Splunk, but if you cannot, you
+should at least disable the *NIX and Windows apps. Do not run the test
+suite against a production instance of Splunk! It will run just fine
+with the free Splunk license, so don't be stingy with instances.
+
 There are no dependencies to run the tests. You can simply execute:
 
     cd tests

@@ -84,5 +84,11 @@ class TestCase(testlib.TestCase):
         self.assertTrue(p.path.endswith('search.spl'))
         self.assertTrue(p.url.endswith('search.spl'))
 
+    def test_updateInfo(self):
+        service = client.connect(**self.opts.kwargs)
+        app = service.apps['search']
+        p = app.updateInfo()
+        self.assertTrue(p is not None)
+
 if __name__ == "__main__":
     testlib.main()

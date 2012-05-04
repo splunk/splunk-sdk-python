@@ -439,6 +439,20 @@ class Entity(Endpoint):
         entry = self._load_atom_entry(response)
         return _parse_atom_entry(entry)
 
+    def _run_method(self, relpath, **kwargs):
+        """Run a method and return the content Record from the returned XML.
+
+        A method is a relative path from an Entity that is not itself
+        an Entity. _run_method assumes that the returned XML is an
+        Atom field containing one Entry, and the contents of Entry is
+        what should be the return value. This is right in enough cases
+        to make this method useful.
+        """
+        response = self.get(relpath, **kwargs)
+        data = self._load_atom_entry(response)
+        rec = _parse_atom_entry(data)
+        return rec.content
+
     def refresh(self, state=None):
         """Refreshes the cached state of this entity, using either the given
         state record, or by calling :meth:`read` if no state record is provided.
@@ -1261,13 +1275,10 @@ class Application(Entity):
         return self.content.get('eai:setup', None)
 
     def package(self):
-        response = self.get("package")
-        data = self._load_atom_entry(response)
-        rec = _parse_atom_entry(data)
-        return rec.content
+        return self._run_method("package")
 
     def updateInfo(self):
-        pass
+        return self._run_method("update")
 
     
 

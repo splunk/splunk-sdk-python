@@ -17,6 +17,7 @@
 import testlib
 
 import splunklib.client as client
+import splunklib.data as data
 
 class TestCase(testlib.TestCase):
     def check_app(self, app):
@@ -49,10 +50,16 @@ class TestCase(testlib.TestCase):
         service.apps.create(appname, **kwargs)
         self.assertTrue(appname in service.apps)
         app = service.apps[appname]
+        self.assertTrue(isinstance(app.state.content, data.Record))
         self.assertEqual(app['author'], "Me")
         self.assertEqual(app['label'], "SDK Test")
         self.assertEqual(app['manageable'], "0")
         self.assertEqual(app['visible'], "1")
+
+        self.assertEqual(app.author, "Me")
+        self.assertEqual(app.label, "SDK Test")
+        self.assertEqual(app.manageable, "0")
+        self.assertEqual(app.visible, "1")
 
         kwargs = {
             'author': "SDK",

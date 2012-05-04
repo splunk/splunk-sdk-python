@@ -172,7 +172,25 @@ def load_value(element, nametable=None):
 class Record(dict):
     """A generic utility class that enables dot access to members of 
     a Python dictionary.
+
+    Any key which is also a valid Python identifier can be fetched as
+    a field, so for a Record ``r``, ``r.key`` is equivalent to
+    ``r['key']``. A key like ``invalid-key`` or ``invalid.key`` cannot
+    be fetched as a field, since ``-`` and ``.`` are not allowed in
+    identifiers.
+
+    However, keys of the form ``a.b.c`` are very natural to write in
+    Python as fields, so Record does something sane with them: if a
+    group of keys all share a prefix ending in ``.``, then you can
+    fetch them as a nested dictionary by calling just the prefix,
+    e.g., if Record ``r`` contains keys ``'foo'``, ``'bar.baz'``, and
+    ``'bar.qux'``, ``r.bar`` returns a Record with the keys ``baz``
+    and ``qux``. If there are multiple ``.``'s in the key, each ``.``
+    is put into a nested dictionary. Thus you can write ``r.bar.qux``
+    or ``r['bar.qux']`` interchangeably.
     """
+    sep = '.'
+
     def __call__(self, *args):
         if len(args) == 0: return self
         return Record((key, self[key]) for key in args)
@@ -194,6 +212,30 @@ class Record(dict):
         result = record()
         result[k] = v
         return result
+
+    def __getitem__(self, key):
+        if key in self:
+            return dict.__getitem__(self, key)
+        key = key + self.sep
+        result = record()
+        for k,v in self.iteritems():
+            if not k.startswith(key):
+                continue
+            suffix = k[len(key):]
+            if '.' in suffix:
+                ks = suffix.split(self.sep)
+                z = result
+                for x in ks[:-1]:
+                    if x not in z:
+                        z[x] = record()
+                    z = z[x]
+                z[ks[-1]] = v
+            else:
+                result[suffix] = v
+        if len(result) == 0:
+            raise KeyError("No key or prefix: %s" % key)
+        return result
+    
 
 def record(value=None): 
     """Returns a **record** instance constructed with an initial value that you

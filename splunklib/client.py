@@ -80,7 +80,7 @@ def _filter_content(content, *args):
 # Construct a resource path from the given base path + resource name
 def _path(base, name):
     if not base.endswith('/'): base = base + '/'
-    return base + quote(name)
+    return base + name
 
 # Returns a path to the resource corresponding to the given conf name
 def _path_conf(conf):
@@ -285,14 +285,21 @@ class Service(Context):
         return Users(self)
 
 class Endpoint(object):
-    """This class is a base class for all client objects."""
+    """Individual resources in the REST API.
+    
+    An Endpoint represents a URI, such as /services/saved/searches. It
+    has provides the common functionality of Collection and Entity
+    (essentially HTTP get and post methods).
+    """
     def __init__(self, service, path):
         self.service = service
         self.path = path if path.endswith('/') else path + '/'
 
     def get(self, relpath="", **kwargs):
-        """Issues a ``GET`` request to an endpoint, using a relative path and 
-        query arguments if provided.
+        """Issues a ``GET`` request to a (possibly empty) path relative to this endpoint.
+
+        Keyword arguments are passed as keyword arguments. For
+        example, ``obj.get(arg1="abc", arg2="def")``.
 
         :param `relpath`: A path relative to the endpoint (optional).
         :param `kwargs`: Query arguments (optional).
@@ -300,8 +307,9 @@ class Endpoint(object):
         return self.service.get("%s%s" % (self.path, relpath), **kwargs)
 
     def post(self, relpath="", **kwargs):
-        """Issues a ``POST`` request to an endpoint, using a relative path and 
-        form arguments if provided.
+        """Issues a ``POST`` request to a (possibly empty) path relative to this endpoint.
+
+        Keyword arguments are passed as fields in the POST body.
         
         :param `relpath`: A path relative to the endpoint (optional).
         :param `kwargs`: Form arguments (optional).
@@ -310,7 +318,61 @@ class Endpoint(object):
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
-    """This class is a base class for all entity objects."""
+    """Base class for entities in the REST API such as saved searches or applications.
+
+    Entity provides the majority of functionality required by entities
+    in the REST API. Subclasses only implement the special cases for
+    individual Entities, such as nicely making whitelists and
+    blacklists in deployment serverclasses into Python lists.
+
+    An Entity is addressed like a dictionary, with a few extensions,
+    so the following all work::
+
+        ent['email.action']
+        ent['disabled']
+        ent['whitelist']
+
+    Many endpoints have values that share a prefix, such as
+    ``email.to``, ``email.action``, ``email.subject``. You can extract
+    the whole fields, or use the key ``email`` to get a dictionary of
+    all the subelements. That is ``ent['email']`` will return a
+    dictionary with the keys ``to``, ``action``, ``subject``, etc. If
+    there are multiple levels of dots, then each level is made into a
+    subdictionary, so ``email.body.salutation`` would be accessed at
+    ``ent['email']['body']['salutation']`` or
+    ``ent['email.body.salutation']``.
+    """
+    # Not every endpoint in the API is an Entity or a Collection. For
+    # example, a saved search at saved/searches/{name} has an additional
+    # method saved/searches/{name}/scheduled_times, but this isn't an
+    # entity in its own right. In these cases, subclasses should
+    # implement a method that uses the get and post methods inherited
+    # from Endpoint, calls the _load_atom function (it's elsewhere in
+    # client.py, but not a method of any object) to read the
+    # information, and returns the extracted data in a Pythonesque form.
+    #
+    # The primary use of subclasses of Entity is to handle specially
+    # named fields in the Entity. If you only need to provide a default
+    # value for an optional field, subclass Entity and define a
+    # dictionary ``defaults``. For instance,::
+    #
+    #     class Hypothetical(Entity):
+    #         defaults = {'anOptionalField': 'foo',
+    #                     'anotherField': 'bar'}
+    #
+    # If you have to do more than provide a default, such as rename or
+    # actually process values, then define a new method with the
+    # ``@property`` decorator.
+    #
+    #     class Hypothetical(Entity):
+    #         @property
+    #         def foobar(self):
+    #             return self.content['foo'] + "-" + self.content["bar"]
+
+    # Subclasses can override defaults the default values for
+    # optional fields. See above.
+    defaults = {} 
+
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
@@ -319,8 +381,48 @@ class Entity(Endpoint):
     def __call__(self, *args):
         return self.content(*args)
 
+    # _lookup, __getattr__, and __getitem__ are arranged to make
+    # access via a[b] or a.b work, but they're brittle. Be careful
+    # when modifying them.
+    #
+    # The strategy for getting fields is:
+    #   1. Look for a method or field of an object. This has to come
+    #      first so that you can write custom methods to modify the
+    #      behavior or names of fields.
+    #   2. Look in self.state.content for any matches. Since
+    #      self.state.content is a Record (see data.py for Record's
+    #      definition) it handles items with separators in them
+    #      properly.
+    #   3. If there is no value there, turn to the class's defaults
+    #      dictionary.
+    # 
+    # Both __getattr__ and __getitem__ dispatch to the same behavior
+    # in _lookup.
+    def _lookup(self, key):
+        # Stage 1.
+        try:
+            # We already overrode __getattr__, so we have to go up to
+            # the superclass's implementation or end up on infinite
+            # recursion.
+            return Endpoint.__getattr__(self, key)
+        except AttributeError, ae:
+            # Stage 2.
+            try:
+                # Despite its fancy dispatch, Record throws KeyErrors
+                # sensibly.
+                return self.content[key]
+            except KeyError:
+                # Stage 3.
+                try:
+                    return self.defaults[key]
+                except KeyError:
+                    raise KeyError("No such attribute %s" % key)
+
+    def __getattr__(self, key):
+        return self._lookup(key)
+
     def __getitem__(self, key):
-        return self.content[key]
+        return self._lookup(key)
 
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows

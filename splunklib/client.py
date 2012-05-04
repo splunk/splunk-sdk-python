@@ -34,6 +34,8 @@
 # UNDONE: Add Endpoint.delete
 # UNDONE: Add Entity.remove
 
+import datetime
+
 from time import sleep
 from urllib import urlencode, quote
 
@@ -1107,6 +1109,23 @@ class SavedSearch(Entity):
         if search is None: search = self.content.search
         Entity.update(self, search=search, **kwargs)
         return self
+
+    def scheduled_times(self, earliest_time='now', latest_time='+1h'):
+        """Returns the times when this search is scheduled to run.
+
+        By default it returns the times in the next hour. For other
+        periods, set *earliest_time* and *latest_time*. For example,
+        for all times in the last day use ``earliest_time=-1d`` and
+        ``latest_time=now``.
+        """
+        response = self.get("scheduled_times", 
+                            earliest_time=earliest_time, 
+                            latest_time=latest_time)
+        data = self._load_atom_entry(response)
+        rec = _parse_atom_entry(data)
+        times = [datetime.datetime.fromtimestamp(int(t))
+                 for t in rec.content.scheduled_times]
+        return times
 
 class SavedSearches(Collection):
     """This class represents a collection of saved searches."""

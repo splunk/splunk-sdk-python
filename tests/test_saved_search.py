@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import testlib
 
 import splunklib.client as client
@@ -179,6 +180,20 @@ class TestCase(testlib.TestCase):
 
         saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)
+
+    def test_scheduled_times(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        search = "search index=sdk-tests * earliest=-1m"
+        saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
+        self.assertTrue(all([isinstance(x, datetime.datetime) 
+                             for x in saved_search.scheduled_times()]))
+        
 
 if __name__ == "__main__":
     testlib.main()

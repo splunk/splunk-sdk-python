@@ -193,6 +193,27 @@ class TestCase(testlib.TestCase):
         saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
         self.assertTrue(all([isinstance(x, datetime.datetime) 
                              for x in saved_search.scheduled_times()]))
+        saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+    def test_suppress(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        search = "search index=sdk-tests * earliest=-1m"
+        saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
+    
+        saved_search.suppress(100)
+        self.assertEqual(saved_search.suppressed, 100)
+        saved_search.unsuppress()
+        self.assertEqual(saved_search.suppressed, 0)
+
+        saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
         
 
 if __name__ == "__main__":

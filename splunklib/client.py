@@ -1147,6 +1147,26 @@ class SavedSearch(Entity):
                  for t in rec.content.scheduled_times]
         return times
 
+    def suppress(self, expiration):
+        """Skip any scheduled runs of this search in the next *expiration* seconds."""
+        self.post("suppress", suppressed="1", expiration=expiration)
+        return self
+
+    @property
+    def suppressed(self):
+        """The number of seconds that this search is blocked from running (possibly 0)."""
+        r = self._run_method("suppress")
+        if r.suppressed == "1":
+            return int(r.expiration)
+        else:
+            return 0
+
+    def unsuppress(self):
+        """Cancel suppression and make this search run as scheduled."""
+        self.post("suppress", suppressed="0", expiration="0")
+        return self
+        
+
 class SavedSearches(Collection):
     """This class represents a collection of saved searches."""
     def __init__(self, service):

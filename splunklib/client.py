@@ -35,6 +35,7 @@
 # UNDONE: Add Entity.remove
 
 import datetime
+import json
 
 from time import sleep
 from urllib import urlencode, quote
@@ -1060,10 +1061,14 @@ class Jobs(Collection):
         return Job(self.service, PATH_JOBS + sid)
 
     def oneshot(self, query, **kwargs):
+
+        # We take advantage of the search results returning JSON
+        # output (at least in recent versions). This is far easier
+        # than dealing with the XML.
         if "exec_mode" in kwargs:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        response = self.post(search=query, exec_mode="oneshot", **kwargs)
-        return response.body
+        response = self.post(search=query, exec_mode="oneshot", output_mode='json', **kwargs)
+        return json.loads(response.body.read())
 
     def list(self, count=0, **kwargs):
         return Collection.list(self, count, **kwargs)

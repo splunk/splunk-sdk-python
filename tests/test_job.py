@@ -79,6 +79,11 @@ class TestCase(testlib.TestCase):
 
         self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
 
+        result = jobs.oneshot("search * | head 3")
+        self.assertTrue(isinstance(result, list))
+        self.assertTrue(all([isinstance(d, dict) for d in result]))
+        self.assertTrue(len(result) <= 3)
+
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests")
         self.assertTrue(jobs.contains(job.sid))

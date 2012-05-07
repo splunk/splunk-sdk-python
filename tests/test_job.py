@@ -77,6 +77,8 @@ class TestCase(testlib.TestCase):
             service.indexes.create("sdk-tests")
         service.indexes['sdk-tests'].clean()
 
+        self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
+
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests")
         self.assertTrue(jobs.contains(job.sid))

@@ -1053,11 +1053,17 @@ class Jobs(Collection):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
 
     def create(self, query, **kwargs):
-        response = self.post(search=query, **kwargs)
         if kwargs.get("exec_mode", None) == "oneshot":
-            return response.body
+            raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
+        response = self.post(search=query, **kwargs)
         sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
+
+    def oneshot(self, query, **kwargs):
+        if "exec_mode" in kwargs:
+            raise TypeError("Cannot specify an exec_mode to oneshot.")
+        response = self.post(search=query, exec_mode="oneshot", **kwargs)
+        return response.body
 
     def list(self, count=0, **kwargs):
         return Collection.list(self, count, **kwargs)

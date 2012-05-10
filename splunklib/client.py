@@ -77,6 +77,9 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+class IncomparableException(Exception):
+    pass
+
 # Filter the given state content record according to the given arg list.
 def _filter_content(content, *args):
     if len(args) > 0:
@@ -410,6 +413,31 @@ class Entity(Endpoint):
 
     def __call__(self, *args):
         return self.content(*args)
+
+    def __eq__(self, other):
+        """Raises IncomparableException.
+
+        Since Entity objects are snapshots of times on the server, no
+        simple definition of equality will suffice beyond instance
+        equality, and instance equality leads to strange situations
+        such as::
+        
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            x = saved_searches['asearch']
+
+        but then ``x != saved_searches['asearch']``.
+         
+        whether or not there was a change on the server. Rather than
+        try to do something fancy, we simple declare that equality is
+        undefined for Entities.
+
+        Makes no roundtrips to the server.
+        """
+        raise IncomparableException(
+            "Equality is undefined for objects of class %s" % \
+                self.__class__.__name__)
 
     # _lookup, __getattr__, and __getitem__ are arranged to make
     # access via a[b] or a.b work, but they're brittle. Be careful

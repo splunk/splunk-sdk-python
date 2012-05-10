@@ -61,7 +61,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual('sdk-test1', saved_search.name)
         self.assertTrue('sdk-test1' in saved_searches)
 
-        for saved_search in saved_searches:
+        for saved_search in saved_searches.itervalues():
             self.check_saved_search(saved_search)
             saved_search.refresh()
             self.check_saved_search(saved_search)
@@ -226,7 +226,26 @@ class TestCase(testlib.TestCase):
 
         service.logout()
         self.assertRaises(client.AuthenticationError,
-                          saved_searches.delete('sdk-test1'))
+                          saved_searches.delete, 'sdk-test1')
+
+    def test_no_equality(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        search = "search index=sdk-tests * earliest=-1m"
+        saved_search = saved_searches.create('sdk-test1', search)
+
+        def f():
+            return saved_search == saved_search
+        self.assertRaises(client.IncomparableException, f)
+        def g():
+            return saved_search != saved_search
+        self.assertRaises(client.IncomparableException, f)
+
+        saved_searches.delete('sdk-test1')
 
     def test_len(self):
         service = client.connect(**self.opts.kwargs)

@@ -79,6 +79,26 @@ class TestCase(testlib.TestCase):
             seen += 1
         self.assertEqual(seen, count)
 
+        seen = 0
+        for name,item in collection.iteritems():
+            self.assertEqual(name, item.name)
+            seen += 1
+        self.assertEqual(seen, count)
+
+        seen = 0
+        for item in collection.itervalues():
+            seen += 1
+        self.assertEqual(seen, count)
+
+        seen = 0
+        for name in collection.iterkeys():
+            seen += 1
+            self.assertTrue(isinstance(name, str))
+        self.assertEqual(seen, count)
+
+        self.assertEqual(len(collection.keys()), count)
+        self.assertTrue(isinstance(collection.keys(), list))
+
     def test_apps(self):
         service = client.connect(**self.opts.kwargs)
         self.check_collection(service.apps)

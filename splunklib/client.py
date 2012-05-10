@@ -40,7 +40,7 @@ import json
 from time import sleep
 from urllib import urlencode, quote
 
-from splunklib.binding import Context, HTTPError
+from splunklib.binding import Context, HTTPError, AuthenticationError
 import splunklib.data as data
 from splunklib.data import record
 
@@ -608,10 +608,51 @@ class Collection(Endpoint):
             del saved_searches['my_saved_search']
             assert 'my_saved_search' not in saved_searches
         """
+        # If you update the documentation here, be sure to update it
+        # on delete as well.
         self.delete(key)
 
     def __iter__(self):
-        for item in self.list(): yield item
+        """Iterate over the names of entities in the collection.
+
+        Implemented to give Collection a dict-like interface. Earlier
+        versions iterated over the values; that has been changed to
+        for consistency with ``dict``.
+
+        This function always makes a roundtrip to the server.
+
+        :rtype: iterator over strings.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            for name in saved_searches:
+                print "Saved search named %s" % name
+        """
+        # If you update the documentation here, be sure to update it
+        # on iterkeys as well.
+        for item in self.list(): 
+            yield item.name
+
+    def __len__(self):
+        """Enable ``len(...)`` for ``Collection``s.
+
+        Implemented for consistency with a dict-like interface. No
+        further failure modes beyond those possible for any method on
+        an Endpoint.
+
+        This function always makes a roundtrip to the server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            n = len(saved_searches)
+        """
+        return len(self.list())
 
     def _load_list(self, response):
         """Loads an entity list from a response."""
@@ -694,6 +735,82 @@ class Collection(Endpoint):
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
+    def iteritems(self):
+        """Iterate over the (name,entity) pairs in this collection.
+
+        :rtype: iterator over tuples of ``(``*string*``, ``*Entity*``)``.
+
+        Implemented to give Collection a dict-like interface. This
+        function always makes a roundtrip to the server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            for name,entity in saved_searches:
+                assert entity.name == name
+        """
+        for item in self.list():
+            yield (item.name, item)
+
+    def iterkeys(self):
+        """Iterate over the names of entities in this collection.
+
+        :rtype: iterator over strings.
+
+        Implemented to give Collection a dict-like interface. This
+        function always makes a roundtrip to the server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            for name in saved_searches:
+                print "Saved search named %s" % name
+        """
+        # If you update the documentation here, be sure to update it
+        # on __iter__ as well.
+        return iter(self)
+
+    def itervalues(self):
+        """Iterate over the entities in this collection.
+
+        :rtype: iterator over ``Entity``s.
+
+        Implemented to give Collection a dict-like interface. This
+        function always makes a roundtrip to the server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            for entity in saved_searches.itervalues():
+                print "Saved search named %s" % entity.name
+        """
+        for item in self.list(): 
+            yield item
+
+    def keys(self):
+        """Return a list of the names of entities in this collection.
+
+        :rtype: list of strings.
+
+        Implemented to give Collection a dict-like interface. This
+        function always makes a roundtrip to the server.
+        
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            for name in saved_searches.keys():
+                print "Saved search named %s" % name
+        """
+        return list(self.iterkeys())
+
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=-1, **kwargs):
         """Returns the contents of the collection.
@@ -706,6 +823,9 @@ class Collection(Endpoint):
         :param `sort_key`: The field to use for sorting (optional).
         :param `sort_mode`: The collating sequence for sorting returned items:
                             *auto*, *alpha*, *alpha_case*, *num* (optional).
+
+        This function always makes a roundtrip to the server, and
+        makes not attempt at caching.
         """
         response = self.get(count=count, **kwargs)
         return self._load_list(response)

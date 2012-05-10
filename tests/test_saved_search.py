@@ -224,6 +224,31 @@ class TestCase(testlib.TestCase):
             del saved_searches['sdk-test1']
         self.assertRaises(KeyError, f)
 
+        service.logout()
+        self.assertRaises(client.AuthenticationError,
+                          saved_searches.delete('sdk-test1'))
+
+    def test_len(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        n_orig = len(saved_searches)
+        search = "search index=sdk-tests * earliest=-1m"
+
+        saved_search = saved_searches.create('sdk-test1', search)
+
+        self.assertEqual(len(saved_searches), n_orig+1)
+        saved_searches.delete('sdk-test1')
+        self.assertEqual(len(saved_searches), n_orig)
+
+        service.logout()
+        self.assertRaises(client.AuthenticationError,
+                          saved_searches.delete, 'sdk-test1')
+
+
     def test_suppress(self):
         service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches

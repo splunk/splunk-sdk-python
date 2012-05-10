@@ -72,6 +72,9 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
+class AuthenticationError(Exception):
+    pass
+
 def prefix(**kwargs):
     """Returns a URL prefix (such as *https://localhost:8089*) that is 
     constructed from the arguments you provide.
@@ -166,7 +169,15 @@ class Context(object):
         :param `path`: The resource path (REST endpoint).
         :param `kwargs`: Request arguments (optional).
         """
-        return self.http.delete(self.url(path), self._headers(), **kwargs)
+        try:
+            return self.http.delete(self.url(path),
+                                    self._headers(), 
+                                    **kwargs)
+        except HTTPError as e:
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
 
     def get(self, path, **kwargs):
         """Issues a ``GET`` request to a REST endpoint you specify.
@@ -174,7 +185,15 @@ class Context(object):
         :param `path`: The resource path (REST endpoint). 
         :param `kwargs`: Query arguments (optional).
         """
-        return self.http.get(self.url(path), self._headers(), **kwargs)
+        try:
+            return self.http.get(self.url(path),
+                                 self._headers(),
+                                 **kwargs)
+        except HTTPError as e:
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
 
     def post(self, path, **kwargs):
         """Issues a ``POST`` request to a REST endpoint you specify.
@@ -182,7 +201,16 @@ class Context(object):
         :param `path`: The resource path (REST endpoint). 
         :param `kwargs`: Form arguments (optional).
         """
-        return self.http.post(self.url(path), self._headers(), **kwargs)
+        try:
+            return self.http.post(self.url(path),
+                                  self._headers(),
+                                  **kwargs)
+        except HTTPError as e:
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
+
 
     def request(self, path, message):
         """Issues an ``HTTP`` request message to a REST endpoint you specify.
@@ -190,11 +218,18 @@ class Context(object):
         :param `path`: The resource path (REST endpoint). 
         :param `request`: The request message.
         """
-        return self.http.request(
-            self.url(path), {
-                'method': message.get("method", "GET"),
-                'headers': message.get("headers", []) + self._headers(),
-                'body': message.get("body", "")})
+        try:
+            return self.http.request(
+                self.url(path), {
+                    'method': message.get("method", "GET"),
+                    'headers': message.get("headers", []) + \
+                        self._headers(),
+                    'body': message.get("body", "")})
+        except HTTPError as e:
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
 
     def login(self):
         """Issues a Splunk login request using the context's credentials and

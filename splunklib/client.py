@@ -296,6 +296,9 @@ class Service(Context):
         """Returns a collection of user roles."""
         return Collection(self, PATH_ROLES)
 
+    def search(self, query, **kwargs):
+        return self.jobs.create(query, **kwargs)
+
     @property
     def saved_searches(self):
         """Returns a collection of saved searches."""
@@ -577,6 +580,36 @@ class Collection(Endpoint):
             if item.name == key: return item
         raise KeyError, key
 
+    def __delitem__(self, key):
+        """Support for ``del ``*self*``[``*key``]``.
+
+        :param key: The name of the entity to delete.
+        :type key: string
+
+        :rtype: Does not return anything, since del on a normal
+                dictionary does not, and the del operator in Python
+                cannot be used as an expression.
+
+        This method is implemented for consistency with the interface
+        of Python dictionaries.
+
+        If there is no entity named *key* on the server, then throws a
+        ``KeyError`` (again in analogy to ``dict``). This function
+        always makes a roundtrip to the server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            saved_searches.create('my_saved_search', 
+                                  'search * | head 1')
+            assert 'my_saved_search' in saved_searches
+            del saved_searches['my_saved_search']
+            assert 'my_saved_search' not in saved_searches
+        """
+        self.delete(key)
+
     def __iter__(self):
         for item in self.list(): yield item
 
@@ -616,11 +649,43 @@ class Collection(Endpoint):
         return self[name] # UNDONE: Extra round-trip to retrieve entity
 
     def delete(self, name):
-        """Removes an entity from the collection.
-        
-        :param `name`: The name of the entity to remove.
+        """Delete the entity *name* from the collection.
+
+        :param name: The name of the entity to delete.
+        :type name: string
+        :rtype: the collection ``self``.
+
+        This method is implemented for consistency with the REST
+        interface's DELETE method.
+
+        If there is no entity named *name* on the server, then throws
+        a ``KeyError``. This function always makes a roundtrip to the
+        server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            saved_searches.create('my_saved_search', 
+                                  'search * | head 1')
+            assert 'my_saved_search' in saved_searches
+            saved_searches.delete('my_saved_search')
+            assert 'my_saved_search' not in saved_searches
         """
-        self.service.delete(_path(self.path, name))
+        # If you update the documentation here, be sure you do so on
+        # __delitem__ as well.
+        
+        try:
+            self.service.delete(_path(self.path, name))
+        except HTTPError as he:
+            # An HTTPError with status code 404 means that the entity
+            # has already been deleted, and we reraise it as a
+            # KeyError.
+            if he.status == 404:
+                raise KeyError("No such entity %s" % name)
+            else:
+                raise
         return self
 
     def itemmeta(self):
@@ -902,6 +967,9 @@ class Inputs(Collection):
                 entities.append(entity)
 
         return entities
+
+    def oneshot(self, **kwargs):
+        pass
 
 class Job(Entity): 
     """This class represents a search job."""

@@ -196,6 +196,34 @@ class TestCase(testlib.TestCase):
         saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)
 
+    def test_delete_methods(self):
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+        if 'sdk-test1' in saved_searches:
+            saved_searches.delete('sdk-test1')
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        search = "search index=sdk-tests * earliest=-1m"
+
+        saved_search = saved_searches.create('sdk-test1', search)
+        self.assertTrue('sdk-test1' in saved_searches)
+        # Should return saved_searches again
+        self.assertEqual(saved_searches.delete('sdk-test1'),
+                         saved_searches)
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        saved_search = saved_searches.create('sdk-test1', search)
+        self.assertTrue('sdk-test1' in saved_searches)
+        # Should return saved_searches again
+        del saved_searches['sdk-test1']
+        self.assertFalse('sdk-test1' in saved_searches)
+
+        # Failure cases
+        self.assertRaises(KeyError, saved_searches.delete, 'sdk-test1')
+        def f():
+            del saved_searches['sdk-test1']
+        self.assertRaises(KeyError, f)
+
     def test_suppress(self):
         service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches

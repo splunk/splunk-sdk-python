@@ -68,6 +68,12 @@ class TestCase(testlib.TestCase):
             job.refresh()
             self.check_job(job)
 
+    def test_service_method(self):
+        service = client.connect(**self.opts.kwargs)
+        job = service.search('search * | head 3')
+        self.assertTrue(service.jobs.contains(job.sid))
+        job.cancel()
+
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
 

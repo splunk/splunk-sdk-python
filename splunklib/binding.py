@@ -68,6 +68,8 @@ __all__ = [
     "HTTPError",
 ]
 
+# If you change these, update the docstring 
+# on _authority as well.
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
@@ -75,19 +77,48 @@ DEFAULT_SCHEME = "https"
 class AuthenticationError(Exception):
     pass
 
-def prefix(**kwargs):
-    """Returns a URL prefix (such as *https://localhost:8089*) that is 
-    constructed from the arguments you provide.
+def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
+    """Construct a URL authority from the given *scheme*, *host*, and *port*.
 
-    :param `scheme`: The URL scheme (*http* or *https*).
-    :param `host`: The host name.
-    :param `port`: The port number.
-    :return: The URL prefix.
+    Named in accordance with RFC2396_, which defines URLs as::
+
+        <scheme>://<authority><path>?<query>
+
+    .. _RFC2396: http://www.ietf.org/rfc/rfc2396.txt
+
+    So ``https://localhost:8000/a/b/b?boris=hilda`` would be parsed as::
+
+        scheme := https
+        authority := localhost:8000
+        path := /a/b/c
+        query := boris=hilda
+
+    :param scheme: URL scheme (default: ``"https"``)
+    :type scheme: ``"http"`` or ``"https"``
+    :param host: The host name (default: ``"localhost"``)
+    :type host: string
+    :param port: The port number (default: 8089)
+    :type port: integer
+    :return: The URL authority.
+    :rtype: string
+
+    **Example**::
+
+        _authority() == "https://localhost:8089"
+
+        _authority(host="splunk.utopia.net") == "https://splunk.utopia.net:8089"
+
+        _authority(host="2001:0db8:85a3:0000:0000:8a2e:0370:7334") == \
+            "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089"
+
+        _authority(scheme="http", host="splunk.utopia.net", port="471") == \
+            "http://splunk.utopia.net:471"
+        
     """
-    scheme = kwargs.get("scheme", DEFAULT_SCHEME)
-    host = kwargs.get("host", DEFAULT_HOST)
-    port = kwargs.get("port", DEFAULT_PORT)
-    if ':' in host: host = '[' + host + ']' # Encode ipv6 address literal
+    if ':' in host: 
+        # IPv6 addresses must be enclosed in [ ] in order to be well
+        # formed.
+        host = '[' + host + ']'
     return "%s://%s:%s" % (scheme, host, port)
 
 # kwargs: sharing, owner, app
@@ -146,16 +177,17 @@ class Context(object):
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
         self.token = kwargs.get("token", None)
-        self.prefix = prefix(**kwargs)
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = kwargs.get("port", DEFAULT_PORT)
+        self.authority = _authority(self.scheme, self.host, self.port)
         self.namespace = namespace(**kwargs)
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
 
     # Shared per-context request headers
-    def _headers(self):
+    @property
+    def _auth_headers(self):
         return [("Authorization", self.token)]
 
     def connect(self):
@@ -163,69 +195,222 @@ class Context(object):
         cn = socket.create_connection((self.host, int(self.port)))
         return ssl.wrap_socket(cn) if self.scheme == "https" else cn
 
-    def delete(self, path, **kwargs):
-        """Issues a ``DELETE`` request to a REST endpoint you specify.
+    def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
+        """DELETE at *path_segment* with the given namespace and query.
+
+        Named to match the HTTP method. This function makes at least
+        one roundtrip to the server, and one additional round trip for
+        each 303 status returned.
+
+        If *owner*, *app*, and *sharing* are omitted, then uses this
+        ``Context``'s default namespace. All other keyword arguments
+        are included in the URL as query parameters.
+
+        :raises AuthenticationError: when a the ``Context`` is not logged in.
+        :raises HTTPError: when there was an error in GETting from *path_segment*.
+        :param path_segment: A path_segment to GET from.
+        :type path_segment: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :param query: All other keyword arguments, used as query parameters.
+        :type query: values should be strings
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.delete('saved/searches/boris') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10f870ad0>,
+                 'headers': [('content-length', '1786'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:53:06 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            c.delete('nonexistant/path') # raises HTTPError
+            c.logout()
+            c.delete('apps/local') # raises AuthenticationError
+        """
+        try:
+            path = self.authority + self._abspath(path_segment, owner=owner,
+                                                  app=app, sharing=sharing)
+            return self.http.delete(path, self._auth_headers, **query)
+        except HTTPError as e:
+            # Reraise a 401 (not logged in) as an AuthenticationError
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
+
+    def get(self, path_segment, owner=None, app=None, sharing=None, **query):
+        """GET from *path_segment* with the given namespace and query.
+
+        Named to match the HTTP method. This function makes at least
+        one roundtrip to the server, and one additional round trip for
+        each 303 status returned.
+
+        If *owner*, *app*, and *sharing* are omitted, then uses this
+        ``Context``'s default namespace. All other keyword arguments
+        are included in the URL as query parameters.
+
+        :raises AuthenticationError: when a the ``Context`` is not logged in.
+        :raises HTTPError: when there was an error in GETting from *path_segment*.
+        :param path_segment: A path_segment to GET from.
+        :type path_segment: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :param query: All other keyword arguments, used as query parameters.
+        :type query: values should be strings
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.get('apps/local') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10f8709d0>,
+                 'headers': [('content-length', '26208'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:30:35 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            c.get('nonexistant/path') # raises HTTPError
+            c.logout()
+            c.get('apps/local') # raises AuthenticationError
+        """
+        try:
+            path = self.authority + self._abspath(path_segment, owner=owner,
+                                                  app=app, sharing=sharing)
+            return self.http.get(path, self._auth_headers, **query)
+        except HTTPError as e:
+            # Reraise a 401 (not logged in) as an AuthenticationError
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
+
+    def post(self, path_segment, owner=None, app=None, sharing=None, **query):
+        """POST to *path_segment* with the given namespace and query.
+
+        Named to match the HTTP method. This function makes at least
+        one roundtrip to the server, and one additional round trip for
+        each 303 status returned.
+
+        If *owner*, *app*, and *sharing* are omitted, then uses this
+        ``Context``'s default namespace. All other keyword arguments
+        are included in the URL as query parameters.
+
+        :raises AuthenticationError: when a the ``Context`` is not logged in.
+        :raises HTTPError: when there was an error in POSTing to *path_segment*.
+        :param path_segment: A path_segment to POST to.
+        :type path_segment: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :param query: All other keyword arguments, used as query parameters.
+        :type query: values should be strings
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.post('saved/searches', name='boris', 
+                   search='search * earliest=-1m | head 1') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10f870d50>,
+                 'headers': [('content-length', '10455'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:46:06 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'Created',
+                 'status': 201}
+            c.post('nonexistant/path') # raises HTTPError
+            c.logout()
+            # raises AuthenticationError:
+            c.post('saved/searches', name='boris', 
+                   search='search * earliest=-1m | head 1')
+        """
+        try:
+            path = self.authority + self._abspath(path_segment, owner=owner, 
+                                                  app=app, sharing=sharing)
+            return self.http.post(path, self._auth_headers, **query)
+        except HTTPError as e:
+            # Reraise a 401 (not logged in) as an AuthenticationError
+            if e.status == 401:
+                raise AuthenticationError()
+            else:
+                raise
+
+    def request(self, path_segment, method="GET", headers=[], body="",
+                owner=None, app=None, sharing=None):
+        """Issue an arbitrary HTTP request to *path_segment*.
         
-        :param `path`: The resource path (REST endpoint).
-        :param `kwargs`: Request arguments (optional).
+        Named and argumented in analogy to ``httplib.request(...)``.
+        Makes a single round trip to the server.
+
+        If *owner*, *app*, and *sharing* are omitted, then uses this
+        ``Context``'s default namespace. All other keyword arguments
+        are included in the URL as query parameters.
+
+        :raises AuthenticationError: when a the ``Context`` is not logged in.
+        :raises HTTPError: when there was an error in GETting from *path_segment*.
+        :param path_segment: A path_segment to GET from.
+        :type path_segment: string
+        :param method: Request method (default: ``"GET"``)
+        :type method: ``"GET"``, ``"POST"``, or ``"DELETE"``
+        :param headers: Additional headers for the request (authentication 
+                        header will be added automatically).
+        :type headers: list of (string,string) representing key/value pairs
+        :param body: Data to send in the request.
+        :type body: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.request('saved/searches', method='GET') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10b18fa50>,
+                 'headers': [('content-length', '46722'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 17:24:19 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            c.request('nonexistant/path', method='GET') # raises HTTPError
+            c.logout()
+            c.get('apps/local') # raises AuthenticationError
         """
         try:
-            return self.http.delete(self.url(path),
-                                    self._headers(), 
-                                    **kwargs)
+            path = self.authority \
+                + self._abspath(path_segment, owner=owner, 
+                                app=app, sharing=sharing)
+            headers = headers + self._auth_headers
+            return self.http.request(path,
+                                     {'method': method,
+                                      'headers': headers,
+                                      'body': body})
         except HTTPError as e:
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
-
-    def get(self, path, **kwargs):
-        """Issues a ``GET`` request to a REST endpoint you specify.
-
-        :param `path`: The resource path (REST endpoint). 
-        :param `kwargs`: Query arguments (optional).
-        """
-        try:
-            return self.http.get(self.url(path),
-                                 self._headers(),
-                                 **kwargs)
-        except HTTPError as e:
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
-
-    def post(self, path, **kwargs):
-        """Issues a ``POST`` request to a REST endpoint you specify.
-
-        :param `path`: The resource path (REST endpoint). 
-        :param `kwargs`: Form arguments (optional).
-        """
-        try:
-            return self.http.post(self.url(path),
-                                  self._headers(),
-                                  **kwargs)
-        except HTTPError as e:
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
-
-
-    def request(self, path, message):
-        """Issues an ``HTTP`` request message to a REST endpoint you specify.
-        
-        :param `path`: The resource path (REST endpoint). 
-        :param `request`: The request message.
-        """
-        try:
-            return self.http.request(
-                self.url(path), {
-                    'method': message.get("method", "GET"),
-                    'headers': message.get("headers", []) + \
-                        self._headers(),
-                    'body': message.get("body", "")})
-        except HTTPError as e:
+            # Reraise a 401 (not logged in) as an AuthenticationError
             if e.status == 401:
                 raise AuthenticationError()
             else:
@@ -236,7 +421,7 @@ class Context(object):
         stores the session token for use on subsequent requests.
         """
         response = self.http.post(
-            self.url("/services/auth/login"),
+            self.authority + self._abspath("/services/auth/login"),
             username=self.username, 
             password=self.password)
         body = response.body.read()
@@ -249,47 +434,65 @@ class Context(object):
         self.token = None
         return self
 
-    def fullpath(self, path, **kwargs):
-        """Returns a full REST endpoint using an endpoint path or path fragment,
-        then adds namespace segments by either using any namespace arguments 
-        that are provided or the context namespace values.
-        
-        :param `path`: The resource path (REST endpoint), possibly a fragment.
-        :param `kwargs`: Namespace arguments to use for completing the path: 
-                         *sharing*, *owner*, and *app* (optional).
-        """
-        if path.startswith('/'): 
-            return path
+    def _abspath(self, path_segment, 
+                owner=None, app=None, sharing=None):
+        """Qualifies *path_segment* into an absolute path for a URL.
 
-        # Use namespace kwargs if any provided, otherwise use context defaults
-        if 'app' in kwargs or 'owner' in kwargs or 'sharing' in kwargs:
-            ns = namespace(**kwargs)
+        If *path_segment* is already absolute, returns it unchanged.
+        If *path_segment* is relative, then qualifies it with either
+        the provided namespace arguments or the ``Context``'s default
+        namespace. Any forbidden characters in *path_segment* are URL
+        encoded. This function has no network activity.
+
+        Named to be consistent with RFC2396_.
+
+        .. _RFC2396: http://www.ietf.org/rfc/rfc2396.txt
+
+        :param path_segment: A relative or absolute URL path segment.
+        :type path_segment: string
+        :param owner, app, sharing: Components of a namespace (defaults 
+                                    to the ``Context``'s namespace if all 
+                                    three are omitted)
+        :type owner, app, sharing: string
+        :return: An absolute path.
+        :rtype: string
+
+        **Example**::
+
+            import splunklib.binding as binding
+            c = binding.connect(owner='boris', app='search', sharing='user')
+            c._abspath('/a/b/c') == '/a/b/c'
+            c._abspath('/a/b c/d') == '/a/b%20c/d'
+            c._abspath('apps/local/search') == \
+                '/servicesNS/boris/search/apps/local/search'
+            c._abspath('apps/local/search', sharing='systmem') == \
+                '/servicesNS/nobody/system/apps/local/search'
+            url = c.authority + c._abspath('apps/local/sharing')
+        """
+        # If path_segment is absolute, escape all forbidden characters
+        # in it and return it.
+        if path_segment.startswith('/'): 
+            return urllib.quote(path_segment)
+
+        # path_segment is relative, so we need a namespace to build an
+        # absolute path.
+        if owner or app or sharing:
+            ns = namespace(owner=owner, app=app, sharing=sharing)
         else:
             ns = self.namespace
 
-        # If no app or owner are specified, then use the /services endpoint
+        # If no app or owner are specified, then use the /services
+        # endpoint. Otherwise, use /servicesNS with the specified
+        # namespace. If only one of app and owner is specified, use
+        # '-' for the other.
         if ns.app is None and ns.owner is None:
-            return "/services/%s" % urllib.quote(path)
+            return "/services/%s" % urllib.quote(path_segment)
 
-        # At least one of app or owner is specified, so use the /serviceNS
-        # endpoint and if only one is specified, then wildcard the other.
         oname = "-" if ns.owner is None else ns.owner
         aname = "-" if ns.app is None else ns.app
         return "/servicesNS/%s/%s/%s" % (urllib.quote(oname), 
                                          urllib.quote(aname),
-                                         urllib.quote(path))
-
-    # Convert the given path into a fully qualified URL by first qualifying
-    # the given path with namespace segments if necessarry and then prefixing
-    # with the scheme, host and port.
-    def url(self, path):
-        """Converts a REST endpoint (from a path or path fragment) into a 
-        complete URL.
-
-        :param `path`: The resource path (REST endpoint) to convert to a full 
-                       URL.
-        """
-        return self.prefix + self.fullpath(path)
+                                         urllib.quote(path_segment))
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):

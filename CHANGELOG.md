@@ -2,10 +2,6 @@
 
 ## 0.8.5
 
-* Collection.__iter__ now iterates over names of entities, not the
-  entities themselves, for consistency with a dict-list interface.
-  Collection also support len, del, .keys(), .iteritems(),
-  .itervalues(), and .iterkeys().
 	
 ## 0.8.0 (beta)
 

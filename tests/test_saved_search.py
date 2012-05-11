@@ -51,23 +51,23 @@ class TestCase(testlib.TestCase):
         service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches
 
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
+        if 'sdk test1' in saved_searches:
+            saved_searches.delete('sdk test1')
+        self.assertFalse('sdk test1' in saved_searches)
 
         # Make sure there is at least one saved search to read
         search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertTrue('sdk-test1' in saved_searches)
+        saved_search = saved_searches.create('sdk test1', search)
+        self.assertEqual('sdk test1', saved_search.name)
+        self.assertTrue('sdk test1' in saved_searches)
 
-        for saved_search in saved_searches.itervalues():
+        for saved_search in saved_searches:
             self.check_saved_search(saved_search)
             saved_search.refresh()
             self.check_saved_search(saved_search)
 
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
+        saved_searches.delete('sdk test1')
+        self.assertFalse('sdk test1' in saved_searches)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
@@ -212,17 +212,8 @@ class TestCase(testlib.TestCase):
                          saved_searches)
         self.assertFalse('sdk-test1' in saved_searches)
 
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertTrue('sdk-test1' in saved_searches)
-        # Should return saved_searches again
-        del saved_searches['sdk-test1']
-        self.assertFalse('sdk-test1' in saved_searches)
-
         # Failure cases
         self.assertRaises(KeyError, saved_searches.delete, 'sdk-test1')
-        def f():
-            del saved_searches['sdk-test1']
-        self.assertRaises(KeyError, f)
 
         service.logout()
         self.assertRaises(client.AuthenticationError,

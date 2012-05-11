@@ -36,9 +36,9 @@
 
 import datetime
 import json
+import urllib
 
 from time import sleep
-from urllib import urlencode, quote
 
 from splunklib.binding import Context, HTTPError, AuthenticationError
 import splunklib.data as data
@@ -328,26 +328,68 @@ class Endpoint(object):
         self.service = service
         self.path = path if path.endswith('/') else path + '/'
 
-    def get(self, relpath="", **kwargs):
-        """Issues a ``GET`` request to a (possibly empty) path relative to this endpoint.
+    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
+        """GET from *path_segment* relative to this endpoint.
 
-        Keyword arguments are passed as keyword arguments. For
-        example, ``obj.get(arg1="abc", arg2="def")``.
+        Named to match the HTTP method. This function makes at least
+        one roundtrip to the server, and one additional round trip for
+        each 303 status returned.
 
-        :param `relpath`: A path relative to the endpoint (optional).
-        :param `kwargs`: Query arguments (optional).
+        If *owner*, *app*, and *sharing* are omitted, then takes a
+        default namespace from this ``Endpoint``'s ``Service``. All
+        other keyword arguments are included in the URL as query
+        parameters.
+
+        :raises AuthenticationError: when a this Endpoint's ``Service`` is not logged in.
+        :raises HTTPError: when there was an error in the request.
+        :param path_segment: A path_segment relative to this endpoint to GET from (default: ``""``).
+        :type path_segment: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :param query: All other keyword arguments, used as query parameters.
+        :type query: values should be strings
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            import splunklib.client
+            s = client.service(...)
+            apps = s.apps
+            apps.get('local') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10f8709d0>,
+                 'headers': [('content-length', '26208'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:30:35 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            apps.get('nonexistant/path') # raises HTTPError
+            s.logout()
+            apps.get('apps/local') # raises AuthenticationError
+
         """
-        return self.service.get("%s%s" % (self.path, relpath), **kwargs)
+        # self.path to the Endpoint is relative in the SDK, so passing
+        # owner, app, sharing, etc. along will produce the correct
+        # namespace in the final request.
+        path = "%s%s" % (self.path, path_segment)
+        return self.service.get(path, 
+                                owner=owner, app=app, sharing=sharing, 
+                                **query)
 
-    def post(self, relpath="", **kwargs):
+    def post(self, path_segment="", **kwargs):
         """Issues a ``POST`` request to a (possibly empty) path relative to this endpoint.
 
         Keyword arguments are passed as fields in the POST body.
         
-        :param `relpath`: A path relative to the endpoint (optional).
+        :param `path_segment`: A path relative to the endpoint (optional).
         :param `kwargs`: Form arguments (optional).
         """
-        return self.service.post("%s%s" % (self.path, relpath), **kwargs)
+        return self.service.post("%s%s" % (self.path, path_segment), **kwargs)
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
@@ -493,7 +535,7 @@ class Entity(Endpoint):
         entry = self._load_atom_entry(response)
         return _parse_atom_entry(entry)
 
-    def _run_method(self, relpath, **kwargs):
+    def _run_method(self, path_segment, **kwargs):
         """Run a method and return the content Record from the returned XML.
 
         A method is a relative path from an Entity that is not itself
@@ -502,7 +544,7 @@ class Entity(Endpoint):
         what should be the return value. This is right in enough cases
         to make this method useful.
         """
-        response = self.get(relpath, **kwargs)
+        response = self.get(path_segment, **kwargs)
         data = self._load_atom_entry(response)
         rec = _parse_atom_entry(data)
         return rec.content
@@ -511,7 +553,12 @@ class Entity(Endpoint):
         """Refreshes the cached state of this entity, using either the given
         state record, or by calling :meth:`read` if no state record is provided.
         """
-        self._state = state if state is not None else self.read()
+        if state is not None:
+            self._state = state
+        else:
+            raw_state = self.read()
+            raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
+            self._state = raw_state
         return self
 
     @property
@@ -551,6 +598,7 @@ class Entity(Endpoint):
 
     def read(self):
         """Reads the current state of the entity from the server."""
+        response = self.get()
         return self._load_state(self.get())
 
     def reload(self):
@@ -604,70 +652,35 @@ class Collection(Endpoint):
         return self.contains(name)
 
     def __getitem__(self, key):
+        if isinstance(key, tuple) and len(key) == 2:
+            key, namespace = key
         for item in self.list():
             if item.name == key: return item
         raise KeyError, key
 
-    def __delitem__(self, key):
-        """Support for ``del ``*self*``[``*key``]``.
-
-        :param key: The name of the entity to delete.
-        :type key: string
-
-        :rtype: Does not return anything, since del on a normal
-                dictionary does not, and the del operator in Python
-                cannot be used as an expression.
-
-        This method is implemented for consistency with the interface
-        of Python dictionaries.
-
-        If there is no entity named *key* on the server, then throws a
-        ``KeyError`` (again in analogy to ``dict``). This function
-        always makes a roundtrip to the server.
-
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            saved_searches.create('my_saved_search', 
-                                  'search * | head 1')
-            assert 'my_saved_search' in saved_searches
-            del saved_searches['my_saved_search']
-            assert 'my_saved_search' not in saved_searches
-        """
-        # If you update the documentation here, be sure to update it
-        # on delete as well.
-        self.delete(key)
-
     def __iter__(self):
-        """Iterate over the names of entities in the collection.
+        """Iterate over the entities in the collection.
 
-        Implemented to give Collection a dict-like interface. Earlier
-        versions iterated over the values; that has been changed to
-        for consistency with ``dict``.
+        :rtype: iterator over entities.
 
-        This function always makes a roundtrip to the server.
-
-        :rtype: iterator over strings.
+        Implemented to give Collection a listish interface. This
+        function always makes a roundtrip to the server.
 
         **Example**::
 
             import splunklib.client as client
             c = client.connect(...)
             saved_searches = c.saved_searches
-            for name in saved_searches:
-                print "Saved search named %s" % name
+            for entity in saved_searches:
+                print "Saved search named %s" % entity.name
         """
-        # If you update the documentation here, be sure to update it
-        # on iterkeys as well.
         for item in self.list(): 
-            yield item.name
+            yield item
 
     def __len__(self):
         """Enable ``len(...)`` for ``Collection``s.
 
-        Implemented for consistency with a dict-like interface. No
+        Implemented for consistency with a listish interface. No
         further failure modes beyond those possible for any method on
         an Endpoint.
 
@@ -691,7 +704,7 @@ class Collection(Endpoint):
             state = _parse_atom_entry(entry)
             entity = self.item(
                 self.service, 
-                state.links.alternate,
+                urllib.unquote(state.links.alternate),
                 state=state)
             entities.append(entity)
         return entities
@@ -763,82 +776,6 @@ class Collection(Endpoint):
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
-    def iteritems(self):
-        """Iterate over the (name,entity) pairs in this collection.
-
-        :rtype: iterator over tuples of ``(``*string*``, ``*Entity*``)``.
-
-        Implemented to give Collection a dict-like interface. This
-        function always makes a roundtrip to the server.
-
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            for name,entity in saved_searches:
-                assert entity.name == name
-        """
-        for item in self.list():
-            yield (item.name, item)
-
-    def iterkeys(self):
-        """Iterate over the names of entities in this collection.
-
-        :rtype: iterator over strings.
-
-        Implemented to give Collection a dict-like interface. This
-        function always makes a roundtrip to the server.
-
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            for name in saved_searches:
-                print "Saved search named %s" % name
-        """
-        # If you update the documentation here, be sure to update it
-        # on __iter__ as well.
-        return iter(self)
-
-    def itervalues(self):
-        """Iterate over the entities in this collection.
-
-        :rtype: iterator over ``Entity``s.
-
-        Implemented to give Collection a dict-like interface. This
-        function always makes a roundtrip to the server.
-
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            for entity in saved_searches.itervalues():
-                print "Saved search named %s" % entity.name
-        """
-        for item in self.list(): 
-            yield item
-
-    def keys(self):
-        """Return a list of the names of entities in this collection.
-
-        :rtype: list of strings.
-
-        Implemented to give Collection a dict-like interface. This
-        function always makes a roundtrip to the server.
-        
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            for name in saved_searches.keys():
-                print "Saved search named %s" % name
-        """
-        return list(self.iterkeys())
-
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=-1, **kwargs):
         """Returns the contents of the collection.
@@ -853,7 +790,7 @@ class Collection(Endpoint):
                             *auto*, *alpha*, *alpha_case*, *num* (optional).
 
         This function always makes a roundtrip to the server, and
-        makes not attempt at caching.
+        makes no attempt at caching.
         """
         response = self.get(count=count, **kwargs)
         return self._load_list(response)
@@ -882,8 +819,7 @@ class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):
         """Populates a stanza in the .conf file."""
-        message = { 'method': "POST", 'body': stanza }
-        self.service.request(self.path, message)
+        self.service.request(self.path, method="POST", body=stanza)
         return self
 
 class AlertGroup(Entity):
@@ -925,7 +861,7 @@ class Index(Entity):
         # the connection open and use the Splunk extension headers to note
         # the input mode
         cn = self.service.connect()
-        cn.write("POST %s HTTP/1.1\r\n" % self.service.fullpath(path))
+        cn.write("POST %s HTTP/1.1\r\n" % self.service._abspath(path))
         cn.write("Host: %s:%s\r\n" % (self.service.host, self.service.port))
         cn.write("Accept-Encoding: identity\r\n")
         cn.write("Authorization: %s\r\n" % self.service.token)
@@ -977,8 +913,7 @@ class Index(Entity):
         # x-www-form-urlencoded (as we do not have a key=value body),
         # because we aren't really sending a "form".
         path = "receivers/simple?%s" % urlencode(args)
-        message = { 'method': "POST", 'body': event }
-        self.service.request(path, message)
+        self.service.request(path, method="POST", body=event)
         return self
 
     # kwargs: host, host_regex, host_segment, rename-source, sourcetype

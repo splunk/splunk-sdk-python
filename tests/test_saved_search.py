@@ -103,6 +103,50 @@ class TestCase(testlib.TestCase):
         saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)
 
+    def test_collision(self):
+        opts = self.opts.kwargs.copy()
+        opts['owner'] = '-'
+        opts['app'] = '-'
+        service = client.connect(**self.opts.kwargs)
+        saved_searches = service.saved_searches
+
+        if 'collision test' in saved_searches:
+            saved_searches.delete('collision test')
+        if 'collision test' in saved_searches:
+            saved_searches.delete('collision test')
+        self.assertFalse('collision test' in saved_searches)
+        
+        search1 = '* earliest=-1m | head 1'
+        search2 = '* earliest=-2m | head 2'
+        saved_search2 = saved_searches.create(
+            'collision test', search2,
+            namespace=client.namespace(app='search', sharing='app'))
+        saved_search1 = saved_searches.create(
+            'collision test', search1,
+            namespace=client.namespace(owner='admin', app='search', sharing='user'))
+
+        def f():
+            saved_searches['collision test']
+        self.assertRaises(ValueError, f)
+
+        self.assertTrue(isinstance(
+                saved_searches['collision test',
+                               client.namespace(sharing='app', app='search')],
+                client.Entity))
+        self.assertTrue(isinstance(
+                saved_searches['collision test',
+                               client.namespace(sharing='user', app='search', owner='admin')],
+                client.Entity))
+
+        self.assertRaises(KeyError, saved_searches.__getitem__,
+                          ('nonexistant-search',
+                           client.namespace(sharing='app', app='search')))
+
+        saved_searches.delete('collision test')
+        saved_searches.delete('collision test')
+        
+
+
     def test_dispatch(self):
         service = client.connect(**self.opts.kwargs)
         saved_searches = service.saved_searches
@@ -271,7 +315,7 @@ class TestCase(testlib.TestCase):
         saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
     
         saved_search.suppress(100)
-        self.assertEqual(saved_search.suppressed, 100)
+        self.assertTrue(saved_search.suppressed <= 100)
         saved_search.unsuppress()
         self.assertEqual(saved_search.suppressed, 0)
 

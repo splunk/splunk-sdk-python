@@ -77,6 +77,61 @@ DEFAULT_SCHEME = "https"
 class AuthenticationError(Exception):
     pass
 
+class UrlEncoded(str):
+    """String subclass to represent URL encoded strings.
+
+    It's too difficult to track what strings might be URL encoded and
+    which not by hand, so eschew any calls to ``urllib.quote``.
+    ``urllib.unquote`` any URL encoded strings that arrive from
+    outside as soon as you read them, and then wrap any string you
+    intend to use as a URL in ``UrlEncoded``. ``UrlEncoded`` is
+    idempotent, unlike ``urllib.quote``, so you don't have to worry
+    about multiple calls. For example,::
+
+        def f(s):
+            ... # do something, but don't call urllib.quote
+            return UrlEncoded(...)
+
+    ``UrlEncoded`` objects are identical to ``str`` objects (including
+    being equals if their contents are equal) except when passed to
+    ``UrlEncoded`` again.
+
+    ``UrlEncoded`` removes ``str``'s support for interpolating values
+    with ``%`` (it will raise a ``TypeError`` if you try it). There is
+    no reliable way to encode values thus. Instead, interpolate into a
+    string, quoting by hand, and call ``UrlEncode`` with
+    ``skip_encode=True``, as in::
+
+        import urllib
+        UrlEncode('%s://%s' % (scheme, urllib.quote(host)), skip_encode=True)
+    """
+    def __new__(self, val='', skip_encode=False):
+        if isinstance(val, UrlEncoded):
+            # Don't urllib.quote something already URL encoded.
+            return val
+        elif skip_encode:
+            return str.__new__(self, val)
+        else:
+            # When subclassing str, just call str's __new__ method
+            # with your class and the value you want to have in the
+            # new string.
+            return str.__new__(self, urllib.quote(val))
+
+    def __add__(self, other):
+        if isinstance(other, UrlEncoded):
+            return UrlEncoded(str.__add__(self, other), skip_encode=True)
+        else:
+            return UrlEncoded(str.__add__(self, urllib.quote(other)), skip_encode=True)
+
+    def __radd__(self, other):
+        if isinstance(other, UrlEncoded):
+            return UrlEncoded(str.__radd__(self, other), skip_encode=True)
+        else:
+            return UrlEncoded(str.__add__(urllib.quote(other), self), skip_encode=True)
+
+    def __mod__(self, fields):
+        raise TypeError("Cannot interpolate into a UrlEncoded object.")
+
 def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     """Construct a URL authority from the given *scheme*, *host*, and *port*.
 
@@ -100,7 +155,7 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     :param port: The port number (default: 8089)
     :type port: integer
     :return: The URL authority.
-    :rtype: string
+    :rtype: UrlEncoded (subclass of ``str``)
 
     **Example**::
 
@@ -119,7 +174,7 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
         # IPv6 addresses must be enclosed in [ ] in order to be well
         # formed.
         host = '[' + host + ']'
-    return "%s://%s:%s" % (scheme, host, port)
+    return UrlEncoded("%s://%s:%s" % (scheme, host, port), skip_encode=True)
 
 # kwargs: sharing, owner, app
 def namespace(**kwargs):
@@ -346,6 +401,7 @@ class Context(object):
         try:
             path = self.authority + self._abspath(path_segment, owner=owner, 
                                                   app=app, sharing=sharing)
+            print path
             return self.http.post(path, self._auth_headers, **query)
         except HTTPError as e:
             # Reraise a 401 (not logged in) as an AuthenticationError
@@ -454,7 +510,7 @@ class Context(object):
                                     to the ``Context``'s namespace if all 
                                     three are omitted)
         :type owner, app, sharing: string
-        :return: An absolute path.
+        :return: A ``UrlEncoded`` (a subclass of ``str``).
         :rtype: string
 
         **Example**::
@@ -471,8 +527,11 @@ class Context(object):
         """
         # If path_segment is absolute, escape all forbidden characters
         # in it and return it.
-        if path_segment.startswith('/'): 
-            return urllib.quote(path_segment)
+        if path_segment.startswith('/'):
+            if isinstance(path_segment, UrlEncoded):
+                return path_segment
+            else:
+                return UrlEncoded(path_segment)
 
         # path_segment is relative, so we need a namespace to build an
         # absolute path.
@@ -486,13 +545,11 @@ class Context(object):
         # namespace. If only one of app and owner is specified, use
         # '-' for the other.
         if ns.app is None and ns.owner is None:
-            return "/services/%s" % urllib.quote(path_segment)
+            return UrlEncoded("/services/%s" % path_segment)
 
         oname = "-" if ns.owner is None else ns.owner
         aname = "-" if ns.app is None else ns.app
-        return "/servicesNS/%s/%s/%s" % (urllib.quote(oname), 
-                                         urllib.quote(aname),
-                                         urllib.quote(path_segment))
+        return UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment))
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
@@ -588,7 +645,10 @@ class HttpLib(object):
     def delete(self, url, headers=None, **kwargs):
         if headers is None: headers = []
         if kwargs: 
-            url = url + '?' + encode(**kwargs)
+            # url is already a UrlEncoded. We have to manually declare
+            # the query to be encoded or it will get automatically URL
+            # encoded by being appended to url.
+            url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
         message = {
             'method': "DELETE",
             'headers': headers,
@@ -598,7 +658,10 @@ class HttpLib(object):
     def get(self, url, headers=None, **kwargs):
         if headers is None: headers = []
         if kwargs: 
-            url = url + '?' + encode(**kwargs)
+            # url is already a UrlEncoded. We have to manually declare
+            # the query to be encoded or it will get automatically URL
+            # encoded by being appended to url.
+            url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
         return self.request(url, { 'method': "GET", 'headers': headers })
 
     def post(self, url, headers=None, **kwargs):

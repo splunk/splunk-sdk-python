@@ -22,7 +22,7 @@ from xml.etree.ElementTree import XML
 import testlib
 
 import splunklib.binding as binding
-from splunklib.binding import HTTPError, AuthenticationError
+from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 import splunklib.data as data
 
 # splunkd endpoint paths
@@ -76,6 +76,14 @@ def urllib2_handler(url, message, **kwargs):
     }
 
 class TestCase(testlib.TestCase):
+    def test_urlencoded(self):
+        self.assertTrue(isinstance(UrlEncoded('a') + UrlEncoded('b'), UrlEncoded))
+        self.assertTrue(isinstance('a' + UrlEncoded('b'), UrlEncoded))
+        self.assertTrue(isinstance(UrlEncoded('a') + 'b', UrlEncoded))
+        def f():
+            UrlEncoded('%s') % 'boris'
+        self.assertRaises(TypeError, f)
+
     def test_authority(self):
         self.assertEqual(binding._authority(), 
                          "https://localhost:8089")
@@ -138,33 +146,43 @@ class TestCase(testlib.TestCase):
         # Verify that Context._abspath works as expected.
 
         path = context._abspath("foo", owner=None, app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/services/foo")
 
         path = context._abspath("foo", owner="me", app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/-/foo")
 
         path = context._abspath("foo", owner=None, app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/-/MyApp/foo")
 
         path = context._abspath("foo", owner="me", app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         path = context._abspath("foo", owner="me", app="MyApp", sharing=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         path = context._abspath("foo", owner="me", app="MyApp", sharing="user")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         path = context._abspath("foo", owner="me", app="MyApp", sharing="app")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         path = context._abspath("foo", owner="me", app="MyApp",sharing="global")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         path = context._abspath("foo bar", owner="me", app="MyApp",sharing="system")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo%20bar")
 
         path = context._abspath('/a/b c/d')
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, '/a/b%20c/d')
 
         # Verify constructing resource paths using context defaults
@@ -175,43 +193,52 @@ class TestCase(testlib.TestCase):
 
         context = binding.connect(**kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/services/foo")
 
         context = binding.connect(owner="me", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/-/foo")
 
         context = binding.connect(app="MyApp", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/-/MyApp/foo")
 
         context = binding.connect(owner="me", app="MyApp", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing=None, **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="user", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="app", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="global", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="system", **kwargs)
         path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo")
 
     # Verify pluggable HTTP reqeust handlers.

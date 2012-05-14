@@ -40,7 +40,7 @@ import urllib
 
 from time import sleep
 
-from splunklib.binding import Context, HTTPError, AuthenticationError
+from splunklib.binding import Context, HTTPError, AuthenticationError, namespace
 import splunklib.data as data
 from splunklib.data import record
 
@@ -357,7 +357,7 @@ class Endpoint(object):
             import splunklib.client
             s = client.service(...)
             apps = s.apps
-            apps.get('local') == \
+            apps.get() == \
                 {'body': <splunklib.binding.ResponseReader at 0x10f8709d0>,
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
@@ -370,26 +370,66 @@ class Endpoint(object):
                  'status': 200}
             apps.get('nonexistant/path') # raises HTTPError
             s.logout()
-            apps.get('apps/local') # raises AuthenticationError
-
+            apps.get() # raises AuthenticationError
         """
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        path = "%s%s" % (self.path, path_segment)
+        path = self.path + path_segment 
+        # ^-- This was "%s%s" % (self.path, path_segment). 
+        # That doesn't work, because self.path may be UrlEncoded.
         return self.service.get(path, 
                                 owner=owner, app=app, sharing=sharing, 
                                 **query)
 
-    def post(self, path_segment="", **kwargs):
-        """Issues a ``POST`` request to a (possibly empty) path relative to this endpoint.
+    def post(self, path_segment="", owner=None, app=None, sharing=None, **query):
+        """POST to *path_segment* relative to this endpoint.
 
-        Keyword arguments are passed as fields in the POST body.
-        
-        :param `path_segment`: A path relative to the endpoint (optional).
-        :param `kwargs`: Form arguments (optional).
+        Named to match the HTTP method. This function makes at least
+        one roundtrip to the server, and one additional round trip for
+        each 303 status returned.
+
+        If *owner*, *app*, and *sharing* are omitted, then takes a
+        default namespace from this ``Endpoint``'s ``Service``. All
+        other keyword arguments are included in the URL as query
+        parameters.
+
+        :raises AuthenticationError: when a this Endpoint's ``Service`` is not logged in.
+        :raises HTTPError: when there was an error in the request.
+        :param path_segment: A path_segment relative to this endpoint to POST to (default: ``""``).
+        :type path_segment: string
+        :param owner, app, sharing: Namespace parameters (optional).
+        :type owner, app, sharing: string
+        :param query: All other keyword arguments, used as query parameters.
+        :type query: values should be strings
+        :return: The server's response.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, 
+                and ``status``
+
+        **Example**::
+
+            import splunklib.client
+            s = client.service(...)
+            apps = s.apps
+            apps.post(name='boris') == \
+                {'body': <splunklib.binding.ResponseReader at 0x10b348290>,
+                 'headers': [('content-length', '2908'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 18:34:50 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'Created',
+                 'status': 201}
+            apps.get('nonexistant/path') # raises HTTPError
+            s.logout()
+            apps.get() # raises AuthenticationError
         """
-        return self.service.post("%s%s" % (self.path, path_segment), **kwargs)
+        path = "%s%s" % (self.path, path_segment)
+        return self.service.post(path, 
+                                 owner=owner, app=app, sharing=sharing,
+                                 **query)
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
@@ -596,6 +636,16 @@ class Entity(Endpoint):
         """Returns the entity name."""
         return self.state.title
 
+    @property
+    def namespace(self):
+        """The namespace this entity lives in.
+
+        A ``Record`` with three keys: ``'owner'``, ``'app'``, and ``'sharing'``.
+        """
+        return record({'owner': self.access['owner'],
+                       'app': self.access['app'],
+                       'sharing': self.access['sharing']})
+
     def read(self):
         """Reads the current state of the entity from the server."""
         response = self.get()
@@ -652,11 +702,94 @@ class Collection(Endpoint):
         return self.contains(name)
 
     def __getitem__(self, key):
+        """Fetch an item named *key* from this collection.
+
+        A name is not a unique identifier in a collection. The unique
+        identifier is a name plus a namespace. For example, there can
+        be a saved search named ``'mysearch'`` with sharing ``'app'``
+        in application ``'search'``, and another with sharing
+        ``'user'`` with owner ``'boris'`` and application
+        ``'search'``. If the ``Collection`` is attached to a
+        ``Service`` that has ``'-'`` (wildcard) as user and app in its
+        namespace, then both of these may be visible under the same
+        name.
+
+        Where there is no conflict, ``__getitem__`` will fetch the
+        entity given just the name. If there is a conflict and you
+        pass just a name, it will raise a ``ValueError``. In that
+        case, add the namespace as a second argument.
+
+        This function makes a single roundtrip to the server.
+
+        :param key: The name to fetch, or a tuple (name, namespace)
+        :return: An Entity object.
+        :raises KeyError: if *key* does not exist.
+        :raises ValueError: if no namespace is specified and *key* 
+                            does not refer to a unique name.
+
+        *Example*::
+
+            s = client.connect(...)
+            saved_searches = s.saved_searches
+            x1 = saved_searches.create(
+                'mysearch', 'search * | head 1',
+                owner='admin', app='search', sharing='app')
+            x2 = saved_searches.create(
+                'mysearch', 'search * | head 1',
+                owner='admin', app='search', sharing='user')
+            # Raises ValueError:
+            saved_searches['mytest']
+            # Fetches x1
+            saved_searches[
+                'mytest', 
+                client.namespace(sharing='app, app='search')]
+            # Fetches x2
+            saved_searches[
+                'mytest',
+                client.namespace(sharing='user', owner='boris', app='search')]
+        """
+        # We handle the cases where namespace is omitted and specified
+        # separately, since trying to handle both at once makes the
+        # code annoyingly complicated.
         if isinstance(key, tuple) and len(key) == 2:
-            key, namespace = key
-        for item in self.list():
-            if item.name == key: return item
-        raise KeyError, key
+            # x[a,b] is translated to x.__getitem__( (a,b) ), so we
+            # have to extract values out. If len(key) == 2, we have an
+            # explicit namespace, which is guaranteed to be unique, so
+            # we'll extract it directly.
+            key, ns = key
+            path = self.service._abspath(self.path + key, 
+                                         owner=ns.owner,
+                                         app=ns.app,
+                                         sharing=ns.sharing)
+            try:
+                print path
+                entity = self.item(
+                    self.service,
+                    path)
+                return entity
+            except HTTPError as he:
+                if he.status == 404:
+                    raise KeyError(key)
+                else:
+                    raise
+        else: 
+            # No explicit namespace given, so we iterate over all the
+            # candidates, and raise an error if there are duplicates
+            # with the same name (which can happen if they have
+            # different namespaces that show up in the service's
+            # namespace).
+            candidate = None
+            for item in self.list():
+                if item.name == key:
+                    if candidate is None:
+                        candidate = item
+                    else:
+                        raise ValueError("Found two conflicting entities named %s (in namespaces %s and %s); please use a specific namespace" % \
+                                             (item.name, item.namespace, candidate.namespace))
+            if candidate is not None:
+                return candidate
+            else:
+                raise KeyError(key)
 
     def __iter__(self):
         """Iterate over the entities in the collection.
@@ -718,17 +851,30 @@ class Collection(Endpoint):
             if item.name == name: return True
         return False
 
-    def create(self, name, **kwargs):
-        """Creates an entity in this collection.
+    def create(self, name, **params):
+        """Create a new entity in this collection.
 
-        :param `name`: The name of the entity to create.
-        :param `kwargs`: Additional entity-specific arguments (optional).
+        :param name: The name of the entity to create.
+        :type name: string
+        :param params: Additional entity-specific arguments (optional).
         :return: The new entity.
+        :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
         """
         if not isinstance(name, basestring): 
             raise ValueError("Invalid argument: 'name'")
-        self.post(name=name, **kwargs)
-        return self[name] # UNDONE: Extra round-trip to retrieve entity
+        if 'namespace' in params:
+            namespace = params.pop('namespace')
+            params['owner'] = namespace.owner
+            params['app'] = namespace.app
+            params['sharing'] = namespace.sharing
+        response = self.post(name=name, **params)
+        entry = _load_atom(response, XNAME_ENTRY).entry
+        state = _parse_atom_entry(entry)
+        entity = self.item(
+            self.service,
+            urllib.unquote(state.links.alternate),
+            state=state)
+        return entity
 
     def delete(self, name):
         """Delete the entity *name* from the collection.
@@ -855,7 +1001,7 @@ class Index(Entity):
         if host is not None: args['host'] = host
         if source is not None: args['source'] = source
         if sourcetype is not None: args['sourcetype'] = sourcetype
-        path = "receivers/stream?%s" % urlencode(args)
+        path = "receivers/stream?%s" % urllib.urlencode(args)
 
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note
@@ -1361,8 +1507,27 @@ class Users(Collection):
     def contains(self, name):
         return Collection.contains(self, name.lower())
 
-    def create(self, name, **kwargs):
-        return Collection.create(self, name.lower(), **kwargs)
+    def create(self, name, **params):
+        """Create a new entity in this collection.
+
+        :param name: The name of the entity to create.
+        :type name: string
+        :param params: Additional entity-specific arguments (optional).
+        :return: The new entity.
+        :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
+        """
+        if not isinstance(name, basestring): 
+            raise ValueError("Invalid argument: 'name'")
+        name = name.lower()
+        self.post(name=name, **params)
+        response = self.get(name)
+        entry = _load_atom(response, XNAME_ENTRY).entry
+        state = _parse_atom_entry(entry)
+        entity = self.item(
+            self.service,
+            urllib.unquote(state.links.alternate),
+            state=state)
+        return entity
 
     def delete(self, name):
         return Collection.delete(self, name.lower())

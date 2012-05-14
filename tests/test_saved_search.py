@@ -142,8 +142,8 @@ class TestCase(testlib.TestCase):
                           ('nonexistant-search',
                            client.namespace(sharing='app', app='search')))
 
-        saved_searches.delete('collision test')
-        saved_searches.delete('collision test')
+        saved_searches.delete('collision test', namespace=client.namespace(app='search', sharing='app'))
+        saved_searches.delete('collision test', namespace=client.namespace(owner='admin', app='search', sharing='user'))
         
 
 

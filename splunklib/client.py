@@ -876,7 +876,7 @@ class Collection(Endpoint):
             state=state)
         return entity
 
-    def delete(self, name):
+    def delete(self, name, **params):
         """Delete the entity *name* from the collection.
 
         :param name: The name of the entity to delete.
@@ -903,7 +903,11 @@ class Collection(Endpoint):
         """
         # If you update the documentation here, be sure you do so on
         # __delitem__ as well.
-        
+        if 'namespace' in params:
+            namespace = params.pop('namespace')
+            params['owner'] = namespace.owner
+            params['app'] = namespace.app
+            params['sharing'] = namespace.sharing
         try:
             self.service.delete(_path(self.path, name))
         except HTTPError as he:

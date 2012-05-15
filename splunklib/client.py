@@ -1277,10 +1277,12 @@ class Job(Entity):
             return self._load_state(response)
         raise OperationError, "Operation timed out."
 
-    def results(self, **query_params):
+    def results(self, timeout=None, wait_time=1, **query_params):
         """Fetch search results as an InputStream IO handle.
 
-        ``results`` returns a streaming handle over the raw data returned from the server. In order to get a nice, Pythonic stream, pass the handle to ``results.ResultReader``, as in::
+        ``results`` returns a streaming handle over the raw data
+        returned from the server. In order to get a nice, Pythonic
+        iterator, pass the handle to ``results.ResultReader``, as in::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -1292,13 +1294,74 @@ class Job(Entity):
                     print "Is preview:", event['preview']
                 print event # events are returned as dicts.
 
-        This function makes a single call to the server.
+        No results are available via this method until the job
+        finishes. The method's behavior when called on an unfinished
+        job is controlled by the *timeout* parameter. If *timeout* is
+        ``None`` (the default), ``results`` will throw a
+        ``ValueError`` immediately. If *timeout* is an integer,
+        ``results`` will wait up to *timeout* seconds for the job to
+        finish, and otherwise throw a ``ValueError``.
 
+        With *timeout*``=None``, this method makes a single roundtrip
+        to the server. With *timeout* set to an integer, it polls
+        repeatedly until it times out or the search is finished.
+
+        :param timeout: Timeout in seconds, or ``None`` to fail immediately.
+        :type timeout: ``float``
+        :param wait_time: Minimum number of seconds to wait between polls.
+        :type wait_time: ``float``
         :param query_params: Optional arguments for querying results. See the REST API documentation on `GET search/jobs/{search_id}/results  <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
         :returns: A streaming handle over the response body.
 
         """
-        return self.get("results", **query_params).body
+        if timeout is None:
+            body = self.get("results", **query_params).body
+            if body.empty:
+                raise ValueError("Job is still running; cannot return any events.")
+            else:
+                return body
+        else:
+            timeout = datetime.timedelta(seconds=timeout)
+            start = datetime.datetime.now()
+            while True:
+                body = self.get("results", **query_params).body
+                if body.empty:
+                    if datetime.datetime.now() - start < timeout:
+                        sleep(wait_time)
+                    else:
+                        raise ValueError("Job is still running; cannot return any events.")
+                else:
+                    return body
+                    
+
+    def results_preview(self, **query_params):
+        """Fetch an InputStream IO handle of preview search results.
+
+        Unlike ``results``, which requires a job to be finished to
+        return any results, ``results_preview`` returns whatever
+        Splunk has so far, whether the job is running or not. The
+        returned search results are the raw data from the server. Pass
+        the handle returned to ``results.ResultsReader`` to get a
+        nice, Pythonic iterator over objects, as in::
+
+            import splunklib.client as client
+            import splunklib.results as results
+            s = client.connect(...)
+            job = s.jobs.create("search * | head 5")
+            r = results.ResultsReader(job.results_preview())
+            for kind, event in r:
+                if kind == "RESULTS": 
+                    # The first item specifies if this is a preview,
+                    # or the full results. When the job is finished,
+                    # results_preview returns the final results, and
+                    # this will print '0'. If the job is still
+                    # running, it will print '1'.
+                    print "Is preview:", event['preview']
+                print event # events are returned as dicts.
+
+        This method makes one roundtrip to the server.
+        """
+        return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns an InputStream IO handle to the search log for this job.

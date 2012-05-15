@@ -103,6 +103,7 @@ class TestCase(testlib.TestCase):
 
         # Search for non-existant data
         job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
+        r = results.ResultsReader(job.results_preview())
         testlib.wait(job, lambda job: job['isDone'] == '1')
         self.assertEqual(job['isDone'], '1')
         self.assertEqual(job['eventCount'], '0')
@@ -155,11 +156,10 @@ class TestCase(testlib.TestCase):
         self.assertTrue(index['totalEventCount'] > 0)
 
         job = jobs.create("search index=_internal | head 1 | stats count")
-        testlib.wait(job, lambda job: job['isDone'] == '1')
+        self.assertRaises(ValueError, job.results)
+        reader = results.ResultsReader(job.results(timeout=60))
+        job.refresh()
         self.assertEqual(job['isDone'], '1')
-
-        # Fetch the results
-        reader = results.ResultsReader(job.results())
 
         # The first one should always be RESULTS
         kind, result = reader.next()

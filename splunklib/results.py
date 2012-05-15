@@ -242,8 +242,9 @@ RESULT = "RESULT"
 RESULTS = "RESULTS"
 class ResultsReader(object):
     """A class that provides a forward-only, streaming search results reader."""
-    # Be sure to update the docstrings of client.Jobs.oneshot and
-    # client.Job.results to match any changes made to ResultsReader.
+    # Be sure to update the docstrings of client.Jobs.oneshot,
+    # client.Job.results_preview and client.Job.results to match any
+    # changes made to ResultsReader.
     def __init__(self, stream):
         self._reader = XMLReader(stream)
         self.kind = None

@@ -682,17 +682,53 @@ class HttpLib(object):
 
 # Converts an httplib response into a file-like object.
 class ResponseReader(object):
+    """A file-like interface over ``httplib`` responses.
+
+    ``httplib.HTTPResponse`` is kind of unweildy, and other HTTP
+    libraries used with the SDK may be even more different.
+    ``ResponseReader`` is a layer meant to unify all of that. It also
+    provides lookahead at the stream and a few useful predicates.
+    """
+    # For testing, you can use a StringIO as the argument to
+    # ``ResponseReader`` instead of an ``httplib.HTTPResponse``. It
+    # will work equally well.
     def __init__(self, response):
         self._response = response
+        self._buffer = ''
 
     def __str__(self):
         return self.read()
 
+    @property
+    def empty(self):
+        """Is there any more data in the response?"""
+        return self.peek(1) == ""
+
+    def peek(self, size):
+        """Nondestructively fetch *size* characters.
+
+        The next ``read`` operation will behave exactly as if ``peek``
+        where never called.
+        """
+        c = self.read(size)
+        self._buffer = self._buffer + c
+        return c
+
     def close(self):
+        """Close this response."""
         self._response.close()
 
     def read(self, size = None):
-        return self._response.read(size)
+        """Read *size* characters from the response.
+        
+        If *size* is ``None``, read the whole response.
+        """
+        r = self._buffer
+        self._buffer = ''
+        if size is not None:
+            size -= len(r)
+        r = r + self._response.read(size)
+        return r
 
 def handler(key_file=None, cert_file=None, timeout=None):
     """Returns an instance of the default HTTP request handler that uses

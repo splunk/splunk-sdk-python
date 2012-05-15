@@ -76,6 +76,24 @@ def urllib2_handler(url, message, **kwargs):
     }
 
 class TestCase(testlib.TestCase):
+    def test_responsereader(self):
+        txt = "This is a test of the emergency broadcasting system."
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertEqual(response.read(), txt)
+
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertEqual(response.peek(5), txt[:5])
+        self.assertFalse(response.empty)
+        self.assertEqual(response.read(), txt)
+        self.assertTrue(response.empty)
+
+        response = binding.ResponseReader(StringIO(""))
+        self.assertTrue(response.empty)
+        self.assertEqual(response.peek(1), "")
+        self.assertTrue(response.empty)
+        
+        
+
     def test_urlencoded(self):
         self.assertTrue(isinstance(UrlEncoded('a') + UrlEncoded('b'), UrlEncoded))
         self.assertTrue(isinstance('a' + UrlEncoded('b'), UrlEncoded))

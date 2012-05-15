@@ -40,7 +40,7 @@ import urllib
 
 from time import sleep
 
-from splunklib.binding import Context, HTTPError, AuthenticationError, namespace
+from splunklib.binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
 import splunklib.data as data
 from splunklib.data import record
 
@@ -699,7 +699,9 @@ class Collection(Endpoint):
         return self.list(**kwargs)
 
     def __contains__(self, name):
-        return self.contains(name)
+        for item in self.list():
+            if item.name == name: return True
+        return False
 
     def __getitem__(self, key):
         """Fetch an item named *key* from this collection.
@@ -762,7 +764,6 @@ class Collection(Endpoint):
                                          app=ns.app,
                                          sharing=ns.sharing)
             try:
-                print path
                 entity = self.item(
                     self.service,
                     path)
@@ -843,13 +844,14 @@ class Collection(Endpoint):
         return entities
 
     def contains(self, name):
-        """Indicates whether an entity name exists in the collection.
+        """**Deprecated**: Use the ``in`` operator instead.
+
+        Indicates whether an entity name exists in the collection.
         
         :param `name`: The entity name.
+        :rtype: Boolean
         """
-        for item in self.list():
-            if item.name == name: return True
-        return False
+        return name in self
 
     def create(self, name, **params):
         """Create a new entity in this collection.
@@ -1062,7 +1064,7 @@ class Index(Entity):
         # is that we are not sending a POST request encoded using 
         # x-www-form-urlencoded (as we do not have a key=value body),
         # because we aren't really sending a "form".
-        path = "receivers/simple?%s" % urlencode(args)
+        path = UrlEncoded("receivers/simple?%s" % urllib.urlencode(args), skip_encode=True)
         self.service.request(path, method="POST", body=event)
         return self
 
@@ -1275,15 +1277,28 @@ class Job(Entity):
             return self._load_state(response)
         raise OperationError, "Operation timed out."
 
-    def results(self, **kwargs):
-        """Returns an InputStream IO handle to the search results for this job.
+    def results(self, **query_params):
+        """Fetch search results as an InputStream IO handle.
 
-        :param `kwargs`: Additional results arguments (optional). For details, 
-                         see the `GET search/jobs/{search_id}/results 
-                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_ 
-                         endpoint in the REST API documentation.
+        ``results`` returns a streaming handle over the raw data returned from the server. In order to get a nice, Pythonic stream, pass the handle to ``results.ResultReader``, as in::
+
+            import splunklib.client as client
+            import splunklib.results as results
+            s = client.connect(...)
+            job = s.jobs.create("search * | head 5")
+            r = results.ResultsReader(job.results())
+            for kind, event in r:
+                if kind == "RESULTS": # The first item specifies if this is a preview
+                    print "Is preview:", event['preview']
+                print event # events are returned as dicts.
+
+        This function makes a single call to the server.
+
+        :param query_params: Optional arguments for querying results. See the REST API documentation on `GET search/jobs/{search_id}/results  <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
+        :returns: A streaming handle over the response body.
+
         """
-        return self.get("results", **kwargs).body
+        return self.get("results", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns an InputStream IO handle to the search log for this job.
@@ -1361,15 +1376,42 @@ class Jobs(Collection):
         sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
 
-    def oneshot(self, query, **kwargs):
+    def oneshot(self, query, **params):
+        """Run a search and directly return an InputStream IO handle over the results.
 
-        # We take advantage of the search results returning JSON
-        # output (at least in recent versions). This is far easier
-        # than dealing with the XML.
-        if "exec_mode" in kwargs:
+        The InputStream streams XML fragments from the server. The SDK
+        provides ``results.ResultsReader`` to lazily parse this stream
+        into usable Python objects. For example::
+
+            import splunklib.client as client
+            import splunklib.results as results
+            s = client.connect(...)
+            r = results.ResultsReader(s.jobs.oneshot("search * | head 5"))
+            for kind, event in r:
+                if kind == "RESULTS": # The first item specifies if this is a preview
+                    print "Is preview:", event['preview']
+                print event # events are returned as dicts.
+
+        ``oneshot`` makes a single roundtrip to the server (as opposed
+        to two for create followed by results).
+
+        :raises SyntaxError: on invalid queries.
+
+        :param query: Splunk search language query to run
+        :type query: ``str``
+        :param params: Additional arguments to oneshot (see the `REST API docs <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs>`_).
+        :returns: InputStream over raw XML returned from the server.
+        """
+        if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        response = self.post(search=query, exec_mode="oneshot", output_mode='json', **kwargs)
-        return json.loads(response.body.read())
+        try:
+            return self.post(search=query, exec_mode="oneshot", **params).body
+        except HTTPError as he:
+            if he.status == 400 and 'Search operation' in str(he):
+                raise SyntaxError(str(he))
+            else:
+                raise
+                
 
     def list(self, count=0, **kwargs):
         return Collection.list(self, count, **kwargs)

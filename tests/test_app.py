@@ -22,6 +22,8 @@ import splunklib.data as data
 class TestCase(testlib.TestCase):
     def check_app(self, app):
         self.check_entity(app)
+        cfu = int(app.check_for_updates)
+        self.assertTrue(cfu == 1 or cfu == 0)
 
     def test_read(self):
         service = client.connect(**self.opts.kwargs)

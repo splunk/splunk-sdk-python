@@ -85,10 +85,13 @@ class TestCase(testlib.TestCase):
 
         self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
 
-        result = jobs.oneshot("search * | head 3")
-        self.assertTrue(isinstance(result, list))
-        self.assertTrue(all([isinstance(d, dict) for d in result]))
-        self.assertTrue(len(result) <= 3)
+        result = results.ResultsReader(jobs.oneshot("search index=_internal | head 3"))
+        kind, event = result.next()
+        self.assertEqual(kind, 'RESULTS')
+        self.assertEqual(event['preview'], '0')
+        self.assertTrue(len(list(result)) <= 3)
+        
+        self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
 
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests")
@@ -148,13 +151,10 @@ class TestCase(testlib.TestCase):
 
         # Run a new job to get the results, but we also make
         # sure that there is at least one event in the index already
-        index = service.indexes['sdk-tests']
-        old_event_count = int(index['totalEventCount'])
-        if old_event_count == 0:
-            index.submit("test event")
-            testlib.wait(index, lambda index: index['totalEventCount'] == '1')
+        index = service.indexes['_internal']
+        self.assertTrue(index['totalEventCount'] > 0)
 
-        job = jobs.create("search index=sdk-tests | head 1 | stats count")
+        job = jobs.create("search index=_internal | head 1 | stats count")
         testlib.wait(job, lambda job: job['isDone'] == '1')
         self.assertEqual(job['isDone'], '1')
 

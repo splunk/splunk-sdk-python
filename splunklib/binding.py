@@ -401,7 +401,6 @@ class Context(object):
         try:
             path = self.authority + self._abspath(path_segment, owner=owner, 
                                                   app=app, sharing=sharing)
-            print path
             return self.http.post(path, self._auth_headers, **query)
         except HTTPError as e:
             # Reraise a 401 (not logged in) as an AuthenticationError

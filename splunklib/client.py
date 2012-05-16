@@ -568,12 +568,19 @@ class Entity(Endpoint):
     # because the "entry" record varies slightly by entity and this allows
     # for a subclass to override and handle any special cases.
     def _load_atom_entry(self, response):
-        return _load_atom(response, XNAME_ENTRY).entry
+        elem = _load_atom(response, XNAME_ENTRY)
+        if isinstance(elem, list):
+            return [x.entry for x in elem]
+        else:
+            return elem.entry
 
     # Load the entity state record from the given response
     def _load_state(self, response):
         entry = self._load_atom_entry(response)
-        return _parse_atom_entry(entry)
+        if isinstance(entry, list):
+            raise ValueError("Fetch from server returned multiple entries.")
+        else:
+            return _parse_atom_entry(entry)
 
     def _run_method(self, path_segment, **kwargs):
         """Run a method and return the content Record from the returned XML.
@@ -744,53 +751,30 @@ class Collection(Endpoint):
             # Fetches x1
             saved_searches[
                 'mytest', 
-                client.namespace(sharing='app, app='search')]
+                client.namespace(sharing='app', app='search')]
             # Fetches x2
             saved_searches[
                 'mytest',
                 client.namespace(sharing='user', owner='boris', app='search')]
         """
-        # We handle the cases where namespace is omitted and specified
-        # separately, since trying to handle both at once makes the
-        # code annoyingly complicated.
         if isinstance(key, tuple) and len(key) == 2:
             # x[a,b] is translated to x.__getitem__( (a,b) ), so we
-            # have to extract values out. If len(key) == 2, we have an
-            # explicit namespace, which is guaranteed to be unique, so
-            # we'll extract it directly.
+            # have to extract values out.
             key, ns = key
-            path = self.service._abspath(self.path + key, 
-                                         owner=ns.owner,
-                                         app=ns.app,
-                                         sharing=ns.sharing)
-            try:
-                entity = self.item(
-                    self.service,
-                    path)
-                return entity
-            except HTTPError as he:
-                if he.status == 404:
-                    raise KeyError(key)
-                else:
-                    raise
-        else: 
-            # No explicit namespace given, so we iterate over all the
-            # candidates, and raise an error if there are duplicates
-            # with the same name (which can happen if they have
-            # different namespaces that show up in the service's
-            # namespace).
-            candidate = None
-            for item in self.list():
-                if item.name == key:
-                    if candidate is None:
-                        candidate = item
-                    else:
-                        raise ValueError("Found two conflicting entities named %s (in namespaces %s and %s); please use a specific namespace" % \
-                                             (item.name, item.namespace, candidate.namespace))
-            if candidate is not None:
-                return candidate
+        else:
+            ns = self.service.namespace
+        try:
+            response = self.get(key, owner=ns.owner, app=ns.app)
+            entries = self._load_list(response)
+            if len(entries) > 1:
+                raise ValueError("Found multiple entities named '%s'; please specify a namespace." % key)
             else:
+                return entries[0]
+        except HTTPError as he:
+            if he.status == 404: # No entity matching key and namespace.
                 raise KeyError(key)
+            else:
+                raise
 
     def __iter__(self):
         """Iterate over the entities in the collection.
@@ -911,7 +895,7 @@ class Collection(Endpoint):
             params['app'] = namespace.app
             params['sharing'] = namespace.sharing
         try:
-            self.service.delete(_path(self.path, name))
+            self.service.delete(_path(self.path, name), **params)
         except HTTPError as he:
             # An HTTPError with status code 404 means that the entity
             # has already been deleted, and we reraise it as a

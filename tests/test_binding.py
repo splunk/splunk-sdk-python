@@ -380,8 +380,11 @@ class TestCase(testlib.TestCase):
             ({ 'sharing': "system", 'app': "search" },
              { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
 
-            ({ 'sharing': "system", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" })]
+            ({ 'sharing': "system", 'owner': "Bob",    'app': "search" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': 'user',   'owner': '-',      'app': '-'},
+             { 'sharing': 'user',   'owner': '-',      'app': '-'})]
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)

@@ -107,13 +107,14 @@ class TestCase(testlib.TestCase):
         opts = self.opts.kwargs.copy()
         opts['owner'] = '-'
         opts['app'] = '-'
-        service = client.connect(**self.opts.kwargs)
+        opts['sharing'] = 'user'
+        service = client.connect(**opts)
+        print service.namespace
         saved_searches = service.saved_searches
 
         if 'collision test' in saved_searches:
-            saved_searches.delete('collision test')
-        if 'collision test' in saved_searches:
-            saved_searches.delete('collision test')
+            saved_searches.delete('collision test', namespace=client.namespace(app='search', sharing='app'))
+            saved_searches.delete('collision test', namespace=client.namespace(owner='admin', app='search', sharing='user'))            
         self.assertFalse('collision test' in saved_searches)
         
         search1 = '* earliest=-1m | head 1'
@@ -126,7 +127,7 @@ class TestCase(testlib.TestCase):
             namespace=client.namespace(owner='admin', app='search', sharing='user'))
 
         def f():
-            saved_searches['collision test']
+            print saved_searches['collision test']
         self.assertRaises(ValueError, f)
 
         self.assertTrue(isinstance(
@@ -145,6 +146,35 @@ class TestCase(testlib.TestCase):
         saved_searches.delete('collision test', namespace=client.namespace(app='search', sharing='app'))
         saved_searches.delete('collision test', namespace=client.namespace(owner='admin', app='search', sharing='user'))
         
+    def test_nonunique_entity(self):
+        opts = self.opts.kwargs.copy()
+        opts['owner'] = '-'
+        opts['app'] = '-'
+        opts['sharing'] = 'user'
+        service = client.connect(**self.opts.kwargs)
+
+        saved_searches = service.saved_searches
+
+        if 'collision test' in saved_searches:
+            saved_searches.delete('collision test')
+        if 'collision test' in saved_searches:
+            saved_searches.delete('collision test')
+        self.assertFalse('collision test' in saved_searches)
+        
+        search1 = '* earliest=-1m | head 1'
+        search2 = '* earliest=-2m | head 2'
+        saved_search2 = saved_searches.create(
+            'collision test', search2,
+            namespace=client.namespace(app='search', sharing='app'))
+        saved_search1 = saved_searches.create(
+            'collision test', search1,
+            namespace=client.namespace(owner='admin', app='search', sharing='user'))
+
+
+        self.assertRaises(ValueError, client.SavedSearch,
+                          service, service._abspath('saved/searches/collision test',
+                                                    owner='-', app='-'))
+
 
 
     def test_dispatch(self):
@@ -161,8 +191,7 @@ class TestCase(testlib.TestCase):
         self.assertTrue('sdk-test1' in saved_searches)
 
         job = saved_search.dispatch()
-        testlib.wait(job, lambda job: bool(int(job['isDone'])))
-        job.results().close()
+        job.results_preview().close()
         job.cancel()
 
         # Dispatch with some additional options

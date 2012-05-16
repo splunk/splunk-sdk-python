@@ -75,9 +75,12 @@ def load(text, match=None):
     root = XML(text)
     items = [root] if match is None else root.findall(match)
     count = len(items)
-    if count == 0: return None
-    if count == 1: return load_root(items[0], nametable)
-    return [ load_root(item, nametable) for item in items ]
+    if count == 0: 
+        return None
+    elif count == 1: 
+        return load_root(items[0], nametable)
+    else:
+        return [load_root(item, nametable) for item in items]
 
 # Load the attributes of the given element.
 def load_attrs(element):

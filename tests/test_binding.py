@@ -157,6 +157,19 @@ class TestCase(testlib.TestCase):
         # Make sure we can open a socket to the service
         context.connect().close()
 
+    def test_autologin(self):
+        opts = self.opts.kwargs
+        opts['autologin'] = True
+        context = binding.connect(**opts)
+
+        self.assertEqual(context.get("/services").status, 200)
+        context.logout()
+        self.assertEqual(context.get("/services").status, 200)
+
+        context.autologin = False
+        context.logout()
+        self.assertRaises(AuthenticationError, context.get, "/services")
+
     # Verify that Context._abspath behaves as expected.
     def test_abspath(self):
         context = binding.connect(**self.opts.kwargs)

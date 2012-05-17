@@ -57,6 +57,8 @@ import socket
 import ssl
 import urllib
 
+from contextlib import contextmanager
+
 from xml.etree.ElementTree import XML
 
 from splunklib.data import record
@@ -131,6 +133,32 @@ class UrlEncoded(str):
 
     def __mod__(self, fields):
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
+
+@contextmanager
+def _handle_auth_error(msg):
+    """Handle reraising HTTP authentication errors as something clearer.
+
+    If an ``HTTPError`` is raised with status 401 (access denied) in
+    the body of this context manager, reraise it as an
+    ``AuthenticationError`` instead, with *msg* as its message.
+
+    This function adds no round trips to the server.
+
+    :param msg: The message to be raised in ``AuthenticationError``.
+    :type msg: ``str``
+
+    **Example**::
+
+        with _handle_auth_error("Your login failed."):
+             ... # make an HTTP request
+    """
+    try:
+        yield
+    except HTTPError as he:
+        if he.status == 401:
+            raise AuthenticationError(msg)
+        else:
+            raise
 
 def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     """Construct a URL authority from the given *scheme*, *host*, and *port*.
@@ -239,6 +267,7 @@ class Context(object):
         self.namespace = namespace(**kwargs)
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
+        self.autologin = kwargs.get("autologin", False)
 
     # Shared per-context request headers
     @property
@@ -249,6 +278,65 @@ class Context(object):
         """Returns an open connection (socket) to the service."""
         cn = socket.create_connection((self.host, int(self.port)))
         return ssl.wrap_socket(cn) if self.scheme == "https" else cn
+
+    def handle_authentication(self, request_fun):
+        """Wrapper to handle autologin and authentication errors.
+
+        *request_fun* is a function taking no arguments that needs to
+        be run with this ``Context`` logged into Splunk.
+
+        ``handle_authentication``'s behavior depends on whether the
+        ``autologin`` field of ``Context`` is set to ``True`` or
+        ``False``. If it's ``False``, then ``handle_authentication``
+        aborts if the ``Context`` is not logged in, and raises an
+        ``AuthenticationError`` if an ``HTTPError`` of status 401 is
+        raised in *request_fun*. If it's ``True``, then
+        ``handle_authentication`` will try at all sensible places to
+        log in before issuing the request.
+
+        If ``autologin`` is ``False``, ``handle_authentication`` makes
+        one roundtrip to the server if the ``Context`` is logged in,
+        or zero if it is not. If ``autologin`` is ``True``, it's less
+        deterministic, and may make at most three roundtrips (though
+        that would be a truly pathological case).
+
+        :param request_fun: A function of no arguments encapsulating
+                            the request to make to the server.
+
+        **Example**::
+
+            import splunklib.binding as binding
+            c = binding.connect(..., autologin=True)
+            c.logout()
+            def f():
+                c.get("/services")
+                return 42
+            print handle_authentication(f)
+        """
+        if self.token is None:
+            # Not yet logged in.
+            if self.autologin:
+                # This will throw an uncaught
+                # AuthenticationError if it fails.
+                self.login() 
+            else:
+                raise AuthenticationError("Request aborted: not logged in.")
+        try:
+            # Issue the request
+            return request_fun()
+        except HTTPError as he:
+            if he.status == 401 and self.autologin:
+                # Authentication failed. Try logging in, and then
+                # rerunning the request. If either step fails, throw
+                # an AuthenticationError and give up.
+                with _handle_auth_error("Autologin failed."):
+                    self.login()
+                with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something's very wrong."):
+                    return request_fun()
+            elif he.status == 401 and not self.autologin:
+                raise AuthenticationError("Request failed: Session is not logged in.")
+            else:
+                raise
 
     def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
         """DELETE at *path_segment* with the given namespace and query.
@@ -291,16 +379,11 @@ class Context(object):
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
-        try:
+        def f():
             path = self.authority + self._abspath(path_segment, owner=owner,
                                                   app=app, sharing=sharing)
             return self.http.delete(path, self._auth_headers, **query)
-        except HTTPError as e:
-            # Reraise a 401 (not logged in) as an AuthenticationError
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
+        return self.handle_authentication(f)
 
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
@@ -343,16 +426,11 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
-        try:
+        def f():
             path = self.authority + self._abspath(path_segment, owner=owner,
                                                   app=app, sharing=sharing)
             return self.http.get(path, self._auth_headers, **query)
-        except HTTPError as e:
-            # Reraise a 401 (not logged in) as an AuthenticationError
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
+        return self.handle_authentication(f)
 
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
         """POST to *path_segment* with the given namespace and query.
@@ -398,16 +476,11 @@ class Context(object):
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1')
         """
-        try:
+        def f():
             path = self.authority + self._abspath(path_segment, owner=owner, 
                                                   app=app, sharing=sharing)
             return self.http.post(path, self._auth_headers, **query)
-        except HTTPError as e:
-            # Reraise a 401 (not logged in) as an AuthenticationError
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
+        return self.handle_authentication(f)
 
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
@@ -455,7 +528,7 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
-        try:
+        def f():
             path = self.authority \
                 + self._abspath(path_segment, owner=owner, 
                                 app=app, sharing=sharing)
@@ -464,25 +537,26 @@ class Context(object):
                                      {'method': method,
                                       'headers': headers,
                                       'body': body})
-        except HTTPError as e:
-            # Reraise a 401 (not logged in) as an AuthenticationError
-            if e.status == 401:
-                raise AuthenticationError()
-            else:
-                raise
+        return self.handle_authentication(f)
 
     def login(self):
         """Issues a Splunk login request using the context's credentials and
         stores the session token for use on subsequent requests.
         """
-        response = self.http.post(
-            self.authority + self._abspath("/services/auth/login"),
-            username=self.username, 
-            password=self.password)
-        body = response.body.read()
-        session = XML(body).findtext("./sessionKey")
-        self.token = "Splunk %s" % session
-        return self
+        try:
+            response = self.http.post(
+                self.authority + self._abspath("/services/auth/login"),
+                username=self.username, 
+                password=self.password)
+            body = response.body.read()
+            session = XML(body).findtext("./sessionKey")
+            self.token = "Splunk %s" % session
+            return self
+        except HTTPError as he:
+            if he.status == 401:
+                raise AuthenticationError("Login failed.")
+            else:
+                raise
 
     def logout(self):
         """Forgets the current session token."""
@@ -554,18 +628,21 @@ class Context(object):
 def connect(**kwargs):
     """Establishes an authenticated context with the host.
 
-    :param `host`: The host name (the default is *localhost*).
-    :param `port`: The port number (the default is *8089*).
-    :param `scheme`: The scheme for accessing the service (the default is 
-                     *https*).
-    :param `owner`: The owner namespace (optional).
-    :param `app`: The app context (optional).
-    :param `token`: The current session token (optional). Session tokens can be 
-                    shared across multiple service instances.
-    :param `username`: The Splunk account username, which is used to 
-                       authenticate the Splunk instance.
-    :param `password`: The password, which is used to authenticate the Splunk 
-                       instance.
+    This function makes one round trip to the server.
+
+    :param host: The host name (default: ``"localhost"``).
+    :param port: The port number (default: 8089).
+    :param scheme: The scheme for accessing the service (default: ``"https"``).
+    :param owner: The owner namespace (optional).
+    :param app: The app context (optional).
+    :param token: The current session token (optional). Session tokens can be 
+                  shared across multiple service instances.
+    :param username: The Splunk account username, which is used to 
+                     authenticate the Splunk instance.
+    :param password: The password, which is used to authenticate the Splunk 
+                     instance.
+    :param autologin: Try to automatically log in again if the session terminates.
+    :type autologin: boolean
     :return: An initialized :class:`Context` instance.
     """
     return Context(**kwargs).login() 

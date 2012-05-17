@@ -70,7 +70,7 @@ class TestCase(testlib.TestCase):
 
     def test_service_method(self):
         service = client.connect(**self.opts.kwargs)
-        job = service.search('search * | head 3')
+        job = service.search('search index=_internal earliest=-1m | head 3')
         self.assertTrue(service.jobs.contains(job.sid))
         job.cancel()
 
@@ -85,16 +85,15 @@ class TestCase(testlib.TestCase):
 
         self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
 
-        result = results.ResultsReader(jobs.oneshot("search index=_internal | head 3"))
+        result = results.ResultsReader(jobs.oneshot("search index=_internal earliest=-1m | head 3"))
+        self.assertEqual(result.is_preview, False)
         kind, event = result.next()
-        self.assertEqual(kind, 'RESULTS')
-        self.assertEqual(event['preview'], '0')
         self.assertTrue(len(list(result)) <= 3)
         
         self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
 
         # Make sure we can create a job
-        job = jobs.create("search index=sdk-tests")
+        job = jobs.create("search index=sdk-tests earliest=-1m | head 1")
         self.assertTrue(jobs.contains(job.sid))
 
         # Make sure we can cancel the job
@@ -161,12 +160,18 @@ class TestCase(testlib.TestCase):
         job.refresh()
         self.assertEqual(job['isDone'], '1')
 
-        # The first one should always be RESULTS
-        kind, result = reader.next()
-        self.assertEqual(results.RESULTS, kind)
-        self.assertEqual(int(result["preview"]), 0)
+        self.assertEqual(reader.is_preview, False)
 
-        # The second is always the actual result
+        kind, result = reader.next()
+        self.assertEqual(results.RESULT, kind)
+        self.assertEqual(int(result["count"]), 1)
+
+        # Repeat the same thing, but without the .is_preview reference.
+        job = jobs.create("search index=_internal | head 1 | stats count")
+        self.assertRaises(ValueError, job.results)
+        reader = results.ResultsReader(job.results(timeout=60))
+        job.refresh()
+        self.assertEqual(job['isDone'], '1')
         kind, result = reader.next()
         self.assertEqual(results.RESULT, kind)
         self.assertEqual(int(result["count"]), 1)

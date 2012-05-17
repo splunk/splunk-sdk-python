@@ -250,6 +250,26 @@ class ResultsReader(object):
         self.kind = None
         self.value = None
         self.fields = None
+        self._is_preview = None
+
+    @property
+    def is_preview(self):
+        """Are these search results a preview from a running search?"""
+        # The first entry in the results is always a <results>
+        # element, that specifies if this is a preview or not. If the
+        # value isn't yet set (i.e., it's still None) we haven't yet
+        # read the first element of the results stream. Do so, set our
+        # internal variable, and return the right value. Otherwise,
+        # use the value that was already set.
+        # 
+        # You will find the corresponding logic in self.next() to make
+        # sure self._is_preview gets set correctly.
+        if self._is_preview is None:
+            assert self.read() == RESULTS
+            self._is_preview = self.value['preview'] == '1'
+            return self._is_preview
+        else:
+            return self._is_preview
 
     def __iter__(self):
         return self
@@ -381,6 +401,15 @@ class ResultsReader(object):
         kind = self.read()
         if kind is None or self.value is None: 
             raise StopIteration()
+        elif kind == RESULTS:
+            # The first record in search results is a <results>
+            # element that tells us if these are a preview of the
+            # final results or not. We never want to return this.
+            # Instead, we set the internal variable reference by the
+            # is_preview property and then recurse to get a useful
+            # record.
+            self._is_preview = self.value['preview'] == '1'
+            return self.next()
         return self.item
 
     # Read the next search result, handling new sections and section metadata 

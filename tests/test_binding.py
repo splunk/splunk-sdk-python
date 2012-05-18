@@ -157,6 +157,15 @@ class TestCase(testlib.TestCase):
         # Make sure we can open a socket to the service
         context.connect().close()
 
+        opts = self.opts.kwargs.copy()
+        opts['host'] = unicode(opts['host'])
+        context = binding.connect(**opts)
+
+        # Just check to make sure the service is alive
+        response = context.get("/services")
+        self.assertEqual(response.status, 200)
+
+
     def test_autologin(self):
         opts = self.opts.kwargs
         opts['autologin'] = True

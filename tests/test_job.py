@@ -87,7 +87,7 @@ class TestCase(testlib.TestCase):
 
         result = results.ResultsReader(jobs.oneshot("search index=_internal earliest=-1m | head 3"))
         self.assertEqual(result.is_preview, False)
-        kind, event = result.next()
+        self.assertTrue(isinstance(result.next(), dict))
         self.assertTrue(len(list(result)) <= 3)
         
         self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
@@ -102,8 +102,8 @@ class TestCase(testlib.TestCase):
 
         # Search for non-existant data
         job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
-        r = results.ResultsReader(job.results_preview())
         testlib.wait(job, lambda job: job['isDone'] == '1')
+        r = results.ResultsReader(job.results_preview())
         self.assertEqual(job['isDone'], '1')
         self.assertEqual(job['eventCount'], '0')
         job.finalize()
@@ -162,8 +162,8 @@ class TestCase(testlib.TestCase):
 
         self.assertEqual(reader.is_preview, False)
 
-        kind, result = reader.next()
-        self.assertEqual(results.RESULT, kind)
+        result = reader.next()
+        self.assertTrue(isinstance(result, dict))
         self.assertEqual(int(result["count"]), 1)
 
         # Repeat the same thing, but without the .is_preview reference.
@@ -172,8 +172,8 @@ class TestCase(testlib.TestCase):
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
-        kind, result = reader.next()
-        self.assertEqual(results.RESULT, kind)
+        result = reader.next()
+        self.assertTrue(isinstance(result, dict))
         self.assertEqual(int(result["count"]), 1)
 
 if __name__ == "__main__":

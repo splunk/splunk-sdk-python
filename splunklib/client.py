@@ -1273,10 +1273,10 @@ class Job(Entity):
             s = client.connect(...)
             job = s.jobs.create("search * | head 5")
             r = results.ResultsReader(job.results())
+            assert r.is_preview == False # The job is finished when we get here
             for kind, event in r:
-                if kind == "RESULTS": # The first item specifies if this is a preview
-                    print "Is preview:", event['preview']
-                print event # events are returned as dicts.
+                # events are returned as dicts with strings as values.
+                print event 
 
         No results are available via this method until the job
         finishes. The method's behavior when called on an unfinished
@@ -1299,23 +1299,23 @@ class Job(Entity):
 
         """
         if timeout is None:
-            body = self.get("results", **query_params).body
-            if body.empty:
+            response = self.get("results", **query_params)
+            if response.status == 204:
                 raise ValueError("Job is still running; cannot return any events.")
             else:
-                return body
+                return response.body
         else:
             timeout = datetime.timedelta(seconds=timeout)
             start = datetime.datetime.now()
             while True:
-                body = self.get("results", **query_params).body
-                if body.empty:
+                response = self.get("results", **query_params)
+                if response.status == 204:
                     if datetime.datetime.now() - start < timeout:
                         sleep(wait_time)
                     else:
                         raise ValueError("Job is still running; cannot return any events.")
                 else:
-                    return body
+                    return response.body
                     
 
     def results_preview(self, **query_params):
@@ -1333,19 +1333,23 @@ class Job(Entity):
             s = client.connect(...)
             job = s.jobs.create("search * | head 5")
             r = results.ResultsReader(job.results_preview())
+            if r.is_preview:
+                print "Preview of a running search job."
+            else:
+                print "Job is finished. Results are final."
             for kind, event in r:
-                if kind == "RESULTS": 
-                    # The first item specifies if this is a preview,
-                    # or the full results. When the job is finished,
-                    # results_preview returns the final results, and
-                    # this will print '0'. If the job is still
-                    # running, it will print '1'.
-                    print "Is preview:", event['preview']
-                print event # events are returned as dicts.
+                assert kind == 'result'
+                # events are returned as dicts with strings as values.
+                print event 
 
-        This method makes one roundtrip to the server.
+        This method makes one roundtrip to the server, plus at most
+        two more if autologin is turned on.
         """
-        return self.get("results_preview", **query_params).body
+        response = self.get("results_preview", **query_params)
+        if response.status == 204:
+            raise ValueError("No events yet. Try again later.")
+        else:
+            return response.body
 
     def searchlog(self, **kwargs):
         """Returns an InputStream IO handle to the search log for this job.
@@ -1434,13 +1438,15 @@ class Jobs(Collection):
             import splunklib.results as results
             s = client.connect(...)
             r = results.ResultsReader(s.jobs.oneshot("search * | head 5"))
+            assert r.is_preview == False # The job is finished when we get here
             for kind, event in r:
-                if kind == "RESULTS": # The first item specifies if this is a preview
-                    print "Is preview:", event['preview']
-                print event # events are returned as dicts.
+                assert kind == 'RESULT'
+                # events are returned as dicts with strings as values.
+                print event 
 
         ``oneshot`` makes a single roundtrip to the server (as opposed
-        to two for create followed by results).
+        to two for create followed by results), plus at most two more
+        if autologin is turned on.
 
         :raises SyntaxError: on invalid queries.
 

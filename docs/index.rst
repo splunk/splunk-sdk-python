@@ -1,165 +1,87 @@
-Splunk Software Development Kit for Python
-==========================================
-
-Contents:
+Welcome to the API reference for the Splunk Python SDK, which describes the modules that are included in the Splunk Python SDK.
+For more information about the SDK, see the `Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
 
 .. toctree::
    :maxdepth: 2
 
-splunklib.binding
------------------
-
-.. automodule:: splunklib.binding
-
-.. autofunction:: connect
-
-.. autoclass:: Context
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autofunction:: handler
-
-.. autoclass:: HTTPError
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-splunklib.client
-----------------
-
-.. automodule:: splunklib.client
-
-.. autofunction:: connect
-
-.. autoclass:: Collection
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Endpoint
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Entity
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Service
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: AlertGroup
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Conf
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Confs
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Stanza
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Index
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Input
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Inputs
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Job
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Jobs
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Loggers
-    :members:
-    :inherited-members:
-
-.. autoclass:: Message
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: SavedSearch
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: SavedSearches
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Settings
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Users
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: NotSupportedError
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: OperationError
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-splunklib.data
+:doc:`binding`
 --------------
 
-.. automodule:: splunklib.data
+    :func:`~splunklib.binding.connect` function
 
-.. autofunction:: load
+    :class:`~splunklib.binding.Context` class
 
-.. autofunction:: record
+    **Exceptions**
 
-.. autoclass:: Record
-    :members:
-    :undoc-members:
+    :func:`~splunklib.binding.handler` function
 
-splunklib.results
------------------
+    **Custom HTTP handler**
 
-.. automodule:: splunklib.results
+    :class:`~splunklib.binding.HTTPError` class 
 
-.. autoclass:: ResultsReader
 
-Indices and tables
-==================
+:doc:`client`
+-------------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    :func:`~splunklib.client.connect` function
 
+    :class:`~splunklib.client.Service` class 
+
+    :class:`~splunklib.client.Endpoint` base class 
+
+    **Entities and collections**
+
+    :class:`~splunklib.client.Entity` base class 
+
+    :class:`~splunklib.client.Collection` base class 
+
+    :class:`~splunklib.client.AlertGroup` class 
+
+    :class:`~splunklib.client.Conf` class 
+
+    :class:`~splunklib.client.Confs` class 
+
+    :class:`~splunklib.client.Stanza` class 
+
+    :class:`~splunklib.client.Index` class 
+
+    :class:`~splunklib.client.Input` class 
+
+    :class:`~splunklib.client.Inputs` class 
+
+    :class:`~splunklib.client.Job` class 
+
+    :class:`~splunklib.client.Jobs` class 
+
+    :class:`~splunklib.client.Loggers` class 
+
+    :class:`~splunklib.client.Message` class 
+
+    :class:`~splunklib.client.SavedSearch` class 
+
+    :class:`~splunklib.client.SavedSearches` class 
+
+    :class:`~splunklib.client.Settings` class 
+
+    :class:`~splunklib.client.Users` class 
+
+    **Exceptions**
+
+    :class:`~splunklib.client.NotSupportedError` class 
+
+    :class:`~splunklib.client.OperationError` class 
+
+
+:doc:`data`
+-----------
+
+    :func:`~splunklib.data.load` function
+
+    :func:`~splunklib.data.record` function
+
+    :class:`~splunklib.data.Record` class 
+
+:doc:`results`
+--------------
+
+    :class:`~splunklib.results.ResultsReader` class 

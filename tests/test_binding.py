@@ -201,7 +201,7 @@ class TestCase(testlib.TestCase):
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
-        path = context._abspath("foo", owner="me", app="MyApp", sharing=None)
+        path = context._abspath("foo", owner="me", app="MyApp", sharing="user")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
@@ -238,6 +238,7 @@ class TestCase(testlib.TestCase):
 
         context = binding.connect(owner="me", **kwargs)
         path = context._abspath("foo")
+        print context.namespace
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/-/foo")
 
@@ -252,7 +253,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
-            owner="me", app="MyApp", sharing=None, **kwargs)
+            owner="me", app="MyApp", sharing="user", **kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
@@ -411,6 +412,7 @@ class TestCase(testlib.TestCase):
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
             for k, v in expected.iteritems():
+                print (k,v)
                 self.assertEqual(namespace[k], v)
 
         with self.assertRaises(ValueError):

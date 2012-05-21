@@ -202,7 +202,7 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     return UrlEncoded("%s://%s:%s" % (scheme, host, port), skip_encode=True)
 
 # kwargs: sharing, owner, app
-def namespace(sharing="user", owner=None, app=None, **kwargs):
+def namespace(sharing=None, owner=None, app=None, **kwargs):
     """Construct a Splunk namespace.
 
     Every Splunk resource belongs to a namespace. The namespace is specified by
@@ -253,34 +253,56 @@ def namespace(sharing="user", owner=None, app=None, **kwargs):
         return record({'sharing': sharing, 'owner': "nobody", 'app': "system" })
     if sharing in ["global", "app"]:
         return record({'sharing': sharing, 'owner': "nobody", 'app': app})
-    if sharing in ["user"]:
+    if sharing in ["user", None]:
         return record({'sharing': sharing, 'owner': owner, 'app': app})
     raise ValueError("Invalid value for argument: 'sharing'")
 
 class Context(object):
-    """This class provides a binding context to a corresponding Splunk service
-    that can be used to issue HTTP requests.
-            
-    A context also captures an optional namespace context consisting of an
-    optional owner name (or "-" wildcard) and optional app name (or "-" 
-    wildcard). To use the :class:`Context` class, the instance must be
-    authenticated by presenting credentials using the :meth:`login` method
-    or by constructing the instance using the :func:`connect` function, which
-    both creates and authenticates the instance.
+    """A context encapsulating a splunkd connection.
 
-    :param `host`: The host name (the default is *localhost*).
-    :param `port`: The port number (the default is *8089*).
-    :param `scheme`: The scheme for accessing the service (the default is 
-                     *https*).
-    :param `owner`: The owner namespace (optional).
-    :param `app`: The app context (optional).
-    :param `token`: The current session token (optional). Session tokens can be 
-                    shared across multiple service instances.
-    :param `username`: The Splunk account username, which is used to 
-                       authenticate the Splunk instance.
-    :param `password`: The password, which is used to authenticate the Splunk 
-                       instance.
-    :param `handler`: The HTTP request handler (optional).
+    ``Context`` encapsulates the details of HTTP requests,
+    authentication, a default namespace, and URL prefixes to make
+    access to the raw REST API simple.
+            
+    After creating a ``Context``, you must call its :meth:`login`
+    method before you can issue useful requests to splunkd.
+    Alternately, use the :func:`connect` function to create a
+    ``Context`` object, which both creates and authenticates the
+    instance. Or you may provide a session token explicitly (the same
+    token may be shared by multiple ``Context``s), which provides
+    authentication.
+
+
+
+    :param host: The host name (default: ``"localhost"``).
+    :type host: string
+    :param port: The port number (default: 8089).
+    :type port: integer
+    :param scheme: The scheme for accessing the service (default: ``"https"``)
+    :type scheme: ``"https"`` or ``"http"``
+    :param sharing: The sharing type of the ``Context``'s namespace (default: ``"user"``)
+    :type sharing: ``"global"``, ``"system"``, ``"app"``, or ``"user"``.
+    :param owner: The owner namespace (optional).
+    :type owner: string or ``None``
+    :param app: The app context (optional).
+    :type app: string or ``None``
+    :param token: A session token. If provided, you don't need to call :meth:`login`.
+    :param username: A username to authenticate as on the Splunk instance.
+    :type username: string
+    :param password: The password for the user to authenticate as.
+    :type password: string
+    :param handler: The HTTP request handler (optional).
+    :returns: A ``Context`` instance.
+
+    **Example**::
+
+        import splunklib.binding as binding
+        c = binding.Context(username="boris", password="natasha", ...)
+        c.login()
+        # Or equivalently
+        c = binding.connect(username="boris", password="natasha")
+        # Of if you already have a session token
+        c = binding.Context(token="atg232342aa34324a")
     """
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
@@ -297,29 +319,56 @@ class Context(object):
     # Shared per-context request headers
     @property
     def _auth_headers(self):
+        """Headers required to authenticate a request.
+
+        Assumes your ``Context`` already has a authentication token,
+        either provided explicitly or obtained by logging into the
+        Splunk instance.
+
+        :returns: A list of 2-tuples containing key and value
+        """
         return [("Authorization", self.token)]
 
     def connect(self):
-        """Returns an open connection (socket) to the service."""
+        """Returns an open connection (socket) to the Splunk instance.
+
+        This is used for writing bulk events to an index or similar
+        tasks where the overhead of opening a connection multiple
+        times would be prohibitive.
+
+        :returns: A socket
+
+        **Example**::
+
+            import splunklib.binding as binding
+            c = binding.connect(...)
+            socket = c.connect()
+            socket.write("POST %s HTTP/1.1\r\n" % c._abspath("some/path/to/post/to"))
+            socket.write("Host: %s:%s\r\n" % (c.host, c.port))
+            socket.write("Accept-Encoding: identity\r\n")
+            socket.write("Authorization: %s\r\n" % c.token)
+            socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+            socket.write("\r\n")
+        """
         cn = socket.create_connection((self.host, int(self.port)))
         return ssl.wrap_socket(cn) if self.scheme == "https" else cn
 
-    def handle_authentication(self, request_fun):
+    def _authentication(self, request_fun):
         """Wrapper to handle autologin and authentication errors.
 
         *request_fun* is a function taking no arguments that needs to
         be run with this ``Context`` logged into Splunk.
 
-        ``handle_authentication``'s behavior depends on whether the
+        ``_authentication``'s behavior depends on whether the
         ``autologin`` field of ``Context`` is set to ``True`` or
-        ``False``. If it's ``False``, then ``handle_authentication``
+        ``False``. If it's ``False``, then ``_authentication``
         aborts if the ``Context`` is not logged in, and raises an
         ``AuthenticationError`` if an ``HTTPError`` of status 401 is
         raised in *request_fun*. If it's ``True``, then
-        ``handle_authentication`` will try at all sensible places to
+        ``_authentication`` will try at all sensible places to
         log in before issuing the request.
 
-        If ``autologin`` is ``False``, ``handle_authentication`` makes
+        If ``autologin`` is ``False``, ``_authentication`` makes
         one roundtrip to the server if the ``Context`` is logged in,
         or zero if it is not. If ``autologin`` is ``True``, it's less
         deterministic, and may make at most three roundtrips (though
@@ -336,7 +385,7 @@ class Context(object):
             def f():
                 c.get("/services")
                 return 42
-            print handle_authentication(f)
+            print _authentication(f)
         """
         if self.token is None:
             # Not yet logged in.
@@ -408,7 +457,7 @@ class Context(object):
             path = self.authority + self._abspath(path_segment, owner=owner,
                                                   app=app, sharing=sharing)
             return self.http.delete(path, self._auth_headers, **query)
-        return self.handle_authentication(f)
+        return self._authentication(f)
 
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
@@ -455,7 +504,7 @@ class Context(object):
             path = self.authority + self._abspath(path_segment, owner=owner,
                                                   app=app, sharing=sharing)
             return self.http.get(path, self._auth_headers, **query)
-        return self.handle_authentication(f)
+        return self._authentication(f)
 
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
         """POST to *path_segment* with the given namespace and query.
@@ -505,7 +554,7 @@ class Context(object):
             path = self.authority + self._abspath(path_segment, owner=owner, 
                                                   app=app, sharing=sharing)
             return self.http.post(path, self._auth_headers, **query)
-        return self.handle_authentication(f)
+        return self._authentication(f)
 
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
@@ -562,11 +611,26 @@ class Context(object):
                                      {'method': method,
                                       'headers': headers,
                                       'body': body})
-        return self.handle_authentication(f)
+        return self._authentication(f)
 
     def login(self):
-        """Issues a Splunk login request using the context's credentials and
-        stores the session token for use on subsequent requests.
+        """Log into the Splunk instance referred to by this ``Context``.
+
+        Unless a ``Context`` is created with an explicit
+        authentication token (probably obtained by some *other*
+        ``Context`` calling :meth:`login` on the Splunk instance), you
+        need to call :meth:`login` before you can issue useful
+        requests. The authentication token obtained from the server is
+        stored in the ``Context``'s ``token`` field.
+
+        :raises AuthenticationError: if the login fails.
+        :returns: the ``Context`` object, so you can chain calls.
+
+        **Example**::
+
+            import splunklib.binding as binding
+            c = binding.Context(...).login()
+            # Then issue requests...
         """
         try:
             response = self.http.post(
@@ -584,7 +648,7 @@ class Context(object):
                 raise
 
     def logout(self):
-        """Forgets the current session token."""
+        """Forget the current session token."""
         self.token = None
         return self
 
@@ -649,26 +713,43 @@ class Context(object):
         aname = "-" if ns.app is None else ns.app
         return UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment))
 
-# kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
-    """Establishes an authenticated context with the host.
+    """Return an authenticated ``Context`` object.
+
+    This is a shorthand for ``Context(...).login()``.
 
     This function makes one round trip to the server.
 
     :param host: The host name (default: ``"localhost"``).
+    :type host: string
     :param port: The port number (default: 8089).
+    :type port: integer
     :param scheme: The scheme for accessing the service (default: ``"https"``).
-    :param owner: The owner namespace (optional).
-    :param app: The app context (optional).
+    :type scheme: ``"https"`` or ``"http"``
+    :param sharing: The sharing for the ``Context``'s namespace (default: ``"user"``)
+    :type sharing: ``"global"``, ``"system"``, ``"app"``, or ``"user"``.
+    :param owner: The owner namespace (default: None).
+    :type owner: string or ``None``
+    :param app: The app context (default: None).
+    :type app: string or ``None``
     :param token: The current session token (optional). Session tokens can be 
                   shared across multiple service instances.
+    :type token: string
     :param username: The Splunk account username, which is used to 
                      authenticate the Splunk instance.
+    :type username: string
     :param password: The password, which is used to authenticate the Splunk 
                      instance.
+    :type password: string
     :param autologin: Try to automatically log in again if the session terminates.
     :type autologin: boolean
     :return: An initialized :class:`Context` instance.
+
+    **Example**::
+
+        import splunklib.binding as binding
+        c = binding.connect(...)
+        response = c.get("apps/local")
     """
     return Context(**kwargs).login() 
 

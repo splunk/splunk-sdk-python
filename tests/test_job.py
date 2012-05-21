@@ -103,7 +103,7 @@ class TestCase(testlib.TestCase):
         # Search for non-existant data
         job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
         testlib.wait(job, lambda job: job['isDone'] == '1')
-        r = results.ResultsReader(job.results_preview())
+        r = results.ResultsReader(job.preview())
         self.assertEqual(job['isDone'], '1')
         self.assertEqual(job['eventCount'], '0')
         job.finalize()

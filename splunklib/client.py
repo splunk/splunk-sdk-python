@@ -1235,17 +1235,6 @@ class Job(Entity):
         self.post("control", action="pause")
         return self
 
-    def preview(self, **kwargs):
-        """Returns the InputStream IO handle to the preview results for this 
-        job.
-
-        :param `kwargs`: Additional preview arguments (optional). For details, 
-                         see the `GET search/jobs/{search_id}/results_preview 
-                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
-                         endpoint in the REST API documentation.
-        """
-        return self.get("results_preview", **kwargs).body
-
     def read(self):
         """Returns the job's current state record, corresponding to the
         current state of the server-side resource."""
@@ -1318,7 +1307,7 @@ class Job(Entity):
                     return response.body
                     
 
-    def results_preview(self, **query_params):
+    def preview(self, **query_params):
         """Fetch an InputStream IO handle of preview search results.
 
         Unlike ``results``, which requires a job to be finished to
@@ -1344,6 +1333,10 @@ class Job(Entity):
 
         This method makes one roundtrip to the server, plus at most
         two more if autologin is turned on.
+
+        :param query_params: Additional arguments to past to the REST endpoint. See see the `GET search/jobs/{search_id}/results_preview 
+                         <http://docs.splunk.com/Documentation/Splunk/4.2.4/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
+                             endpoint in the REST API documentation.
         """
         response = self.get("results_preview", **query_params)
         if response.status == 204:

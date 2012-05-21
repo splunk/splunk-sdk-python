@@ -118,6 +118,7 @@ class ResultsReader(object):
                     elif event == 'end':
                         yield result
                         result = None
+                        elem.clear()
     
                 elif elem.tag == 'field' and result is not None:
                     # We need the 'result is not None' check because
@@ -132,15 +133,23 @@ class ResultsReader(object):
                             result[field_name] = values[0]
                         else:
                             result[field_name] = values
+                        # Calling .clear() is necessary to let the
+                        # element be garbage collected. Otherwise
+                        # arbitrarily large results sets will use
+                        # arbitrarily large memory intead of
+                        # streaming.
+                        elem.clear()
     
                 elif elem.tag == 'text' and event == 'end':
                     values.append(elem.text.encode('utf8'))
+                    elem.clear()
     
                 elif elem.tag == 'msg':
                     if event == 'start':
                         msg_type = elem.attribs['type']
                     elif event == 'end':
                         yield Message(msg_type, elem.text.encode('utf8'))
+                        elem.clear()
         except et.ParseError as pe:
             # This is here to handle the same incorrect return from
             # splunk that is described in __init__.

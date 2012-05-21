@@ -1639,20 +1639,35 @@ class Users(Collection):
     def contains(self, name):
         return Collection.contains(self, name.lower())
 
-    def create(self, name, **params):
-        """Create a new entity in this collection.
+    def create(self, username, password, roles, **params):
+        """Create a new user.
 
-        :param name: The name of the entity to create.
-        :type name: string
-        :param params: Additional entity-specific arguments (optional).
-        :return: The new entity.
-        :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
+        This function makes two roundtrips to the server, plus at most
+        two more if autologin is turned on.
+
+        :param username: Username for the new user.
+        :type username: string
+        :param password: Password for the new user.
+        :type password: string
+        :param roles: A single role or list of roles for the user.
+        :type roles: string or list of strings
+        :param params: Optional parameters. See the `REST API documentation<http://docs/Documentation/Splunk/4.3.2/RESTAPI/RESTaccess#POST_authentication.2Fusers>`_.
+        :return: A reference to the new user.
+        :rtype: ``Entity``
+
+        **Example**:
+
+            import splunklib.client as client
+            c = client.connect(...)
+            users = c.users
+            boris = users.create("boris", "securepassword", roles="user")
+            hilda = users.create("hilda", "anotherpassword", roles=["user","power"])
         """
-        if not isinstance(name, basestring): 
-            raise ValueError("Invalid argument: 'name'")
-        name = name.lower()
-        self.post(name=name, **params)
-        response = self.get(name)
+        if not isinstance(username, basestring): 
+            raise ValueError("Invalid username: %s" % str(username))
+        username = username.lower()
+        self.post(name=username, password=password, roles=roles, **params)
+        response = self.get(username)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
         entity = self.item(

@@ -14,45 +14,17 @@
 
 """A low level binding to Splunk's REST API.
 
-This module contains a low-level *binding* interface to the `Splunk REST API
+This module contains a low-level *binding* interface to the `Splunk
+REST API
 <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_.
+It handles the wire details of calling the REST API: authentication
+tokens, prefix paths, URL encoding, and other such sundries. Actual
+path segments, GET and POST arguments, and the parsing of responses is
+left to the user.
 
-This module is designed to enable client-side interaction with the Splunk
-REST API at the level of HTTP requests and responses, and it provides simple
-helpers for things like Splunk authentication and the use of Splunk namespaces.
-
-This module is specifically designed to be lightweight and faithful to the 
-underlying Splunk REST API. If you want a friendlier interface to the Splunk 
-REST API, consider using the :mod:`splunklib.client` module.
+If you want a friendlier interface to the Splunk REST API, consider
+using the :mod:`splunklib.client` module.
 """
-
-#
-# A note on namespaces:
-#
-# Every Splunk resource belongs to a namespace. The namespace is specified by
-# the pair of values `owner` and `app` and is governed by a `sharing` mode. 
-# The possible values for `sharing` are: "user", "app", "global" and "system", 
-# which map to the following combinations of `owner` and `app` values.
-#
-#     `user`   => {owner}, {app}
-#     `app`    => nobody, {app}
-#     `global` => nobody, {app}
-#     `system` => nobody, system
-#
-# `nobody` is a special user name that basically means no-user and `system` is 
-# the name reserved for system resources.
-#
-# "-" is a wildcard that can be used for both `owner` and `app` values and
-# refers to all users and all apps, respectively.
-#
-# In general, when you specify a namespace you can specify any combination of 
-# these three values and the library will reconcile the triple, overriding the
-# provided values as appropriate.
-#
-# Finally, if no namespacing is specified the library will make use of the
-# `/services` branch of the REST API which provides a namespaced view of
-# Splunk resources equivelent to using owner={currentUser} and app={defaultApp}
-#
 
 import httplib
 import socket
@@ -66,10 +38,12 @@ from xml.etree.ElementTree import XML
 from splunklib.data import record
 
 __all__ = [
+    "AuthenticationError",
     "connect",
     "Context",
     "handler",
     "HTTPError",
+    "UrlEncoded"
 ]
 
 # If you change these, update the docstring 
@@ -107,7 +81,13 @@ class UrlEncoded(str):
     ``skip_encode=True``, as in::
 
         import urllib
-        UrlEncode('%s://%s' % (scheme, urllib.quote(host)), skip_encode=True)
+        UrlEncoded('%s://%s' % (scheme, urllib.quote(host)), skip_encode=True)
+
+    You can append strings and ``UrlEncoded``s in the way you would
+    expect, and all strings so appended will be ``UrlEncoded``::
+
+        UrlEncoded('ab c') + 'de f' == UrlEncoded('ab cde f')
+        'ab c' + UrlEncoded('de f') == UrlEncoded('ab cde f')
     """
     def __new__(self, val='', skip_encode=False):
         if isinstance(val, UrlEncoded):
@@ -122,18 +102,33 @@ class UrlEncoded(str):
             return str.__new__(self, urllib.quote(val))
 
     def __add__(self, other):
+        """self + other
+
+        If *other* is not a ``UrlEncoded``, URL encode it before
+        adding it.
+        """
         if isinstance(other, UrlEncoded):
             return UrlEncoded(str.__add__(self, other), skip_encode=True)
         else:
             return UrlEncoded(str.__add__(self, urllib.quote(other)), skip_encode=True)
 
     def __radd__(self, other):
+        """other + self
+
+        If *other* is not a ``UrlEncoded``, URL encode it before
+        adding it.
+        """
         if isinstance(other, UrlEncoded):
             return UrlEncoded(str.__radd__(self, other), skip_encode=True)
         else:
             return UrlEncoded(str.__add__(urllib.quote(other), self), skip_encode=True)
 
     def __mod__(self, fields):
+        """Interpolation into ``UrlEncoded``s is disabled.
+
+        If you try to write ``UrlEncoded("%s") % "abc"``, will get a
+        ``TypeError``.
+        """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
 
 @contextmanager
@@ -207,31 +202,59 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     return UrlEncoded("%s://%s:%s" % (scheme, host, port), skip_encode=True)
 
 # kwargs: sharing, owner, app
-def namespace(**kwargs):
-    """Returns a reconciled dictionary of namespace values built from the 
-    arguments you provide.
+def namespace(sharing="user", owner=None, app=None, **kwargs):
+    """Construct a Splunk namespace.
 
-    :param `sharing`: The sharing mode: *system*, *global*, *app*, or *user*
-                      (the default is *user*). 
-    :param `owner`: The owner context (optional).
-    :param `app`: The app context (optional).
+    Every Splunk resource belongs to a namespace. The namespace is specified by
+    the pair of values ``owner`` and ``app`` and is governed by a ``sharing`` mode. 
+    The possible values for ``sharing`` are: "user", "app", "global" and "system", 
+    which map to the following combinations of ``owner`` and ``app`` values.::
+    
+    - ``user``   => {owner}, {app}
+    - ``app``    => nobody, {app}
+    - ``global`` => nobody, {app}
+    - ``system`` => nobody, system
+
+    ``nobody`` is a special user name that basically means no-user and ``system`` is 
+    the name reserved for system resources.
+
+    ``"-"`` is a wildcard that can be used for both ``owner`` and ``app`` values and
+    refers to all users and all apps, respectively.
+
+    In general, when you specify a namespace you can specify any combination of 
+    these three values and the library will reconcile the triple, overriding the
+    provided values as appropriate.
+
+    Finally, if no namespacing is specified the library will make use of the
+    ``/services`` branch of the REST API which provides a namespaced view of
+    Splunk resources equivelent to using owner={currentUser} and app={defaultApp}.
+
+    ``namespace`` returns a representation of the namespace from
+    reconciling the values you provide. It will ignore any keyword
+    arguments you give it besides *sharing*, *owner*, and *app*, so
+    you can drop dicts of configuration information on it wholecloth
+    rather than having to pull out individual keys.
+
+    :param sharing: The sharing mode (default: ``"user"``)
+    :type sharing: ``"system"``, ``"global"``, ``"app"``, or ``"user"``
+    :param owner: The owner context (default: ``None``).
+    :type owner: string
+    :param app: The app context (default: ``None``).
+    :type app: string
+    :returns: A Record containing the reconciled namespace.
+
+    **Example**::
+
+        import splunklib.binding as binding
+        n = binding.namespace(sharing="user", owner="boris", app="search")
+        n = binding.namespace(sharing="global", app="search")
     """
-    sharing = kwargs.get('sharing', None)
     if sharing in ["system"]:
-        return record({
-            'sharing': sharing, 
-                'owner': "nobody", 
-            'app': "system" })
+        return record({'sharing': sharing, 'owner': "nobody", 'app': "system" })
     if sharing in ["global", "app"]:
-        return record({ 
-            'sharing': sharing, 
-                'owner': "nobody", 
-            'app': kwargs.get('app', None)})
-    if sharing in ["user", None]:
-        return record({
-            'sharing': sharing, 
-                'owner': kwargs.get('owner', None),
-            'app': kwargs.get('app', None)})
+        return record({'sharing': sharing, 'owner': "nobody", 'app': app})
+    if sharing in ["user"]:
+        return record({'sharing': sharing, 'owner': owner, 'app': app})
     raise ValueError("Invalid value for argument: 'sharing'")
 
 class Context(object):

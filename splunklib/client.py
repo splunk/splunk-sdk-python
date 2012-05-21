@@ -1420,6 +1420,46 @@ class Jobs(Collection):
         sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
 
+    def export(self, query, **params):
+        """Run a search and immediately start streaming preview events.
+
+        Returns an InputStream over the events. The InputStream
+        streams XML fragments from the server. The SDK provides
+        ``results.ResultsReader`` to lazily parse this stream into
+        usable Python objects. For example::
+
+            import splunklib.client as client
+            import splunklib.results as results
+            s = client.connect(...)
+            r = results.ResultsReader(s.jobs.export("search * | head 5"))
+            assert r.is_preview == False # The job is finished when we get here
+            for kind, event in r:
+                assert kind == 'RESULT'
+                # events are returned as dicts with strings as values.
+                print event 
+
+        ``export`` makes a single roundtrip to the server (as opposed
+        to two for create followed by preview), plus at most two more
+        if autologin is turned on.
+
+        :raises SyntaxError: on invalid queries.
+
+        :param query: Splunk search language query to run
+        :type query: ``str``
+        :param params: Additional arguments to export (see the `REST API docs <http://docs/Documentation/Splunk/4.3.2/RESTAPI/RESTsearch#search.2Fjobs.2Fexport>`_).
+        :returns: InputStream over raw XML returned from the server.
+        """
+        if "exec_mode" in params:
+            raise TypeError("Cannot specify an exec_mode to export.")
+        try:
+            return self.post(path_segment="export", search=query, **params).body
+        except HTTPError as he:
+            if he.status == 400 and 'Search operation' in str(he):
+                raise SyntaxError(str(he))
+            else:
+                raise
+
+
     def oneshot(self, query, **params):
         """Run a search and directly return an InputStream IO handle over the results.
 

@@ -12,7 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module contains a low-level *binding* interface to the `Splunk REST API
+"""A low level binding to Splunk's REST API.
+
+This module contains a low-level *binding* interface to the `Splunk REST API
 <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_.
 
 This module is designed to enable client-side interaction with the Splunk
@@ -218,17 +220,17 @@ def namespace(**kwargs):
     if sharing in ["system"]:
         return record({
             'sharing': sharing, 
-            'owner': "nobody", 
+                'owner': "nobody", 
             'app': "system" })
     if sharing in ["global", "app"]:
         return record({ 
             'sharing': sharing, 
-            'owner': "nobody", 
+                'owner': "nobody", 
             'app': kwargs.get('app', None)})
     if sharing in ["user", None]:
         return record({
             'sharing': sharing, 
-            'owner': kwargs.get('owner', None),
+                'owner': kwargs.get('owner', None),
             'app': kwargs.get('app', None)})
     raise ValueError("Invalid value for argument: 'sharing'")
 

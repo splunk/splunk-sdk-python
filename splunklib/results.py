@@ -36,6 +36,10 @@ except:
     import xml.etree.ElementTree as et
 
 from collections import OrderedDict
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 
 __all__ = [
     "ResultsReader",
@@ -43,11 +47,90 @@ __all__ = [
 ]
 
 class Message(object):
+    """Messages returned splunkd's XML.
+
+    **Example**::
+
+        m = Message("DEBUG", "There's something in that variable...")
+    """
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
     def __repr__(self):
-        print "%s: %s" % (type, message)
+        return "%s: %s" % (self.type, self.message)
+
+class ConcatenatedStream(object):
+    """Lazily concatenate zero or more streams into a stream.
+
+    As you read from the concatenated stream, you get characters from
+    each stream passed to ``ConcatenatedStream``, in order.
+
+    **Example**:
+
+        from StringIO import StringIO
+        s = ConcatenatedStream(StringIO("abc"), StringIO("def"))
+        assert s.read() == "abcdef"
+    """
+    def __init__(self, *streams):
+        self.streams = list(streams)
+
+    def read(self, n=None):
+        """Read at most *n* characters from this stream.
+
+        If *n* is ``None``, return all available characters.
+        """
+        response = ""
+        while len(self.streams) > 0 and (n is None or n > 0):
+            txt = self.streams[0].read(n)
+            response += txt
+            if n is not None:
+                n -= len(txt)
+            if n > 0 or n is None:
+                del self.streams[0]
+        return response
+
+class XMLDTDFilter(object):
+    """Lazily remove all XML DTDs from a stream.
+
+    All substrings matching the regular expression <?[^>]*> are
+    removed in their entirety from the stream. No regular expressions
+    are used, however, so everything still streams properly.
+
+    **Example**::
+
+        from StringIO import StringIO
+        s = XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
+        assert s.read() == "<element></element>"
+    """
+    def __init__(self, stream):
+        self.stream = stream
+
+    def read(self, n=None):
+        """Read at most *n* characters from this stream.
+
+        If *n* is ``None``, return all available characters.
+        """
+        response = ""
+        while n is None or n > 0:
+            c = self.stream.read(1)
+            if c == "":
+                break
+            elif c == "<":
+                c += self.stream.read(1)
+                if c == "<?":
+                    while True:
+                        q = self.stream.read(1)
+                        if q == ">":
+                            break
+                else:
+                    response += c
+                    if n is not None:
+                        n -= len(c)
+            else:
+                response += c
+                if n is not None:
+                    n -= 1
+        return response
 
 class ResultsReader(object):
     """Lazily yield dicts from a streaming XML results stream.
@@ -84,15 +167,26 @@ class ResultsReader(object):
     # function creating that generator. Thus it's all wrapped up for
     # the sake of one field.
     def __init__(self, stream):
-            self._gen = self.parse_results(stream)
-            # splunkd 4.3 returns an empty response body instead of a
-            # results element with no result elements inside. There is
-            # no good way to handle it other than failing out and
-            # trying to get to a sane state.
-            try:
-                self.is_preview = self._gen.next()
-            except StopIteration:
-                self.is_preview = None
+        # The search/jobs/exports endpoint, when run with
+        # earliest_time=rt and latest_time=rt streams a sequence of
+        # XML documents, each containing a result, as opposed to one
+        # results element containing lots of results. Python's XML
+        # parsers are broken, and instead of reading one full document
+        # and returning the stream that follows untouched, they
+        # destroy the stream and throw an error. To get around this,
+        # we remove all the DTD definitions inline, then wrap the
+        # fragments in a fiction <doc> element to make the parser happy.
+        stream = XMLDTDFilter(stream)
+        stream = ConcatenatedStream(StringIO("<doc>"), stream, StringIO("</doc>"))
+        self._gen = self.parse_results(stream)
+        # splunkd 4.3 returns an empty response body instead of a
+        # results element with no result elements inside. There is
+        # no good way to handle it other than failing out and
+        # trying to get to a sane state.
+        try:
+            self.is_preview = self._gen.next()
+        except StopIteration:
+            self.is_preview = None
 
     def __iter__(self):
         return self
@@ -146,7 +240,7 @@ class ResultsReader(object):
     
                 elif elem.tag == 'msg':
                     if event == 'start':
-                        msg_type = elem.attribs['type']
+                        msg_type = elem.attrib['type']
                     elif event == 'end':
                         yield Message(msg_type, elem.text.encode('utf8'))
                         elem.clear()
@@ -157,6 +251,7 @@ class ResultsReader(object):
                 return
             else:
                 raise
+
 
 
 

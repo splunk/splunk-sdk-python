@@ -90,7 +90,16 @@ class TestCase(testlib.TestCase):
         self.assertTrue(isinstance(result.next(), dict))
         self.assertTrue(len(list(result)) <= 3)
         
+        result = results.ResultsReader(jobs.export("search index=_internal earliest=-1m | head 3"))
+        self.assertEqual(result.is_preview, False)
+        d = result.next()
+        print d
+        self.assertTrue(isinstance(d, dict) or isinstance(d, results.Message))
+        self.assertTrue(len(list(d for d in result if isinstance(d, dict))) <= 3)
+
         self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
+
+        self.assertRaises(SyntaxError, jobs.export, "asdaf;lkj2r23=")
 
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests earliest=-1m | head 1")
@@ -175,6 +184,31 @@ class TestCase(testlib.TestCase):
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(int(result["count"]), 1)
+
+    def test_results_reader(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('streaming_results.xml') as input:
+            reader = results.ResultsReader(input)
+            print reader.next()
+            self.assertTrue(isinstance(reader.next(), dict))
+
+    def test_xmldtd_filter(self):
+        from StringIO import StringIO
+        s = results.XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
+        self.assertEqual(s.read(3), "<bo")
+        self.assertEqual(s.read(), "ris>Other stuf</boris> ab")
+
+
+    def test_concatenated_stream(self):
+        from StringIO import StringIO
+        s = results.ConcatenatedStream(StringIO("This is a test "), 
+                                       StringIO("of the emergency broadcast system."))
+        self.assertEqual(s.read(3), "Thi")
+        self.assertEqual(s.read(20), 's is a test of the e')
+        self.assertEqual(s.read(), 'mergency broadcast system.')
+            
 
 if __name__ == "__main__":
     testlib.main()

@@ -12,10 +12,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module provides an Atom Feed response loader.
+"""Code to read response from splunkd in Atom Feed format.
 
-A simple :func:`load` utility reads Atom Feed XML data (the format returned by
-the Splunk REST API), and converts it to a native Python dictionary or list.
+The Splunk REST API largely returns Atom (except in a few places where
+there are historical inconsistencies that will be ironed out in future
+versions).
+
+This module provides one function, :func:`load`, which reads a string
+containing the XML of an Atom Feed and returns a dictionary or list
+containing the corresponding data.
 """
 
 from xml.etree.ElementTree import XML
@@ -56,14 +61,16 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Loads XML text into a native Python structure (*dict* or *list*). If you
-    provide an optional **match** string (a tag name or path), only the matching
-    sub-elements are loaded. 
+    """Extract Python data structures from Atom XML in the string *text*.
 
-    :param `text`: The XML text to load.
-    :type `text`: string
-    :param `match`: A tag name or path to match (optional).
-    :type `match`: string
+    Loads XML text into a native Python structure (`dict` or `list`).
+    If you provide an optional *match* string (a tag name or path),
+    only the matching sub-elements are loaded.
+
+    :param text: The XML text to load.
+    :type text: string
+    :param match: A tag name or path to match (optional).
+    :type match: string
     """
     if text is None: return None
     text = text.strip()

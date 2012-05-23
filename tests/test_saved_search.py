@@ -191,7 +191,7 @@ class TestCase(testlib.TestCase):
         self.assertTrue('sdk-test1' in saved_searches)
 
         job = saved_search.dispatch()
-        job.results_preview().close()
+        job.preview().close()
         job.cancel()
 
         # Dispatch with some additional options

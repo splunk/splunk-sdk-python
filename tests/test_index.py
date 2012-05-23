@@ -21,6 +21,14 @@ import testlib
 import splunklib.client as client
 
 class TestCase(testlib.TestCase):
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        self.service = client.connect(**self.opts.kwargs)
+        if not self.service.indexes.contains("sdk-tests"):
+            self.service.indexes.create("sdk-tests")
+        self.assertTrue(self.service.indexes.contains("sdk-tests"))
+        self.index = self.service.indexes['sdk-tests']
+
     def check_index(self, index):
         self.check_entity(index)
         keys = [
@@ -42,54 +50,49 @@ class TestCase(testlib.TestCase):
         for key in keys: self.assertTrue(key in index.content)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for index in service.indexes: 
+        for index in self.service.indexes: 
             self.check_index(index)
             index.refresh()
             self.check_index(index)
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+    def test_disable(self):
+        self.index.disable()
+        self.index.refresh()
+        self.assertEqual(self.index['disabled'], '1')
 
-        if not service.indexes.contains("sdk-tests"):
-            service.indexes.create("sdk-tests")
-        self.assertTrue(service.indexes.contains("sdk-tests"))
+    def test_enable(self):
+        self.index.enable()
+        self.index.refresh()
+        self.assertEqual(self.index['disabled'], '0')
 
-        index = service.indexes['sdk-tests']
+    def test_clean(self):
+        self.index.clean()
+        self.index.refresh()
+        self.assertEqual(self.index['totalEventCount'], '0')
 
-        index.disable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '1')
-
-        index.enable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '0')
-            
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
-
-        cn = index.attach()
-        cn.write("Hello World!")
+    def test_attach(self):
+        self.index.refresh()
+        count = int(self.index['totalEventCount'])
+        cn = self.index.attach()
+        cn.send("Hello Boris!\r\n")
         cn.close()
-        testlib.wait(index, lambda index: index['totalEventCount'] == '1')
-        self.assertEqual(index['totalEventCount'], '1')
+        print count
+        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1)
 
-        index.submit("Hello again!!")
-        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
-        self.assertEqual(index['totalEventCount'], '2')
+    def test_submit(self):
+        self.index.refresh()
+        count = int(self.index['totalEventCount'])
+        self.index.submit("Hello again!")
+        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1, timeout=60)
 
+    def test_upload(self):
         # The following test must run on machine where splunkd runs,
         # otherwise a failure is expected
+        self.index.refresh()
+        count = int(self.index['totalEventCount'])
         testpath = path.dirname(path.abspath(__file__))
-        index.upload(path.join(testpath, "testfile.txt"))
-        testlib.wait(index, lambda index: index['totalEventCount'] == '3')
-        self.assertEqual(index['totalEventCount'], '3')
-
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
+        self.index.upload(path.join(testpath, "testfile.txt"))
+        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1, timeout=60)
 
 if __name__ == "__main__":
     testlib.main()

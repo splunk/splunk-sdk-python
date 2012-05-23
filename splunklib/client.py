@@ -70,6 +70,8 @@ PATH_ROLES = "authentication/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
+PATH_RECEIVERS_STREAM = "receivers/stream"
+PATH_RECEIVERS_SIMPLE = "receivers/simple"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"
 XNAME_ENTRY = XNAMEF_ATOM % "entry"
@@ -297,7 +299,7 @@ class Service(Context):
     @property
     def roles(self):
         """Returns a collection of user roles."""
-        return Collection(self, PATH_ROLES)
+        return Roles(self)
 
     def search(self, query, **kwargs):
         return self.jobs.create(query, **kwargs)
@@ -492,9 +494,6 @@ class Entity(Endpoint):
         Endpoint.__init__(self, service, path)
         self._state = None
         self.refresh(kwargs.get('state', None)) # "Prefresh"
-
-    def __call__(self, *args):
-        return self.content(*args)
 
     def __eq__(self, other):
         """Raises IncomparableException.
@@ -991,19 +990,21 @@ class Index(Entity):
         if host is not None: args['host'] = host
         if source is not None: args['source'] = source
         if sourcetype is not None: args['sourcetype'] = sourcetype
-        path = "receivers/stream?%s" % urllib.urlencode(args)
+        path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note
         # the input mode
-        cn = self.service.connect()
-        cn.write("POST %s HTTP/1.1\r\n" % self.service._abspath(path))
-        cn.write("Host: %s:%s\r\n" % (self.service.host, self.service.port))
-        cn.write("Accept-Encoding: identity\r\n")
-        cn.write("Authorization: %s\r\n" % self.service.token)
-        cn.write("X-Splunk-Input-Mode: Streaming\r\n")
-        cn.write("\r\n")
-        return cn
+        sock = self.service.connect()
+        headers = ["POST %s HTTP/1.1\r\n" % self.service._abspath(path),
+                   "Host: %s:%s\r\n" % (self.service.host, int(self.service.port)),
+                   "Accept-Encoding: identity\r\n",
+                   "Authorization: %s\r\n" % self.service.token,
+                   "X-Splunk-Input-Mode: Streaming\r\n",
+                   "\r\n"]
+        for h in headers:
+            sock.write(h)
+        return sock
 
     def clean(self, timeout=60):
         """Deletes the contents of the index.
@@ -1011,7 +1012,9 @@ class Index(Entity):
         :param `timeout`: The time-out period for the operation, in seconds (the
                           default is 60).
         """
-        saved = self.refresh()('maxTotalDataSizeMB', 'frozenTimePeriodInSecs')
+        self.refresh()
+        tds = self['maxTotalDataSizeMB']
+        ftp = self['frozenTimePeriodInSecs']
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
         self.roll_hot_buckets()
 
@@ -1022,7 +1025,9 @@ class Index(Entity):
             count += 1
             self.refresh()
 
-        self.update(**saved) # Restore original values
+        # Restore original values
+        self.update(maxTotalDataSizeMB=tds,
+                    frozenTimePeriodInSecs=ftp)
         if self.content.totalEventCount != '0':
             raise OperationError, "Operation timed out."
         return self
@@ -1033,7 +1038,7 @@ class Index(Entity):
         return self
 
     def submit(self, event, host=None, source=None, sourcetype=None):
-        """Submits an event to the index using ``HTTP POST``.
+        """Submit a single event to the index using ``HTTP POST``.
 
         :param `host`: The host value of the event.
         :param `source`: The source value of the event.
@@ -1048,7 +1053,7 @@ class Index(Entity):
         # is that we are not sending a POST request encoded using 
         # x-www-form-urlencoded (as we do not have a key=value body),
         # because we aren't really sending a "form".
-        path = UrlEncoded("receivers/simple?%s" % urllib.urlencode(args), skip_encode=True)
+        path = UrlEncoded(PATH_RECEIVERS_SIMPLE + "?" + urllib.urlencode(args), skip_encode=True)
         self.service.request(path, method="POST", body=event)
         return self
 
@@ -1311,7 +1316,7 @@ class Job(Entity):
         """Fetch an InputStream IO handle of preview search results.
 
         Unlike ``results``, which requires a job to be finished to
-        return any results, ``results_preview`` returns whatever
+        return any results, ``preview`` returns whatever
         Splunk has so far, whether the job is running or not. The
         returned search results are the raw data from the server. Pass
         the handle returned to ``results.ResultsReader`` to get a
@@ -1321,7 +1326,7 @@ class Job(Entity):
             import splunklib.results as results
             s = client.connect(...)
             job = s.jobs.create("search * | head 5")
-            r = results.ResultsReader(job.results_preview())
+            r = results.ResultsReader(job.preview())
             if r.is_preview:
                 print "Preview of a running search job."
             else:
@@ -1636,8 +1641,15 @@ class Users(Collection):
     def __getitem__(self, key):
         return Collection.__getitem__(self, key.lower())
 
+    def __contains__(self, name):
+        return Collection.__contains__(self, name.lower())
+
     def contains(self, name):
-        return Collection.contains(self, name.lower())
+        """Deprecated: Use in operator instead.
+
+        Check if there is a user *name* in this Splunk instance.
+        """
+        return Collection.__contains__(self, name.lower())
 
     def create(self, username, password, roles, **params):
         """Create a new user.
@@ -1667,6 +1679,8 @@ class Users(Collection):
             raise ValueError("Invalid username: %s" % str(username))
         username = username.lower()
         self.post(name=username, password=password, roles=roles, **params)
+        # splunkd doesn't return the user in the POST response body,
+        # so we have to make a second round trip to fetch it.
         response = self.get(username)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
@@ -1678,6 +1692,62 @@ class Users(Collection):
 
     def delete(self, name):
         return Collection.delete(self, name.lower())
+
+class Roles(Collection):
+    """Roles in the Splunk instance."""
+    def __init__(self, service):
+        return Collection.__init__(self, service, PATH_ROLES)
+
+    def __getitem__(self, key):
+        return Collection.__getitem__(self, key.lower())
+
+    def __contains__(self, name):
+        return Collection.__contains__(self, name.lower())
+
+    def contains(self, name):
+        """Deprecated: Use in operator instead.
+
+        Check if there is a user *name* in this Splunk instance.
+        """
+        return Collection.__contains__(self, name.lower())
+
+    def create(self, name, **params):
+        """Create a new role.
+
+        This function makes two roundtrips to the server, plus at most
+        two more if autologin is turned on.
+
+        :param name: Name for the role
+        :type name: string
+        :param params: Optional parameters. See the `REST API documentation<http://docs/Documentation/Splunk/4.3.2/RESTAPI/RESTaccess#POST_authorization.2Froles>`_.
+        :return: A reference to the new role. 
+        :rtype: ``Entity``
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            roles = c.roles
+            paltry = roles.create("paltry", imported_roles="user", defaultApp="search")
+        """
+        if not isinstance(name, basestring): 
+            raise ValueError("Invalid role name: %s" % str(name))
+        name = name.lower()
+        self.post(name=name, **params)
+        # splunkd doesn't return the user in the POST response body,
+        # so we have to make a second round trip to fetch it.
+        response = self.get(name)
+        entry = _load_atom(response, XNAME_ENTRY).entry
+        state = _parse_atom_entry(entry)
+        entity = self.item(
+            self.service,
+            urllib.unquote(state.links.alternate),
+            state=state)
+        return entity
+
+    def delete(self, name):
+        return Collection.delete(self, name.lower())
+
 
 class OperationError(Exception): 
     """Raised for a failed operation, such as a time out."""

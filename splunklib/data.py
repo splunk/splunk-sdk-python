@@ -27,6 +27,8 @@ from xml.etree.ElementTree import XML
 
 __all__ = ["load"]
 
+# LNAME refers to element names without namespaces; XNAME is the same
+# name, but with an XML namespace.
 LNAME_DICT = "dict"
 LNAME_ITEM = "item"
 LNAME_KEY = "key"

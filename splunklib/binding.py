@@ -309,7 +309,7 @@ class Context(object):
         self.token = kwargs.get("token", None)
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
-        self.port = kwargs.get("port", DEFAULT_PORT)
+        self.port = int(kwargs.get("port", DEFAULT_PORT))
         self.authority = _authority(self.scheme, self.host, self.port)
         self.namespace = namespace(**kwargs)
         self.username = kwargs.get("username", "")
@@ -350,8 +350,11 @@ class Context(object):
             socket.write("X-Splunk-Input-Mode: Streaming\r\n")
             socket.write("\r\n")
         """
-        cn = socket.create_connection((self.host, int(self.port)))
-        return ssl.wrap_socket(cn) if self.scheme == "https" else cn
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if self.scheme == "https":
+            sock = ssl.wrap_socket(sock)
+        sock.connect((self.host, self.port))
+        return sock
 
     def _authentication(self, request_fun):
         """Wrapper to handle autologin and authentication errors.
@@ -606,10 +609,21 @@ class Context(object):
             path = self.authority \
                 + self._abspath(path_segment, owner=owner, 
                                 app=app, sharing=sharing)
-            headers = headers + self._auth_headers
+            # all_headers can't be named headers, due to a error in
+            # Python's implementation of closures. In particular:
+            # def f(x):
+            #     def g():
+            #         x = x + "a"
+            #         return x
+            #     return g()
+            # throws UnboundLocalError, claiming that x is not bound.
+            all_headers = headers + self._auth_headers
+            print all_headers
+            print path
+            print body
             return self.http.request(path,
                                      {'method': method,
-                                      'headers': headers,
+                                      'headers': all_headers,
                                       'body': body})
         return self._authentication(f)
 
@@ -687,13 +701,11 @@ class Context(object):
                 '/servicesNS/nobody/system/apps/local/search'
             url = c.authority + c._abspath('apps/local/sharing')
         """
+        skip_encode = isinstance(path_segment, UrlEncoded)
         # If path_segment is absolute, escape all forbidden characters
         # in it and return it.
         if path_segment.startswith('/'):
-            if isinstance(path_segment, UrlEncoded):
-                return path_segment
-            else:
-                return UrlEncoded(path_segment)
+            return UrlEncoded(path_segment, skip_encode=skip_encode)
 
         # path_segment is relative, so we need a namespace to build an
         # absolute path.
@@ -707,11 +719,12 @@ class Context(object):
         # namespace. If only one of app and owner is specified, use
         # '-' for the other.
         if ns.app is None and ns.owner is None:
-            return UrlEncoded("/services/%s" % path_segment)
+            return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
 
         oname = "-" if ns.owner is None else ns.owner
         aname = "-" if ns.app is None else ns.app
-        return UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment))
+        return UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),
+                          skip_encode=skip_encode)
 
 def connect(**kwargs):
     """Return an authenticated ``Context`` object.
@@ -756,16 +769,13 @@ def connect(**kwargs):
 # Note: the error response schema supports multiple messages but we only
 # return the first, although we do return the body so that an exception 
 # handler that wants to read multiple messages can do so.
-def read_error_message(response):
-    body = response.body.read()
-    return body, XML(body).findtext("./messages/msg")
-
 class HTTPError(Exception):
     """This class is raised for HTTP responses that return an error."""
     def __init__(self, response):
         status = response.status
         reason = response.reason
-        body, detail = read_error_message(response)
+        body = response.body.read()
+        detail = XML(body).findtext("./messages/msg")
         message = "HTTP %d %s%s" % (
             status, reason, "" if detail is None else " -- %s" % detail)
         Exception.__init__(self, message) 

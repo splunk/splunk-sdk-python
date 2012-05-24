@@ -54,7 +54,7 @@ __all__ = [
 PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
-PATH_CONFS = "properties/"
+PATH_PROPERTIES = "properties/"
 PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
 PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
 PATH_DEPLOYMENT_SERVERS = "deployment/server/"
@@ -93,10 +93,6 @@ def _filter_content(content, *args):
 def _path(base, name):
     if not base.endswith('/'): base = base + '/'
     return base + name
-
-# Returns a path to the resource corresponding to the given conf name
-def _path_conf(conf):
-    return PATH_CONF % conf
 
 # Load an atom record from the body of the given response
 def _load_atom(response, match=None):
@@ -208,7 +204,7 @@ class Service(Context):
     @property
     def confs(self):
         """Returns a collection of Splunk configurations."""
-        return Confs(self)
+        return Configurations(self)
 
     @property
     def capabilities(self):
@@ -654,7 +650,6 @@ class Entity(Endpoint):
 
     def read(self):
         """Reads the current state of the entity from the server."""
-        response = self.get()
         return self._load_state(self.get())
 
     def reload(self):
@@ -812,6 +807,20 @@ class Collection(Endpoint):
         """
         return len(self.list())
 
+    def _entity_path(self, state):
+        """Calculate the path to an entity to be returned.
+
+        *state* should be the dictionary returned by
+        :func:`_parse_atom_entry`.
+
+        :rtype: string
+        :returns: an absolute path
+        """
+        # This has been factored out so that it can be easily
+        # overloaded by Configurations, which has to switch its
+        # entities' endpoints from its own properties/ to configs/.
+        return urllib.unquote(state.links.alternate)
+
     def _load_list(self, response):
         """Loads an entity list from a response."""
         entries = _load_atom_entries(response)
@@ -821,7 +830,7 @@ class Collection(Endpoint):
             state = _parse_atom_entry(entry)
             entity = self.item(
                 self.service, 
-                urllib.unquote(state.links.alternate),
+                self._entity_path(state),
                 state=state)
             entities.append(entity)
         return entities
@@ -930,25 +939,64 @@ class Collection(Endpoint):
         response = self.get(count=count, **kwargs)
         return self._load_list(response)
 
-class Conf(Collection):
+class ConfigurationFile(Collection):
     """This class contains a single configuration, which is a collection of 
     stanzas."""
-    def __init__(self, service, name):
-        self.name = name
-        Collection.__init__(self, service, _path_conf(name), item=Stanza)
+    # __init__'s arguments must match those of an Entity, not a
+    # Collection, since it is being created as the elements of a
+    # Configurations, which is a Collection subclass.
+    def __init__(self, service, path, **kwargs):
+        assert 'properties' not in path
+        Collection.__init__(self, service, path, item=Stanza)
+        self.name = kwargs['state']['title']
 
-class Confs(Collection):
-    """This class contains a collection of configurations."""
+class Configurations(Collection):
+    """Configuration files of this Splunk instance.
+
+    Splunk's configuration is divided into files, and each file into
+    stanzas. This collection is unusual in that the values in it are
+    themselves collections: ``ConfigurationFile`` objects.
+    """
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_CONFS, 
-            item=lambda service, path, **kwargs:
-                Conf(service, kwargs['state'].title))
+        Collection.__init__(self, service, PATH_PROPERTIES, item=ConfigurationFile)
+        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
+            raise ValueError("Configurations cannot have wildcards in namespace.")
+
+    def __getitem__(self, key):
+        # This has to be overridden because we get multiple values
+        # back as a matter of course, unlike for most other endpoints
+        # where multiple values means a name conflict.
+        try:
+            path = self.service._abspath(PATH_CONF % key)
+            response = self.get(path)
+            entries = self._load_list(response)
+            return entries
+        except HTTPError as he:
+            if he.status == 404: # No entity matching key
+                raise KeyError(key)
+            else:
+                raise
 
     def create(self, name, **kwargs):
+        # This has to be overridden to handle the plumbing of creating
+        # a ConfigurationFile (which is a Collection) instead of some
+        # Entity.
         if not isinstance(name, basestring): 
-            raise ValueError("Invalid argument: 'name'")
-        self.post(__conf=name, **kwargs)
-        return self[name] # UNDONE: Extra round-trip to retrieve entity
+            raise ValueError("Invalid name: %s" % repr(name))
+        response = self.post(__conf=name, **kwargs)
+        if response.status == 303:
+            return self[name]
+        elif response.status == 201:
+            return ConfigurationFile(self.service, PATH_CONF % name, item=Stanza, state={'title': name})
+        else:
+            raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
+
+    def _entity_path(self, state):
+        # Overridden to make all the ConfigurationFile objects
+        # returned refer to the configs/ path instead of the
+        # properties/ path used by Configrations.
+        return self.service._abspath(PATH_CONF % state['title'])
+
 
 class Stanza(Entity):
     """This class contains a single configuration stanza."""

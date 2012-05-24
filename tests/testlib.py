@@ -114,7 +114,6 @@ class TestCase(unittest.TestCase):
         def f(_):
             va = fa()
             vb = fb()
-            print "%s =?= %s" % (va,vb)
             return va == vb
         wait(None, f, timeout)
         self.assertEqual(fa(), fb())

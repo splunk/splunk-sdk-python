@@ -92,7 +92,7 @@ class TestCase(testlib.TestCase):
 
         inputs = service.inputs
 
-        for item in inputs: 
+        for item in inputs:
             self.check_input(item)
             item.refresh()
             self.check_input(item)

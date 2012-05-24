@@ -618,9 +618,6 @@ class Context(object):
             #     return g()
             # throws UnboundLocalError, claiming that x is not bound.
             all_headers = headers + self._auth_headers
-            print all_headers
-            print path
-            print body
             return self.http.request(path,
                                      {'method': method,
                                       'headers': all_headers,

@@ -325,6 +325,7 @@ class Endpoint(object):
     def __init__(self, service, path):
         self.service = service
         self.path = path if path.endswith('/') else path + '/'
+        print "At init: %s" % self.path
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* relative to this endpoint.
@@ -373,7 +374,10 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        path = self.path + path_segment 
+        print "Path = %s" % self.path
+        print "Segment = %s" % path_segment
+        path = self.path + path_segment
+        import pprint; pprint.pprint(path)
         # ^-- This was "%s%s" % (self.path, path_segment). 
         # That doesn't work, because self.path may be UrlEncoded.
         return self.service.get(path, 
@@ -862,13 +866,19 @@ class Collection(Endpoint):
             params['app'] = namespace.app
             params['sharing'] = namespace.sharing
         response = self.post(name=name, **params)
-        entry = _load_atom(response, XNAME_ENTRY).entry
-        state = _parse_atom_entry(entry)
-        entity = self.item(
-            self.service,
-            urllib.unquote(state.links.alternate),
-            state=state)
-        return entity
+        atom = _load_atom(response, XNAME_ENTRY)
+        if atom is None:
+            # This endpoint doesn't return the content of the new
+            # item. We have to go fetch it ourselves.
+            return self[name]
+        else:
+            entry = atom.entry
+            state = _parse_atom_entry(entry)
+            entity = self.item(
+                self.service,
+                urllib.unquote(state.links.alternate),
+                state=state)
+            return entity
 
     def delete(self, name, **params):
         """Delete the entity *name* from the collection.
@@ -1164,6 +1174,20 @@ class Inputs(Collection):
     def __call__(self, *args):
         return self.list(*args)
 
+    def __getitem__(self, key):
+        candidate = None
+        for input in self.list():
+            if input.name == key:
+                if candidate is None:
+                    candidate = input
+                else:
+                    raise ValueError("Found multiple inputs named '%s'; please specify an input kind." % key)
+        if candidate is not None:
+            return candidate
+        else:
+            raise KeyError(key)
+
+
     def create(self, kind, name, **kwargs):
         """Creates an input of a specific kind in this collection, with any 
         arguments you specify. 
@@ -1234,7 +1258,12 @@ class Inputs(Collection):
             if entries is None: continue # No inputs to process
             for entry in entries:
                 state = _parse_atom_entry(entry)
-                path = state.links.alternate
+                # Unquote the URL, since all URL encoded in the SDK
+                # should be of type UrlEncoded, and all str should not
+                # be URL encoded.
+                path = urllib.unquote(state.links.alternate)
+                print "Alternate link: %s" % path
+
                 entity = Input(self.service, path, kind, state=state)
                 entities.append(entity)
 

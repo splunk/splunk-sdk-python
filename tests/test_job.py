@@ -63,7 +63,7 @@ class TestCase(testlib.TestCase):
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
 
-        for job in service.jobs: 
+        for job in service.jobs:
             service.jobs[job.sid]
             self.check_job(job)
             job.refresh()

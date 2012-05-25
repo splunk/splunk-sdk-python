@@ -128,9 +128,17 @@ def _load_atom(response, match=None):
 
 # Load an array of atom entries from the body of the given response
 def _load_atom_entries(response):
-    entries = _load_atom(response).feed.get('entry', None)
-    if entries is None: return None
-    return entries if isinstance(entries, list) else [entries]
+    r = _load_atom(response)
+    if 'feed' in r:
+        entries = r.feed.get('entry', None)
+        if entries is None: return None
+        return entries if isinstance(entries, list) else [entries]
+    # This rigamarole is because the jobs endpoint doesn't
+    # returned an entry inside a feed, it just returns and entry.
+    else: 
+        entries = r.get('entry', None)
+        if entries is None: return None
+        return entries if isinstance(entries, list) else [entries]
 
 # Load the sid from the body of the given response
 def _load_sid(response):

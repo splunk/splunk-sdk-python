@@ -26,8 +26,35 @@
 # Entity state, are written so that they may be used in a fluent style.
 #
 
-"""This module provides a client interface for the `Splunk REST API
-<http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_."""
+"""A Pythonic interface to the Splunk REST API.
+
+``splunklib.client`` wraps a Pythonic layer around the wire level
+binding of ``splunklib.binding``. The core of the library is the
+``Service`` class that encapsulates a connection to the server, and
+provides access to the various aspects of the REST API. Typically you
+would create a server with the :func:`connect` function, as in::
+
+    import splunklib.client as client
+    s = client.connect(host='localhost', port=8089, 
+                       username='admin', password='...')
+    assert isinstance(s, client.Service)
+    
+``Service``s have fields for the various API functionality (``apps``,
+``saved_searches``, etc.). All these fields are ``Collection``s. For
+example,::
+
+    a = s.apps
+    my_app = a.create('my_app')
+    my_app = a['my_app']
+    a.delete('my_app')
+
+The individual applications, or elements of the other ``Collection``s,
+are subclasses of ``Entity``. An ``Entity`` has fields giving its
+attributes, and methods specific to each kind of entity.::
+
+    print my_app['author'] # or print my_app.author
+    my_app.package() # Create a compressed package of this application
+"""
 
 # UNDONE: Add Collection.refresh and list caching
 # UNDONE: Resolve conflict between Collection.delete and name of REST method
@@ -48,6 +75,7 @@ __all__ = [
     "connect",
     "NotSupportedError",
     "OperationError",
+    "IncomparableException",
     "Service"
 ]
 
@@ -150,22 +178,38 @@ def _parse_atom_metadata(content):
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
-    """Establishes an authenticated connection to a Splunk :class:`Service`
-    instance.
+    """Connect and log in to a Splunk instance.
 
-    :param `host`: The host name (the default is *localhost*).
-    :param `port`: The port number (the default is *8089*).
-    :param `scheme`: The scheme for accessing the service (the default is 
-                     *https*).
+    This is a shorthand for ``Service(...).login()``. :func:`connect` makes one round trip to the server (for logging in).
+
+    :param `host`: The host name (default: ``"localhost"``).
+    :type host: string
+    :param `port`: The port number (default: 8089).
+    :type port: integer
+    :param `scheme`: The scheme for accessing the service (default: ``"https"``)
+    :type scheme: ``"https"``
     :param `owner`: The owner namespace (optional).
+    :type owner: string
     :param `app`: The app context (optional).
+    :type app: string
     :param `token`: The current session token (optional). Session tokens can be 
                     shared across multiple service instances.
+    :type token: string
     :param `username`: The Splunk account username, which is used to 
                        authenticate the Splunk instance.
+    :type username: string
     :param `password`: The password, which is used to authenticate the Splunk 
                        instance.
-    :return: An initialized :class:`Service` instance.
+    :type password: string
+    :return: An initialized connection
+    :rtype: :class:`Service`
+
+    **Example**:
+
+        import splunklib.client as client
+        s = client.connect(...)
+        a = s.apps["my_app"]
+        ...
     """
     return Service(**kwargs).login()
 
@@ -699,9 +743,6 @@ class Collection(Endpoint):
         Endpoint.__init__(self, service, path)
         self.item = item # Item accessor
 
-    def __call__(self, **kwargs):
-        return self.list(**kwargs)
-
     def __contains__(self, name):
         for item in self.list():
             if item.name == name: return True
@@ -978,8 +1019,7 @@ class Configurations(Collection):
         try:
             path = self.service._abspath(PATH_CONF % key)
             response = self.get(path)
-            entries = self._load_list(response)
-            return entries
+            return ConfigurationFile(self.service, path, state={'title': key})
         except HTTPError as he:
             if he.status == 404: # No entity matching key
                 raise KeyError(key)
@@ -1169,10 +1209,6 @@ class Inputs(Collection):
         Collection.__init__(self, service, PATH_INPUTS)
         self._kindmap = kindmap if kindmap is not None else INPUT_KINDMAP
         
-    # args: kind*
-    def __call__(self, *args):
-        return self.list(*args)
-
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
             kind, key = key
@@ -1586,7 +1622,6 @@ class Jobs(Collection):
             else:
                 raise
                 
-
     def list(self, count=0, **kwargs):
         return Collection.list(self, count, **kwargs)
 

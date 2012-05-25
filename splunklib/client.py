@@ -325,7 +325,6 @@ class Endpoint(object):
     def __init__(self, service, path):
         self.service = service
         self.path = path if path.endswith('/') else path + '/'
-        print "At init: %s" % self.path
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* relative to this endpoint.
@@ -374,10 +373,10 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        print "Path = %s" % self.path
-        print "Segment = %s" % path_segment
-        path = self.path + path_segment
-        import pprint; pprint.pprint(path)
+        if path_segment.startswith('/'):
+            path = path_segment
+        else:
+            path = self.path + path_segment
         # ^-- This was "%s%s" % (self.path, path_segment). 
         # That doesn't work, because self.path may be UrlEncoded.
         return self.service.get(path, 
@@ -1175,13 +1174,18 @@ class Inputs(Collection):
         return self.list(*args)
 
     def __getitem__(self, key):
+        if isinstance(key, tuple) and len(key) == 2:
+            kind, key = key
+        else:
+            kind = None
         candidate = None
         for input in self.list():
-            if input.name == key:
+            if input.name == key and (kind is None or input.kind == kind):
                 if candidate is None:
                     candidate = input
                 else:
-                    raise ValueError("Found multiple inputs named '%s'; please specify an input kind." % key)
+                    raise ValueError("Found multiple inputs named '%s' (kinds: %s, %s); please specify an input kind." % \
+                                         (key, candidate.kind, input.kind))
         if candidate is not None:
             return candidate
         else:
@@ -1205,12 +1209,16 @@ class Inputs(Collection):
         self.service.post(kindpath, name=name, **kwargs)
         return Input(self.service, _path(kindpath, name), kind)
 
-    def delete(self, name):
+    def delete(self, kind, name=None):
         """Removes an input from the collection.
         
         :param `name`: The name of the input to remove.
         """
-        self.service.delete(self[name].path) # UNDONE: Should be item.remove()
+        if name is None:
+            name = kind
+            self.service.delete(self[name].path)
+        else:
+            self.service.delete(self[kind, name].path)
         return self
 
     def itemmeta(self, kind):
@@ -1262,8 +1270,6 @@ class Inputs(Collection):
                 # should be of type UrlEncoded, and all str should not
                 # be URL encoded.
                 path = urllib.unquote(state.links.alternate)
-                print "Alternate link: %s" % path
-
                 entity = Input(self.service, path, kind, state=state)
                 entities.append(entity)
 

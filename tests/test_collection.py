@@ -44,7 +44,7 @@ class TestCase(testlib.TestCase):
         total = len(items)
 
         # Make sure the default list method returns all items
-        items0 = collection.list(count=0)
+        items0 = collection.list()
         total0 = len(items0)
         self.assertEqual(total, total0)
 
@@ -77,6 +77,7 @@ class TestCase(testlib.TestCase):
         seen = 0
         for item in collection: 
             seen += 1
+            print item.name
         self.assertEqual(seen, count)
 
     def test_apps(self):
@@ -96,6 +97,7 @@ class TestCase(testlib.TestCase):
         # input endpoints, and does not support the paging interface.
         service = client.connect(**self.opts.kwargs)
         count = len(service.inputs.list())
+        print [x.name for x in service.inputs.list()]
         self.check_iterable(service.inputs, count)
 
     def test_jobs(self):

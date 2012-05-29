@@ -834,6 +834,8 @@ class Collection(Endpoint):
     def __init__(self, service, path, item=Entity):
         Endpoint.__init__(self, service, path)
         self.item = item # Item accessor
+        self.null_count = -1
+
 
     def __contains__(self, name):
         """Is there at least one entry called *name* in this collection?
@@ -927,7 +929,7 @@ class Collection(Endpoint):
             for entity in saved_searches:
                 print "Saved search named %s" % entity.name
         """
-        for item in self.list(): 
+        for item in self.iter(): 
             yield item
 
     def __len__(self):
@@ -1140,8 +1142,39 @@ class Collection(Endpoint):
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
+    def iter(self, offset=0, count=None, pagesize=None, **kwargs):
+        """Iterate (possibly lazily) over the collection.
+
+        This is equivalent to the :meth:`list` method, but
+        it returns an iterator, and can load the entities a few at a
+        time from the server (the number so loaded is controlled by
+        the *pagesize* argument).
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            for saved_search in s.saved_searches.iter(pagesize=10):
+                # Loads 10 saved searches at a time from the
+                # server.
+                ... 
+        """
+        if count is None:
+            count = self.null_count
+        fetched = 0
+        while count == self.null_count or fetched < count:
+            response = self.get(count=pagesize or count, offset=offset, **kwargs)
+            items = self._load_list(response)
+            N = len(items)
+            fetched += N
+            for item in items:
+                yield item
+            if pagesize is None or N < pagesize:
+                break
+            offset += N
+
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
-    def list(self, count=-1, **kwargs):
+    def list(self, count=None, **kwargs):
         """Fetch a list of the entities in this collection.
 
         There is no laziness in this function. The entire collection
@@ -1162,8 +1195,9 @@ class Collection(Endpoint):
         This function always makes a roundtrip to the server, and
         makes no attempt at caching.
         """
-        response = self.get(count=count, **kwargs)
-        return self._load_list(response)
+        # response = self.get(count=count, **kwargs)
+        # return self._load_list(response)
+        return list(self.iter(count=count, **kwargs))
 
 class ConfigurationFile(Collection):
     """This class contains a single configuration, which is a collection of 
@@ -1487,6 +1521,14 @@ class Inputs(Collection):
 
         return entities
 
+    def __iter__(self, **kwargs):
+        for item in self.list(**kwargs):
+            yield item
+
+    def iter(self, **kwargs):
+        for item in self.list(**kwargs):
+            yield item
+
     def oneshot(self, **kwargs):
         pass
 
@@ -1712,6 +1754,9 @@ class Jobs(Collection):
     """This class represents a collection of search jobs."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
+        # The count value to say list all the contents of this
+        # Collection is 0, not -1 as it is on most.
+        self.null_count = 0
 
     def create(self, query, **kwargs):
         if kwargs.get("exec_mode", None) == "oneshot":
@@ -1798,9 +1843,6 @@ class Jobs(Collection):
             else:
                 raise
                 
-    def list(self, count=0, **kwargs):
-        return Collection.list(self, count, **kwargs)
-
 class Loggers(Collection):
     """This class represents a collection of service logging categories."""
     def __init__(self, service):
@@ -2054,6 +2096,9 @@ class NotSupportedError(Exception):
 class DeploymentCollection(Collection):
     def __init__(self, service, path, item):
         Collection.__init__(self, service, path, item=item)
+        # The count value to say list all the contents of this
+        # Collection is 0, not -1 as it is on most.
+        self.null_count = 0
 
     def create(self, name, **kwargs):
         raise NotSupportedError("Cannot create %s with the REST API." % self.__class__.__name__)
@@ -2061,8 +2106,6 @@ class DeploymentCollection(Collection):
     def delete(self, name):
         raise NotSupportedError("Cannot delete %s with the REST API." % self.__class__.__name__)
 
-    def list(self, count=0, **kwargs):
-        return Collection.list(self, count=count, **kwargs)
 
 class DeploymentTenant(Entity):
     """Binding for /deployments/tenants/{name}."""
@@ -2148,10 +2191,9 @@ class DeploymentServers(DeploymentCollection):
     """Binding for /deployment/server"""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
-
-    # Override this because Collection defaults to count=-1
-    def list(self, count=0, **kwargs):
-        return Collection.list(self, count=count, **kwargs)
+        # The count value to say list all the contents of this
+        # Collection is 0, not -1 as it is on most.
+        self.null_count = 0
 
     def create(self, name, **kwargs):
         raise NotSupportedError("Cannot create deployment servers with the REST API.")

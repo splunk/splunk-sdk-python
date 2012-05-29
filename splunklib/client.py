@@ -222,40 +222,67 @@ def connect(**kwargs):
     return Service(**kwargs).login()
 
 class Service(Context):
-    """This class represents a Splunk service instance at a given address 
-    (host:port), accessed using the *http* or *https* protocol scheme.
-    
-    A :class:`Service` instance also captures an optional namespace context 
-    consisting of an optional owner name (or "-" wildcard) and optional app name
-    (or "-" wildcard). To access :class:`Service` members, the instance must
-    be authenticated by presenting credentials using the :meth:`login` method,
-    or by constructing the instance using the :func:`connect` function, which 
-    both creates and authenticates the instance.
+    """A Pythonic binding to Splunk instances.
 
-    :param `host`: The host name (the default is *localhost*).
-    :param `port`: The port number (the default is *8089*).
-    :param `scheme`: The scheme for accessing the service (the default is 
-                     *https*).
-    :param `owner`: The owner namespace (optional).
-    :param `app`: The app context (optional).
+    A :class:`Service` represents a binding to a Splunk instane on an
+    HTTP or HTTPS port. It handles the details of authentication, wire
+    formats, and wraps the REST API endpoints into something more
+    Pythonic. All the low level operations on the instance from
+    :class:`splunklib.Context` are available as well in case you need
+    to do something outside of what :class:`Service` provides.
+
+    After creating a :class:`Service`, you must call its :meth:`login`
+    method before you can issue useful requests to Splunk.
+    Alternately, use the :func:`connect` function to create an already
+    authenticated :class:`Service` object, or provide a session token
+    when creating the :class:`Service` object explicitly (the same
+    token may be shared by multiple :class:`Service` objects).
+
+    :param `host`: The host name (default: ``"localhost"``).
+    :type host: string
+    :param `port`: The port number (default: 8089).
+    :type port: int
+    :param `scheme`: The scheme for accessing the service (default: ``"https"``)
+    :type scheme: ``"https"`` or ``"http"``
+    :param `owner`: The owner namespace (optional; use ``"-"`` for wildcard).
+    :type owner: string
+    :param `app`: The app context (optional; use ``"-"`` for wildcard).
+    :type app: string
     :param `token`: The current session token (optional). Session tokens can be 
                     shared across multiple service instances.
+    :type token: string
     :param `username`: The Splunk account username, which is used to 
                        authenticate the Splunk instance.
+    :type username: string
     :param `password`: The password, which is used to authenticate the Splunk 
                        instance.
+    :type password: string
+    :returns: A :class:`Service` instance.
+
+    **Example**::
+
+        import splunklib.client as client
+        s = client.Service(username="boris", password="natasha", ...)
+        s.login()
+        # Or equivalently
+        s = client.connect(username="boris", password="natasha")
+        # Or if you already have a session token
+        s = client.Service(token="atg232342aa34324a")
     """
     def __init__(self, **kwargs):
         Context.__init__(self, **kwargs)
 
     @property
     def apps(self):
-        """Returns a collection of Splunk applications."""
+        """The applications installed in this instance of Splunk.
+       
+        :rtype: :class:`Collection`
+        """
         return Collection(self, PATH_APPS, item=Application)
 
     @property
     def confs(self):
-        """Returns a collection of Splunk configurations."""
+        """The configuration files of this Splunk instance."""
         return Configurations(self)
 
     @property
@@ -286,18 +313,17 @@ class Service(Context):
 
     @property
     def event_types(self):
-        """Returns a collection of saved event types."""
+        """The saved event types known by this Splunk instance."""
         return Collection(self, PATH_EVENT_TYPES)
 
     @property
     def fired_alerts(self):
-        """Returns a collection of alerts that have been fired by the service.
-        """
+        """Alerts that have been fired on the Splunk instance."""
         return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
 
     @property
     def indexes(self):
-        """Returns a collection of indexes."""
+        """The indexes of this Splunk instance."""
         return Collection(self, PATH_INDEXES, item=Index)
 
     @property
@@ -308,7 +334,7 @@ class Service(Context):
 
     @property
     def inputs(self):
-        """Returns a collection of configured inputs."""
+        """The inputs configured on this Splunk instance."""
         return Inputs(self)
 
     @property
@@ -339,8 +365,10 @@ class Service(Context):
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self):
-        """Restarts the service. The service will be unavailable until it has
-        successfully restarted.
+        """Restarts this Splunk instance.
+
+        The service will be unavailable until it has successfully
+        restarted.
         """
         return self.get("server/control/restart")
 
@@ -509,6 +537,12 @@ class Entity(Endpoint):
     subdictionary, so ``email.body.salutation`` would be accessed at
     ``ent['email']['body']['salutation']`` or
     ``ent['email.body.salutation']``.
+
+    The state of an :class:`Entity` is cached, so accessing a field
+    does not contact the server. If you expect the values on the
+    server have changed, you have to call the :meth:`refresh` method
+    on the :class:`Entity` before the updated values will be
+    available.
     """
     # Not every endpoint in the API is an Entity or a Collection. For
     # example, a saved search at saved/searches/{name} has an additional
@@ -647,8 +681,18 @@ class Entity(Endpoint):
         return rec.content
 
     def refresh(self, state=None):
-        """Refreshes the cached state of this entity, using either the given
-        state record, or by calling :meth:`read` if no state record is provided.
+        """Refresh the state of this entity.
+
+        If *state* is provided, load it as the new state for this
+        entity. Otherwise, make a roundtrip to the server (by calling
+        the :meth:`read`f method of self) to fetch an updated state.
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            search = s.apps['search']
+            search.refresh()
         """
         if state is not None:
             self._state = state
@@ -746,12 +790,57 @@ class Entity(Endpoint):
         return self
 
 class Collection(Endpoint):
-    """This class contains a collection of entities."""
+    """A collection of entities in the Splunk instance.
+
+    Splunk provides a number of different collections of distinct
+    entity types: applications, saved searches, fired alerts, and a
+    number of others. Each particular type is available separately
+    from the Splunk instance, and the entities of that type are
+    returned in a :class:`Collection`.
+
+    :class:`Collection`'s interface does not quite match either
+    ``list`` or ``dict`` in Python, since there are enough semantic
+    mismatches with either to make its behavior surprising. A unique
+    element in a :class:`Collection` is defined by a string giving its
+    name plus a namespace object (though the namespace is optional if
+    the name is unique).::
+
+        import splunklib.client as client
+        s = client.connect(...)
+        c = s.saved_searches # c is a Collection
+        m = c['my_search', client.namespace(owner='boris', app='natasha', sharing='user')]
+        # Or if there is only one search visible named 'my_search'
+        m = c['my_search']
+
+    Similarly, ``"name" in c`` works as you expect (though you cannot
+    currently pass a namespace to the ``in`` operator), as does
+    ``len(c)``.
+
+    However, as an aggregate, :class:`Collection` behaves more like a
+    list. If you iterate over a :class:`Collection`, you get an
+    iterator over the entities, not the names and namespaces::
+
+        for entity in c:
+            assert isinstance(entity, client.Entity)
+
+    The :meth:`create` and :meth:`delete` methods create and delete
+    entities in this collection. The access control list and other
+    metadata of the collection is returned by the :meth:`itemmeta`
+    method.
+
+    :class:`Collection` does no caching. Each call makes at least one
+    round trip to the server to fetch data.
+    """
     def __init__(self, service, path, item=Entity):
         Endpoint.__init__(self, service, path)
         self.item = item # Item accessor
 
     def __contains__(self, name):
+        """Is there at least one entry called *name* in this collection?
+
+        Makes a single roundtrip to the server, plus at most two more
+        if autologin is enabled.
+        """
         for item in self.list():
             if item.name == name: return True
         return False
@@ -874,7 +963,29 @@ class Collection(Endpoint):
         return urllib.unquote(state.links.alternate)
 
     def _load_list(self, response):
-        """Loads an entity list from a response."""
+        """Converts *response* to a list of entities.
+        
+        *response* is assumed to be a :class:`Record` containing an
+        HTTP response, of the form::
+
+            {'status': 200,
+             'headers': [('content-length', '232642'),
+                         ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                         ('server', 'Splunkd'), 
+                         ('connection', 'close'), 
+                         ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                         ('date', 'Tue, 29 May 2012 15:27:08 GMT'),
+                         ('content-type', 'text/xml; charset=utf-8')],
+             'reason': 'OK', 
+             'body': ...a stream implementing .read()...}
+
+        The ``'body'`` key refers to a stream containing an Atom feed,
+        that is, an XML document with a toplevel element ``<feed>``,
+        and within that element one or more ``<entry>`` elements.
+        """
+        # Some subclasses of Collection have to override this because
+        # splunkd returns something that doesn't match
+        # <feed><entry></entry><feed>.
         entries = _load_atom_entries(response)
         if entries is None: return []
         entities = []
@@ -891,6 +1002,9 @@ class Collection(Endpoint):
         """**Deprecated**: Use the ``in`` operator instead.
 
         Indicates whether an entity name exists in the collection.
+
+        Makes a single roundtrip to the server, plus at most two more
+        if autologin is enabled.
         
         :param `name`: The entity name.
         :rtype: Boolean
@@ -900,11 +1014,27 @@ class Collection(Endpoint):
     def create(self, name, **params):
         """Create a new entity in this collection.
 
+        This function makes either one or two roundtrips to the
+        server, depending on the type of the entities in this
+        collection, plus at most two more if autologin is enabled.
+
         :param name: The name of the entity to create.
         :type name: string
+        :param namespace: A namespace, as created by the :func:`namespace` 
+                          function (optional). If you wish, you can set 
+                          ``owner``, ``app``, and ``sharing`` directly.
+        :type namespace: :class:`Record` with keys ``'owner'``, ``'app'``, and 
+                         ``'sharing'``
         :param params: Additional entity-specific arguments (optional).
         :return: The new entity.
         :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            applications = s.apps
+            new_app = applications.create("my_fake_app")
         """
         if not isinstance(name, basestring): 
             raise ValueError("Invalid argument: 'name'")
@@ -973,14 +1103,51 @@ class Collection(Endpoint):
         return self
 
     def itemmeta(self):
-        """Returns metadata for members of the collection."""
+        """Returns metadata for members of the collection.
+
+        Makes a single roundtrip to the server, plus at most two more
+        if autologin is enabled.
+
+        **Example**::
+
+            import splunklib.client as client
+            import pprint
+            s = client.connect(...)
+            pprint.pprint(s.apps.itemmeta())
+                {'access': {'app': 'search',
+                            'can_change_perms': '1',
+                            'can_list': '1',
+                            'can_share_app': '1',
+                            'can_share_global': '1',
+                            'can_share_user': '1',
+                            'can_write': '1',
+                            'modifiable': '1',
+                            'owner': 'admin',
+                            'perms': {'read': ['*'], 'write': ['admin']},
+                            'removable': '0',
+                            'sharing': 'user'},
+                 'fields': {'optional': ['author',
+                                         'configured',
+                                         'description',
+                                         'label',
+                                         'manageable',
+                                         'template',
+                                         'visible'],
+                            'required': ['name'],
+                            'wildcard': []}}
+        """
         response = self.get("_new")
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=-1, **kwargs):
-        """Returns the contents of the collection.
+        """Fetch a list of the entities in this collection.
+
+        There is no laziness in this function. The entire collection
+        is loaded at once and returned as a list. This function makes
+        a single roundtrip to the server, plus at most two more if
+        autologin is enabled.
 
         :param `count`: The maximum number of items to return (optional).
         :param `offset`: The offset of the first item to return (optional).
@@ -990,6 +1157,7 @@ class Collection(Endpoint):
         :param `sort_key`: The field to use for sorting (optional).
         :param `sort_mode`: The collating sequence for sorting returned items:
                             *auto*, *alpha*, *alpha_case*, *num* (optional).
+        :rtype: list
 
         This function always makes a roundtrip to the server, and
         makes no attempt at caching.

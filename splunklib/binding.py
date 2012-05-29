@@ -266,13 +266,10 @@ class Context(object):
             
     After creating a ``Context``, you must call its :meth:`login`
     method before you can issue useful requests to splunkd.
-    Alternately, use the :func:`connect` function to create a
-    ``Context`` object, which both creates and authenticates the
-    instance. Or you may provide a session token explicitly (the same
-    token may be shared by multiple ``Context``s), which provides
-    authentication.
-
-
+    Alternately, use the :func:`connect` function to create an already
+    authenticated ``Context`` object. Or you may provide a session
+    token explicitly (the same token may be shared by multiple
+    ``Context``s), which provides authentication.
 
     :param host: The host name (default: ``"localhost"``).
     :type host: string

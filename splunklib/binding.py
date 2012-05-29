@@ -416,8 +416,9 @@ class Context(object):
         """DELETE at *path_segment* with the given namespace and query.
 
         Named to match the HTTP method. This function makes at least
-        one roundtrip to the server, and one additional round trip for
-        each 303 status returned.
+        one roundtrip to the server, one additional round trip for
+        each 303 status returned, and at most two additional round
+        trips if autologin is enabled.
 
         If *owner*, *app*, and *sharing* are omitted, then uses this
         ``Context``'s default namespace. All other keyword arguments
@@ -463,8 +464,9 @@ class Context(object):
         """GET from *path_segment* with the given namespace and query.
 
         Named to match the HTTP method. This function makes at least
-        one roundtrip to the server, and one additional round trip for
-        each 303 status returned.
+        one roundtrip to the server, one additional round trip for
+        each 303 status returned, and at most two additional round
+        trips if autologin is enabled.
 
         If *owner*, *app*, and *sharing* are omitted, then uses this
         ``Context``'s default namespace. All other keyword arguments
@@ -510,8 +512,9 @@ class Context(object):
         """POST to *path_segment* with the given namespace and query.
 
         Named to match the HTTP method. This function makes at least
-        one roundtrip to the server, and one additional round trip for
-        each 303 status returned.
+        one roundtrip to the server, one additional round trip for
+        each 303 status returned, and at most two additional round
+        trips if autologin is enabled.
 
         If *owner*, *app*, and *sharing* are omitted, then uses this
         ``Context``'s default namespace. All other keyword arguments

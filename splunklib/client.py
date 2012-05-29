@@ -188,7 +188,8 @@ def _parse_atom_metadata(content):
 def connect(**kwargs):
     """Connect and log in to a Splunk instance.
 
-    This is a shorthand for ``Service(...).login()``. :func:`connect` makes one round trip to the server (for logging in).
+    This is a shorthand for ``Service(...).login()``. :func:`connect`
+    makes one round trip to the server (for logging in).
 
     :param `host`: The host name (default: ``"localhost"``).
     :type host: string
@@ -410,8 +411,9 @@ class Endpoint(object):
         """GET from *path_segment* relative to this endpoint.
 
         Named to match the HTTP method. This function makes at least
-        one roundtrip to the server, and one additional round trip for
-        each 303 status returned.
+        one roundtrip to the server, one additional round trip for
+        each 303 status returned, plus at most two additional round
+        trips if autologin is enabled.
 
         If *owner*, *app*, and *sharing* are omitted, then takes a
         default namespace from this ``Endpoint``'s ``Service``. All
@@ -467,8 +469,9 @@ class Endpoint(object):
         """POST to *path_segment* relative to this endpoint.
 
         Named to match the HTTP method. This function makes at least
-        one roundtrip to the server, and one additional round trip for
-        each 303 status returned.
+        one roundtrip to the server, one additional round trip for
+        each 303 status returned, and at most two additional round
+        trips if autologin is enabled.
 
         If *owner*, *app*, and *sharing* are omitted, then takes a
         default namespace from this ``Endpoint``'s ``Service``. All
@@ -685,7 +688,9 @@ class Entity(Endpoint):
 
         If *state* is provided, load it as the new state for this
         entity. Otherwise, make a roundtrip to the server (by calling
-        the :meth:`read`f method of self) to fetch an updated state.
+        the :meth:`read` method of self) to fetch an updated state,
+        plus at most two additional round trips if autologin is
+        enabled.
 
         **Example**::
 
@@ -865,7 +870,8 @@ class Collection(Endpoint):
         pass just a name, it will raise a ``ValueError``. In that
         case, add the namespace as a second argument.
 
-        This function makes a single roundtrip to the server.
+        This function makes a single roundtrip to the server, plus at
+        most two additional round trips if autologin is enabled.
 
         :param key: The name to fetch, or a tuple (name, namespace)
         :return: An Entity object.
@@ -919,7 +925,8 @@ class Collection(Endpoint):
         :rtype: iterator over entities.
 
         Implemented to give Collection a listish interface. This
-        function always makes a roundtrip to the server.
+        function always makes a roundtrip to the server, plus at most
+        two additional round trips if autologin is enabled.
 
         **Example**::
 
@@ -939,7 +946,8 @@ class Collection(Endpoint):
         further failure modes beyond those possible for any method on
         an Endpoint.
 
-        This function always makes a roundtrip to the server.
+        This function always makes a round trip to the server, plus at
+        most two additional round trips if autologin is enabled.
 
         **Example**::
 
@@ -1180,7 +1188,8 @@ class Collection(Endpoint):
         There is no laziness in this function. The entire collection
         is loaded at once and returned as a list. This function makes
         a single roundtrip to the server, plus at most two more if
-        autologin is enabled.
+        autologin is enabled. There is no caching: every call makes at
+        least one round trip.
 
         :param `count`: The maximum number of items to return (optional).
         :param `offset`: The offset of the first item to return (optional).
@@ -1191,9 +1200,6 @@ class Collection(Endpoint):
         :param `sort_mode`: The collating sequence for sorting returned items:
                             *auto*, *alpha*, *alpha_case*, *num* (optional).
         :rtype: list
-
-        This function always makes a roundtrip to the server, and
-        makes no attempt at caching.
         """
         # response = self.get(count=count, **kwargs)
         # return self._load_list(response)
@@ -1618,8 +1624,9 @@ class Job(Entity):
         finish, and otherwise throw a ``ValueError``.
 
         With *timeout*``=None``, this method makes a single roundtrip
-        to the server. With *timeout* set to an integer, it polls
-        repeatedly until it times out or the search is finished.
+        to the server, plus at most two additional round trips if
+        autologin is enabled. With *timeout* set to an integer, it
+        polls repeatedly until it times out or the search is finished.
 
         :param timeout: Timeout in seconds, or ``None`` to fail immediately.
         :type timeout: ``float``

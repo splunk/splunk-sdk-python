@@ -185,9 +185,10 @@ class TestCase(testlib.TestCase):
             saved_searches.delete('sdk-test1')
         self.assertFalse('sdk-test1' in saved_searches)
 
-        search = "search index=sdk-tests * earliest=-1m"
+        search = "search index=sdk-tests * earliest=-1m | head 10"
         saved_search = saved_searches.create('sdk-test1', search)
         self.assertEqual('sdk-test1', saved_search.name)
+        self.assertEqual(search, saved_search.search)
         self.assertTrue('sdk-test1' in saved_searches)
 
         job = saved_search.dispatch()

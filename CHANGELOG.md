@@ -5,10 +5,12 @@
 ### Features
 
 * Expanded endpoint coverage. Now at parity with the Java SDK.
-* Replaced ResultsReader with clearer code. Changed its interface a
-  bit to be more useful.
-* Added support for getting entities with (name,namespace) combinations,
-  and reasonable errors on conflicts from looking up by name alone.
+* Replaced ResultsReader with something shorter. Iteration now
+  results either Message objects or dicts, and moved preview from
+  iteration to a field.
+* Entities can be fetched from collections by name plus namespace
+  combinations (which are unique, unlike names alone). Fetching
+  entries by name alone properly throws errors on name conflicts.
 * Added a distinct AuthenticationError and optional autologin/autorelogin.
 * Reduced roundtrips and listings with specific lookups in __getitem__ 
   and similar methods.

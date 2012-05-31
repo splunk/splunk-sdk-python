@@ -13,6 +13,7 @@
 * Reduced roundtrips and listings with specific lookups in __getitem__ 
   and similar methods.
 * Put in types and operations to make URL encoding of strings consistent.
+* Pagination is implemented to stream search results a hunk at a time.
 * Lots of docstrings expanded.
 * Lots of small bugs fixed.
 

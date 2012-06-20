@@ -12,16 +12,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module provides an Atom Feed response loader.
+"""Code to read response from splunkd in Atom Feed format.
 
-A simple :func:`load` utility reads Atom Feed XML data (the format returned by
-the Splunk REST API), and converts it to a native Python dictionary or list.
+The Splunk REST API largely returns Atom (except in a few places where
+there are historical inconsistencies that will be ironed out in future
+versions).
+
+This module provides one function, :func:`load`, which reads a string
+containing the XML of an Atom Feed and returns a dictionary or list
+containing the corresponding data.
 """
 
 from xml.etree.ElementTree import XML
 
 __all__ = ["load"]
 
+# LNAME refers to element names without namespaces; XNAME is the same
+# name, but with an XML namespace.
 LNAME_DICT = "dict"
 LNAME_ITEM = "item"
 LNAME_KEY = "key"
@@ -56,14 +63,16 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Loads XML text into a native Python structure (*dict* or *list*). If you
-    provide an optional **match** string (a tag name or path), only the matching
-    sub-elements are loaded. 
+    """Extract Python data structures from Atom XML in the string *text*.
 
-    :param `text`: The XML text to load.
-    :type `text`: string
-    :param `match`: A tag name or path to match (optional).
-    :type `match`: string
+    Loads XML text into a native Python structure (`dict` or `list`).
+    If you provide an optional *match* string (a tag name or path),
+    only the matching sub-elements are loaded.
+
+    :param text: The XML text to load.
+    :type text: string
+    :param match: A tag name or path to match (optional).
+    :type match: string
     """
     if text is None: return None
     text = text.strip()
@@ -75,9 +84,12 @@ def load(text, match=None):
     root = XML(text)
     items = [root] if match is None else root.findall(match)
     count = len(items)
-    if count == 0: return None
-    if count == 1: return load_root(items[0], nametable)
-    return [ load_root(item, nametable) for item in items ]
+    if count == 0: 
+        return None
+    elif count == 1: 
+        return load_root(items[0], nametable)
+    else:
+        return [load_root(item, nametable) for item in items]
 
 # Load the attributes of the given element.
 def load_attrs(element):
@@ -172,7 +184,25 @@ def load_value(element, nametable=None):
 class Record(dict):
     """A generic utility class that enables dot access to members of 
     a Python dictionary.
+
+    Any key which is also a valid Python identifier can be fetched as
+    a field, so for a Record ``r``, ``r.key`` is equivalent to
+    ``r['key']``. A key like ``invalid-key`` or ``invalid.key`` cannot
+    be fetched as a field, since ``-`` and ``.`` are not allowed in
+    identifiers.
+
+    However, keys of the form ``a.b.c`` are very natural to write in
+    Python as fields, so Record does something sane with them: if a
+    group of keys all share a prefix ending in ``.``, then you can
+    fetch them as a nested dictionary by calling just the prefix,
+    e.g., if Record ``r`` contains keys ``'foo'``, ``'bar.baz'``, and
+    ``'bar.qux'``, ``r.bar`` returns a Record with the keys ``baz``
+    and ``qux``. If there are multiple ``.``'s in the key, each ``.``
+    is put into a nested dictionary. Thus you can write ``r.bar.qux``
+    or ``r['bar.qux']`` interchangeably.
     """
+    sep = '.'
+
     def __call__(self, *args):
         if len(args) == 0: return self
         return Record((key, self[key]) for key in args)
@@ -194,6 +224,30 @@ class Record(dict):
         result = record()
         result[k] = v
         return result
+
+    def __getitem__(self, key):
+        if key in self:
+            return dict.__getitem__(self, key)
+        key = key + self.sep
+        result = record()
+        for k,v in self.iteritems():
+            if not k.startswith(key):
+                continue
+            suffix = k[len(key):]
+            if '.' in suffix:
+                ks = suffix.split(self.sep)
+                z = result
+                for x in ks[:-1]:
+                    if x not in z:
+                        z[x] = record()
+                    z = z[x]
+                z[ks[-1]] = v
+            else:
+                result[suffix] = v
+        if len(result) == 0:
+            raise KeyError("No key or prefix: %s" % key)
+        return result
+    
 
 def record(value=None): 
     """Returns a **record** instance constructed with an initial value that you

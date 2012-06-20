@@ -19,6 +19,7 @@
 import re
 import sys
 from time import sleep
+from datetime import datetime, timedelta
 import unittest
 
 # Run the test suite on the SDK without installing it.
@@ -52,13 +53,14 @@ def restart(service, timeout=120):
 
 def wait(entity, predicate, timeout=60):
     """Wait for the given entity to satisfy the given condition."""
-    secs = 0
+    start = datetime.now()
+    diff = timedelta(seconds=timeout)
     while not predicate(entity):
-        if secs > timeout:
+        if datetime.now() - start > diff:
             raise Exception, "Operation timed out."
         sleep(1)
-        secs += 1
-        entity.refresh()
+        if entity is not None:
+            entity.refresh()
     return entity
 
 class TestCase(unittest.TestCase):
@@ -101,6 +103,21 @@ class TestCase(unittest.TestCase):
                     if field in ["is_sub_menu"]:
                         continue
                 raise
+
+    def assertEventually(self, pred, timeout=60):
+        wait(None, pred, timeout)
+        self.assertTrue(pred())
+
+    def assertEventuallyEqual(self, a, b, timeout=60):
+        fa = a if callable(a) else lambda: a
+        fb = b if callable(b) else lambda: b
+        def f(_):
+            va = fa()
+            vb = fb()
+            return va == vb
+        wait(None, f, timeout)
+        self.assertEqual(fa(), fb())
+
 
     def setUp(self):
         self.opts = parse([], {}, ".splunkrc")

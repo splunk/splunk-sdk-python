@@ -183,7 +183,7 @@ class Program:
         """Convert the given search specifier into a search-id (sid)."""
         if spec.startswith('@'):
             index = int(spec[1:])
-            jobs = self.service.jobs()
+            jobs = self.service.jobs.list()
             if index < len(jobs):
                 return jobs[index].sid
         return spec # Assume it was already a valid sid

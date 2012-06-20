@@ -1,5 +1,8 @@
 # Splunk Python SDK Changelog
 
+## 0.8.5
+
+	
 ## 0.8.0 (beta)
 
 ### Features

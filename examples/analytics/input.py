@@ -37,17 +37,17 @@ class AnalyticsTracker:
         self.splunk = client.connect(**splunk_info)
         self.index = index
 
-        if not self.splunk.indexes.contains(self.index):
+        if not self.index in self.splunk.indexes:
             self.splunk.indexes.create(self.index)
-        assert(self.splunk.indexes.contains(self.index))
+        assert(self.index in self.splunk.indexes)
 
-        if not self.splunk.confs['props'].contains(ANALYTICS_SOURCETYPE):
+        if ANALYTICS_SOURCETYPE not in self.splunk.confs['props']:
             self.splunk.confs["props"].create(ANALYTICS_SOURCETYPE)
             stanza = self.splunk.confs["props"][ANALYTICS_SOURCETYPE]
             stanza.submit("LINE_BREAKER = (%s)" % EVENT_TERMINATOR)
             stanza.submit("CHARSET = UTF-8")
             stanza.submit("SHOULD_LINEMERGE = false")
-        assert(self.splunk.confs['props'].contains(ANALYTICS_SOURCETYPE))
+        assert(ANALYTICS_SOURCETYPE in self.splunk.confs['props'])
 
     @staticmethod
     def encode(props):

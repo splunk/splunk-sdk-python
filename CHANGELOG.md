@@ -2,7 +2,23 @@
 
 ## 0.8.5
 
-	
+### Features
+
+* Expanded endpoint coverage. Now at parity with the Java SDK.
+* Replaced ResultsReader with something shorter. Iteration now
+  results either Message objects or dicts, and moved preview from
+  iteration to a field.
+* Entities can be fetched from collections by name plus namespace
+  combinations (which are unique, unlike names alone). Fetching
+  entries by name alone properly throws errors on name conflicts.
+* Added a distinct AuthenticationError and optional autologin/autorelogin.
+* Reduced roundtrips and listings with specific lookups in __getitem__ 
+  and similar methods.
+* Put in types and operations to make URL encoding of strings consistent.
+* Pagination is implemented to stream search results a hunk at a time.
+* Lots of docstrings expanded.
+* Lots of small bugs fixed.
+
 ## 0.8.0 (beta)
 
 ### Features

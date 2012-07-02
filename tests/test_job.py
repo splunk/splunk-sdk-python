@@ -63,10 +63,17 @@ class TestCase(testlib.TestCase):
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
 
-        for job in service.jobs: 
+        for job in service.jobs:
+            service.jobs[job.sid]
             self.check_job(job)
             job.refresh()
             self.check_job(job)
+
+    def test_service_method(self):
+        service = client.connect(**self.opts.kwargs)
+        job = service.search('search index=_internal earliest=-1m | head 3')
+        self.assertTrue(service.jobs.contains(job.sid))
+        job.cancel()
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)
@@ -77,8 +84,26 @@ class TestCase(testlib.TestCase):
             service.indexes.create("sdk-tests")
         service.indexes['sdk-tests'].clean()
 
+        self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
+
+        result = results.ResultsReader(jobs.oneshot("search index=_internal earliest=-1m | head 3"))
+        self.assertEqual(result.is_preview, False)
+        self.assertTrue(isinstance(result.next(), dict))
+        self.assertTrue(len(list(result)) <= 3)
+        
+        result = results.ResultsReader(jobs.export("search index=_internal earliest=-1m | head 3"))
+        self.assertEqual(result.is_preview, False)
+        d = result.next()
+        print d
+        self.assertTrue(isinstance(d, dict) or isinstance(d, results.Message))
+        self.assertTrue(len(list(d for d in result if isinstance(d, dict))) <= 3)
+
+        self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
+
+        self.assertRaises(SyntaxError, jobs.export, "asdaf;lkj2r23=")
+
         # Make sure we can create a job
-        job = jobs.create("search index=sdk-tests")
+        job = jobs.create("search index=sdk-tests earliest=-1m | head 1")
         self.assertTrue(jobs.contains(job.sid))
 
         # Make sure we can cancel the job
@@ -88,6 +113,7 @@ class TestCase(testlib.TestCase):
         # Search for non-existant data
         job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
         testlib.wait(job, lambda job: job['isDone'] == '1')
+        r = results.ResultsReader(job.preview())
         self.assertEqual(job['isDone'], '1')
         self.assertEqual(job['eventCount'], '0')
         job.finalize()
@@ -135,28 +161,55 @@ class TestCase(testlib.TestCase):
 
         # Run a new job to get the results, but we also make
         # sure that there is at least one event in the index already
-        index = service.indexes['sdk-tests']
-        old_event_count = int(index['totalEventCount'])
-        if old_event_count == 0:
-            index.submit("test event")
-            testlib.wait(index, lambda index: index['totalEventCount'] == '1')
+        index = service.indexes['_internal']
+        self.assertTrue(index['totalEventCount'] > 0)
 
-        job = jobs.create("search index=sdk-tests | head 1 | stats count")
-        testlib.wait(job, lambda job: job['isDone'] == '1')
+        job = jobs.create("search index=_internal | head 1 | stats count")
+        self.assertRaises(ValueError, job.results)
+        reader = results.ResultsReader(job.results(timeout=60))
+        job.refresh()
         self.assertEqual(job['isDone'], '1')
 
-        # Fetch the results
-        reader = results.ResultsReader(job.results())
+        self.assertEqual(reader.is_preview, False)
 
-        # The first one should always be RESULTS
-        kind, result = reader.next()
-        self.assertEqual(results.RESULTS, kind)
-        self.assertEqual(int(result["preview"]), 0)
-
-        # The second is always the actual result
-        kind, result = reader.next()
-        self.assertEqual(results.RESULT, kind)
+        result = reader.next()
+        self.assertTrue(isinstance(result, dict))
         self.assertEqual(int(result["count"]), 1)
+
+        # Repeat the same thing, but without the .is_preview reference.
+        job = jobs.create("search index=_internal | head 1 | stats count")
+        self.assertRaises(ValueError, job.results)
+        reader = results.ResultsReader(job.results(timeout=60))
+        job.refresh()
+        self.assertEqual(job['isDone'], '1')
+        result = reader.next()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(int(result["count"]), 1)
+
+    def test_results_reader(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('streaming_results.xml') as input:
+            reader = results.ResultsReader(input)
+            print reader.next()
+            self.assertTrue(isinstance(reader.next(), dict))
+
+    def test_xmldtd_filter(self):
+        from StringIO import StringIO
+        s = results.XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
+        self.assertEqual(s.read(3), "<bo")
+        self.assertEqual(s.read(), "ris>Other stuf</boris> ab")
+
+
+    def test_concatenated_stream(self):
+        from StringIO import StringIO
+        s = results.ConcatenatedStream(StringIO("This is a test "), 
+                                       StringIO("of the emergency broadcast system."))
+        self.assertEqual(s.read(3), "Thi")
+        self.assertEqual(s.read(20), 's is a test of the e')
+        self.assertEqual(s.read(), 'mergency broadcast system.')
+            
 
 if __name__ == "__main__":
     testlib.main()

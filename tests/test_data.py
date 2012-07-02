@@ -194,6 +194,22 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result, 
             {'content': [{'n1':"v1"}, {'n2':"v2"}, {'n3':"v3"}, {'n4':"v4"}]})
 
+    def test_record(self):
+        d = data.record()
+        d.update({'foo': 5,
+                  'bar.baz': 6,
+                  'bar.qux': 7,
+                  'bar.zrp.meep': 8,
+                  'bar.zrp.peem': 9})
+        self.assertEqual(d['foo'], 5)
+        self.assertEqual(d['bar.baz'], 6)
+        self.assertEqual(d['bar'], {'baz': 6, 'qux': 7, 'zrp': {'meep': 8, 'peem':9}})
+        self.assertEqual(d.foo, 5)
+        self.assertEqual(d.bar.baz, 6)
+        self.assertEqual(d.bar, {'baz': 6, 'qux': 7, 'zrp': {'meep': 8, 'peem':9}})
+        self.assertRaises(KeyError, d.__getitem__, 'boris')
+
+
 if __name__ == "__main__":
     testlib.main()
 

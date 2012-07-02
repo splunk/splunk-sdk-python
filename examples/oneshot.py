@@ -28,12 +28,9 @@ import utils
 
 def pretty(response):
     reader = results.ResultsReader(response)
-    while True:
-        kind = reader.read()
-        if kind == None: break
-        if kind == results.RESULT:
-            event = reader.value
-            pprint(event)
+    for result in reader:
+        if isinstance(result, dict):
+            pprint(result)
 
 def main():
     usage = "usage: oneshot.py <search>"
@@ -44,7 +41,7 @@ def main():
     search = opts.args[0]
     service = connect(**opts.kwargs)
     socket.setdefaulttimeout(None)
-    response = service.jobs.create(search, exec_mode="oneshot")
+    response = service.jobs.oneshot(search)
 
     pretty(response)
 

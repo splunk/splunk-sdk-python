@@ -22,7 +22,7 @@ from xml.etree.ElementTree import XML
 import testlib
 
 import splunklib.binding as binding
-from splunklib.binding import HTTPError
+from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 import splunklib.data as data
 
 # splunkd endpoint paths
@@ -76,6 +76,42 @@ def urllib2_handler(url, message, **kwargs):
     }
 
 class TestCase(testlib.TestCase):
+    def test_responsereader(self):
+        txt = "This is a test of the emergency broadcasting system."
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertEqual(response.read(), txt)
+
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertEqual(response.peek(5), txt[:5])
+        self.assertFalse(response.empty)
+        self.assertEqual(response.read(), txt)
+        self.assertTrue(response.empty)
+
+        response = binding.ResponseReader(StringIO(""))
+        self.assertTrue(response.empty)
+        self.assertEqual(response.peek(1), "")
+        self.assertTrue(response.empty)
+        
+        
+
+    def test_urlencoded(self):
+        self.assertTrue(isinstance(UrlEncoded('a') + UrlEncoded('b'), UrlEncoded))
+        self.assertTrue(isinstance('a' + UrlEncoded('b'), UrlEncoded))
+        self.assertTrue(isinstance(UrlEncoded('a') + 'b', UrlEncoded))
+        def f():
+            UrlEncoded('%s') % 'boris'
+        self.assertRaises(TypeError, f)
+
+    def test_authority(self):
+        self.assertEqual(binding._authority(), 
+                         "https://localhost:8089")
+        self.assertEqual(binding._authority(host="splunk.utopia.net"),
+                         "https://splunk.utopia.net:8089")
+        self.assertEqual(binding._authority(host="2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+                         "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
+        self.assertEqual(binding._authority(scheme="http", host="splunk.utopia.net", port="471"),
+                         "http://splunk.utopia.net:471")
+
     # Verify that we can create (and delete) a resource
     def test_create(self):
         context = binding.connect(**self.opts.kwargs)
@@ -93,11 +129,11 @@ class TestCase(testlib.TestCase):
         # Can't create a user without a role
         try:
             context.post(PATH_USERS, name=username, password=password)
-            self.fail()
+            self.fail('Did not get an error creating a user without a role.')
         except HTTPError, e:
             self.assertEqual(e.status, 400)
         except: 
-            self.fail()
+            self.fail('Got an unexpected error.')
 
         # Create a user with the required role
         response = context.post(
@@ -121,38 +157,73 @@ class TestCase(testlib.TestCase):
         # Make sure we can open a socket to the service
         context.connect().close()
 
-    # Verify that Context.fullpath behaves as expected.
-    def test_fullpath(self):
+        opts = self.opts.kwargs.copy()
+        opts['host'] = unicode(opts['host'])
+        context = binding.connect(**opts)
+
+        # Just check to make sure the service is alive
+        response = context.get("/services")
+        self.assertEqual(response.status, 200)
+
+
+    def test_autologin(self):
+        opts = self.opts.kwargs
+        opts['autologin'] = True
+        context = binding.connect(**opts)
+
+        self.assertEqual(context.get("/services").status, 200)
+        context.logout()
+        self.assertEqual(context.get("/services").status, 200)
+
+        context.autologin = False
+        context.logout()
+        self.assertRaises(AuthenticationError, context.get, "/services")
+
+    # Verify that Context._abspath behaves as expected.
+    def test_abspath(self):
         context = binding.connect(**self.opts.kwargs)
 
-        # Verify that Context.fullpath works as expected.
+        # Verify that Context._abspath works as expected.
 
-        path = context.fullpath("foo", owner=None, app=None)
+        path = context._abspath("foo", owner=None, app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/services/foo")
 
-        path = context.fullpath("foo", owner="me", app=None)
+        path = context._abspath("foo", owner="me", app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/-/foo")
 
-        path = context.fullpath("foo", owner=None, app="MyApp")
+        path = context._abspath("foo", owner=None, app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/-/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp")
+        path = context._abspath("foo", owner="me", app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing=None)
+        path = context._abspath("foo", owner="me", app="MyApp", sharing="user")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing="user")
+        path = context._abspath("foo", owner="me", app="MyApp", sharing="user")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing="app")
+        path = context._abspath("foo", owner="me", app="MyApp", sharing="app")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp",sharing="global")
+        path = context._abspath("foo", owner="me", app="MyApp",sharing="global")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
-        path = context.fullpath("foo", owner="me", app="MyApp",sharing="system")
-        self.assertEqual(path, "/servicesNS/nobody/system/foo")
+        path = context._abspath("foo bar", owner="me", app="MyApp",sharing="system")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/system/foo%20bar")
+
+        path = context._abspath('/a/b c/d')
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, '/a/b%20c/d')
 
         # Verify constructing resource paths using context defaults
 
@@ -161,44 +232,54 @@ class TestCase(testlib.TestCase):
         if 'owner' in kwargs: del kwargs['owner']
 
         context = binding.connect(**kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/services/foo")
 
         context = binding.connect(owner="me", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        print context.namespace
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/-/foo")
 
         context = binding.connect(app="MyApp", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/-/MyApp/foo")
 
         context = binding.connect(owner="me", app="MyApp", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing=None, **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="user", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="user", **kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="app", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="global", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
         context = binding.connect(
             owner="me", app="MyApp", sharing="system", **kwargs)
-        path = context.fullpath("foo")
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo")
 
     # Verify pluggable HTTP reqeust handlers.
@@ -238,10 +319,26 @@ class TestCase(testlib.TestCase):
         context.logout()
         try:
             context.get("/services")
-            self.fail()
-        except HTTPError, e:
-            self.assertEqual(e.status, 401)
-        except: self.fail()
+            self.fail('Did not get an error from GETing from a logged out Context.')
+        except AuthenticationError, e:
+            pass
+        except: self.fail('Got an unexpected error from GETing from a logged out Context.')
+
+        try:
+            context.post('/services')
+            self.fail('Did not get an error from POSTing to a logged out Context')
+        except AuthenticationError, e:
+            pass
+        except:
+            self.fail('Got an unexpected error from POSTing to a logged out Context.')
+
+        try:
+            context.delete('/services')
+            self.fail('Did not get an error from POSTing to a logged out Context')
+        except AuthenticationError, e:
+            pass
+        except:
+            self.fail('Got an unexpected error from POSTing to a logged out Context.')
 
         context.login()
         response = context.get("/services")
@@ -306,12 +403,16 @@ class TestCase(testlib.TestCase):
             ({ 'sharing': "system", 'app': "search" },
              { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
 
-            ({ 'sharing': "system", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" })]
+            ({ 'sharing': "system", 'owner': "Bob",    'app': "search" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': 'user',   'owner': '-',      'app': '-'},
+             { 'sharing': 'user',   'owner': '-',      'app': '-'})]
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
             for k, v in expected.iteritems():
+                print (k,v)
                 self.assertEqual(namespace[k], v)
 
         with self.assertRaises(ValueError):

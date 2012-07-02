@@ -92,7 +92,7 @@ class TestCase(testlib.TestCase):
 
         inputs = service.inputs
 
-        for item in inputs: 
+        for item in inputs:
             self.check_input(item)
             item.refresh()
             self.check_input(item)
@@ -106,7 +106,9 @@ class TestCase(testlib.TestCase):
 
         inputs = service.inputs
 
-        if inputs.contains('9999'): inputs.delete('9999')
+        for input in inputs:
+            if input.name == '9999':
+                inputs.delete(input.kind, input.name)
         self.assertFalse(inputs.contains('9999'))
         inputs.create("tcp", "9999", host="sdk-test")
         self.assertTrue(inputs.contains('9999'))
@@ -117,8 +119,18 @@ class TestCase(testlib.TestCase):
         input_.refresh()
         self.assertEqual(input_['host'], "foo")
         self.assertEqual(input_['sourcetype'], "bar")
-        inputs.delete('9999')
+
+        inputs.create("udp", "9999", host="sdk-test")
+        self.assertRaises(ValueError, inputs.__getitem__, '9999')
+        self.assertTrue(isinstance(inputs['udp', '9999'], client.Input))
+        self.assertTrue(isinstance(inputs['tcp', '9999'], client.Input))
+
+        for input in inputs:
+            if input.name == '9999':
+                inputs.delete(input.kind, input.name)
         self.assertFalse(inputs.contains('9999'))
+
+
 
 if __name__ == "__main__":
     testlib.main()

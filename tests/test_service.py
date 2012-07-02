@@ -58,28 +58,28 @@ class TestCase(testlib.TestCase):
 
         # Verify connect with no namespace
         service = client.connect(**kwargs)
-        service.apps()
+        service.apps.list()
 
         # Verify namespace permutations using standard app & owner args 
         kwargs.update({ 'app': "search", 'owner': None })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': "search", 'owner': "-" })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': None, 'owner': "admin" })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': "-", 'owner': "admin" })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': "search", 'owner': "admin" })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         appname = "sdk-test-app"
         username = "sdk-test-user"
@@ -92,7 +92,7 @@ class TestCase(testlib.TestCase):
         kwargs.update({ 'app': appname, 'owner': username })
         with self.assertRaises(HTTPError):
             service_ns = client.connect(**kwargs)
-            service_ns.apps()
+            service_ns.apps.list()
 
         # Validate namespace permutations with new app & user
         service.apps.create(appname)
@@ -100,23 +100,23 @@ class TestCase(testlib.TestCase):
 
         kwargs.update({ 'app': appname, 'owner': None })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': appname, 'owner': "-" })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': None, 'owner': username })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': "-", 'owner': username })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         kwargs.update({ 'app': appname, 'owner': username })
         service_ns = client.connect(**kwargs)
-        service_ns.apps()
+        service_ns.apps.list()
 
         # Cleanup
         testlib.delete_app(service, appname)

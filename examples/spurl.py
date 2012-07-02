@@ -26,8 +26,8 @@ import utils
 
 # Invoke the url using the given opts parameters
 def invoke(path, **kwargs):
-    message = { "method": kwargs.get("method", "GET"), }
-    return binding.connect(**kwargs).request(path, message)
+    method = kwargs.get("method", "GET")
+    return binding.connect(**kwargs).request(path, method=method)
 
 def print_response(response):
     if response.status != 200:

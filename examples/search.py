@@ -77,12 +77,12 @@ def main(argv):
 
     job = service.jobs.create(search, **kwargs_create)
     while True:
-        stats = job.refresh()(
-            'isDone', 
-            'doneProgress', 
-            'scanCount', 
-            'eventCount', 
-            'resultCount')
+        job.refresh()
+        stats = {'isDone': job['isDone'],
+                 'doneProgress': job['doneProgress'],
+                 'scanCount': job['scanCount'],
+                 'eventCount': job['eventCount'],
+                 'resultCount': job['resultCount']}
         progress = float(stats['doneProgress'])*100
         scanned = int(stats['scanCount'])
         matched = int(stats['eventCount'])

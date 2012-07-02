@@ -30,6 +30,7 @@ import httplib
 import socket
 import ssl
 import urllib
+import functools
 
 from contextlib import contextmanager
 
@@ -156,6 +157,68 @@ def _handle_auth_error(msg):
             raise AuthenticationError(msg)
         else:
             raise
+
+def _authentication(request_fun):
+    """Decorator to handle autologin and authentication errors.
+
+    *request_fun* is a function taking no arguments that needs to
+    be run with this ``Context`` logged into Splunk.
+
+    ``_authentication``'s behavior depends on whether the
+    ``autologin`` field of ``Context`` is set to ``True`` or
+    ``False``. If it's ``False``, then ``_authentication``
+    aborts if the ``Context`` is not logged in, and raises an
+    ``AuthenticationError`` if an ``HTTPError`` of status 401 is
+    raised in *request_fun*. If it's ``True``, then
+    ``_authentication`` will try at all sensible places to
+    log in before issuing the request.
+
+    If ``autologin`` is ``False``, ``_authentication`` makes
+    one roundtrip to the server if the ``Context`` is logged in,
+    or zero if it is not. If ``autologin`` is ``True``, it's less
+    deterministic, and may make at most three roundtrips (though
+    that would be a truly pathological case).
+
+    :param request_fun: A function of no arguments encapsulating
+                        the request to make to the server.
+
+    **Example**::
+
+        import splunklib.binding as binding
+        c = binding.connect(..., autologin=True)
+        c.logout()
+        def f():
+            c.get("/services")
+            return 42
+        print _authentication(f)
+    """
+    @functools.wraps(request_fun)
+    def wrapper(self, *args, **kwargs):
+        if self.token is None:
+            # Not yet logged in.
+            if self.autologin and self.username and self.password:
+                # This will throw an uncaught
+                # AuthenticationError if it fails.
+                self.login()
+            else:
+                raise AuthenticationError("Request aborted: not logged in.")
+        try:
+            # Issue the request
+            return request_fun(self, *args, **kwargs)
+        except HTTPError as he:
+            if he.status == 401 and self.autologin:
+                # Authentication failed. Try logging in, and then
+                # rerunning the request. If either step fails, throw
+                # an AuthenticationError and give up.
+                with _handle_auth_error("Autologin failed."):
+                    self.login()
+                with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something's very wrong."):
+                    return request_fun()
+            elif he.status == 401 and not self.autologin:
+                raise AuthenticationError("Request failed: Session is not logged in.")
+            else:
+                raise
+    return wrapper
 
 def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
     """Construct a URL authority from the given *scheme*, *host*, and *port*.
@@ -353,65 +416,7 @@ class Context(object):
         sock.connect((self.host, self.port))
         return sock
 
-    def _authentication(self, request_fun):
-        """Wrapper to handle autologin and authentication errors.
-
-        *request_fun* is a function taking no arguments that needs to
-        be run with this ``Context`` logged into Splunk.
-
-        ``_authentication``'s behavior depends on whether the
-        ``autologin`` field of ``Context`` is set to ``True`` or
-        ``False``. If it's ``False``, then ``_authentication``
-        aborts if the ``Context`` is not logged in, and raises an
-        ``AuthenticationError`` if an ``HTTPError`` of status 401 is
-        raised in *request_fun*. If it's ``True``, then
-        ``_authentication`` will try at all sensible places to
-        log in before issuing the request.
-
-        If ``autologin`` is ``False``, ``_authentication`` makes
-        one roundtrip to the server if the ``Context`` is logged in,
-        or zero if it is not. If ``autologin`` is ``True``, it's less
-        deterministic, and may make at most three roundtrips (though
-        that would be a truly pathological case).
-
-        :param request_fun: A function of no arguments encapsulating
-                            the request to make to the server.
-
-        **Example**::
-
-            import splunklib.binding as binding
-            c = binding.connect(..., autologin=True)
-            c.logout()
-            def f():
-                c.get("/services")
-                return 42
-            print _authentication(f)
-        """
-        if self.token is None:
-            # Not yet logged in.
-            if self.autologin:
-                # This will throw an uncaught
-                # AuthenticationError if it fails.
-                self.login() 
-            else:
-                raise AuthenticationError("Request aborted: not logged in.")
-        try:
-            # Issue the request
-            return request_fun()
-        except HTTPError as he:
-            if he.status == 401 and self.autologin:
-                # Authentication failed. Try logging in, and then
-                # rerunning the request. If either step fails, throw
-                # an AuthenticationError and give up.
-                with _handle_auth_error("Autologin failed."):
-                    self.login()
-                with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something's very wrong."):
-                    return request_fun()
-            elif he.status == 401 and not self.autologin:
-                raise AuthenticationError("Request failed: Session is not logged in.")
-            else:
-                raise
-
+    @_authentication
     def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
         """DELETE at *path_segment* with the given namespace and query.
 
@@ -454,12 +459,11 @@ class Context(object):
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
-        def f():
-            path = self.authority + self._abspath(path_segment, owner=owner,
-                                                  app=app, sharing=sharing)
-            return self.http.delete(path, self._auth_headers, **query)
-        return self._authentication(f)
+        path = self.authority + self._abspath(path_segment, owner=owner,
+                                              app=app, sharing=sharing)
+        return self.http.delete(path, self._auth_headers, **query)
 
+    @_authentication
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
 
@@ -502,12 +506,11 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
-        def f():
-            path = self.authority + self._abspath(path_segment, owner=owner,
-                                                  app=app, sharing=sharing)
-            return self.http.get(path, self._auth_headers, **query)
-        return self._authentication(f)
+        path = self.authority + self._abspath(path_segment, owner=owner,
+                                              app=app, sharing=sharing)
+        return self.http.get(path, self._auth_headers, **query)
 
+    @_authentication
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
         """POST to *path_segment* with the given namespace and query.
 
@@ -553,12 +556,11 @@ class Context(object):
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1')
         """
-        def f():
-            path = self.authority + self._abspath(path_segment, owner=owner, 
-                                                  app=app, sharing=sharing)
-            return self.http.post(path, self._auth_headers, **query)
-        return self._authentication(f)
+        path = self.authority + self._abspath(path_segment, owner=owner, 
+                                              app=app, sharing=sharing)
+        return self.http.post(path, self._auth_headers, **query)
 
+    @_authentication
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
         """Issue an arbitrary HTTP request to *path_segment*.
@@ -605,24 +607,24 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
-        def f():
-            path = self.authority \
-                + self._abspath(path_segment, owner=owner, 
-                                app=app, sharing=sharing)
-            # all_headers can't be named headers, due to a error in
-            # Python's implementation of closures. In particular:
-            # def f(x):
-            #     def g():
-            #         x = x + "a"
-            #         return x
-            #     return g()
-            # throws UnboundLocalError, claiming that x is not bound.
-            all_headers = headers + self._auth_headers
-            return self.http.request(path,
-                                     {'method': method,
-                                      'headers': all_headers,
-                                      'body': body})
-        return self._authentication(f)
+        path = self.authority \
+            + self._abspath(path_segment, owner=owner, 
+                            app=app, sharing=sharing)
+        # all_headers can't be named headers, due to how
+        # Python implements closures. In particular:
+        # def f(x):
+        #     def g():
+        #         x = x + "a"
+        #         return x
+        #     return g()
+        # throws UnboundLocalError, since x must be either a member of
+        # f's local namespace or g's, and cannot switch between them
+        # during the run of the function.
+        all_headers = headers + self._auth_headers
+        return self.http.request(path,
+                                 {'method': method,
+                                  'headers': all_headers,
+                                  'body': body})
 
     def login(self):
         """Log into the Splunk instance referred to by this ``Context``.

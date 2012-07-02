@@ -35,7 +35,11 @@ try:
 except:
     import xml.etree.ElementTree as et
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
+
 try:
     from cStringIO import StringIO
 except:

@@ -510,7 +510,10 @@ class Endpoint(object):
             s.logout()
             apps.get() # raises AuthenticationError
         """
-        path = "%s%s" % (self.path, path_segment)
+        if path_segment.startswith('/'):
+            path = path_segment
+        else:
+            path = self.path + path_segment
         return self.service.post(path, 
                                  owner=owner, app=app, sharing=sharing,
                                  **query)
@@ -848,9 +851,11 @@ class Collection(Endpoint):
         Makes a single roundtrip to the server, plus at most two more
         if autologin is enabled.
         """
-        for item in self.list():
-            if item.name == name: return True
-        return False
+        try:
+            self[name]
+            return True
+        except KeyError:
+            return False
 
     def __getitem__(self, key):
         """Fetch an item named *key* from this collection.
@@ -890,14 +895,14 @@ class Collection(Endpoint):
                 'mysearch', 'search * | head 1',
                 owner='admin', app='search', sharing='user')
             # Raises ValueError:
-            saved_searches['mytest']
+            saved_searches['mysearch']
             # Fetches x1
             saved_searches[
-                'mytest', 
+                'mysearch', 
                 client.namespace(sharing='app', app='search')]
             # Fetches x2
             saved_searches[
-                'mytest',
+                'mysearch',
                 client.namespace(sharing='user', owner='boris', app='search')]
         """
         if isinstance(key, tuple) and len(key) == 2:
@@ -956,6 +961,7 @@ class Collection(Endpoint):
             saved_searches = c.saved_searches
             n = len(saved_searches)
         """
+        m = self.list(count=1)
         return len(self.list())
 
     def _entity_path(self, state):
@@ -1117,6 +1123,8 @@ class Collection(Endpoint):
 
         Makes a single roundtrip to the server, plus at most two more
         if autologin is enabled.
+
+        :returns: a :class:`Record` containing the metadata.
 
         **Example**::
 
@@ -1776,7 +1784,7 @@ class Jobs(Collection):
         """Run a search and immediately start streaming preview events.
 
         Returns an InputStream over the events. The InputStream
-        streams XML fragments from the server. The SDK provides
+        streams an XML document from the server. The SDK provides
         ``results.ResultsReader`` to lazily parse this stream into
         usable Python objects. For example::
 

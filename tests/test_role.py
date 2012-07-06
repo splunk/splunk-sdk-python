@@ -43,7 +43,8 @@ class TestCase(testlib.TestCase):
         if roles.contains("sdk-tester"): roles.delete("sdk-tester")
         self.assertFalse(roles.contains("sdk-tester"))
 
-        role = roles.create("sdk-tester")
+        # Check that it gets lowercased.
+        role = roles.create("SDK-tester")
         self.assertTrue(roles.contains("sdk-tester"))
 
         self.assertTrue(role.content.has_key('capabilities'))

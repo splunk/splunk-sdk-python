@@ -17,10 +17,13 @@
 import testlib
 
 import splunklib.client as client
+import splunklib.data as data
 
 class TestCase(testlib.TestCase):
     def check_app(self, app):
         self.check_entity(app)
+        cfu = int(app.check_for_updates)
+        self.assertTrue(cfu == 1 or cfu == 0)
 
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
@@ -49,10 +52,16 @@ class TestCase(testlib.TestCase):
         service.apps.create(appname, **kwargs)
         self.assertTrue(appname in service.apps)
         app = service.apps[appname]
+        self.assertTrue(isinstance(app.state.content, data.Record))
         self.assertEqual(app['author'], "Me")
         self.assertEqual(app['label'], "SDK Test")
         self.assertEqual(app['manageable'], "0")
         self.assertEqual(app['visible'], "1")
+
+        self.assertEqual(app.author, "Me")
+        self.assertEqual(app.label, "SDK Test")
+        self.assertEqual(app.manageable, "0")
+        self.assertEqual(app.visible, "1")
 
         kwargs = {
             'author': "SDK",
@@ -68,6 +77,20 @@ class TestCase(testlib.TestCase):
 
         testlib.delete_app(service, appname)
         self.assertFalse(appname in service.apps)
+
+    def test_package(self):
+        service = client.connect(**self.opts.kwargs)
+        app = service.apps['search']
+        p = app.package()
+        self.assertEqual(p.name, 'search')
+        self.assertTrue(p.path.endswith('search.spl'))
+        self.assertTrue(p.url.endswith('search.spl'))
+
+    def test_updateInfo(self):
+        service = client.connect(**self.opts.kwargs)
+        app = service.apps['search']
+        p = app.updateInfo()
+        self.assertTrue(p is not None)
 
 if __name__ == "__main__":
     testlib.main()

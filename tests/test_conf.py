@@ -35,7 +35,8 @@ class TestCase(testlib.TestCase):
         for conf in confs:
             conf.name
             conf.path
-            for stanza in conf: 
+            for stanza in conf:
+                print stanza.path
                 self.check_entity(stanza)
 
     def test_crud(self):

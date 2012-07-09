@@ -5,7 +5,7 @@
 </fieldOrder>
 </meta>
 <messages>
-  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/Users/fross/Downloads/splunk/etc"</msg>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
 </messages>
 
 	<result offset='0'>
@@ -21,7 +21,7 @@
 </fieldOrder>
 </meta>
 <messages>
-  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/Users/fross/Downloads/splunk/etc"</msg>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
 </messages>
 
 	<result offset='0'>
@@ -37,7 +37,7 @@
 </fieldOrder>
 </meta>
 <messages>
-  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/Users/fross/Downloads/splunk/etc"</msg>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
 </messages>
 
 	<result offset='0'>

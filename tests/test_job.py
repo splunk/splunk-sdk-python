@@ -119,7 +119,7 @@ class TestCase(testlib.TestCase):
         job.finalize()
         
         # Create a new job
-        job = jobs.create("search * | head 1 | stats count")
+        job = jobs.create("search * | head 1000 | stats count")
         self.assertTrue(jobs.contains(job.sid))
 
         # Set various properties on it
@@ -164,7 +164,7 @@ class TestCase(testlib.TestCase):
         index = service.indexes['_internal']
         self.assertTrue(index['totalEventCount'] > 0)
 
-        job = jobs.create("search index=_internal | head 1 | stats count")
+        job = jobs.create("search index=_internal | head 1000 | stats count")
         self.assertRaises(ValueError, job.results)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
@@ -174,17 +174,17 @@ class TestCase(testlib.TestCase):
 
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertEqual(int(result["count"]), 1)
+        self.assertLessEqual(int(result["count"]), 1000)
 
         # Repeat the same thing, but without the .is_preview reference.
-        job = jobs.create("search index=_internal | head 1 | stats count")
+        job = jobs.create("search index=_internal | head 1000 | stats count")
         self.assertRaises(ValueError, job.results)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertEqual(int(result["count"]), 1)
+        self.assertLessEqual(int(result["count"]), 1000)
 
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",

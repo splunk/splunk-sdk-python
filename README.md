@@ -21,6 +21,11 @@ are enabled by Splunk's unique capabilities.
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
 
+For compatibility with Python 2.6, The Splunk Software Development Kit
+for Python ships with ordereddict.py from the ordereddict package on
+PyPI (http://pypi.python.org/pypi/ordereddict/1.1) which is licensed
+under the MIT license (see the top of splunklib/ordereddict.py).
+
 ## Getting Started
 
 In order to use the SDK you are going to need a copy of Splunk. If you don't 

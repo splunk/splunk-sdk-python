@@ -844,7 +844,6 @@ class Collection(Endpoint):
         self.item = item # Item accessor
         self.null_count = -1
 
-
     def __contains__(self, name):
         """Is there at least one entry called *name* in this collection?
 
@@ -852,10 +851,19 @@ class Collection(Endpoint):
         if autologin is enabled.
         """
         try:
-            self[name]
-            return True
-        except KeyError:
-            return False
+            response = self.get(name)
+            entries = self._load_list(response)
+            if len(entries) == 0:
+                # We need this because in 4.2 and 4.3,
+                # fired alerts return an empty feed instead of 404.
+                return False 
+            else:
+                return True
+        except HTTPError as he:
+            if he.status == 404:
+                return False
+            else:
+                raise
 
     def __getitem__(self, key):
         """Fetch an item named *key* from this collection.
@@ -916,6 +924,8 @@ class Collection(Endpoint):
             entries = self._load_list(response)
             if len(entries) > 1:
                 raise ValueError("Found multiple entities named '%s'; please specify a namespace." % key)
+            elif len(entries) == 0:
+                raise KeyError(key)
             else:
                 return entries[0]
         except HTTPError as he:

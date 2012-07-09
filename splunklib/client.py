@@ -1461,6 +1461,13 @@ class Inputs(Collection):
         else:
             raise KeyError(key)
 
+    def __contains__(self, key):
+        try:
+            self.__getitem__(key)
+            return True
+        except KeyError:
+            return False
+        
 
     def create(self, kind, name, **kwargs):
         """Creates an input of a specific kind in this collection, with any 

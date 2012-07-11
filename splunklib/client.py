@@ -67,9 +67,9 @@ import urllib
 
 from time import sleep
 
-from splunklib.binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
-import splunklib.data as data
-from splunklib.data import record
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
+from data import record
+import data
 
 __all__ = [
     "connect",

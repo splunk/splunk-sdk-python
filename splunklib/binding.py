@@ -36,7 +36,7 @@ from contextlib import contextmanager
 
 from xml.etree.ElementTree import XML
 
-from splunklib.data import record
+from data import record
 
 __all__ = [
     "AuthenticationError",

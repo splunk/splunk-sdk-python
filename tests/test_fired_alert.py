@@ -86,7 +86,9 @@ class TestCase(testlib.TestCase):
 
         # Wait for the saved search to run. When it runs we will see a new job
         # show up in the search's history.
-        testlib.wait(search, lambda search: len(search.history()) == 1)
+        def f(search):
+            return len(search.history()) == 1
+        testlib.wait(search, f)
         self.assertEqual(len(search.history()), 1)
 
         # When it first runs the alert count should be zero.

@@ -94,13 +94,12 @@ class TestCase(testlib.TestCase):
         result = results.ResultsReader(jobs.export("search index=_internal earliest=-1m | head 3"))
         self.assertEqual(result.is_preview, False)
         d = result.next()
-        print d
         self.assertTrue(isinstance(d, dict) or isinstance(d, results.Message))
         self.assertTrue(len(list(d for d in result if isinstance(d, dict))) <= 3)
 
-        self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
+        self.assertRaises(ValueError, jobs.oneshot, "asdaf;lkj2r23=")
 
-        self.assertRaises(SyntaxError, jobs.export, "asdaf;lkj2r23=")
+        self.assertRaises(ValueError, jobs.export, "asdaf;lkj2r23=")
 
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests earliest=-1m | head 1")
@@ -164,7 +163,9 @@ class TestCase(testlib.TestCase):
         index = service.indexes['_internal']
         self.assertTrue(index['totalEventCount'] > 0)
 
-        job = jobs.create("search index=_internal | head 1000 | stats count")
+        job = jobs.create("search index=_internal | head 100 | stats count")
+        job.refresh()
+        self.assertEqual(job['isDone'], '0')
         self.assertRaises(ValueError, job.results)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
@@ -177,14 +178,14 @@ class TestCase(testlib.TestCase):
         self.assertLessEqual(int(result["count"]), 1000)
 
         # Repeat the same thing, but without the .is_preview reference.
-        job = jobs.create("search index=_internal | head 1000 | stats count")
+        job = jobs.create("search index=_internal | head 100 | stats count")
         self.assertRaises(ValueError, job.results)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertLessEqual(int(result["count"]), 1000)
+        self.assertLessEqual(int(result["count"]), 30)
 
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",

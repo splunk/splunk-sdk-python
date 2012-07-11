@@ -110,6 +110,15 @@ MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 class IncomparableException(Exception):
     pass
 
+def trailing(template, *targets):
+    s = template
+    for t in targets:
+        n = s.find(t)
+        if n == -1:
+            raise ValueError("Target " + t + " not found in template.")
+        s = s[n + len(t):]
+    return s
+
 # Filter the given state content record according to the given arg list.
 def _filter_content(content, *args):
     if len(args) > 0:
@@ -458,7 +467,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.path + path_segment
+            path = self.service._abspath(self.path + path_segment, owner=owner, 
+                                         app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment). 
         # That doesn't work, because self.path may be UrlEncoded.
         return self.service.get(path, 
@@ -513,7 +523,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.path + path_segment
+            path = self.service._abspath(self.path + path_segment, owner=owner, 
+                                         app=app, sharing=sharing)
         return self.service.post(path, 
                                  owner=owner, app=app, sharing=sharing,
                                  **query)
@@ -986,7 +997,13 @@ class Collection(Endpoint):
         # This has been factored out so that it can be easily
         # overloaded by Configurations, which has to switch its
         # entities' endpoints from its own properties/ to configs/.
-        return urllib.unquote(state.links.alternate)
+        raw_path = urllib.unquote(state.links.alternate)
+        if 'servicesNS/' in raw_path:
+            return trailing(raw_path, 'servicesNS/', '/', '/')
+        elif 'services/' in raw_path:
+            return trailing(raw_path, 'services/')
+        else:
+            return raw_path
 
     def _load_list(self, response):
         """Converts *response* to a list of entities.
@@ -1080,7 +1097,7 @@ class Collection(Endpoint):
             state = _parse_atom_entry(entry)
             entity = self.item(
                 self.service,
-                urllib.unquote(state.links.alternate),
+                self._entity_path(state),
                 state=state)
             return entity
 
@@ -1278,7 +1295,7 @@ class Configurations(Collection):
         # Overridden to make all the ConfigurationFile objects
         # returned refer to the configs/ path instead of the
         # properties/ path used by Configrations.
-        return self.service._abspath(PATH_CONF % state['title'])
+        return PATH_CONF % state['title']
 
 
 class Stanza(Entity):
@@ -1361,6 +1378,20 @@ class Index(Entity):
                     frozenTimePeriodInSecs=ftp)
         if self.content.totalEventCount != '0':
             raise OperationError, "Operation timed out."
+        return self
+
+    def disable(self):
+        """Disables this index."""
+        # Starting in Ace, we have to do this with specific sharing,
+        # unlike most other entities.
+        self.post("disable", sharing="system")
+        return self
+
+    def enable(self):
+        """Enables this index."""
+        # Starting in Ace, we have to reenable this with a specific
+        # sharing unlike most other entities.
+        self.post("enable", sharing="system")
         return self
 
     def roll_hot_buckets(self):
@@ -1819,7 +1850,7 @@ class Jobs(Collection):
         to two for create followed by preview), plus at most two more
         if autologin is turned on.
 
-        :raises SyntaxError: on invalid queries.
+        :raises ValueError: on invalid queries.
 
         :param query: Splunk search language query to run
         :type query: ``str``
@@ -1831,8 +1862,8 @@ class Jobs(Collection):
         try:
             return self.post(path_segment="export", search=query, **params).body
         except HTTPError as he:
-            if he.status == 400 and 'Search operation' in str(he):
-                raise SyntaxError(str(he))
+            if he.status == 400:
+                raise ValueError(str(he))
             else:
                 raise
 
@@ -1858,7 +1889,7 @@ class Jobs(Collection):
         to two for create followed by results), plus at most two more
         if autologin is turned on.
 
-        :raises SyntaxError: on invalid queries.
+        :raises ValueError: on invalid queries.
 
         :param query: Splunk search language query to run
         :type query: ``str``
@@ -1870,8 +1901,8 @@ class Jobs(Collection):
         try:
             return self.post(search=query, exec_mode="oneshot", **params).body
         except HTTPError as he:
-            if he.status == 400 and 'Search operation' in str(he):
-                raise SyntaxError(str(he))
+            if he.status == 400:
+                raise ValueError(str(he))
             else:
                 raise
                 

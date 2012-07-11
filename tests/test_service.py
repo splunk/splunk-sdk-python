@@ -125,6 +125,15 @@ class TestCase(testlib.TestCase):
         self.assertFalse(service.apps.contains(appname))
         self.assertFalse(service.users.contains(username))
 
+    def test_trailing(self):
+        self.assertRaises(ValueError, client.trailing, 'this is a test', 'boris')
+        self.assertRaises(ValueError, client.trailing, 'this is a test', 's is', 'boris')
+        template = '/servicesNS/boris/search/another/path/segment/that runs on'
+        self.assertEqual(template, client.trailing(template))
+        self.assertEqual('boris/search/another/path/segment/that runs on', client.trailing(template, 'ervicesNS/'))
+        self.assertEqual('another/path/segment/that runs on', client.trailing(template, 'servicesNS/', '/', '/'))
+
+
     def test_parse(self):
         service = client.connect(**self.opts.kwargs)
 

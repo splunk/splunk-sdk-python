@@ -185,7 +185,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(job['isDone'], '1')
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertLessEqual(int(result["count"]), 30)
+        self.assertLessEqual(int(result["count"]), 100)
 
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",

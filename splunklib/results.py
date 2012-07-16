@@ -51,7 +51,7 @@ __all__ = [
 ]
 
 class Message(object):
-    """Messages returned splunkd's XML.
+    """Messages returned in splunkd's XML.
 
     **Example**::
 
@@ -60,8 +60,15 @@ class Message(object):
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
+    
     def __repr__(self):
         return "%s: %s" % (self.type, self.message)
+    
+    def __eq__(self, other):
+        return (self.type, self.message) == (other.type, other.message)
+    
+    def __hash__(self):
+        return hash((self.type, self.message))
 
 class ConcatenatedStream(object):
     """Lazily concatenate zero or more streams into a stream.
@@ -238,7 +245,7 @@ class ResultsReader(object):
                         # streaming.
                         elem.clear()
     
-                elif elem.tag == 'text' and event == 'end':
+                elif elem.tag in ('text', 'v') and event == 'end':
                     values.append(elem.text.encode('utf8'))
                     elem.clear()
     

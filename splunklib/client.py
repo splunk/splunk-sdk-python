@@ -110,6 +110,9 @@ MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 class IncomparableException(Exception):
     pass
 
+class JobNotReadyException(Exception):
+    pass
+
 def trailing(template, *targets):
     s = template
     for t in targets:
@@ -595,7 +598,8 @@ class Entity(Endpoint):
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
-        self.refresh(kwargs.get('state', None)) # "Prefresh"
+        if not kwargs.get('skip_refresh', False):
+            self.refresh(kwargs.get('state', None)) # "Prefresh"
 
     def __eq__(self, other):
         """Raises IncomparableException.
@@ -1597,7 +1601,8 @@ class Inputs(Collection):
 class Job(Entity): 
     """This class represents a search job."""
     def __init__(self, service, path, **kwargs):
-        Entity.__init__(self, service, path, **kwargs)
+        Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
+        self._isReady = False
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -1629,6 +1634,28 @@ class Job(Entity):
         self.post("control", action="finalize")
         return self
 
+    def isDone(self):
+        """Has this job finished running on the server yet?
+
+        :returns: boolean
+        """
+        if (not self.isReady()):
+            return False
+        return self['isDone'] == '1'
+
+    def isReady(self):
+        """Is this job queryable on the server yet?
+
+        :returns: boolean
+        """
+        try:
+            self.refresh()
+            self._isReady = True
+            return self._isReady
+        except JobNotReadyException:
+            self._isReady = False
+            return False
+
     @property
     def name(self):
         """Returns the name of the search job."""
@@ -1639,20 +1666,35 @@ class Job(Entity):
         self.post("control", action="pause")
         return self
 
-    def read(self):
-        """Returns the job's current state record, corresponding to the
-        current state of the server-side resource."""
-        # If the search job is newly created, it is possible that we will 
-        # get 204s (No Content) until the job is ready to respond.
-        count = 0
-        while count < 10:
+    def refresh(self, state=None):
+        """Refresh the state of this entity.
+
+        If *state* is provided, load it as the new state for this
+        entity. Otherwise, make a roundtrip to the server (by calling
+        the :meth:`read` method of self) to fetch an updated state,
+        plus at most two additional round trips if autologin is
+        enabled.
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            search = s.jobs.create('search index=_internal | head 1')
+            search.refresh()
+        """
+        if state is not None:
+            self._state = state
+        else:
             response = self.get()
-            if response.status == 204: 
-                sleep(1) 
-                count += 1
-                continue
-            return self._load_state(response)
-        raise OperationError, "Operation timed out."
+            if response.status == 204:
+                self._isReady = False
+                raise JobNotReadyException()
+            else:
+                self._isReady = True
+                raw_state = self._load_state(response)
+                raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
+                self._state = raw_state
+                return self
 
     def results(self, timeout=None, wait_time=1, **query_params):
         """Fetch search results as an InputStream IO handle.

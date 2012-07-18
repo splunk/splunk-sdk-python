@@ -118,7 +118,7 @@ class TestCase(testlib.TestCase):
         job.finalize()
         
         # Create a new job
-        job = jobs.create("search * | head 1000 | stats count")
+        job = jobs.create("search * | head 1 | stats count")
         self.assertTrue(jobs.contains(job.sid))
 
         # Set various properties on it
@@ -163,10 +163,17 @@ class TestCase(testlib.TestCase):
         index = service.indexes['_internal']
         self.assertTrue(index['totalEventCount'] > 0)
 
-        job = jobs.create("search index=_internal | head 100 | stats count")
+        job = jobs.create("search index=_internal | head 1 | stats count")
         job.refresh()
         self.assertEqual(job['isDone'], '0')
-        self.assertRaises(ValueError, job.results)
+        # When a job was first created in Splunk 4.x, results would
+        # return 204 before results were available. Itay requested a
+        # change for Ace, and now it just returns 200 with an empty
+        # <results/> element. Thus this test is obsolete. I leave it
+        # here as a caution to future generations:
+        # self.assertRaises(ValueError, job.results)
+        while not job.isDone():
+            pass
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
@@ -178,8 +185,9 @@ class TestCase(testlib.TestCase):
         self.assertLessEqual(int(result["count"]), 1000)
 
         # Repeat the same thing, but without the .is_preview reference.
-        job = jobs.create("search index=_internal | head 100 | stats count")
-        self.assertRaises(ValueError, job.results)
+        job = jobs.create("search index=_internal | head 1 | stats count")
+        while not job.isDone():
+            pass
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')

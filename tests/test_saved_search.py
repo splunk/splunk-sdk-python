@@ -17,6 +17,8 @@
 import datetime
 import testlib
 
+from time import sleep
+
 import splunklib.client as client
 
 class TestCase(testlib.TestCase):
@@ -192,13 +194,19 @@ class TestCase(testlib.TestCase):
         self.assertTrue('sdk-test1' in saved_searches)
 
         job = saved_search.dispatch()
-        job.preview().close()
+        while not job.isReady():
+            pass
+        try:
+            job.preview().close()
+        except ValueError:
+            pass
         job.cancel()
 
         # Dispatch with some additional options
         kwargs = { 'dispatch.buckets': 100 }
         job = saved_search.dispatch(**kwargs)
-        testlib.wait(job, lambda job: bool(int(job['isDone'])))
+        while not job.isDone():
+            pass
         job.timeline().close()
         job.cancel()
 
@@ -230,23 +238,27 @@ class TestCase(testlib.TestCase):
             return sid in [job.sid for job in history]
 
         job1 = saved_search.dispatch()
+        sleep(1)
         history = saved_search.history()
         self.assertEqual(len(history), 1)
         self.assertTrue(contains(history, job1.sid))
 
         job2 = saved_search.dispatch()
+        sleep(1)
         history = saved_search.history()
         self.assertEqual(len(history), 2)
         self.assertTrue(contains(history, job1.sid))
         self.assertTrue(contains(history, job2.sid))
 
         job1.cancel()
+        sleep(1)
         history = saved_search.history()
         self.assertEqual(len(history), 1)
         self.assertFalse(contains(history, job1.sid))
         self.assertTrue(contains(history, job2.sid))
 
         job2.cancel()
+        sleep(1)
         history = saved_search.history()
         self.assertEqual(len(history), 0)
         self.assertFalse(contains(history, job1.sid))

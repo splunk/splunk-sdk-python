@@ -114,6 +114,26 @@ class JobNotReadyException(Exception):
     pass
 
 def trailing(template, *targets):
+    """Substring of *template* following all *targets*.
+
+    Most easily explained by example::
+
+        template = "this is a test of the bunnies."
+        trailing(template, "is", "est", "the") == \
+            " bunnies"
+
+    Each target is matched successively in the string, and the string
+    remaining after the last target is returned. If one of the targets
+    fails to match, a ValueError is raised.
+
+    :param template: Template to extract a trailing string from.
+    :type template: string
+    :param targets: Strings to successively match in *template*.
+    :type targets: strings
+    :returns: Trailing string after all targets are matched.
+    :rtype: string
+    :raises ValueError: when one of the targets does not match.
+    """
     s = template
     for t in targets:
         n = s.find(t)

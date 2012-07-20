@@ -173,7 +173,7 @@ class TestCase(testlib.TestCase):
         # here as a caution to future generations:
         # self.assertRaises(ValueError, job.results)
         while not job.isDone():
-            pass
+            sleep(1)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
@@ -187,7 +187,7 @@ class TestCase(testlib.TestCase):
         # Repeat the same thing, but without the .is_preview reference.
         job = jobs.create("search index=_internal | head 1 | stats count")
         while not job.isDone():
-            pass
+            sleep(1)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')

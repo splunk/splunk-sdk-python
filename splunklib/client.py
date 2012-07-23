@@ -113,6 +113,9 @@ class IncomparableException(Exception):
 class JobNotReadyException(Exception):
     pass
 
+class AmbiguousReference(ValueError):
+    pass
+
 def trailing(template, *targets):
     """Substring of *template* following all *targets*.
 
@@ -886,19 +889,12 @@ class Collection(Endpoint):
         if autologin is enabled.
         """
         try:
-            response = self.get(name)
-            entries = self._load_list(response)
-            if len(entries) == 0:
-                # We need this because in 4.2 and 4.3,
-                # fired alerts return an empty feed instead of 404.
-                return False 
-            else:
-                return True
-        except HTTPError as he:
-            if he.status == 404:
-                return False
-            else:
-                raise
+            self[name]
+            return True
+        except KeyError:
+            return False
+        except AmbiguousReference:
+            return True
 
     def __getitem__(self, key):
         """Fetch an item named *key* from this collection.
@@ -958,7 +954,7 @@ class Collection(Endpoint):
             response = self.get(key, owner=ns.owner, app=ns.app)
             entries = self._load_list(response)
             if len(entries) > 1:
-                raise ValueError("Found multiple entities named '%s'; please specify a namespace." % key)
+                raise AmbiguousReference("Found multiple entities named '%s'; please specify a namespace." % key)
             elif len(entries) == 0:
                 raise KeyError(key)
             else:
@@ -1013,7 +1009,10 @@ class Collection(Endpoint):
         """Calculate the path to an entity to be returned.
 
         *state* should be the dictionary returned by
-        :func:`_parse_atom_entry`.
+        :func:`_parse_atom_entry`. :func:`_entity_path` extracts the
+        link to this entity from *state*, and strips all the namespace
+        prefixes from it to leave only the relative path of the entity
+        itself, sans namespace.
 
         :rtype: string
         :returns: an absolute path
@@ -1522,6 +1521,8 @@ class Inputs(Collection):
             return True
         except KeyError:
             return False
+        except AmbiguousReference:
+            return True
         
 
     def create(self, kind, name, **kwargs):

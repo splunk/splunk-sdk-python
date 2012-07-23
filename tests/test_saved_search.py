@@ -199,7 +199,8 @@ class TestCase(testlib.TestCase):
         try:
             job.preview().close()
         except ValueError:
-            pass
+            pass # Probably not in a state that we can actually get
+                 # events from yet.
         job.cancel()
 
         # Dispatch with some additional options

@@ -94,9 +94,9 @@ class TestCase(testlib.TestCase):
         testlib.wait(search, f, timeout=120)
         self.assertEqual(len(search.history()), 1)
 
-        # When it first runs the alert count should be zero.
+        # There should be no alerts if the search job hasn't been
+        # created yet.
         search.refresh()
-        print alert_count(search)
         self.assertTrue((alert_count(search) == 0) == (search_name not in fired_alerts))
 
         # Submit events and verify that they each trigger the expected

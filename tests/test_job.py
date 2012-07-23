@@ -182,7 +182,7 @@ class TestCase(testlib.TestCase):
 
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertLessEqual(int(result["count"]), 1000)
+        self.assertLessEqual(int(result["count"]), 1)
 
         # Repeat the same thing, but without the .is_preview reference.
         job = jobs.create("search index=_internal | head 1 | stats count")
@@ -193,7 +193,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(job['isDone'], '1')
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertLessEqual(int(result["count"]), 100)
+        self.assertLessEqual(int(result["count"]), 1)
 
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",

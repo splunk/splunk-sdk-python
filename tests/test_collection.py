@@ -77,7 +77,7 @@ class TestCase(testlib.TestCase):
         seen = 0
         for item in collection: 
             seen += 1
-            print item.name
+            item.name
         self.assertEqual(seen, count)
 
     def test_apps(self):

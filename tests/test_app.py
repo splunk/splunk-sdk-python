@@ -28,10 +28,18 @@ class TestCase(testlib.TestCase):
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
 
+        disabled_app = 'sdk-test-app-disabled'
+        if (disabled_app in service.apps):
+            service.apps.delete(disabled_app)
+        disabled = service.apps.create(disabled_app)
+        disabled.disable()
+
         for app in service.apps:
             self.check_app(app)
             app.refresh()
             self.check_app(app)
+
+        service.apps.delete(disabled_app)
 
     def test_crud(self):
         service = client.connect(**self.opts.kwargs)

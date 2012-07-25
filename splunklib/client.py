@@ -110,6 +110,41 @@ MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 class IncomparableException(Exception):
     pass
 
+class JobNotReadyException(Exception):
+    pass
+
+class AmbiguousReferenceException(ValueError):
+    pass
+
+def trailing(template, *targets):
+    """Substring of *template* following all *targets*.
+
+    Most easily explained by example::
+
+        template = "this is a test of the bunnies."
+        trailing(template, "is", "est", "the") == \
+            " bunnies"
+
+    Each target is matched successively in the string, and the string
+    remaining after the last target is returned. If one of the targets
+    fails to match, a ValueError is raised.
+
+    :param template: Template to extract a trailing string from.
+    :type template: string
+    :param targets: Strings to successively match in *template*.
+    :type targets: strings
+    :returns: Trailing string after all targets are matched.
+    :rtype: string
+    :raises ValueError: when one of the targets does not match.
+    """
+    s = template
+    for t in targets:
+        n = s.find(t)
+        if n == -1:
+            raise ValueError("Target " + t + " not found in template.")
+        s = s[n + len(t):]
+    return s
+
 # Filter the given state content record according to the given arg list.
 def _filter_content(content, *args):
     if len(args) > 0:
@@ -458,7 +493,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.path + path_segment
+            path = self.service._abspath(self.path + path_segment, owner=owner, 
+                                         app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment). 
         # That doesn't work, because self.path may be UrlEncoded.
         return self.service.get(path, 
@@ -513,7 +549,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.path + path_segment
+            path = self.service._abspath(self.path + path_segment, owner=owner, 
+                                         app=app, sharing=sharing)
         return self.service.post(path, 
                                  owner=owner, app=app, sharing=sharing,
                                  **query)
@@ -584,7 +621,8 @@ class Entity(Endpoint):
     def __init__(self, service, path, **kwargs):
         Endpoint.__init__(self, service, path)
         self._state = None
-        self.refresh(kwargs.get('state', None)) # "Prefresh"
+        if not kwargs.get('skip_refresh', False):
+            self.refresh(kwargs.get('state', None)) # "Prefresh"
 
     def __eq__(self, other):
         """Raises IncomparableException.
@@ -844,7 +882,6 @@ class Collection(Endpoint):
         self.item = item # Item accessor
         self.null_count = -1
 
-
     def __contains__(self, name):
         """Is there at least one entry called *name* in this collection?
 
@@ -856,6 +893,8 @@ class Collection(Endpoint):
             return True
         except KeyError:
             return False
+        except AmbiguousReferenceException:
+            return True
 
     def __getitem__(self, key):
         """Fetch an item named *key* from this collection.
@@ -915,7 +954,9 @@ class Collection(Endpoint):
             response = self.get(key, owner=ns.owner, app=ns.app)
             entries = self._load_list(response)
             if len(entries) > 1:
-                raise ValueError("Found multiple entities named '%s'; please specify a namespace." % key)
+                raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
+            elif len(entries) == 0:
+                raise KeyError(key)
             else:
                 return entries[0]
         except HTTPError as he:
@@ -968,7 +1009,10 @@ class Collection(Endpoint):
         """Calculate the path to an entity to be returned.
 
         *state* should be the dictionary returned by
-        :func:`_parse_atom_entry`.
+        :func:`_parse_atom_entry`. :func:`_entity_path` extracts the
+        link to this entity from *state*, and strips all the namespace
+        prefixes from it to leave only the relative path of the entity
+        itself, sans namespace.
 
         :rtype: string
         :returns: an absolute path
@@ -976,7 +1020,13 @@ class Collection(Endpoint):
         # This has been factored out so that it can be easily
         # overloaded by Configurations, which has to switch its
         # entities' endpoints from its own properties/ to configs/.
-        return urllib.unquote(state.links.alternate)
+        raw_path = urllib.unquote(state.links.alternate)
+        if 'servicesNS/' in raw_path:
+            return trailing(raw_path, 'servicesNS/', '/', '/')
+        elif 'services/' in raw_path:
+            return trailing(raw_path, 'services/')
+        else:
+            return raw_path
 
     def _load_list(self, response):
         """Converts *response* to a list of entities.
@@ -1070,7 +1120,7 @@ class Collection(Endpoint):
             state = _parse_atom_entry(entry)
             entity = self.item(
                 self.service,
-                urllib.unquote(state.links.alternate),
+                self._entity_path(state),
                 state=state)
             return entity
 
@@ -1268,7 +1318,7 @@ class Configurations(Collection):
         # Overridden to make all the ConfigurationFile objects
         # returned refer to the configs/ path instead of the
         # properties/ path used by Configrations.
-        return self.service._abspath(PATH_CONF % state['title'])
+        return PATH_CONF % state['title']
 
 
 class Stanza(Entity):
@@ -1351,6 +1401,20 @@ class Index(Entity):
                     frozenTimePeriodInSecs=ftp)
         if self.content.totalEventCount != '0':
             raise OperationError, "Operation timed out."
+        return self
+
+    def disable(self):
+        """Disables this index."""
+        # Starting in Ace, we have to do this with specific sharing,
+        # unlike most other entities.
+        self.post("disable", sharing="system")
+        return self
+
+    def enable(self):
+        """Enables this index."""
+        # Starting in Ace, we have to reenable this with a specific
+        # sharing unlike most other entities.
+        self.post("enable", sharing="system")
         return self
 
     def roll_hot_buckets(self):
@@ -1451,6 +1515,15 @@ class Inputs(Collection):
         else:
             raise KeyError(key)
 
+    def __contains__(self, key):
+        try:
+            self.__getitem__(key)
+            return True
+        except KeyError:
+            return False
+        except AmbiguousReferenceException:
+            return True
+        
 
     def create(self, kind, name, **kwargs):
         """Creates an input of a specific kind in this collection, with any 
@@ -1549,7 +1622,8 @@ class Inputs(Collection):
 class Job(Entity): 
     """This class represents a search job."""
     def __init__(self, service, path, **kwargs):
-        Entity.__init__(self, service, path, **kwargs)
+        Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
+        self._isReady = False
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -1581,6 +1655,28 @@ class Job(Entity):
         self.post("control", action="finalize")
         return self
 
+    def isDone(self):
+        """Has this job finished running on the server yet?
+
+        :returns: boolean
+        """
+        if (not self.isReady()):
+            return False
+        return self['isDone'] == '1'
+
+    def isReady(self):
+        """Is this job queryable on the server yet?
+
+        :returns: boolean
+        """
+        try:
+            self.refresh()
+            self._isReady = True
+            return self._isReady
+        except JobNotReadyException:
+            self._isReady = False
+            return False
+
     @property
     def name(self):
         """Returns the name of the search job."""
@@ -1591,20 +1687,35 @@ class Job(Entity):
         self.post("control", action="pause")
         return self
 
-    def read(self):
-        """Returns the job's current state record, corresponding to the
-        current state of the server-side resource."""
-        # If the search job is newly created, it is possible that we will 
-        # get 204s (No Content) until the job is ready to respond.
-        count = 0
-        while count < 10:
+    def refresh(self, state=None):
+        """Refresh the state of this entity.
+
+        If *state* is provided, load it as the new state for this
+        entity. Otherwise, make a roundtrip to the server (by calling
+        the :meth:`read` method of self) to fetch an updated state,
+        plus at most two additional round trips if autologin is
+        enabled.
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            search = s.jobs.create('search index=_internal | head 1')
+            search.refresh()
+        """
+        if state is not None:
+            self._state = state
+        else:
             response = self.get()
-            if response.status == 204: 
-                sleep(1) 
-                count += 1
-                continue
-            return self._load_state(response)
-        raise OperationError, "Operation timed out."
+            if response.status == 204:
+                self._isReady = False
+                raise JobNotReadyException()
+            else:
+                self._isReady = True
+                raw_state = self._load_state(response)
+                raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
+                self._state = raw_state
+                return self
 
     def results(self, timeout=None, wait_time=1, **query_params):
         """Fetch search results as an InputStream IO handle.
@@ -1802,7 +1913,7 @@ class Jobs(Collection):
         to two for create followed by preview), plus at most two more
         if autologin is turned on.
 
-        :raises SyntaxError: on invalid queries.
+        :raises ValueError: on invalid queries.
 
         :param query: Splunk search language query to run
         :type query: ``str``
@@ -1814,8 +1925,8 @@ class Jobs(Collection):
         try:
             return self.post(path_segment="export", search=query, **params).body
         except HTTPError as he:
-            if he.status == 400 and 'Search operation' in str(he):
-                raise SyntaxError(str(he))
+            if he.status == 400:
+                raise ValueError(str(he))
             else:
                 raise
 
@@ -1841,7 +1952,7 @@ class Jobs(Collection):
         to two for create followed by results), plus at most two more
         if autologin is turned on.
 
-        :raises SyntaxError: on invalid queries.
+        :raises ValueError: on invalid queries.
 
         :param query: Splunk search language query to run
         :type query: ``str``
@@ -1853,8 +1964,8 @@ class Jobs(Collection):
         try:
             return self.post(search=query, exec_mode="oneshot", **params).body
         except HTTPError as he:
-            if he.status == 400 and 'Search operation' in str(he):
-                raise SyntaxError(str(he))
+            if he.status == 400:
+                raise ValueError(str(he))
             else:
                 raise
                 

@@ -94,13 +94,12 @@ class TestCase(testlib.TestCase):
         result = results.ResultsReader(jobs.export("search index=_internal earliest=-1m | head 3"))
         self.assertEqual(result.is_preview, False)
         d = result.next()
-        print d
         self.assertTrue(isinstance(d, dict) or isinstance(d, results.Message))
         self.assertTrue(len(list(d for d in result if isinstance(d, dict))) <= 3)
 
-        self.assertRaises(SyntaxError, jobs.oneshot, "asdaf;lkj2r23=")
+        self.assertRaises(ValueError, jobs.oneshot, "asdaf;lkj2r23=")
 
-        self.assertRaises(SyntaxError, jobs.export, "asdaf;lkj2r23=")
+        self.assertRaises(ValueError, jobs.export, "asdaf;lkj2r23=")
 
         # Make sure we can create a job
         job = jobs.create("search index=sdk-tests earliest=-1m | head 1")
@@ -165,7 +164,16 @@ class TestCase(testlib.TestCase):
         self.assertTrue(index['totalEventCount'] > 0)
 
         job = jobs.create("search index=_internal | head 1 | stats count")
-        self.assertRaises(ValueError, job.results)
+        job.refresh()
+        self.assertEqual(job['isDone'], '0')
+        # When a job was first created in Splunk 4.x, results would
+        # return 204 before results were available. Itay requested a
+        # change for Ace, and now it just returns 200 with an empty
+        # <results/> element. Thus this test is obsolete. I leave it
+        # here as a caution to future generations:
+        # self.assertRaises(ValueError, job.results)
+        while not job.isDone():
+            sleep(1)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
@@ -174,17 +182,18 @@ class TestCase(testlib.TestCase):
 
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertEqual(int(result["count"]), 1)
+        self.assertLessEqual(int(result["count"]), 1)
 
         # Repeat the same thing, but without the .is_preview reference.
         job = jobs.create("search index=_internal | head 1 | stats count")
-        self.assertRaises(ValueError, job.results)
+        while not job.isDone():
+            sleep(1)
         reader = results.ResultsReader(job.results(timeout=60))
         job.refresh()
         self.assertEqual(job['isDone'], '1')
         result = reader.next()
         self.assertTrue(isinstance(result, dict))
-        self.assertEqual(int(result["count"]), 1)
+        self.assertLessEqual(int(result["count"]), 1)
 
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",

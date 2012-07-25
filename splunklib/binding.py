@@ -696,7 +696,7 @@ class Context(object):
             c._abspath('/a/b c/d') == '/a/b%20c/d'
             c._abspath('apps/local/search') == \
                 '/servicesNS/boris/search/apps/local/search'
-            c._abspath('apps/local/search', sharing='systmem') == \
+            c._abspath('apps/local/search', sharing='system') == \
                 '/servicesNS/nobody/system/apps/local/search'
             url = c.authority + c._abspath('apps/local/sharing')
         """
@@ -722,8 +722,9 @@ class Context(object):
 
         oname = "-" if ns.owner is None else ns.owner
         aname = "-" if ns.app is None else ns.app
-        return UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),
+        path = UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),
                           skip_encode=skip_encode)
+        return path
 
 def connect(**kwargs):
     """Return an authenticated ``Context`` object.

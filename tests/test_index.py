@@ -57,13 +57,13 @@ class TestCase(testlib.TestCase):
 
     def test_disable(self):
         self.index.disable()
-        testlib.restart(self.service)
+        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
 
     def test_enable(self):
         self.index.enable()
-        testlib.restart(self.service)
+        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '0')
 

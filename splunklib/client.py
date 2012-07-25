@@ -113,7 +113,7 @@ class IncomparableException(Exception):
 class JobNotReadyException(Exception):
     pass
 
-class AmbiguousReference(ValueError):
+class AmbiguousReferenceException(ValueError):
     pass
 
 def trailing(template, *targets):
@@ -893,7 +893,7 @@ class Collection(Endpoint):
             return True
         except KeyError:
             return False
-        except AmbiguousReference:
+        except AmbiguousReferenceException:
             return True
 
     def __getitem__(self, key):
@@ -954,7 +954,7 @@ class Collection(Endpoint):
             response = self.get(key, owner=ns.owner, app=ns.app)
             entries = self._load_list(response)
             if len(entries) > 1:
-                raise AmbiguousReference("Found multiple entities named '%s'; please specify a namespace." % key)
+                raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
             elif len(entries) == 0:
                 raise KeyError(key)
             else:
@@ -1521,7 +1521,7 @@ class Inputs(Collection):
             return True
         except KeyError:
             return False
-        except AmbiguousReference:
+        except AmbiguousReferenceException:
             return True
         
 

@@ -31,6 +31,7 @@ import socket
 import ssl
 import urllib
 import functools
+import logging
 
 from contextlib import contextmanager
 
@@ -131,6 +132,8 @@ class UrlEncoded(str):
         ``TypeError``.
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
+    def __repr__(self):
+        return "UrlEncoded(%s)" % self
 
 @contextmanager
 def _handle_auth_error(msg):
@@ -461,6 +464,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
+        logging.debug("DELETE request to %s", path)
         return self.http.delete(path, self._auth_headers, **query)
 
     @_authentication
@@ -508,6 +512,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
+        logging.debug("GET request to %s", path)
         return self.http.get(path, self._auth_headers, **query)
 
     @_authentication
@@ -558,6 +563,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
+        logging.debug("POST request to %s (query: %s)", path, str(query))
         return self.http.post(path, self._auth_headers, **query)
 
     @_authentication
@@ -621,6 +627,8 @@ class Context(object):
         # f's local namespace or g's, and cannot switch between them
         # during the run of the function.
         all_headers = headers + self._auth_headers
+        logging.debug("%s request to %s (headers: %s, body: %s)", 
+                      method, repr(path), str(all_headers), repr(body))
         return self.http.request(path,
                                  {'method': method,
                                   'headers': all_headers,

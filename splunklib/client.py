@@ -107,6 +107,9 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+class IllegalOperationException(Exception):
+    pass
+
 class IncomparableException(Exception):
     pass
 

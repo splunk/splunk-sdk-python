@@ -55,6 +55,13 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
+@contextmanager
+def log_duration():
+    start_time = datetime.now()
+    yield
+    end_time = datetime.now()
+    logging.debug("Operation took %s", end_time-start_time)
+
 class AuthenticationError(Exception):
     pass
 
@@ -465,10 +472,9 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        start_time = datetime.now()
-        response = self.http.delete(path, self._auth_headers, **query)
-        end_time = datetime.now()
-        logging.debug("DELETE request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        logging.debug("DELETE request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
@@ -516,10 +522,9 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        start_time = datetime.now()
-        response = self.http.get(path, self._auth_headers, **query)
-        end_time = datetime.now()
-        logging.debug("GET request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        logging.debug("GET request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.get(path, self._auth_headers, **query)
         return response
 
     @_authentication
@@ -570,10 +575,9 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
-        start_time = datetime.now()
-        response = self.http.post(path, self._auth_headers, **query)
-        end_time = datetime.now()
-        logging.debug("POST request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        logging.debug("POST request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.post(path, self._auth_headers, **query)
         return response
 
     @_authentication
@@ -637,14 +641,13 @@ class Context(object):
         # f's local namespace or g's, and cannot switch between them
         # during the run of the function.
         all_headers = headers + self._auth_headers
-        start_time = datetime.now()
-        response = self.http.request(path,
-                                     {'method': method,
-                                      'headers': all_headers,
-                                      'body': body})
-        end_time = datetime.now()
-        logging.debug("%s request to %s (time: %s, headers: %s, body: %s)", 
-                      method, path, end_time-start_time, str(all_headers), repr(body))
+        logging.debug("%s request to %s (headers: %s, body: %s)", 
+                      method, path, str(all_headers), repr(body))
+        with log_duration():
+            response = self.http.request(path,
+                                         {'method': method,
+                                          'headers': all_headers,
+                                          'body': body})
         return response
 
     def login(self):

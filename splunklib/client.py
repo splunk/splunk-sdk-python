@@ -64,7 +64,7 @@ attributes, and methods specific to each kind of entity.::
 import datetime
 import json
 import urllib
-
+import logging
 from time import sleep
 
 from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
@@ -1005,7 +1005,6 @@ class Collection(Endpoint):
             saved_searches = c.saved_searches
             n = len(saved_searches)
         """
-        m = self.list(count=1)
         return len(self.list())
 
     def _entity_path(self, state):
@@ -1228,6 +1227,7 @@ class Collection(Endpoint):
                 # server.
                 ... 
         """
+        assert pagesize is None or pagesize > 0
         if count is None:
             count = self.null_count
         fetched = 0
@@ -1241,6 +1241,7 @@ class Collection(Endpoint):
             if pagesize is None or N < pagesize:
                 break
             offset += N
+            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d", pagesize, fetched, offset, N)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=None, **kwargs):
@@ -1932,6 +1933,9 @@ class Jobs(Collection):
                 raise ValueError(str(he))
             else:
                 raise
+
+    def itemmeta(self):
+        raise NotSupportedError()
 
 
     def oneshot(self, query, **params):

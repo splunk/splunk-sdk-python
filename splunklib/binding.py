@@ -32,6 +32,7 @@ import ssl
 import urllib
 import functools
 import logging
+from datetime import datetime
 
 from contextlib import contextmanager
 
@@ -464,8 +465,11 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("DELETE request to %s", path)
-        return self.http.delete(path, self._auth_headers, **query)
+        start_time = datetime.now()
+        response = self.http.delete(path, self._auth_headers, **query)
+        end_time = datetime.now()
+        logging.debug("DELETE request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        return response
 
     @_authentication
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
@@ -512,8 +516,11 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("GET request to %s", path)
-        return self.http.get(path, self._auth_headers, **query)
+        start_time = datetime.now()
+        response = self.http.get(path, self._auth_headers, **query)
+        end_time = datetime.now()
+        logging.debug("GET request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        return response
 
     @_authentication
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
@@ -563,8 +570,11 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
-        logging.debug("POST request to %s (query: %s)", path, str(query))
-        return self.http.post(path, self._auth_headers, **query)
+        start_time = datetime.now()
+        response = self.http.post(path, self._auth_headers, **query)
+        end_time = datetime.now()
+        logging.debug("POST request to %s (time: %s, body: %s)", path, end_time-start_time, repr(query))
+        return response
 
     @_authentication
     def request(self, path_segment, method="GET", headers=[], body="",
@@ -627,12 +637,15 @@ class Context(object):
         # f's local namespace or g's, and cannot switch between them
         # during the run of the function.
         all_headers = headers + self._auth_headers
-        logging.debug("%s request to %s (headers: %s, body: %s)", 
-                      method, repr(path), str(all_headers), repr(body))
-        return self.http.request(path,
-                                 {'method': method,
-                                  'headers': all_headers,
-                                  'body': body})
+        start_time = datetime.now()
+        response = self.http.request(path,
+                                     {'method': method,
+                                      'headers': all_headers,
+                                      'body': body})
+        end_time = datetime.now()
+        logging.debug("%s request to %s (time: %s, headers: %s, body: %s)", 
+                      method, path, end_time-start_time, str(all_headers), repr(body))
+        return response
 
     def login(self):
         """Log into the Splunk instance referred to by this ``Context``.

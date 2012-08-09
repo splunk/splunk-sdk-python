@@ -139,7 +139,7 @@ class TestCase(unittest.TestCase):
         logging.info("%s", self.__class__.__name__)
         if TestCase.service is None:
             import splunklib.client as client
-            self.opts = parse([], {}, ".splunkrc")
+            TestCase.opts = parse([], {}, ".splunkrc")
             TestCase.service = client.connect(**self.opts.kwargs)
             TestCase.splunk_version = int(self.service.info['version'].split('.')[0])
             logging.debug("Connected to splunkd version %d", TestCase.splunk_version)

@@ -136,7 +136,6 @@ class TestCase(unittest.TestCase):
     splunk_version = None
 
     def setUp(self):
-        logging.info("%s", self.__class__.__name__)
         if TestCase.service is None:
             import splunklib.client as client
             TestCase.opts = parse([], {}, ".splunkrc")

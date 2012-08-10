@@ -173,6 +173,13 @@ class TestCase(testlib.TestCase):
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
 
+    def test_getitem_with_nonsense(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            name = testlib.tmpname()
+            self.assertTrue(name not in coll)
+            self.assertRaises(KeyError, coll.__getitem__, name)
+
 if __name__ == "__main__":
     testlib.main()
 

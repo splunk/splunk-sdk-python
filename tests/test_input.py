@@ -18,120 +18,89 @@ import testlib
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
-    def check_input(self, entity):
-        self.check_entity(entity)
+test_inputs = [{'kind': 'tcp', 'name': '9999', 'host': 'sdk-test'},
+               {'kind': 'udp', 'name': '9999', 'host': 'sdk-test'}]
 
-        self.assertTrue(entity.kind is not None)
-
-        # Note: The disabled flag appears to be the only common content
-        # attribute, as there are apparently cases where even index does 
-        # not appear.
-        entity.content.disabled
-
-        if entity.kind == "ad":
-            entity.content.monitorSubtree
-            return
-            
-        if entity.kind == "monitor":
-            return
-
-        if entity.kind == "registry":
-            entity.content.baseline
-            entity.content.proc
-            entity.content.hive
-            entity.content.index
-            return
-
-        if entity.kind == "script":
-            entity.content._rcvbuf
-            entity.content.index
-            entity.content.interval
-            return
-
-        if entity.kind == "tcp":
-            entity.content._rcvbuf
-            entity.content.group
-            return
-
-        if entity.kind == "splunktcp":
-            entity.content._rcvbuf
-            entity.content.group
-            entity.content.host
-            entity.content.index
-            return
-
-        if entity.kind == "udp":
-            entity.content._rcvbuf
-            entity.content.group
-            entity.content.host
-            entity.content.index
-            return
-
-        if entity.kind == "win-event-log-collections":
-            entity.content.lookup_host
-            entity.content.name
-            return
-
-        if entity.kind == "win-perfmon":
-            entity.content.interval
-            entity.content.object
-            return
-
-        if entity.kind == "win-wmi-collections":
-            entity.content.classes
-            entity.content.interval
-            entity.content.lookup_host
-            entity.content.wql
-            return
-
-        self.fail("Unknown input kind: '%s'" % entity.kind)
-
+class TestRead(testlib.TestCase):
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        inputs = service.inputs
-
-        for item in inputs:
-            self.check_input(item)
+        inputs = self.service.inputs
+        # count doesn't work on inputs; known problem tested for in
+        # test_collection.py. This test will speed up dramatically
+        # when that's fixed.
+        for item in inputs.list(count=5): 
+            self.check_entity(item)
             item.refresh()
-            self.check_input(item)
+            self.check_entity(item)
 
+    def test_read_kind(self):
+        inputs = self.service.inputs
         for kind in inputs.kinds:
-            for item in inputs.list(kind):
+            # count doesn't work on inputs; known problem tested for in
+            # test_collection.py. This test will speed up dramatically
+            # when that's fixed.
+            for item in inputs.list(kind, count=3):
                 self.assertEqual(item.kind, kind)
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+class TestInput(testlib.TestCase):
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        inputs = self.service.inputs
+        self.test_entities = {}
+        for test_input in test_inputs:
+            self.test_entities[test_input['kind']] = \
+                inputs.create(**test_input)
 
-        inputs = service.inputs
+    def tearDown(self):
+        testlib.TestCase.tearDown(self)
+        for test_input in test_inputs:
+            try:
+                self.service.inputs.delete(
+                    kind=test_input['kind'],
+                    name=test_input['name'])
+            except KeyError:
+                pass
 
-        for input in inputs:
-            if input.name == '9999':
-                inputs.delete(input.kind, input.name)
-        self.assertFalse('9999' in inputs)
-        inputs.create("tcp", "9999", host="sdk-test")
-        self.assertTrue('9999' in inputs)
-        input_ = inputs['9999']
-        self.assertEqual(input_.kind, "tcp")
-        self.assertEqual(input_['host'], "sdk-test")
-        input_.update(host="foo", sourcetype="bar")
-        input_.refresh()
-        self.assertEqual(input_['host'], "foo")
-        self.assertEqual(input_['sourcetype'], "bar")
+    def test_create(self):
+        inputs = self.service.inputs
+        for test_input in test_inputs:
+            kind, name, host = test_input['kind'], test_input['name'], test_input['host']
+            entity = self.test_entities[kind]
+            entity = inputs[kind, name]
+            self.check_entity(entity)
+            self.assertEqual(entity.name, name)
+            self.assertEqual(entity.kind, kind)
+            self.assertEqual(entity.host, host)
 
-        inputs.create("udp", "9999", host="sdk-test")
-        self.assertRaises(ValueError, inputs.__getitem__, '9999')
-        self.assertTrue(isinstance(inputs['udp', '9999'], client.Input))
-        self.assertTrue(isinstance(inputs['tcp', '9999'], client.Input))
+    def test_read(self):
+        inputs = self.service.inputs
+        for test_input in test_inputs:
+            kind, name = test_input['kind'], test_input['name']
+            this_entity = self.test_entities[kind]
+            read_entity = inputs[kind, name]
+            self.assertEqual(this_entity.kind, read_entity.kind)
+            self.assertEqual(this_entity.name, read_entity.name)
+            self.assertEqual(this_entity.host, read_entity.host)
 
-        for input in inputs:
-            if input.name == '9999':
-                inputs.delete(input.kind, input.name)
-        self.assertFalse('9999' in inputs)
-        self.assertFalse(inputs.contains('9999'));
+    def test_update(self):
+        inputs = self.service.inputs
+        for test_input in test_inputs:
+            kind, name = test_input['kind'], test_input['name']
+            entity = self.test_entities[kind, name]
+            kwargs = {'host': 'foo', 'sourcetype': 'bar'}
+            entity.update(**kwargs)
+            entity.refresh()
+            self.assertEqual(entity.host, kwargs['host'])
+            self.assertEqual(entity.sourcetype, kwargs['sourcetype'])
 
-
+    def test_delete(self):
+        inputs = self.service.inputs
+        for test_input in test_inputs:
+            kind, name = test_input['kind'], test_input['name']
+            self.assertTrue(name in inputs)
+            self.assertTrue((kind,name) in inputs)
+            self.service.inputs.delete(kind['name'])
+            self.assertFalse(name in inputs)
+            self.assertFalse((kind,name) in inputs)
 
 if __name__ == "__main__":
     testlib.main()

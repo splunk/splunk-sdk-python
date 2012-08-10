@@ -71,6 +71,17 @@ class TestCase(testlib.TestCase):
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
 
+    def test_list_with_count(self):
+        N = 5
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list()][:N]
+            N = len(expected) # in case there are <N elements
+            found = [ent.name for ent in coll.list(count=N)]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected %s, found %s' % \
+                                 (coll_name, expected, found))
+
     def test_list_with_search(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
@@ -81,7 +92,6 @@ class TestCase(testlib.TestCase):
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
-            return expected, found
 
     def test_list_with_sort_dir(self):
         for coll_name in collections:

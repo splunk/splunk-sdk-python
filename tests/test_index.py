@@ -67,7 +67,7 @@ class TestSubmit(IndexTest):
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        # testlib.wait(self.index, lambda idx: int(idx['totalEventCount']) > 0, timeout=2)
+        # testlib.restart() <-- waiting for a workaround
         self.index.refresh()
         self.assertEqual(int(self.index['totalEventCount']), eventCount+1)
 

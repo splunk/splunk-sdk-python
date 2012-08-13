@@ -17,6 +17,8 @@
 import testlib
 import logging
 
+import unittest
+
 import splunklib.client as client
 import splunklib.results as results
 
@@ -103,7 +105,7 @@ class TestUtilities(testlib.TestCase):
             job.refresh()
             self.check_job(job)
 
-def retry(job, field, expected, times=3):
+def retry(job, field, expected, times=10):
     # Sometimes there is a slight delay in the value getting
     # set in splunkd. If it fails, just try again.
     tries = times
@@ -208,7 +210,7 @@ class TestJob(testlib.TestCase):
         # This is a problem to test. You have to wait for it to change
         # before touch gets anywhere, and the granularity of ttl is seconds.
         old_ttl = int(self.job['ttl'])
-        import time; time.sleep(2)
+        # import time; time.sleep(3)
         self.job.touch()
         self.job.refresh()
         new_ttl = int(self.job['ttl'])
@@ -216,114 +218,69 @@ class TestJob(testlib.TestCase):
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
         self.assertGreaterEqual(int(self.job['ttl']), old_ttl)
         
-    # def test_update(self):
-    #     job = self.job
+    def test_enable_preview(self):
+        if self.job['isPreviewEnabled'] == '1':
+            self.job.disable_preview()
+            self.job.refresh()
+            self.assertEqual(job['isPreviewEnabled'], '0')
+        self.job.enable_preview()
+        retry(self.job, 'isPreviewEnabled', '1', times=5)
+        self.assertEqual(self.job['isPreviewEnabled'], '1')
 
-    #     new_priority = int(job['priority']) % 10  +  1
-    #     new_ttl = int(job['ttl']) + 1
+    def test_disable_preview(self):
+        if self.job['isPreviewEnabled'] == '0':
+            self.job.enable_preview()
+            self.job.refresh()
+            self.assertEqual(self.job['isPreviewEnabled'], '1')
+        self.job.disable_preview()
+        retry(self.job, 'isPreviewEnabled', '0')
+        self.assertEqual(self.job['isPreviewEnabled'], '0')
 
-    #     job.disable_preview()
-    #     job.pause()
-    #     job.set_ttl(new_ttl)
-    #     job.set_priority(new_priority)
-    #     job.touch()
+class TestResultsReader(unittest.TestCase):
+    def test_results_reader(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('results.xml') as input:
+            reader = results.ResultsReader(input)
+            self.assertFalse(reader.is_preview)
+            N = 0
+            for r in reader:
+                logging.debug("Type of result was %s", r.__class__.__name__)
+                import collections
+                self.assertTrue(isinstance(r, collections.OrderedDict) 
+                                or isinstance(r, results.Message))
+                N += 1
+            self.assertEqual(N, 4999)
 
-    #     job.refresh()
+    def test_results_reader_with_streaming_results(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('streaming_results.xml') as input:
+            reader = results.ResultsReader(input)
+            N = 0
+            for r in reader:
+                logging.debug("Type of result was %s", r.__class__.__name__)
+                import collections
+                self.assertTrue(isinstance(r, collections.OrderedDict) 
+                                or isinstance(r, results.Message))
+                N += 1
+            self.assertEqual(N, 4999)
+        
 
-    #     self.assertEqual(job['isPaused'], '1')
-    #     self.assertEqual(job['isPreviewEnabled'], '0')
-    #     self.assertEqual(int(job['ttl']), new_ttl)
-    #     self.assertEqual(int(job['priority']), new_priority)
+    def test_xmldtd_filter(self):
+        from StringIO import StringIO
+        s = results.XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
+        self.assertEqual(s.read(), "<boris>Other stuf</boris> ab")
 
-    #     job.enable_preview()
-    #     job.unpause()
-    #     job.refresh()
-
-    #     #self.assertEqual(job['isPreviewEnabled'], '1')
-    #     self.assertEqual(job['isPaused'], '0')
-    #     self.assertEqual(job['isFinalized'], '0')
-
-    #     job.disable_preview()
-    #     job.pause()
-    #     job.set_ttl(1001)
-    #     job.set_priority(6)
-    #     job.touch()
-    #     job.finalize()
-
-    #     job.refresh()
-
-    #     self.assertEqual(job['isPaused'], '1')
-    #     self.assertEqual(job['isPreviewEnabled'], '0')
-    #     self.assertEqual(job['ttl'], '1001')
-    #     self.assertEqual(job['priority'], '6')
-    #     self.assertEqual(job['isFinalized'], '1')
-
-#     def test_results(self):
-#         service = client.connect(**self.opts.kwargs)
-
-#         jobs = service.jobs
-
-#         # Run a new job to get the results, but we also make
-#         # sure that there is at least one event in the index already
-#         index = service.indexes['_internal']
-#         self.assertTrue(index['totalEventCount'] > 0)
-
-#         job = jobs.create("search index=_internal | head 1 | stats count")
-#         job.refresh()
-#         self.assertEqual(job['isDone'], '0')
-#         # When a job was first created in Splunk 4.x, results would
-#         # return 204 before results were available. Itay requested a
-#         # change for Ace, and now it just returns 200 with an empty
-#         # <results/> element. Thus this test is obsolete. I leave it
-#         # here as a caution to future generations:
-#         # self.assertRaises(ValueError, job.results)
-#         while not job.isDone():
-#             sleep(1)
-#         reader = results.ResultsReader(job.results(timeout=60))
-#         job.refresh()
-#         self.assertEqual(job['isDone'], '1')
-
-#         self.assertEqual(reader.is_preview, False)
-
-#         result = reader.next()
-#         self.assertTrue(isinstance(result, dict))
-#         self.assertLessEqual(int(result["count"]), 1)
-
-#         # Repeat the same thing, but without the .is_preview reference.
-#         job = jobs.create("search index=_internal | head 1 | stats count")
-#         while not job.isDone():
-#             sleep(1)
-#         reader = results.ResultsReader(job.results(timeout=60))
-#         job.refresh()
-#         self.assertEqual(job['isDone'], '1')
-#         result = reader.next()
-#         self.assertTrue(isinstance(result, dict))
-#         self.assertLessEqual(int(result["count"]), 1)
-
-#     def test_results_reader(self):
-#         # Run jobs.export("search index=_internal | stats count",
-#         # earliest_time="rt", latest_time="rt") and you get a
-#         # streaming sequence of XML fragments containing results.
-#         with open('streaming_results.xml') as input:
-#             reader = results.ResultsReader(input)
-#             print reader.next()
-#             self.assertTrue(isinstance(reader.next(), dict))
-
-#     def test_xmldtd_filter(self):
-#         from StringIO import StringIO
-#         s = results.XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
-#         self.assertEqual(s.read(3), "<bo")
-#         self.assertEqual(s.read(), "ris>Other stuf</boris> ab")
-
-
-#     def test_concatenated_stream(self):
-#         from StringIO import StringIO
-#         s = results.ConcatenatedStream(StringIO("This is a test "), 
-#                                        StringIO("of the emergency broadcast system."))
-#         self.assertEqual(s.read(3), "Thi")
-#         self.assertEqual(s.read(20), 's is a test of the e')
-#         self.assertEqual(s.read(), 'mergency broadcast system.')
-            
+    def test_concatenated_stream(self):
+        from StringIO import StringIO
+        s = results.ConcatenatedStream(StringIO("This is a test "), 
+                                       StringIO("of the emergency broadcast system."))
+        self.assertEqual(s.read(3), "Thi")
+        self.assertEqual(s.read(20), 's is a test of the e')
+        self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
     testlib.main()

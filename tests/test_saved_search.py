@@ -16,355 +16,173 @@
 
 import datetime
 import testlib
+import logging
 
 from time import sleep
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
+def to_bool(x):
+    if x == '1':
+        return True
+    elif x == '0':
+        return False
+    else:
+        raise ValueError("Not a boolean value: %s", x)
+
+class TestSavedSearch(testlib.TestCase):
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        saved_searches = self.service.saved_searches
+        self.saved_search_name = testlib.tmpname()
+        query = "search index=_internal * earliest=-1m | head 3"
+        self.saved_search = saved_searches.create(self.saved_search_name, query)
+
+    def tearDown(self):
+        testlib.TestCase.tearDown(self)
+        try:
+            self.service.saved_searches.delete(self.saved_search_name)
+        except KeyError:
+            pass
+
     def check_saved_search(self, saved_search):
         self.check_entity(saved_search)
-        saved_search.content['alert.expires']
-        saved_search.content['alert.severity']
-        saved_search.content['alert.track']
-        saved_search.content.alert_type
-        saved_search.content['dispatch.buckets']
-        saved_search.content['dispatch.lookups']
-        saved_search.content['dispatch.max_count']
-        saved_search.content['dispatch.max_time']
-        saved_search.content['dispatch.reduce_freq']
-        saved_search.content['dispatch.spawn_process']
-        saved_search.content['dispatch.time_format']
-        saved_search.content['dispatch.ttl']
-        saved_search.content.max_concurrent
-        saved_search.content.realtime_schedule
-        saved_search.content.restart_on_searchpeer_add
-        saved_search.content.run_on_startup
-        saved_search.content.search
-        saved_search.content['action.email']
-        saved_search.content['action.populate_lookup']
-        saved_search.content['action.rss']
-        saved_search.content['action.script']
-        saved_search.content['action.summary_index']
-        saved_search.content.is_scheduled
-        saved_search.content.is_visible
+        saved_search['alert.expires']
+        saved_search['alert.severity']
+        saved_search['alert.track']
+        saved_search['alert_type']
+        saved_search['dispatch.buckets']
+        saved_search['dispatch.lookups']
+        saved_search['dispatch.max_count']
+        saved_search['dispatch.max_time']
+        saved_search['dispatch.reduce_freq']
+        saved_search['dispatch.spawn_process']
+        saved_search['dispatch.time_format']
+        saved_search['dispatch.ttl']
+        saved_search['max_concurrent']
+        saved_search['realtime_schedule']
+        saved_search['restart_on_searchpeer_add']
+        saved_search['run_on_startup']
+        saved_search['search']
+        saved_search['action.email']
+        saved_search['action.populate_lookup']
+        saved_search['action.rss']
+        saved_search['action.script']
+        saved_search['action.summary_index']
+        self.assertGreaterEqual(saved_search['suppressed'], 0)
+        is_scheduled = saved_search.content['is_scheduled']
+        self.assertTrue(is_scheduled == '1' or is_scheduled == '0')
+        is_visible = saved_search.content['is_visible']
+        self.assertTrue(is_visible == '1' or is_visible == '0')
 
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
+    def test_create(self):
+        self.assertTrue(self.saved_search_name in self.service.saved_searches)
+        self.check_saved_search(self.saved_search)
 
-        if 'sdk test1' in saved_searches:
-            saved_searches.delete('sdk test1')
-        self.assertFalse('sdk test1' in saved_searches)
+    def test_delete(self):
+        self.assertTrue(self.saved_search_name in self.service.saved_searches)
+        self.service.saved_searches.delete(self.saved_search_name)
+        self.assertFalse(self.saved_search_name in self.service.saved_searches)
+        self.assertRaises(client.EntityDeletedException,
+                          self.saved_search.refresh)
 
-        # Make sure there is at least one saved search to read
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk test1', search)
-        self.assertEqual('sdk test1', saved_search.name)
-        self.assertTrue('sdk test1' in saved_searches)
+    
+    def test_update(self):
+        is_visible = to_bool(self.saved_search['is_visible'])
+        self.saved_search.update(is_visible=not is_visible)
+        self.saved_search.refresh()
+        self.assertEqual(to_bool(self.saved_search['is_visible']), not is_visible)
+        
+    def test_cannot_update_name(self):
+        new_name = self.saved_search_name + '-alteration'
+        self.assertRaises(client.IllegalOperationException, 
+                          self.saved_search.update, new_name)
 
-        for saved_search in saved_searches:
-            self.check_saved_search(saved_search)
-            saved_search.refresh()
-            self.check_saved_search(saved_search)
-
-        saved_searches.delete('sdk test1')
-        self.assertFalse('sdk test1' in saved_searches)
-
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertTrue('sdk-test1' in saved_searches)
-
-        saved_search = saved_searches['sdk-test1']
-        self.check_content(saved_search, is_visible=1)
-
-        saved_search.update(is_visible=False)
-        saved_search.refresh()
-        self.check_content(saved_search, is_visible=0)
-
-        self.assertRaises(ValueError, saved_search.update, saved_search, name="Anything")
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        saved_search = saved_searches.create(
-            'sdk-test1', search, is_visible=False)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertTrue('sdk-test1' in saved_searches)
-        self.check_content(saved_search, is_visible=0)
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-    def test_collision(self):
+    def test_name_collision(self):
         opts = self.opts.kwargs.copy()
         opts['owner'] = '-'
         opts['app'] = '-'
         opts['sharing'] = 'user'
         service = client.connect(**opts)
-        print service.namespace
+        logging.debug("Namespace for collision testing: %s", service.namespace)
         saved_searches = service.saved_searches
-
-        if 'collision test' in saved_searches:
-            saved_searches.delete('collision test', namespace=client.namespace(app='search', sharing='app'))
-            saved_searches.delete('collision test', namespace=client.namespace(owner='admin', app='search', sharing='user'))            
-        self.assertFalse('collision test' in saved_searches)
+        name = testlib.tmpname()
         
-        search1 = '* earliest=-1m | head 1'
-        search2 = '* earliest=-2m | head 2'
+        query1 = '* earliest=-1m | head 1'
+        query2 = '* earliest=-2m | head 2'
+        namespace1 = client.namespace(app='search', sharing='app')
+        namespace2 = client.namespace(owner='admin', app='search', sharing='user')
         saved_search2 = saved_searches.create(
-            'collision test', search2,
-            namespace=client.namespace(app='search', sharing='app'))
+            name, query2,
+            namespace=namespace1)
         saved_search1 = saved_searches.create(
-            'collision test', search1,
-            namespace=client.namespace(owner='admin', app='search', sharing='user'))
+            name, query1,
+            namespace=namespace2)
 
-        def f():
-            print saved_searches['collision test']
-        self.assertRaises(ValueError, f)
-
-        self.assertTrue(isinstance(
-                saved_searches['collision test',
-                               client.namespace(sharing='app', app='search')],
-                client.Entity))
-        self.assertTrue(isinstance(
-                saved_searches['collision test',
-                               client.namespace(sharing='user', app='search', owner='admin')],
-                client.Entity))
-
-        self.assertRaises(KeyError, saved_searches.__getitem__,
-                          ('nonexistant-search',
-                           client.namespace(sharing='app', app='search')))
-
-        saved_searches.delete('collision test', namespace=client.namespace(app='search', sharing='app'))
-        saved_searches.delete('collision test', namespace=client.namespace(owner='admin', app='search', sharing='user'))
-        
-    def test_nonunique_entity(self):
-        opts = self.opts.kwargs.copy()
-        opts['owner'] = '-'
-        opts['app'] = '-'
-        opts['sharing'] = 'user'
-        service = client.connect(**self.opts.kwargs)
-
-        saved_searches = service.saved_searches
-
-        if 'collision test' in saved_searches:
-            saved_searches.delete('collision test')
-        if 'collision test' in saved_searches:
-            saved_searches.delete('collision test')
-        self.assertFalse('collision test' in saved_searches)
-        
-        search1 = '* earliest=-1m | head 1'
-        search2 = '* earliest=-2m | head 2'
-        saved_search2 = saved_searches.create(
-            'collision test', search2,
-            namespace=client.namespace(app='search', sharing='app'))
-        saved_search1 = saved_searches.create(
-            'collision test', search1,
-            namespace=client.namespace(owner='admin', app='search', sharing='user'))
-
-
-        self.assertRaises(ValueError, client.SavedSearch,
-                          service, service._abspath('saved/searches/collision test',
-                                                    owner='-', app='-'))
-
-
+        self.assertRaises(client.AmbiguousReferenceException,
+                          saved_searches[name])
+        self.check_saved_search(saved_searches[name, namespace1])
+        self.check_saved_search(saved_searches[name, namespace2])
 
     def test_dispatch(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m | head 10"
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertEqual(search, saved_search.search)
-        self.assertTrue('sdk-test1' in saved_searches)
-
-        job = saved_search.dispatch()
-        while not job.isReady():
-            pass
-        job.preview().close()
-        job.cancel()
-
-        # Dispatch with some additional options
-        kwargs = { 'dispatch.buckets': 100 }
-        job = saved_search.dispatch(**kwargs)
-        while not job.isDone():
-            pass
-        job.timeline().close()
-        job.cancel()
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-    def test_history(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertEqual('sdk-test1', saved_search.name)
-        self.assertTrue('sdk-test1' in saved_searches)
-
-        # Clear the history in case any is left over from a previous saved
-        # search with the same name.
-        for job in saved_search.history():
+        try:
+            job = self.saved_search.dispatch()
+            while not job.isReady():
+                sleep(0.1)
+            self.assertTrue(job.sid in self.service.jobs)
+        finally:
+            job.cancel()
+        
+    def test_dispatch_with_options(self):
+        try:
+            kwargs = { 'dispatch.buckets': 100 }
+            job = self.saved_search.dispatch(**kwargs)
+            while not job.isReady():
+                sleep(0.1)
+            self.assertTrue(job.sid in self.service.jobs)
+        finally:
             job.cancel()
 
-        history = saved_search.history()
-        self.assertEqual(len(history), 0)
-
-        def contains(history, sid):
-            return sid in [job.sid for job in history]
-
-        job1 = saved_search.dispatch()
-        while not job1.isReady():
-            sleep(1)
-        history = saved_search.history()
-        self.assertEqual(len(history), 1)
-        self.assertTrue(contains(history, job1.sid))
-
-        job2 = saved_search.dispatch()
-        while not job2.isReady():
-            sleep(1)
-        history = saved_search.history()
-        self.assertEqual(len(history), 2)
-        self.assertTrue(contains(history, job1.sid))
-        self.assertTrue(contains(history, job2.sid))
-
-        job1.cancel()
-        while job1.sid in service.jobs:
-            sleep(1)
-        history = saved_search.history()
-        self.assertEqual(len(history), 1)
-        self.assertFalse(contains(history, job1.sid))
-        self.assertTrue(contains(history, job2.sid))
-
-        job2.cancel()
-        while job2.sid in service.jobs:
-            sleep(1)
-        history = saved_search.history()
-        self.assertEqual(len(history), 0)
-        self.assertFalse(contains(history, job1.sid))
-        self.assertFalse(contains(history, job2.sid))
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
+    def test_history(self):
+        try:
+            old_jobs = self.saved_search.history()
+            N = len(old_jobs)
+            logging.debug("Found %d jobs in saved search history", N)
+            job = self.saved_search.dispatch()
+            while not job.isReady():
+                sleep(0.1)
+            history = self.saved_search.history()
+            self.assertEqual(len(history), N+1)
+            self.assertTrue(job.sid in [j.sid for j in history])
+        finally:
+            job.cancel()
 
     def test_scheduled_times(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
+        self.saved_search.update(cron_schedule='*/5 * * * *', is_scheduled=True)
+        scheduled_times = self.saved_search.scheduled_times()
+        logging.debug("Scheduled times: %s", scheduled_times)
         self.assertTrue(all([isinstance(x, datetime.datetime) 
-                             for x in saved_search.scheduled_times()]))
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-    def test_delete_methods(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-
-        saved_search = saved_searches.create('sdk-test1', search)
-        self.assertTrue('sdk-test1' in saved_searches)
-        # Should return saved_searches again
-        self.assertEqual(saved_searches.delete('sdk-test1'),
-                         saved_searches)
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        # Failure cases
-        self.assertRaises(KeyError, saved_searches.delete, 'sdk-test1')
-
-        service.logout()
-        self.assertRaises(client.AuthenticationError,
-                          saved_searches.delete, 'sdk-test1')
+                             for x in scheduled_times]))
+        time_pairs = zip(scheduled_times[:-1], scheduled_times[1:])
+        for earlier, later in time_pairs:
+            diff = later-earlier
+            self.assertEqual(diff.total_seconds()/60, 5)
 
     def test_no_equality(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search)
-
-        def f():
-            return saved_search == saved_search
-        self.assertRaises(client.IncomparableException, f)
-        def g():
-            return saved_search != saved_search
-        self.assertRaises(client.IncomparableException, f)
-
-        saved_searches.delete('sdk-test1')
-
-    def test_len(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        n_orig = len(saved_searches)
-        search = "search index=sdk-tests * earliest=-1m"
-
-        saved_search = saved_searches.create('sdk-test1', search)
-
-        self.assertEqual(len(saved_searches), n_orig+1)
-        saved_searches.delete('sdk-test1')
-        self.assertEqual(len(saved_searches), n_orig)
-
-        service.logout()
-        self.assertRaises(client.AuthenticationError,
-                          saved_searches.delete, 'sdk-test1')
-
+        self.assertRaises(client.IncomparableException,
+                          self.saved_search.__eq__, self.saved_search)
 
     def test_suppress(self):
-        service = client.connect(**self.opts.kwargs)
-        saved_searches = service.saved_searches
-
-        if 'sdk-test1' in saved_searches:
-            saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-
-        search = "search index=sdk-tests * earliest=-1m"
-        saved_search = saved_searches.create('sdk-test1', search, cron_schedule='*/5 * * * *', is_scheduled=True)
-    
-        saved_search.suppress(100)
-        self.assertTrue(saved_search.suppressed <= 100)
-        saved_search.unsuppress()
-        self.assertEqual(saved_search.suppressed, 0)
-
-        saved_searches.delete('sdk-test1')
-        self.assertFalse('sdk-test1' in saved_searches)
-        
+        suppressed_time = self.saved_search['suppressed']
+        self.assertGreaterEqual(suppressed_time, 0)
+        new_suppressed_time = suppressed_time+100
+        self.saved_search.suppress(new_suppressed_time)
+        self.assertLessEqual(self.saved_search['suppressed'], 
+                             new_suppressed_time)
+        self.assertGreater(self.saved_search['suppressed'],
+                           suppressed_time)
+        self.saved_search.unsuppress()
+        self.assertEqual(self.saved_search['suppressed'], 0)
 
 if __name__ == "__main__":
     testlib.main()

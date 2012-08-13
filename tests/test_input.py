@@ -96,11 +96,15 @@ class TestInput(testlib.TestCase):
         inputs = self.service.inputs
         for test_input in test_inputs:
             kind, name = test_input['kind'], test_input['name']
+            input_entity = self.service.inputs[kind,name]
             self.assertTrue(name in inputs)
             self.assertTrue((kind,name) in inputs)
             self.service.inputs.delete(kind['name'])
             self.assertFalse(name in inputs)
             self.assertFalse((kind,name) in inputs)
+            self.assertRaises(client.EntityDeletedException,
+                              input_entity.refresh)
+                              
 
 if __name__ == "__main__":
     testlib.main()

@@ -119,6 +119,9 @@ class JobNotReadyException(Exception):
 class AmbiguousReferenceException(ValueError):
     pass
 
+class EntityDeletedException(Exception):
+    pass
+
 def trailing(template, *targets):
     """Substring of *template* following all *targets*.
 

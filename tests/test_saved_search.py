@@ -40,10 +40,12 @@ class TestSavedSearch(testlib.TestCase):
 
     def tearDown(self):
         testlib.TestCase.tearDown(self)
-        try:
-            self.service.saved_searches.delete(self.saved_search_name)
-        except KeyError:
-            pass
+        for saved_search in self.service.saved_searches:
+            if saved_search.name.startswith('delete-me'):
+                try:
+                    self.service.saved_searches.delete(saved_search.name)
+                except KeyError:
+                    pass
 
     def check_saved_search(self, saved_search):
         self.check_entity(saved_search)

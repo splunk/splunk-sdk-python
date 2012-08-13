@@ -62,8 +62,8 @@ class TestCase(testlib.TestCase):
             'alert.severity': "5",
             'alert.suppress': "0",
             'alert.track': "1",
-            'dispatch.earliest_time': "rt",
-            'dispatch.latest_time': "rt",
+            'dispatch.earliest_time': "-1m",
+            'dispatch.latest_time': "now",
             'is_scheduled': "0",
             'realtime_schedule': "1",
             'cron_schedule': "* * * * *"
@@ -81,20 +81,23 @@ class TestCase(testlib.TestCase):
         # Now schedule the saved search
         search.update(is_scheduled=1)
         search.refresh()
+
         self.assertEqual(search.content.is_scheduled, "1")
         self.assertEqual(alert_count(search), 0)
 
         # Wait for the saved search to run. When it runs we will see a new job
         # show up in the search's history.
-        testlib.wait(search, lambda search: len(search.history()) == 1)
+        def f(search):
+            search.refresh()
+            n = len(search.history())
+            return n==1
+        testlib.wait(search, f, timeout=120)
         self.assertEqual(len(search.history()), 1)
 
-        # When it first runs the alert count should be zero.
+        # There should be no alerts if the search job hasn't been
+        # created yet.
         search.refresh()
-        self.assertEqual(alert_count(search), 0)
-
-        # And the fired alerts category should not exist
-        self.assertFalse(search_name in fired_alerts)
+        self.assertTrue((alert_count(search) == 0) == (search_name not in fired_alerts))
 
         # Submit events and verify that they each trigger the expected
         # alert

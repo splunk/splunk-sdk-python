@@ -109,9 +109,9 @@ class TestCase(testlib.TestCase):
         for input in inputs:
             if input.name == '9999':
                 inputs.delete(input.kind, input.name)
-        self.assertFalse(inputs.contains('9999'))
+        self.assertFalse('9999' in inputs)
         inputs.create("tcp", "9999", host="sdk-test")
-        self.assertTrue(inputs.contains('9999'))
+        self.assertTrue('9999' in inputs)
         input_ = inputs['9999']
         self.assertEqual(input_.kind, "tcp")
         self.assertEqual(input_['host'], "sdk-test")
@@ -128,7 +128,8 @@ class TestCase(testlib.TestCase):
         for input in inputs:
             if input.name == '9999':
                 inputs.delete(input.kind, input.name)
-        self.assertFalse(inputs.contains('9999'))
+        self.assertFalse('9999' in inputs)
+        self.assertFalse(inputs.contains('9999'));
 
 
 

@@ -56,6 +56,7 @@ class TestCase(testlib.TestCase):
         kwargs['priority'] = 3
         event_type.update(**kwargs)
         event_type.refresh()
+        testlib.restart(service)
         self.check_content(event_type, **kwargs)
 
         event_type.enable()
@@ -63,7 +64,7 @@ class TestCase(testlib.TestCase):
         self.check_content(event_type, disabled=0)
 
         event_types.delete('sdk-test')
-        self.assertFalse('sdk-teset' in event_types)
+        self.assertFalse('sdk-test' in event_types)
 
 if __name__ == "__main__":
     testlib.main()

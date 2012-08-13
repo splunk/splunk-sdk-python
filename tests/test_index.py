@@ -57,11 +57,13 @@ class TestCase(testlib.TestCase):
 
     def test_disable(self):
         self.index.disable()
+        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
 
     def test_enable(self):
         self.index.enable()
+        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '0')
 
@@ -76,8 +78,11 @@ class TestCase(testlib.TestCase):
         cn = self.index.attach()
         cn.send("Hello Boris!\r\n")
         cn.close()
-        print count
-        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1)
+        def f():
+            self.index.refresh()
+            n = int(self.index['totalEventCount'])
+            return n
+        self.assertEventuallyEqual(f, count+1)
 
     def test_submit(self):
         self.index.refresh()

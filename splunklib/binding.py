@@ -669,6 +669,12 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
+        if self.token is not None and \
+                (self.username == "" and self.password == ""):
+            # If we were passed a session token, but no username or
+            # password, then login is a nop, since we're automatically
+            # logged in.
+            return
         try:
             response = self.http.post(
                 self.authority + self._abspath("/services/auth/login"),
@@ -788,7 +794,9 @@ def connect(**kwargs):
         c = binding.connect(...)
         response = c.get("apps/local")
     """
-    return Context(**kwargs).login() 
+    c = Context(**kwargs)
+    c.login()
+    return c
 
 # Note: the error response schema supports multiple messages but we only
 # return the first, although we do return the body so that an exception 

@@ -43,6 +43,8 @@ class TestSavedSearch(testlib.TestCase):
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 try:
+                    for job in saved_search.history():
+                        job.cancel()
                     self.service.saved_searches.delete(saved_search.name)
                 except KeyError:
                     pass

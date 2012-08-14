@@ -18,58 +18,35 @@ import testlib
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
-    def check_message(self, message):
+class MessageTest(testlib.TestCase):
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        self.message_name = testlib.tmpname()
+        self.message = self.service.messages.create(
+            self.message_name,
+            value='Test message created by the SDK')
+
+    def tearDown(self):
+        testlib.TestCase.tearDown(self)
+        self.service.messages.delete(self.message_name)
+
+class TestCreateDelete(testlib.TestCase):
+    def test_create_delete(self):
+        message_name = testlib.tmpname()
+        message_value = 'Test message'
+        message = self.service.messages.create(
+            message_name, value=message_value)
+        self.assertTrue(message_name in self.service.messages)
+        self.assertEqual(message.value, message_value)
         self.check_entity(message)
+        self.service.messages.delete(message_name)
+        self.assertFalse(message_name in self.service.messages)
 
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for message in service.messages:
-            self.check_message(message)
-            message.refresh()
-            self.check_message(message)
-
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
-
-        messages = service.messages
-
-        if messages.contains('sdk-test-message1'):
-            messages.delete('sdk-test-message1')
-        if messages.contains('sdk-test-message2'):
-            messages.delete('sdk-test-message2')
-        self.assertFalse(messages.contains('sdk-test-message1'))
-        self.assertFalse(messages.contains('sdk-test-message2'))
-
-        messages.create('sdk-test-message1', value="Hello!")
-        self.assertTrue(messages.contains('sdk-test-message1'))
-        self.assertEqual(messages['sdk-test-message1'].value, "Hello!")
-
-        messages.create('sdk-test-message2', value="World!")
-        self.assertTrue(messages.contains('sdk-test-message2'))
-        self.assertEqual(messages['sdk-test-message2'].value, "World!")
-
-        messages.delete('sdk-test-message1')
-        messages.delete('sdk-test-message2')
-        self.assertFalse(messages.contains('sdk-test-message1'))
-        self.assertFalse(messages.contains('sdk-test-message2'))
-
-        # Verify that message names with spaces work correctly
-        if messages.contains('sdk test message'):
-            messages.delete('sdk test message')
-        self.assertFalse(messages.contains('sdk test message'))
-        messages.create('sdk test message', value="xyzzy")
-        self.assertTrue(messages.contains('sdk test message'))
-        self.assertEqual(messages['sdk test message'].value, "xyzzy")
-        messages.delete('sdk test message')
-        self.assertFalse(messages.contains('sdk test message'))
-
-        # Verify that create raises a ValueError on invalid name args
+    def test_invalid_name(self):
         with self.assertRaises(ValueError):
-            messages.create(None, value="What?")
-            messages.create(42, value="Who, me?")
-            messages.create([1, 2,  3], value="Who, me?")
+            self.service.messages.create(None, value="What?")
+            self.service.messages.create(42, value="Who, me?")
+            self.service.messages.create([1, 2,  3], value="Who, me?")
 
 if __name__ == "__main__":
     testlib.main()

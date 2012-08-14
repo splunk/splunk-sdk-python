@@ -15,42 +15,56 @@
 # under the License.
 
 import testlib
+import logging
 
 import splunklib.client as client
 
 class TestCase(testlib.TestCase):
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        self.role_name = testlib.tmpname()
+        self.role = self.service.roles.create(self.role_name)
+
+    def tearDown(self):
+        testlib.TestCase.tearDown(self)
+        for role in self.service.roles:
+            if role.name.startswith('delete-me'):
+                self.service.roles.delete(role.name)
+
     def check_role(self, role):
         self.check_entity(role)
-
-        service = role.service
-        capabilities = service.capabilities
+        capabilities = role.service.capabilities
         for capability in role.content.capabilities:
             self.assertTrue(capability in capabilities)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for role in service.roles:
+        for role in self.service.roles:
             self.check_role(role)
             role.refresh()
             self.check_role(role)
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+    def test_create(self):
+        self.assertTrue(self.role_name in self.service.roles)
+        self.check_entity(self.role)
 
-        roles = service.roles
+    def test_delete(self):
+        self.assertTrue(self.role_name in self.service.roles)
+        self.service.roles.delete(self.role_name)
+        self.assertFalse(self.role_name in self.service.roles)
+        self.assertRaises(client.EntityDeletedException, self.role.refresh)
 
-        if roles.contains("sdk-tester"): roles.delete("sdk-tester")
-        self.assertFalse(roles.contains("sdk-tester"))
-
-        # Check that it gets lowercased.
-        role = roles.create("SDK-tester")
-        self.assertTrue(roles.contains("sdk-tester"))
-
-        self.assertTrue(role.content.has_key('capabilities'))
-
-        roles.delete("sdk-tester")
-        self.assertFalse(roles.contains("sdk-tester"))
+    def test_update(self):
+        kwargs = {}
+        if 'user' in self.role['imported_roles']:
+            kwargs['imported_roles'] = ''
+        else:
+            kwargs['imported_roles'] = ['user']
+        if self.role['srchJobsQuota'] is not None:
+            kwargs['srchJobsQuota'] = int(self.role['srchJobsQuota']) + 1
+        self.role.update(**kwargs)
+        self.role.refresh()
+        self.assertEqual(self.role['imported_roles'], kwargs['imported_roles'])
+        self.assertEqual(int(self.role['srchJobsQuota']), kwargs['srchJobsQuota'])
 
 if __name__ == "__main__":
     testlib.main()

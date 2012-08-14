@@ -64,7 +64,7 @@ attributes, and methods specific to each kind of entity.::
 import datetime
 import json
 import urllib
-
+import logging
 from time import sleep
 
 from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
@@ -107,6 +107,32 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+capabilities = record({k:k for k in [
+            "admin_all_objects", "change_authentication", 
+            "change_own_password", "delete_by_keyword",
+            "edit_deployment_client", "edit_deployment_server",
+            "edit_dist_peer", "edit_forwarders", "edit_httpauths",
+            "edit_input_defaults", "edit_monitor", "edit_roles",
+            "edit_scripted", "edit_search_server", "edit_server",
+            "edit_splunktcp", "edit_splunktcp_ssl", "edit_tcp",
+            "edit_udp", "edit_user", "edit_web_settings", "get_metadata",
+            "get_typeahead", "indexes_edit", "license_edit", "license_tab",
+            "list_deployment_client", "list_forwarders", "list_httpauths",
+            "list_inputs", "request_remote_tok", "rest_apps_management",
+            "rest_apps_view", "rest_properties_get", "rest_properties_set",
+            "restart_splunkd", "rtsearch", "schedule_search", "search",
+            "use_file_operator"]})
+
+
+class NoSuchUserException(Exception):
+    pass
+
+class NoSuchApplicationException(Exception):
+    pass
+
+class IllegalOperationException(Exception):
+    pass
+
 class IncomparableException(Exception):
     pass
 
@@ -114,6 +140,9 @@ class JobNotReadyException(Exception):
     pass
 
 class AmbiguousReferenceException(ValueError):
+    pass
+
+class EntityDeletedException(Exception):
     pass
 
 def trailing(template, *targets):
@@ -1002,7 +1031,6 @@ class Collection(Endpoint):
             saved_searches = c.saved_searches
             n = len(saved_searches)
         """
-        m = self.list(count=1)
         return len(self.list())
 
     def _entity_path(self, state):
@@ -1225,6 +1253,7 @@ class Collection(Endpoint):
                 # server.
                 ... 
         """
+        assert pagesize is None or pagesize > 0
         if count is None:
             count = self.null_count
         fetched = 0
@@ -1238,6 +1267,7 @@ class Collection(Endpoint):
             if pagesize is None or N < pagesize:
                 break
             offset += N
+            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d", pagesize, fetched, offset, N)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=None, **kwargs):
@@ -1929,6 +1959,9 @@ class Jobs(Collection):
                 raise ValueError(str(he))
             else:
                 raise
+
+    def itemmeta(self):
+        raise NotSupportedError()
 
 
     def oneshot(self, query, **params):

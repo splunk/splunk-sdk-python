@@ -15,89 +15,78 @@
 # under the License.
 
 import testlib
+import logging
 
 import splunklib.client as client
 import splunklib.data as data
 
-class TestCase(testlib.TestCase):
-    def check_app(self, app):
-        self.check_entity(app)
-        cfu = int(app.check_for_updates)
-        self.assertTrue(cfu == 1 or cfu == 0)
+class TestApp(testlib.TestCase):
+    app = None
+    app_name = None
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        if self.app is None:
+            for app in self.service.apps:
+                if app.name.startswith('delete-me'):
+                    self.service.apps.delete(app.name)
+            # Creating apps takes 0.8s, which is too long to wait for
+            # each test in this test suite. Therefore we create one
+            # app and reuse it. Since apps are rather less fraught
+            # than entities like indexes, this is okay.
+            TestApp.app_name = testlib.tmpname()
+            TestApp.app = self.service.apps.create(self.app_name)
+            logging.debug("Creating app %s", self.app_name)
+        else:
+            logging.debug("App %s already exists. Skipping creation.", self.app_name)
 
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
+class TestAppIntegrity(TestApp):
+    def test_app_integrity(self):
+        self.check_entity(self.app)
 
-        disabled_app = 'sdk-test-app-disabled'
-        if (disabled_app in service.apps):
-            service.apps.delete(disabled_app)
-        disabled = service.apps.create(disabled_app)
-        disabled.disable()
+class TestDisableEnable(TestApp):
+    def test_disable_enable(self):
+        self.app.disable()
+        self.app.refresh()
+        self.assertEqual(self.app['disabled'], '1')
+        self.app.enable()
+        self.app.refresh()
+        self.assertEqual(self.app['disabled'], '0')
 
-        for app in service.apps:
-            self.check_app(app)
-            app.refresh()
-            self.check_app(app)
-
-        service.apps.delete(disabled_app)
-
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
-
-        appname = "sdk-test-app"
-
-        testlib.delete_app(service, appname)
-        self.assertFalse(appname in service.apps)
-
+class TestUpdate(TestApp):
+    def test_update(self):
         kwargs = {
             'author': "Me",
             'description': "Test app description",
             'label': "SDK Test",
             'manageable': False,
-            'template': "barebones",
             'visible': True,
         }
-        service.apps.create(appname, **kwargs)
-        self.assertTrue(appname in service.apps)
-        app = service.apps[appname]
-        self.assertTrue(isinstance(app.state.content, data.Record))
-        self.assertEqual(app['author'], "Me")
-        self.assertEqual(app['label'], "SDK Test")
-        self.assertEqual(app['manageable'], "0")
-        self.assertEqual(app['visible'], "1")
+        self.app.update(**kwargs)
+        # self.app.refresh() <-- should be automatically refreshed
+        # after update.
+        self.assertEqual(self.app['author'], "Me")
+        self.assertEqual(self.app['label'], "SDK Test")
+        self.assertEqual(self.app['manageable'], "0")
+        self.assertEqual(self.app['visible'], "1")
 
-        self.assertEqual(app.author, "Me")
-        self.assertEqual(app.label, "SDK Test")
-        self.assertEqual(app.manageable, "0")
-        self.assertEqual(app.visible, "1")
+class TestDelete(TestApp):
+    def test_delete(self):
+        name = testlib.tmpname()
+        app = self.service.apps.create(name)
+        self.assertTrue(name in self.service.apps)
+        self.service.apps.delete(name)
+        self.assertFalse(name in self.service.apps)
 
-        kwargs = {
-            'author': "SDK",
-            'visible': False,
-        }
-        app = service.apps[appname]
-        app.update(**kwargs)
-        app.refresh()
-        self.assertEqual(app['author'], "SDK")
-        self.assertEqual(app['label'], "SDK Test")
-        self.assertEqual(app['manageable'], "0")
-        self.assertEqual(app['visible'], "0")
-
-        testlib.delete_app(service, appname)
-        self.assertFalse(appname in service.apps)
-
+class TestPackage(TestApp):
     def test_package(self):
-        service = client.connect(**self.opts.kwargs)
-        app = service.apps['search']
-        p = app.package()
-        self.assertEqual(p.name, 'search')
-        self.assertTrue(p.path.endswith('search.spl'))
-        self.assertTrue(p.url.endswith('search.spl'))
+        p = self.app.package()
+        self.assertEqual(p.name, self.app_name)
+        self.assertTrue(p.path.endswith(self.app_name + '.spl'))
+        self.assertTrue(p.url.endswith(self.app_name + '.spl'))
 
+class TestUpdateInfo(TestApp):
     def test_updateInfo(self):
-        service = client.connect(**self.opts.kwargs)
-        app = service.apps['search']
-        p = app.updateInfo()
+        p = self.app.updateInfo()
         self.assertTrue(p is not None)
 
 if __name__ == "__main__":

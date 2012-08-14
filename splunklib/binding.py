@@ -31,6 +31,8 @@ import socket
 import ssl
 import urllib
 import functools
+import logging
+from datetime import datetime
 
 from contextlib import contextmanager
 
@@ -52,6 +54,13 @@ __all__ = [
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
+
+@contextmanager
+def log_duration():
+    start_time = datetime.now()
+    yield
+    end_time = datetime.now()
+    logging.debug("Operation took %s", end_time-start_time)
 
 class AuthenticationError(Exception):
     pass
@@ -131,6 +140,8 @@ class UrlEncoded(str):
         ``TypeError``.
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
+    def __repr__(self):
+        return "UrlEncoded('%s')" % urllib.unquote(self)
 
 @contextmanager
 def _handle_auth_error(msg):
@@ -461,7 +472,10 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        return self.http.delete(path, self._auth_headers, **query)
+        logging.debug("DELETE request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.delete(path, self._auth_headers, **query)
+        return response
 
     @_authentication
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
@@ -508,7 +522,10 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        return self.http.get(path, self._auth_headers, **query)
+        logging.debug("GET request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.get(path, self._auth_headers, **query)
+        return response
 
     @_authentication
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
@@ -558,7 +575,10 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
-        return self.http.post(path, self._auth_headers, **query)
+        logging.debug("POST request to %s (body: %s)", path, repr(query))
+        with log_duration():
+            response = self.http.post(path, self._auth_headers, **query)
+        return response
 
     @_authentication
     def request(self, path_segment, method="GET", headers=[], body="",
@@ -621,10 +641,14 @@ class Context(object):
         # f's local namespace or g's, and cannot switch between them
         # during the run of the function.
         all_headers = headers + self._auth_headers
-        return self.http.request(path,
-                                 {'method': method,
-                                  'headers': all_headers,
-                                  'body': body})
+        logging.debug("%s request to %s (headers: %s, body: %s)", 
+                      method, path, str(all_headers), repr(body))
+        with log_duration():
+            response = self.http.request(path,
+                                         {'method': method,
+                                          'headers': all_headers,
+                                          'body': body})
+        return response
 
     def login(self):
         """Log into the Splunk instance referred to by this ``Context``.

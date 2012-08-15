@@ -82,12 +82,24 @@ class TestCase(testlib.TestCase):
                              msg='on %s (expected %s, found %s' % \
                                  (coll_name, expected, found))
 
+    def test_list_with_offset(self):
+        import random
+        for offset in [random.randint(3,50) for x in range(5)]:
+            for coll_name in collections:
+                coll = getattr(self.service, coll_name)
+                expected = [ent.name for ent in coll.list()][offset:]
+                found = [ent.name for ent in coll.list(offset=offset)]
+                self.assertEqual(expected, found,
+                                 msg='on %s (expected %s, found %s)' % \
+                                     (coll_name, expected, found))
+
     def test_list_with_search(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list()]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
+            # TODO: This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
@@ -107,10 +119,12 @@ class TestCase(testlib.TestCase):
     def test_list_with_sort_mode_auto(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected = [ent.name for ent in coll.list(sort_mode="auto")]
+            # sort_dir is needed because the default sorting direction
+            # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
+            expected = [ent.name for ent in coll.list(sort_mode="auto", sort_dir="asc")]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            found = [ent.name for ent in coll.list()]
+            found = [ent.name for ent in coll.list(sort_dir="asc")]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
@@ -118,7 +132,9 @@ class TestCase(testlib.TestCase):
     def test_list_with_sort_mode_alpha_case(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            found = [ent.name for ent in coll.list(sort_mode="alpha_case", count=30)]
+            # sort_dir is needed because the default sorting direction
+            # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
+            found = [ent.name for ent in coll.list(sort_mode="alpha_case", sort_dir="asc", count=30)]
             if len(found) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             expected = sorted(found)
@@ -129,7 +145,9 @@ class TestCase(testlib.TestCase):
     def test_list_with_sort_mode_alpha(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            found = [ent.name for ent in coll.list(sort_mode="alpha", count=30)]
+            # sort_dir is needed because the default sorting direction
+            # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
+            found = [ent.name for ent in coll.list(sort_mode="alpha", sort_dir="asc", count=30)]
             if len(found) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             expected = sorted(found, key=str.lower)

@@ -107,7 +107,7 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
-capabilities = record({k:k for k in [
+capabilities = record(dict([(k,k) for k in [
             "admin_all_objects", "change_authentication", 
             "change_own_password", "delete_by_keyword",
             "edit_deployment_client", "edit_deployment_server",
@@ -121,7 +121,7 @@ capabilities = record({k:k for k in [
             "list_inputs", "request_remote_tok", "rest_apps_management",
             "rest_apps_view", "rest_properties_get", "rest_properties_set",
             "restart_splunkd", "rtsearch", "schedule_search", "search",
-            "use_file_operator"]})
+            "use_file_operator"]]))
 
 
 class NoSuchUserException(Exception):
@@ -194,6 +194,9 @@ def _load_atom(response, match=None):
 def _load_atom_entries(response):
     r = _load_atom(response)
     if 'feed' in r:
+        n_entries = int(r.feed.get('totalResults'))
+        if n_entries == 0:
+            return []
         entries = r.feed.get('entry', None)
         if entries is None: return None
         return entries if isinstance(entries, list) else [entries]
@@ -762,6 +765,8 @@ class Entity(Endpoint):
         plus at most two additional round trips if autologin is
         enabled.
 
+        Raises EntityDeletedException if the entity no longer exists on the server.
+
         **Example**::
 
             import splunklib.client as client
@@ -772,7 +777,11 @@ class Entity(Endpoint):
         if state is not None:
             self._state = state
         else:
-            raw_state = self.read()
+            try:
+                raw_state = self.read()
+            except HTTPError, he:
+                if he.status == 404:
+                    raise EntityDeletedException("Entity %s was already deleted" % self.name)
             raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
             self._state = raw_state
         return self
@@ -1267,7 +1276,7 @@ class Collection(Endpoint):
             if pagesize is None or N < pagesize:
                 break
             offset += N
-            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d", pagesize, fetched, offset, N)
+            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d, kwargs=%s", pagesize, fetched, offset, N, kwargs)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=None, **kwargs):
@@ -1538,8 +1547,9 @@ class Inputs(Collection):
                 if candidate is None:
                     candidate = input
                 else:
-                    raise ValueError("Found multiple inputs named '%s' (kinds: %s, %s); please specify an input kind." % \
-                                         (key, candidate.kind, input.kind))
+                    raise AmbiguousReferenceException(
+                        "Found multiple inputs named '%s' (kinds: %s, %s); please specify an input kind." % \
+                        (key, candidate.kind, input.kind))
         if candidate is not None:
             return candidate
         else:
@@ -1603,20 +1613,61 @@ class Inputs(Collection):
         """
         return self.path + self._kindmap[kind]
 
-    # args: kind*
-    def list(self, *args):
+    def list(self, *kinds, **kwargs):
         """Returns a list of inputs that belong to the collection. You can also
         filter by one or more input kinds.
 
-        :param `args`: The input kinds to return (optional).
+        This function iterates over all possible inputs no matter what arguments you
+        specify. Because the inputs collection is the union of all the inputs of each
+        kind, we have to implement count, search, etc. at the Python level once all the
+        data is fetched. There tend not to be vast numbers of inputs so this usually
+        isn't a problem, but be aware of it.
+
+        The exception is when you specify a single kind. Then it makes a single request
+        with the usual semantics for count, offset, search, etc.
+
+        :param `count`: The maximum number of items to return (optional).
+        :param `offset`: The offset of the first item to return (optional).
+        :param `search`: The search expression to filter responses (optional).
+        :param `sort_dir`: The direction to sort returned items: *asc* or *desc*
+                           (optional).
+        :param `sort_key`: The field to use for sorting (optional).
+        :param `sort_mode`: The collating sequence for sorting returned items:
+                            *auto*, *alpha*, *alpha_case*, *num* (optional).
+        :param `kinds`: The input kinds to return (optional).
         """
-        kinds = args if len(args) > 0 else self._kindmap.keys()
+        if len(kinds) == 0:
+            kinds = self._kindmap.keys()
+        if len(kinds) == 1:
+            kind = kinds[0]
+            logging.debug("Inputs.list taking short circuit branch for single kind.")
+            path = self.kindpath(kind)
+            logging.debug("Path for inputs: %s", path)
+            try:
+                response = self.service.get(path, **kwargs)
+            except HTTPError, he:
+                if he.status == 404: # No inputs of this kind
+                    return []
+            entities = []
+            entries = _load_atom_entries(response)
+            for entry in entries:
+                state = _parse_atom_entry(entry)
+                # Unquote the URL, since all URL encoded in the SDK
+                # should be of type UrlEncoded, and all str should not
+                # be URL encoded.
+                path = urllib.unquote(state.links.alternate)
+                entity = Input(self.service, path, kind, state=state)
+                entities.append(entity)
+            return entities
+
+        search = kwargs.get('search', '*')
 
         entities = []
         for kind in kinds:
             response = None
             try:
-                response = self.service.get(self.kindpath(kind), count=-1)
+                response = self.service.get(self.kindpath(kind),
+                                            search=search)
             except HTTPError as e:
                 if e.status == 404: 
                     continue # No inputs of this kind
@@ -1635,7 +1686,26 @@ class Inputs(Collection):
                 path = urllib.unquote(state.links.alternate)
                 entity = Input(self.service, path, kind, state=state)
                 entities.append(entity)
-
+        if 'offset' in kwargs:
+            entities = entities[kwargs['offset']:]
+        if 'count' in kwargs:
+            entities = entities[:kwargs['count']]
+        if kwargs.get('sort_mode', None) == 'alpha':
+            sort_field = kwargs.get('sort_field', 'name')
+            if sort_field == 'name':
+                f = lambda x: x.name.lower()
+            else:
+                f = lambda x: x[sort_field].lower()
+            entities = sorted(entities, key=f)
+        if kwargs.get('sort_mode', None) == 'alpha_case':
+            sort_field = kwargs.get('sort_field', 'name')
+            if sort_field == 'name':
+                f = lambda x: x.name
+            else:
+                f = lambda x: x[sort_field]
+            entities = sorted(entities, key=f)
+        if kwargs.get('sort_dir', 'asc') == 'desc':
+            entities = list(reversed(entities))
         return entities
 
     def __iter__(self, **kwargs):
@@ -1962,7 +2032,6 @@ class Jobs(Collection):
 
     def itemmeta(self):
         raise NotSupportedError()
-
 
     def oneshot(self, query, **params):
         """Run a search and directly return an InputStream IO handle over the results.

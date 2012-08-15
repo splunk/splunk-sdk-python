@@ -470,9 +470,7 @@ class TestNamespace(unittest.TestCase):
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
-        with self.assertRaises(ValueError):
-            binding.namespace(sharing="gobble")
-
+        self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):

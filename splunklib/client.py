@@ -2195,12 +2195,22 @@ class Settings(Entity):
         self.service.post("server/settings/settings", **kwargs)
         return self
 
+class User(Entity):
+    @property
+    def role_entities(self):
+        role_names = self.content.roles
+        roles = []
+        for name in role_names:
+            role = self.service.roles[name]
+            roles.append(role)
+        return roles
+
 # Splunk automatically lowercases new user names so we need to match that 
 # behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
     """This class represents a Splunk user."""
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_USERS)
+        Collection.__init__(self, service, PATH_USERS, item=User)
 
     def __getitem__(self, key):
         return Collection.__getitem__(self, key.lower())

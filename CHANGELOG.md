@@ -1,5 +1,11 @@
 # Splunk Python SDK Changelog
 
+## 0.8.6
+
+### Breaking changes
+
+* Added User.role_entities to return a list of the actual entity objects for the
+  roles of a user. User.roles still returns a list of the role names.
 ## 0.8.5
 
 ### Features

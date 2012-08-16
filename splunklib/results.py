@@ -182,15 +182,8 @@ class ResultsReader(object):
         # fragments in a fiction <doc> element to make the parser happy.
         stream = XMLDTDFilter(stream)
         stream = ConcatenatedStream(StringIO("<doc>"), stream, StringIO("</doc>"))
+        self.is_preview = None
         self._gen = self.parse_results(stream)
-        # splunkd 4.3 returns an empty response body instead of a
-        # results element with no result elements inside. There is
-        # no good way to handle it other than failing out and
-        # trying to get to a sane state.
-        try:
-            self.is_preview = self._gen.next()
-        except StopIteration:
-            self.is_preview = None
 
     def __iter__(self):
         return self
@@ -209,7 +202,7 @@ class ResultsReader(object):
                     # are preview results, or the final results from the
                     # search.
                     is_preview = elem.attrib['preview'] == '1'
-                    yield is_preview
+                    self.is_preview = is_preview
                 if elem.tag == 'result':
                     if event == 'start':
                         result = OrderedDict()

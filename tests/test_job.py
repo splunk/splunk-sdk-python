@@ -62,7 +62,13 @@ class TestUtilities(testlib.TestCase):
 
     def test_normal_job_with_garbage_fails(self):
         jobs = self.service.jobs
-        self.assertRaises(TypeError, jobs.create, "abcd|asfwqqq")
+        try:
+            bad_search = "abcd|asfwqqq"
+            jobs.create(bad_search)
+        except TypeError as te:
+            self.assertTrue('abcd' in te.message)
+            return
+        self.fail("Job with garbage search failed to raise TypeError.")
 
     def test_cancel(self):
         jobs = self.service.jobs
@@ -230,14 +236,18 @@ class TestResultsReader(unittest.TestCase):
         with open('results.xml') as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
-            N = 0
+            N_results = 0
+            N_messages = 0
             for r in reader:
-                logging.debug("Type of result was %s (%s)", r.__class__.__name__, r)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))
-                N += 1
-            self.assertEqual(N, 4999)
+                if isinstance(r, collections.OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 4999)
+            self.assertEqual(N_messages, 2)
 
     def test_results_reader_with_streaming_results(self):
         # Run jobs.export("search index=_internal | stats count",
@@ -245,14 +255,18 @@ class TestResultsReader(unittest.TestCase):
         # streaming sequence of XML fragments containing results.
         with open('streaming_results.xml') as input:
             reader = results.ResultsReader(input)
-            N = 0
+            N_results = 0
+            N_messages = 0
             for r in reader:
-                logging.debug("Type of result was %s (%s)", r.__class__.__name__, r)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))
-                N += 1
-            self.assertEqual(N, 4999)
+                if isinstance(r, collections.OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 3)
+            self.assertEqual(N_messages, 3)
         
 
     def test_xmldtd_filter(self):

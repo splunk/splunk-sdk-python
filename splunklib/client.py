@@ -656,6 +656,13 @@ class Entity(Endpoint):
         if not kwargs.get('skip_refresh', False):
             self.refresh(kwargs.get('state', None)) # "Prefresh"
 
+    def __contains__(self, item):
+        try:
+            self[item]
+            return True
+        except KeyError:
+            return False
+
     def __eq__(self, other):
         """Raises IncomparableException.
 
@@ -1748,7 +1755,15 @@ class Job(Entity):
 
     def cancel(self):
         """Stops the current search and deletes the result cache."""
-        self.post("control", action="cancel")
+        try:
+            self.post("control", action="cancel")
+        except HTTPError as he:
+            if he.status == 404:
+                # The job has already been cancelled, so
+                # cancelling it twice is a nop.
+                pass
+            else:
+                raise
         return self
 
     def events(self, **kwargs):
@@ -1993,7 +2008,11 @@ class Jobs(Collection):
     def create(self, query, **kwargs):
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
-        response = self.post(search=query, **kwargs)
+        try:
+            response = self.post(search=query, **kwargs)
+        except HTTPError as he:
+            if he.status == 400: # Bad request. Raise a TypeError with the reason.
+                raise TypeError(he.message)
         sid = _load_sid(response)
         return Job(self.service, PATH_JOBS + sid)
 

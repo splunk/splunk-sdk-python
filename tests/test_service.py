@@ -72,23 +72,6 @@ class TestCase(testlib.TestCase):
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
-    def test_nonexistant_user(self):
-        username = testlib.tmpname()
-        self.assertTrue(username not in self.service.users)
-        with self.assertRaises(client.NoSuchUserException):
-            kwargs = self.opts.kwargs.copy()
-            kwargs.update({'owner': username})
-            service_ns = client.connect(**kwargs)
-            service_ns.apps.list()
-
-    def test_nonexistant_app(self):
-        app_name = testlib.tmpname()
-        self.assertTrue(app_name not in self.service.apps)
-        kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': app_name})
-        self.assertRaises(client.NoSuchApplicationException, client.connect, **kwargs)
-        #    service_ns.apps.list()
-
     def test_parse(self):
         # Awaiting new parse method.
         response = self.service.parse('search * abc="def" | dedup abc')
@@ -119,6 +102,7 @@ class TestSettings(testlib.TestCase):
             self.assertTrue(key in settings)
 
     def test_update_settings(self):
+        settings = self.service.settings
         # Verify that we can update the settings
         original = settings['sessionTimeout']
         self.assertTrue(original != "42h")

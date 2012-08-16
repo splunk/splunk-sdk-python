@@ -8,6 +8,8 @@
   roles of a user. User.roles still returns a list of the role names.
 * Job.enable_preview() and Job.disable_preview() have been removed, since the corresponding
   endpoints in Splunk's REST API are broken in Splunk 4.x.
+* The first time .cancel() is called on job, it cancels it. Any calls to it thereafter on that
+  job are a nop.
 
 	
 ## 0.8.5

@@ -32,14 +32,14 @@ def to_bool(x):
 
 class TestSavedSearch(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestSavedSearch, self).setUp()
         saved_searches = self.service.saved_searches
         self.saved_search_name = testlib.tmpname()
         query = "search index=_internal * earliest=-1m | head 3"
         self.saved_search = saved_searches.create(self.saved_search_name, query)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestSavedSearch, self).setUp()
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 try:

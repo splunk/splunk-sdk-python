@@ -38,7 +38,7 @@ class TestRead(testlib.TestCase):
 
 class TestConfs(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestConfs, self).setUp()
         self.app_name = testlib.tmpname()
         self.app = self.service.apps.create(self.app_name)
         # Connect using the test app context

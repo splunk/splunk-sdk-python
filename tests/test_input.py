@@ -64,7 +64,7 @@ class TestRead(testlib.TestCase):
 
 class TestInput(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestInput, self).setUp()
         inputs = self.service.inputs
         self._test_entities = {}
         for test_input in test_inputs:
@@ -72,7 +72,7 @@ class TestInput(testlib.TestCase):
                 inputs.create(**test_input)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestInput, self).tearDown()
         for test_input in test_inputs:
             try:
                 self.service.inputs.delete(

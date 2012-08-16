@@ -24,11 +24,12 @@ import logging
 
 class IndexTest(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(IndexTest, self).setUp()
         self.index_name = testlib.tmpname()
         self.index = self.service.indexes.create(self.index_name)
 
     def tearDown(self):
+        super(IndexTest, self).tearDown()
         # We can't delete an index with the REST API before Splunk
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents

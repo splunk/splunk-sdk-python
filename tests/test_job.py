@@ -120,7 +120,7 @@ def retry(job, field, expected, times=10):
 
 class TestJob(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestJob, self).setUp()
         self.query = "search index=_internal earliest=-1m | head 3"
         self.job = self.service.jobs.create(
             query=self.query, 
@@ -128,7 +128,7 @@ class TestJob(testlib.TestCase):
             latest_time="now")
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestJob, self).tearDown()
         self.job.cancel()
 
     def test_get_preview_and_events(self):

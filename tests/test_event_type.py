@@ -41,7 +41,7 @@ class TestCreate(testlib.TestCase):
         self.assertEqual(self.event_type_name, event_type.name)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestCreate, self).setUp()
         try:
             self.service.event_types.delete(self.event_type_name)
         except KeyError:
@@ -49,14 +49,14 @@ class TestCreate(testlib.TestCase):
 
 class TestEventType(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestEventType, self).setUp()
         self.event_type_name = testlib.tmpname()
         self.event_type = self.service.event_types.create(
             self.event_type_name,
             search="index=_internal *")
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestEventType, self).setUp()
         try:
             self.service.event_types.delete(self.event_type_name)
         except KeyError:

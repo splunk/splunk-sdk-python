@@ -28,7 +28,7 @@ class TestCase(testlib.TestCase):
         user['roles']
 
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestCase, self).setUp()
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
             self.username,
@@ -36,7 +36,7 @@ class TestCase(testlib.TestCase):
             roles=['power', 'user'])
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestCase, self).tearDown()
         for user in self.service.users:
             if user.name.startswith('delete-me'):
                 self.service.users.delete(user.name)

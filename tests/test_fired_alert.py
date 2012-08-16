@@ -27,7 +27,7 @@ def alert_count(search):
 
 class TestCase(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestCase, self).setUp()
         saved_searches = self.service.saved_searches
         self.saved_search_name = testlib.tmpname()
         self.assertFalse(self.saved_search_name in saved_searches)

@@ -44,9 +44,11 @@ class TestCase(testlib.TestCase):
     def test_read(self):
         for user in self.service.users:
             self.check_user(user)
-            for role in user.roles:
+            for role in user.role_entities:
                 self.assertTrue(isinstance(role, client.Entity))
                 self.assertTrue(role.name in self.service.roles)
+            self.assertEqual(user.roles,
+                             [role.name for role in user.role_entities])
 
     def test_create(self):
         self.assertTrue(self.username in self.service.users)

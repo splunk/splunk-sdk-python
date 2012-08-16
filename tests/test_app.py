@@ -62,8 +62,7 @@ class TestUpdate(TestApp):
             'visible': True,
         }
         self.app.update(**kwargs)
-        # self.app.refresh() <-- should be automatically refreshed
-        # after update.
+        self.app.refresh()
         self.assertEqual(self.app['author'], "Me")
         self.assertEqual(self.app['label'], "SDK Test")
         self.assertEqual(self.app['manageable'], "0")

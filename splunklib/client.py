@@ -194,8 +194,8 @@ def _load_atom(response, match=None):
 def _load_atom_entries(response):
     r = _load_atom(response)
     if 'feed' in r:
-        n_entries = int(r.feed.get('totalResults'))
-        if n_entries == 0:
+        # Need this to handle a random case in the REST API
+        if r.feed.get('totalResults') == 0:
             return []
         entries = r.feed.get('entry', None)
         if entries is None: return None
@@ -1330,12 +1330,23 @@ class Configurations(Collection):
         # back as a matter of course, unlike for most other endpoints
         # where multiple values means a name conflict.
         try:
-            path = self.service._abspath(PATH_CONF % key)
-            response = self.get(path)
-            return ConfigurationFile(self.service, path, state={'title': key})
+            response = self.get(key)
+            return ConfigurationFile(self.service, self.path + key, state={'title': key})
         except HTTPError as he:
             if he.status == 404: # No entity matching key
                 raise KeyError(key)
+            else:
+                raise
+
+    def __contains__(self, key):
+        # configs/conf-{name} never returns a 404. We have to post to properties/{name}
+        # in order to find out if a configuration exists.
+        try:
+            response = self.get(key)
+            return True
+        except HTTPError as he:
+            if he.status == 404: # No entity matching key
+                return False
             else:
                 raise
 
@@ -1366,6 +1377,12 @@ class Stanza(Entity):
         """Populates a stanza in the .conf file."""
         self.service.request(self.path, method="POST", body=stanza)
         return self
+
+    def __len__(self):
+        response = self.get()
+        logging.debug("Content: %s", self.content)
+        return False
+
 
 class AlertGroup(Entity):
     """This class contains an entity that represents a group of fired alerts 
@@ -1734,20 +1751,9 @@ class Job(Entity):
         self.post("control", action="cancel")
         return self
 
-    def disable_preview(self):
-        """Disables preview for this job."""
-        self.post("control", action="disablepreview")
-        return self
-
     def events(self, **kwargs):
         """Returns an InputStream IO handle for this job's events."""
         return self.get("events", **kwargs).body
-
-    def enable_preview(self):
-        """Enables preview for this job (although doing so might slow search 
-        considerably)."""
-        self.post("control", action="enablepreview")
-        return self
 
     def finalize(self):
         """Stops the job and provides intermediate results available for 

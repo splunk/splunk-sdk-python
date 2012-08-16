@@ -108,14 +108,17 @@ class TestUtilities(testlib.TestCase):
 def retry(job, field, expected, times=10):
     # Sometimes there is a slight delay in the value getting
     # set in splunkd. If it fails, just try again.
+    import time
     tries = times
     while tries > 0:
+        time.sleep(0.1)
         job.refresh()
         p = job[field]
         if p != expected:
             tries -= 1
         else:
-            break
+            return
+    raise ValueError("%d loops in retry weren't enough" % times)
 
 
 class TestJob(testlib.TestCase):
@@ -207,34 +210,17 @@ class TestJob(testlib.TestCase):
         self.assertGreater(ttl, old_ttl)
 
     def test_touch(self):
-        # This is a problem to test. You have to wait for it to change
-        # before touch gets anywhere, and the granularity of ttl is seconds.
+        # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
+        # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
+        # so we'll wait 1.1s before we start.
+        import time; time.sleep(1.1)
         old_ttl = int(self.job['ttl'])
-        # import time; time.sleep(3)
         self.job.touch()
         self.job.refresh()
         new_ttl = int(self.job['ttl'])
         if new_ttl == old_ttl:
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
-        self.assertGreaterEqual(int(self.job['ttl']), old_ttl)
-        
-    def test_enable_preview(self):
-        if self.job['isPreviewEnabled'] == '1':
-            self.job.disable_preview()
-            self.job.refresh()
-            self.assertEqual(job['isPreviewEnabled'], '0')
-        self.job.enable_preview()
-        retry(self.job, 'isPreviewEnabled', '1', times=5)
-        self.assertEqual(self.job['isPreviewEnabled'], '1')
-
-    def test_disable_preview(self):
-        if self.job['isPreviewEnabled'] == '0':
-            self.job.enable_preview()
-            self.job.refresh()
-            self.assertEqual(self.job['isPreviewEnabled'], '1')
-        self.job.disable_preview()
-        retry(self.job, 'isPreviewEnabled', '0')
-        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        self.assertGreater(int(self.job['ttl']), old_ttl)
 
 class TestResultsReader(unittest.TestCase):
     def test_results_reader(self):
@@ -246,7 +232,7 @@ class TestResultsReader(unittest.TestCase):
             self.assertFalse(reader.is_preview)
             N = 0
             for r in reader:
-                logging.debug("Type of result was %s", r.__class__.__name__)
+                logging.debug("Type of result was %s (%s)", r.__class__.__name__, r)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))
@@ -261,7 +247,7 @@ class TestResultsReader(unittest.TestCase):
             reader = results.ResultsReader(input)
             N = 0
             for r in reader:
-                logging.debug("Type of result was %s", r.__class__.__name__)
+                logging.debug("Type of result was %s (%s)", r.__class__.__name__, r)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))

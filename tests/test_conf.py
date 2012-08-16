@@ -54,8 +54,8 @@ class TestConfs(testlib.TestCase):
     def test_confs(self):
         confs = self.app_service.confs
         conf_name = testlib.tmpname()
-        self.assertRaises(KeyError, confs.__getitem__, conf_name) # Fails
-        self.assertFalse(conf_name in confs) # Fails
+        self.assertRaises(KeyError, confs.__getitem__, conf_name)
+        self.assertFalse(conf_name in confs)
 
         conf = confs.create(conf_name)
         self.assertTrue(conf_name in confs)
@@ -73,7 +73,7 @@ class TestConfs(testlib.TestCase):
         self.assertTrue(stanza_name in conf)
 
         # New stanzas are empty
-        self.assertEqual(len(stanza), 0) # Fails
+        self.assertEqual(len(stanza), 0)
 
         # Update works
         key = testlib.tmpname()
@@ -87,6 +87,10 @@ class TestConfs(testlib.TestCase):
         conf.delete(stanza_name)
         self.assertFalse(stanza_name in conf)
         self.assertEqual(len(conf), count-1)
+
+        confs.delete(conf_name)
+        self.assertFalse(conf_name in confs)
+        self.assertRaises(KeyError, confs.__getitem__, conf_name)
 
 if __name__ == "__main__":
     testlib.main()

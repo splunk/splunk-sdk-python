@@ -66,6 +66,7 @@ import json
 import urllib
 import logging
 from time import sleep
+from datetime import datetime, timedelta
 
 from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
 from data import record
@@ -432,13 +433,27 @@ class Service(Context):
         """
         return self.get("search/parser", q=query, **kwargs)
 
-    def restart(self):
+    def restart(self, timeout=None):
         """Restarts this Splunk instance.
 
         The service will be unavailable until it has successfully
         restarted.
+
+        If timeout is specified, `restart` blocks until the service
+        comes back up or timeout is exceeded. Otherwise, restart returns immediately.
         """
-        return self.get("server/control/restart")
+        result = self.get("server/control/restart")
+        if timeout is None: return result
+        sleep(5)
+        start = datetime.now()
+        diff = timedelta(seconds=timeout)
+        while datetime.now() - start < diff:
+            try:
+                self.login() # Awake yet?
+                return result
+            except Exception, e:
+                sleep(2)
+        raise Exception, "Operation timed out."
 
     @property
     def roles(self):
@@ -1425,6 +1440,8 @@ class Index(Entity):
                           default is 60).
         """
         self.refresh()
+        if self['disabled'] == '0':
+            raise IllegalOperationException('Cannot clean an enabled index.')
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
@@ -1861,12 +1878,12 @@ class Job(Entity):
             else:
                 return response.body
         else:
-            timeout = datetime.timedelta(seconds=timeout)
-            start = datetime.datetime.now()
+            timeout = timedelta(seconds=timeout)
+            start = datetime.now()
             while True:
                 response = self.get("results", **query_params)
                 if response.status == 204:
-                    if datetime.datetime.now() - start < timeout:
+                    if datetime.now() - start < timeout:
                         sleep(wait_time)
                     else:
                         raise ValueError("Job is still running; cannot return any events.")

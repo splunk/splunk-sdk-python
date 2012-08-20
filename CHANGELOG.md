@@ -10,6 +10,12 @@
   endpoints in Splunk's REST API are broken in Splunk 4.x.
 * The first time .cancel() is called on job, it cancels it. Any calls to it thereafter on that
   job are a nop.
+* Service.restart now takes a timeout argument. If it is specified, the function blocks until
+  splunkd has restarted or the timeout has passed; if it is not specified, then it returns
+  immediately and you have to check whether splunkd has restarted yourself.
+* If you are creating indexes with the SDK, restart splunkd after you have created them but before
+  you try to do anything with them. Submitting data and similar actions simply won't work without
+  a restart.
 
 	
 ## 0.8.5

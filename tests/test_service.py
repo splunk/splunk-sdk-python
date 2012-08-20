@@ -86,7 +86,7 @@ class TestCase(testlib.TestCase):
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)
-        testlib.restart(service)
+        self.service.restart(timeout=120)
         service.login() # Make sure we are awake
 
 class TestSettings(testlib.TestCase):

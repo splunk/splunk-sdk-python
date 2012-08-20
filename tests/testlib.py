@@ -44,7 +44,7 @@ def to_bool(x):
     else:
         raise ValueError("Not a boolean value: %s", x)
 
-def retry(job, field, expected, times=10):
+def retry(job, field, expected, times=10, step=0):
     # Sometimes there is a slight delay in the value getting
     # set in splunkd. If it fails, just try again.
     import time
@@ -52,10 +52,11 @@ def retry(job, field, expected, times=10):
     while tries > 0:
         job.refresh()
         p = job[field]
-        if p != expected:
-            tries -= 1
-        else:
+        if p == expected:
             return
+        else:
+            tries -= 1
+            time.sleep(step)
     raise ValueError("%d loops in retry weren't enough" % times)
 
 def tmpname():

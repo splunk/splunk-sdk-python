@@ -150,7 +150,10 @@ class TestCase(testlib.TestCase):
             coll = getattr(self.service, coll_name)
             # sort_dir is needed because the default sorting direction
             # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
-            found = [ent.name for ent in coll.list(sort_mode="alpha_case", sort_dir="asc", count=30)]
+            kwargs = {'sort_mode': 'alpha_case', 'sort_dir': 'asc', 'count': 30}
+            if coll_name == 'jobs':
+                kwargs['sort_key'] = 'sid'
+            found = [ent.name for ent in coll.list(**kwargs)]
             if len(found) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             expected = sorted(found)
@@ -162,8 +165,14 @@ class TestCase(testlib.TestCase):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
             # sort_dir is needed because the default sorting direction
-            # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
-            found = [ent.name for ent in coll.list(sort_mode="alpha", sort_dir="asc", count=30)]
+            # for jobs is "desc", not "asc", so we have to set it explicitly
+            # or our tests break. We also need to specify "sid" as sort_key
+            # for jobs, or things are sorted by submission time and ties go
+            # the same way in either sort direction.
+            kwargs = {'sort_mode': 'alpha', 'sort_dir': 'asc', 'count': 30}
+            if coll_name == 'jobs':
+                kwargs['sort_key'] = 'sid'
+            found = [ent.name for ent in coll.list(**kwargs)]
             if len(found) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             expected = sorted(found, key=str.lower)

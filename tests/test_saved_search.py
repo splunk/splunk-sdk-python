@@ -22,18 +22,11 @@ from time import sleep
 
 import splunklib.client as client
 
-def to_bool(x):
-    if x == '1':
-        return True
-    elif x == '0':
-        return False
-    else:
-        raise ValueError("Not a boolean value: %s", x)
-
 class TestSavedSearch(testlib.TestCase):
     def setUp(self):
         super(TestSavedSearch, self).setUp()
         saved_searches = self.service.saved_searches
+        logging.debug("Saved searches namespace: %s", saved_searches.service.namespace)
         self.saved_search_name = testlib.tmpname()
         query = "search index=_internal * earliest=-1m | head 3"
         self.saved_search = saved_searches.create(self.saved_search_name, query)
@@ -73,6 +66,7 @@ class TestSavedSearch(testlib.TestCase):
         saved_search['action.rss']
         saved_search['action.script']
         saved_search['action.summary_index']
+        self.assertGreaterEqual(saved_search.suppressed, 0)
         self.assertGreaterEqual(saved_search['suppressed'], 0)
         is_scheduled = saved_search.content['is_scheduled']
         self.assertTrue(is_scheduled == '1' or is_scheduled == '0')
@@ -92,15 +86,15 @@ class TestSavedSearch(testlib.TestCase):
 
     
     def test_update(self):
-        is_visible = to_bool(self.saved_search['is_visible'])
+        is_visible = testlib.to_bool(self.saved_search['is_visible'])
         self.saved_search.update(is_visible=not is_visible)
         self.saved_search.refresh()
-        self.assertEqual(to_bool(self.saved_search['is_visible']), not is_visible)
+        self.assertEqual(testlib.to_bool(self.saved_search['is_visible']), not is_visible)
         
     def test_cannot_update_name(self):
         new_name = self.saved_search_name + '-alteration'
         self.assertRaises(client.IllegalOperationException, 
-                          self.saved_search.update, new_name)
+                          self.saved_search.update, name=new_name)
 
     def test_name_collision(self):
         opts = self.opts.kwargs.copy()
@@ -124,9 +118,11 @@ class TestSavedSearch(testlib.TestCase):
             namespace=namespace2)
 
         self.assertRaises(client.AmbiguousReferenceException,
-                          saved_searches[name])
-        self.check_saved_search(saved_searches[name, namespace1])
-        self.check_saved_search(saved_searches[name, namespace2])
+                          saved_searches.__getitem__, name)
+        search1 = saved_searches[name, namespace1]
+        self.check_saved_search(search1)
+        search2 = saved_searches[name, namespace2]
+        self.check_saved_search(search2)
 
     def test_dispatch(self):
         try:

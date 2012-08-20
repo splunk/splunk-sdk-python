@@ -36,6 +36,28 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 
+def to_bool(x):
+    if x == '1':
+        return True
+    elif x == '0':
+        return False
+    else:
+        raise ValueError("Not a boolean value: %s", x)
+
+def retry(job, field, expected, times=10):
+    # Sometimes there is a slight delay in the value getting
+    # set in splunkd. If it fails, just try again.
+    import time
+    tries = times
+    while tries > 0:
+        job.refresh()
+        p = job[field]
+        if p != expected:
+            tries -= 1
+        else:
+            return
+    raise ValueError("%d loops in retry weren't enough" % times)
+
 def tmpname():
     name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
     return name

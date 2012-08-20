@@ -750,8 +750,8 @@ class Context(object):
         if ns.app is None and ns.owner is None:
             return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
 
-        oname = "-" if ns.owner is None else ns.owner
-        aname = "-" if ns.app is None else ns.app
+        oname = "nobody" if ns.owner is None else ns.owner
+        aname = "system" if ns.app is None else ns.app
         path = UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),
                           skip_encode=skip_encode)
         return path

@@ -111,21 +111,6 @@ class TestUtilities(testlib.TestCase):
             job.refresh()
             self.check_job(job)
 
-def retry(job, field, expected, times=10):
-    # Sometimes there is a slight delay in the value getting
-    # set in splunkd. If it fails, just try again.
-    import time
-    tries = times
-    while tries > 0:
-        time.sleep(0.1)
-        job.refresh()
-        p = job[field]
-        if p != expected:
-            tries -= 1
-        else:
-            return
-    raise ValueError("%d loops in retry weren't enough" % times)
-
 
 class TestJob(testlib.TestCase):
     def setUp(self):
@@ -143,7 +128,7 @@ class TestJob(testlib.TestCase):
     def test_get_preview_and_events(self):
         with log_duration():
             tries = 0
-            while not self.job.isDone():
+            while not self.job.isDone() and tries < 5:
                 tries += 1
         logging.debug("Polled %d times", tries)
 
@@ -167,7 +152,7 @@ class TestJob(testlib.TestCase):
             self.assertEqual(self.job['isPaused'], '0')
 
         self.job.pause()
-        retry(self.job, 'isPaused', '1')
+        testlib.retry(self.job, 'isPaused', '1')
         self.assertEqual(self.job['isPaused'], '1')
 
     def test_unpause(self):
@@ -176,7 +161,7 @@ class TestJob(testlib.TestCase):
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '1')
         self.job.unpause()
-        retry(self.job, 'isPaused', '0')
+        testlib.retry(self.job, 'isPaused', '0')
         self.assertEqual(self.job['isPaused'], '0')
 
     def test_finalize(self):
@@ -184,7 +169,7 @@ class TestJob(testlib.TestCase):
             self.fail("Job is already finalized; can't test .finalize() method.")
         else:
             self.job.finalize()
-            retry(self.job, 'isFinalized', '1')
+            testlib.retry(self.job, 'isFinalized', '1')
             self.assertEqual(self.job['isFinalized'], '1')
 
     def test_setpriority(self):
@@ -193,7 +178,7 @@ class TestJob(testlib.TestCase):
         self.assertNotEqual(old_priority, new_priority)
 
         self.job.set_priority(new_priority)
-        retry(self.job, 'priority', str(new_priority))
+        testlib.retry(self.job, 'priority', str(new_priority))
         self.assertEqual(int(self.job['priority']), new_priority)
 
     def test_setttl(self):

@@ -21,12 +21,12 @@ import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestCase, self).setUp()
         self.role_name = testlib.tmpname()
         self.role = self.service.roles.create(self.role_name)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestCase, self).tearDown()
         for role in self.service.roles:
             if role.name.startswith('delete-me'):
                 self.service.roles.delete(role.name)

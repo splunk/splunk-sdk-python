@@ -521,7 +521,13 @@ class Endpoint(object):
         """
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
-        # namespace in the final request.
+        # namespace in the final request. If there is no namespace specified,
+        # and we have one on this endpoint, then use it to avoid possible
+        # name collisions from wildcards in the connection's namespace.
+        if hasattr(self, 'namespace'):
+            ns = self.namespace
+            app = ns.app if ns.app != 'system' else None
+            owner = ns.owner if ns.owner != 'nobody' else None
         if path_segment.startswith('/'):
             path = path_segment
         else:
@@ -688,48 +694,20 @@ class Entity(Endpoint):
             "Equality is undefined for objects of class %s" % \
                 self.__class__.__name__)
 
-    # _lookup, __getattr__, and __getitem__ are arranged to make
-    # access via a[b] or a.b work, but they're brittle. Be careful
-    # when modifying them.
-    #
-    # The strategy for getting fields is:
-    #   1. Look for a method or field of an object. This has to come
-    #      first so that you can write custom methods to modify the
-    #      behavior or names of fields.
-    #   2. Look in self.state.content for any matches. Since
-    #      self.state.content is a Record (see data.py for Record's
-    #      definition) it handles items with separators in them
-    #      properly.
-    #   3. If there is no value there, turn to the class's defaults
-    #      dictionary.
-    # 
-    # Both __getattr__ and __getitem__ dispatch to the same behavior
-    # in _lookup.
-    def _lookup(self, key):
-        # Stage 1.
-        try:
-            # We already overrode __getattr__, so we have to go up to
-            # the superclass's implementation or end up on infinite
-            # recursion.
-            return Endpoint.__getattr__(self, key)
-        except AttributeError, ae:
-            # Stage 2.
-            try:
-                # Despite its fancy dispatch, Record throws KeyErrors
-                # sensibly.
-                return self.content[key]
-            except KeyError:
-                # Stage 3.
-                try:
-                    return self.defaults[key]
-                except KeyError:
-                    raise KeyError("No such attribute %s" % key)
-
     def __getattr__(self, key):
-        return self._lookup(key)
+        # Called when an attribute was not found by the normal method. In this
+        # case we try to find it in self.content and then self.defaults.
+        if key in self.content:
+            return self.content[key]
+        elif key in self.defaults:
+            return self.defaults[key]
+        else:
+            raise AttributeError(key)
 
     def __getitem__(self, key):
-        return self._lookup(key)
+        # getattr attempts to find a field on the object in the normal way,
+        # then calls __getattr__ if it cannot.
+        return getattr(self, key)
 
     # Load the Atom entry record from the given response - this is a method
     # because the "entry" record varies slightly by entity and this allows
@@ -745,7 +723,7 @@ class Entity(Endpoint):
     def _load_state(self, response):
         entry = self._load_atom_entry(response)
         if isinstance(entry, list):
-            raise ValueError("Fetch from server returned multiple entries.")
+            raise AmbiguousReferenceException("Fetch from server returned multiple entries for name %s." % self.name)
         else:
             return _parse_atom_entry(entry)
 
@@ -834,9 +812,9 @@ class Entity(Endpoint):
 
         A ``Record`` with three keys: ``'owner'``, ``'app'``, and ``'sharing'``.
         """
-        return record({'owner': self.access['owner'],
-                       'app': self.access['app'],
-                       'sharing': self.access['sharing']})
+        return namespace(owner = self.access['owner'],
+                         app = self.access['app'],
+                         sharing = self.access['sharing'])
 
     def read(self):
         """Reads the current state of the entity from the server."""
@@ -876,7 +854,7 @@ class Entity(Endpoint):
         # check for 'name' in kwargs and throw an error if it is
         # there.
         if 'name' in kwargs:
-            raise ValueError("Cannot update the name of an Entity via the REST API.")
+            raise IllegalOperationException('Cannot update the name of an Entity via the REST API.')
         self.post(**kwargs)
         return self
 

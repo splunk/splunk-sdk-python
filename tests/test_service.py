@@ -84,10 +84,10 @@ class TestCase(testlib.TestCase):
         # except:
         #     self.fail()
 
-#    def test_restart(self):
-#        service = client.connect(**self.opts.kwargs)
-#        testlib.restart(service)
-#        service.login() # Make sure we are awake
+    def test_restart(self):
+        service = client.connect(**self.opts.kwargs)
+        testlib.restart(service)
+        service.login() # Make sure we are awake
 
 class TestSettings(testlib.TestCase):
     def test_read_settings(self):

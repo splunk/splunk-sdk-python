@@ -42,6 +42,8 @@ class TestApp(testlib.TestCase):
 class TestAppIntegrity(TestApp):
     def test_app_integrity(self):
         self.check_entity(self.app)
+        self.app.setupInfo
+        self.app['setupInfo']
 
 class TestDisableEnable(TestApp):
     def test_disable_enable(self):

@@ -253,12 +253,12 @@ class TestAbspath(BindingTestCase):
     def test_with_owner(self):
         path = self.context._abspath("foo", owner="me", app=None)
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/me/-/foo")
+        self.assertEqual(path, "/servicesNS/me/system/foo")
 
     def test_with_app(self):
         path = self.context._abspath("foo", owner=None, app="MyApp")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_with_both(self):
         path = self.context._abspath("foo", owner="me", app="MyApp")
@@ -300,13 +300,13 @@ class TestAbspath(BindingTestCase):
         context = binding.connect(owner="me", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/me/-/foo")
+        self.assertEqual(path, "/servicesNS/me/system/foo")
 
     def test_context_with_app(self):
         context = binding.connect(app="MyApp", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_context_with_both(self):
         context = binding.connect(owner="me", app="MyApp", **self.kwargs)

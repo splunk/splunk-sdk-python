@@ -38,6 +38,17 @@ expected_fields_keys = set(['required', 'optional', 'wildcard'])
 
 
 class TestCase(testlib.TestCase):
+    def setUp(self):
+        super(TestCase, self).setUp()
+        for saved_search in self.service.saved_searches:
+            if saved_search.name.startswith('delete-me'):
+                try:
+                    for job in saved_search.history():
+                        job.cancel()
+                    self.service.saved_searches.delete(saved_search.name)
+                except KeyError:
+                    pass
+
     def test_metadata(self):
         self.assertRaises(client.NotSupportedError, self.service.jobs.itemmeta)
         self.assertRaises(client.NotSupportedError, self.service.loggers.itemmeta)
@@ -63,10 +74,10 @@ class TestCase(testlib.TestCase):
     def test_list(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected = [ent.name for ent in coll.list(sort_mode="auto")]
+            expected = [ent.name for ent in coll.list(count=10, sort_mode="auto")]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            found = [ent.name for ent in coll.list()]
+            found = [ent.name for ent in coll.list()][:10]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
@@ -75,7 +86,7 @@ class TestCase(testlib.TestCase):
         N = 5
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected = [ent.name for ent in coll.list()][:N]
+            expected = [ent.name for ent in coll.list(count=N+5)][:N]
             N = len(expected) # in case there are <N elements
             found = [ent.name for ent in coll.list(count=N)]
             self.assertEqual(expected, found,
@@ -87,8 +98,8 @@ class TestCase(testlib.TestCase):
         for offset in [random.randint(3,50) for x in range(5)]:
             for coll_name in collections:
                 coll = getattr(self.service, coll_name)
-                expected = [ent.name for ent in coll.list()][offset:]
-                found = [ent.name for ent in coll.list(offset=offset)]
+                expected = [ent.name for ent in coll.list(count=offset+10)][offset:]
+                found = [ent.name for ent in coll.list(offset=offset, count=10)]
                 self.assertEqual(expected, found,
                                  msg='on %s (expected %s, found %s)' % \
                                      (coll_name, expected, found))
@@ -158,12 +169,12 @@ class TestCase(testlib.TestCase):
     def test_iteration(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected = [ent.name for ent in coll.list(count=30)]
+            expected = [ent.name for ent in coll.list(count=10)]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             total = len(expected)
             found = []
-            for ent in coll.iter(pagesize=max(int(total/5.0), 1), count=30):
+            for ent in coll.iter(pagesize=max(int(total/5.0), 1), count=10):
                 found.append(ent.name)
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \

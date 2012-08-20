@@ -524,8 +524,8 @@ class Endpoint(object):
         # namespace in the final request. If there is no namespace specified,
         # and we have one on this endpoint, then use it to avoid possible
         # name collisions from wildcards in the connection's namespace.
-        if hasattr(self, 'namespace'):
-            ns = self.namespace
+        if hasattr(self, '_state') and hasattr(self._state, 'namespace'):
+            ns = self._state.namespace
             app = ns.app if ns.app != 'system' else None
             owner = ns.owner if ns.owner != 'nobody' else None
         if path_segment.startswith('/'):
@@ -697,8 +697,8 @@ class Entity(Endpoint):
     def __getattr__(self, key):
         # Called when an attribute was not found by the normal method. In this
         # case we try to find it in self.content and then self.defaults.
-        if key in self.content:
-            return self.content[key]
+        if key in self.state.content:
+            return self.state.content[key]
         elif key in self.defaults:
             return self.defaults[key]
         else:
@@ -812,9 +812,9 @@ class Entity(Endpoint):
 
         A ``Record`` with three keys: ``'owner'``, ``'app'``, and ``'sharing'``.
         """
-        return namespace(owner = self.access['owner'],
-                         app = self.access['app'],
-                         sharing = self.access['sharing'])
+        return namespace(owner = self._state.access['owner'],
+                         app = self._state.access['app'],
+                         sharing = self._state.access['sharing'])
 
     def read(self):
         """Reads the current state of the entity from the server."""
@@ -988,7 +988,7 @@ class Collection(Endpoint):
             else:
                 raise
 
-    def __iter__(self):
+    def __iter__(self, **kwargs):
         """Iterate over the entities in the collection.
 
         :rtype: iterator over entities.
@@ -1005,7 +1005,7 @@ class Collection(Endpoint):
             for entity in saved_searches:
                 print "Saved search named %s" % entity.name
         """
-        for item in self.iter(): 
+        for item in self.iter(**kwargs):
             yield item
 
     def __len__(self):

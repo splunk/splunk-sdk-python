@@ -119,10 +119,15 @@ class TestCase(testlib.TestCase):
     def test_list_with_sort_dir(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected = list(reversed([ent.name for ent in coll.list(sort_dir="desc")]))
+            expected_kwargs = {'sort_dir': 'desc'}
+            found_kwargs = {'sort_dir': 'asc'}
+            if coll_name == 'jobs':
+                expected_kwargs['sort_key'] = 'sid'
+                found_kwargs['sort_key'] = 'sid'
+            expected = list(reversed([ent.name for ent in coll.list(**expected_kwargs)]))
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            found = [ent.name for ent in coll.list(sort_dir="asc")]
+            found = [ent.name for ent in coll.list(**found_kwargs)]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))

@@ -1669,6 +1669,8 @@ class Inputs(Collection):
                     return []
             entities = []
             entries = _load_atom_entries(response)
+            if entries is None:
+                return [] # No inputs in a collection comes back with no feed or entry in the XML
             for entry in entries:
                 state = _parse_atom_entry(entry)
                 # Unquote the URL, since all URL encoded in the SDK

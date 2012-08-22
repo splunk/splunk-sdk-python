@@ -760,8 +760,8 @@ class Entity(Endpoint):
         rec = _parse_atom_entry(data)
         return rec.content
 
-    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
-        if owner is None and app is None and sharing is None and \
+    def _proper_namespace(self, owner=None, app=None, sharing=None):
+        if owner is None and app is None and sharing is None and\
             (self.service.namespace.owner == '-' or self.service.namespace.app == '-'):
             # If no namespace is specified and there are wildcards in the service's namespace,
             # we need to use the entity's namespace to avoid name collisions.
@@ -769,7 +769,16 @@ class Entity(Endpoint):
                 owner = self._state.access.owner
                 app = self._state.access.app
                 sharing = self._state.access.sharing
+        return (owner, app, sharing)
+
+
+    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
+        owner, app, sharing = self._proper_namespace(owner, app, sharing)
         return super(Entity, self).get(path_segment, owner=owner, app=app, sharing=sharing, **query)
+
+    def post(self, path_segment="", owner=None, app=None, sharing=None, **query):
+        owner, app, sharing = self._proper_namespace(owner, app, sharing)
+        return super(Entity, self).post(path_segment, owner=owner, app=app, sharing=sharing, **query)
 
     def refresh(self, state=None):
         """Refresh the state of this entity.
@@ -2016,6 +2025,20 @@ class Jobs(Collection):
         # Collection is 0, not -1 as it is on most.
         self.null_count = 0
 
+    def _load_list(self, response):
+        # Overridden because Job takes a sid instead of a path.
+        entries = _load_atom_entries(response)
+        if entries is None: return []
+        entities = []
+        for entry in entries:
+            state = _parse_atom_entry(entry)
+            entity = self.item(
+                self.service,
+                entry['content']['sid'],
+                state=state)
+            entities.append(entity)
+        return entities
+
     def create(self, query, **kwargs):
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
@@ -2146,7 +2169,7 @@ class SavedSearch(Entity):
         """
         response = self.post("dispatch", **kwargs)
         sid = _load_sid(response)
-        return Job(self.service, PATH_JOBS + sid)
+        return Job(self.service, sid)
 
     def history(self):
         """Returns a list of search jobs corresponding to this saved search.
@@ -2158,7 +2181,7 @@ class SavedSearch(Entity):
         if entries is None: return []
         jobs = []
         for entry in entries:
-            job = Job(self.service, PATH_JOBS + entry.title)
+            job = Job(self.service, entry.title)
             jobs.append(job)
         return jobs
 

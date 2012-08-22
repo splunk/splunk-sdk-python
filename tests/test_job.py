@@ -72,7 +72,7 @@ class TestUtilities(testlib.TestCase):
 
     def test_cancel(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_intenal | head 3",
+        job = jobs.create(query="search index=_internal | head 3",
                           earliest_time="-1m",
                           latest_time="now")
         self.assertTrue(job.sid in jobs)
@@ -81,7 +81,7 @@ class TestUtilities(testlib.TestCase):
 
     def test_cancel_is_idempotent(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_intenal | head 3",
+        job = jobs.create(query="search index=_internal | head 3",
                           earliest_time="-1m",
                           latest_time="now")
         self.assertTrue(job.sid in jobs)

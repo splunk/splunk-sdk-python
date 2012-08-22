@@ -121,7 +121,13 @@ class TestSavedSearch(testlib.TestCase):
                           saved_searches.__getitem__, name)
         search1 = saved_searches[name, namespace1]
         self.check_saved_search(search1)
+        search1.update(**{'action.email.from': 'nobody@nowhere.com'})
+        search1.refresh()
+        self.assertEqual(search1['action.email.from'], 'nobody@nowhere.com')
         search2 = saved_searches[name, namespace2]
+        search2.update(**{'action.email.from': 'nemo@utopia.com'})
+        search2.refresh()
+        self.assertEqual(search2['action.email.from'], 'nemo@utopia.com')
         self.check_saved_search(search2)
 
     def test_dispatch(self):

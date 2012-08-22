@@ -44,14 +44,19 @@ def to_bool(x):
     else:
         raise ValueError("Not a boolean value: %s", x)
 
-def retry(job, field, expected, times=10, step=0):
+def retry(entity, field, expected, times=10, step=0):
     # Sometimes there is a slight delay in the value getting
     # set in splunkd. If it fails, just try again.
     import time
     tries = times
     while tries > 0:
-        job.refresh()
-        p = job[field]
+        entity.refresh()
+        if callable(field):
+            p = field(entity)
+        elif isinstance(field, str):
+            p = entity[field]
+        else:
+            raise ValueError("Unrecognized field type.")
         if p == expected:
             return
         else:
@@ -106,6 +111,7 @@ class TestCase(unittest.TestCase):
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):
+        assert entity is not None
         self.assertTrue(entity.name is not None)
         self.assertTrue(entity.path is not None)
 
@@ -113,7 +119,7 @@ class TestCase(unittest.TestCase):
         self.assertTrue(entity.content is not None)
 
         # Verify access metadata
-
+        assert entity.access is not None
         entity.access.app
         entity.access.owner
         entity.access.sharing

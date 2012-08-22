@@ -79,7 +79,7 @@ class TestConfs(testlib.TestCase):
         key = testlib.tmpname()
         val = testlib.tmpname()
         stanza.update(**{key: val})
-        stanza.refresh()
+        testlib.retry(stanza, lambda s: len(s), 1, step=0.2)
         self.assertEqual(len(stanza), 1) # Fails
         self.assertTrue(key in stanza) # Fails
 

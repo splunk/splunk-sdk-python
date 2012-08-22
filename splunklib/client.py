@@ -536,13 +536,7 @@ class Endpoint(object):
         """
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
-        # namespace in the final request. If there is no namespace specified,
-        # and we have one on this endpoint, then use it to avoid possible
-        # name collisions from wildcards in the connection's namespace.
-        if hasattr(self, '_state') and hasattr(self._state, 'namespace'):
-            ns = self._state.namespace
-            app = ns.app if ns.app != 'system' else None
-            owner = ns.owner if ns.owner != 'nobody' else None
+        # namespace in the final request.
         if path_segment.startswith('/'):
             path = path_segment
         else:
@@ -633,6 +627,16 @@ class Entity(Endpoint):
     subdictionary, so ``email.body.salutation`` would be accessed at
     ``ent['email']['body']['salutation']`` or
     ``ent['email.body.salutation']``.
+
+    Equivalently, you can also access the fields as if they were the
+    fields of a Python object, as in::
+
+        ent.email.action
+        ent.disabled
+        ent.whitelist
+
+    However, since some of the field names are not valid Python identifiers,
+    you should prefer the dictionary-like syntax.
 
     The state of an :class:`Entity` is cached, so accessing a field
     does not contact the server. If you expect the values on the
@@ -756,6 +760,17 @@ class Entity(Endpoint):
         rec = _parse_atom_entry(data)
         return rec.content
 
+    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
+        if owner is None and app is None and sharing is None and \
+            (self.service.namespace.owner == '-' or self.service.namespace.app == '-'):
+            # If no namespace is specified and there are wildcards in the service's namespace,
+            # we need to use the entity's namespace to avoid name collisions.
+            if 'access' in self._state:
+                owner = self._state.access.owner
+                app = self._state.access.app
+                sharing = self._state.access.sharing
+        return super(Entity, self).get(path_segment, owner=owner, app=app, sharing=sharing, **query)
+
     def refresh(self, state=None):
         """Refresh the state of this entity.
 
@@ -833,7 +848,9 @@ class Entity(Endpoint):
 
     def read(self):
         """Reads the current state of the entity from the server."""
-        return self._load_state(self.get())
+        response = self.get()
+        results = self._load_state(response)
+        return results
 
     def reload(self):
         """Reloads the entity."""
@@ -1742,8 +1759,10 @@ class Inputs(Collection):
 
 class Job(Entity): 
     """This class represents a search job."""
-    def __init__(self, service, path, **kwargs):
+    def __init__(self, service, sid, **kwargs):
+        path = PATH_JOBS + sid
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
+        self.sid = sid
         self._isReady = False
 
     # The Job entry record is returned at the root of the response
@@ -1949,11 +1968,6 @@ class Job(Entity):
         self.post('control', action="setpriority", priority=value)
         return self
 
-    @property
-    def sid(self):
-        """Returns this job's search ID (sid)."""
-        return self.content.get('sid', None)
-
     def summary(self, **kwargs):
         """Returns an InputStream IO handle to the job's summary.
         
@@ -2011,7 +2025,7 @@ class Jobs(Collection):
             if he.status == 400: # Bad request. Raise a TypeError with the reason.
                 raise TypeError(he.message)
         sid = _load_sid(response)
-        return Job(self.service, PATH_JOBS + sid)
+        return Job(self.service, sid)
 
     def export(self, query, **params):
         """Run a search and immediately start streaming preview events.
@@ -2174,7 +2188,7 @@ class SavedSearch(Entity):
                             latest_time=latest_time)
         data = self._load_atom_entry(response)
         rec = _parse_atom_entry(data)
-        times = [datetime.datetime.fromtimestamp(int(t))
+        times = [datetime.fromtimestamp(int(t))
                  for t in rec.content.scheduled_times]
         return times
 

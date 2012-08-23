@@ -1328,6 +1328,27 @@ class Collection(Endpoint):
         # return self._load_list(response)
         return list(self.iter(count=count, **kwargs))
 
+    def names(self, count=None, **kwargs):
+        """Return a list over the names of entities in this collection.
+
+        There is no laziness in this function. The entire collection
+        is loaded at once and returned as a list. This function makes
+        a single roundtrip to the server, plus at most two more if
+        autologin is enabled. There is no caching: every call makes at
+        least one round trip.
+
+        :param `count`: The maximum number of names to return (optional).
+        :param `offset`: The offset of the first name to return (optional).
+        :param `search`: The search expression to filter responses (optional).
+        :param `sort_dir`: The direction to sort returned entites: *asc* or *desc*
+                           (optional).
+        :param `sort_key`: The field to use for sorting (optional).
+        :param `sort_mode`: The collating sequence for sorting returned entities:
+                            *auto*, *alpha*, *alpha_case*, *num* (optional).
+        :rtype: list
+        """
+        return [ent.name for ent in self.iter(count=count, **kwargs)]
+
 class ConfigurationFile(Collection):
     """This class contains a single configuration, which is a collection of 
     stanzas."""
@@ -1335,7 +1356,7 @@ class ConfigurationFile(Collection):
     # Collection, since it is being created as the elements of a
     # Configurations, which is a Collection subclass.
     def __init__(self, service, path, **kwargs):
-        assert 'properties' not in path
+        #assert 'properties' not in path
         Collection.__init__(self, service, path, item=Stanza)
         self.name = kwargs['state']['title']
 
@@ -1357,7 +1378,7 @@ class Configurations(Collection):
         # where multiple values means a name conflict.
         try:
             response = self.get(key)
-            return ConfigurationFile(self.service, self.path + key, state={'title': key})
+            return ConfigurationFile(self.service, PATH_CONF % key, state={'title': key})
         except HTTPError as he:
             if he.status == 404: # No entity matching key
                 raise KeyError(key)
@@ -1390,6 +1411,15 @@ class Configurations(Collection):
         else:
             raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
 
+    def delete(self, key):
+        try:
+            super(Configurations, self).delete(key)
+        except HTTPError as he:
+            if he.status == 405:
+                raise IllegalOperationException("Cannot delete configuration files from the REST API.")
+            else:
+                raise
+
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects
         # returned refer to the configs/ path instead of the
@@ -1405,10 +1435,8 @@ class Stanza(Entity):
         return self
 
     def __len__(self):
-        response = self.get()
-        logging.debug("Content: %s", self.content)
-        return False
-
+        return len([x for x in self._state.content.keys()
+                    if not x.startswith('eai') and x != 'disabled'])
 
 class AlertGroup(Entity):
     """This class contains an entity that represents a group of fired alerts 
@@ -2389,120 +2417,6 @@ class OperationError(Exception):
 class NotSupportedError(Exception): 
     """Raised for operations that are not supported on a given object."""
     pass
-
-class DeploymentCollection(Collection):
-    def __init__(self, service, path, item):
-        Collection.__init__(self, service, path, item=item)
-        # The count value to say list all the contents of this
-        # Collection is 0, not -1 as it is on most.
-        self.null_count = 0
-
-    def create(self, name, **kwargs):
-        raise NotSupportedError("Cannot create %s with the REST API." % self.__class__.__name__)
-
-    def delete(self, name):
-        raise NotSupportedError("Cannot delete %s with the REST API." % self.__class__.__name__)
-
-
-class DeploymentTenant(Entity):
-    """Binding for /deployments/tenants/{name}."""
-    @property
-    def check_new(self):
-        """Will the server inform clients of updated configuration?"""
-        return self.state.content.get('check-new', False)
-
-    def update(self, **kwargs):
-        if 'check_new' in kwargs:
-            kwargs['check-new'] = kwargs.pop('check_new')
-        self.service.post(PATH_DEPLOYMENT_TENANTS + self.name, **kwargs)
-        return self
-
-class DeploymentServerClass(Entity):
-    """Represents a deployment server class.
-
-    Binds /deployments/serverclass/{name}.
-    """
-    defaults = {'endpoint': None, 
-                'tmpfolder': None,
-                'filterType': None,
-                'targetRepositoryLocation': None,
-                'repositoryLocation': None,
-                'continueMatching': None}
-
-    @property
-    def blacklist(self):
-        if 'blacklist' in self.content:
-            return self.content.blacklist.split(',')
-        else:
-            return None
-
-    def delete(self, **kwargs):
-        raise NotSupportedError("Cannot delete server classes via the REST API")
-
-    @property
-    def whitelist(self):
-        if 'whitelist' in self.content:
-            return self.content.whitelist.split(',')
-        else:
-            return None
-
-class DeploymentServerClasses(DeploymentCollection):
-    """Binding for /deployment/serverclasses"""
-    def __init__(self, service):
-        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=DeploymentServerClass)
-
-    def create(self, name, **kwargs):
-        if 'blacklist' in kwargs:
-            for i,v in enumerate(kwargs['blacklist']):
-                kwargs['blacklist.%d' % i] = v
-            kwargs.pop('blacklist')
-        if 'whitelist' in kwargs:
-            for i,v in enumerate(kwargs['whitelist']):
-                kwargs['whitelist.%d' % i] = v
-            kwargs.pop('whitelist')
-        if not 'filterType' in kwargs:
-            kwargs['filterType'] = 'blacklist'
-        return Collection.create(self, name, **kwargs)
-
-class DeploymentServer(Entity):
-    """Binding for /deployment/server/{name}"""
-    @property
-    def whitelist(self):
-        return self.content.get('whitelist.0', None)
-
-    @property
-    def check_new(self):
-        return self.content.get('check-new', False)
-
-    def update(self, **kwargs):
-        if 'disabled' in kwargs:
-            kwargs['disabled'] = '1' if kwargs['disabled'] else '0'
-        if 'check_new' in kwargs:
-            kwargs['check-new'] = kwargs.pop('check_new')
-        if 'whitelist' in kwargs:
-            kwargs['whitelist.0'] = kwargs.pop('whitelist')
-        self.service.post(PATH_DEPLOYMENT_SERVERS + self.name, **kwargs)
-        return self
-
-class DeploymentServers(DeploymentCollection):
-    """Binding for /deployment/server"""
-    def __init__(self, service):
-        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERS, item=DeploymentServer)
-        # The count value to say list all the contents of this
-        # Collection is 0, not -1 as it is on most.
-        self.null_count = 0
-
-    def create(self, name, **kwargs):
-        raise NotSupportedError("Cannot create deployment servers with the REST API.")
-
-class DeploymentClient(Entity):
-    """Binding for /deployment/client/{name}"""
-    @property
-    def serverClasses(self):
-        if 'serverClasses' in self.content:
-            return self.content['serverClasses'].split(',')
-        else:
-            return []
 
 class Application(Entity):
     """Binding for /apps/local/{name}."""

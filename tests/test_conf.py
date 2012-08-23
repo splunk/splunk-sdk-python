@@ -88,9 +88,10 @@ class TestConfs(testlib.TestCase):
         self.assertFalse(stanza_name in conf)
         self.assertEqual(len(conf), count-1)
 
-        confs.delete(conf_name)
-        self.assertFalse(conf_name in confs)
-        self.assertRaises(KeyError, confs.__getitem__, conf_name)
+        # Can't actually delete configuration files directly, at least
+        # not in current versions of Splunk.
+        self.assertRaises(client.IllegalOperationException, confs.delete, conf_name)
+        self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
     testlib.main()

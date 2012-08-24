@@ -1444,6 +1444,9 @@ class AlertGroup(Entity):
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
+    def __len__(self):
+        return self.count()
+
     @property
     def alerts(self):
         """Returns a collection of triggered alert instances."""
@@ -1452,7 +1455,7 @@ class AlertGroup(Entity):
     @property
     def count(self):
         """Returns the count of triggered alerts."""
-        return int(self.content.triggered_alert_count)
+        return int(self.content.get('triggered_alert_count', 0))
 
 class Index(Entity):
     """This class is an index class used to access specific operations."""
@@ -2185,6 +2188,10 @@ class SavedSearch(Entity):
         resumes alerting."""
         self.post("acknowledge")
         return self
+
+    @property
+    def alert_count(self):
+        return int(self._state.content.get('triggered_alert_count', 0))
 
     def dispatch(self, **kwargs):
         """Runs the saved search and returns the resulting search job.

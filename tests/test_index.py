@@ -20,84 +20,88 @@ import testlib
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
+import logging
+
+class IndexTest(testlib.TestCase):
     def setUp(self):
         testlib.TestCase.setUp(self)
-        self.service = client.connect(**self.opts.kwargs)
-        if not self.service.indexes.contains("sdk-tests"):
-            self.service.indexes.create("sdk-tests")
-        self.assertTrue(self.service.indexes.contains("sdk-tests"))
-        self.index = self.service.indexes['sdk-tests']
+        self.index_name = testlib.tmpname()
+        self.index = self.service.indexes.create(self.index_name)
 
-    def check_index(self, index):
-        self.check_entity(index)
-        keys = [
-            'thawedPath', 'quarantineFutureSecs',
-            'isInternal', 'maxHotBuckets', 'disabled', 'homePath',
-            'compressRawdata', 'maxWarmDBCount', 'frozenTimePeriodInSecs',
-            'memPoolMB', 'maxHotSpanSecs', 'minTime', 'blockSignatureDatabase',
-            'serviceMetaPeriod', 'coldToFrozenDir', 'quarantinePastSecs',
-            'maxConcurrentOptimizes', 'maxMetaEntries', 'minRawFileSyncSecs',
-            'maxMemMB', 'maxTime', 'partialServiceMetaPeriod', 'maxHotIdleSecs',
-            'coldToFrozenScript', 'thawedPath_expanded', 'coldPath_expanded',
-            'defaultDatabase', 'throttleCheckPeriod', 'totalEventCount',
-            'enableRealtimeSearch', 'indexThreads', 'maxDataSize',
-            'currentDBSizeMB', 'homePath_expanded', 'blockSignSize',
-            'syncMeta', 'assureUTF8', 'rotatePeriodInSecs', 'sync',
-            'suppressBannerList', 'rawChunkSizeBytes', 'coldPath',
-            'maxTotalDataSizeMB'
-        ]
-        for key in keys: self.assertTrue(key in index.content)
+    def tearDown(self):
+        # We can't delete an index with the REST API before Splunk
+        # 5.0. In 4.x, we just have to leave them lying around until
+        # someone cares to go clean them up. Unique naming prevents
+        # clashes, though.
+        if self.splunk_version >= 5:
+            logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot " 
+                            "delete indexes via the REST API in Splunk 4.x")
+            self.service.indexes.delete(self.index_name)
 
-    def test_read(self):
-        for index in self.service.indexes: 
-            self.check_index(index)
-            index.refresh()
-            self.check_index(index)
+class TestIndexContentIntegrity(IndexTest):
+    def test_integrity(self):
+        self.check_entity(self.index)
 
-    def test_disable(self):
+class TestIndexIsPrefreshed(IndexTest):
+    def test_prefreshed(self):
+        # Make sure a new index has its contents already loaded.
+        self.assertEqual(self.index['disabled'], '0')
+
+class TestDisableEnable(IndexTest):
+    def test_disable_enable(self):
         self.index.disable()
-        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
-
-    def test_enable(self):
         self.index.enable()
-        # testlib.restart(self.service)
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '0')
 
-    def test_clean(self):
+class TestSubmit(IndexTest):
+    def test_submit(self):
+        # At the moment, restarting the newly created index makes this
+        # work. I'm waiting to see if there's a better solution.
+        # Without a restart, you get ghastly messages about
+        # unconfigured indexes, and submission doesn't work.
+        # testlib.restart(self.service)
+        eventCount = int(self.index['totalEventCount'])
+        self.assertEqual(self.index['sync'], '0')
+        self.assertEqual(self.index['disabled'], '0')
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        # testlib.restart() <-- waiting for a workaround
+        self.index.refresh()
+        self.assertEqual(int(self.index['totalEventCount']), eventCount+1)
+
+class TestCannotCleanEnabledIndex(IndexTest):
+    def test_cannot_clean_enabled(self):
+        self.assertEqual(self.index['disabled'], '0')
+        self.assertRaises(client.IllegalOperationException, self.index.clean)
+
+class TestSubmitAndCleanIndex(IndexTest):
+    def test_submit_and_clean(self):
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        self.index.disable()
         self.index.clean()
         self.index.refresh()
         self.assertEqual(self.index['totalEventCount'], '0')
 
-    def test_attach(self):
-        self.index.refresh()
-        count = int(self.index['totalEventCount'])
+class TestSubmitViaAttach(IndexTest):
+    def test_submit_via_attach(self):
+        eventCount = int(self.index['totalEventCount'])
         cn = self.index.attach()
         cn.send("Hello Boris!\r\n")
         cn.close()
-        def f():
-            self.index.refresh()
-            n = int(self.index['totalEventCount'])
-            return n
-        self.assertEventuallyEqual(f, count+1)
-
-    def test_submit(self):
         self.index.refresh()
-        count = int(self.index['totalEventCount'])
-        self.index.submit("Hello again!")
-        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1, timeout=60)
+        self.assertEqual(int(self.index['totalEventCount']), eventCount+1)
 
+class TestUpload(IndexTest):
     def test_upload(self):
         # The following test must run on machine where splunkd runs,
         # otherwise a failure is expected
-        self.index.refresh()
-        count = int(self.index['totalEventCount'])
+        eventCount = int(self.index['totalEventCount'])
         testpath = path.dirname(path.abspath(__file__))
         self.index.upload(path.join(testpath, "testfile.txt"))
-        self.assertEventuallyEqual(lambda: self.index.refresh() and int(self.index['totalEventCount']), count+1, timeout=60)
+        self.index.refresh()
+        self.assertEqual(int(self.index['totalEventCount']), eventCount+1)
 
 if __name__ == "__main__":
     testlib.main()

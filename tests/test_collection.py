@@ -15,112 +15,170 @@
 # under the License.
 
 import testlib
+import logging
+
+from contextlib import contextmanager
 
 import splunklib.client as client
 
+collections = [
+    'apps',
+    'event_types',
+    'indexes',
+    'inputs',
+    'jobs',
+    'loggers',
+    'messages',
+    'roles',
+    'users'
+    ]
+
+expected_access_keys = set(['sharing', 'app', 'owner',])
+expected_fields_keys = set(['required', 'optional', 'wildcard'])
+
+
 class TestCase(testlib.TestCase):
-    # Verify that the given collections interface behaves as expected
-    def check_collection(self, collection):
-        # Check item metadata
-        try:
-            metadata = collection.itemmeta()
-            self.assertTrue(isinstance(metadata, dict))
-            self.assertTrue(isinstance(metadata.access, dict))
-            self.assertTrue(isinstance(metadata.fields, dict))
-        except client.NotSupportedError: pass
+    def test_metadata(self):
+        self.assertRaises(client.NotSupportedError, self.service.jobs.itemmeta)
+        self.assertRaises(client.NotSupportedError, self.service.loggers.itemmeta)
+        self.assertRaises(TypeError, self.service.inputs.itemmeta)
+        for c in collections:
+            if c in ['jobs', 'loggers', 'inputs']:
+                continue
+            coll = getattr(self.service, c)
+            metadata = coll.itemmeta()
+            found_access_keys = set(metadata.access.keys())
+            found_fields_keys = set(metadata.fields.keys())
+            self.assertTrue(found_access_keys >= expected_access_keys,
+                            msg='metadata.access is missing keys on ' + \
+                                '%s (found: %s, expected: %s)' % \
+                                (coll, found_access_keys, 
+                                 expected_access_keys))
+            self.assertTrue(found_fields_keys >= expected_fields_keys,
+                            msg='metadata.fields is missing keys on ' + \
+                                '%s (found: %s, expected: %s)' % \
+                                (coll, found_fields_keys, 
+                                 expected_fields_keys))
 
-        # Check various collection options
-        collection.list() # Default
-        collection.list(search="title=*")
-        collection.list(sort_dir="asc")
-        collection.list(sort_dir="desc")
-        collection.list(sort_mode="auto")
-        collection.list(sort_mode="alpha")
-        collection.list(sort_mode="alpha_case")
-        collection.list(sort_mode="num")
+    def test_list(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list(sort_mode="auto")]
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            found = [ent.name for ent in coll.list()]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
 
-        # Retrieve the entire list
-        items = collection.list()
-        total = len(items)
+    def test_list_with_count(self):
+        N = 5
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list()][:N]
+            N = len(expected) # in case there are <N elements
+            found = [ent.name for ent in coll.list(count=N)]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected %s, found %s' % \
+                                 (coll_name, expected, found))
 
-        # Make sure the default list method returns all items
-        items0 = collection.list()
-        total0 = len(items0)
-        self.assertEqual(total, total0)
+    def test_list_with_search(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list()]
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            found = [ent.name for ent in coll.list(search="*")]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
 
-        self.check_iterable(collection, total)
+    def test_list_with_sort_dir(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = list(reversed([ent.name for ent in coll.list(sort_dir="desc")]))
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            found = [ent.name for ent in coll.list(sort_dir="asc")]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
 
-        # Page through contents one-at-a-time and check count
-        count = 0
-        for i in xrange(total):
-            item = collection.list(offset=i, count=1)
-            self.assertEqual(len(item), 1)
-            count += 1
-        self.assertEqual(count, total)
+    def test_list_with_sort_mode_auto(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list(sort_mode="auto")]
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            found = [ent.name for ent in coll.list()]
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
 
-        # Page through the collection using various page sizes and make sure
-        # the expected paging invariants hold.
-        page_size = int(total/2)
-        while page_size > 0:
+    def test_list_with_sort_mode_alpha_case(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            found = [ent.name for ent in coll.list(sort_mode="alpha_case", count=30)]
+            if len(found) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            expected = sorted(found)
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
+
+    def test_list_with_sort_mode_alpha(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            found = [ent.name for ent in coll.list(sort_mode="alpha", count=30)]
+            if len(found) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            expected = sorted(found, key=str.lower)
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
+        
+    def test_iteration(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list(count=30)]
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            total = len(expected)
+            found = []
+            for ent in coll.iter(pagesize=max(int(total/5.0), 1), count=30):
+                found.append(ent.name)
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
+
+    def test_paging(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list(count=30)]
+            if len(expected) == 0:
+                logging.debug("No entities in collection %s; skipping test.", coll_name)
+            total = len(expected)
+            page_size = max(int(total/5.0), 1)
+            found = []
             offset = 0
             while offset < total:
-                page = collection.list(offset=offset, count=page_size)
+                page = coll.list(offset=offset, count=page_size)
                 count = len(page)
                 offset += count
-                self.assertTrue(count == page_size or offset == total)
-            self.assertEqual(offset, total)
-            page_size = int(page_size/2) # Try half the page size
+                self.assertTrue(count == page_size or offset == total,
+                                msg='on %s' % coll_name)
+                found.extend([ent.name for ent in page])
+                logging.debug("Iterate: offset=%d/%d", offset, total)
+            self.assertEqual(expected, found,
+                             msg='on %s (expected: %s, found: %s)' % \
+                                 (coll_name, expected, found))
 
-    # Verify that the given collection's iterator works as expected.
-    def check_iterable(self, collection, count):
-        # Iterate contents and make sure we see the expected count.
-        seen = 0
-        for item in collection: 
-            seen += 1
-            item.name
-        self.assertEqual(seen, count)
-
-    def test_apps(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.apps)
-
-    def test_event_types(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.event_types)
-
-    def test_indexes(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.indexes)
-
-    def test_inputs(self):
-        # The Inputs collection is an aggregated view of the various REST API
-        # input endpoints, and does not support the paging interface.
-        service = client.connect(**self.opts.kwargs)
-        count = len(service.inputs.list())
-        print [x.name for x in service.inputs.list()]
-        self.check_iterable(service.inputs, count)
-
-    def test_jobs(self):
-        # The Jobs REST API endpoint does not support the paging interface.
-        service = client.connect(**self.opts.kwargs)
-        count = len(service.jobs.list())
-        self.check_iterable(service.jobs, count)
-
-    def test_loggers(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.loggers)
-
-    def test_messages(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.messages)
-
-    def test_roles(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.roles)
-
-    def test_users(self):
-        service = client.connect(**self.opts.kwargs)
-        self.check_collection(service.users)
+    def test_getitem_with_nonsense(self):
+        for coll_name in collections:
+            coll = getattr(self.service, coll_name)
+            name = testlib.tmpname()
+            self.assertTrue(name not in coll)
+            self.assertRaises(KeyError, coll.__getitem__, name)
 
 if __name__ == "__main__":
     testlib.main()

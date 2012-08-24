@@ -27,6 +27,18 @@ sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')
 
 from utils import parse
+import os
+import time
+
+import logging
+logging.basicConfig(
+    filename='test.log',
+    level=logging.DEBUG,
+    format="%(asctime)s:%(levelname)s:%(message)s")
+
+def tmpname():
+    name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
+    return name
 
 def delete_app(service, name):
     """Delete the app with the given name at the given service."""
@@ -57,10 +69,12 @@ def wait(entity, predicate, timeout=60):
     diff = timedelta(seconds=timeout)
     while not predicate(entity):
         if datetime.now() - start > diff:
+            logging.debug("wait timed out after %d seconds", timeout)
             raise Exception, "Operation timed out."
-        sleep(1)
+        sleep(0.5)
         if entity is not None:
             entity.refresh()
+    logging.debug("wait finished after %s seconds", datetime.now()-start)
     return entity
 
 class TestCase(unittest.TestCase):
@@ -118,9 +132,16 @@ class TestCase(unittest.TestCase):
         wait(None, f, timeout)
         self.assertEqual(fa(), fb())
 
+    service = None
+    splunk_version = None
 
     def setUp(self):
-        self.opts = parse([], {}, ".splunkrc")
+        if TestCase.service is None:
+            import splunklib.client as client
+            TestCase.opts = parse([], {}, ".splunkrc")
+            TestCase.service = client.connect(**self.opts.kwargs)
+            TestCase.splunk_version = int(self.service.info['version'].split('.')[0])
+            logging.debug("Connected to splunkd version %d", TestCase.splunk_version)
 
 def main():
     unittest.main()

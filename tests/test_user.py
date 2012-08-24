@@ -15,62 +15,73 @@
 # under the License.
 
 import testlib
+import logging
 
 import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def check_user(self, user):
         self.check_entity(user)
-        self.assertTrue('email' in user)
-        self.assertTrue('password' in user)
-        self.assertTrue('realname' in user)
-        self.assertTrue('roles' in user)
+        user['email']
+        user['password']
+        user['realname']
+        user['roles']
+
+    def setUp(self):
+        testlib.TestCase.setUp(self)
+        self.username = testlib.tmpname()
+        self.user = self.service.users.create(
+            self.username,
+            password='changeme',
+            roles=['power', 'user'])
+
+    def tearDown(self):
+        testlib.TestCase.tearDown(self)
+        for user in self.service.users:
+            if user.name.startswith('delete-me'):
+                self.service.users.delete(user.name)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
+        for user in self.service.users:
+            self.check_user(user)
+            for role in user.roles:
+                self.assertTrue(isinstance(role, client.Entity))
+                self.assertTrue(role.name in self.service.roles)
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+    def test_create(self):
+        self.assertTrue(self.username in self.service.users)
+        self.assertEqual(self.username, self.user.name)
 
-        users = service.users
-        roles = service.roles
+    def test_delete(self):
+        self.service.users.delete(self.username)
+        self.assertFalse(self.username in self.service.users)
+        with self.assertRaises(client.EntityDeletedException):
+            self.user.refresh()
 
-        # Verify that we can read the users collection
-        for user in users:
-            for role in user.content.roles:
-                self.assertTrue(roles.contains(role))
+    def test_update(self):
+        self.assertTrue(self.user['email'] is None)
+        self.user.update(email="foo@bar.com")
+        self.user.refresh()
+        self.assertTrue(self.user['email'] == "foo@bar.com")
 
-        if users.contains("sdk-user"): users.delete("sdk-user")
-        self.assertFalse(users.contains("sdk-user"))
-
-        user = users.create("sdk-user", password="changeme", roles="power")
-        self.assertTrue('sdk-user' in users)
-
-        # Verify that we can update the user
-        self.assertTrue(user['email'] is None)
-        user.update(email="foo@bar.com")
-        user.refresh()
-        self.assertTrue(user['email'] == "foo@bar.com")
-
-        # Verify that we can delete the user
-        users.delete("sdk-user")
-        self.assertFalse(users.contains("sdk-user"))
-
+    def test_in_is_case_insensitive(self):
         # Splunk lowercases user names, verify the casing works as expected
-        self.assertFalse(users.contains("sdk-user"))
-        self.assertFalse(users.contains("SDK-User"))
+        users = self.service.users
+        self.assertTrue(self.username in users)
+        self.assertTrue(self.username.upper() in users)
 
-        user = users.create("SDK-User", password="changeme", roles="power")
-        self.assertTrue(user.name == "sdk-user")
-        self.assertTrue(users.contains("SDK-User"))
-        self.assertTrue(users.contains("sdk-user"))
+    def test_username_in_create_is_case_insensitive(self):
+        name = testlib.tmpname().lower()
+        users = self.service.users
+        user = users.create(name.upper(), password="changeme", roles="power")
+        self.assertTrue(user.name == name)
+        self.assertTrue(name in users)
 
-        user = users['SDK-User']
-        self.assertTrue(user.name == "sdk-user")
-
-        users.delete("SDK-User")
-        self.assertFalse(users.contains("SDK-User"))
-        self.assertFalse(users.contains("sdk-user"))
+    def test_delete_is_case_insensitive(self):
+        users = self.service.users
+        users.delete(self.username.upper())
+        self.assertFalse(self.username in users)
+        self.assertFalse(self.username.upper() in users)
 
 if __name__ == "__main__":
     testlib.main()

@@ -43,10 +43,9 @@ class TestCreateDelete(testlib.TestCase):
         self.assertFalse(message_name in self.service.messages)
 
     def test_invalid_name(self):
-        with self.assertRaises(ValueError):
-            self.service.messages.create(None, value="What?")
-            self.service.messages.create(42, value="Who, me?")
-            self.service.messages.create([1, 2,  3], value="Who, me?")
+        self.assertRaises(client.InvalidNameException, self.service.messages.create, None, value="What?")
+        self.assertRaises(client.InvalidNameException, self.service.messages.create, 42, value="Who, me?")
+        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1,2,3], value="Who, me?")
 
 if __name__ == "__main__":
     testlib.main()

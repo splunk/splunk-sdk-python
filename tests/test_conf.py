@@ -80,8 +80,8 @@ class TestConfs(testlib.TestCase):
         val = testlib.tmpname()
         stanza.update(**{key: val})
         testlib.retry(stanza, lambda s: len(s), 1, step=0.2)
-        self.assertEqual(len(stanza), 1) # Fails
-        self.assertTrue(key in stanza) # Fails
+        self.assertEqual(len(stanza), 1)
+        self.assertTrue(key in stanza)
 
         count = len(conf)
         conf.delete(stanza_name)

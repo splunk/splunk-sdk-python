@@ -146,6 +146,9 @@ class AmbiguousReferenceException(ValueError):
 class EntityDeletedException(Exception):
     pass
 
+class InvalidNameException(Exception):
+    pass
+
 def trailing(template, *targets):
     """Substring of *template* following all *targets*.
 
@@ -1166,7 +1169,7 @@ class Collection(Endpoint):
             new_app = applications.create("my_fake_app")
         """
         if not isinstance(name, basestring): 
-            raise ValueError("Invalid argument: 'name'")
+            raise InvalidNameException("%s is not a valid name for an entity." % name)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1803,7 +1806,7 @@ class Job(Entity):
         path = PATH_JOBS + sid
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
-        self._isReady = False
+        self._is_ready = False
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -1832,26 +1835,26 @@ class Job(Entity):
         self.post("control", action="finalize")
         return self
 
-    def isDone(self):
+    def is_done(self):
         """Has this job finished running on the server yet?
 
         :returns: boolean
         """
-        if (not self.isReady()):
+        if (not self.is_ready()):
             return False
         return self['isDone'] == '1'
 
-    def isReady(self):
+    def is_ready(self):
         """Is this job queryable on the server yet?
 
         :returns: boolean
         """
         try:
             self.refresh()
-            self._isReady = True
-            return self._isReady
+            self._is_ready = True
+            return self._is_ready
         except JobNotReadyException:
-            self._isReady = False
+            self._is_ready = False
             return False
 
     @property
@@ -1885,10 +1888,10 @@ class Job(Entity):
         else:
             response = self.get()
             if response.status == 204:
-                self._isReady = False
+                self._is_ready = False
                 raise JobNotReadyException()
             else:
-                self._isReady = True
+                self._is_ready = True
                 raw_state = self._load_state(response)
                 raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
                 self._state = raw_state

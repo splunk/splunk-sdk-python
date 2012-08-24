@@ -22,11 +22,9 @@ import splunklib.client as client
 class TestCase(testlib.TestCase):
     def check_user(self, user):
         self.check_entity(user)
-        user['email']
-        user['password']
-        user['realname']
-        user['roles']
-
+        # Verify expected fields exist
+        [user[f] for f in ['email', 'password', 'realname', 'roles']]
+        
     def setUp(self):
         super(TestCase, self).setUp()
         self.username = testlib.tmpname()

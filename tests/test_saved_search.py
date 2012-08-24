@@ -44,28 +44,30 @@ class TestSavedSearch(testlib.TestCase):
 
     def check_saved_search(self, saved_search):
         self.check_entity(saved_search)
-        saved_search['alert.expires']
-        saved_search['alert.severity']
-        saved_search['alert.track']
-        saved_search['alert_type']
-        saved_search['dispatch.buckets']
-        saved_search['dispatch.lookups']
-        saved_search['dispatch.max_count']
-        saved_search['dispatch.max_time']
-        saved_search['dispatch.reduce_freq']
-        saved_search['dispatch.spawn_process']
-        saved_search['dispatch.time_format']
-        saved_search['dispatch.ttl']
-        saved_search['max_concurrent']
-        saved_search['realtime_schedule']
-        saved_search['restart_on_searchpeer_add']
-        saved_search['run_on_startup']
-        saved_search['search']
-        saved_search['action.email']
-        saved_search['action.populate_lookup']
-        saved_search['action.rss']
-        saved_search['action.script']
-        saved_search['action.summary_index']
+        expected_fields = ['alert.expires',
+                           'alert.severity',
+                           'alert.track',
+                           'alert_type',
+                           'dispatch.buckets',
+                           'dispatch.lookups',
+                           'dispatch.max_count',
+                           'dispatch.max_time',
+                           'dispatch.reduce_freq',
+                           'dispatch.spawn_process',
+                           'dispatch.time_format',
+                           'dispatch.ttl',
+                           'max_concurrent',
+                           'realtime_schedule',
+                           'restart_on_searchpeer_add',
+                           'run_on_startup',
+                           'search',
+                           'action.email',
+                           'action.populate_lookup',
+                           'action.rss',
+                           'action.script',
+                           'action.summary_index']
+        for f in expected_fields:
+            saved_search[f]
         self.assertGreaterEqual(saved_search.suppressed, 0)
         self.assertGreaterEqual(saved_search['suppressed'], 0)
         is_scheduled = saved_search.content['is_scheduled']
@@ -133,7 +135,7 @@ class TestSavedSearch(testlib.TestCase):
     def test_dispatch(self):
         try:
             job = self.saved_search.dispatch()
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             self.assertTrue(job.sid in self.service.jobs)
         finally:
@@ -143,7 +145,7 @@ class TestSavedSearch(testlib.TestCase):
         try:
             kwargs = { 'dispatch.buckets': 100 }
             job = self.saved_search.dispatch(**kwargs)
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             self.assertTrue(job.sid in self.service.jobs)
         finally:
@@ -155,7 +157,7 @@ class TestSavedSearch(testlib.TestCase):
             N = len(old_jobs)
             logging.debug("Found %d jobs in saved search history", N)
             job = self.saved_search.dispatch()
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             history = self.saved_search.history()
             self.assertEqual(len(history), N+1)

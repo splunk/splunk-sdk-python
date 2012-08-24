@@ -55,12 +55,14 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
-@contextmanager
-def log_duration():
-    start_time = datetime.now()
-    yield
-    end_time = datetime.now()
-    logging.debug("Operation took %s", end_time-start_time)
+def log_duration(f):
+    def new_f(*args, **kwargs):
+        start_time = datetime.now()
+        val = f(*args, **kwargs)
+        end_time = datetime.now()
+        logging.debug("Operation took %s", end_time-start_time)
+        return val
+    return new_f
 
 class AuthenticationError(Exception):
     pass
@@ -428,6 +430,7 @@ class Context(object):
         return sock
 
     @_authentication
+    @log_duration
     def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
         """DELETE at *path_segment* with the given namespace and query.
 
@@ -473,11 +476,11 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("DELETE request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.delete(path, self._auth_headers, **query)
+        response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
+    @log_duration
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
 
@@ -523,11 +526,11 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.get(path, self._auth_headers, **query)
+        response = self.http.get(path, self._auth_headers, **query)
         return response
 
     @_authentication
+    @log_duration
     def post(self, path_segment, owner=None, app=None, sharing=None, **query):
         """POST to *path_segment* with the given namespace and query.
 
@@ -576,11 +579,11 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.post(path, self._auth_headers, **query)
+        response = self.http.post(path, self._auth_headers, **query)
         return response
 
     @_authentication
+    @log_duration
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
         """Issue an arbitrary HTTP request to *path_segment*.
@@ -643,11 +646,10 @@ class Context(object):
         all_headers = headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)", 
                       method, path, str(all_headers), repr(body))
-        with log_duration():
-            response = self.http.request(path,
-                                         {'method': method,
-                                          'headers': all_headers,
-                                          'body': body})
+        response = self.http.request(path,
+                                     {'method': method,
+                                     'headers': all_headers,
+                                     'body': body})
         return response
 
     def login(self):

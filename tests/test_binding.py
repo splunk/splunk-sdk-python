@@ -60,7 +60,6 @@ class BindingTestCase(unittest.TestCase):
         self.context = binding.connect(**self.opts.kwargs)
         logging.debug("Connected to splunkd.")
 
-
 class TestResponseReader(BindingTestCase):
     def test_empty(self):
         response = binding.ResponseReader(StringIO(""))
@@ -211,6 +210,19 @@ class TestSocket(BindingTestCase):
         socket.write("Authorization: %s\r\n" % \
                          self.context.token)
         socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+    def test_unicode_socket(self):
+        socket = self.context.connect()
+        socket.write(u"POST %s HTTP/1.1\r\n" %\
+                     self.context._abspath("some/path/to/post/to"))
+        socket.write(u"Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write(u"Accept-Encoding: identity\r\n")
+        socket.write(u"Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write(u"X-Splunk-Input-Mode: Streaming\r\n")
         socket.write("\r\n")
         socket.close()
 

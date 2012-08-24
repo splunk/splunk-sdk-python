@@ -31,9 +31,9 @@ collections = [
     'messages',
     'roles',
     'users'
-    ]
+]
 
-expected_access_keys = set(['sharing', 'app', 'owner',])
+expected_access_keys = set(['sharing', 'app', 'owner'])
 expected_fields_keys = set(['required', 'optional', 'wildcard'])
 
 

@@ -125,13 +125,9 @@ class TestJob(testlib.TestCase):
         super(TestJob, self).tearDown()
         self.job.cancel()
 
+    @log_duration
     def test_get_preview_and_events(self):
-        with log_duration():
-            tries = 0
-            while not self.job.isDone() and tries < 5:
-                tries += 1
-        logging.debug("Polled %d times", tries)
-
+        testlib.retry(self.job, 'isDone', '1')
         self.assertLessEqual(int(self.job['eventCount']), 3)
 
         preview_stream = self.job.preview()

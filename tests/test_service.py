@@ -73,16 +73,19 @@ class TestCase(testlib.TestCase):
         service_ns.apps.list()
 
     def test_parse(self):
-        # Awaiting new parse method.
+        # At the moment the parse method returns the raw XML. At
+        # some point this will change and it will return a nice,
+        # objectified form of the results, but for now there's
+        # nothing to test but a good response code.
         response = self.service.parse('search * abc="def" | dedup abc')
         self.assertEqual(response.status, 200)
-        # try:
-        #     service.parse("xyzzy")
-        #     self.fail()
-        # except HTTPError, e:
-        #     self.assertEqual(e.status, 400)
-        # except:
-        #     self.fail()
+
+    def test_parse_fail(self):
+        try:
+            self.service.parse("xyzzy")
+            self.fail('Parse on nonsense did not fail')
+        except HTTPError, e:
+            self.assertEqual(e.status, 400)
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)

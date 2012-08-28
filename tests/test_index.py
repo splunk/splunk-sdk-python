@@ -45,6 +45,10 @@ class IndexWithoutRestart(IndexTest):
     def test_integrity(self):
         self.check_entity(self.index)
 
+    def test_default(self):
+        default = self.service.indexes.default()
+        self.assertTrue(isinstance(default, str))
+
     def test_disable_enable(self):
         self.index.disable()
         self.index.refresh()

@@ -379,7 +379,7 @@ class Service(Context):
     @property
     def indexes(self):
         """The indexes of this Splunk instance."""
-        return Collection(self, PATH_INDEXES, item=Index)
+        return Indexes(self, PATH_INDEXES, item=Index)
 
     @property
     def info(self):
@@ -1443,6 +1443,11 @@ class AlertGroup(Entity):
         """Returns the count of triggered alerts."""
         return int(self.content.get('triggered_alert_count', 0))
 
+class Indexes(Collection):
+    def default(self):
+        index = self['_audit']
+        return index['defaultDatabase']
+
 class Index(Entity):
     """This class is an index class used to access specific operations."""
     def __init__(self, service, path, **kwargs):
@@ -1840,8 +1845,7 @@ class Inputs(Collection):
                 raise
 
 
-
-class Job(Entity): 
+class Job(Entity):
     """This class represents a search job."""
     def __init__(self, service, sid, **kwargs):
         path = PATH_JOBS + sid

@@ -88,6 +88,34 @@ class TestUtilities(testlib.TestCase):
         job.cancel()
         job.cancel() # Second call should be nop
 
+    def test_enable_preview(self):
+        query = "search index=_internal"
+        job = self.service.jobs.create(
+            query=query,
+            earliest_time="-1m",
+            latest_time="now")
+        self.assertEqual(job['isPreviewEnabled'], '0')
+        job.enable_preview()
+        tries = 10
+        while tries > 0:
+            if job.is_done():
+                self.fail('Job finished before preview enabled.')
+            if job['isPreviewEnabled'] == '1':
+                break
+            tries -= 1
+        self.assertEqual(job['isPreviewEnabled'], '1')
+        job.disable_preview()
+        tries = 10
+        while tries > 0:
+            if job.is_done():
+                self.fail('Job finished before preview disabled.')
+            if job['isPreviewEnabled'] == '0':
+                break
+            tries -= 1
+        self.assertEqual(job['isPreviewEnabled'], '0')
+
+
+
     def check_job(self, job):
         self.check_entity(job)
         keys = ['cursorTime', 'delegate', 'diskUsage', 'dispatchState',

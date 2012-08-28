@@ -1805,6 +1805,17 @@ class Job(Entity):
                 raise
         return self
 
+    def disable_preview(self):
+        """Disables preview for this job."""
+        self.post("control", action="disablepreview")
+        return self
+
+    def enable_preview(self):
+        """Enables preview for this job (although doing so might slow search
+        considerably)."""
+        self.post("control", action="enablepreview")
+        return self
+
     def events(self, **kwargs):
         """Returns an InputStream IO handle for this job's events."""
         return self.get("events", **kwargs).body

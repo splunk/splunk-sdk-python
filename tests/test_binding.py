@@ -510,7 +510,35 @@ class TestTokenAuthentication(BindingTestCase):
         socket.write("\r\n")
         socket.close()
 
-    def test_connect_with_preexisting_token_sans_user_and_pass(self):
+    def test_preexisting_token_sans_splunk(self):
+        token = self.context.token
+        if token.startswith('Splunk'):
+            token = token.split(' ', 1)[1]
+        else:
+            self.fail("Token did not start with Splunk.")
+        opts = self.opts.kwargs.copy()
+        opts["token"] = token
+        opts["username"] = "boris the mad baboon"
+        opts["password"] = "nothing real"
+
+        newContext = binding.Context(**opts)
+        response = newContext.get("/services")
+        self.assertEqual(response.status, 200)
+
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" %\
+                    self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+
+def test_connect_with_preexisting_token_sans_user_and_pass(self):
         token = self.context.token
         opts = self.opts.kwargs.copy()
         del opts['username']

@@ -64,7 +64,12 @@ def log_duration(f):
         return val
     return new_f
 
+# Custom exceptions
 class AuthenticationError(Exception):
+    pass
+
+# Singleton values to eschew None
+class NoAuthenticationToken(object):
     pass
 
 class UrlEncoded(str):
@@ -207,7 +212,7 @@ def _authentication(request_fun):
     """
     @functools.wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is None:
+        if self.token is NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -379,7 +384,7 @@ class Context(object):
     """
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
-        self.token = kwargs.get("token", None)
+        self.token = kwargs.get("token", NoAuthenticationToken)
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = int(kwargs.get("port", DEFAULT_PORT))
@@ -400,7 +405,12 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        return [("Authorization", self.token)]
+        # Ensure the token is properly formatted
+        if self.token.startswith('Splunk'):
+            token = self.token
+        else:
+            token = 'Splunk %s' % self.token
+        return [("Authorization", token)]
 
     def connect(self):
         """Returns an open connection (socket) to the Splunk instance.
@@ -671,7 +681,7 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
-        if self.token is not None and \
+        if self.token is not NoAuthenticationToken and \
                 (self.username == "" and self.password == ""):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
@@ -694,7 +704,7 @@ class Context(object):
 
     def logout(self):
         """Forget the current session token."""
-        self.token = None
+        self.token = NoAuthenticationToken
         return self
 
     def _abspath(self, path_segment, 

@@ -61,6 +61,25 @@ class TestRead(testlib.TestCase):
         found = [x.name for x in self.service.inputs.list('monitor', search=search)]
         self.assertEqual(expected, found)
 
+    def test_oneshot(self):
+        index_name = testlib.tmpname()
+        index = self.service.indexes.create(index_name)
+        self.service.restart(timeout=120)
+        index = self.service.indexes[index_name]
+        eventCount = int(index['totalEventCount'])
+        from os import path
+        testpath = path.dirname(path.abspath(__file__))
+        self.service.inputs.oneshot(path.join(testpath, 'testfile.txt'), index=index_name)
+        testlib.retry(index, 'totalEventCount', str(eventCount+1), step=1)
+        self.assertEqual(index['totalEventCount'], str(eventCount+1))
+
+    def test_oneshot_on_nonexistant_file(self):
+        name = testlib.tmpname()
+        from os import path
+        self.assertFalse(path.exists(name))
+        self.assertRaises(client.OperationFailedException,
+            self.service.inputs.oneshot, name)
+
 
 class TestInput(testlib.TestCase):
     def setUp(self):

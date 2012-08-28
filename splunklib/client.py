@@ -149,6 +149,9 @@ class EntityDeletedException(Exception):
 class InvalidNameException(Exception):
     pass
 
+class OperationFailedException(Exception):
+    pass
+
 def trailing(template, *targets):
     """Substring of *template* following all *targets*.
 
@@ -1827,8 +1830,16 @@ class Inputs(Collection):
         for item in self.list(**kwargs):
             yield item
 
-    def oneshot(self, **kwargs):
-        pass
+    def oneshot(self, path, **kwargs):
+        try:
+            self.post('oneshot', name=path, **kwargs)
+        except HTTPError as he:
+            if he.status == 400:
+                raise OperationFailedException(he.message)
+            else:
+                raise
+
+
 
 class Job(Entity): 
     """This class represents a search job."""

@@ -68,8 +68,12 @@ class TestInput(testlib.TestCase):
         inputs = self.service.inputs
         self._test_entities = {}
         for test_input in test_inputs:
-            self._test_entities[test_input['kind']] = \
-                inputs.create(**test_input)
+            if (test_input['kind'], test_input['name']) not in self.service.inputs:
+                self._test_entities[test_input['kind']] = \
+                    inputs.create(**test_input)
+            else:
+                self._test_entities[test_input['kind']] = \
+                    inputs[test_input['kind'], test_input['name']]
 
     def tearDown(self):
         super(TestInput, self).tearDown()
@@ -88,6 +92,7 @@ class TestInput(testlib.TestCase):
             entity = self._test_entities[kind]
             entity = inputs[kind, name]
             self.check_entity(entity)
+            self.assertTrue(isinstance(entity, client.Input))
             self.assertEqual(entity.name, name)
             self.assertEqual(entity.kind, kind)
             self.assertEqual(entity.host, host)

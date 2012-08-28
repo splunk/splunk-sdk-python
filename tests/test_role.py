@@ -43,6 +43,12 @@ class TestCase(testlib.TestCase):
             role.refresh()
             self.check_role(role)
 
+    def test_read_case_insensitive(self):
+        for role in self.service.roles:
+            a = self.service.roles[role.name.upper()]
+            b = self.service.roles[role.name.lower()]
+            self.assertEqual(a.name, b.name)
+
     def test_create(self):
         self.assertTrue(self.role_name in self.service.roles)
         self.check_entity(self.role)

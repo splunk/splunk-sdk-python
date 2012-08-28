@@ -1562,9 +1562,16 @@ class Input(Entity):
     """This class represents a Splunk input. This class is the base for all 
     typed input classes and is also used when the client does not recognize an
     input kind."""
-    def __init__(self, service, path, kind, **kwargs):
+    def __init__(self, service, path, kind=None, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
-        self.kind = kind
+        if kind is None:
+            for kind, kind_path in INPUT_KINDMAP.iteritems():
+                if kind_path in path:
+                    self.kind = kind
+                    break
+            assert self.kind is not None
+        else:
+            self.kind = kind
 
 # Directory of known input kinds that maps from input kind to path relative 
 # to data/inputs, eg: inputs of kind 'splunktcp' map to a relative path
@@ -1592,37 +1599,80 @@ class Inputs(Collection):
     that indicates the specific type of input."""
 
     def __init__(self, service, kindmap=None):
-        Collection.__init__(self, service, PATH_INPUTS)
+        Collection.__init__(self, service, PATH_INPUTS, item=Input)
         self._kindmap = kindmap if kindmap is not None else INPUT_KINDMAP
         
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
+            # Fetch a single kind
             kind, key = key
-        else:
-            kind = None
-        candidate = None
-        for input in self.list():
-            if input.name == key and (kind is None or input.kind == kind):
-                if candidate is None:
-                    candidate = input
+            try:
+                kind_path = self._kindmap[kind]
+                response = self.get(kind_path + "/" + key)
+                entries = self._load_list(response)
+                if len(entries) > 1:
+                    raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
+                elif len(entries) == 0:
+                    raise KeyError((kind,key))
                 else:
-                    raise AmbiguousReferenceException(
-                        "Found multiple inputs named '%s' (kinds: %s, %s); please specify an input kind." % \
-                        (key, candidate.kind, input.kind))
-        if candidate is not None:
-            return candidate
+                    return entries[0]
+            except HTTPError as he:
+                if he.status == 404: # No entity matching kind and key
+                    raise KeyError((kind,key))
+                else:
+                    raise
         else:
-            raise KeyError(key)
+            # Iterate over all the kinds looking for matches.
+            kind = None
+            candidate = None
+            for kind, kind_path in self._kindmap.iteritems():
+                try:
+                    response = self.get(kind_path + "/" + key)
+                    entries = self._load_list(response)
+                    if len(entries) > 1:
+                        raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
+                    elif len(entries) == 0:
+                        pass
+                    else:
+                        if candidate is not None: # Already found at least one candidate
+                            raise AmbiguousReferenceException("Found multiple inputs named %s, please specify a kind" % key)
+                        candidate = entries[0]
+                except HTTPError as he:
+                    if he.status == 404:
+                        pass # Just carry on to the next kind.
+                    else:
+                        raise
+            if candidate is None:
+                raise KeyError(key) # Never found a match
+            else:
+                return candidate
 
     def __contains__(self, key):
-        try:
-            self.__getitem__(key)
-            return True
-        except KeyError:
+        if isinstance(key, tuple) and len(key) == 2:
+            # If we specify a kind, this will shortcut properly
+            try:
+                self.__getitem__(key)
+                return True
+            except KeyError:
+                return False
+        else:
+            # Without a kind, we want to minimize the number of round trips to the server, so we
+            # reimplement some of the behavior of __getitem__ in order to be able to stop searching
+            # on the first hit.
+            for kind, kind_path in self._kindmap.iteritems():
+                try:
+                    response = self.get(kind_path + "/" + key)
+                    entries = self._load_list(response)
+                    if len(entries) > 0:
+                        return True
+                    else:
+                        pass
+                except HTTPError as he:
+                    if he.status == 404:
+                        pass # Just carry on to the next kind.
+                    else:
+                        raise
             return False
-        except AmbiguousReferenceException:
-            return True
-        
 
     def create(self, kind, name, **kwargs):
         """Creates an input of a specific kind in this collection, with any 

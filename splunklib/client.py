@@ -364,26 +364,6 @@ class Service(Context):
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
-    def deployment_clients(self):
-        """All clients of this Splunk instance's deployment server."""
-        return DeploymentCollection(self, PATH_DEPLOYMENT_CLIENTS, item=DeploymentClient)
-
-    @property
-    def deployment_servers(self):
-        """All deployment servers this Splunk instance refers to."""
-        return DeploymentServers(self)
-
-    @property
-    def deployment_server_classes(self):
-        """Serverclasses maintained by this Splunk instance's deployment server."""
-        return DeploymentServerClasses(self)
-
-    @property
-    def deployment_tenants(self):
-        """Tenants of this deployment server."""
-        return DeploymentCollection(self, PATH_DEPLOYMENT_TENANTS, item=DeploymentTenant)
-
-    @property
     def event_types(self):
         """The saved event types known by this Splunk instance."""
         return Collection(self, PATH_EVENT_TYPES)

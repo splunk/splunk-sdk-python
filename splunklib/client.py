@@ -67,6 +67,8 @@ import urllib
 import logging
 from time import sleep
 from datetime import datetime, timedelta
+import socket
+import contextlib
 
 from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
 from data import record
@@ -1475,6 +1477,32 @@ class Index(Entity):
         for h in headers:
             sock.write(h)
         return sock
+
+    @contextlib.contextmanager
+    def attached_socket(self, *args, **kwargs):
+        """Open a raw socket in a with block to write data to Splunk.
+
+        The arguments are identical to those for ``attach``. The socket is automatically
+        closed at the end of the with block, even if an exception is raised in the block.
+
+        :param `host`: The host value for events written to the stream.
+        :param `source`: The source value for events written to the stream.
+        :param `sourcetype`: The sourcetype value for events written to the
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            index = s.indexes['some_index']
+            with index.attached_socket(sourcetype='test') as sock:
+                sock.send('Test event\r\n')
+        """
+        try:
+            sock = self.attach(*args, **kwargs)
+            yield sock
+        finally:
+            sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
 
     def clean(self, timeout=60):
         """Deletes the contents of the index.

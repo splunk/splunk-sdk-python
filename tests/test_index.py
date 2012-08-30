@@ -56,7 +56,7 @@ class IndexWithoutRestart(IndexTest):
 class IndexWithRestartTest(IndexTest):
     def setUp(self):
         super(IndexWithRestartTest, self).setUp()
-        self.service.restart(timeout=120)
+        self.service.restart(timeout=300)
         self.index = self.service.indexes[self.index_name]
 
     def test_cannot_clean_enabled(self):
@@ -95,6 +95,14 @@ class IndexWithRestartTest(IndexTest):
         cn.close()
         testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1)
         self.index.refresh()
+        self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
+
+    def test_submit_via_attached_socket(self):
+        eventCount = int(self.index['totalEventCount'])
+        f = self.index.attached_socket
+        with f() as sock:
+            sock.send('Hello world!\r\n')
+        testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1)
         self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
 
     def test_upload(self):

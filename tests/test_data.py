@@ -55,6 +55,12 @@ class TestCase(testlib.TestCase):
         result = data.load("<a><b><c>1</c></b><b>2</b></a>")
         self.assertEqual(result, {'a': {'b': [{'c': '1'}, '2']}})
 
+        result = data.load('<e><a1>alpha</a1><a1>beta</a1></e>')
+        self.assertEqual(result, {'e': {'a1': ['alpha', 'beta']}})
+
+        result = data.load("<e a1='v1'><a1>v2</a1></e>")
+        self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
+
     def test_attrs(self):
         result = data.load("<e a1='v1'/>")
         self.assertEqual(result, {'e': {'a1': 'v1'}})
@@ -72,7 +78,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result, {'e': {'a1': 'v1', 'b': 'bv2'}})
 
         result = data.load("<e a1='v1'><a1>v2</a1></e>")
-        self.assertEqual(result, {'e': {'a1': 'v1'}})
+        self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
 
         result = data.load("<e1 a1='v1'><e2 a1='v1'>v2</e2></e1>")
         self.assertEqual(result,

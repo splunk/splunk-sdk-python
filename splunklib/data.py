@@ -120,10 +120,16 @@ def load_elem(element, nametable=None):
     if isinstance(value, str):
         attrs["$text"] = value
         return name, attrs
-    # Both attrs & value are complex, so merge the two dicts
+    # Both attrs & value are complex, so merge the two dicts, resolving collisions.
+    collision_keys = []
     for key, val in attrs.iteritems():
-        #assert not value.has_key(k) # Assume no collisions
-        value[key] = val
+        if key in value and key in collision_keys:
+            value[key].append(val)
+        elif key in value and key not in collision_keys:
+            value[key] = [value[key], val]
+            collision_keys.append(key)
+        else:
+            value[key] = val
     return name, value
 
 # Parse a <list> element and return a Python list

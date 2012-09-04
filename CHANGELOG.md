@@ -6,8 +6,6 @@
 
 * Added User.role_entities to return a list of the actual entity objects for the
   roles of a user. User.roles still returns a list of the role names.
-* Job.enable_preview() and Job.disable_preview() have been removed, since the corresponding
-  endpoints in Splunk's REST API are broken in Splunk 4.x.
 * The first time .cancel() is called on job, it cancels it. Any calls to it thereafter on that
   job are a nop.
 * Service.restart now takes a timeout argument. If it is specified, the function blocks until
@@ -16,7 +14,13 @@
 * If you are creating indexes with the SDK, restart splunkd after you have created them but before
   you try to do anything with them. Submitting data and similar actions simply won't work without
   a restart.
-
+* Added .alert_count and .fired_alerts properties to SavedSearch entity.
+* Added Index.attached_socket(), which provides the same functionality as Index.attach(), but as
+  a with block.
+* Added Indexes.default() which returns the name of the default index that data will be submitted into.
+* Added .isReady() and .isDone() methods to Job to make it easy to loop until either point as been reached.
+* Connecting with a preexisting token works whether the token begins with 'Splunk ' or not;
+  the SDK will handle either case correctly.
 	
 ## 0.8.5
 

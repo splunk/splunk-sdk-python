@@ -1433,7 +1433,7 @@ class AlertGroup(Entity):
         Entity.__init__(self, service, path, **kwargs)
 
     def __len__(self):
-        return self.count()
+        return self.count
 
     @property
     def alerts(self):
@@ -2292,6 +2292,25 @@ class SavedSearch(Entity):
         response = self.post("dispatch", **kwargs)
         sid = _load_sid(response)
         return Job(self.service, sid)
+
+    @property
+    def fired_alerts(self):
+        """Return a collection of AlertGroups corresponding to this saved search's alerts.
+
+        If the search is not scheduled, raises ``IllegalOperationException``.
+
+        :raises: IllegalOperationException
+        :returns: Collection of AlertGroup entities.
+        """
+        if self['is_scheduled'] == '0':
+            raise IllegalOperationException('Unscheduled saved searches have no alerts.')
+        c = Collection(
+            self.service,
+            self.service._abspath(PATH_FIRED_ALERTS + self.name,
+                                  owner=self.namespace.owner, app=self.namespace.app,
+                                  sharing=self.namespace.sharing),
+            item=AlertGroup)
+        return c
 
     def history(self):
         """Returns a list of search jobs corresponding to this saved search.

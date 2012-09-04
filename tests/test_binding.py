@@ -514,6 +514,7 @@ class TestTokenAuthentication(BindingTestCase):
         token = self.context.token
         if token.startswith('Splunk'):
             token = token.split(' ', 1)[1]
+            self.assertFalse(token.startswith('Splunk'))
         else:
             self.fail("Token did not start with Splunk.")
         opts = self.opts.kwargs.copy()

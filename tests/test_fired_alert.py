@@ -22,17 +22,21 @@ import splunklib.client as client
 class TestCase(testlib.TestCase):
     def setUp(self):
         super(TestCase, self).setUp()
-        self.index = self.service.indexes['_internal']
+        self.index_name = testlib.tmpname()
+        self.assertFalse(self.index_name in self.service.indexes)
+        self.index = self.service.indexes.create(self.index_name)
+        self.service.restart(120)
+        self.index = self.service.indexes[self.index_name]
         saved_searches = self.service.saved_searches
         self.saved_search_name = testlib.tmpname()
         self.assertFalse(self.saved_search_name in saved_searches)
-        query = "search index=_internal sourcetype=sdk_use"
+        query = "search index=%s" % self.index_name
         kwargs = {'alert_type': 'always',
                   'alert.severity': "3",
                   'alert.suppress': "0",
                   'alert.track': "1",
-                  'dispatch.earliest_time': "rt-1h",
-                  'dispatch.latest_time': "rt",
+                  'dispatch.earliest_time': "-1h",
+                  'dispatch.latest_time': "now",
                   'is_scheduled': "1",
                   'cron_schedule': "* * * * *"}
         self.saved_search = saved_searches.create(
@@ -50,19 +54,24 @@ class TestCase(testlib.TestCase):
     def test_new_search_is_empty(self):
         self.assertEqual(self.saved_search.alert_count, 0)
         self.assertEqual(len(self.saved_search.history()), 0)
+        self.assertEqual(len(self.saved_search.fired_alerts), 0)
         self.assertFalse(self.saved_search_name in self.service.fired_alerts)
         
     def test_alerts_on_events(self):
-        N_alerts = self.saved_search.alert_count
+        self.assertEqual(self.saved_search.alert_count, 0)
+        self.assertEqual(len(self.saved_search.fired_alerts), 0)
         eventCount = int(self.index['totalEventCount'])
+        self.assertEqual(self.index['sync'], '0')
+        self.assertEqual(self.index['disabled'], '0')
         self.index.refresh()
-        while int(self.index['totalEventCount']) == eventCount:
-            self.index.refresh()
-            import time; time.sleep(0.1)
-        self.index.refresh()
-        self.assertGreater(int(self.index['totalEventCount']), eventCount)
-        self.saved_search.refresh()
-        self.assertGreater(self.saved_search.alert_count, N_alerts)
+        self.index.submit('This is a test ' + testlib.tmpname(),
+                          sourcetype='sdk_use', host='boris')
+        testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1, times=50)
+        self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
+        testlib.retry(self.saved_search, lambda s: s.alert_count, 1, step=2, times=100)
+        self.assertEqual(self.saved_search.alert_count, 1)
+        alerts = self.saved_search.fired_alerts
+        self.assertEqual(len(alerts), 1)
 
     def test_read(self):
         service = client.connect(**self.opts.kwargs)

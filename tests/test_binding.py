@@ -199,6 +199,25 @@ class TestUserManipulation(BindingTestCase):
         self.assertEqual(entry.content.realname, "Renzo")
         self.assertEqual(entry.content.email, "email.me@now.com")
 
+    def test_post_with_body_behaves(self):
+        self.test_create_user()
+        response = self.context.post(
+            PATH_USERS + self.username,
+            body="defaultApp=search",
+        )
+        self.assertEqual(response.status, 200)
+
+    def test_post_with_get_arguments_to_receivers_stream(self):
+        text = 'Hello, world!'
+        response = self.context.post(
+            '/services/receivers/simple',
+            headers={'x-splunk-input-mode': 'streaming'},
+            source='sdk', sourcetype='sdk_test',
+            body=text
+        )
+        self.assertEqual(response.status, 200)
+
+
 class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()

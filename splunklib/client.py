@@ -1572,8 +1572,7 @@ class Index(Entity):
         # is that we are not sending a POST request encoded using 
         # x-www-form-urlencoded (as we do not have a key=value body),
         # because we aren't really sending a "form".
-        path = UrlEncoded(PATH_RECEIVERS_SIMPLE + "?" + urllib.urlencode(args), skip_encode=True)
-        self.service.request(path, method="POST", body=event)
+        self.service.post(PATH_RECEIVERS_SIMPLE, body=event, **args)
         return self
 
     # kwargs: host, host_regex, host_segment, rename-source, sourcetype

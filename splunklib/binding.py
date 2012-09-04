@@ -541,7 +541,7 @@ class Context(object):
 
     @_authentication
     @log_duration
-    def post(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=[], **query):
         """POST to *path_segment* with the given namespace and query.
 
         Named to match the HTTP method. This function makes at least
@@ -553,12 +553,21 @@ class Context(object):
         ``Context``'s default namespace. All other keyword arguments
         are included in the URL as query parameters.
 
+        Some of Splunk's endpoints, such as receivers/simple and
+        receivers/stream, require unstructured data in the POST body
+        and all metadata passed as GET style arguments. If you provide
+        a ``body`` argument to ``post``, it will be used as the POST
+        body, and all other keyword arguments will be passed as
+        GET-style arguments in the URL.
+
         :raises AuthenticationError: when a the ``Context`` is not logged in.
         :raises HTTPError: when there was an error in POSTing to *path_segment*.
         :param path_segment: A path_segment to POST to.
         :type path_segment: string
         :param owner, app, sharing: Namespace parameters (optional).
         :type owner, app, sharing: string
+        :param headers: A dict or list of (key,value) pairs to use as headers for
+                        this request.
         :param query: All other keyword arguments, used as query parameters.
         :type query: values should be strings
         :return: The server's response.
@@ -589,7 +598,14 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        response = self.http.post(path, self._auth_headers, **query)
+        if isinstance(headers, dict):
+            all_headers = [(k,v) for k,v in headers.iteritems()]
+        elif isinstance(headers, list):
+            all_headers = headers
+        else:
+            raise ValueError("headers must be a list or dict (found: %s)" % headers)
+        all_headers += self._auth_headers
+        response = self.http.post(path, all_headers, **query)
         return response
 
     @_authentication
@@ -903,10 +919,18 @@ class HttpLib(object):
     def post(self, url, headers=None, **kwargs):
         if headers is None: headers = []
         headers.append(("Content-Type", "application/x-www-form-urlencoded")),
+        # We handle GET-style arguments and an unstructured body. This is here
+        # to support the receivers/stream endpoint.
+        if 'body' in kwargs:
+            body = kwargs.pop('body')
+            if len(kwargs) > 0:
+                url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
+        else:
+            body = encode(**kwargs)
         message = {
             'method': "POST",
             'headers': headers,
-            'body': encode(**kwargs)
+            'body': body
         }
         return self.request(url, message)
 

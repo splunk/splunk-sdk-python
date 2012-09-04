@@ -200,6 +200,16 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result, 
             {'content': [{'n1':"v1"}, {'n2':"v2"}, {'n3':"v3"}, {'n4':"v4"}]})
 
+        result = data.load("""
+        <ns1:dict xmlns:ns1="http://dev.splunk.com/ns/rest">
+            <ns1:key name="build">101089</ns1:key>
+            <ns1:key name="cpu_arch">i386</ns1:key>
+            <ns1:key name="isFree">0</ns1:key>
+        </ns1:dict>
+        """)
+        self.assertEqual(result,
+        {'build': '101089', 'cpu_arch': 'i386', 'isFree': '0'})
+
     def test_record(self):
         d = data.record()
         d.update({'foo': 5,

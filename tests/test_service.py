@@ -27,8 +27,9 @@ from splunklib.binding import HTTPError
 class TestCase(testlib.TestCase):
     def test_capabilities(self):
         capabilities = self.service.capabilities
-        for item in client.capabilities:
-            self.assertTrue(item in capabilities)
+        self.assertTrue(isinstance(capabilities, list))
+        self.assertTrue(all([isinstance(c, str) for c in capabilities]))
+        self.assertTrue('change_own_password' in capabilities) # This should always be there...
 
     def test_info(self):
         info = self.service.info

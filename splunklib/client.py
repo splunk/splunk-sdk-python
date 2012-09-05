@@ -110,23 +110,6 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
-capabilities = record(dict([(k,k) for k in [
-            "admin_all_objects", "change_authentication", 
-            "change_own_password", "delete_by_keyword",
-            "edit_deployment_client", "edit_deployment_server",
-            "edit_dist_peer", "edit_forwarders", "edit_httpauths",
-            "edit_input_defaults", "edit_monitor", "edit_roles",
-            "edit_scripted", "edit_search_server", "edit_server",
-            "edit_splunktcp", "edit_splunktcp_ssl", "edit_tcp",
-            "edit_udp", "edit_user", "edit_web_settings", "get_metadata",
-            "get_typeahead", "indexes_edit", "license_edit", "license_tab",
-            "list_deployment_client", "list_forwarders", "list_httpauths",
-            "list_inputs", "request_remote_tok", "rest_apps_management",
-            "rest_apps_view", "rest_properties_get", "rest_properties_set",
-            "restart_splunkd", "rtsearch", "schedule_search", "search",
-            "use_file_operator"]]))
-
-
 class NoSuchUserException(Exception):
     pass
 
@@ -152,6 +135,9 @@ class InvalidNameException(Exception):
     pass
 
 class OperationFailedException(Exception):
+    pass
+
+class NoSuchCapability(Exception):
     pass
 
 def trailing(template, *targets):
@@ -2466,10 +2452,43 @@ class Users(Collection):
     def delete(self, name):
         return Collection.delete(self, name.lower())
 
+
+class Role(Entity):
+    def grant(self, *capabilities_to_grant):
+        possible_capabilities = self.service.capabilities
+        for capability in capabilities_to_grant:
+            if capability not in possible_capabilities:
+                raise NoSuchCapability(capability)
+        self.refresh()
+        new_capabilities = self['capabilities'] + list(capabilities_to_grant)
+        self.post(capabilities=new_capabilities)
+        return self
+
+    def revoke(self, *capabilities_to_revoke):
+        possible_capabilities = self.service.capabilities
+        for capability in capabilities_to_revoke:
+            if capability not in possible_capabilities:
+                raise NoSuchCapability(capability)
+        self.refresh()
+        old_capabilities = self['capabilities']
+        for capability in capabilities_to_revoke:
+            if capability not in old_capabilities:
+                raise ValueError("Role does not have capability %s" % capability)
+        new_capabilities = []
+        for c in old_capabilities:
+            if c not in capabilities_to_revoke:
+                new_capabilities.append(c)
+        if new_capabilities == []:
+            new_capabilities = '' # Empty lists don't get passed in the body, so we have to force an empty argument.
+        self.post(capabilities=new_capabilities)
+        return self
+
+
+
 class Roles(Collection):
     """Roles in the Splunk instance."""
     def __init__(self, service):
-        return Collection.__init__(self, service, PATH_ROLES)
+        return Collection.__init__(self, service, PATH_ROLES, item=Role)
 
     def __getitem__(self, key):
         return Collection.__getitem__(self, key.lower())

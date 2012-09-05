@@ -59,7 +59,39 @@ class TestCase(testlib.TestCase):
         self.assertFalse(self.role_name in self.service.roles)
         self.assertRaises(client.EntityDeletedException, self.role.refresh)
 
-    def test_update(self):
+    def test_grant_and_revoke(self):
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.role.grant('edit_user')
+        self.role.refresh()
+        self.assertTrue('edit_user' in self.role.capabilities)
+
+        self.assertFalse('change_own_password' in self.role.capabilities)
+        self.role.grant('change_own_password')
+        self.role.refresh()
+        self.assertTrue('edit_user' in self.role.capabilities)
+        self.assertTrue('change_own_password' in self.role.capabilities)
+
+        self.role.revoke('edit_user')
+        self.role.refresh()
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.assertTrue('change_own_password' in self.role.capabilities)
+
+        self.role.revoke('change_own_password')
+        self.role.refresh()
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.assertFalse('change_own_password' in self.role.capabilities)
+
+    def test_invalid_grant(self):
+        self.assertRaises(client.NoSuchCapability, self.role.grant, 'i-am-an-invalid-capability')
+
+    def test_invalid_revoke(self):
+        self.assertRaises(client.NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
+
+    def test_revoke_capability_not_granted(self):
+        self.assertRaises(ValueError, self.role.revoke, 'change_own_password')
+
+
+def test_update(self):
         kwargs = {}
         if 'user' in self.role['imported_roles']:
             kwargs['imported_roles'] = ''

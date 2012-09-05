@@ -15,6 +15,7 @@
 # under the License.
 
 from os import path
+import xml.etree.ElementTree as et
 
 import testlib
 
@@ -112,7 +113,16 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result.feed.entry.content.os_name, 'Darwin')
         self.assertEqual(result.feed.entry.content.os_version, '10.8.0')
 
+    def test_invalid(self):
+        self.assertRaises(et.ParseError, data.load, "<dict</dict>")
+        self.assertRaises(KeyError, data.load, "<dict><key>a</key></dict>")
+
     def test_dict(self):
+        result = data.load("""
+            <dict></dict>
+        """)
+        self.assertEqual(result, {})
+
         result = data.load("""
             <dict>
               <key name='n1'>v1</key>
@@ -161,6 +171,9 @@ class TestCase(testlib.TestCase):
             {'content': {'n1': ['1', '2', '3', '4']}})
 
     def test_list(self):
+        result = data.load("""<list></list>""")
+        self.assertEqual(result, [])
+
         result = data.load("""
             <list>
               <item>1</item><item>2</item><item>3</item><item>4</item>

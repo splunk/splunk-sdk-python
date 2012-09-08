@@ -331,7 +331,7 @@ def main():
             openmode = "a"
     else:
         openmode = "w"
-        options.kwargs['fixtail'] = True
+        options.kwargs['fixtail'] = False
         
     try:
         options.kwargs['fd'] = open(options.kwargs['output'], openmode)

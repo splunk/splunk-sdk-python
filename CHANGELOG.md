@@ -1,8 +1,6 @@
 # Splunk Python SDK Changelog
 
-## 0.8.6
-
-### Breaking changes
+## 1.0
 
 * Added User.role_entities to return a list of the actual entity objects for the
   roles of a user. User.roles still returns a list of the role names.
@@ -11,21 +9,13 @@
 * Service.restart now takes a timeout argument. If it is specified, the function blocks until
   splunkd has restarted or the timeout has passed; if it is not specified, then it returns
   immediately and you have to check whether splunkd has restarted yourself.
-* If you are creating indexes with the SDK, restart splunkd after you have created them but before
-  you try to do anything with them. Submitting data and similar actions simply won't work without
-  a restart.
 * Added .alert_count and .fired_alerts properties to SavedSearch entity.
 * Added Index.attached_socket(), which provides the same functionality as Index.attach(), but as
   a with block.
 * Added Indexes.default() which returns the name of the default index that data will be submitted into.
-* Added .isReady() and .isDone() methods to Job to make it easy to loop until either point as been reached.
 * Connecting with a preexisting token works whether the token begins with 'Splunk ' or not;
   the SDK will handle either case correctly.
-	
-## 0.8.5
-
-### Features
-
+* Added .isReady() and .isDone() methods to Job to make it easy to loop until either point as been reached.
 * Expanded endpoint coverage. Now at parity with the Java SDK.
 * Replaced ResultsReader with something shorter. Iteration now
   results either Message objects or dicts, and moved preview from

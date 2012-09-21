@@ -40,6 +40,11 @@ expected_fields_keys = set(['required', 'optional', 'wildcard'])
 class TestCase(testlib.TestCase):
     def setUp(self):
         super(TestCase, self).setUp()
+        if self.service.splunk_version[0] >= 5 and 'modular_input_kinds' not in collections:
+            collections.append('modular_input_kinds') # Not supported before Splunk 5.0
+        else:
+            logging.info("Skipping modular_input_kinds; not supported by Splunk %s" % \
+                         '.'.join(str(x) for x in self.service.splunk_version))
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 try:
@@ -54,7 +59,7 @@ class TestCase(testlib.TestCase):
         self.assertRaises(client.NotSupportedError, self.service.loggers.itemmeta)
         self.assertRaises(TypeError, self.service.inputs.itemmeta)
         for c in collections:
-            if c in ['jobs', 'loggers', 'inputs']:
+            if c in ['jobs', 'loggers', 'inputs', 'modular_input_kinds']:
                 continue
             coll = getattr(self.service, c)
             metadata = coll.itemmeta()

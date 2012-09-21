@@ -93,6 +93,14 @@ class TestCase(testlib.TestCase):
         self.service.restart(timeout=120)
         service.login() # Make sure we are awake
 
+    def test_splunk_version(self):
+        service = client.connect(**self.opts.kwargs)
+        v = service.splunk_version
+        self.assertTrue(isinstance(v, tuple))
+        self.assertTrue(len(v) >= 2)
+        for p in v:
+            self.assertTrue(isinstance(p, int) and p >= 0)
+
 class TestSettings(testlib.TestCase):
     def test_read_settings(self):
         settings = self.service.settings

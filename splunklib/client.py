@@ -97,6 +97,7 @@ PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
 PATH_LOGGER = "server/logger/"
 PATH_MESSAGES = "messages/"
+PATH_MODULAR_INPUTS = "data/modular-inputs"
 PATH_ROLES = "authentication/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
@@ -334,6 +335,7 @@ class Service(Context):
     """
     def __init__(self, **kwargs):
         Context.__init__(self, **kwargs)
+        self._splunk_version = None
 
     @property
     def apps(self):
@@ -396,6 +398,14 @@ class Service(Context):
         """Returns a collection of service messages."""
         return Collection(self, PATH_MESSAGES, item=Message)
 
+    @property
+    def modular_input_kinds(self):
+        """Returns a collection of the modular input kinds on this Splunk instance."""
+        if self.splunk_version[0] >= 5:
+            return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=Entity)
+        else:
+            raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
+
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
         """Parses a search query and returns a semantic map of the search.
@@ -453,6 +463,12 @@ class Service(Context):
     def settings(self):
         """Returns configuration settings for the service."""
         return Settings(self)
+
+    @property
+    def splunk_version(self):
+        if self._splunk_version is None:
+            self._splunk_version = tuple([int(p) for p in self.info['version'].split('.')])
+        return self._splunk_version
 
     @property
     def users(self):
@@ -891,47 +907,12 @@ class Entity(Endpoint):
         self.post(**kwargs)
         return self
 
-class Collection(Endpoint):
-    """A collection of entities in the Splunk instance.
+class ReadOnlyCollection(Endpoint):
+    """A read-only collection of entities in the Splunk instance.
 
-    Splunk provides a number of different collections of distinct
-    entity types: applications, saved searches, fired alerts, and a
-    number of others. Each particular type is available separately
-    from the Splunk instance, and the entities of that type are
-    returned in a :class:`Collection`.
-
-    :class:`Collection`'s interface does not quite match either
-    ``list`` or ``dict`` in Python, since there are enough semantic
-    mismatches with either to make its behavior surprising. A unique
-    element in a :class:`Collection` is defined by a string giving its
-    name plus a namespace object (though the namespace is optional if
-    the name is unique).::
-
-        import splunklib.client as client
-        s = client.connect(...)
-        c = s.saved_searches # c is a Collection
-        m = c['my_search', client.namespace(owner='boris', app='natasha', sharing='user')]
-        # Or if there is only one search visible named 'my_search'
-        m = c['my_search']
-
-    Similarly, ``"name" in c`` works as you expect (though you cannot
-    currently pass a namespace to the ``in`` operator), as does
-    ``len(c)``.
-
-    However, as an aggregate, :class:`Collection` behaves more like a
-    list. If you iterate over a :class:`Collection`, you get an
-    iterator over the entities, not the names and namespaces::
-
-        for entity in c:
-            assert isinstance(entity, client.Entity)
-
-    The :meth:`create` and :meth:`delete` methods create and delete
-    entities in this collection. The access control list and other
-    metadata of the collection is returned by the :meth:`itemmeta`
-    method.
-
-    :class:`Collection` does no caching. Each call makes at least one
-    round trip to the server to fetch data.
+    See the documentation for :class:`Collection` for most usage. The only
+    difference is that it lacks :class:`ReadOnlyCollection` lacks
+    :method:`create`, :method:`delete`
     """
     def __init__(self, service, path, item=Entity):
         Endpoint.__init__(self, service, path)
@@ -1132,97 +1113,6 @@ class Collection(Endpoint):
         """
         return name in self
 
-    def create(self, name, **params):
-        """Create a new entity in this collection.
-
-        This function makes either one or two roundtrips to the
-        server, depending on the type of the entities in this
-        collection, plus at most two more if autologin is enabled.
-
-        :param name: The name of the entity to create.
-        :type name: string
-        :param namespace: A namespace, as created by the :func:`namespace` 
-                          function (optional). If you wish, you can set 
-                          ``owner``, ``app``, and ``sharing`` directly.
-        :type namespace: :class:`Record` with keys ``'owner'``, ``'app'``, and 
-                         ``'sharing'``
-        :param params: Additional entity-specific arguments (optional).
-        :return: The new entity.
-        :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
-
-        **Example**::
-
-            import splunklib.client as client
-            s = client.connect(...)
-            applications = s.apps
-            new_app = applications.create("my_fake_app")
-        """
-        if not isinstance(name, basestring): 
-            raise InvalidNameException("%s is not a valid name for an entity." % name)
-        if 'namespace' in params:
-            namespace = params.pop('namespace')
-            params['owner'] = namespace.owner
-            params['app'] = namespace.app
-            params['sharing'] = namespace.sharing
-        response = self.post(name=name, **params)
-        atom = _load_atom(response, XNAME_ENTRY)
-        if atom is None:
-            # This endpoint doesn't return the content of the new
-            # item. We have to go fetch it ourselves.
-            return self[name]
-        else:
-            entry = atom.entry
-            state = _parse_atom_entry(entry)
-            entity = self.item(
-                self.service,
-                self._entity_path(state),
-                state=state)
-            return entity
-
-    def delete(self, name, **params):
-        """Delete the entity *name* from the collection.
-
-        :param name: The name of the entity to delete.
-        :type name: string
-        :rtype: the collection ``self``.
-
-        This method is implemented for consistency with the REST
-        interface's DELETE method.
-
-        If there is no entity named *name* on the server, then throws
-        a ``KeyError``. This function always makes a roundtrip to the
-        server.
-
-        **Example**::
-
-            import splunklib.client as client
-            c = client.connect(...)
-            saved_searches = c.saved_searches
-            saved_searches.create('my_saved_search', 
-                                  'search * | head 1')
-            assert 'my_saved_search' in saved_searches
-            saved_searches.delete('my_saved_search')
-            assert 'my_saved_search' not in saved_searches
-        """
-        # If you update the documentation here, be sure you do so on
-        # __delitem__ as well.
-        if 'namespace' in params:
-            namespace = params.pop('namespace')
-            params['owner'] = namespace.owner
-            params['app'] = namespace.app
-            params['sharing'] = namespace.sharing
-        try:
-            self.service.delete(_path(self.path, name), **params)
-        except HTTPError as he:
-            # An HTTPError with status code 404 means that the entity
-            # has already been deleted, and we reraise it as a
-            # KeyError.
-            if he.status == 404:
-                raise KeyError("No such entity %s" % name)
-            else:
-                raise
-        return self
-
     def itemmeta(self):
         """Returns metadata for members of the collection.
 
@@ -1339,6 +1229,137 @@ class Collection(Endpoint):
         """
         return [ent.name for ent in self.iter(count=count, **kwargs)]
 
+class Collection(ReadOnlyCollection):
+    """A collection of entities in the Splunk instance.
+
+    Splunk provides a number of different collections of distinct
+    entity types: applications, saved searches, fired alerts, and a
+    number of others. Each particular type is available separately
+    from the Splunk instance, and the entities of that type are
+    returned in a :class:`Collection`.
+
+    :class:`Collection`'s interface does not quite match either
+    ``list`` or ``dict`` in Python, since there are enough semantic
+    mismatches with either to make its behavior surprising. A unique
+    element in a :class:`Collection` is defined by a string giving its
+    name plus a namespace object (though the namespace is optional if
+    the name is unique).::
+
+        import splunklib.client as client
+        s = client.connect(...)
+        c = s.saved_searches # c is a Collection
+        m = c['my_search', client.namespace(owner='boris', app='natasha', sharing='user')]
+        # Or if there is only one search visible named 'my_search'
+        m = c['my_search']
+
+    Similarly, ``"name" in c`` works as you expect (though you cannot
+    currently pass a namespace to the ``in`` operator), as does
+    ``len(c)``.
+
+    However, as an aggregate, :class:`Collection` behaves more like a
+    list. If you iterate over a :class:`Collection`, you get an
+    iterator over the entities, not the names and namespaces::
+
+        for entity in c:
+            assert isinstance(entity, client.Entity)
+
+    The :meth:`create` and :meth:`delete` methods create and delete
+    entities in this collection. The access control list and other
+    metadata of the collection is returned by the :meth:`itemmeta`
+    method.
+
+    :class:`Collection` does no caching. Each call makes at least one
+    round trip to the server to fetch data.
+    """
+    def create(self, name, **params):
+        """Create a new entity in this collection.
+
+        This function makes either one or two roundtrips to the
+        server, depending on the type of the entities in this
+        collection, plus at most two more if autologin is enabled.
+
+        :param name: The name of the entity to create.
+        :type name: string
+        :param namespace: A namespace, as created by the :func:`namespace`
+                          function (optional). If you wish, you can set
+                          ``owner``, ``app``, and ``sharing`` directly.
+        :type namespace: :class:`Record` with keys ``'owner'``, ``'app'``, and
+                         ``'sharing'``
+        :param params: Additional entity-specific arguments (optional).
+        :return: The new entity.
+        :rtype: subclass of ``Entity``, chosen by ``self.item`` in ``Collection``
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            applications = s.apps
+            new_app = applications.create("my_fake_app")
+        """
+        if not isinstance(name, basestring):
+           raise InvalidNameException("%s is not a valid name for an entity." % name)
+        if 'namespace' in params:
+            namespace = params.pop('namespace')
+            params['owner'] = namespace.owner
+            params['app'] = namespace.app
+            params['sharing'] = namespace.sharing
+        response = self.post(name=name, **params)
+        atom = _load_atom(response, XNAME_ENTRY)
+        if atom is None:
+            # This endpoint doesn't return the content of the new
+            # item. We have to go fetch it ourselves.
+            return self[name]
+        else:
+            entry = atom.entry
+            state = _parse_atom_entry(entry)
+            entity = self.item(
+                self.service,
+                self._entity_path(state),
+                state=state)
+            return entity
+
+    def delete(self, name, **params):
+        """Delete the entity *name* from the collection.
+
+        :param name: The name of the entity to delete.
+        :type name: string
+        :rtype: the collection ``self``.
+
+        This method is implemented for consistency with the REST
+        interface's DELETE method.
+
+        If there is no entity named *name* on the server, then throws
+        a ``KeyError``. This function always makes a roundtrip to the
+        server.
+
+        **Example**::
+
+            import splunklib.client as client
+            c = client.connect(...)
+            saved_searches = c.saved_searches
+            saved_searches.create('my_saved_search',
+                                  'search * | head 1')
+            assert 'my_saved_search' in saved_searches
+            saved_searches.delete('my_saved_search')
+            assert 'my_saved_search' not in saved_searches
+        """
+        if 'namespace' in params:
+            namespace = params.pop('namespace')
+            params['owner'] = namespace.owner
+            params['app'] = namespace.app
+            params['sharing'] = namespace.sharing
+        try:
+            self.service.delete(_path(self.path, name), **params)
+        except HTTPError as he:
+            # An HTTPError with status code 404 means that the entity
+            # has already been deleted, and we reraise it as a
+            # KeyError.
+            if he.status == 404:
+                raise KeyError("No such entity %s" % name)
+            else:
+                raise
+        return self
+
 class ConfigurationFile(Collection):
     """This class contains a single configuration, which is a collection of 
     stanzas."""
@@ -1454,6 +1475,13 @@ class Indexes(Collection):
         index = self['_audit']
         return index['defaultDatabase']
 
+    def delete(self):
+        if self.splunk_version[0] >= 5:
+            Collection.delete(self.service, self.name)
+        else:
+            raise IllegalOperationException("Deleting indexes via the REST API is "
+                                            "not supported before Splunk version 5.")
+
 class Index(Entity):
     """This class is an index class used to access specific operations."""
     def __init__(self, service, path, **kwargs):
@@ -1545,14 +1573,14 @@ class Index(Entity):
         """Disables this index."""
         # Starting in Ace, we have to do this with specific sharing,
         # unlike most other entities.
-        self.post("disable", sharing="system")
+        self.post("disable")
         return self
 
     def enable(self):
         """Enables this index."""
         # Starting in Ace, we have to reenable this with a specific
         # sharing unlike most other entities.
-        self.post("enable", sharing="system")
+        self.post("enable")
         return self
 
     def roll_hot_buckets(self):

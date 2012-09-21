@@ -169,8 +169,7 @@ class TestCase(unittest.TestCase):
         import splunklib.client as client
         self.opts = parse([], {}, ".splunkrc")
         self.service = client.connect(**self.opts.kwargs)
-        self.splunk_version = int(self.service.info['version'].split('.')[0])
-        logging.debug("Connected to splunkd version %d", self.splunk_version)
+        logging.debug("Connected to splunkd version %d", '.'.join(str(x) for x in self.service.splunk_version))
 
 def main():
     unittest.main()

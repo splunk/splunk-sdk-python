@@ -34,7 +34,7 @@ class IndexTest(testlib.TestCase):
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
-        if self.splunk_version >= 5:
+        if self.service.splunk_version[0] >= 5:
             self.service.indexes.delete(self.index_name)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "

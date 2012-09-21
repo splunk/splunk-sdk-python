@@ -700,7 +700,7 @@ class Context(object):
             # Then issue requests...
         """
         if self.token is not NoAuthenticationToken and \
-                (self.username and self.password):
+                (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.

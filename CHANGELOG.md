@@ -2,6 +2,7 @@
 
 ## 1.0
 
+* Namespace handling has changed subtly. Code that depends on namespace handling in detail may break.
 * Added User.role_entities to return a list of the actual entity objects for the
   roles of a user. User.roles still returns a list of the role names.
 * The first time .cancel() is called on job, it cancels it. Any calls to it thereafter on that

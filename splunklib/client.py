@@ -1475,9 +1475,9 @@ class Indexes(Collection):
         index = self['_audit']
         return index['defaultDatabase']
 
-    def delete(self):
-        if self.splunk_version[0] >= 5:
-            Collection.delete(self.service, self.name)
+    def delete(self, name):
+        if self.service.splunk_version[0] >= 5:
+            Collection.delete(self, name)
         else:
             raise IllegalOperationException("Deleting indexes via the REST API is "
                                             "not supported before Splunk version 5.")
@@ -1548,8 +1548,6 @@ class Index(Entity):
                           default is 60).
         """
         self.refresh()
-        if self['disabled'] == '0':
-            raise IllegalOperationException('Cannot clean an enabled index.')
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
@@ -2295,6 +2293,19 @@ class Message(Entity):
     def value(self):
         """Returns the message value."""
         return self[self.name]
+
+class ModularInputKind(Entity):
+    def __getitem__(self, name):
+        args = self['endpoint']['args']
+        if name in args:
+            return args['item']
+        else:
+            return Entity.__getitem__(self, name)
+
+    def update(self, **kwargs):
+        """Raises an error. Modular input kinds are read only."""
+        raise IllegalOperationException("Modular input kinds cannot be updated via the REST API.")
+
 
 class SavedSearch(Entity):
     """This class represents a saved search."""

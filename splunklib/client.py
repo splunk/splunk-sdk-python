@@ -418,7 +418,14 @@ class Service(Context):
         """
         result = self.get("server/control/restart")
         if timeout is None: return result
-        sleep(5)
+        start = datetime.now()
+        diff = timedelta(seconds=10)
+        while datetime.now() - start < diff:
+            try:
+                self.login() # Has the server gone down yet?
+                sleep(0.3)
+            except Exception:
+                break # Server is down. Move on.
         start = datetime.now()
         diff = timedelta(seconds=timeout)
         while datetime.now() - start < diff:
@@ -735,6 +742,17 @@ class Entity(Endpoint):
         return rec.content
 
     def _proper_namespace(self, owner=None, app=None, sharing=None):
+        """Produce a namespace sans wildcards for use in entity requests.
+
+        This method handles the case of two entities with the same name in different namespaces
+        showing up due to wildcards in the service's namespace. We replace the wildcards with the
+        namespace of the entity we want.
+        """
+        :param owner:
+        :param app:
+        :param sharing:
+        :return:
+        """
         if owner is None and app is None and sharing is None and\
             (self.service.namespace.owner == '-' or self.service.namespace.app == '-'):
             # If no namespace is specified and there are wildcards in the service's namespace,
@@ -1303,13 +1321,11 @@ class Collection(Endpoint):
         return list(self.iter(count=count, **kwargs))
 
     def names(self, count=None, **kwargs):
-        """Return a list over the names of entities in this collection.
+        """Return a list of the names of all the entities in this collection.
 
-        There is no laziness in this function. The entire collection
-        is loaded at once and returned as a list. This function makes
-        a single roundtrip to the server, plus at most two more if
-        autologin is enabled. There is no caching: every call makes at
-        least one round trip.
+        The entire list is loaded at once in a single roundtrip to the server,
+        plus at most two more if autologin is enabled. There is no caching:
+        every call makes at least one round trip.
 
         :param `count`: The maximum number of names to return (optional).
         :param `offset`: The offset of the first name to return (optional).
@@ -1330,7 +1346,6 @@ class ConfigurationFile(Collection):
     # Collection, since it is being created as the elements of a
     # Configurations, which is a Collection subclass.
     def __init__(self, service, path, **kwargs):
-        #assert 'properties' not in path
         Collection.__init__(self, service, path, item=Stanza)
         self.name = kwargs['state']['title']
 
@@ -1347,9 +1362,9 @@ class Configurations(Collection):
             raise ValueError("Configurations cannot have wildcards in namespace.")
 
     def __getitem__(self, key):
-        # This has to be overridden because we get multiple values
-        # back as a matter of course, unlike for most other endpoints
-        # where multiple values means a name conflict.
+        # The configurations endpoint returns multiple entities when we ask for a single file.
+        # This screws up the default implementation of __getitem__ from Collection, which thinks
+        # that multiple entities means a name collision, so we have to override it here.
         try:
             response = self.get(key)
             return ConfigurationFile(self.service, PATH_CONF % key, state={'title': key})
@@ -1409,6 +1424,9 @@ class Stanza(Entity):
         return self
 
     def __len__(self):
+        # The stanza endpoint returns all the keys at the same level in the XML as the eai information
+        # and 'disabled', so to get an accurate length, we have to filter those out and have just
+        # the stanza keys.
         return len([x for x in self._state.content.keys()
                     if not x.startswith('eai') and x != 'disabled'])
 
@@ -2263,6 +2281,11 @@ class SavedSearch(Entity):
 
     @property
     def alert_count(self):
+        """Return the number of alerts fired by this saved search.
+
+        :return: The number of alerts fired by this saved search.
+        :rtype: integer
+        """
         return int(self._state.content.get('triggered_alert_count', 0))
 
     def dispatch(self, **kwargs):
@@ -2383,12 +2406,8 @@ class Settings(Entity):
 class User(Entity):
     @property
     def role_entities(self):
-        role_names = self.content.roles
-        roles = []
-        for name in role_names:
-            role = self.service.roles[name]
-            roles.append(role)
-        return roles
+        """Return a list of entities representing all the roles assigned to this user."""
+        return [self.service.roles[name] for name in self.content.roles]
 
 # Splunk automatically lowercases new user names so we need to match that 
 # behavior here to ensure that the subsequent member lookup works correctly.
@@ -2455,6 +2474,21 @@ class Users(Collection):
 
 class Role(Entity):
     def grant(self, *capabilities_to_grant):
+        """Grant additional capabilities to this role.
+
+        The capabilities are strings. You can get the complete list from
+        Service.capabilities, or from the /authorization/capabilities
+        endpoint in Splunk (or just look in splunkweb).
+
+        **Example**::
+
+            service = client.connect(...)
+            role = service.roles['somerole']
+            role.grant('change_own_password', 'search')
+
+        :param capabilities_to_grant: Zero or more capabilities to grant this role.
+        :return: The Role entity.
+        """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_grant:
             if capability not in possible_capabilities:
@@ -2465,6 +2499,21 @@ class Role(Entity):
         return self
 
     def revoke(self, *capabilities_to_revoke):
+        """Revoke zero or more capabilities from this role.
+
+        The capabilities are strings. You can get the complete list from
+        Service.capabilities, or from the /authorization/capabilities
+        endpoint in Splunk (or just look in splunkweb).
+
+        **Example**::
+
+            service = client.connect(...)
+            role = service.roles['somerole']
+            role.revoke('change_own_password', 'search')
+
+        :param capabilities_to_revoke: Zero or more capabilities to revoke from this role.
+        :return: The Role entity
+        """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_revoke:
             if capability not in possible_capabilities:

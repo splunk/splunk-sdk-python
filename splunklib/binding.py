@@ -385,6 +385,8 @@ class Context(object):
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
         self.token = kwargs.get("token", NoAuthenticationToken)
+        if self.token is None: # In case someone explicitly passes token=None
+            self.token = NoAuthenticationToken
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = int(kwargs.get("port", DEFAULT_PORT))
@@ -698,7 +700,7 @@ class Context(object):
             # Then issue requests...
         """
         if self.token is not NoAuthenticationToken and \
-                (self.username == "" and self.password == ""):
+                (self.username and self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.

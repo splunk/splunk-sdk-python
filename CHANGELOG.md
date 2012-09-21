@@ -15,7 +15,7 @@
 * Added Indexes.default() which returns the name of the default index that data will be submitted into.
 * Connecting with a preexisting token works whether the token begins with 'Splunk ' or not;
   the SDK will handle either case correctly.
-* Added .isReady() and .isDone() methods to Job to make it easy to loop until either point as been reached.
+* Added .is_ready() and .is_done() methods to Job to make it easy to loop until either point as been reached.
 * Expanded endpoint coverage. Now at parity with the Java SDK.
 * Replaced ResultsReader with something shorter. Iteration now
   results either Message objects or dicts, and moved preview from

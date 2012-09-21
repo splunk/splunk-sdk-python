@@ -747,7 +747,7 @@ class Entity(Endpoint):
         This method handles the case of two entities with the same name in different namespaces
         showing up due to wildcards in the service's namespace. We replace the wildcards with the
         namespace of the entity we want.
-        """
+
         :param owner:
         :param app:
         :param sharing:

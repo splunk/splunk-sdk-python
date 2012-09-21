@@ -22,13 +22,11 @@ import splunklib.client as client
 class TestCase(testlib.TestCase):
     def check_user(self, user):
         self.check_entity(user)
-        user['email']
-        user['password']
-        user['realname']
-        user['roles']
-
+        # Verify expected fields exist
+        [user[f] for f in ['email', 'password', 'realname', 'roles']]
+        
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestCase, self).setUp()
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
             self.username,
@@ -36,7 +34,7 @@ class TestCase(testlib.TestCase):
             roles=['power', 'user'])
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestCase, self).tearDown()
         for user in self.service.users:
             if user.name.startswith('delete-me'):
                 self.service.users.delete(user.name)
@@ -44,9 +42,11 @@ class TestCase(testlib.TestCase):
     def test_read(self):
         for user in self.service.users:
             self.check_user(user)
-            for role in user.roles:
+            for role in user.role_entities:
                 self.assertTrue(isinstance(role, client.Entity))
                 self.assertTrue(role.name in self.service.roles)
+            self.assertEqual(user.roles,
+                             [role.name for role in user.role_entities])
 
     def test_create(self):
         self.assertTrue(self.username in self.service.users)

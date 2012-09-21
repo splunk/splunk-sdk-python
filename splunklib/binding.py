@@ -55,14 +55,21 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
-@contextmanager
-def log_duration():
-    start_time = datetime.now()
-    yield
-    end_time = datetime.now()
-    logging.debug("Operation took %s", end_time-start_time)
+def log_duration(f):
+    def new_f(*args, **kwargs):
+        start_time = datetime.now()
+        val = f(*args, **kwargs)
+        end_time = datetime.now()
+        logging.debug("Operation took %s", end_time-start_time)
+        return val
+    return new_f
 
+# Custom exceptions
 class AuthenticationError(Exception):
+    pass
+
+# Singleton values to eschew None
+class NoAuthenticationToken(object):
     pass
 
 class UrlEncoded(str):
@@ -205,7 +212,7 @@ def _authentication(request_fun):
     """
     @functools.wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is None:
+        if self.token is NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -377,7 +384,9 @@ class Context(object):
     """
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
-        self.token = kwargs.get("token", None)
+        self.token = kwargs.get("token", NoAuthenticationToken)
+        if self.token is None: # In case someone explicitly passes token=None
+            self.token = NoAuthenticationToken
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = int(kwargs.get("port", DEFAULT_PORT))
@@ -398,7 +407,12 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        return [("Authorization", self.token)]
+        # Ensure the token is properly formatted
+        if self.token.startswith('Splunk'):
+            token = self.token
+        else:
+            token = 'Splunk %s' % self.token
+        return [("Authorization", token)]
 
     def connect(self):
         """Returns an open connection (socket) to the Splunk instance.
@@ -428,6 +442,7 @@ class Context(object):
         return sock
 
     @_authentication
+    @log_duration
     def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
         """DELETE at *path_segment* with the given namespace and query.
 
@@ -473,11 +488,11 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("DELETE request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.delete(path, self._auth_headers, **query)
+        response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
+    @log_duration
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
 
@@ -523,12 +538,12 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.get(path, self._auth_headers, **query)
+        response = self.http.get(path, self._auth_headers, **query)
         return response
 
     @_authentication
-    def post(self, path_segment, owner=None, app=None, sharing=None, **query):
+    @log_duration
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=[], **query):
         """POST to *path_segment* with the given namespace and query.
 
         Named to match the HTTP method. This function makes at least
@@ -540,12 +555,21 @@ class Context(object):
         ``Context``'s default namespace. All other keyword arguments
         are included in the URL as query parameters.
 
+        Some of Splunk's endpoints, such as receivers/simple and
+        receivers/stream, require unstructured data in the POST body
+        and all metadata passed as GET style arguments. If you provide
+        a ``body`` argument to ``post``, it will be used as the POST
+        body, and all other keyword arguments will be passed as
+        GET-style arguments in the URL.
+
         :raises AuthenticationError: when a the ``Context`` is not logged in.
         :raises HTTPError: when there was an error in POSTing to *path_segment*.
         :param path_segment: A path_segment to POST to.
         :type path_segment: string
         :param owner, app, sharing: Namespace parameters (optional).
         :type owner, app, sharing: string
+        :param headers: A dict or list of (key,value) pairs to use as headers for
+                        this request.
         :param query: All other keyword arguments, used as query parameters.
         :type query: values should be strings
         :return: The server's response.
@@ -576,11 +600,18 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        with log_duration():
-            response = self.http.post(path, self._auth_headers, **query)
+        if isinstance(headers, dict):
+            all_headers = [(k,v) for k,v in headers.iteritems()]
+        elif isinstance(headers, list):
+            all_headers = headers
+        else:
+            raise ValueError("headers must be a list or dict (found: %s)" % headers)
+        all_headers += self._auth_headers
+        response = self.http.post(path, all_headers, **query)
         return response
 
     @_authentication
+    @log_duration
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
         """Issue an arbitrary HTTP request to *path_segment*.
@@ -643,11 +674,10 @@ class Context(object):
         all_headers = headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)", 
                       method, path, str(all_headers), repr(body))
-        with log_duration():
-            response = self.http.request(path,
-                                         {'method': method,
-                                          'headers': all_headers,
-                                          'body': body})
+        response = self.http.request(path,
+                                     {'method': method,
+                                     'headers': all_headers,
+                                     'body': body})
         return response
 
     def login(self):
@@ -669,6 +699,12 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
+        if self.token is not NoAuthenticationToken and \
+                (self.username and self.password):
+            # If we were passed a session token, but no username or
+            # password, then login is a nop, since we're automatically
+            # logged in.
+            return
         try:
             response = self.http.post(
                 self.authority + self._abspath("/services/auth/login"),
@@ -686,7 +722,7 @@ class Context(object):
 
     def logout(self):
         """Forget the current session token."""
-        self.token = None
+        self.token = NoAuthenticationToken
         return self
 
     def _abspath(self, path_segment, 
@@ -744,8 +780,8 @@ class Context(object):
         if ns.app is None and ns.owner is None:
             return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
 
-        oname = "-" if ns.owner is None else ns.owner
-        aname = "-" if ns.app is None else ns.app
+        oname = "nobody" if ns.owner is None else ns.owner
+        aname = "system" if ns.app is None else ns.app
         path = UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),
                           skip_encode=skip_encode)
         return path
@@ -788,7 +824,9 @@ def connect(**kwargs):
         c = binding.connect(...)
         response = c.get("apps/local")
     """
-    return Context(**kwargs).login() 
+    c = Context(**kwargs)
+    c.login()
+    return c
 
 # Note: the error response schema supports multiple messages but we only
 # return the first, although we do return the body so that an exception 
@@ -883,10 +921,18 @@ class HttpLib(object):
     def post(self, url, headers=None, **kwargs):
         if headers is None: headers = []
         headers.append(("Content-Type", "application/x-www-form-urlencoded")),
+        # We handle GET-style arguments and an unstructured body. This is here
+        # to support the receivers/stream endpoint.
+        if 'body' in kwargs:
+            body = kwargs.pop('body')
+            if len(kwargs) > 0:
+                url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
+        else:
+            body = encode(**kwargs)
         message = {
             'method': "POST",
             'headers': headers,
-            'body': encode(**kwargs)
+            'body': body
         }
         return self.request(url, message)
 

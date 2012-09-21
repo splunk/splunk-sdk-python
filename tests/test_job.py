@@ -62,11 +62,17 @@ class TestUtilities(testlib.TestCase):
 
     def test_normal_job_with_garbage_fails(self):
         jobs = self.service.jobs
-        self.assertRaises(TypeError, jobs.create, "abcd|asfwqqq")
+        try:
+            bad_search = "abcd|asfwqqq"
+            jobs.create(bad_search)
+        except TypeError as te:
+            self.assertTrue('abcd' in te.message)
+            return
+        self.fail("Job with garbage search failed to raise TypeError.")
 
     def test_cancel(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_intenal | head 3",
+        job = jobs.create(query="search index=_internal | head 3",
                           earliest_time="-1m",
                           latest_time="now")
         self.assertTrue(job.sid in jobs)
@@ -75,12 +81,40 @@ class TestUtilities(testlib.TestCase):
 
     def test_cancel_is_idempotent(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_intenal | head 3",
+        job = jobs.create(query="search index=_internal | head 3",
                           earliest_time="-1m",
                           latest_time="now")
         self.assertTrue(job.sid in jobs)
         job.cancel()
         job.cancel() # Second call should be nop
+
+    def test_enable_preview(self):
+        query = "search index=_internal"
+        job = self.service.jobs.create(
+            query=query,
+            earliest_time="-1m",
+            latest_time="now")
+        self.assertEqual(job['isPreviewEnabled'], '0')
+        job.enable_preview()
+        tries = 10
+        while tries > 0:
+            if job.is_done():
+                self.fail('Job finished before preview enabled.')
+            if job['isPreviewEnabled'] == '1':
+                break
+            tries -= 1
+        self.assertEqual(job['isPreviewEnabled'], '1')
+        job.disable_preview()
+        tries = 10
+        while tries > 0:
+            if job.is_done():
+                self.fail('Job finished before preview disabled.')
+            if job['isPreviewEnabled'] == '0':
+                break
+            tries -= 1
+        self.assertEqual(job['isPreviewEnabled'], '0')
+
+
 
     def check_job(self, job):
         self.check_entity(job)
@@ -105,22 +139,10 @@ class TestUtilities(testlib.TestCase):
             job.refresh()
             self.check_job(job)
 
-def retry(job, field, expected, times=10):
-    # Sometimes there is a slight delay in the value getting
-    # set in splunkd. If it fails, just try again.
-    tries = times
-    while tries > 0:
-        job.refresh()
-        p = job[field]
-        if p != expected:
-            tries -= 1
-        else:
-            break
-
 
 class TestJob(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestJob, self).setUp()
         self.query = "search index=_internal earliest=-1m | head 3"
         self.job = self.service.jobs.create(
             query=self.query, 
@@ -128,16 +150,12 @@ class TestJob(testlib.TestCase):
             latest_time="now")
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestJob, self).tearDown()
         self.job.cancel()
 
+    @log_duration
     def test_get_preview_and_events(self):
-        with log_duration():
-            tries = 0
-            while not self.job.isDone():
-                tries += 1
-        logging.debug("Polled %d times", tries)
-
+        testlib.retry(self.job, 'isDone', '1')
         self.assertLessEqual(int(self.job['eventCount']), 3)
 
         preview_stream = self.job.preview()
@@ -158,7 +176,7 @@ class TestJob(testlib.TestCase):
             self.assertEqual(self.job['isPaused'], '0')
 
         self.job.pause()
-        retry(self.job, 'isPaused', '1')
+        testlib.retry(self.job, 'isPaused', '1')
         self.assertEqual(self.job['isPaused'], '1')
 
     def test_unpause(self):
@@ -167,7 +185,7 @@ class TestJob(testlib.TestCase):
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '1')
         self.job.unpause()
-        retry(self.job, 'isPaused', '0')
+        testlib.retry(self.job, 'isPaused', '0')
         self.assertEqual(self.job['isPaused'], '0')
 
     def test_finalize(self):
@@ -175,7 +193,7 @@ class TestJob(testlib.TestCase):
             self.fail("Job is already finalized; can't test .finalize() method.")
         else:
             self.job.finalize()
-            retry(self.job, 'isFinalized', '1')
+            testlib.retry(self.job, 'isFinalized', '1')
             self.assertEqual(self.job['isFinalized'], '1')
 
     def test_setpriority(self):
@@ -184,7 +202,7 @@ class TestJob(testlib.TestCase):
         self.assertNotEqual(old_priority, new_priority)
 
         self.job.set_priority(new_priority)
-        retry(self.job, 'priority', str(new_priority))
+        testlib.retry(self.job, 'priority', str(new_priority))
         self.assertEqual(int(self.job['priority']), new_priority)
 
     def test_setttl(self):
@@ -207,34 +225,17 @@ class TestJob(testlib.TestCase):
         self.assertGreater(ttl, old_ttl)
 
     def test_touch(self):
-        # This is a problem to test. You have to wait for it to change
-        # before touch gets anywhere, and the granularity of ttl is seconds.
+        # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
+        # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
+        # so we'll wait 1.1s before we start.
+        import time; time.sleep(1.1)
         old_ttl = int(self.job['ttl'])
-        # import time; time.sleep(3)
         self.job.touch()
         self.job.refresh()
         new_ttl = int(self.job['ttl'])
         if new_ttl == old_ttl:
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
-        self.assertGreaterEqual(int(self.job['ttl']), old_ttl)
-        
-    def test_enable_preview(self):
-        if self.job['isPreviewEnabled'] == '1':
-            self.job.disable_preview()
-            self.job.refresh()
-            self.assertEqual(job['isPreviewEnabled'], '0')
-        self.job.enable_preview()
-        retry(self.job, 'isPreviewEnabled', '1', times=5)
-        self.assertEqual(self.job['isPreviewEnabled'], '1')
-
-    def test_disable_preview(self):
-        if self.job['isPreviewEnabled'] == '0':
-            self.job.enable_preview()
-            self.job.refresh()
-            self.assertEqual(self.job['isPreviewEnabled'], '1')
-        self.job.disable_preview()
-        retry(self.job, 'isPreviewEnabled', '0')
-        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        self.assertGreater(int(self.job['ttl']), old_ttl)
 
 class TestResultsReader(unittest.TestCase):
     def test_results_reader(self):
@@ -244,14 +245,18 @@ class TestResultsReader(unittest.TestCase):
         with open('results.xml') as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
-            N = 0
+            N_results = 0
+            N_messages = 0
             for r in reader:
-                logging.debug("Type of result was %s", r.__class__.__name__)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))
-                N += 1
-            self.assertEqual(N, 4999)
+                if isinstance(r, collections.OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 4999)
+            self.assertEqual(N_messages, 2)
 
     def test_results_reader_with_streaming_results(self):
         # Run jobs.export("search index=_internal | stats count",
@@ -259,14 +264,18 @@ class TestResultsReader(unittest.TestCase):
         # streaming sequence of XML fragments containing results.
         with open('streaming_results.xml') as input:
             reader = results.ResultsReader(input)
-            N = 0
+            N_results = 0
+            N_messages = 0
             for r in reader:
-                logging.debug("Type of result was %s", r.__class__.__name__)
                 import collections
                 self.assertTrue(isinstance(r, collections.OrderedDict) 
                                 or isinstance(r, results.Message))
-                N += 1
-            self.assertEqual(N, 4999)
+                if isinstance(r, collections.OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 3)
+            self.assertEqual(N_messages, 3)
         
 
     def test_xmldtd_filter(self):

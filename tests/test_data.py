@@ -15,6 +15,7 @@
 # under the License.
 
 from os import path
+import xml.etree.ElementTree as et
 
 import testlib
 
@@ -55,6 +56,12 @@ class TestCase(testlib.TestCase):
         result = data.load("<a><b><c>1</c></b><b>2</b></a>")
         self.assertEqual(result, {'a': {'b': [{'c': '1'}, '2']}})
 
+        result = data.load('<e><a1>alpha</a1><a1>beta</a1></e>')
+        self.assertEqual(result, {'e': {'a1': ['alpha', 'beta']}})
+
+        result = data.load("<e a1='v1'><a1>v2</a1></e>")
+        self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
+
     def test_attrs(self):
         result = data.load("<e a1='v1'/>")
         self.assertEqual(result, {'e': {'a1': 'v1'}})
@@ -72,7 +79,7 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result, {'e': {'a1': 'v1', 'b': 'bv2'}})
 
         result = data.load("<e a1='v1'><a1>v2</a1></e>")
-        self.assertEqual(result, {'e': {'a1': 'v1'}})
+        self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
 
         result = data.load("<e1 a1='v1'><e2 a1='v1'>v2</e2></e1>")
         self.assertEqual(result,
@@ -106,7 +113,16 @@ class TestCase(testlib.TestCase):
         self.assertEqual(result.feed.entry.content.os_name, 'Darwin')
         self.assertEqual(result.feed.entry.content.os_version, '10.8.0')
 
+    def test_invalid(self):
+        self.assertRaises(et.ParseError, data.load, "<dict</dict>")
+        self.assertRaises(KeyError, data.load, "<dict><key>a</key></dict>")
+
     def test_dict(self):
+        result = data.load("""
+            <dict></dict>
+        """)
+        self.assertEqual(result, {})
+
         result = data.load("""
             <dict>
               <key name='n1'>v1</key>
@@ -155,6 +171,9 @@ class TestCase(testlib.TestCase):
             {'content': {'n1': ['1', '2', '3', '4']}})
 
     def test_list(self):
+        result = data.load("""<list></list>""")
+        self.assertEqual(result, [])
+
         result = data.load("""
             <list>
               <item>1</item><item>2</item><item>3</item><item>4</item>
@@ -193,6 +212,16 @@ class TestCase(testlib.TestCase):
             </content>""")
         self.assertEqual(result, 
             {'content': [{'n1':"v1"}, {'n2':"v2"}, {'n3':"v3"}, {'n4':"v4"}]})
+
+        result = data.load("""
+        <ns1:dict xmlns:ns1="http://dev.splunk.com/ns/rest">
+            <ns1:key name="build">101089</ns1:key>
+            <ns1:key name="cpu_arch">i386</ns1:key>
+            <ns1:key name="isFree">0</ns1:key>
+        </ns1:dict>
+        """)
+        self.assertEqual(result,
+        {'build': '101089', 'cpu_arch': 'i386', 'isFree': '0'})
 
     def test_record(self):
         d = data.record()

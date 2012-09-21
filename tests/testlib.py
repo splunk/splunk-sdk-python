@@ -36,6 +36,34 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 
+def to_bool(x):
+    if x == '1':
+        return True
+    elif x == '0':
+        return False
+    else:
+        raise ValueError("Not a boolean value: %s", x)
+
+def retry(entity, field, expected, times=10, step=0):
+    # Sometimes there is a slight delay in the value getting
+    # set in splunkd. If it fails, just try again.
+    import time
+    tries = times
+    while tries > 0:
+        entity.refresh()
+        if callable(field):
+            p = field(entity)
+        elif isinstance(field, str):
+            p = entity[field]
+        else:
+            raise ValueError("Unrecognized field type.")
+        if p == expected:
+            return
+        else:
+            tries -= 1
+            time.sleep(step)
+    raise ValueError("%d loops in retry weren't enough" % times)
+
 def tmpname():
     name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
     return name
@@ -83,6 +111,7 @@ class TestCase(unittest.TestCase):
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):
+        assert entity is not None
         self.assertTrue(entity.name is not None)
         self.assertTrue(entity.path is not None)
 
@@ -90,7 +119,7 @@ class TestCase(unittest.TestCase):
         self.assertTrue(entity.content is not None)
 
         # Verify access metadata
-
+        assert entity.access is not None
         entity.access.app
         entity.access.owner
         entity.access.sharing
@@ -136,12 +165,12 @@ class TestCase(unittest.TestCase):
     splunk_version = None
 
     def setUp(self):
-        if TestCase.service is None:
-            import splunklib.client as client
-            TestCase.opts = parse([], {}, ".splunkrc")
-            TestCase.service = client.connect(**self.opts.kwargs)
-            TestCase.splunk_version = int(self.service.info['version'].split('.')[0])
-            logging.debug("Connected to splunkd version %d", TestCase.splunk_version)
+        unittest.TestCase.setUp(self)
+        import splunklib.client as client
+        self.opts = parse([], {}, ".splunkrc")
+        self.service = client.connect(**self.opts.kwargs)
+        self.splunk_version = int(self.service.info['version'].split('.')[0])
+        logging.debug("Connected to splunkd version %d", self.splunk_version)
 
 def main():
     unittest.main()

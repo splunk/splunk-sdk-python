@@ -21,12 +21,12 @@ import splunklib.client as client
 
 class TestCase(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestCase, self).setUp()
         self.role_name = testlib.tmpname()
         self.role = self.service.roles.create(self.role_name)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestCase, self).tearDown()
         for role in self.service.roles:
             if role.name.startswith('delete-me'):
                 self.service.roles.delete(role.name)
@@ -43,6 +43,12 @@ class TestCase(testlib.TestCase):
             role.refresh()
             self.check_role(role)
 
+    def test_read_case_insensitive(self):
+        for role in self.service.roles:
+            a = self.service.roles[role.name.upper()]
+            b = self.service.roles[role.name.lower()]
+            self.assertEqual(a.name, b.name)
+
     def test_create(self):
         self.assertTrue(self.role_name in self.service.roles)
         self.check_entity(self.role)
@@ -53,7 +59,39 @@ class TestCase(testlib.TestCase):
         self.assertFalse(self.role_name in self.service.roles)
         self.assertRaises(client.EntityDeletedException, self.role.refresh)
 
-    def test_update(self):
+    def test_grant_and_revoke(self):
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.role.grant('edit_user')
+        self.role.refresh()
+        self.assertTrue('edit_user' in self.role.capabilities)
+
+        self.assertFalse('change_own_password' in self.role.capabilities)
+        self.role.grant('change_own_password')
+        self.role.refresh()
+        self.assertTrue('edit_user' in self.role.capabilities)
+        self.assertTrue('change_own_password' in self.role.capabilities)
+
+        self.role.revoke('edit_user')
+        self.role.refresh()
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.assertTrue('change_own_password' in self.role.capabilities)
+
+        self.role.revoke('change_own_password')
+        self.role.refresh()
+        self.assertFalse('edit_user' in self.role.capabilities)
+        self.assertFalse('change_own_password' in self.role.capabilities)
+
+    def test_invalid_grant(self):
+        self.assertRaises(client.NoSuchCapability, self.role.grant, 'i-am-an-invalid-capability')
+
+    def test_invalid_revoke(self):
+        self.assertRaises(client.NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
+
+    def test_revoke_capability_not_granted(self):
+        self.assertRaises(ValueError, self.role.revoke, 'change_own_password')
+
+
+def test_update(self):
         kwargs = {}
         if 'user' in self.role['imported_roles']:
             kwargs['imported_roles'] = ''

@@ -24,7 +24,7 @@ class TestApp(testlib.TestCase):
     app = None
     app_name = None
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestApp, self).setUp()
         if self.app is None:
             for app in self.service.apps:
                 if app.name.startswith('delete-me'):
@@ -33,8 +33,8 @@ class TestApp(testlib.TestCase):
             # each test in this test suite. Therefore we create one
             # app and reuse it. Since apps are rather less fraught
             # than entities like indexes, this is okay.
-            TestApp.app_name = testlib.tmpname()
-            TestApp.app = self.service.apps.create(self.app_name)
+            self.app_name = testlib.tmpname()
+            self.app = self.service.apps.create(self.app_name)
             logging.debug("Creating app %s", self.app_name)
         else:
             logging.debug("App %s already exists. Skipping creation.", self.app_name)
@@ -42,6 +42,8 @@ class TestApp(testlib.TestCase):
 class TestAppIntegrity(TestApp):
     def test_app_integrity(self):
         self.check_entity(self.app)
+        self.app.setupInfo
+        self.app['setupInfo']
 
 class TestDisableEnable(TestApp):
     def test_disable_enable(self):
@@ -62,8 +64,7 @@ class TestUpdate(TestApp):
             'visible': True,
         }
         self.app.update(**kwargs)
-        # self.app.refresh() <-- should be automatically refreshed
-        # after update.
+        self.app.refresh()
         self.assertEqual(self.app['author'], "Me")
         self.assertEqual(self.app['label'], "SDK Test")
         self.assertEqual(self.app['manageable'], "0")

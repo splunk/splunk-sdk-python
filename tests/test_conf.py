@@ -38,7 +38,7 @@ class TestRead(testlib.TestCase):
 
 class TestConfs(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestConfs, self).setUp()
         self.app_name = testlib.tmpname()
         self.app = self.service.apps.create(self.app_name)
         # Connect using the test app context
@@ -54,8 +54,8 @@ class TestConfs(testlib.TestCase):
     def test_confs(self):
         confs = self.app_service.confs
         conf_name = testlib.tmpname()
-        self.assertRaises(KeyError, confs.__getitem__, conf_name) # Fails
-        self.assertFalse(conf_name in confs) # Fails
+        self.assertRaises(KeyError, confs.__getitem__, conf_name)
+        self.assertFalse(conf_name in confs)
 
         conf = confs.create(conf_name)
         self.assertTrue(conf_name in confs)
@@ -73,20 +73,25 @@ class TestConfs(testlib.TestCase):
         self.assertTrue(stanza_name in conf)
 
         # New stanzas are empty
-        self.assertEqual(len(stanza), 0) # Fails
+        self.assertEqual(len(stanza), 0)
 
         # Update works
         key = testlib.tmpname()
         val = testlib.tmpname()
         stanza.update(**{key: val})
-        stanza.refresh()
-        self.assertEqual(len(stanza), 1) # Fails
-        self.assertTrue(key in stanza) # Fails
+        testlib.retry(stanza, lambda s: len(s), 1, step=0.2)
+        self.assertEqual(len(stanza), 1)
+        self.assertTrue(key in stanza)
 
         count = len(conf)
         conf.delete(stanza_name)
         self.assertFalse(stanza_name in conf)
         self.assertEqual(len(conf), count-1)
+
+        # Can't actually delete configuration files directly, at least
+        # not in current versions of Splunk.
+        self.assertRaises(client.IllegalOperationException, confs.delete, conf_name)
+        self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
     testlib.main()

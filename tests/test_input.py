@@ -15,6 +15,7 @@
 # under the License.
 
 import testlib
+import logging
 
 import splunklib.client as client
 
@@ -34,24 +35,67 @@ class TestRead(testlib.TestCase):
 
     def test_read_kind(self):
         inputs = self.service.inputs
+        logging.debug("Input kinds: %s", inputs.kinds)
         for kind in inputs.kinds:
-            # count doesn't work on inputs; known problem tested for in
-            # test_collection.py. This test will speed up dramatically
-            # when that's fixed.
             for item in inputs.list(kind, count=3):
                 self.assertEqual(item.kind, kind)
 
+    def test_inputs_list_on_one_kind(self):
+        self.service.inputs.list('monitor')
+
+    def test_inputs_list_on_one_kind_with_count(self):
+        N = 10
+        expected = [x.name for x in self.service.inputs.list('monitor')[:10]]
+        found = [x.name for x in self.service.inputs.list('monitor', count=10)]
+        self.assertEqual(expected, found)
+
+    def test_inputs_list_on_one_kind_with_offset(self):
+        N = 2
+        expected = [x.name for x in self.service.inputs.list('monitor')[N:]]
+        found = [x.name for x in self.service.inputs.list('monitor', offset=N)]
+        self.assertEqual(expected, found)
+
+    def test_inputs_list_on_one_kind_with_search(self):
+        search = "SPLUNK"
+        expected = [x.name for x in self.service.inputs.list('monitor') if search in x.name]
+        found = [x.name for x in self.service.inputs.list('monitor', search=search)]
+        self.assertEqual(expected, found)
+
+    def test_oneshot(self):
+        index_name = testlib.tmpname()
+        index = self.service.indexes.create(index_name)
+        self.service.restart(timeout=120)
+        index = self.service.indexes[index_name]
+        eventCount = int(index['totalEventCount'])
+        from os import path
+        testpath = path.dirname(path.abspath(__file__))
+        self.service.inputs.oneshot(path.join(testpath, 'testfile.txt'), index=index_name)
+        testlib.retry(index, 'totalEventCount', str(eventCount+1), step=1)
+        self.assertEqual(index['totalEventCount'], str(eventCount+1))
+
+    def test_oneshot_on_nonexistant_file(self):
+        name = testlib.tmpname()
+        from os import path
+        self.assertFalse(path.exists(name))
+        self.assertRaises(client.OperationFailedException,
+            self.service.inputs.oneshot, name)
+
+
 class TestInput(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestInput, self).setUp()
         inputs = self.service.inputs
-        self.test_entities = {}
+        self._test_entities = {}
         for test_input in test_inputs:
-            self.test_entities[test_input['kind']] = \
-                inputs.create(**test_input)
+            if (test_input['kind'], test_input['name']) not in self.service.inputs:
+                self._test_entities[test_input['kind']] = \
+                    inputs.create(**test_input)
+            else:
+                self._test_entities[test_input['kind']] = \
+                    inputs[test_input['kind'], test_input['name']]
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestInput, self).tearDown()
         for test_input in test_inputs:
             try:
                 self.service.inputs.delete(
@@ -64,9 +108,10 @@ class TestInput(testlib.TestCase):
         inputs = self.service.inputs
         for test_input in test_inputs:
             kind, name, host = test_input['kind'], test_input['name'], test_input['host']
-            entity = self.test_entities[kind]
+            entity = self._test_entities[kind]
             entity = inputs[kind, name]
             self.check_entity(entity)
+            self.assertTrue(isinstance(entity, client.Input))
             self.assertEqual(entity.name, name)
             self.assertEqual(entity.kind, kind)
             self.assertEqual(entity.host, host)
@@ -75,7 +120,7 @@ class TestInput(testlib.TestCase):
         inputs = self.service.inputs
         for test_input in test_inputs:
             kind, name = test_input['kind'], test_input['name']
-            this_entity = self.test_entities[kind]
+            this_entity = self._test_entities[kind]
             read_entity = inputs[kind, name]
             self.assertEqual(this_entity.kind, read_entity.kind)
             self.assertEqual(this_entity.name, read_entity.name)
@@ -85,7 +130,7 @@ class TestInput(testlib.TestCase):
         inputs = self.service.inputs
         for test_input in test_inputs:
             kind, name = test_input['kind'], test_input['name']
-            entity = self.test_entities[kind, name]
+            entity = inputs[kind, name]
             kwargs = {'host': 'foo', 'sourcetype': 'bar'}
             entity.update(**kwargs)
             entity.refresh()
@@ -94,16 +139,23 @@ class TestInput(testlib.TestCase):
 
     def test_delete(self):
         inputs = self.service.inputs
+        remaining = len(test_inputs)-1
         for test_input in test_inputs:
             kind, name = test_input['kind'], test_input['name']
             input_entity = self.service.inputs[kind,name]
             self.assertTrue(name in inputs)
             self.assertTrue((kind,name) in inputs)
-            self.service.inputs.delete(kind['name'])
-            self.assertFalse(name in inputs)
-            self.assertFalse((kind,name) in inputs)
+            if remaining == 0:
+                inputs.delete(name)
+                self.assertFalse(name in inputs)
+            else:
+                self.assertRaises(client.AmbiguousReferenceException,
+                                  inputs.delete, name)
+                self.service.inputs.delete(kind, name)
+                self.assertFalse((kind,name) in inputs)
             self.assertRaises(client.EntityDeletedException,
                               input_entity.refresh)
+            remaining -= 1
                               
 
 if __name__ == "__main__":

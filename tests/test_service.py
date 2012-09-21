@@ -27,8 +27,9 @@ from splunklib.binding import HTTPError
 class TestCase(testlib.TestCase):
     def test_capabilities(self):
         capabilities = self.service.capabilities
-        for item in client.capabilities:
-            self.assertTrue(item in capabilities)
+        self.assertTrue(isinstance(capabilities, list))
+        self.assertTrue(all([isinstance(c, str) for c in capabilities]))
+        self.assertTrue('change_own_password' in capabilities) # This should always be there...
 
     def test_info(self):
         info = self.service.info
@@ -72,39 +73,24 @@ class TestCase(testlib.TestCase):
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
-    def test_nonexistant_user(self):
-        username = testlib.tmpname()
-        self.assertTrue(username not in self.service.users)
-        with self.assertRaises(client.NoSuchUserException):
-            kwargs = self.opts.kwargs.copy()
-            kwargs.update({'owner': username})
-            service_ns = client.connect(**kwargs)
-            service_ns.apps.list()
-
-    def test_nonexistant_app(self):
-        app_name = testlib.tmpname()
-        self.assertTrue(app_name not in self.service.apps)
-        with self.assertRaises(client.NoSuchApplicationException):
-            kwargs = self.opts.kwargs.copy()
-            kwargs.update({'app': app_name})
-            service_ns = client.connect(**kwargs)
-            service_ns.apps.list()
-
     def test_parse(self):
-        # Awaiting new parse method.
+        # At the moment the parse method returns the raw XML. At
+        # some point this will change and it will return a nice,
+        # objectified form of the results, but for now there's
+        # nothing to test but a good response code.
         response = self.service.parse('search * abc="def" | dedup abc')
         self.assertEqual(response.status, 200)
-        # try:
-        #     service.parse("xyzzy")
-        #     self.fail()
-        # except HTTPError, e:
-        #     self.assertEqual(e.status, 400)
-        # except:
-        #     self.fail()
+
+    def test_parse_fail(self):
+        try:
+            self.service.parse("xyzzy")
+            self.fail('Parse on nonsense did not fail')
+        except HTTPError, e:
+            self.assertEqual(e.status, 400)
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)
-        testlib.restart(service)
+        self.service.restart(timeout=120)
         service.login() # Make sure we are awake
 
 class TestSettings(testlib.TestCase):
@@ -120,6 +106,7 @@ class TestSettings(testlib.TestCase):
             self.assertTrue(key in settings)
 
     def test_update_settings(self):
+        settings = self.service.settings
         # Verify that we can update the settings
         original = settings['sessionTimeout']
         self.assertTrue(original != "42h")

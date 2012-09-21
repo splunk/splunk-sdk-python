@@ -22,55 +22,53 @@ from time import sleep
 
 import splunklib.client as client
 
-def to_bool(x):
-    if x == '1':
-        return True
-    elif x == '0':
-        return False
-    else:
-        raise ValueError("Not a boolean value: %s", x)
-
 class TestSavedSearch(testlib.TestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(TestSavedSearch, self).setUp()
         saved_searches = self.service.saved_searches
+        logging.debug("Saved searches namespace: %s", saved_searches.service.namespace)
         self.saved_search_name = testlib.tmpname()
         query = "search index=_internal * earliest=-1m | head 3"
         self.saved_search = saved_searches.create(self.saved_search_name, query)
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        super(TestSavedSearch, self).setUp()
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 try:
+                    for job in saved_search.history():
+                        job.cancel()
                     self.service.saved_searches.delete(saved_search.name)
                 except KeyError:
                     pass
 
     def check_saved_search(self, saved_search):
         self.check_entity(saved_search)
-        saved_search['alert.expires']
-        saved_search['alert.severity']
-        saved_search['alert.track']
-        saved_search['alert_type']
-        saved_search['dispatch.buckets']
-        saved_search['dispatch.lookups']
-        saved_search['dispatch.max_count']
-        saved_search['dispatch.max_time']
-        saved_search['dispatch.reduce_freq']
-        saved_search['dispatch.spawn_process']
-        saved_search['dispatch.time_format']
-        saved_search['dispatch.ttl']
-        saved_search['max_concurrent']
-        saved_search['realtime_schedule']
-        saved_search['restart_on_searchpeer_add']
-        saved_search['run_on_startup']
-        saved_search['search']
-        saved_search['action.email']
-        saved_search['action.populate_lookup']
-        saved_search['action.rss']
-        saved_search['action.script']
-        saved_search['action.summary_index']
+        expected_fields = ['alert.expires',
+                           'alert.severity',
+                           'alert.track',
+                           'alert_type',
+                           'dispatch.buckets',
+                           'dispatch.lookups',
+                           'dispatch.max_count',
+                           'dispatch.max_time',
+                           'dispatch.reduce_freq',
+                           'dispatch.spawn_process',
+                           'dispatch.time_format',
+                           'dispatch.ttl',
+                           'max_concurrent',
+                           'realtime_schedule',
+                           'restart_on_searchpeer_add',
+                           'run_on_startup',
+                           'search',
+                           'action.email',
+                           'action.populate_lookup',
+                           'action.rss',
+                           'action.script',
+                           'action.summary_index']
+        for f in expected_fields:
+            saved_search[f]
+        self.assertGreaterEqual(saved_search.suppressed, 0)
         self.assertGreaterEqual(saved_search['suppressed'], 0)
         is_scheduled = saved_search.content['is_scheduled']
         self.assertTrue(is_scheduled == '1' or is_scheduled == '0')
@@ -90,15 +88,15 @@ class TestSavedSearch(testlib.TestCase):
 
     
     def test_update(self):
-        is_visible = to_bool(self.saved_search['is_visible'])
+        is_visible = testlib.to_bool(self.saved_search['is_visible'])
         self.saved_search.update(is_visible=not is_visible)
         self.saved_search.refresh()
-        self.assertEqual(to_bool(self.saved_search['is_visible']), not is_visible)
+        self.assertEqual(testlib.to_bool(self.saved_search['is_visible']), not is_visible)
         
     def test_cannot_update_name(self):
         new_name = self.saved_search_name + '-alteration'
         self.assertRaises(client.IllegalOperationException, 
-                          self.saved_search.update, new_name)
+                          self.saved_search.update, name=new_name)
 
     def test_name_collision(self):
         opts = self.opts.kwargs.copy()
@@ -122,14 +120,22 @@ class TestSavedSearch(testlib.TestCase):
             namespace=namespace2)
 
         self.assertRaises(client.AmbiguousReferenceException,
-                          saved_searches[name])
-        self.check_saved_search(saved_searches[name, namespace1])
-        self.check_saved_search(saved_searches[name, namespace2])
+                          saved_searches.__getitem__, name)
+        search1 = saved_searches[name, namespace1]
+        self.check_saved_search(search1)
+        search1.update(**{'action.email.from': 'nobody@nowhere.com'})
+        search1.refresh()
+        self.assertEqual(search1['action.email.from'], 'nobody@nowhere.com')
+        search2 = saved_searches[name, namespace2]
+        search2.update(**{'action.email.from': 'nemo@utopia.com'})
+        search2.refresh()
+        self.assertEqual(search2['action.email.from'], 'nemo@utopia.com')
+        self.check_saved_search(search2)
 
     def test_dispatch(self):
         try:
             job = self.saved_search.dispatch()
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             self.assertTrue(job.sid in self.service.jobs)
         finally:
@@ -139,7 +145,7 @@ class TestSavedSearch(testlib.TestCase):
         try:
             kwargs = { 'dispatch.buckets': 100 }
             job = self.saved_search.dispatch(**kwargs)
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             self.assertTrue(job.sid in self.service.jobs)
         finally:
@@ -151,7 +157,7 @@ class TestSavedSearch(testlib.TestCase):
             N = len(old_jobs)
             logging.debug("Found %d jobs in saved search history", N)
             job = self.saved_search.dispatch()
-            while not job.isReady():
+            while not job.is_ready():
                 sleep(0.1)
             history = self.saved_search.history()
             self.assertEqual(len(history), N+1)

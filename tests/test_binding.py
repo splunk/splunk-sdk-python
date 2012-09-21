@@ -60,7 +60,6 @@ class BindingTestCase(unittest.TestCase):
         self.context = binding.connect(**self.opts.kwargs)
         logging.debug("Connected to splunkd.")
 
-
 class TestResponseReader(BindingTestCase):
     def test_empty(self):
         response = binding.ResponseReader(StringIO(""))
@@ -200,6 +199,25 @@ class TestUserManipulation(BindingTestCase):
         self.assertEqual(entry.content.realname, "Renzo")
         self.assertEqual(entry.content.email, "email.me@now.com")
 
+    def test_post_with_body_behaves(self):
+        self.test_create_user()
+        response = self.context.post(
+            PATH_USERS + self.username,
+            body="defaultApp=search",
+        )
+        self.assertEqual(response.status, 200)
+
+    def test_post_with_get_arguments_to_receivers_stream(self):
+        text = 'Hello, world!'
+        response = self.context.post(
+            '/services/receivers/simple',
+            headers={'x-splunk-input-mode': 'streaming'},
+            source='sdk', sourcetype='sdk_test',
+            body=text
+        )
+        self.assertEqual(response.status, 200)
+
+
 class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()
@@ -211,6 +229,19 @@ class TestSocket(BindingTestCase):
         socket.write("Authorization: %s\r\n" % \
                          self.context.token)
         socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+    def test_unicode_socket(self):
+        socket = self.context.connect()
+        socket.write(u"POST %s HTTP/1.1\r\n" %\
+                     self.context._abspath("some/path/to/post/to"))
+        socket.write(u"Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write(u"Accept-Encoding: identity\r\n")
+        socket.write(u"Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write(u"X-Splunk-Input-Mode: Streaming\r\n")
         socket.write("\r\n")
         socket.close()
 
@@ -253,12 +284,12 @@ class TestAbspath(BindingTestCase):
     def test_with_owner(self):
         path = self.context._abspath("foo", owner="me", app=None)
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/me/-/foo")
+        self.assertEqual(path, "/servicesNS/me/system/foo")
 
     def test_with_app(self):
         path = self.context._abspath("foo", owner=None, app="MyApp")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_with_both(self):
         path = self.context._abspath("foo", owner="me", app="MyApp")
@@ -300,13 +331,13 @@ class TestAbspath(BindingTestCase):
         context = binding.connect(owner="me", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/me/-/foo")
+        self.assertEqual(path, "/servicesNS/me/system/foo")
 
     def test_context_with_app(self):
         context = binding.connect(app="MyApp", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_context_with_both(self):
         context = binding.connect(owner="me", app="MyApp", **self.kwargs)
@@ -377,8 +408,10 @@ class TestPluggableHTTP(testlib.TestCase):
         handlers = [binding.handler(),  # default handler
                     urllib2_handler]
         for handler in handlers:
+            logging.debug("Connecting with handler %s", handler)
             context = binding.connect(
-                handler=handler, **self.opts.kwargs)
+                handler=handler,
+                **self.opts.kwargs)
             for path in paths:
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
@@ -470,20 +503,72 @@ class TestNamespace(unittest.TestCase):
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
-        with self.assertRaises(ValueError):
-            binding.namespace(sharing="gobble")
-
+        self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):
         token = self.context.token
         opts = self.opts.kwargs.copy()
         opts["token"] = token
+        opts["username"] = "boris the mad baboon"
+        opts["password"] = "nothing real"
         
         newContext = binding.Context(**opts)
         response = newContext.get("/services")
         self.assertEqual(response.status, 200)
         
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" % \
+                         self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" % \
+                         (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" % \
+                         self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+    def test_preexisting_token_sans_splunk(self):
+        token = self.context.token
+        if token.startswith('Splunk'):
+            token = token.split(' ', 1)[1]
+            self.assertFalse(token.startswith('Splunk'))
+        else:
+            self.fail("Token did not start with Splunk.")
+        opts = self.opts.kwargs.copy()
+        opts["token"] = token
+        opts["username"] = "boris the mad baboon"
+        opts["password"] = "nothing real"
+
+        newContext = binding.Context(**opts)
+        response = newContext.get("/services")
+        self.assertEqual(response.status, 200)
+
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" %\
+                    self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+
+def test_connect_with_preexisting_token_sans_user_and_pass(self):
+        token = self.context.token
+        opts = self.opts.kwargs.copy()
+        del opts['username']
+        del opts['password']
+        opts["token"] = token
+
+        newContext = binding.connect(**opts)
+        response = newContext.get('/services')
+        self.assertEqual(response.status, 200)
+
         socket = newContext.connect()
         socket.write("POST %s HTTP/1.1\r\n" % \
                          self.context._abspath("some/path/to/post/to"))

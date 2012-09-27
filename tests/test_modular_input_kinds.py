@@ -18,4 +18,28 @@ import testlib
 import splunklib.client as client
 
 class ModularInputKindTestCase(testlib.TestCase):
-    pass
+    def test_list_arguments(self):
+        test1 = self.service.modular_input_kinds['test1']
+
+        expected_args = set(["name", "resname", "key_id", "no_description", "empty_description",
+                             "arg_required_on_edit", "not_required_on_edit", "required_on_create",
+                            "not_required_on_create", "number_field", "string_field", "boolean_field"])
+        found_args = set(test1.arguments.keys())
+
+        self.assertEqual(expected_args, found_args)
+
+    def test_update_raises_exception(self):
+        test1 = self.service.modular_input_kinds['test1']
+        self.assertRaises(client.IllegalOperationException, test1.update, a="b")
+
+    def check_modular_input_kind(self, m):
+        if m.name == 'test1':
+            self.assertEqual('Test "Input" - 1', m['title'])
+            self.assertEqual("xml", m['streaming_mode'])
+        elif m.name == 'test2':
+            self.assertEqual('test2', m['title'])
+            self.assertEqual('simple', m['streaming_mode'])
+
+    def test_list_modular_inputs(self):
+        for m in self.service.modular_input_kinds:
+            self.check_modular_input_kind(m)

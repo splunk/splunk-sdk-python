@@ -402,7 +402,7 @@ class Service(Context):
     def modular_input_kinds(self):
         """Returns a collection of the modular input kinds on this Splunk instance."""
         if self.splunk_version[0] >= 5:
-            return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=Entity)
+            return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
         else:
             raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
 
@@ -2295,12 +2295,23 @@ class Message(Entity):
         return self[self.name]
 
 class ModularInputKind(Entity):
+    def __contains__(self, name):
+        args = self.state.content['endpoints']['args']
+        if name in args:
+            return True
+        else:
+            return Entity.__contains__(self, name)
+
     def __getitem__(self, name):
-        args = self['endpoint']['args']
+        args = self.state.content['endpoint']['args']
         if name in args:
             return args['item']
         else:
             return Entity.__getitem__(self, name)
+
+    @property
+    def arguments(self):
+        return self.state.content['endpoint']['args']
 
     def update(self, **kwargs):
         """Raises an error. Modular input kinds are read only."""

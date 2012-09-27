@@ -466,6 +466,11 @@ class Service(Context):
 
     @property
     def splunk_version(self):
+        """Get the version of the splunkd instance this object is attached to.
+
+        The version is returned as a 3-tuple of the version components as
+        integers (i.e., `(4,3,3)` or `(5,0,0)`.
+        """
         if self._splunk_version is None:
             self._splunk_version = tuple([int(p) for p in self.info['version'].split('.')])
         return self._splunk_version

@@ -34,7 +34,7 @@ class IndexTest(testlib.TestCase):
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
-        if self.splunk_version >= 5:
+        if self.service.splunk_version[0] >= 5:
             self.service.indexes.delete(self.index_name)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
@@ -63,10 +63,6 @@ class IndexWithRestartTest(IndexTest):
         self.service.restart(timeout=300)
         self.index = self.service.indexes[self.index_name]
 
-    def test_cannot_clean_enabled(self):
-        self.assertEqual(self.index['disabled'], '0')
-        self.assertRaises(client.IllegalOperationException, self.index.clean)
-
     def test_prefresh(self):
         index = self.service.indexes[self.index_name]
         self.assertEqual(self.index['disabled'], '0') # Index is prefreshed
@@ -81,6 +77,7 @@ class IndexWithRestartTest(IndexTest):
         self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
 
     def test_submit_and_clean(self):
+        # This fails on Ace beta because the index cannot be cleaned or deleted when disabled.
         self.index.refresh()
         originalCount = int(self.index['totalEventCount'])
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
@@ -88,7 +85,7 @@ class IndexWithRestartTest(IndexTest):
         self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
         self.index.disable()
         self.index.clean()
-        testlib.retry(self.index, 'totalEventCount', '0', step=1)
+        testlib.retry(self.index, 'totalEventCount', '0', step=1, times=60)
         self.index.refresh()
         self.assertEqual(self.index['totalEventCount'], '0')
 

@@ -39,13 +39,19 @@ class TestApp(testlib.TestCase):
         else:
             logging.debug("App %s already exists. Skipping creation.", self.app_name)
 
-class TestAppIntegrity(TestApp):
+    @classmethod
+    def tearDownClass(cls):
+        import splunklib.client as client
+        service = client.connect(**cls.opts.kwargs)
+        for app in service.apps:
+            if app.name.startswith('delete-me'):
+                service.apps.delete(app.name)
+
     def test_app_integrity(self):
         self.check_entity(self.app)
         self.app.setupInfo
         self.app['setupInfo']
 
-class TestDisableEnable(TestApp):
     def test_disable_enable(self):
         self.app.disable()
         self.app.refresh()
@@ -54,7 +60,6 @@ class TestDisableEnable(TestApp):
         self.app.refresh()
         self.assertEqual(self.app['disabled'], '0')
 
-class TestUpdate(TestApp):
     def test_update(self):
         kwargs = {
             'author': "Me",
@@ -70,7 +75,6 @@ class TestUpdate(TestApp):
         self.assertEqual(self.app['manageable'], "0")
         self.assertEqual(self.app['visible'], "1")
 
-class TestDelete(TestApp):
     def test_delete(self):
         name = testlib.tmpname()
         app = self.service.apps.create(name)
@@ -78,14 +82,12 @@ class TestDelete(TestApp):
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)
 
-class TestPackage(TestApp):
     def test_package(self):
         p = self.app.package()
         self.assertEqual(p.name, self.app_name)
         self.assertTrue(p.path.endswith(self.app_name + '.spl'))
         self.assertTrue(p.url.endswith(self.app_name + '.spl'))
 
-class TestUpdateInfo(TestApp):
     def test_updateInfo(self):
         p = self.app.updateInfo()
         self.assertTrue(p is not None)

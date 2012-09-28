@@ -41,9 +41,11 @@ class TestApp(testlib.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for app in cls.service.apps:
+        import splunklib.client as client
+        service = client.connect(**cls.opts.kwargs)
+        for app in service.apps:
             if app.name.startswith('delete-me'):
-                cls.service.apps.delete(app.name)
+                service.apps.delete(app.name)
 
     def test_app_integrity(self):
         self.check_entity(self.app)

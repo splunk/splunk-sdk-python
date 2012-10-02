@@ -40,7 +40,7 @@ def send_data(access_key, stream_name, point = None, command = None):
     if not command is None:
         data["command"] = command   
 
-    request = urllib2.Request("https://beta.leftronic.com/customSend/",
+    request = urllib2.Request("https://www.leftronic.com/customSend/",
         data = json.dumps(data)
     )
     response = urllib2.urlopen(request)

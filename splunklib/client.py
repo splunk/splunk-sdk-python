@@ -1635,29 +1635,18 @@ class Input(Entity):
     def __init__(self, service, path, kind=None, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
         if kind is None:
-            for kind, kind_path in INPUT_KINDMAP.iteritems():
-                if kind_path in path:
-                    self.kind = kind
-                    break
+            path_segments = path.split('/')
+            i = path_segments.index('inputs')
+            self.kind = '/'.join(path_segments[i+1:-1])
             assert self.kind is not None
         else:
             self.kind = kind
 
-# Directory of known input kinds that maps from input kind to path relative 
-# to data/inputs, eg: inputs of kind 'splunktcp' map to a relative path
-# of 'tcp/cooked' and therefore an endpoint path of 'data/inputs/tcp/cooked'.
-INPUT_KINDMAP = {
-    'ad': "ad",
-    'monitor': "monitor",
-    'registry': "registry",
-    'script': "script",
-    'tcp': "tcp/raw",
-    'splunktcp': "tcp/cooked",
-    'udp': "udp",
-    'win-event-log-collections': "win-event-log-collections", 
-    'win-perfmon': "win-perfmon",
-    'win-wmi-collections': "win-wmi-collections"
-}
+        # Maintain compatibility with older kind labels
+        if self.kind == 'tcp/raw':
+            self.kind = 'tcp'
+        if self.kind == 'tcp/cooked':
+            self.kind = 'splunktcp'
 
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all
@@ -1670,14 +1659,13 @@ class Inputs(Collection):
 
     def __init__(self, service, kindmap=None):
         Collection.__init__(self, service, PATH_INPUTS, item=Input)
-        self._kindmap = kindmap if kindmap is not None else INPUT_KINDMAP
-        
+
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             kind, key = key
             try:
-                kind_path = self._kindmap[kind]
+                kind_path = self.kindpath(kind)
                 response = self.get(kind_path + "/" + key)
                 entries = self._load_list(response)
                 if len(entries) > 1:
@@ -1695,9 +1683,9 @@ class Inputs(Collection):
             # Iterate over all the kinds looking for matches.
             kind = None
             candidate = None
-            for kind, kind_path in self._kindmap.iteritems():
+            for kind in self.kinds:
                 try:
-                    response = self.get(kind_path + "/" + key)
+                    response = self.get(kind + "/" + key)
                     entries = self._load_list(response)
                     if len(entries) > 1:
                         raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
@@ -1729,9 +1717,9 @@ class Inputs(Collection):
             # Without a kind, we want to minimize the number of round trips to the server, so we
             # reimplement some of the behavior of __getitem__ in order to be able to stop searching
             # on the first hit.
-            for kind, kind_path in self._kindmap.iteritems():
+            for kind in self.kinds:
                 try:
-                    response = self.get(kind_path + "/" + key)
+                    response = self.get(self.kindpath(kind) + "/" + key)
                     entries = self._load_list(response)
                     if len(entries) > 0:
                         return True
@@ -1758,8 +1746,9 @@ class Inputs(Collection):
         :return: The new input.
         """
         kindpath = self.kindpath(kind)
-        self.service.post(kindpath, name=name, **kwargs)
-        return Input(self.service, _path(kindpath, name), kind)
+        self.post(kindpath, name=name, **kwargs)
+        path = _path(self.path + kindpath, name)
+        return Input(self.service, path, kind)
 
     def delete(self, kind, name=None):
         """Removes an input from the collection.
@@ -1779,18 +1768,40 @@ class Inputs(Collection):
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
+    def _get_kind_list(self, subpath=[]):
+        kinds = []
+        response = self.get('/'.join(subpath))
+        content = _load_atom_entries(response)
+        for entry in content:
+            this_subpath = subpath + [entry.title]
+            if entry.title == 'all' or this_subpath == ['tcp','ssl']:
+                continue
+            elif 'create' in [x.rel for x in entry.link]:
+                kinds.append('/'.join(subpath + [entry.title]))
+            else:
+                subkinds = self._get_kind_list(subpath + [entry.title])
+                kinds.extend(subkinds)
+        return kinds
+
     @property
-    def kinds(self):
-        """Returns the list of input kinds that this collection may 
-        contain."""
-        return self._kindmap.keys()
+    def kinds(self, subpath=[]):
+        """Returns the list of input kinds that this collection contains."""
+        return self._get_kind_list()
 
     def kindpath(self, kind):
         """Returns a path to the resources for a given input kind.
 
         :param `kind`: The input kind.
         """
-        return self.path + self._kindmap[kind]
+        if kind in self.kinds:
+            return kind
+        # Special cases
+        elif kind == 'tcp':
+            return 'tcp/raw'
+        elif kind == 'splunktcp':
+            return 'tcp/cooked'
+        else:
+            raise ValueError("No such kind on server: %s" % kind)
 
     def list(self, *kinds, **kwargs):
         """Returns a list of inputs that belong to the collection. You can also
@@ -1816,7 +1827,7 @@ class Inputs(Collection):
         :param `kinds`: The input kinds to return (optional).
         """
         if len(kinds) == 0:
-            kinds = self._kindmap.keys()
+            kinds = self.kinds
         if len(kinds) == 1:
             kind = kinds[0]
             logging.debug("Inputs.list taking short circuit branch for single kind.")
@@ -1847,7 +1858,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
-                response = self.service.get(self.kindpath(kind),
+                response = self.get(self.kindpath(kind),
                                             search=search)
             except HTTPError as e:
                 if e.status == 404: 

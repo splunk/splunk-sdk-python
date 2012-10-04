@@ -19,16 +19,13 @@ import logging
 
 import splunklib.client as client
 
-test_inputs = [{'kind': 'tcp', 'name': '9999', 'host': 'sdk-test'},
-               {'kind': 'udp', 'name': '9999', 'host': 'sdk-test'}]
-
 class TestRead(testlib.TestCase):
     def test_read(self):
         inputs = self.service.inputs
         # count doesn't work on inputs; known problem tested for in
         # test_collection.py. This test will speed up dramatically
         # when that's fixed.
-        for item in inputs.list(count=5): 
+        for item in inputs.list(count=5):
             self.check_entity(item)
             item.refresh()
             self.check_entity(item)
@@ -85,42 +82,65 @@ class TestInput(testlib.TestCase):
     def setUp(self):
         super(TestInput, self).setUp()
         inputs = self.service.inputs
+        test_inputs = [{'kind': 'tcp', 'name': '9999', 'host': 'sdk-test'},
+                       {'kind': 'udp', 'name': '9999', 'host': 'sdk-test'}]
         self._test_entities = {}
-        for test_input in test_inputs:
-            if (test_input['kind'], test_input['name']) not in self.service.inputs:
-                self._test_entities[test_input['kind']] = \
-                    inputs.create(**test_input)
+
+        base_port = 10000
+        while True:
+            if str(base_port) in inputs:
+                base_port += 1
             else:
-                self._test_entities[test_input['kind']] = \
-                    inputs[test_input['kind'], test_input['name']]
+                break
+
+        self._test_entities['tcp'] = \
+            inputs.create('tcp', str(base_port), host='sdk-test')
+        self._test_entities['udp'] = \
+            inputs.create('udp', str(base_port), host='sdk-test')
 
     def tearDown(self):
         super(TestInput, self).tearDown()
-        for test_input in test_inputs:
+        for entity in self._test_entities.itervalues():
             try:
                 self.service.inputs.delete(
-                    kind=test_input['kind'],
-                    name=test_input['name'])
+                    kind=entity.kind,
+                    name=entity.name)
             except KeyError:
                 pass
 
+    def test_list(self):
+        inputs = self.service.inputs
+        input_list = inputs.list()
+        self.assertTrue(len(input_list) > 0)
+        for input in input_list:
+            self.assertTrue(input.name is not None)
+
+    def test_lists_modular_inputs(self):
+        if self.service.splunk_version[0] < 5:
+            return # Modular inputs don't exist prior to 5.0
+        else:
+            inputs = self.service.inputs
+            if ('test2','abcd') not in inputs:
+                inputs.create('test2', 'abcd', field1='boris')
+            input = inputs['test2', 'abcd']
+            self.assertEqual(input.field1, 'boris')
+
+
     def test_create(self):
         inputs = self.service.inputs
-        for test_input in test_inputs:
-            kind, name, host = test_input['kind'], test_input['name'], test_input['host']
-            entity = self._test_entities[kind]
-            entity = inputs[kind, name]
+        for entity in self._test_entities.itervalues():
             self.check_entity(entity)
             self.assertTrue(isinstance(entity, client.Input))
-            self.assertEqual(entity.name, name)
-            self.assertEqual(entity.kind, kind)
-            self.assertEqual(entity.host, host)
+
+    def test_get_kind_list(self):
+        inputs = self.service.inputs
+        kinds = inputs._get_kind_list()
+        self.assertTrue('tcp/raw' in kinds)
 
     def test_read(self):
         inputs = self.service.inputs
-        for test_input in test_inputs:
-            kind, name = test_input['kind'], test_input['name']
-            this_entity = self._test_entities[kind]
+        for this_entity in self._test_entities.itervalues():
+            kind, name = this_entity.kind, this_entity.name
             read_entity = inputs[kind, name]
             self.assertEqual(this_entity.kind, read_entity.kind)
             self.assertEqual(this_entity.name, read_entity.name)
@@ -128,9 +148,8 @@ class TestInput(testlib.TestCase):
 
     def test_update(self):
         inputs = self.service.inputs
-        for test_input in test_inputs:
-            kind, name = test_input['kind'], test_input['name']
-            entity = inputs[kind, name]
+        for entity in self._test_entities.itervalues():
+            kind, name = entity.kind, entity.name
             kwargs = {'host': 'foo', 'sourcetype': 'bar'}
             entity.update(**kwargs)
             entity.refresh()
@@ -139,10 +158,10 @@ class TestInput(testlib.TestCase):
 
     def test_delete(self):
         inputs = self.service.inputs
-        remaining = len(test_inputs)-1
-        for test_input in test_inputs:
-            kind, name = test_input['kind'], test_input['name']
-            input_entity = self.service.inputs[kind,name]
+        remaining = len(self._test_entities)-1
+        for input_entity in self._test_entities.itervalues():
+            name = input_entity.name
+            kind = input_entity.kind
             self.assertTrue(name in inputs)
             self.assertTrue((kind,name) in inputs)
             if remaining == 0:

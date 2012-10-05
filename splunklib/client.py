@@ -1633,6 +1633,10 @@ class Input(Entity):
     typed input classes and is also used when the client does not recognize an
     input kind."""
     def __init__(self, service, path, kind=None, **kwargs):
+        # kind can be omitted (in which case it is inferred from the path)
+        # Otherwise, valid values are the paths from data/inputs ("udp",
+        # "monitor", "tcp/raw"), or two special cases: "tcp" (which is "tcp/raw")
+        # and "splunktcp" (which is "tcp/cooked").
         Entity.__init__(self, service, path, **kwargs)
         if kind is None:
             path_segments = path.split('/')
@@ -1665,8 +1669,7 @@ class Inputs(Collection):
             # Fetch a single kind
             kind, key = key
             try:
-                kind_path = self.kindpath(kind)
-                response = self.get(kind_path + "/" + key)
+                response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
                 if len(entries) > 1:
                     raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
@@ -1858,8 +1861,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
-                response = self.get(self.kindpath(kind),
-                                            search=search)
+                response = self.get(self.kindpath(kind), search=search)
             except HTTPError as e:
                 if e.status == 404: 
                     continue # No inputs of this kind

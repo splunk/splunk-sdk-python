@@ -57,6 +57,21 @@ class IndexWithoutRestart(IndexTest):
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '0')
 
+    def test_submit_and_clean(self):
+        self.index.refresh()
+        originalCount = int(self.index['totalEventCount'])
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        testlib.retry(self.index, 'totalEventCount', str(originalCount+1), step=1)
+        self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
+        # clean always times out under Splunk 4.x if run in an enabled index, but
+        # it can't be run in a disabled index in Splunk 5.0 (you get a 404 if you try
+        # to update the fields of a disabled index in 5.0), so we disable for 4.x and
+        # not for 5.0.
+        if (self.service.splunk_version[0] < 5):
+            self.index.disable()
+        self.index.clean(timeout=500)
+        self.assertEqual(self.index['totalEventCount'], '0')
+
 class IndexWithRestartTest(IndexTest):
     def setUp(self):
         super(IndexWithRestartTest, self).setUp()
@@ -67,7 +82,6 @@ class IndexWithRestartTest(IndexTest):
         index = self.service.indexes[self.index_name]
         self.assertEqual(self.index['disabled'], '0') # Index is prefreshed
 
-
     def test_submit(self):
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
@@ -75,19 +89,6 @@ class IndexWithRestartTest(IndexTest):
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1)
         self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
-
-    def test_submit_and_clean(self):
-        # This fails on Ace beta because the index cannot be cleaned or deleted when disabled.
-        self.index.refresh()
-        originalCount = int(self.index['totalEventCount'])
-        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        testlib.retry(self.index, 'totalEventCount', str(originalCount+1), step=1)
-        self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
-        self.index.disable()
-        self.index.clean()
-        testlib.retry(self.index, 'totalEventCount', '0', step=1, times=60)
-        self.index.refresh()
-        self.assertEqual(self.index['totalEventCount'], '0')
 
     def test_submit_via_attach(self):
         eventCount = int(self.index['totalEventCount'])

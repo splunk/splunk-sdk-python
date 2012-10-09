@@ -1548,28 +1548,31 @@ class Index(Entity):
 
     def clean(self, timeout=60):
         """Deletes the contents of the index.
-        
+
+        `clean` blocks until the index is empty, since it needs to restore
+        values at the end.
+
         :param `timeout`: The time-out period for the operation, in seconds (the
                           default is 60).
         """
         self.refresh()
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
-        self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
-        self.roll_hot_buckets()
+        try:
+            self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
+            self.roll_hot_buckets()
 
-        # Wait until the event count goes to zero
-        count = 0
-        while self.content.totalEventCount != '0' and count < timeout:
-            sleep(1)
-            count += 1
-            self.refresh()
-
-        # Restore original values
-        self.update(maxTotalDataSizeMB=tds,
-                    frozenTimePeriodInSecs=ftp)
-        if self.content.totalEventCount != '0':
-            raise OperationError, "Operation timed out."
+            start = datetime.now()
+            diff = timedelta(seconds=timeout)
+            while self.content.totalEventCount != '0' and datetime.now() < start+diff:
+                sleep(1)
+                self.refresh()
+        finally:
+            # Restore original values
+            self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
+            if self.content.totalEventCount != '0':
+                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." % \
+                                      (self.name, timeout)
         return self
 
     def disable(self):

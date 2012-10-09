@@ -63,6 +63,11 @@ RULES_SPLUNK = {
         'default': None,
         'help': "Password to login with" 
     },
+    'appcollection': {
+        'flags': ["--appcollection"],
+        'default': None,
+        'help': "Path to appcollection"
+    }
 }
 
 FLAGS_SPLUNK = RULES_SPLUNK.keys()

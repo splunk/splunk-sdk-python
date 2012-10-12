@@ -37,9 +37,9 @@ expected_access_keys = set(['sharing', 'app', 'owner'])
 expected_fields_keys = set(['required', 'optional', 'wildcard'])
 
 
-class TestCase(testlib.TestCase):
+class CollectionTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(TestCase, self).setUp()
+        super(CollectionTestCase, self).setUp()
         if self.service.splunk_version[0] >= 5 and 'modular_input_kinds' not in collections:
             collections.append('modular_input_kinds') # Not supported before Splunk 5.0
         else:

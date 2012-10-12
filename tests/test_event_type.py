@@ -19,12 +19,12 @@ import logging
 
 import splunklib.client as client
 
-class TestRead(testlib.TestCase):
+class TestRead(testlib.SDKTestCase):
     def test_read(self):
         for event_type in self.service.event_types.list(count=1):
             self.check_entity(event_type)
 
-class TestCreate(testlib.TestCase):
+class TestCreate(testlib.SDKTestCase):
     def test_create(self):
         self.event_type_name = testlib.tmpname()
         event_types = self.service.event_types
@@ -47,7 +47,7 @@ class TestCreate(testlib.TestCase):
         except KeyError:
             pass
 
-class TestEventType(testlib.TestCase):
+class TestEventType(testlib.SDKTestCase):
     def setUp(self):
         super(TestEventType, self).setUp()
         self.event_type_name = testlib.tmpname()

@@ -22,7 +22,7 @@ import splunklib.client as client
 
 import logging
 
-class IndexTest(testlib.TestCase):
+class IndexTest(testlib.SDKTestCase):
     def setUp(self):
         super(IndexTest, self).setUp()
         self.index_name = testlib.tmpname()
@@ -34,7 +34,7 @@ class IndexTest(testlib.TestCase):
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
-        if self.service.splunk_version[0] >= 5:
+        if self.service.splunk_version >= (5,):
             self.service.indexes.delete(self.index_name)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
@@ -57,6 +57,17 @@ class IndexWithoutRestart(IndexTest):
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '0')
 
+    def test_submit_and_clean(self):
+        self.index.refresh()
+
+        originalCount = int(self.index['totalEventCount'])
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        testlib.retry(self.index, 'totalEventCount', str(originalCount+1), step=1)
+        self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
+
+        self.index.clean(timeout=500)
+        self.assertEqual(self.index['totalEventCount'], '0')
+
 class IndexWithRestartTest(IndexTest):
     def setUp(self):
         super(IndexWithRestartTest, self).setUp()
@@ -67,7 +78,6 @@ class IndexWithRestartTest(IndexTest):
         index = self.service.indexes[self.index_name]
         self.assertEqual(self.index['disabled'], '0') # Index is prefreshed
 
-
     def test_submit(self):
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
@@ -75,19 +85,6 @@ class IndexWithRestartTest(IndexTest):
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1)
         self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
-
-    def test_submit_and_clean(self):
-        # This fails on Ace beta because the index cannot be cleaned or deleted when disabled.
-        self.index.refresh()
-        originalCount = int(self.index['totalEventCount'])
-        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        testlib.retry(self.index, 'totalEventCount', str(originalCount+1), step=1)
-        self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
-        self.index.disable()
-        self.index.clean()
-        testlib.retry(self.index, 'totalEventCount', '0', step=1, times=60)
-        self.index.refresh()
-        self.assertEqual(self.index['totalEventCount'], '0')
 
     def test_submit_via_attach(self):
         eventCount = int(self.index['totalEventCount'])

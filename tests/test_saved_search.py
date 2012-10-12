@@ -22,7 +22,7 @@ from time import sleep
 
 import splunklib.client as client
 
-class TestSavedSearch(testlib.TestCase):
+class TestSavedSearch(testlib.SDKTestCase):
     def setUp(self):
         super(TestSavedSearch, self).setUp()
         saved_searches = self.service.saved_searches

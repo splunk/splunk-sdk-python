@@ -19,7 +19,7 @@ import logging
 
 import splunklib.client as client
 
-class TestRead(testlib.TestCase):
+class TestRead(testlib.SDKTestCase):
     def test_read(self):
         inputs = self.service.inputs
         # count doesn't work on inputs; known problem tested for in
@@ -78,7 +78,7 @@ class TestRead(testlib.TestCase):
             self.service.inputs.oneshot, name)
 
 
-class TestInput(testlib.TestCase):
+class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super(TestInput, self).setUp()
         inputs = self.service.inputs

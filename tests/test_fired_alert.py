@@ -19,9 +19,9 @@ import logging
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
+class FiredAlertTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(TestCase, self).setUp()
+        super(FiredAlertTestCase, self).setUp()
         self.index_name = testlib.tmpname()
         self.assertFalse(self.index_name in self.service.indexes)
         self.index = self.service.indexes.create(self.index_name)
@@ -44,7 +44,7 @@ class TestCase(testlib.TestCase):
             query, **kwargs)
 
     def tearDown(self):
-        super(TestCase, self).tearDown()
+        super(FiredAlertTestCase, self).tearDown()
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 self.service.saved_searches.delete(saved_search.name)

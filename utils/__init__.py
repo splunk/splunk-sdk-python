@@ -63,6 +63,17 @@ RULES_SPLUNK = {
         'default': None,
         'help': "Password to login with" 
     },
+    # This is introduced for the Java SDK's test suite. It has
+    # to be here in order to share a single .splunkrc among the
+    # SDKs, but is not yet used in Python (though it will probably
+    # be used in future). It's optional, though, so we don't need
+    # to change the README or otherwise document it in the Python
+    # SDK for now.
+    'appcollection': {
+        'flags': ["--appcollection"],
+        'default': None,
+        'help': "Path to appcollection"
+    }
 }
 
 FLAGS_SPLUNK = RULES_SPLUNK.keys()

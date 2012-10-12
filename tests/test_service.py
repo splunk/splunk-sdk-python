@@ -24,7 +24,7 @@ import splunklib.data as data
 import splunklib.client as client
 from splunklib.binding import HTTPError
 
-class TestCase(testlib.TestCase):
+class ServiceTestCase(testlib.SDKTestCase):
     def test_capabilities(self):
         capabilities = self.service.capabilities
         self.assertTrue(isinstance(capabilities, list))
@@ -101,7 +101,7 @@ class TestCase(testlib.TestCase):
         for p in v:
             self.assertTrue(isinstance(p, int) and p >= 0)
 
-class TestSettings(testlib.TestCase):
+class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):
         settings = self.service.settings
         # Verify that settings contains the keys we expect

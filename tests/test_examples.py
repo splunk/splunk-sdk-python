@@ -51,13 +51,13 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
 
 # Rudimentary sanity check for each of the examples
-class TestCase(testlib.TestCase):
+class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args: 
             self.assertEquals(run(arg), 0)
 
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(ExamplesTestCase, self).setUp()
 
         # Ignore result, it might already exist
         run("index.py create sdk-tests")

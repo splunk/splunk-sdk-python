@@ -19,14 +19,14 @@ import logging
 
 import splunklib.client as client
 
-class TestCase(testlib.TestCase):
+class UserTestCase(testlib.SDKTestCase):
     def check_user(self, user):
         self.check_entity(user)
         # Verify expected fields exist
         [user[f] for f in ['email', 'password', 'realname', 'roles']]
         
     def setUp(self):
-        super(TestCase, self).setUp()
+        super(UserTestCase, self).setUp()
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
             self.username,
@@ -34,7 +34,7 @@ class TestCase(testlib.TestCase):
             roles=['power', 'user'])
 
     def tearDown(self):
-        super(TestCase, self).tearDown()
+        super(UserTestCase, self).tearDown()
         for user in self.service.users:
             if user.name.startswith('delete-me'):
                 self.service.users.delete(user.name)

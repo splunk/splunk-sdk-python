@@ -24,7 +24,7 @@ import splunklib.results as results
 
 from splunklib.binding import log_duration
 
-class TestUtilities(testlib.TestCase):
+class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
         job = self.service.search('search index=_internal earliest=-1m | head 3')
         self.assertTrue(self.service.jobs.contains(job.sid))
@@ -140,7 +140,7 @@ class TestUtilities(testlib.TestCase):
             self.check_job(job)
 
 
-class TestJob(testlib.TestCase):
+class TestJob(testlib.SDKTestCase):
     def setUp(self):
         super(TestJob, self).setUp()
         self.query = "search index=_internal earliest=-1m | head 3"

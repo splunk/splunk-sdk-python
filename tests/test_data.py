@@ -21,7 +21,7 @@ import testlib
 
 import splunklib.data as data
 
-class TestCase(testlib.TestCase):
+class DataTestCase(testlib.SDKTestCase):
     def test_elems(self):
         result = data.load("")
         self.assertTrue(result is None)

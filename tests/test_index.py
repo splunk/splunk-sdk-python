@@ -22,7 +22,7 @@ import splunklib.client as client
 
 import logging
 
-class IndexTest(testlib.TestCase):
+class IndexTest(testlib.SDKTestCase):
     def setUp(self):
         super(IndexTest, self).setUp()
         self.index_name = testlib.tmpname()
@@ -34,7 +34,7 @@ class IndexTest(testlib.TestCase):
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
-        if self.service.splunk_version[0] >= 5:
+        if self.service.splunk_version >= (5,):
             self.service.indexes.delete(self.index_name)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
@@ -59,16 +59,12 @@ class IndexWithoutRestart(IndexTest):
 
     def test_submit_and_clean(self):
         self.index.refresh()
+
         originalCount = int(self.index['totalEventCount'])
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         testlib.retry(self.index, 'totalEventCount', str(originalCount+1), step=1)
         self.assertEqual(self.index['totalEventCount'], str(originalCount+1))
-        # clean always times out under Splunk 4.x if run in an enabled index, but
-        # it can't be run in a disabled index in Splunk 5.0 (you get a 404 if you try
-        # to update the fields of a disabled index in 5.0), so we disable for 4.x and
-        # not for 5.0.
-        if (self.service.splunk_version[0] < 5):
-            self.index.disable()
+
         self.index.clean(timeout=500)
         self.assertEqual(self.index['totalEventCount'], '0')
 

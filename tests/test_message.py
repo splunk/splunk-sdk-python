@@ -18,19 +18,19 @@ import testlib
 
 import splunklib.client as client
 
-class MessageTest(testlib.TestCase):
+class MessageTest(testlib.SDKTestCase):
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        testlib.SDKTestCase.setUp(self)
         self.message_name = testlib.tmpname()
         self.message = self.service.messages.create(
             self.message_name,
             value='Test message created by the SDK')
 
     def tearDown(self):
-        testlib.TestCase.tearDown(self)
+        testlib.SDKTestCase.tearDown(self)
         self.service.messages.delete(self.message_name)
 
-class TestCreateDelete(testlib.TestCase):
+class TestCreateDelete(testlib.SDKTestCase):
     def test_create_delete(self):
         message_name = testlib.tmpname()
         message_value = 'Test message'

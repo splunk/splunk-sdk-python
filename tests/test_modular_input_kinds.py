@@ -17,7 +17,7 @@
 import testlib
 import splunklib.client as client
 
-class ModularInputKindTestCase(testlib.TestCase):
+class ModularInputKindTestCase(testlib.SDKTestCase):
     def test_list_arguments(self):
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0

@@ -20,7 +20,7 @@ import splunklib.client as client
 
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 
-class TestCase(testlib.TestCase):
+class LoggerTestCase(testlib.SDKTestCase):
     def check_logger(self, logger):
         self.check_entity(logger)
         self.assertTrue(logger['level'] in LEVELS)

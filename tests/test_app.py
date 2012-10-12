@@ -20,7 +20,7 @@ import logging
 import splunklib.client as client
 import splunklib.data as data
 
-class TestApp(testlib.TestCase):
+class TestApp(testlib.SDKTestCase):
     app = None
     app_name = None
     def setUp(self):

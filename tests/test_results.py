@@ -20,7 +20,7 @@ import testlib
 
 import splunklib.results as results
 
-class TestCase(testlib.TestCase):
+class ResultsTestCase(testlib.SDKTestCase):
     def test_read_normal_results(self):
         xml_text = """
 <?xml version='1.0' encoding='UTF-8'?>

@@ -105,7 +105,7 @@ def wait(entity, predicate, timeout=60):
     logging.debug("wait finished after %s seconds", datetime.now()-start)
     return entity
 
-class TestCase(unittest.TestCase):
+class SDKTestCase(unittest.TestCase):
     def check_content(self, entity, **kwargs):
         for k, v in kwargs.iteritems(): 
             self.assertEqual(entity[k], str(v))

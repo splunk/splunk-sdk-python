@@ -17,8 +17,12 @@
 import testlib
 import splunklib.client as client
 
-class ModularInputKindTestCase(testlib.TestCase):
+class ModularInputKindTestCase(testlib.SDKTestCase):
     def test_list_arguments(self):
+        if self.service.splunk_version[0] < 5:
+            # Not implemented before 5.0
+            return
+
         test1 = self.service.modular_input_kinds['test1']
 
         expected_args = set(["name", "resname", "key_id", "no_description", "empty_description",
@@ -29,6 +33,10 @@ class ModularInputKindTestCase(testlib.TestCase):
         self.assertEqual(expected_args, found_args)
 
     def test_update_raises_exception(self):
+        if self.service.splunk_version[0] < 5:
+            # Not implemented before 5.0
+            return
+
         test1 = self.service.modular_input_kinds['test1']
         self.assertRaises(client.IllegalOperationException, test1.update, a="b")
 
@@ -41,5 +49,9 @@ class ModularInputKindTestCase(testlib.TestCase):
             self.assertEqual('simple', m['streaming_mode'])
 
     def test_list_modular_inputs(self):
+        if self.service.splunk_version[0] < 5:
+            # Not implemented before 5.0
+            return
+
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)

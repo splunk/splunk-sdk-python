@@ -19,7 +19,7 @@ import logging
 
 import splunklib.client as client
 
-class TestRead(testlib.TestCase):
+class TestRead(testlib.SDKTestCase):
     def test_read(self):
         service = client.connect(**self.opts.kwargs)
 
@@ -36,7 +36,7 @@ class TestRead(testlib.TestCase):
         for stanza in confs['indexes'].list(count=5):
             self.check_entity(stanza)
 
-class TestConfs(testlib.TestCase):
+class TestConfs(testlib.SDKTestCase):
     def setUp(self):
         super(TestConfs, self).setUp()
         self.app_name = testlib.tmpname()

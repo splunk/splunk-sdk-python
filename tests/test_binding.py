@@ -400,7 +400,7 @@ def isatom(body):
         root.find(XNAME_ID) is not None and \
         root.find(XNAME_TITLE) is not None
 
-class TestPluggableHTTP(testlib.TestCase):
+class TestPluggableHTTP(testlib.SDKTestCase):
     # Verify pluggable HTTP reqeust handlers.
     def test_handlers(self):
         paths = ["/services", "authentication/users", 

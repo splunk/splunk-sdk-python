@@ -401,7 +401,7 @@ class Service(Context):
     @property
     def modular_input_kinds(self):
         """Returns a collection of the modular input kinds on this Splunk instance."""
-        if self.splunk_version[0] >= 5:
+        if self.splunk_version >= (5,):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
         else:
             raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
@@ -1481,7 +1481,7 @@ class Indexes(Collection):
         return index['defaultDatabase']
 
     def delete(self, name):
-        if self.service.splunk_version[0] >= 5:
+        if self.service.splunk_version >= (5,):
             Collection.delete(self, name)
         else:
             raise IllegalOperationException("Deleting indexes via the REST API is "
@@ -1548,28 +1548,42 @@ class Index(Entity):
 
     def clean(self, timeout=60):
         """Deletes the contents of the index.
-        
+
+        `clean` blocks until the index is empty, since it needs to restore
+        values at the end.
+
         :param `timeout`: The time-out period for the operation, in seconds (the
                           default is 60).
         """
         self.refresh()
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
-        self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
-        self.roll_hot_buckets()
+        was_disabled_initially = self.disabled
+        try:
+            if (not was_disabled_initially and \
+                self.service.splunk_version < (5,)):
+                # Need to disable the index first on Splunk 4.x,
+                # but it doesn't work to disable it on 5.0.
+                self.disable()
+            self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
+            self.roll_hot_buckets()
 
-        # Wait until the event count goes to zero
-        count = 0
-        while self.content.totalEventCount != '0' and count < timeout:
-            sleep(1)
-            count += 1
-            self.refresh()
-
-        # Restore original values
-        self.update(maxTotalDataSizeMB=tds,
-                    frozenTimePeriodInSecs=ftp)
-        if self.content.totalEventCount != '0':
-            raise OperationError, "Operation timed out."
+            start = datetime.now()
+            diff = timedelta(seconds=timeout)
+            # Wait until event count goes to 0.
+            while self.content.totalEventCount != '0' and datetime.now() < start+diff:
+                sleep(1)
+                self.refresh()
+        finally:
+            # Restore original values
+            self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
+            if self.content.totalEventCount != '0':
+                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." % \
+                                      (self.name, timeout)
+            if (not was_disabled_initially and \
+                self.service.splunk_version < (5,)):
+                # Re-enable the index if it was originally enabled and we messed with it.
+                self.enable()
         return self
 
     def disable(self):

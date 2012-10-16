@@ -25,8 +25,6 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.index_name = testlib.tmpname()
         self.assertFalse(self.index_name in self.service.indexes)
         self.index = self.service.indexes.create(self.index_name)
-        self.service.restart(120)
-        self.index = self.service.indexes[self.index_name]
         saved_searches = self.service.saved_searches
         self.saved_search_name = testlib.tmpname()
         self.assertFalse(self.saved_search_name in saved_searches)
@@ -45,6 +43,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
 
     def tearDown(self):
         super(FiredAlertTestCase, self).tearDown()
+        self.service.indexes.delete(self.index_name)
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 self.service.saved_searches.delete(saved_search.name)
@@ -60,6 +59,8 @@ class FiredAlertTestCase(testlib.SDKTestCase):
     def test_alerts_on_events(self):
         self.assertEqual(self.saved_search.alert_count, 0)
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
+        self.index.enable()
+        testlib.retry(self.index, 'disabled', '0', step=0.5, times=50)
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')

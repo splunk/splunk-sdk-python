@@ -17,6 +17,9 @@
 """Shared unit test utilities."""
 
 import re
+import warnings
+import splunklib.data as data
+import splunklib.client as client
 import sys
 from time import sleep
 from datetime import datetime, timedelta
@@ -36,6 +39,12 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 
+class NoRestartRequiredError(Exception):
+    pass
+
+class WaitTimedOutError(Exception):
+    pass
+
 def to_bool(x):
     if x == '1':
         return True
@@ -44,68 +53,46 @@ def to_bool(x):
     else:
         raise ValueError("Not a boolean value: %s", x)
 
-def retry(entity, field, expected, times=10, step=0):
-    # Sometimes there is a slight delay in the value getting
-    # set in splunkd. If it fails, just try again.
-    import time
-    tries = times
-    while tries > 0:
-        entity.refresh()
-        if callable(field):
-            p = field(entity)
-        elif isinstance(field, str):
-            p = entity[field]
-        else:
-            raise ValueError("Unrecognized field type.")
-        if p == expected:
-            return
-        else:
-            tries -= 1
-            time.sleep(step)
-    raise ValueError("%d loops in retry weren't enough" % times)
-
 def tmpname():
     name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
     return name
 
-def delete_app(service, name):
-    """Delete the app with the given name at the given service."""
-    apps = service.apps
-    if name in apps:
-        app = apps[name]
-        app.disable()
-        apps.delete(name)
-        restart(service)
-
-def restart(service, timeout=120):
-    """Restart the given service and wait for it to wake back up."""
-    service.restart()
-    sleep(5) # Wait for service to notice restart
-    secs = 0
-    while secs < timeout:
-        try:
-            service.login() # Awake yet?
-            return
-        except:
-            sleep(2)
-            secs -= 2 # Approximately
-    raise Exception, "Operation timed out."
-
-def wait(entity, predicate, timeout=60):
-    """Wait for the given entity to satisfy the given condition."""
+def wait(predicate, timeout=60, pause_time=0.5):
+    assert pause_time < timeout
     start = datetime.now()
     diff = timedelta(seconds=timeout)
-    while not predicate(entity):
+    while not predicate():
         if datetime.now() - start > diff:
             logging.debug("wait timed out after %d seconds", timeout)
-            raise Exception, "Operation timed out."
-        sleep(0.5)
-        if entity is not None:
-            entity.refresh()
-    logging.debug("wait finished after %s seconds", datetime.now()-start)
-    return entity
+            raise WaitTimedOutError
+        sleep(pause_time)
+        logging.debug("wait finished after %s seconds", datetime.now()-start)
+
 
 class SDKTestCase(unittest.TestCase):
+    restart_already_required = False
+    installedApps = []
+
+    def assertEventuallyEqual(self, expected, func, timeout=10, pause_time=0.5,
+                              timeout_message="Operation timed out."):
+        self.assertEventuallyTrue(
+            lambda: expected == func(),
+            timeout=timeout, pause_time=pause_time,
+            timeout_message=timeout_message
+        )
+
+    def assertEventuallyTrue(self, predicate, timeout=10, pause_time=0.5,
+                             timeout_message="Operation timed out."):
+        assert pause_time < timeout
+        start = datetime.now()
+        diff = timedelta(seconds=timeout)
+        while not predicate():
+            if datetime.now() - start > diff:
+                logging.debug("wait timed out after %d seconds", timeout)
+                self.fail(timeout_message)
+            sleep(pause_time)
+            logging.debug("wait finished after %s seconds", datetime.now()-start)
+
     def check_content(self, entity, **kwargs):
         for k, v in kwargs.iteritems(): 
             self.assertEqual(entity[k], str(v))
@@ -147,19 +134,38 @@ class SDKTestCase(unittest.TestCase):
                         continue
                 raise
 
-    def assertEventually(self, pred, timeout=60):
-        wait(None, pred, timeout)
-        self.assertTrue(pred())
+    def clearRestartMessage(self):
+        try:
+            self.service.delete("messages/restart_required")
+        except client.HTTPError as he:
+            if he.status == 404:
+                pass
+            else:
+                raise
 
-    def assertEventuallyEqual(self, a, b, timeout=60):
-        fa = a if callable(a) else lambda: a
-        fb = b if callable(b) else lambda: b
-        def f(_):
-            va = fa()
-            vb = fb()
-            return va == vb
-        wait(None, f, timeout)
-        self.assertEqual(fa(), fb())
+    def appCollectionPath(self):
+        if 'appcollection' not in self.opts.kwargs:
+            raise ValueError('No path to appcollection found in .splunkrc')
+        elif not os.path.isdir(self.opts.kwargs['appcollection']):
+            raise ValueError('appcollection not found at %s' % \
+                                self.opts.kwargs['appcollection'])
+        else:
+            return self.opts.kwargs['appcollection']
+
+    def installAppFromCollection(self, name):
+        basePath = self.appCollectionPath()
+        appPath = os.path.abspath(os.path.join(basePath, "build", name + ".tar"))
+        if not os.path.isfile(appPath):
+            raise ValueError("No such application at %s" % appPath)
+        kwargs = {"update": 1, "name": appPath}
+        self.service.post("apps/appinstall", **kwargs)
+        self.installedApps.append(name)
+
+    def restartSplunk(self, timeout=120):
+        if self.service.restart_required:
+            self.service.restart(timeout)
+        else:
+            raise NoRestartRequiredError()
 
     @classmethod
     def setUpClass(cls):
@@ -167,9 +173,19 @@ class SDKTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
-        import splunklib.client as client
+        self.caused_restart_required = False
         self.service = client.connect(**self.opts.kwargs)
+        if self.service.restart_required:
+            self.restart_already_required = True
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
+
+    def tearDown(self):
+        if self.service.restart_required and not self.restart_already_required:
+            self.fail("Test left Splunk in a state requiring a restart.")
+        for appName in self.installedApps:
+            if appName in self.service.apps:
+                self.service.apps.delete(appName)
+                wait(lambda: appName not in self.service.apps)
 
 def main():
     unittest.main()

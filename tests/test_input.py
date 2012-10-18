@@ -61,14 +61,16 @@ class TestRead(testlib.SDKTestCase):
     def test_oneshot(self):
         index_name = testlib.tmpname()
         index = self.service.indexes.create(index_name)
-        self.service.restart(timeout=120)
+        self.restartSplunk(timeout=120)
         index = self.service.indexes[index_name]
         eventCount = int(index['totalEventCount'])
         from os import path
         testpath = path.dirname(path.abspath(__file__))
         self.service.inputs.oneshot(path.join(testpath, 'testfile.txt'), index=index_name)
-        testlib.retry(index, 'totalEventCount', str(eventCount+1), step=1)
-        self.assertEqual(index['totalEventCount'], str(eventCount+1))
+        self.assertEventuallyEqual(
+            str(eventCount+1),
+            lambda: index.refresh()['totalEventCount']
+        )
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()

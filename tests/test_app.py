@@ -23,6 +23,7 @@ import splunklib.data as data
 class TestApp(testlib.SDKTestCase):
     app = None
     app_name = None
+
     def setUp(self):
         super(TestApp, self).setUp()
         if self.app is None:
@@ -39,13 +40,17 @@ class TestApp(testlib.SDKTestCase):
         else:
             logging.debug("App %s already exists. Skipping creation.", self.app_name)
 
-    @classmethod
-    def tearDownClass(cls):
-        import splunklib.client as client
-        service = client.connect(**cls.opts.kwargs)
-        for app in service.apps:
-            if app.name.startswith('delete-me'):
-                service.apps.delete(app.name)
+    def tearDown(self):
+        super(TestApp, self).tearDown()
+        # The rest of this will leave Splunk in a state requiring a restart.
+        # It doesn't actually matter, though.
+        self.service = client.connect(**self.opts.kwargs)
+        for app in self.service.apps:
+            app_name = app.name
+            if app_name.startswith('delete-me'):
+                self.service.apps.delete(app_name)
+                self.assertEventuallyTrue(lambda: app_name not in self.service.apps)
+        self.clearRestartMessage()
 
     def test_app_integrity(self):
         self.check_entity(self.app)
@@ -81,6 +86,7 @@ class TestApp(testlib.SDKTestCase):
         self.assertTrue(name in self.service.apps)
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)
+        self.clearRestartMessage() # We don't actually have to restart here.
 
     def test_package(self):
         p = self.app.package()

@@ -59,18 +59,22 @@ class FiredAlertTestCase(testlib.SDKTestCase):
     def test_alerts_on_events(self):
         self.assertEqual(self.saved_search.alert_count, 0)
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
+
         self.index.enable()
-        testlib.retry(self.index, 'disabled', '0', step=0.5, times=50)
+        self.assertEventuallyEqual('0', lambda: self.index.refresh() and self.index['disabled'], timeout=25)
+
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')
         self.index.refresh()
         self.index.submit('This is a test ' + testlib.tmpname(),
                           sourcetype='sdk_use', host='boris')
-        testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1, times=50)
-        self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
-        testlib.retry(self.saved_search, lambda s: s.alert_count, 1, step=2, times=100)
-        self.assertEqual(self.saved_search.alert_count, 1)
+        self.assertEventuallyEqual(str(eventCount+1), lambda: self.index.refresh() and self.index['totalEventCount'], timeout=50)
+        self.assertEventuallyEqual(
+            1,
+            lambda: self.saved_search.refresh() and self.saved_search.alert_count,
+            timeout=200
+        )
         alerts = self.saved_search.fired_alerts
         self.assertEqual(len(alerts), 1)
 

@@ -42,8 +42,6 @@ class IndexTest(testlib.SDKTestCase):
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
                             "delete indexes via the REST API in Splunk 4.x")
 
-
-class IndexWithoutRestart(IndexTest):
     def totalEventCount(self):
         self.index.refresh()
         return int(self.index['totalEventCount'])
@@ -57,6 +55,7 @@ class IndexWithoutRestart(IndexTest):
 
     def test_disable_enable(self):
         self.index.disable()
+        self.restartSplunk()
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
         self.index.enable()
@@ -65,10 +64,15 @@ class IndexWithoutRestart(IndexTest):
 
     def test_submit_and_clean(self):
         self.index.refresh()
-
         originalCount = int(self.index['totalEventCount'])
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         self.assertEventuallyEqual(originalCount+1, self.totalEventCount)
+
+        # Cleaning an enabled index on 4.x takes forever, so we disable it.
+        # However, cleaning it on 5 requires it to be enabled.
+        if self.service.splunk_version < (5,):
+            self.index.disable()
+            self.restartSplunk()
         self.index.clean(timeout=500)
         self.assertEqual(self.index['totalEventCount'], '0')
 

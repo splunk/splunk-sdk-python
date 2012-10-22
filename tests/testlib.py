@@ -143,22 +143,27 @@ class SDKTestCase(unittest.TestCase):
             else:
                 raise
 
-    def appCollectionPath(self):
-        if 'appcollection' not in self.opts.kwargs:
-            raise ValueError('No path to appcollection found in .splunkrc')
-        elif not os.path.isdir(self.opts.kwargs['appcollection']):
-            raise ValueError('appcollection not found at %s' % \
-                                self.opts.kwargs['appcollection'])
-        else:
-            return self.opts.kwargs['appcollection']
-
     def installAppFromCollection(self, name):
-        basePath = self.appCollectionPath()
-        appPath = os.path.abspath(os.path.join(basePath, "build", name + ".tar"))
-        if not os.path.isfile(appPath):
-            raise ValueError("No such application at %s" % appPath)
+        collectionName = 'sdk-app-collection'
+        if collectionName not in self.service.apps:
+            raise ValueError("sdk-test-application not installed in splunkd")
+        splunkHome = self.service.settings['SPLUNK_HOME']
+        if "/" in splunkHome and "\\" in splunkHome:
+            raise ValueError("There are both forward and back slashes in $SPLUNK_HOME. What system are you on?!?")
+        elif "/" in splunkHome:
+            separator = "/"
+        elif "\\" in splunkHome:
+            separator = "\\"
+        else:
+            raise ValueError("No separators in $SPLUNK_HOME. Can't determine what file separator to use.")
+        appPath = separator.join([splunkHome, "etc", "apps", collectionName,
+                                  "build", name + ".tar"])
         kwargs = {"update": 1, "name": appPath}
-        self.service.post("apps/appinstall", **kwargs)
+        try:
+            self.service.post("apps/appinstall", **kwargs)
+        except client.HTTPError as he:
+            if he.status == 400:
+                raise IOError("App %s not found in app collection" % name)
         self.installedApps.append(name)
 
     def restartSplunk(self, timeout=120):

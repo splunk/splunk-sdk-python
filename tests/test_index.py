@@ -36,7 +36,8 @@ class IndexTest(testlib.SDKTestCase):
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
         if self.service.splunk_version >= (5,):
-            self.service.indexes.delete(self.index_name)
+            if self.index_name in self.service.indexes:
+                self.service.indexes.delete(self.index_name)
             self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
@@ -45,6 +46,12 @@ class IndexTest(testlib.SDKTestCase):
     def totalEventCount(self):
         self.index.refresh()
         return int(self.index['totalEventCount'])
+
+    def test_delete(self):
+        if self.service.splunk_version >= (5,):
+            self.assertTrue(self.index_name in self.service.indexes)
+            self.service.indexes.delete(self.index_name)
+            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
 
     def test_integrity(self):
         self.check_entity(self.index)

@@ -143,6 +143,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "index.py disable sdk-tests",
             "index.py enable sdk-tests",
             "index.py clean sdk-tests")
+        self.restartSplunk()
 
     def test_info(self):
         self.check_commands(

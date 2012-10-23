@@ -59,23 +59,23 @@ class TestRead(testlib.SDKTestCase):
         self.assertEqual(expected, found)
 
     def test_oneshot(self):
+        self.installAppFromCollection('file_to_upload')
+
         index_name = testlib.tmpname()
         index = self.service.indexes.create(index_name)
-        self.restartSplunk(timeout=120)
-        index = self.service.indexes[index_name]
+        self.assertEventuallyTrue(lambda: index.refresh() and index['disabled'] == '0')
+
         eventCount = int(index['totalEventCount'])
-        from os import path
-        testpath = path.dirname(path.abspath(__file__))
-        self.service.inputs.oneshot(path.join(testpath, 'testfile.txt'), index=index_name)
+
+        path = self.pathInApp("file_to_upload", ["log.txt"])
+        self.service.inputs.oneshot(path, index=index_name)
         self.assertEventuallyEqual(
-            str(eventCount+1),
+            str(eventCount+4),
             lambda: index.refresh()['totalEventCount']
         )
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()
-        from os import path
-        self.assertFalse(path.exists(name))
         self.assertRaises(client.OperationFailedException,
             self.service.inputs.oneshot, name)
 
@@ -121,9 +121,15 @@ class TestInput(testlib.SDKTestCase):
         if self.service.splunk_version[0] < 5:
             return # Modular inputs don't exist prior to 5.0
         else:
+            # Install modular inputs to list, and restart
+            # so they'll show up.
+            self.installAppFromCollection("modular-inputs")
+            self.uncheckedRestartSplunk()
+
             inputs = self.service.inputs
             if ('test2','abcd') not in inputs:
                 inputs.create('test2', 'abcd', field1='boris')
+
             input = inputs['test2', 'abcd']
             self.assertEqual(input.field1, 'boris')
 

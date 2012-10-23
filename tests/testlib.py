@@ -147,6 +147,25 @@ class SDKTestCase(unittest.TestCase):
         collectionName = 'sdk-app-collection'
         if collectionName not in self.service.apps:
             raise ValueError("sdk-test-application not installed in splunkd")
+        appPath = self.pathInApp(collectionName, ["build", name+".tar"])
+        kwargs = {"update": 1, "name": appPath}
+        try:
+            self.service.post("apps/appinstall", **kwargs)
+        except client.HTTPError as he:
+            if he.status == 400:
+                raise IOError("App %s not found in app collection" % name)
+        self.installedApps.append(name)
+
+    def pathInApp(self, appName, pathComponents):
+        """Return a path to *pathComponents* in *appName*.
+
+        *pathComponents* shold be a list of strings giving the components.
+        This function will try to figure out the correct separator (/ or \)
+        for the platform that splunkd is running on and construct the path
+        as needed.
+
+        :return: A string giving the path.
+        """
         splunkHome = self.service.settings['SPLUNK_HOME']
         if "/" in splunkHome and "\\" in splunkHome:
             raise ValueError("There are both forward and back slashes in $SPLUNK_HOME. What system are you on?!?")
@@ -156,15 +175,11 @@ class SDKTestCase(unittest.TestCase):
             separator = "\\"
         else:
             raise ValueError("No separators in $SPLUNK_HOME. Can't determine what file separator to use.")
-        appPath = separator.join([splunkHome, "etc", "apps", collectionName,
-                                  "build", name + ".tar"])
-        kwargs = {"update": 1, "name": appPath}
-        try:
-            self.service.post("apps/appinstall", **kwargs)
-        except client.HTTPError as he:
-            if he.status == 400:
-                raise IOError("App %s not found in app collection" % name)
-        self.installedApps.append(name)
+        appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
+        return appPath
+
+    def uncheckedRestartSplunk(self, timeout=120):
+        self.service.restart(timeout)
 
     def restartSplunk(self, timeout=120):
         if self.service.restart_required:
@@ -178,19 +193,20 @@ class SDKTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
-        self.caused_restart_required = False
         self.service = client.connect(**self.opts.kwargs)
         if self.service.restart_required:
-            self.restart_already_required = True
+            self.restartSplunk()
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
 
     def tearDown(self):
-        if self.service.restart_required and not self.restart_already_required:
+        if self.service.restart_required:
             self.fail("Test left Splunk in a state requiring a restart.")
         for appName in self.installedApps:
             if appName in self.service.apps:
                 self.service.apps.delete(appName)
                 wait(lambda: appName not in self.service.apps)
+        if self.service.restart_required:
+            self.clearRestartMessage()
 
 def main():
     unittest.main()

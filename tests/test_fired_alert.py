@@ -80,8 +80,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.assertEqual(len(alerts), 1)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-        for alert_group in service.fired_alerts:
+        for alert_group in self.service.fired_alerts:
             alert_group.count
             for alert in alert_group.alerts:
                 alert.content

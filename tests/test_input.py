@@ -72,8 +72,8 @@ class TestRead(testlib.SDKTestCase):
 
         def f():
             index.refresh()
-            return int(index['totalEventCount'] == eventCount+4)
-        self.assertEventuallyTrue(f)
+            return int(index['totalEventCount']) == eventCount+4
+        self.assertEventuallyTrue(f, timeout=60)
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()

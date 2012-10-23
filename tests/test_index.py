@@ -73,7 +73,7 @@ class IndexTest(testlib.SDKTestCase):
         self.index.refresh()
         originalCount = int(self.index['totalEventCount'])
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount == originalCount+1)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == originalCount+1, timeout=50)
 
         # Cleaning an enabled index on 4.x takes forever, so we disable it.
         # However, cleaning it on 5 requires it to be enabled.
@@ -91,21 +91,21 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount == eventCount+1)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=50)
 
     def test_submit_via_attach(self):
         eventCount = int(self.index['totalEventCount'])
         cn = self.index.attach()
         cn.send("Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount == eventCount+1)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
     def test_submit_via_attached_socket(self):
         eventCount = int(self.index['totalEventCount'])
         f = self.index.attached_socket
         with f() as sock:
             sock.send('Hello world!\r\n')
-        self.assertEventuallyTrue(lambda: self.totalEventCount == eventCount+1)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
     def test_upload(self):
         self.installAppFromCollection("file_to_upload")
@@ -114,7 +114,7 @@ class IndexTest(testlib.SDKTestCase):
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.index.upload(path)
-        self.assertEventuallyTrue(lambda: self.totalEventCount == eventCount+4)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+4, timeout=60)
 
 if __name__ == "__main__":
     import unittest

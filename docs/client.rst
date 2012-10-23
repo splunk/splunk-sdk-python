@@ -30,12 +30,12 @@ splunklib.client
     :inherited-members:
     :undoc-members:
 
-.. autoclass:: Conf
+.. autoclass:: ConfigurationFile
     :members:
     :inherited-members:
     :undoc-members:
 
-.. autoclass:: Confs
+.. autoclass:: Configurations
     :members:
     :inherited-members:
     :undoc-members:

@@ -14,14 +14,62 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from distutils.core import setup
-
+from distutils.core import setup, Command
+import os, shutil
 import splunklib
+
+def run_test_suite():
+    import unittest
+    original_cwd = os.path.abspath(os.getcwd())
+    os.chdir('tests')
+    suite = unittest.defaultTestLoader.discover('.')
+    unittest.TextTestRunner().run(suite)
+    os.chdir(original_cwd)
+
+class CoverageCommand(Command):
+    """setup.py command to run code coverage of the test suite."""
+    description = "Create an HTML coverage report from running the full test suite."
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        try:
+            import coverage
+        except ImportError:
+            print "Could not import coverage. Please install it and try again."
+            exit(1)
+        cov = coverage.coverage(source=['splunklib'])
+        cov.start()
+        run_test_suite()
+        cov.stop()
+        cov.html_report(directory='coverage_report')
+
+class TestCommand(Command):
+    """setup.py command to run the whole test suite."""
+    description = "Run test full test suite."
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        run_test_suite()
 
 setup(
     author="Splunk, Inc.",
 
     author_email="devinfo@splunk.com",
+
+    cmdclass={'coverage': CoverageCommand,
+              'test': TestCommand},
 
     description="The Splunk Software Development Kit for Python.",
 
@@ -46,4 +94,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
 )
+
 

@@ -105,4 +105,5 @@ def test_update(self):
         self.assertEqual(int(self.role['srchJobsQuota']), kwargs['srchJobsQuota'])
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

@@ -99,4 +99,5 @@ class TestApp(testlib.SDKTestCase):
         self.assertTrue(p is not None)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

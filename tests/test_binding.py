@@ -583,4 +583,5 @@ def test_connect_with_preexisting_token_sans_user_and_pass(self):
 
         
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

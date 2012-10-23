@@ -89,7 +89,7 @@ class DataTestCase(testlib.SDKTestCase):
         """Test some real Splunk response examples."""
         testpath = path.dirname(path.abspath(__file__))
 
-        fh = open(path.join(testpath, "services.xml"), 'r')
+        fh = open(path.join(testpath, "data/services.xml"), 'r')
         result = data.load(fh.read())
         self.assertTrue(result.has_key('feed'))
         self.assertTrue(result.feed.has_key('author'))
@@ -102,7 +102,7 @@ class DataTestCase(testlib.SDKTestCase):
              'scheduled', 'search', 'server', 'streams', 'broker', 'clustering',
              'masterlm'])
 
-        fh = open(path.join(testpath, "services.server.info.xml"), 'r')
+        fh = open(path.join(testpath, "data/services.server.info.xml"), 'r')
         result = data.load(fh.read())
         self.assertTrue(result.has_key('feed'))
         self.assertTrue(result.feed.has_key('author'))
@@ -240,5 +240,6 @@ class DataTestCase(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()
 

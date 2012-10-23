@@ -16,19 +16,18 @@
 
 """Shared unit test utilities."""
 
+import sys
+# Run the test suite on the SDK without installing it.
+sys.path.insert(0, '../')
+sys.path.insert(0, '../examples')
+
 import re
 import warnings
 import splunklib.data as data
 import splunklib.client as client
-import sys
 from time import sleep
 from datetime import datetime, timedelta
 import unittest
-
-# Run the test suite on the SDK without installing it.
-sys.path.insert(0, '../') 
-sys.path.insert(0, '../examples')
-
 from utils import parse
 import os
 import time
@@ -191,6 +190,11 @@ class SDKTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.opts = parse([], {}, ".splunkrc")
 
+        # Before we start, make sure splunk doesn't need a restart.
+        service = client.connect(**cls.opts.kwargs)
+        if service.restart_required:
+            service.restart(timeout=120)
+
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.service = client.connect(**self.opts.kwargs)
@@ -207,6 +211,3 @@ class SDKTestCase(unittest.TestCase):
                 wait(lambda: appName not in self.service.apps)
         if self.service.restart_required:
             self.clearRestartMessage()
-
-def main():
-    unittest.main()

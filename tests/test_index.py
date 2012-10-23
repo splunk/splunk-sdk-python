@@ -117,4 +117,5 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyEqual(eventCount+4, self.totalEventCount)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

@@ -242,18 +242,18 @@ class ExamplesTestCase(testlib.SDKTestCase):
         custom_searches = [ 
             {
                 "script": "custom_search/bin/usercount.py",
-                "input": "../tests/custom_search/usercount.in",
-                "baseline": "../tests/custom_search/usercount.baseline"
+                "input": "../tests/data/custom_search/usercount.in",
+                "baseline": "../tests/data/custom_search/usercount.baseline"
             },
             { 
                 "script": "twitted/twitted/bin/hashtags.py",
-                "input": "../tests/custom_search/hashtags.in",
-                "baseline": "../tests/custom_search/hashtags.baseline"
+                "input": "../tests/data/custom_search/hashtags.in",
+                "baseline": "../tests/data/custom_search/hashtags.baseline"
             },
             { 
                 "script": "twitted/twitted/bin/tophashtags.py",
-                "input": "../tests/custom_search/tophashtags.in",
-                "baseline": "../tests/custom_search/tophashtags.baseline"
+                "input": "../tests/data/custom_search/tophashtags.in",
+                "baseline": "../tests/data/custom_search/tophashtags.baseline"
             }
         ]
 
@@ -340,4 +340,5 @@ class ExamplesTestCase(testlib.SDKTestCase):
  
 if __name__ == "__main__":
     os.chdir("../examples")
-    testlib.main()
+    import unittest
+    unittest.main()

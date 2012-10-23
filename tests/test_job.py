@@ -250,7 +250,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('results.xml') as input:
+        with open('data/results.xml') as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
             N_results = 0
@@ -270,7 +270,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('streaming_results.xml') as input:
+        with open('data/streaming_results.xml') as input:
             reader = results.ResultsReader(input)
             N_results = 0
             N_messages = 0
@@ -300,4 +300,5 @@ class TestResultsReader(unittest.TestCase):
         self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

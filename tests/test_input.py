@@ -186,4 +186,5 @@ class TestInput(testlib.SDKTestCase):
                               
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

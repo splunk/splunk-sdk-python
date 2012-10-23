@@ -150,4 +150,5 @@ class TestTrailing(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

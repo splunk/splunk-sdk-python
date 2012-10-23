@@ -62,7 +62,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
 
         self.index.enable()
-        self.assertEventuallyEqual('0', lambda: self.index.refresh() and self.index['disabled'], timeout=25)
+        self.assertEventuallyTrue(lambda: self.index.refresh() and self.index['disabled'] == '0', timeout=25)
 
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
@@ -70,12 +70,16 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.index.refresh()
         self.index.submit('This is a test ' + testlib.tmpname(),
                           sourcetype='sdk_use', host='boris')
-        self.assertEventuallyEqual(str(eventCount+1), lambda: self.index.refresh() and self.index['totalEventCount'], timeout=50)
-        self.assertEventuallyEqual(
-            1,
-            lambda: self.saved_search.refresh() and self.saved_search.alert_count,
-            timeout=200
-        )
+        def f():
+            self.index.refresh()
+            return int(self.index['totalEventCount']) == eventCount+1
+        self.assertEventuallyTrue(f, timeout=50)
+
+        def g():
+            self.saved_search.refresh()
+            return self.saved_search.alert_count == 1
+        self.assertEventuallyTrue(g, timeout=200)
+
         alerts = self.saved_search.fired_alerts
         self.assertEqual(len(alerts), 1)
 

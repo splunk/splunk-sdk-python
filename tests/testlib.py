@@ -72,14 +72,6 @@ class SDKTestCase(unittest.TestCase):
     restart_already_required = False
     installedApps = []
 
-    def assertEventuallyEqual(self, expected, func, timeout=10, pause_time=0.5,
-                              timeout_message="Operation timed out."):
-        self.assertEventuallyTrue(
-            lambda: expected == func(),
-            timeout=timeout, pause_time=pause_time,
-            timeout_message=timeout_message
-        )
-
     def assertEventuallyTrue(self, predicate, timeout=10, pause_time=0.5,
                              timeout_message="Operation timed out."):
         assert pause_time < timeout
@@ -134,6 +126,14 @@ class SDKTestCase(unittest.TestCase):
                 raise
 
     def clearRestartMessage(self):
+        """Tell Splunk to forget that it needs to be restarted.
+
+        This is used mostly in cases such as deleting a temporary application.
+        Splunk asks to be restarted when that happens, but unless the application
+        contained modular input kinds or the like, it isn't necessary.
+        """
+        if not self.service.restart_required:
+            raise ValueError("Tried to clear restart message when there was none.")
         try:
             self.service.delete("messages/restart_required")
         except client.HTTPError as he:
@@ -158,7 +158,22 @@ class SDKTestCase(unittest.TestCase):
     def pathInApp(self, appName, pathComponents):
         """Return a path to *pathComponents* in *appName*.
 
-        *pathComponents* shold be a list of strings giving the components.
+        `pathInApp` is used to refer to files in applications installed with
+        `installAppFromCollection`. For example, the app `file_to_upload` in
+        the collection contains `log.txt`. To get the path to it, call::
+
+            pathInApp('file_to_upload', ['log.txt'])
+
+        The path to `setup.xml` in `has_setup_xml` would be fetched with::
+
+            pathInApp('has_setup_xml', ['default', 'setup.xml'])
+
+        `pathInApp` figures out the correct separator to use (based on whether
+        splunkd is running on Windows or Unix) and joins the elements in
+        *pathComponents* into a path relative to the application specified by
+        *appName*.
+
+        *pathComponents* should be a list of strings giving the components.
         This function will try to figure out the correct separator (/ or \)
         for the platform that splunkd is running on and construct the path
         as needed.
@@ -166,12 +181,12 @@ class SDKTestCase(unittest.TestCase):
         :return: A string giving the path.
         """
         splunkHome = self.service.settings['SPLUNK_HOME']
-        if "/" in splunkHome and "\\" in splunkHome:
-            raise ValueError("There are both forward and back slashes in $SPLUNK_HOME. What system are you on?!?")
+        if "\\" in splunkHome:
+            # This clause must come first, since Windows machines may
+            # have mixed \ and / in their paths.
+            separator = "\\"
         elif "/" in splunkHome:
             separator = "/"
-        elif "\\" in splunkHome:
-            separator = "\\"
         else:
             raise ValueError("No separators in $SPLUNK_HOME. Can't determine what file separator to use.")
         appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
@@ -198,6 +213,9 @@ class SDKTestCase(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.service = client.connect(**self.opts.kwargs)
+        # If Splunk is in a state requiring restart, go ahead
+        # and restart. That way we'll be sane for the rest of
+        # the test.
         if self.service.restart_required:
             self.restartSplunk()
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))

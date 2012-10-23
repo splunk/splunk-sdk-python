@@ -79,7 +79,7 @@ class TestConfs(testlib.SDKTestCase):
         key = testlib.tmpname()
         val = testlib.tmpname()
         stanza.update(**{key: val})
-        self.assertEventuallyEqual(1, lambda: stanza.refresh() and len(stanza), pause_time=0.2)
+        self.assertEventuallyTrue(lambda: stanza.refresh() and len(stanza) == 1, pause_time=0.2)
         self.assertEqual(len(stanza), 1)
         self.assertTrue(key in stanza)
 

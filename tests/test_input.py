@@ -69,10 +69,11 @@ class TestRead(testlib.SDKTestCase):
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.service.inputs.oneshot(path, index=index_name)
-        self.assertEventuallyEqual(
-            str(eventCount+4),
-            lambda: index.refresh()['totalEventCount']
-        )
+
+        def f():
+            index.refresh()
+            return int(index['totalEventCount'] == eventCount+4)
+        self.assertEventuallyTrue(f)
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()

@@ -141,18 +141,16 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         # of a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
         self.assertEqual(5, int(self.job['priority']))
+
         new_priority = 3
         self.job.set_priority(new_priority)
-        def priority():
+
+        def f():
             if self.job.is_done():
                 self.fail("Job already done before priority was set.")
             self.job.refresh()
-            return int(self.job['priority'])
-        self.assertEventuallyEqual(
-            new_priority,
-            priority,
-            timeout=120
-        )
+            return int(self.job['priority']) == new_priority
+        self.assertEventuallyTrue(f, timeout=120)
 
 class TestJob(testlib.SDKTestCase):
     def setUp(self):
@@ -190,10 +188,7 @@ class TestJob(testlib.SDKTestCase):
             self.assertEqual(self.job['isPaused'], '0')
 
         self.job.pause()
-        self.assertEventuallyEqual(
-            '1',
-            lambda: self.job.refresh()['isPaused']
-        )
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
 
     def test_unpause(self):
         if self.job['isPaused'] == '0':
@@ -201,17 +196,14 @@ class TestJob(testlib.SDKTestCase):
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '1')
         self.job.unpause()
-        self.assertEventuallyEqual(
-            '0',
-            lambda: self.job.refresh()['isPaused']
-        )
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '0')
 
     def test_finalize(self):
         if self.job['isFinalized'] == '1':
             self.fail("Job is already finalized; can't test .finalize() method.")
         else:
             self.job.finalize()
-            self.assertEventuallyEqual('1', lambda: self.job.refresh()['isFinalized'])
+            self.assertEventuallyTrue(lambda: self.job.refresh()['isFinalized'] == '1')
 
     def test_setttl(self):
         old_ttl = int(self.job['ttl'])

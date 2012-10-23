@@ -86,7 +86,7 @@ built on Splunk and should not be used if you are concerned about the security
 of the credentails used in your development environment.
 
 You can view a sample `.splunkrc` file by looking at the `splunkrc.spec` file
-in the root directory of the repistory.
+in the root directory of the repository.
 
 ## Overview
 

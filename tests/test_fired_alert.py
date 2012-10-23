@@ -43,7 +43,8 @@ class FiredAlertTestCase(testlib.SDKTestCase):
 
     def tearDown(self):
         super(FiredAlertTestCase, self).tearDown()
-        self.service.indexes.delete(self.index_name)
+        if (self.service.splunk_version >= (5,)):
+            self.service.indexes.delete(self.index_name)
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 self.service.saved_searches.delete(saved_search.name)
@@ -59,27 +60,35 @@ class FiredAlertTestCase(testlib.SDKTestCase):
     def test_alerts_on_events(self):
         self.assertEqual(self.saved_search.alert_count, 0)
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
+
         self.index.enable()
-        testlib.retry(self.index, 'disabled', '0', step=0.5, times=50)
+        self.assertEventuallyTrue(lambda: self.index.refresh() and self.index['disabled'] == '0', timeout=25)
+
         eventCount = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')
         self.index.refresh()
         self.index.submit('This is a test ' + testlib.tmpname(),
                           sourcetype='sdk_use', host='boris')
-        testlib.retry(self.index, 'totalEventCount', str(eventCount+1), step=1, times=50)
-        self.assertEqual(self.index['totalEventCount'], str(eventCount+1))
-        testlib.retry(self.saved_search, lambda s: s.alert_count, 1, step=2, times=100)
-        self.assertEqual(self.saved_search.alert_count, 1)
+        def f():
+            self.index.refresh()
+            return int(self.index['totalEventCount']) == eventCount+1
+        self.assertEventuallyTrue(f, timeout=50)
+
+        def g():
+            self.saved_search.refresh()
+            return self.saved_search.alert_count == 1
+        self.assertEventuallyTrue(g, timeout=200)
+
         alerts = self.saved_search.fired_alerts
         self.assertEqual(len(alerts), 1)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-        for alert_group in service.fired_alerts:
+        for alert_group in self.service.fired_alerts:
             alert_group.count
             for alert in alert_group.alerts:
                 alert.content
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

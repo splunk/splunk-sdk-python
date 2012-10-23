@@ -447,6 +447,19 @@ class Service(Context):
         raise Exception, "Operation timed out."
 
     @property
+    def restart_required(self):
+        """Is splunkd in a state that requires a restart?"""
+        response = self.get("messages").body.read()
+        messages = data.load(response)['feed']
+        if 'entry' not in messages:
+            titles = []
+        elif isinstance(messages['entry'], dict):
+            titles = [messages['entry']['title']]
+        else:
+            titles = [x['title'] for x in messages['entry']]
+        return 'restart_required' in titles
+
+    @property
     def roles(self):
         """Returns a collection of user roles."""
         return Roles(self)
@@ -2040,7 +2053,7 @@ class Job(Entity):
                 raw_state = self._load_state(response)
                 raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
                 self._state = raw_state
-                return self
+        return self
 
     def results(self, timeout=None, wait_time=1, **query_params):
         """Fetch search results as an InputStream IO handle.
@@ -2150,6 +2163,10 @@ class Job(Entity):
 
     def set_priority(self, value):
         """Sets this job's search priority in the range of 0-10.
+
+        Higher numbers indicate higher priority. Unless splunkd is
+        running as root, you can only decrease the priority of
+        a running job.
 
         :param `value`: The search priority.
         """

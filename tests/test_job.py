@@ -88,34 +88,6 @@ class TestUtilities(testlib.SDKTestCase):
         job.cancel()
         job.cancel() # Second call should be nop
 
-    def test_enable_preview(self):
-        query = "search index=_internal"
-        job = self.service.jobs.create(
-            query=query,
-            earliest_time="-1m",
-            latest_time="now")
-        self.assertEqual(job['isPreviewEnabled'], '0')
-        job.enable_preview()
-        tries = 10
-        while tries > 0:
-            if job.is_done():
-                self.fail('Job finished before preview enabled.')
-            if job['isPreviewEnabled'] == '1':
-                break
-            tries -= 1
-        self.assertEqual(job['isPreviewEnabled'], '1')
-        job.disable_preview()
-        tries = 10
-        while tries > 0:
-            if job.is_done():
-                self.fail('Job finished before preview disabled.')
-            if job['isPreviewEnabled'] == '0':
-                break
-            tries -= 1
-        self.assertEqual(job['isPreviewEnabled'], '0')
-
-
-
     def check_job(self, job):
         self.check_entity(job)
         keys = ['cursorTime', 'delegate', 'diskUsage', 'dispatchState',
@@ -139,11 +111,51 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
+class TestJobWithDelayedDone(testlib.SDKTestCase):
+    def setUp(self):
+        super(TestJobWithDelayedDone, self).setUp()
+        self.installAppFromCollection("sleep_command")
+        self.query = "search index=_internal | sleep done=100"
+        self.job = self.service.jobs.create(
+            query=self.query,
+            earliest_time="-1m",
+            priority=5,
+            latest_time="now")
+
+    def tearDown(self):
+        super(TestJobWithDelayedDone, self).tearDown()
+        self.job.cancel()
+        self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
+
+    def test_enable_preview(self):
+        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        self.job.enable_preview()
+        def is_preview():
+            if self.job.is_done():
+                self.fail('Job finished before preview enabled.')
+            return self.job['isPreviewEnabled'] == '1'
+        self.assertEventuallyTrue(is_preview)
+
+    def test_setpriority(self):
+        # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
+        # of a job unless Splunk is running as root. This is because Splunk jobs
+        # are tied up with operating system processes and their priorities.
+        self.assertEqual(5, int(self.job['priority']))
+
+        new_priority = 3
+        self.job.set_priority(new_priority)
+
+        def f():
+            if self.job.is_done():
+                self.fail("Job already done before priority was set.")
+            self.job.refresh()
+            return int(self.job['priority']) == new_priority
+        self.assertEventuallyTrue(f, timeout=120)
 
 class TestJob(testlib.SDKTestCase):
     def setUp(self):
         super(TestJob, self).setUp()
-        self.query = "search index=_internal earliest=-1m | head 3"
+        self.query = "search index=_internal | head 3"
         self.job = self.service.jobs.create(
             query=self.query, 
             earliest_time="-1m", 
@@ -155,7 +167,7 @@ class TestJob(testlib.SDKTestCase):
 
     @log_duration
     def test_get_preview_and_events(self):
-        testlib.retry(self.job, 'isDone', '1')
+        self.assertEventuallyTrue(self.job.is_done)
         self.assertLessEqual(int(self.job['eventCount']), 3)
 
         preview_stream = self.job.preview()
@@ -176,8 +188,7 @@ class TestJob(testlib.SDKTestCase):
             self.assertEqual(self.job['isPaused'], '0')
 
         self.job.pause()
-        testlib.retry(self.job, 'isPaused', '1')
-        self.assertEqual(self.job['isPaused'], '1')
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
 
     def test_unpause(self):
         if self.job['isPaused'] == '0':
@@ -185,25 +196,14 @@ class TestJob(testlib.SDKTestCase):
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '1')
         self.job.unpause()
-        testlib.retry(self.job, 'isPaused', '0')
-        self.assertEqual(self.job['isPaused'], '0')
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '0')
 
     def test_finalize(self):
         if self.job['isFinalized'] == '1':
             self.fail("Job is already finalized; can't test .finalize() method.")
         else:
             self.job.finalize()
-            testlib.retry(self.job, 'isFinalized', '1')
-            self.assertEqual(self.job['isFinalized'], '1')
-
-    def test_setpriority(self):
-        old_priority = int(self.job['priority'])
-        new_priority = old_priority%10 + 1
-        self.assertNotEqual(old_priority, new_priority)
-
-        self.job.set_priority(new_priority)
-        testlib.retry(self.job, 'priority', str(new_priority))
-        self.assertEqual(int(self.job['priority']), new_priority)
+            self.assertEventuallyTrue(lambda: self.job.refresh()['isFinalized'] == '1')
 
     def test_setttl(self):
         old_ttl = int(self.job['ttl'])
@@ -242,7 +242,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('results.xml') as input:
+        with open('data/results.xml') as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
             N_results = 0
@@ -262,7 +262,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('streaming_results.xml') as input:
+        with open('data/streaming_results.xml') as input:
             reader = results.ResultsReader(input)
             N_results = 0
             N_messages = 0
@@ -292,4 +292,5 @@ class TestResultsReader(unittest.TestCase):
         self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

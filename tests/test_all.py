@@ -17,12 +17,10 @@
 """Runs all the Splunk Python SDK unit tests."""
 
 import os
-import sys
 import unittest
 import testlib
 
-# Set up the environment for coverage, even though it might not get used
-os.environ["COVERAGE_PROCESS_START"] = "../tests/.coveragerc"
+suite = unittest.defaultTestLoader.discover('.')
 
-unittest.TextTestRunner().run(unittest.TestLoader().discover('.'))
-
+if __name__ == '__main__':
+    unittest.TextTestRunner().run(suite)

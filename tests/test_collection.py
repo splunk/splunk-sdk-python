@@ -240,5 +240,6 @@ class CollectionTestCase(testlib.SDKTestCase):
             self.assertRaises(KeyError, coll.__getitem__, name)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()
 

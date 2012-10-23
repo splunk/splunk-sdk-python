@@ -84,4 +84,5 @@ class UserTestCase(testlib.SDKTestCase):
         self.assertFalse(self.username.upper() in users)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

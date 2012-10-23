@@ -193,4 +193,5 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertEqual(self.saved_search['suppressed'], 0)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

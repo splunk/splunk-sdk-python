@@ -37,9 +37,9 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     :class:`~splunklib.client.AlertGroup` class 
 
-    :class:`~splunklib.client.Conf` class 
+    :class:`~splunklib.client.ConfigurationFile` class 
 
-    :class:`~splunklib.client.Confs` class 
+    :class:`~splunklib.client.Configurations` class 
 
     :class:`~splunklib.client.Stanza` class 
 

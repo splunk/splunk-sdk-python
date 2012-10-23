@@ -350,7 +350,7 @@ class Context(object):
     Alternately, use the :func:`connect` function to create an already
     authenticated ``Context`` object. Or you may provide a session
     token explicitly (the same token may be shared by multiple
-    ``Context``s), which provides authentication.
+    ``Contexts``), which provides authentication.
 
     :param host: The host name (default: ``"localhost"``).
     :type host: string
@@ -428,7 +428,8 @@ class Context(object):
             import splunklib.binding as binding
             c = binding.connect(...)
             socket = c.connect()
-            socket.write("POST %s HTTP/1.1\r\n" % c._abspath("some/path/to/post/to"))
+            socket.write("POST %s HTTP/1.1\r\n" % \
+                c._abspath("some/path/to/post/to"))
             socket.write("Host: %s:%s\r\n" % (c.host, c.port))
             socket.write("Accept-Encoding: identity\r\n")
             socket.write("Authorization: %s\r\n" % c.token)

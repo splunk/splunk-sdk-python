@@ -108,12 +108,13 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyEqual(eventCount+1, self.totalEventCount)
 
     def test_upload(self):
-        # The following test must run on machine where splunkd runs,
-        # otherwise a failure is expected
+        self.installAppFromCollection("file_to_upload")
+
         eventCount = int(self.index['totalEventCount'])
-        testpath = path.dirname(path.abspath(__file__))
-        self.index.upload(path.join(testpath, "testfile.txt"))
-        self.assertEventuallyEqual(eventCount+1, self.totalEventCount)
+
+        path = self.pathInApp("file_to_upload", ["log.txt"])
+        self.index.upload(path)
+        self.assertEventuallyEqual(eventCount+4, self.totalEventCount)
 
 if __name__ == "__main__":
     testlib.main()

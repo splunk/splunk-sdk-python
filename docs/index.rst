@@ -31,46 +31,81 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     **Entities and collections**
 
-    :class:`~splunklib.client.Entity` base class 
+    :class:`~splunklib.client.AlertGroup` class
 
-    :class:`~splunklib.client.Collection` base class 
+    :class:`~splunklib.client.Application` class
 
-    :class:`~splunklib.client.AlertGroup` class 
+    :class:`~splunklib.client.Collection` class
 
-    :class:`~splunklib.client.ConfigurationFile` class 
 
-    :class:`~splunklib.client.Configurations` class 
+    :class:`~splunklib.client.ConfigurationFile` class
 
-    :class:`~splunklib.client.Stanza` class 
+    :class:`~splunklib.client.Configurations` class
 
-    :class:`~splunklib.client.Index` class 
+    :class:`~splunklib.client.Entity` class
 
-    :class:`~splunklib.client.Input` class 
+    :class:`~splunklib.client.Index` class
 
-    :class:`~splunklib.client.Inputs` class 
+    :class:`~splunklib.client.Indexes` class
 
-    :class:`~splunklib.client.Job` class 
+    :class:`~splunklib.client.Input` class
 
-    :class:`~splunklib.client.Jobs` class 
+    :class:`~splunklib.client.Inputs` class
 
-    :class:`~splunklib.client.Loggers` class 
+    :class:`~splunklib.client.Job` class
 
-    :class:`~splunklib.client.Message` class 
+    :class:`~splunklib.client.Jobs` class
 
-    :class:`~splunklib.client.SavedSearch` class 
+    :class:`~splunklib.client.Loggers` class
 
-    :class:`~splunklib.client.SavedSearches` class 
+    :class:`~splunklib.client.Message` class
 
-    :class:`~splunklib.client.Settings` class 
+    :class:`~splunklib.client.ModularInputKind` class
 
-    :class:`~splunklib.client.Users` class 
+    :class:`~splunklib.client.ReadOnlyCollection` class
+
+    :class:`~splunklib.client.Role` class
+
+    :class:`~splunklib.client.Roles` class
+
+    :class:`~splunklib.client.SavedSearch` class
+
+    :class:`~splunklib.client.SavedSearches` class
+
+    :class:`~splunklib.client.Settings` class
+
+    :class:`~splunklib.client.Stanza` class
+
+    :class:`~splunklib.client.User` class
+
+    :class:`~splunklib.client.Users` class
 
     **Exceptions**
 
-    :class:`~splunklib.client.NotSupportedError` class 
+    :class:`~splunklib.client.AmbiguousReferenceException` class
 
-    :class:`~splunklib.client.OperationError` class 
+    :class:`~splunklib.client.EntityDeletedException` class
 
+    :class:`~splunklib.client.IllegalOperationException` class
+
+    :class:`~splunklib.client.IncomparableException` class
+
+    :class:`~splunklib.client.InvalidNameException` class
+
+    :class:`~splunklib.client.JobNotReadyException` class
+
+    :class:`~splunklib.client.NoSuchApplicationException` class
+
+    :class:`~splunklib.client.NoSuchCapability` class
+
+    :class:`~splunklib.client.NoSuchUserException` class
+
+    :class:`~splunklib.client.NotSupportedError` class
+
+    :class:`~splunklib.client.OperationError` class
+
+    :class:`~splunklib.client.OperationFailedException` class
+    
 
 :doc:`data`
 -----------

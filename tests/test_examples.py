@@ -284,7 +284,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
         # Wait until the events get indexed
-        self.assertEventuallyTrue(lambda: index.refresh()['totalEventCount'] == '2')
+        self.assertEventuallyTrue(lambda: index.refresh()['totalEventCount'] == '2', timeout=200)
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(

@@ -48,4 +48,5 @@ class TestCreateDelete(testlib.SDKTestCase):
         self.assertRaises(client.InvalidNameException, self.service.messages.create, [1,2,3], value="Who, me?")
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

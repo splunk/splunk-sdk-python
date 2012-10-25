@@ -4,7 +4,7 @@ The truth is that there really isn't a Splunk Test Framework. It simply uses
 Python's builtin unittest module.
 
 Each distinct area of the SDK is tested in a single file. For example,
-`splunk.client` is tested in `test_client.py`, while the examples are tested
+roles are tested in `test_role.py`, while the examples are tested
 in `test_examples.py`.
 
 Before running the test suite, make sure the instance of Splunk you
@@ -15,15 +15,19 @@ should at least disable the *NIX and Windows apps. Do not run the test
 suite against a production instance of Splunk! It will run just fine
 with the free Splunk license, so don't be stingy with instances.
 
-There are no dependencies to run the tests. You can simply execute:
+You also need to install the `sdk-app-collection` app in your instance of
+Splunk. The `sdk-app-collection` is a set of small, single purpose apps
+for testing capabilities that cannot be created with the REST API.You can
+fetch it from `https://github.com/splunk/sdk-app-collection`. Put the
+whole repository in `$SPLUNK_HOME/etc/apps`, so the git root would be
+`$SPLUNK_HOME/etc/apps/sdk-app-collection`.
 
-    cd tests
-    python -m unittest discover
+The test suite depends on nothing but Python's standard library. You can
+simply execute:
 
-or, if you have py.test installed,
+    python setup.py test
 
-    cd tests
-    py.test
+or run the test_all.py script in the tests/ directory.
 
 ## Code Coverage
 
@@ -33,32 +37,16 @@ at the author's website: http://nedbatchelder.com/code/coverage/
 
 To install it, simply use `easy_install` or `pip`:
 
-    easy_install coverage
+    pip install coverage
 
 or
 
-    pip install coverage
+    easy_install coverage
 
 Once you have `coverage.py` installed, you can run get coverage information
 as follows:
 
-    cd tests
-    coverage run runtests.py
-    coverage combine
-    coverage report
+    python setup.py coverage
 
-If you are using py.test, youcan replace 
-
-    coverage run runtests.py 
-
-with 
-
-    coverage run `which py.test`
-
-which provides better reporting, and lets you specify any additional
-options, such as a particular file to test. Should you want to get an
-HTML report:
-
-    coverage html
-
-and open `coverage_html_report/index.html` in your favorite browser.
+This will create an HTML report in coverage_html/. Open `coverage_html/index.html`
+in your favorite browser to see the coverage report.

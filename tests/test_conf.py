@@ -79,7 +79,7 @@ class TestConfs(testlib.SDKTestCase):
         key = testlib.tmpname()
         val = testlib.tmpname()
         stanza.update(**{key: val})
-        testlib.retry(stanza, lambda s: len(s), 1, step=0.2)
+        self.assertEventuallyTrue(lambda: stanza.refresh() and len(stanza) == 1, pause_time=0.2)
         self.assertEqual(len(stanza), 1)
         self.assertTrue(key in stanza)
 
@@ -94,4 +94,5 @@ class TestConfs(testlib.SDKTestCase):
         self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

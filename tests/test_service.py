@@ -128,6 +128,7 @@ class TestSettings(testlib.SDKTestCase):
         settings.refresh()
         updated = settings['sessionTimeout']
         self.assertEqual(updated, original)
+        self.restartSplunk()
 
 class TestTrailing(unittest.TestCase):
     template = '/servicesNS/boris/search/another/path/segment/that runs on'
@@ -149,4 +150,5 @@ class TestTrailing(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    testlib.main()
+    import unittest
+    unittest.main()

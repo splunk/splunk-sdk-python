@@ -19,6 +19,85 @@ import logging
 
 import splunklib.client as client
 
+def highest_port(service, base_port, *kinds):
+    """Find the first port >= base_port not in use by any input in kinds."""
+    highest_port = base_port
+    for input in service.inputs.list(*kinds):
+        port = int(input.name.split(':')[-1])
+        highest_port = max(port, highest_port)
+    return highest_port
+
+class TestTcpInputNameHandling(testlib.SDKTestCase):
+    def setUp(self):
+        super(TestTcpInputNameHandling, self).setUp()
+        self.base_port = highest_port(self.service, 10000, 'tcp', 'splunktcp') + 1
+
+    def tearDown(self):
+        for input in self.service.inputs.list('tcp', 'splunktcp'):
+            port = int(input.name.split(':')[-1])
+            if port >= self.base_port:
+                input.delete()
+        super(TestTcpInputNameHandling, self).tearDown()
+
+    def test_create_tcp_port(self):
+        for kind in ['tcp', 'splunktcp']:
+            input = self.service.inputs.create(kind, str(self.base_port))
+            self.check_entity(input)
+            input.delete()
+
+    def test_cannot_create_with_restrictToHost_in_name(self):
+        self.assertRaises(
+            client.HTTPError,
+            lambda: self.service.inputs.create('tcp', 'boris:10000')
+        )
+
+    def test_create_tcp_ports_with_restrictToHost(self):
+        for kind in ['tcp', 'splunktcp']:
+            # Make sure we can create two restricted inputs on the same port
+            boris = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            natasha = self.service.inputs.create(kind, str(self.base_port), restrictToHost='natasha')
+            # And that they both function
+            boris.refresh()
+            natasha.refresh()
+            self.check_entity(boris)
+            self.check_entity(natasha)
+            boris.delete()
+            natasha.delete()
+
+    def test_restricted_to_unrestricted_collision(self):
+        for kind in ['tcp', 'splunktcp']:
+            restricted = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            self.assertRaises(
+                client.HTTPError,
+                lambda: self.service.inputs.create(kind, str(self.base_port))
+            )
+            restricted.delete()
+
+    def test_unrestricted_to_restricted_collision(self):
+        for kind in ['tcp', 'splunktcp']:
+            unrestricted = self.service.inputs.create(kind, str(self.base_port))
+            self.assertRaises(
+                client.HTTPError,
+                lambda: self.service.inputs.create(kind, str(self.base_port), restrictToHos='boris')
+            )
+            unrestricted.delete()
+
+    def test_update_restrictToHost(self):
+        for kind in ['tcp', 'splunktcp']:
+            boris = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            with self.fake_splunk_version((4,3)):
+                self.assertRaises(
+                    client.IllegalOperationException,
+                    lambda: boris.update(restrictToHost='hilda')
+                )
+            if self.service.splunk_version >= (5,):
+                boris.update(restrictToHost='hilda')
+                boris.refresh()
+                self.assertEqual('hilda:' + str(self.base_port), boris.name)
+                boris.refresh()
+                self.check_entity(boris)
+                boris.delete()
+
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
         inputs = self.service.inputs
@@ -80,26 +159,20 @@ class TestRead(testlib.SDKTestCase):
         self.assertRaises(client.OperationFailedException,
             self.service.inputs.oneshot, name)
 
-
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super(TestInput, self).setUp()
         inputs = self.service.inputs
-        test_inputs = [{'kind': 'tcp', 'name': '9999', 'host': 'sdk-test'},
-                       {'kind': 'udp', 'name': '9999', 'host': 'sdk-test'}]
+        tcp_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp')+1)
+        udp_port = str(highest_port(self.service, 10000, 'udp')+1)
+        test_inputs = [{'kind': 'tcp', 'name': tcp_port, 'host': 'sdk-test'},
+                       {'kind': 'udp', 'name': udp_port, 'host': 'sdk-test'}]
         self._test_entities = {}
 
-        base_port = 10000
-        while True:
-            if str(base_port) in inputs:
-                base_port += 1
-            else:
-                break
-
         self._test_entities['tcp'] = \
-            inputs.create('tcp', str(base_port), host='sdk-test')
+            inputs.create('tcp', str(tcp_port), host='sdk-test')
         self._test_entities['udp'] = \
-            inputs.create('udp', str(base_port), host='sdk-test')
+            inputs.create('udp', str(udp_port), host='sdk-test')
 
     def tearDown(self):
         super(TestInput, self).tearDown()
@@ -184,7 +257,9 @@ class TestInput(testlib.SDKTestCase):
             self.assertRaises(client.EntityDeletedException,
                               input_entity.refresh)
             remaining -= 1
-                              
+
+
+
 
 if __name__ == "__main__":
     import unittest

@@ -797,6 +797,9 @@ class Entity(Endpoint):
                 sharing = self._state.access.sharing
         return (owner, app, sharing)
 
+    def delete(self):
+        owner, app, sharing = self._proper_namespace()
+        return self.service.delete(self.path, owner=owner, app=app, sharing=sharing)
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         owner, app, sharing = self._proper_namespace(owner, app, sharing)
@@ -1679,6 +1682,21 @@ class Input(Entity):
         if self.kind == 'tcp/cooked':
             self.kind = 'splunktcp'
 
+    def update(self, **kwargs):
+        if 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
+            raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
+        port = self.name.split(':', 1)[-1]
+        result = super(Input, self).update(**kwargs)
+        if 'restrictToHost' in kwargs:
+            if self.path.endswith('/'):
+                base_path, name = self.path.rsplit('/', 2)[:-1]
+            else:
+                base_path, name = self.path.rsplit('/', 1)
+            self.path = base_path + '/' + kwargs['restrictToHost'] + ':' + port
+        return result
+
+
+
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all
 # input kinds.
@@ -1776,8 +1794,15 @@ class Inputs(Collection):
         :return: The new input.
         """
         kindpath = self.kindpath(kind)
-        self.post(kindpath, name=name, **kwargs)
-        path = _path(self.path + kindpath, name)
+        if (kindpath == 'tcp/raw' or kindpath == 'tcp/cooked' or kindpath == 'udp') and \
+            'restrictToHost' in kwargs:
+            post_name = name
+            path_name = kwargs['restrictToHost'] + ':' + name
+        else:
+            post_name = name
+            path_name = name
+        self.post(kindpath, name=post_name, **kwargs)
+        path = _path(self.path + kindpath, path_name)
         return Input(self.service, path, kind)
 
     def delete(self, kind, name=None):
@@ -1864,7 +1889,7 @@ class Inputs(Collection):
             path = self.kindpath(kind)
             logging.debug("Path for inputs: %s", path)
             try:
-                response = self.service.get(path, **kwargs)
+                response = self.get(path, **kwargs)
             except HTTPError, he:
                 if he.status == 404: # No inputs of this kind
                     return []

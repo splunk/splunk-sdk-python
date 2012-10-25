@@ -1670,17 +1670,19 @@ class Input(Entity):
         Entity.__init__(self, service, path, **kwargs)
         if kind is None:
             path_segments = path.split('/')
-            i = path_segments.index('inputs')
-            self.kind = '/'.join(path_segments[i+1:-1])
-            assert self.kind is not None
+            i = path_segments.index('inputs')+1
+            if path_segments[i] == 'tcp':
+                self.kind = path_segments[i] + '/' + path_segments[i+1]
+            else:
+                self.kind = path_segments[i]
         else:
             self.kind = kind
 
-        # Maintain compatibility with older kind labels
-        if self.kind == 'tcp/raw':
-            self.kind = 'tcp'
-        if self.kind == 'tcp/cooked':
-            self.kind = 'splunktcp'
+        # Handle old input kind names.
+        if self.kind == 'tcp':
+            self.kind = 'tcp/raw'
+        if self.kind == 'splunktcp':
+            self.kind = 'tcp/cooked'
 
     def update(self, **kwargs):
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
@@ -1698,7 +1700,7 @@ class Input(Entity):
                 base_path, name = self.path.rsplit('/', 2)[:-1]
             else:
                 base_path, name = self.path.rsplit('/', 1)
-            if 'restrictToHost' in new_kwargs:
+            if 'restrictToHost' in new_kwargs and new_kwargs['restrictToHost'] != '':
                 self.path = base_path + '/' + new_kwargs['restrictToHost'] + ':' + port
             else:
                 self.path = base_path + '/' + port
@@ -1839,7 +1841,8 @@ class Inputs(Collection):
             if entry.title == 'all' or this_subpath == ['tcp','ssl']:
                 continue
             elif 'create' in [x.rel for x in entry.link]:
-                kinds.append('/'.join(subpath + [entry.title]))
+                path = '/'.join(subpath + [entry.title])
+                kinds.append(path)
             else:
                 subkinds = self._get_kind_list(subpath + [entry.title])
                 kinds.extend(subkinds)

@@ -51,6 +51,13 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             lambda: self.service.inputs.create('tcp', 'boris:10000')
         )
 
+    def test_remove_host_restriction(self):
+        input = self.service.inputs.create('tcp', str(self.base_port), restrictToHost='boris')
+        input.update(restrictToHost='')
+        input.refresh()
+        self.check_entity(input)
+        input.delete()
+
     def test_create_tcp_ports_with_restrictToHost(self):
         for kind in ['tcp', 'splunktcp']:
             # Make sure we can create two restricted inputs on the same port
@@ -101,9 +108,13 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
     def test_update_nonrestrictToHost(self):
         for kind in ['tcp', 'splunktcp']:
             input = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
-            input.update(host='meep')
-            input.refresh()
-            self.assertTrue(input.name.startswith('boris'))
+            try:
+                input.update(host='meep')
+                input.refresh()
+                self.assertTrue(input.name.startswith('boris'))
+            except:
+                input.delete()
+                raise
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
@@ -170,20 +181,19 @@ class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super(TestInput, self).setUp()
         inputs = self.service.inputs
-        tcp_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp')+1)
-        udp_port = str(highest_port(self.service, 10000, 'udp')+1)
-        restricted_tcp_port = str(highest_port(self.service, int(tcp_port)+1, 'tcp', 'splunktcp')+1)
-        test_inputs = [{'kind': 'tcp', 'name': tcp_port, 'host': 'sdk-test'},
-                       {'kind': 'udp', 'name': udp_port, 'host': 'sdk-test'},
-                       {'kind': 'tcp', 'name': 'boris:' + restricted_tcp_port, 'host': 'sdk-test'}]
+        unrestricted_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp')+1)
+        restricted_port = str(highest_port(self.service, int(unrestricted_port)+1, 'tcp', 'splunktcp')+1)
+        test_inputs = [{'kind': 'tcp', 'name': unrestricted_port, 'host': 'sdk-test'},
+                       {'kind': 'udp', 'name': unrestricted_port, 'host': 'sdk-test'},
+                       {'kind': 'tcp', 'name': 'boris:' + restricted_port, 'host': 'sdk-test'}]
         self._test_entities = {}
 
         self._test_entities['tcp'] = \
-            inputs.create('tcp', str(tcp_port), host='sdk-test')
+            inputs.create('tcp', unrestricted_port, host='sdk-test')
         self._test_entities['udp'] = \
-            inputs.create('udp', str(udp_port), host='sdk-test')
+            inputs.create('udp', unrestricted_port, host='sdk-test')
         self._test_entities['restrictedTcp'] = \
-            inputs.create('tcp', restricted_tcp_port, restrictToHost='boris')
+            inputs.create('tcp', restricted_port, restrictToHost='boris')
 
     def tearDown(self):
         super(TestInput, self).tearDown()
@@ -260,8 +270,9 @@ class TestInput(testlib.SDKTestCase):
                 inputs.delete(name)
                 self.assertFalse(name in inputs)
             else:
-                self.assertRaises(client.AmbiguousReferenceException,
-                                  inputs.delete, name)
+                if not name.startswith('boris'):
+                    self.assertRaises(client.AmbiguousReferenceException,
+                        inputs.delete, name)
                 self.service.inputs.delete(kind, name)
                 self.assertFalse((kind,name) in inputs)
             self.assertRaises(client.EntityDeletedException,

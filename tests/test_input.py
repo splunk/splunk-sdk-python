@@ -98,6 +98,13 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                 self.check_entity(boris)
                 boris.delete()
 
+    def test_update_nonrestrictToHost(self):
+        for kind in ['tcp', 'splunktcp']:
+            input = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            input.update(host='meep')
+            input.refresh()
+            self.assertTrue(input.name.startswith('boris'))
+
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
         inputs = self.service.inputs
@@ -165,14 +172,18 @@ class TestInput(testlib.SDKTestCase):
         inputs = self.service.inputs
         tcp_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp')+1)
         udp_port = str(highest_port(self.service, 10000, 'udp')+1)
+        restricted_tcp_port = str(highest_port(self.service, int(tcp_port)+1, 'tcp', 'splunktcp')+1)
         test_inputs = [{'kind': 'tcp', 'name': tcp_port, 'host': 'sdk-test'},
-                       {'kind': 'udp', 'name': udp_port, 'host': 'sdk-test'}]
+                       {'kind': 'udp', 'name': udp_port, 'host': 'sdk-test'},
+                       {'kind': 'tcp', 'name': 'boris:' + restricted_tcp_port, 'host': 'sdk-test'}]
         self._test_entities = {}
 
         self._test_entities['tcp'] = \
             inputs.create('tcp', str(tcp_port), host='sdk-test')
         self._test_entities['udp'] = \
             inputs.create('udp', str(udp_port), host='sdk-test')
+        self._test_entities['restrictedTcp'] = \
+            inputs.create('tcp', restricted_tcp_port, restrictToHost='boris')
 
     def tearDown(self):
         super(TestInput, self).tearDown()
@@ -232,11 +243,10 @@ class TestInput(testlib.SDKTestCase):
         inputs = self.service.inputs
         for entity in self._test_entities.itervalues():
             kind, name = entity.kind, entity.name
-            kwargs = {'host': 'foo', 'sourcetype': 'bar'}
+            kwargs = {'host': 'foo'}
             entity.update(**kwargs)
             entity.refresh()
             self.assertEqual(entity.host, kwargs['host'])
-            self.assertEqual(entity.sourcetype, kwargs['sourcetype'])
 
     def test_delete(self):
         inputs = self.service.inputs

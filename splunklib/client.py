@@ -1683,19 +1683,26 @@ class Input(Entity):
             self.kind = 'splunktcp'
 
     def update(self, **kwargs):
-        if 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
+        if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
+            result = super(Input, self).update(**kwargs)
+            return result
+        elif 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
             raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
-        port = self.name.split(':', 1)[-1]
-        result = super(Input, self).update(**kwargs)
-        if 'restrictToHost' in kwargs:
+        else:
+            port = self.name.split(':', 1)[-1]
+            new_kwargs = kwargs.copy()
+            if 'restrictToHost' not in new_kwargs and ':' in self.name:
+                new_kwargs['restrictToHost'] = self['restrictToHost']
+            result = super(Input, self).update(**new_kwargs)
             if self.path.endswith('/'):
                 base_path, name = self.path.rsplit('/', 2)[:-1]
             else:
                 base_path, name = self.path.rsplit('/', 1)
-            self.path = base_path + '/' + kwargs['restrictToHost'] + ':' + port
-        return result
-
-
+            if 'restrictToHost' in new_kwargs:
+                self.path = base_path + '/' + new_kwargs['restrictToHost'] + ':' + port
+            else:
+                self.path = base_path + '/' + port
+            return result
 
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all

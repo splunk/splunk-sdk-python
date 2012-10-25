@@ -59,7 +59,7 @@ class TestRead(testlib.SDKTestCase):
         self.assertEqual(expected, found)
 
     def test_oneshot(self):
-        self.installAppFromCollection('file_to_upload')
+        self.install_app_from_collection('file_to_upload')
 
         index_name = testlib.tmpname()
         index = self.service.indexes.create(index_name)
@@ -124,7 +124,7 @@ class TestInput(testlib.SDKTestCase):
         else:
             # Install modular inputs to list, and restart
             # so they'll show up.
-            self.installAppFromCollection("modular-inputs")
+            self.install_app_from_collection("modular-inputs")
             self.uncheckedRestartSplunk()
 
             inputs = self.service.inputs

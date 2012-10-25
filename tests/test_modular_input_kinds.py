@@ -20,7 +20,7 @@ import splunklib.client as client
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(ModularInputKindTestCase, self).setUp()
-        self.installAppFromCollection("modular-inputs")
+        self.install_app_from_collection("modular-inputs")
         self.uncheckedRestartSplunk()
 
     def test_list_arguments(self):

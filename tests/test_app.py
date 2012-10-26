@@ -50,7 +50,7 @@ class TestApp(testlib.SDKTestCase):
             if app_name.startswith('delete-me'):
                 self.service.apps.delete(app_name)
                 self.assertEventuallyTrue(lambda: app_name not in self.service.apps)
-        self.clearRestartMessage()
+        self.clear_restart_message()
 
     def test_app_integrity(self):
         self.check_entity(self.app)
@@ -86,7 +86,7 @@ class TestApp(testlib.SDKTestCase):
         self.assertTrue(name in self.service.apps)
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)
-        self.clearRestartMessage() # We don't actually have to restart here.
+        self.clear_restart_message() # We don't actually have to restart here.
 
     def test_package(self):
         p = self.app.package()

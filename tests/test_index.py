@@ -108,7 +108,7 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
     def test_upload(self):
-        self.installAppFromCollection("file_to_upload")
+        self.install_app_from_collection("file_to_upload")
 
         eventCount = int(self.index['totalEventCount'])
 

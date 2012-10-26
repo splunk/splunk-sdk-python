@@ -114,7 +114,7 @@ class TestUtilities(testlib.SDKTestCase):
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
         super(TestJobWithDelayedDone, self).setUp()
-        self.installAppFromCollection("sleep_command")
+        self.install_app_from_collection("sleep_command")
         self.query = "search index=_internal | sleep done=100"
         self.job = self.service.jobs.create(
             query=self.query,

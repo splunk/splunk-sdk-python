@@ -15,6 +15,7 @@
 # under the License.
 
 """Shared unit test utilities."""
+import contextlib
 
 import sys
 # Run the test suite on the SDK without installing it.
@@ -125,7 +126,7 @@ class SDKTestCase(unittest.TestCase):
                         continue
                 raise
 
-    def clearRestartMessage(self):
+    def clear_restart_message(self):
         """Tell Splunk to forget that it needs to be restarted.
 
         This is used mostly in cases such as deleting a temporary application.
@@ -142,7 +143,17 @@ class SDKTestCase(unittest.TestCase):
             else:
                 raise
 
-    def installAppFromCollection(self, name):
+    @contextlib.contextmanager
+    def fake_splunk_version(self, version):
+        original_version = self.service.splunk_version
+        try:
+            self.service._splunk_version = version
+            yield
+        finally:
+            self.service._splunk_version = original_version
+
+
+    def install_app_from_collection(self, name):
         collectionName = 'sdk-app-collection'
         if collectionName not in self.service.apps:
             raise ValueError("sdk-test-application not installed in splunkd")
@@ -159,7 +170,7 @@ class SDKTestCase(unittest.TestCase):
         """Return a path to *pathComponents* in *appName*.
 
         `pathInApp` is used to refer to files in applications installed with
-        `installAppFromCollection`. For example, the app `file_to_upload` in
+        `install_app_from_collection`. For example, the app `file_to_upload` in
         the collection contains `log.txt`. To get the path to it, call::
 
             pathInApp('file_to_upload', ['log.txt'])
@@ -228,4 +239,4 @@ class SDKTestCase(unittest.TestCase):
                 self.service.apps.delete(appName)
                 wait(lambda: appName not in self.service.apps)
         if self.service.restart_required:
-            self.clearRestartMessage()
+            self.clear_restart_message()

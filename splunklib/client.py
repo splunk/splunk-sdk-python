@@ -797,6 +797,9 @@ class Entity(Endpoint):
                 sharing = self._state.access.sharing
         return (owner, app, sharing)
 
+    def delete(self):
+        owner, app, sharing = self._proper_namespace()
+        return self.service.delete(self.path, owner=owner, app=app, sharing=sharing)
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         owner, app, sharing = self._proper_namespace(owner, app, sharing)
@@ -1667,17 +1670,62 @@ class Input(Entity):
         Entity.__init__(self, service, path, **kwargs)
         if kind is None:
             path_segments = path.split('/')
-            i = path_segments.index('inputs')
-            self.kind = '/'.join(path_segments[i+1:-1])
-            assert self.kind is not None
+            i = path_segments.index('inputs') + 1
+            if path_segments[i] == 'tcp':
+                self.kind = path_segments[i] + '/' + path_segments[i+1]
+            else:
+                self.kind = path_segments[i]
         else:
             self.kind = kind
 
-        # Maintain compatibility with older kind labels
-        if self.kind == 'tcp/raw':
-            self.kind = 'tcp'
-        if self.kind == 'tcp/cooked':
-            self.kind = 'splunktcp'
+        # Handle old input kind names.
+        if self.kind == 'tcp':
+            self.kind = 'tcp/raw'
+        if self.kind == 'splunktcp':
+            self.kind = 'tcp/cooked'
+
+    @property
+    def restrictToHost(self):
+        if 'restrictToHost' in self._state.content:
+            return self._state.content['restrictToHost']
+        else:
+            return ''
+
+    def update(self, **kwargs):
+        if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
+            result = super(Input, self).update(**kwargs)
+            return result
+        else:
+            # TCP inputs have a property 'restrictToHost' which requires special care.
+
+            # There is a bug in Splunk < 5.0. Don't bother trying to update restrictToHost.
+            if 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
+                raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
+
+            # In Splunk 4.x, if you update without restrictToHost as one of the fields,
+            # restrictToHost keeps its previous state. In 5.0, it is set to empty string.
+            # Thus, we must pass it every time. This doesn't actually introduce a race
+            # condition because if someone else has set restrictToHost to a new value on this
+            # TCP input, our update request will fail, since our reference to it still uses
+            # the old path.
+            to_update = kwargs.copy()
+            to_update['restrictToHost'] = kwargs.get('restrictToHost', self['restrictToHost'])
+
+            # Do the actual update operation.
+            result = super(Input, self).update(**to_update)
+
+            # Now we must update the path in case it changed.
+            # The pieces we break it into are:
+            #  https://localhost:8089/services/data/inputs/tcp/raw/   boris:  10000
+            # |------------------ base_path -----------------------| | host || port|
+            assert self.path.endswith('/')
+            base_path = self.path.rsplit('/', 2)[0]
+            host = to_update['restrictToHost'] + ':' if to_update['restrictToHost'] != '' else ''
+            port = self.name.split(':', 1)[-1]
+            self.path = base_path + '/' + host + port
+
+            return result
+
 
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all
@@ -1777,7 +1825,15 @@ class Inputs(Collection):
         """
         kindpath = self.kindpath(kind)
         self.post(kindpath, name=name, **kwargs)
-        path = _path(self.path + kindpath, name)
+
+        # If we created an input with restrictToHost set, then
+        # its path will be <restrictToHost>:<name>, not just <name>,
+        # and we have to adjust accordingly.
+        path = _path(
+            self.path + kindpath,
+            '%s:%s' % (kwargs['restrictToHost'], name) \
+                if kwargs.has_key('restrictToHost') else name
+        )
         return Input(self.service, path, kind)
 
     def delete(self, kind, name=None):
@@ -1807,7 +1863,8 @@ class Inputs(Collection):
             if entry.title == 'all' or this_subpath == ['tcp','ssl']:
                 continue
             elif 'create' in [x.rel for x in entry.link]:
-                kinds.append('/'.join(subpath + [entry.title]))
+                path = '/'.join(subpath + [entry.title])
+                kinds.append(path)
             else:
                 subkinds = self._get_kind_list(subpath + [entry.title])
                 kinds.extend(subkinds)
@@ -1864,7 +1921,7 @@ class Inputs(Collection):
             path = self.kindpath(kind)
             logging.debug("Path for inputs: %s", path)
             try:
-                response = self.service.get(path, **kwargs)
+                response = self.get(path, **kwargs)
             except HTTPError, he:
                 if he.status == 404: # No inputs of this kind
                     return []

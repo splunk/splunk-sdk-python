@@ -101,6 +101,10 @@ class ServiceTestCase(testlib.SDKTestCase):
         for p in v:
             self.assertTrue(isinstance(p, int) and p >= 0)
 
+        for version in [(4,3,3), (5,), (5,0,1)]:
+            with self.fake_splunk_version(version):
+                self.assertEqual(version, self.service.splunk_version)
+
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):
         settings = self.service.settings

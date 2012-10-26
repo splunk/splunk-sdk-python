@@ -1670,7 +1670,7 @@ class Input(Entity):
         Entity.__init__(self, service, path, **kwargs)
         if kind is None:
             path_segments = path.split('/')
-            i = path_segments.index('inputs')+1
+            i = path_segments.index('inputs') + 1
             if path_segments[i] == 'tcp':
                 self.kind = path_segments[i] + '/' + path_segments[i+1]
             else:
@@ -1684,27 +1684,48 @@ class Input(Entity):
         if self.kind == 'splunktcp':
             self.kind = 'tcp/cooked'
 
+    @property
+    def restrictToHost(self):
+        if 'restrictToHost' in self._state.content:
+            return self._state.content['restrictToHost']
+        else:
+            return ''
+
     def update(self, **kwargs):
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
             result = super(Input, self).update(**kwargs)
             return result
-        elif 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
-            raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
         else:
+            # TCP inputs have a property 'restrictToHost' which requires special care.
+
+            # There is a bug in Splunk < 5.0. Don't bother trying to update restrictToHost.
+            if 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
+                raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
+
+            # In Splunk 4.x, if you update without restrictToHost as one of the fields,
+            # restrictToHost keeps its previous state. In 5.0, it is set to empty string.
+            # Thus, we must pass it every time. This doesn't actually introduce a race
+            # condition because if someone else has set restrictToHost to a new value on this
+            # TCP input, our update request will fail, since our reference to it still uses
+            # the old path.
+            to_update = kwargs.copy()
+            to_update['restrictToHost'] = kwargs.get('restrictToHost', self['restrictToHost'])
+
+            # Do the actual update operation.
+            result = super(Input, self).update(**to_update)
+
+            # Now we must update the path in case it changed.
+            # The pieces we break it into are:
+            #  https://localhost:8089/services/data/inputs/tcp/raw/   boris:  10000
+            # |------------------ base_path -----------------------| | host || port|
+            assert self.path.endswith('/')
+            base_path = self.path.rsplit('/', 2)[0]
+            host = to_update['restrictToHost'] + ':' if to_update['restrictToHost'] != '' else ''
             port = self.name.split(':', 1)[-1]
-            new_kwargs = kwargs.copy()
-            if 'restrictToHost' not in new_kwargs and ':' in self.name:
-                new_kwargs['restrictToHost'] = self['restrictToHost']
-            result = super(Input, self).update(**new_kwargs)
-            if self.path.endswith('/'):
-                base_path, name = self.path.rsplit('/', 2)[:-1]
-            else:
-                base_path, name = self.path.rsplit('/', 1)
-            if 'restrictToHost' in new_kwargs and new_kwargs['restrictToHost'] != '':
-                self.path = base_path + '/' + new_kwargs['restrictToHost'] + ':' + port
-            else:
-                self.path = base_path + '/' + port
+            self.path = base_path + '/' + host + port
+
             return result
+
 
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all
@@ -1803,15 +1824,16 @@ class Inputs(Collection):
         :return: The new input.
         """
         kindpath = self.kindpath(kind)
-        if (kindpath == 'tcp/raw' or kindpath == 'tcp/cooked' or kindpath == 'udp') and \
-            'restrictToHost' in kwargs:
-            post_name = name
-            path_name = kwargs['restrictToHost'] + ':' + name
-        else:
-            post_name = name
-            path_name = name
-        self.post(kindpath, name=post_name, **kwargs)
-        path = _path(self.path + kindpath, path_name)
+        self.post(kindpath, name=name, **kwargs)
+
+        # If we created an input with restrictToHost set, then
+        # its path will be <restrictToHost>:<name>, not just <name>,
+        # and we have to adjust accordingly.
+        path = _path(
+            self.path + kindpath,
+            '%s:%s' % (kwargs['restrictToHost'], name) \
+                if kwargs.has_key('restrictToHost') else name
+        )
         return Input(self.service, path, kind)
 
     def delete(self, kind, name=None):

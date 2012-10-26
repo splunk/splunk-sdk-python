@@ -52,6 +52,9 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
         )
 
     def test_remove_host_restriction(self):
+        if self.service.splunk_version < (5,):
+            # We can't set restrictToHost before 5.0 due to a bug in splunkd.
+            return
         input = self.service.inputs.create('tcp', str(self.base_port), restrictToHost='boris')
         input.update(restrictToHost='')
         input.refresh()
@@ -91,12 +94,26 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_update_restrictToHost(self):
         for kind in ['tcp', 'splunktcp']:
-            boris = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            port = self.base_port
+            while True: # Find the next unbound port
+                try:
+                    boris = self.service.inputs.create(kind, str(port), restrictToHost='boris')
+                except client.HTTPError as he:
+                    if he.status == 400:
+                        port += 1
+                else:
+                    break
+
+            # No matter what version we're actually running against,
+            # we can check that on Splunk < 5.0, we get an exception
+            # from trying to update restrictToHost.
             with self.fake_splunk_version((4,3)):
                 self.assertRaises(
                     client.IllegalOperationException,
                     lambda: boris.update(restrictToHost='hilda')
                 )
+
+            # And now back to real tests...
             if self.service.splunk_version >= (5,):
                 boris.update(restrictToHost='hilda')
                 boris.refresh()
@@ -107,7 +124,15 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_update_nonrestrictToHost(self):
         for kind in ['tcp', 'splunktcp']:
-            input = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            port = self.base_port
+            while True: # Find the next unbound port
+                try:
+                    input = self.service.inputs.create(kind, str(port), restrictToHost='boris')
+                except client.HTTPError as he:
+                    if he.status == 400:
+                        port += 1
+                else:
+                    break
             try:
                 input.update(host='meep')
                 input.refresh()

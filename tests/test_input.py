@@ -30,7 +30,7 @@ def highest_port(service, base_port, *kinds):
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
         super(TestTcpInputNameHandling, self).setUp()
-        self.base_port = highest_port(self.service, 10000, 'tcp', 'splunktcp') + 1
+        self.base_port = highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp') + 1
 
     def tearDown(self):
         for input in self.service.inputs.list('tcp', 'splunktcp'):
@@ -62,7 +62,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
         input.delete()
 
     def test_create_tcp_ports_with_restrictToHost(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ['tcp', 'splunktcp']: # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
             boris = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
             natasha = self.service.inputs.create(kind, str(self.base_port), restrictToHost='natasha')
@@ -75,8 +75,9 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             natasha.delete()
 
     def test_restricted_to_unrestricted_collision(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ['tcp', 'splunktcp', 'udp']:
             restricted = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            self.assertTrue('boris:' + str(self.base_port) in self.service.inputs)
             self.assertRaises(
                 client.HTTPError,
                 lambda: self.service.inputs.create(kind, str(self.base_port))
@@ -84,16 +85,17 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             restricted.delete()
 
     def test_unrestricted_to_restricted_collision(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ['tcp', 'splunktcp', 'udp']:
             unrestricted = self.service.inputs.create(kind, str(self.base_port))
+            self.assertTrue(str(self.base_port) in self.service.inputs)
             self.assertRaises(
                 client.HTTPError,
-                lambda: self.service.inputs.create(kind, str(self.base_port), restrictToHos='boris')
+                lambda: self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
             )
             unrestricted.delete()
 
     def test_update_restrictToHost(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ['tcp', 'splunktcp']: # No UDP, since it's broken in Splunk
             port = self.base_port
             while True: # Find the next unbound port
                 try:
@@ -123,7 +125,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                 boris.delete()
 
     def test_update_nonrestrictToHost(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ['tcp', 'splunktcp']: # No UDP since it's broken in Splunk
             port = self.base_port
             while True: # Find the next unbound port
                 try:

@@ -39,6 +39,16 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                 input.delete()
         super(TestTcpInputNameHandling, self).tearDown()
 
+    def create_tcp_input(self, base_port, kind, **options):
+        port = base_port
+        while True: # Find the next unbound port
+            try:
+                input = self.service.inputs.create(kind, str(port), **options)
+                return input
+            except client.HTTPError as he:
+                if he.status == 400:
+                    port += 1
+
     def test_create_tcp_port(self):
         for kind in ['tcp', 'splunktcp']:
             input = self.service.inputs.create(kind, str(self.base_port))
@@ -96,15 +106,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_update_restrictToHost(self):
         for kind in ['tcp', 'splunktcp']: # No UDP, since it's broken in Splunk
-            port = self.base_port
-            while True: # Find the next unbound port
-                try:
-                    boris = self.service.inputs.create(kind, str(port), restrictToHost='boris')
-                except client.HTTPError as he:
-                    if he.status == 400:
-                        port += 1
-                else:
-                    break
+            boris = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
 
             # No matter what version we're actually running against,
             # we can check that on Splunk < 5.0, we get an exception
@@ -126,15 +128,8 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_update_nonrestrictToHost(self):
         for kind in ['tcp', 'splunktcp']: # No UDP since it's broken in Splunk
-            port = self.base_port
-            while True: # Find the next unbound port
-                try:
-                    input = self.service.inputs.create(kind, str(port), restrictToHost='boris')
-                except client.HTTPError as he:
-                    if he.status == 400:
-                        port += 1
-                else:
-                    break
+            input = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
+
             try:
                 input.update(host='meep')
                 input.refresh()

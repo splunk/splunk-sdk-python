@@ -1684,13 +1684,6 @@ class Input(Entity):
         if self.kind == 'splunktcp':
             self.kind = 'tcp/cooked'
 
-    @property
-    def restrictToHost(self):
-        if 'restrictToHost' in self._state.content:
-            return self._state.content['restrictToHost']
-        else:
-            return ''
-
     def update(self, **kwargs):
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
             result = super(Input, self).update(**kwargs)
@@ -1709,7 +1702,7 @@ class Input(Entity):
             # TCP input, our update request will fail, since our reference to it still uses
             # the old path.
             to_update = kwargs.copy()
-            to_update['restrictToHost'] = kwargs.get('restrictToHost', self['restrictToHost'])
+            to_update['restrictToHost'] = kwargs.get('restrictToHost', self._state.content.get('restrictToHost', ''))
 
             # Do the actual update operation.
             result = super(Input, self).update(**to_update)
@@ -1723,7 +1716,8 @@ class Input(Entity):
             host = to_update['restrictToHost'] + ':' if to_update['restrictToHost'] != '' else ''
             port = self.name.split(':', 1)[-1]
             self.path = base_path + '/' + host + port
-
+            # We don't have to update self.name, since it's part of the data
+            # fetched from splunkd.
             return result
 
 

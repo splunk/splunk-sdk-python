@@ -70,16 +70,16 @@ class Message(object):
     def __hash__(self):
         return hash((self.type, self.message))
 
-class ConcatenatedStream(object):
+class _ConcatenatedStream(object):
     """Lazily concatenate zero or more streams into a stream.
 
     As you read from the concatenated stream, you get characters from
-    each stream passed to ``ConcatenatedStream``, in order.
+    each stream passed to ``_ConcatenatedStream``, in order.
 
     **Example**:
 
         from StringIO import StringIO
-        s = ConcatenatedStream(StringIO("abc"), StringIO("def"))
+        s = _ConcatenatedStream(StringIO("abc"), StringIO("def"))
         assert s.read() == "abcdef"
     """
     def __init__(self, *streams):
@@ -100,7 +100,7 @@ class ConcatenatedStream(object):
                 del self.streams[0]
         return response
 
-class XMLDTDFilter(object):
+class _XMLDTDFilter(object):
     """Lazily remove all XML DTDs from a stream.
 
     All substrings matching the regular expression <?[^>]*> are
@@ -110,7 +110,7 @@ class XMLDTDFilter(object):
     **Example**::
 
         from StringIO import StringIO
-        s = XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
+        s = _XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
         assert s.read() == "<element></element>"
     """
     def __init__(self, stream):
@@ -173,7 +173,7 @@ class ResultsReader(object):
     # client.Job.results_preview and client.Job.results to match any
     # changes made to ResultsReader.
     #
-    # This wouldn't be a class, just the parse_results function below,
+    # This wouldn't be a class, just the _parse_results function below,
     # except that you cannot get the current generator inside the
     # function creating that generator. Thus it's all wrapped up for
     # the sake of one field.
@@ -187,10 +187,10 @@ class ResultsReader(object):
         # destroy the stream and throw an error. To get around this,
         # we remove all the DTD definitions inline, then wrap the
         # fragments in a fiction <doc> element to make the parser happy.
-        stream = XMLDTDFilter(stream)
-        stream = ConcatenatedStream(StringIO("<doc>"), stream, StringIO("</doc>"))
+        stream = _XMLDTDFilter(stream)
+        stream = _ConcatenatedStream(StringIO("<doc>"), stream, StringIO("</doc>"))
         self.is_preview = None
-        self._gen = self.parse_results(stream)
+        self._gen = self._parse_results(stream)
 
     def __iter__(self):
         return self
@@ -198,7 +198,8 @@ class ResultsReader(object):
     def next(self):
         return self._gen.next()
 
-    def parse_results(self, stream):
+    def _parse_results(self, stream):
+        """Parse results and messages out of *stream*."""
         result = None
         values = None
         try:

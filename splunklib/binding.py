@@ -33,6 +33,7 @@ import urllib
 import functools
 import logging
 from datetime import datetime
+from functools import wraps
 
 from contextlib import contextmanager
 
@@ -55,7 +56,8 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
-def log_duration(f):
+def _log_duration(f):
+    @wraps(f)
     def new_f(*args, **kwargs):
         start_time = datetime.now()
         val = f(*args, **kwargs)
@@ -132,7 +134,7 @@ class UrlEncoded(str):
     def __radd__(self, other):
         """other + self
 
-        If *other* is not a ``UrlEncoded``, URL encode it before
+        If *other* is not a ``UrlEncoded``, URL _encode it before
         adding it.
         """
         if isinstance(other, UrlEncoded):
@@ -210,7 +212,7 @@ def _authentication(request_fun):
             return 42
         print _authentication(f)
     """
-    @functools.wraps(request_fun)
+    @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
         if self.token is NoAuthenticationToken:
             # Not yet logged in.
@@ -443,7 +445,7 @@ class Context(object):
         return sock
 
     @_authentication
-    @log_duration
+    @_log_duration
     def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
         """DELETE at *path_segment* with the given namespace and query.
 
@@ -493,7 +495,7 @@ class Context(object):
         return response
 
     @_authentication
-    @log_duration
+    @_log_duration
     def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """GET from *path_segment* with the given namespace and query.
 
@@ -543,7 +545,7 @@ class Context(object):
         return response
 
     @_authentication
-    @log_duration
+    @_log_duration
     def post(self, path_segment, owner=None, app=None, sharing=None, headers=[], **query):
         """POST to *path_segment* with the given namespace and query.
 
@@ -612,7 +614,7 @@ class Context(object):
         return response
 
     @_authentication
-    @log_duration
+    @_log_duration
     def request(self, path_segment, method="GET", headers=[], body="",
                 owner=None, app=None, sharing=None):
         """Issue an arbitrary HTTP request to *path_segment*.
@@ -868,11 +870,11 @@ class HTTPError(Exception):
 #   }
 #
 
-# Encode the given kwargs as a query string. This wrapper will also encode 
+# Encode the given kwargs as a query string. This wrapper will also _encode
 # a list value as a sequence of assignemnts to the corresponding arg name, 
 # for example an argument such as 'foo=[1,2,3]' will be encoded as
 # 'foo=1&foo=2&foo=3'. 
-def encode(**kwargs):
+def _encode(**kwargs):
     items = []
     for key, value in kwargs.iteritems():
         if isinstance(value, list):
@@ -882,7 +884,7 @@ def encode(**kwargs):
     return urllib.urlencode(items)
 
 # Crack the given url into (scheme, host, port, path)
-def spliturl(url):
+def _spliturl(url):
     scheme, opaque = urllib.splittype(url)
     netloc, path = urllib.splithost(opaque)
     host, port = urllib.splitport(netloc)
@@ -903,7 +905,7 @@ class HttpLib(object):
             # url is already a UrlEncoded. We have to manually declare
             # the query to be encoded or it will get automatically URL
             # encoded by being appended to url.
-            url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
+            url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
         message = {
             'method': "DELETE",
             'headers': headers,
@@ -916,7 +918,7 @@ class HttpLib(object):
             # url is already a UrlEncoded. We have to manually declare
             # the query to be encoded or it will get automatically URL
             # encoded by being appended to url.
-            url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
+            url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
         return self.request(url, { 'method': "GET", 'headers': headers })
 
     def post(self, url, headers=None, **kwargs):
@@ -927,9 +929,9 @@ class HttpLib(object):
         if 'body' in kwargs:
             body = kwargs.pop('body')
             if len(kwargs) > 0:
-                url = url + UrlEncoded('?' + encode(**kwargs), skip_encode=True)
+                url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
         else:
-            body = encode(**kwargs)
+            body = _encode(**kwargs)
         message = {
             'method': "POST",
             'headers': headers,
@@ -1015,7 +1017,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
         raise ValueError("unsupported scheme: %s" % scheme)
 
     def request(url, message, **kwargs):
-        scheme, host, port, path = spliturl(url)
+        scheme, host, port, path = _spliturl(url)
         body = message.get("body", "")
         head = { 
             "Content-Length": str(len(body)),

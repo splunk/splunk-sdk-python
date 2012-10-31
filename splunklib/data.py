@@ -256,7 +256,7 @@ class Record(dict):
     
 
 def record(value=None): 
-    """Returns a **record** instance constructed with an initial value that you
+    """Returns a `Record` instance constructed with an initial value that you
     provide.
     
     :param `value`: An initial record value.

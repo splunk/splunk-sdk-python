@@ -22,7 +22,7 @@ import unittest
 import splunklib.client as client
 import splunklib.results as results
 
-from splunklib.binding import log_duration
+from splunklib.binding import _log_duration
 
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
@@ -165,7 +165,7 @@ class TestJob(testlib.SDKTestCase):
         super(TestJob, self).tearDown()
         self.job.cancel()
 
-    @log_duration
+    @_log_duration
     def test_get_preview_and_events(self):
         self.assertEventuallyTrue(self.job.is_done)
         self.assertLessEqual(int(self.job['eventCount']), 3)
@@ -280,12 +280,12 @@ class TestResultsReader(unittest.TestCase):
 
     def test_xmldtd_filter(self):
         from StringIO import StringIO
-        s = results.XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
+        s = results._XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
         self.assertEqual(s.read(), "<boris>Other stuf</boris> ab")
 
     def test_concatenated_stream(self):
         from StringIO import StringIO
-        s = results.ConcatenatedStream(StringIO("This is a test "), 
+        s = results._ConcatenatedStream(StringIO("This is a test "),
                                        StringIO("of the emergency broadcast system."))
         self.assertEqual(s.read(3), "Thi")
         self.assertEqual(s.read(20), 's is a test of the e')

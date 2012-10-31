@@ -141,13 +141,13 @@ class OperationFailedException(Exception):
 class NoSuchCapability(Exception):
     pass
 
-def trailing(template, *targets):
+def _trailing(template, *targets):
     """Substring of *template* following all *targets*.
 
     Most easily explained by example::
 
         template = "this is a test of the bunnies."
-        trailing(template, "is", "est", "the") == \
+        _trailing(template, "is", "est", "the") == \
             " bunnies"
 
     Each target is matched successively in the string, and the string
@@ -1079,9 +1079,9 @@ class ReadOnlyCollection(Endpoint):
         # entities' endpoints from its own properties/ to configs/.
         raw_path = urllib.unquote(state.links.alternate)
         if 'servicesNS/' in raw_path:
-            return trailing(raw_path, 'servicesNS/', '/', '/')
+            return _trailing(raw_path, 'servicesNS/', '/', '/')
         elif 'services/' in raw_path:
-            return trailing(raw_path, 'services/')
+            return _trailing(raw_path, 'services/')
         else:
             return raw_path
 

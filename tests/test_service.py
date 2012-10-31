@@ -138,19 +138,19 @@ class TestTrailing(unittest.TestCase):
     template = '/servicesNS/boris/search/another/path/segment/that runs on'
 
     def test_raises_when_not_found_first(self):
-        self.assertRaises(ValueError, client.trailing, 'this is a test', 'boris')
+        self.assertRaises(ValueError, client._trailing, 'this is a test', 'boris')
 
     def test_raises_when_not_found_second(self):
-        self.assertRaises(ValueError, client.trailing, 'this is a test', 's is', 'boris')
+        self.assertRaises(ValueError, client._trailing, 'this is a test', 's is', 'boris')
 
     def test_no_args_is_identity(self):
-        self.assertEqual(self.template, client.trailing(self.template))
+        self.assertEqual(self.template, client._trailing(self.template))
 
     def test_trailing_with_one_arg_works(self):
-        self.assertEqual('boris/search/another/path/segment/that runs on', client.trailing(self.template, 'ervicesNS/'))
+        self.assertEqual('boris/search/another/path/segment/that runs on', client._trailing(self.template, 'ervicesNS/'))
 
     def test_trailing_with_n_args_works(self):
-        self.assertEqual('another/path/segment/that runs on', client.trailing(self.template, 'servicesNS/', '/', '/'))
+        self.assertEqual('another/path/segment/that runs on', client._trailing(self.template, 'servicesNS/', '/', '/'))
 
 
 if __name__ == "__main__":

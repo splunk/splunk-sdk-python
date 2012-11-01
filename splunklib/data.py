@@ -12,15 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Code to read response from splunkd in Atom Feed format.
-
-The Splunk REST API largely returns Atom (except in a few places where
-there are historical inconsistencies that will be ironed out in future
-versions).
-
-This module provides one function, :func:`load`, which reads a string
-containing the XML of an Atom Feed and returns a dictionary or list
-containing the corresponding data.
+"""The **splunklib.data** module reads the responses from splunkd in Atom Feed 
+format, which is the format used by most of the REST API.
 """
 
 from xml.etree.ElementTree import XML
@@ -63,16 +56,16 @@ def localname(xname):
     return xname if rcurly == -1 else xname[rcurly+1:]
 
 def load(text, match=None):
-    """Extract Python data structures from Atom XML in the string *text*.
-
-    Loads XML text into a native Python structure (`dict` or `list`).
-    If you provide an optional *match* string (a tag name or path),
-    only the matching sub-elements are loaded.
+    """This function reads a string that contains the XML of an Atom Feed, then 
+    returns the 
+    data in a native Python structure (a ``dict`` or ``list``). If you also 
+    provide a tag name or path to match, only the matching sub-elements are 
+    loaded.
 
     :param text: The XML text to load.
-    :type text: string
+    :type text: ``string``
     :param match: A tag name or path to match (optional).
-    :type match: string
+    :type match: ``string``
     """
     if text is None: return None
     text = text.strip()
@@ -188,24 +181,22 @@ def load_value(element, nametable=None):
 
 # A generic utility that enables "dot" access to dicts
 class Record(dict):
-    """A generic utility class that enables dot access to members of 
-    a Python dictionary.
+    """This generic utility class enables dot access to members of a Python 
+    dictionary.
 
-    Any key which is also a valid Python identifier can be fetched as
-    a field, so for a Record ``r``, ``r.key`` is equivalent to
-    ``r['key']``. A key like ``invalid-key`` or ``invalid.key`` cannot
-    be fetched as a field, since ``-`` and ``.`` are not allowed in
+    Any key that is also a valid Python identifier can be retrieved as a field. 
+    So, for an instance of ``Record`` called ``r``, ``r.key`` is equivalent to 
+    ``r['key']``. A key such as ``invalid-key`` or ``invalid.key`` cannot be 
+    retrieved as a field, because ``-`` and ``.`` are not allowed in 
     identifiers.
 
-    However, keys of the form ``a.b.c`` are very natural to write in
-    Python as fields, so Record does something sane with them: if a
-    group of keys all share a prefix ending in ``.``, then you can
-    fetch them as a nested dictionary by calling just the prefix,
-    e.g., if Record ``r`` contains keys ``'foo'``, ``'bar.baz'``, and
-    ``'bar.qux'``, ``r.bar`` returns a Record with the keys ``baz``
-    and ``qux``. If there are multiple ``.``'s in the key, each ``.``
-    is put into a nested dictionary. Thus you can write ``r.bar.qux``
-    or ``r['bar.qux']`` interchangeably.
+    Keys of the form ``a.b.c`` are very natural to write in Python as fields. If 
+    a group of keys shares a prefix ending in ``.``, you can retrieve keys as a 
+    nested dictionary by calling only the prefix. For example, if ``r`` contains
+    keys ``'foo'``, ``'bar.baz'``, and ``'bar.qux'``, ``r.bar`` returns a record
+    with the keys ``baz`` and ``qux``. If a key contains multiple ``.``, each 
+    one is placed into a nested dictionary, so you can write ``r.bar.qux`` or 
+    ``r['bar.qux']`` interchangeably.
     """
     sep = '.'
 
@@ -256,11 +247,11 @@ class Record(dict):
     
 
 def record(value=None): 
-    """Returns a `Record` instance constructed with an initial value that you
-    provide.
+    """This function returns a :class:`Record` instance constructed with an 
+    initial value that you provide.
     
     :param `value`: An initial record value.
-    :type `value`: dict
+    :type `value`: ``dict``
     """
     if value is None: value = {}
     return Record(value)

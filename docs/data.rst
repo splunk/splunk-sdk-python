@@ -5,8 +5,8 @@ splunklib.data
 
 .. autofunction:: load
 
+.. autoclass:: Record
+    :members: 
+
 .. autofunction:: record
 
-.. autoclass:: Record
-    :members:
-    :undoc-members:

@@ -66,13 +66,25 @@ def _log_duration(f):
 
 # Custom exceptions
 class AuthenticationError(Exception):
-    """ This exception is raised when login fails. ### FRED: DOC ME ### """
+    """Raised when a login request to Splunk fails.
+
+    If your username was unknown or you provided an incorrect password
+    in a call to Context.login() or Service.login(), this exception is
+    raised.
+    """
     pass
 
 # Singleton values to eschew None
 class NoAuthenticationToken(object):
-    """ This exception is raised when there is no valid authentication token. 
-    ### FRED: DOC ME ### """
+    """The value stored in a Context or Service that is not logged in.
+
+    If a Context or Service is created without an authentication token,
+    and there has not yet been a call to the login method, the token
+    field of the Context or Service is set to ``NoAuthenticationToken``.
+
+    Likewise, after a Context or Service has been logged out, the token
+    is set to this value again.
+    """
     pass
 
 class UrlEncoded(str):
@@ -921,13 +933,54 @@ def _spliturl(url):
 
 # Given an HTTP request handler, this wrapper objects provides a related
 # family of convenience methods built using that handler.
-class HttpLib(object):    
-    """ This class ### FRED: DOC ME ### """
+class HttpLib(object):
+    """A set of convenient methods for making HTTP calls.
+
+    HttpLib provides a general ``request`` method, and ``delete``, ``post``,
+    and ``get`` methods for the three HTTP methods that Splunk uses.
+
+    By default, ``HttpLib`` will use Python's built-in ``httplib`` library,
+    but you can replace it by passing your own handling function to
+    ``HttpLib``'s constructor.
+
+    The handling function should have the type::
+
+        handler(url, request_dict) -> response_dict
+
+    where ``url`` is the URL to make the request to (including any query and
+    fragment sections), ``request_dict`` is a dictionary with the following keys:
+
+    - method: the method for the request, typically ``'GET'``, ``'POST'``, or ``'DELETE'``.
+    - headers: A list of pairs specifying the HTTP headers (e.g., ``[('key': value), ...]``)
+    - body: A string giving the body to send with the request (should default to ``''``).
+
+    and ``response_dict`` is a dictionary with the following keys:
+
+    - status: An integer giving the HTTP status code (e.g., 200, 404).
+    - reason: The reason phrase, if any, returned by the server
+    - headers: A list of pairs giving the response headers (e.g., ``[('key': value), ...]``)
+    - body: A stream-like object supporting ``read(size=None)`` and ``close()``
+            methods to get the body of the response.
+
+    The response dictionary will be returned directly by ``HttpLib``'s methods with
+    no further processing. By default, ``HttpLib`` calls the function ``handler``
+    to get a handler function. See it for an example.
+    """
     def __init__(self, custom_handler=None):
         self.handler = handler() if custom_handler is None else custom_handler
 
     def delete(self, url, headers=None, **kwargs):
-        """### FRED: DOC ME ###
+        """Send a DELETE request to *url*.
+
+        *headers* should be a list of pairs specifying the headers for
+        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
+
+        Any additional keyword arguments are interpreted as the query
+        part of the URL. The order of keyword arguments is not preserved
+        in the request, but the keywords and their arguments will be URL
+        encoded.
+
+        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
         """
         if headers is None: headers = []
         if kwargs: 
@@ -942,7 +995,17 @@ class HttpLib(object):
         return self.request(url, message)
 
     def get(self, url, headers=None, **kwargs):
-        """### FRED: DOC ME ###
+        """Issue a GET request to *url*
+
+        *headers* should be a list of pairs specifying the headers for
+        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
+
+        Any additional keyword arguments are interpreted as the query
+        part of the URL. The order of keyword arguments is not preserved
+        in the request, but the keywords and their arguments will be URL
+        encoded.
+
+        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
         """
         if headers is None: headers = []
         if kwargs: 
@@ -953,7 +1016,19 @@ class HttpLib(object):
         return self.request(url, { 'method': "GET", 'headers': headers })
 
     def post(self, url, headers=None, **kwargs):
-        """### FRED: DOC ME ###
+        """Issue a POST request to *url*.
+
+        *headers* should be a list of pairs specifying the headers for
+        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
+
+        If ``post`` receives a keyword argument ``body``, it will use
+        its value as the body for the request, and encode the rest of the
+        keyword arguments into the URL's query as ``get`` or ``delete``
+        does. If there is no ``body`` keyword argument, then all the keyword
+        arguments are encoded into the body of the request in the
+        ``x-www-form-urlencoded`` format.
+
+        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
         """
         if headers is None: headers = []
         headers.append(("Content-Type", "application/x-www-form-urlencoded")),
@@ -973,7 +1048,12 @@ class HttpLib(object):
         return self.request(url, message)
 
     def request(self, url, message, **kwargs):
-        """### FRED: DOC ME ###
+        """Issue an HTTP request to *url*.
+
+        *message* should be a dictionary of the format understood
+        by the HTTP handler (see ``HttpLib`` for a description of
+        the format). Any additional keyword arguments are passed
+        unchanged to the handler.
         """
         response = self.handler(url, message, **kwargs)
         response = record(response)
@@ -1040,9 +1120,9 @@ def handler(key_file=None, cert_file=None, timeout=None):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
-    :param `key_file`: A path to the key file (optional). ### FRED VERIFY ### 
+    :param `key_file`: A path to a PEM (Privacy Enhanced Mail) formatted file containing your private key (optional).
     :type key_file: ``string``
-    :param `cert_file`: A path to the cert file (optional).
+    :param `cert_file`: A path to a PEM (Privacy Enhanced Mail) formatted file containing a certificate chain file (optional).
     :type cert_file: ``string``
     :param `timeout`: The request time-out period, in seconds (optional).
     :type timeout: ``integer`` or "None"

@@ -454,8 +454,8 @@ class Context(object):
 
         This method is named to match the HTTP method. ``delete`` makes at least 
         one round trip to the server, one additional round trip for each 303 
-        status returned, and at most two additional round trips if autologin is 
-        enabled.
+        status returned, and at most two additional round trips if 
+        the ``autologin`` field of :func:`connect` is set to ``True``.
 
         If *owner*, *app*, and *sharing* are omitted, this method uses the 
         default :class:`Context` namespace. All other keyword arguments are 
@@ -484,7 +484,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.delete('saved/searches/boris') == \\
-                {'body': '<splunklib.binding.ResponseReader at 0x10f870ad0>', ### take out the quotes
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '1786'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -512,8 +512,8 @@ class Context(object):
 
         This method is named to match the HTTP method. ``get`` makes at least 
         one round trip to the server, one additional round trip for each 303 
-        status returned, and at most two additional round trips if autologin is 
-        enabled.
+        status returned, and at most two additional round trips if 
+        the ``autologin`` field of :func:`connect` is set to ``True``.
 
         If *owner*, *app*, and *sharing* are omitted, this method uses the 
         default :class:`Context` namespace. All other keyword arguments are 
@@ -542,7 +542,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.get('apps/local') == \\
-                {'body': '<splunklib.binding.ResponseReader at 0x10f8709d0>', ### take out the quotes
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -570,8 +570,8 @@ class Context(object):
 
         This method is named to match the HTTP method. ``post`` makes at least 
         one round trip to the server, one additional round trip for each 303 
-        status returned, and at most two additional round trips if autologin is 
-        enabled.
+        status returned, and at most two additional round trips if 
+        the ``autologin`` field of :func:`connect` is set to ``True``.
 
         If *owner*, *app*, and *sharing* are omitted, this method uses the 
         default :class:`Context` namespace. All other keyword arguments are 
@@ -608,7 +608,7 @@ class Context(object):
             c = binding.connect(...)
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1') == \\
-                {'body': '<splunklib.binding.ResponseReader at 0x10f870d50>', ### take out the quotes
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '10455'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -673,7 +673,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.request('saved/searches', method='GET') == \\
-                {'body': '<splunklib.binding.ResponseReader at 0x10b18fa50>', ### take out the quotes
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '46722'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -828,12 +828,12 @@ def connect(**kwargs):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param sharing: The sharing mode for the namespace (the default is "user").
-    :type sharing: "global", "system", "app", or "user"
     :param owner: The owner context of the namespace (the default is "None").
     :type owner: ``string``
     :param app: The app context of the namespace (the default is "None").
     :type app: ``string``
+    :param sharing: The sharing mode for the namespace (the default is "user").
+    :type sharing: "global", "system", "app", or "user"
     :param token: The current session token (optional). Session tokens can be 
         shared across multiple service instances.
     :type token: ``string``
@@ -844,7 +844,7 @@ def connect(**kwargs):
     :type password: ``string``
     :param autologin: When ``True``, automatically tries to log in again if the 
         session terminates.
-    :type autologin: ``boolean``
+    :type autologin: ``Boolean``
     :return: An initialized :class:`Context` instance.
 
     **Example**::

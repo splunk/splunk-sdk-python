@@ -290,7 +290,7 @@ def connect(**kwargs):
     :type token: ``string``
     :param autologin: When ``True``, automatically tries to log in again if the 
         session terminates.
-    :type autologin: ``Boolean``
+    :type autologin: ``boolean``
     :param `username`: The Splunk account username, which is used to 
                        authenticate the Splunk instance.
     :type username: ``string``
@@ -470,16 +470,16 @@ class Service(Context):
         :param kwargs: Arguments to pass to the ``search/parser`` endpoint 
             (optional). Valid arguments are: 
 
-            * "enable_lookups" (``Boolean``): If ``True``, performs reverse lookups
+            * "enable_lookups" (``boolean``): If ``True``, performs reverse lookups
               to expand the search expression. 
 
             * "output_mode" (``string``): The output format (XML or JSON). 
 
-            * "parse_only" (``Boolean``): If ``True``, disables the expansion of 
+            * "parse_only" (``boolean``): If ``True``, disables the expansion of 
               search due to evaluation of subsearches, time term expansion, 
               lookups, tags, eventtypes, and sourcetype alias.  
 
-            * "reload_macros" (``Boolean``): If ``True``, reloads macro 
+            * "reload_macros" (``boolean``): If ``True``, reloads macro 
               definitions from macros.conf. 
 
         :type kwargs: ``dict``
@@ -1054,7 +1054,8 @@ class Entity(Endpoint):
         return self._state
 
     def update(self, **kwargs):
-        """Updates the entity with the arguments you provide.
+        """Updates the server with any changes you've made to the current entity
+        along with any additional arguments you specify. 
 
             **Note**: You cannot update the ``name`` field of an entity.
 
@@ -1289,8 +1290,10 @@ class ReadOnlyCollection(Endpoint):
         if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
         
-        :param `name`: The entity name.
-        :rtype: ``Boolean``
+        :param name: The entity name.
+        :type name: ``string``
+        :return: ``True`` if the entity exists, ``False`` if not.
+        :rtype: ``boolean``
         """
         return name in self
 
@@ -1703,7 +1706,7 @@ class AlertGroup(Entity):
 
     @property
     def count(self):
-        """The count of triggered alerts.
+        """Returns the count of triggered alerts.
 
         :return: The triggered alert count.
         :rtype: ``integer``
@@ -1953,8 +1956,8 @@ class Input(Entity):
             self.kind = 'tcp/cooked'
 
     def update(self, **kwargs):
-        """Makes any changes to the current input on the server, along with any
-        additional properties you specify.
+        """Updates the server with any changes you've made to the current input
+        along with any additional arguments you specify. 
 
         :param kwargs: Additional arguments (optional). For more about the 
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
@@ -2461,7 +2464,7 @@ class Job(Entity):
         return _load_atom(response).entry
 
     def cancel(self):
-        """Stops the current search and deletes the result cache.
+        """Stops the current search and deletes the results cache.
         
         :return: The :class:`Job`.
         """
@@ -2485,8 +2488,9 @@ class Job(Entity):
         return self
 
     def enable_preview(self):
-        """Enables preview for this job (although doing so might slow search
-        considerably).
+        """Enables preview for this job.
+
+        **Note**: Enabling preview might slow search considerably.
         
         :return: The :class:`Job`.
         """
@@ -2494,19 +2498,20 @@ class Job(Entity):
         return self
 
     def events(self, **kwargs):
-        """Returns an InputStream IO handle for this job's events.
+        """Returns a streaming handle to this job's events.
 
-        :param kwargs: 
+        :param kwargs: Additional parameters (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/events 
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fevents>`_
+            in the REST API documentation.
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to this job's events.
         """
         return self.get("events", **kwargs).body
 
     def finalize(self):
-        """Stops the job and provides intermediate results available for 
-        retrieval.
+        """Stops the job and provides intermediate results for retrieval.
         
         :return: The :class:`Job`.
         """
@@ -2514,9 +2519,9 @@ class Job(Entity):
         return self
 
     def is_done(self):
-        """Has this job finished running on the server yet?
+        """Indicates whether this job finished running.
         
-        :return: 
+        :return: ``True`` if the job is done, ``False`` if not.
         :rtype: ``boolean``
         """
         if (not self.is_ready()):
@@ -2524,9 +2529,10 @@ class Job(Entity):
         return self['isDone'] == '1'
 
     def is_ready(self):
-        """Is this job queryable on the server yet?
+        """Indicates whether this job is ready for querying.
 
-        :return: ``boolean``
+        :return: ``True`` if the job is ready, ``False`` if not.
+        :rtype: ``boolean``
         """
         try:
             self.refresh()
@@ -2538,10 +2544,10 @@ class Job(Entity):
 
     @property
     def name(self):
-        """The name of the search job.
+        """Returns the name of the search job, which is the search ID (SID).
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The search ID.
+        :rtype: ``string``
         """
         return self.sid
 
@@ -2554,15 +2560,15 @@ class Job(Entity):
         return self
 
     def refresh(self, state=None):
-        """Refresh the state of this entity.
+        """Refreshes the state of the search job.
 
-        If *state* is provided, load it as the new state for this
-        entity. Otherwise, make a roundtrip to the server (by calling
-        the :meth:`read` method of self) to fetch an updated state,
+        If *state* is provided, this method loads it as the new state for this
+        job. Otherwise, the method makes a roundtrip to the server (by calling
+        the :meth:`read` method of ``self``) to fetch an updated state,
         plus at most two additional round trips if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param state: The state FRED?
+        :param state: The state FRED WHAT ARE THE STATES
         :type state: ``string``
         :return: The :class:`Job`.
 
@@ -2589,11 +2595,9 @@ class Job(Entity):
         return self
 
     def results(self, timeout=None, wait_time=1, **query_params):
-        """Fetch search results as an InputStream IO handle.
-
-        ``results`` returns a streaming handle over the raw data
-        returned from the server. In order to get a nice, Pythonic
-        iterator, pass the handle to ``results.ResultReader``, as in::
+        """Returns a streaming handle to this job's search results. To get a 
+        nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultReader``,
+        as in::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2605,30 +2609,30 @@ class Job(Entity):
                 # events are returned as dicts with strings as values.
                 print event 
 
-        No results are available via this method until the job
-        finishes. The method's behavior when called on an unfinished
-        job is controlled by the *timeout* parameter. If *timeout* is
-        "None" (the default), ``results`` will throw a
-        ``ValueError`` immediately. If *timeout* is an integer,
-        ``results`` will wait up to *timeout* seconds for the job to
-        finish, and otherwise throw a ``ValueError``.
+        Results are not available until the job has finished. The method's 
+        behavior when called on an unfinished job is controlled by the *timeout*
+        parameter. If *timeout* is
+        "None" (the default), ``results`` throws a
+        ``ValueError`` exception immediately. If *timeout* is an integer,
+        ``results`` waits up to the value of *timeout* for the job to
+        finish, and then throws a ``ValueError`` exception.
 
-        With *timeout* = "None", this method makes a single roundtrip
+        When *timeout* is "None", this method makes a single roundtrip
         to the server, plus at most two additional round trips if        
         the ``autologin`` field of :func:`connect` is set to ``True``.
-        With *timeout* set to an integer, it
-        polls repeatedly until it times out or the search is finished.
+        With *timeout* set to an integer, this method
+        polls repeatedly until it times out or the search has finished.
 
-        :param timeout: Timeout in seconds, or "None" to fail immediately.
+        :param timeout: The timeout period, in seconds, or "None" to fail immediately.
         :type timeout: ``float``
-        :param wait_time: Minimum number of seconds to wait between polls.
+        :param wait_time: The minimum number of seconds to wait between polls.
         :type wait_time: ``float``
-        :param query_params: Optional arguments for querying results. See the REST API documentation on `GET search/jobs/{search_id}/results <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
+        :param kwargs: Additional parameters (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/results 
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
         :type query_params: ``dict``
 
-        :return: A streaming handle over the response body.
-        :rtype: ```` :class:``
-
+        :return: The ``InputStream`` IO handle to this job's results.
         """
         if timeout is None:
             response = self.get("results", **query_params)
@@ -2651,13 +2655,14 @@ class Job(Entity):
                     
 
     def preview(self, **query_params):
-        """Fetch an InputStream IO handle of preview search results.
+        """Returns a streaming handle to this job's preview search results.
 
-        Unlike ``results``, which requires a job to be finished to
-        return any results, ``preview`` returns whatever
-        Splunk has so far, whether the job is running or not. The
+        Unlike :class:`splunklib.results.ResultReader``, which requires a job to
+        be finished to
+        return any results, the ``preview`` method returns any results that have
+        been generated so far, whether the job is running or not. The
         returned search results are the raw data from the server. Pass
-        the handle returned to ``results.ResultsReader`` to get a
+        the handle returned to :class:`splunklib.results.ResultReader`` to get a
         nice, Pythonic iterator over objects, as in::
 
             import splunklib.client as client
@@ -2678,13 +2683,13 @@ class Job(Entity):
         two more if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param query_params: Additional arguments to past to the REST endpoint. See the `GET search/jobs/{search_id}/results_preview 
-                        <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
-                        endpoint in the REST API documentation.
+        :param query_params: Additional parameters (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/results_preview
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
+            in the REST API documentation.
         :type query_params: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to this job's preview results.
         """
         response = self.get("results_preview", **query_params)
         if response.status == 204:
@@ -2693,17 +2698,15 @@ class Job(Entity):
             return response.body
 
     def searchlog(self, **kwargs):
-        """Returns an InputStream IO handle to the search log for this job.
+        """Returns a streaming handle to this job's search log.
 
-        :param `kwargs`: Additional search log arguments (optional). For 
-                         details, see the 
-                         `GET search/jobs/{search_id}/search.log 
-                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsearch.log>`_ 
-                         endpoint in the REST API documentation.
+        :param `kwargs`: Additional parameters (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/search.log
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsearch.log>`_ 
+            in the REST API documentation.
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to this job's search log.
         """
         return self.get("search.log", **kwargs).body
 
@@ -2711,8 +2714,7 @@ class Job(Entity):
         """Sets this job's search priority in the range of 0-10.
 
         Higher numbers indicate higher priority. Unless splunkd is
-        running as root, you can only decrease the priority of
-        a running job.
+        running as *root*, you can only decrease the priority of a running job.
 
         :param `value`: The search priority.
         :type value: ``integer``
@@ -2723,39 +2725,36 @@ class Job(Entity):
         return self
 
     def summary(self, **kwargs):
-        """Returns an InputStream IO handle to the job's summary.
+        """Returns a streaming handle to this job's summary.
         
-        :param `kwargs`: Additional summary arguments (optional). For details, 
-                         see the `GET search/jobs/{search_id}/summary 
-                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsummary>`_ 
-                         endpoint in the REST API documentation.
+        :param `kwargs`: Additional parameters (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/summary
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsummary>`_ 
+            in the REST API documentation.
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to this job's summary.
         """
         return self.get("summary", **kwargs).body
 
     def timeline(self, **kwargs):
-        """Returns an InputStream IO handle to the job's timeline results.
+        """Returns a streaming handle to this job's timeline results.
 
-        :param `kwargs`: Additional timeline arguments (optional). For details, 
-                         see the `GET search/jobs/{search_id}/timeline 
-                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Ftimeline>`_ 
-                         endpoint in the REST API documentation.
+        :param `kwargs`: Additional timeline arguments (optional). For a list of valid
+            parameters, see `GET search/jobs/{search_id}/timeline 
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Ftimeline>`_ 
+            in the REST API documentation.
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to this job's timeline.
         """
         return self.get("timeline", **kwargs).body
 
     def touch(self):
         """Extends the expiration time of the search to the current time plus 
-        the time-to-live value (now + ttl).
+        the time-to-live (ttl) value (now + ttl).
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`Job`.
         """
         self.post("control", action="touch")
         return self
@@ -2767,8 +2766,7 @@ class Job(Entity):
         :param `value`: The ttl value, in seconds.
         :type value: ``integer``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`Job`.
         """
         self.post("control", action="setttl", ttl=value)
         return self
@@ -2805,15 +2803,18 @@ class Jobs(Collection):
         return entities
 
     def create(self, query, **kwargs):
-        """ DOC ME
+        """ Creates a search using a search query and any additional parameters
+        you provide.
 
-        :param name: 
-        :type name: 
-        :param kwargs: 
+        :param query: The search query.
+        :type query: ``string``
+        :param kwargs: Additiona parameters (optional). For a list of available
+            parameters, see `Search job parameters 
+            <http://dev.splunk.com/view/SP-CAAAEE5#searchjobparams>`_ 
+            on Splunk Developer Portal.
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`Job`.
         """
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
@@ -2826,12 +2827,10 @@ class Jobs(Collection):
         return Job(self.service, sid)
 
     def export(self, query, **params):
-        """Run a search and immediately start streaming preview events.
-
-        Returns an InputStream over the events. The InputStream
-        streams an XML document from the server. The SDK provides
-        ``results.ResultsReader`` to lazily parse this stream into
-        usable Python objects. For example::
+        """Runs a search and immediately starts streaming preview events.
+        This method returns a streaming handle to this job's events as an XML
+        document from the server. To parse this stream into usable Python objects, 
+        pass the handle to :class:`splunklib.results.ResultReader``::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2843,20 +2842,21 @@ class Jobs(Collection):
                 # events are returned as dicts with strings as values.
                 print event 
 
-        ``export`` makes a single roundtrip to the server (as opposed
-        to two for create followed by preview), plus at most two more
-        if 
-        the ``autologin`` field of :func:`connect` is set to ``True``.
+        The ``export`` method makes a single roundtrip to the server (as opposed
+        to two for :meth:`create` followed by :meth:`preview`), plus at most two
+        more if the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :raises ValueError: Raised on invalid queries.
+        :raises ValueError: Raised for invalid queries.
 
-        :param query: Splunk search language query to run
+        :param query: The search query.
         :type query: ``string``
-        :param params: Additional arguments to export (see the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs.2Fexport>`_).
+        :param params: Additional arguments (optional). For a list of valid
+            parameters, see `GET search/jobs/export
+            <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs.2Fexport>`_
+            in the REST API documentation.
         :type params: ``dict``
         
-        :return: An :class:`InputStream` over raw XML returned from the server.
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to raw XML returned from the server.
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
@@ -2869,16 +2869,16 @@ class Jobs(Collection):
                 raise
 
     def itemmeta(self):
-        """ DOC ME
+        """ FRED DOC ME
         """
         raise NotSupportedError()
 
     def oneshot(self, query, **params):
-        """Run a search and directly return an InputStream IO handle over the results.
+        """Run a oneshot search and returns a streaming handle to the results. 
 
-        The InputStream streams XML fragments from the server. The SDK
-        provides ``results.ResultsReader`` to lazily parse this stream
-        into usable Python objects. For example::
+        The ``InputStream`` object streams XML fragments from the server. To 
+        parse this stream into usable Python objects, 
+        pass the handle to :class:`splunklib.results.ResultReader``::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2890,20 +2890,32 @@ class Jobs(Collection):
                 # events are returned as dicts with strings as values.
                 print event 
 
-        ``oneshot`` makes a single roundtrip to the server (as opposed
-        to two for create followed by results), plus at most two more
-        if 
-        the ``autologin`` field of :func:`connect` is set to ``True``.
+        The ``oneshot`` method makes a single roundtrip to the server (as opposed
+        to two for :meth:`create` followed by :meth:`results`), plus at most two more
+        if the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :raises ValueError: on invalid queries.
+        :raises ValueError: Raised for invalid queries.
 
-        :param query: Splunk search language query to run
+        :param query: The search query.
         :type query: ``string``
-        :param params: Additional arguments to oneshot (see the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs>`_).
+        :param params: Additional arguments (optional). Valid parameters are: 
+
+            - "output_mode": Specifies the output format of the results (XML, 
+              JSON, or CSV).
+
+            - "earliest_time": Specifies the earliest time in the time range to 
+              search. The time string can be a UTC time (with fractional seconds),
+              a relative time specifier (to now), or a formatted time string.
+    
+            - "latest_time": Specifies the latest time in the time range to 
+              search. The time string can be a UTC time (with fractional seconds),
+              a relative time specifier (to now), or a formatted time string.
+    
+            - "rf": Specifies one or more fields to add to the search.
+
         :type params: ``dict``
         
-        :return: InputStream over raw XML returned from the server.
-        :rtype: ```` :class:``
+        :return: The ``InputStream`` IO handle to raw XML returned from the server.
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
@@ -2922,7 +2934,7 @@ class Loggers(Collection):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
-        """ DOC ME
+        """ FRED DOC ME
         """
         raise NotSupportedError
 
@@ -2932,15 +2944,14 @@ class Message(Entity):
 
     @property
     def value(self):
-        """The message value.
+        """Returns the message value.
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`Loggers` collection.
         """
         return self[self.name]
 
 class ModularInputKind(Entity):
-    """This class contains the different types of modular inputs.  Retrieve this
+    """This class contains the different types of modular inputs. Retrieve this
     collection using :meth:`Service.modular_input_kinds`.
     """
     def __contains__(self, name):
@@ -2959,10 +2970,10 @@ class ModularInputKind(Entity):
 
     @property
     def arguments(self):
-        """ DOC ME 
+        """ FRED DOC ME 
         
         :return: 
-        :rtype: ```` :class:``
+        :rtype: 
         """
         return self.state.content['endpoint']['args']
 
@@ -2980,15 +2991,14 @@ class SavedSearch(Entity):
         """Acknowledges the suppression of alerts from this saved search and 
         resumes alerting.
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`SavedSearch`.
         """
         self.post("acknowledge")
         return self
 
     @property
     def alert_count(self):
-        """The number of alerts fired by this saved search.
+        """Returns the number of alerts fired by this saved search.
 
         :return: The number of alerts fired by this saved search.
         :rtype: ``integer``
@@ -3003,8 +3013,7 @@ class SavedSearch(Entity):
                          <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#POST_saved.2Fsearches.2F.7Bname.7D.2Fdispatch>`_ 
                          endpoint in the REST API documentation.
         :type kwargs: ``dict``
-        :return: The new search job.
-        :rtype: ```` :class:``
+        :return: The :class:`Job`.
         """
         response = self.post("dispatch", **kwargs)
         sid = _load_sid(response)
@@ -3012,13 +3021,13 @@ class SavedSearch(Entity):
 
     @property
     def fired_alerts(self):
-        """Returns the collection of AlertGroups corresponding to this saved search's alerts.
+        """Returns the collection of fired alerts (a fired alert group) 
+        corresponding to this saved search's alerts.
 
-        If the search is not scheduled, raises ``IllegalOperationException``.
+        :raises IllegalOperationException: Raised when the search is not scheduled.
 
-        :raises IllegalOperationException: Raised when FRED
-        :return: A collection of :class:`AlertGroup` entities.
-        :rtype: ```` :class:``
+        :return: A collection of fired alerts.
+        :rtype: :class:`AlertGroup`
         """
         if self['is_scheduled'] == '0':
             raise IllegalOperationException('Unscheduled saved searches have no alerts.')
@@ -3034,7 +3043,6 @@ class SavedSearch(Entity):
         """Returns a list of search jobs corresponding to this saved search.
 
         :return: A list of :class:`Job` objects.
-        :rtype: ```` :class:``
         """
         response = self.get("history")
         entries = _load_atom_entries(response)
@@ -3046,15 +3054,18 @@ class SavedSearch(Entity):
         return jobs
 
     def update(self, search=None, **kwargs):
-        """Updates the saved search with any additional arguments.
+        """Updates the server with any changes you've made to the current saved
+        search along with any additional arguments you specify. 
 
-        :param `search`: The search string of this saved search (optional).
+        :param `search`: The search query (optional).
         :type search: ``string``
-        :param `kwargs`: Additional update arguments (optional). 
+        :param `kwargs`: Additional arguments (optional). For a list of available
+            parameters, see `Saved search parameters 
+            <http://dev.splunk.com/view/SP-CAAAEE5#savedsearchparams>`_ 
+            on Splunk Developer Portal. 
         :type kwargs: ``dict``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`SavedSearch`.
         """
         # Updates to a saved search *require* that the search string be 
         # passed, so we pass the current search string if a value wasn't
@@ -3066,18 +3077,17 @@ class SavedSearch(Entity):
     def scheduled_times(self, earliest_time='now', latest_time='+1h'):
         """Returns the times when this search is scheduled to run.
 
-        By default it returns the times in the next hour. For other
-        periods, set *earliest_time* and *latest_time*. For example,
-        for all times in the last day use ``earliest_time=-1d`` and
-        ``latest_time=now``.
+        By default this method returns the times in the next hour. For different
+        time ranges, set *earliest_time* and *latest_time*. For example,
+        for all times in the last day use "earliest_time=-1d" and 
+        "latest_time=now".
 
         :param earliest_time: The earliest time.
         :type earliest_time: ``string``
         :param latest_time: The latest time.
         :type latest_time: ``string``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The list of search times.
         """
         response = self.get("scheduled_times", 
                             earliest_time=earliest_time, 
@@ -3089,23 +3099,24 @@ class SavedSearch(Entity):
         return times
 
     def suppress(self, expiration):
-        """Skip any scheduled runs of this search in the next *expiration* seconds.
+        """Skips any scheduled runs of this search in the next *expiration* 
+        number of seconds.
 
-        :param expiration: 
-        :type expiration: 
+        :param expiration: The expiration period, in seconds.
+        :type expiration: ``integer``
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`SavedSearch`.
         """
         self.post("suppress", suppressed="1", expiration=expiration)
         return self
 
     @property
     def suppressed(self):
-        """The number of seconds that this search is blocked from running (possibly 0).
+        """Returns the number of seconds that this search is blocked from running 
+        (possibly 0).
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The number of seconds.
+        :rtype: ``integer`` 
         """
         r = self._run_method("suppress")
         if r.suppressed == "1":
@@ -3114,10 +3125,9 @@ class SavedSearch(Entity):
             return 0
 
     def unsuppress(self):
-        """Cancel suppression and make this search run as scheduled.
+        """Cancels suppression and makes this search run as scheduled.
         
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`SavedSearch`.
         """
         self.post("suppress", suppressed="0", expiration="0")
         return self
@@ -3133,13 +3143,16 @@ class SavedSearches(Collection):
     def create(self, name, search, **kwargs):
         """ Creates a saved search. 
 
-        :param name:
+        :param name: The name for the saved search.
         :type name: ``string``
-        :param search: 
+        :param search: The search query.
         :type search: ``string``
-        :param kwargs:
+        :param kwargs: Additional arguments (optional). For a list of available
+            parameters, see `Saved search parameters 
+            <http://dev.splunk.com/view/SP-CAAAEE5#savedsearchparams>`_ 
+            on Splunk Developer Portal. 
         :type kwargs: ``dict``
-        :rtype: :class:`Collection`
+        :return: The :class:`SavedSearches` collection.
         """
         return Collection.create(self, name, search=search, **kwargs)
 
@@ -3151,30 +3164,36 @@ class Settings(Entity):
 
     # Updates on the settings endpoint are POSTed to server/settings/settings.
     def update(self, **kwargs):
-        """ DOC ME
+        """Updates the settings on the server using the arguments you provide.
 
-        :param kwargs: 
+        :param kwargs: Additional arguments. For a list of valid arguments, see
+            `POST server/settings/{name} 
+            <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsystem#POST_server.2Fsettings.2F.7Bname.7D>`_ 
+            in the REST API documentation.
         :type kwargs: ``dict``
-        :return: 
-        :rtype: ```` :class:``
+        :return: The :class:`Settings` collection.
         """
         self.service.post("server/settings/settings", **kwargs)
         return self
 
 class User(Entity):
+    """This class represents a Splunk user. 
+    """
     @property
     def role_entities(self):
-        """A list of entities representing all the roles assigned to this user.
+        """Returns a list of roles assigned to this user.
         
-        :return: 
-        :rtype: ```` :class:``"""
+        :return: The list of roles.
+        :rtype: ``list``
+        """
         return [self.service.roles[name] for name in self.content.roles]
 
 # Splunk automatically lowercases new user names so we need to match that 
 # behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
-    """This class represents a Splunk user. Retrieve this collection using 
-    :meth:`Service.users`."""
+    """This class represents the collection of Splunk users for this instance of 
+    Splunk. Retrieve this collection using :meth:`Service.users`.
+    """
     def __init__(self, service):
         Collection.__init__(self, service, PATH_USERS, item=User)
 
@@ -3187,28 +3206,31 @@ class Users(Collection):
     def contains(self, name):
         """**Deprecated**: Use ``in`` operator instead.
 
-        Check if there is a user *name* in this Splunk instance.
+        Checks whether there is a user *name* in this Splunk instance.
         """
         return Collection.__contains__(self, name.lower())
 
     def create(self, username, password, roles, **params):
-        """Create a new user.
+        """Creates a new user.
 
         This function makes two roundtrips to the server, plus at most
         two more if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param username: Username for the new user.
+        :param username: The username.
         :type username: ``string``
-        :param password: Password for the new user.
+        :param password: The password.
         :type password: ``string``
         :param roles: A single role or list of roles for the user.
-        :type roles: ``string`` or list of ``string``
-        :param params: Optional parameters. See the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTaccess#POST_authentication.2Fusers>`_.
+        :type roles: ``string`` or  ``list``
+        :param params: Additional arguments (optional). For a list of available
+            parameters, see `User authentication parameters 
+            <http://dev.splunk.com/view/SP-CAAAEJ6#userauthparams>`_ 
+            on Splunk Developer Portal. 
         :type params: ``dict``
 
-        :return: A reference to the new user.
-        :rtype: ``Entity``
+        :return: The new user.
+        :rtype: :class:`Entity` FRED, not :class:`User`?
 
         **Example**:
 
@@ -3236,11 +3258,11 @@ class Users(Collection):
     def delete(self, name):
         """ Deletes the user and returns the resulting collection of users. 
 
-        :param name: 
-        :type name: 
+        :param name: The name of the user to delete.
+        :type name: ``string``
 
         :return: 
-        :rtype: :class:`Collection`
+        :rtype: :class:`Collection` FRED, not :class:`Users`?
         """
         return Collection.delete(self, name.lower())
 
@@ -3249,22 +3271,20 @@ class Role(Entity):
     """This class represents a user role.
     """
     def grant(self, *capabilities_to_grant):
-        """Grant additional capabilities to this role.
+        """Grants additional capabilities to this role.
 
-        The capabilities are strings. You can get the complete list from
-        Service.capabilities, or from the /authorization/capabilities
-        endpoint in Splunk (or just look in splunkweb).
+        :param capabilities_to_grant: Zero or more capabilities to grant this 
+            role. For a list of capabilities, see 
+            `Capabilities <http://dev.splunk.com/view/SP-CAAAEJ6#capabilities>`_ 
+            on Splunk Developer Portal.
+        :type capabilities_to_grant: ``string`` or ``list``
+        :return: The :class:`Role`.
 
         **Example**::
 
             service = client.connect(...)
             role = service.roles['somerole']
             role.grant('change_own_password', 'search')
-
-        :param capabilities_to_grant: Zero or more capabilities to grant this role.
-        :type capabilities_to_grant: ``string`` or a list of ``string``
-        :return: The :class:`Role` object.
-        :rtype: ```` :class:``
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_grant:
@@ -3276,23 +3296,21 @@ class Role(Entity):
         return self
 
     def revoke(self, *capabilities_to_revoke):
-        """Revoke zero or more capabilities from this role.
+        """Revokes zero or more capabilities from this role.
 
-        The capabilities are strings. You can get the complete list from
-        :class:`Service.capabilities`, or from the ``/authorization/capabilities``
-        endpoint in Splunk (or just look in Splunk Web).
+        :param capabilities_to_revoke: Zero or more capabilities to grant this 
+            role. For a list of capabilities, see 
+            `Capabilities <http://dev.splunk.com/view/SP-CAAAEJ6#capabilities>`_ 
+            on Splunk Developer Portal.
+        :type capabilities_to_revoke: ``string`` or ``list``
+
+        :return: The :class:`Role`.
 
         **Example**::
 
             service = client.connect(...)
             role = service.roles['somerole']
             role.revoke('change_own_password', 'search')
-
-        :param capabilities_to_revoke: Zero or more capabilities to revoke from this role.
-        :type capabilities_to_revoke: ``string`` or a list of ``string``
-
-        :return: A :class:`Role` object.
-        :rtype: ```` :class:``
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_revoke:
@@ -3315,8 +3333,8 @@ class Role(Entity):
 
 
 class Roles(Collection):
-    """Roles in the Splunk instance. Retrieve this collection using 
-    :meth:`Service.roles`."""
+    """This class represents the collection of roles in the Splunk instance. 
+    Retrieve this collection using :meth:`Service.roles`."""
     def __init__(self, service):
         return Collection.__init__(self, service, PATH_ROLES, item=Role)
 
@@ -3329,24 +3347,27 @@ class Roles(Collection):
     def contains(self, name):
         """**Deprecated**: Use ``in`` operator instead.
 
-        Check if there is a user *name* in this Splunk instance.
+        Checks whether there is a user *name* in this Splunk instance.
         """
         return Collection.__contains__(self, name.lower())
 
     def create(self, name, **params):
-        """Create a new role.
+        """Creates a new role.
 
         This function makes two roundtrips to the server, plus at most
         two more if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param name: Name for the role
+        :param name: Name for the role.
         :type name: ``string``
-        :param params: Optional parameters. See the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTaccess#POST_authorization.2Froles>`_.
+        :param params: Additional arguments (optional). For a list of available 
+            parameters, see `Roles parameters 
+            <http://dev.splunk.com/view/SP-CAAAEJ6#rolesparams>`_ 
+            on Splunk Developer Portal.
         :type params: ``dict``
 
-        :return: A reference to the new role. 
-        :rtype: ``Entity``
+        :return: The new role. 
+        :rtype: :class:`Entity` FRED why not :class:`Role`?
 
         **Example**::
 
@@ -3373,10 +3394,10 @@ class Roles(Collection):
     def delete(self, name):
         """ Deletes the role and returns the resulting collection of roles. 
 
-        :param name: 
-        :type name: 
+        :param name: The name of the role to delete.
+        :type name: ``string``
 
-        :rtype: :class:`Collection`
+        :rtype: The :class:`Collection` of roles FRED not :class:`Roles`?
         """
 
         return Collection.delete(self, name.lower())
@@ -3394,11 +3415,11 @@ class Application(Entity):
     """Represents a locally-installed Splunk app."""
     @property
     def setupInfo(self):
-        """The setup information for this application."""
+        """Returns the setup information for the app."""
         return self.content.get('eai:setup', None)
 
     def package(self):
-        """ Creates a compressed package of this application for archiving."""
+        """ Creates a compressed package of the app for archiving."""
         return self._run_method("package")
 
     def updateInfo(self):

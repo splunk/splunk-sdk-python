@@ -34,9 +34,7 @@ binding of the **splunklib.binding** module. The core of the library is the
 :class:`Service` class, which encapsulates a connection to the server, and
 provides access to the various aspects of Splunk's functionality, which are 
 exposed via the REST API. Typically you connect to a running Splunk instance 
-with the :func:`connect` function. 
-
-**Example**::
+with the :func:`connect` function::
 
     import splunklib.client as client
     service = client.connect(host='localhost', port=8089, 
@@ -45,9 +43,7 @@ with the :func:`connect` function.
     
 :class:`Service` objects have fields for the various Splunk resources (such as apps, 
 jobs, saved searches, inputs, and indexes). All of these fields are 
-:class:`Collection` objects. 
-
-**Example**::
+:class:`Collection` objects::
 
     appcollection = service.apps
     my_app = appcollection.create('my_app')
@@ -56,9 +52,7 @@ jobs, saved searches, inputs, and indexes). All of these fields are
 
 The individual elements of the collection, in this case *applications*,
 are subclasses of :class:`Entity`. An ``Entity`` object has fields for its
-attributes, and methods that are specific to each kind of entity.
-
-**Example**::
+attributes, and methods that are specific to each kind of entity. For example::
 
     print my_app['author']  # Or: print my_app.author
     my_app.package()  # Creates a compressed package of this application
@@ -1403,8 +1397,7 @@ class ReadOnlyCollection(Endpoint):
               returned items: "auto", "alpha", "alpha_case", or "num".
                 
         :type kwargs: ``dict``
-        :return: A collection of entities.
-        :rtype: ``list``
+        :return: A ``list`` of entities.
         """
         # response = self.get(count=count, **kwargs)
         # return self._load_list(response)
@@ -1434,8 +1427,7 @@ class ReadOnlyCollection(Endpoint):
               returned items: "auto", "alpha", "alpha_case", or "num".
                 
         :type kwargs: ``dict``
-        :return: A list of entity names.
-        :rtype: ``list``
+        :return: A ``list`` of entity names.
         """
         return [ent.name for ent in self.iter(count=count, **kwargs)]
 
@@ -1464,8 +1456,8 @@ class Collection(ReadOnlyCollection):
         # Or if there is only one search visible named 'my_search'
         mysearch = mycollection['my_search']
 
-    Similarly, ``name`` in ``mycollection`` works as you expect (though you cannot
-    currently pass a namespace to the ``in`` operator), as does
+    Similarly, ``name`` in ``mycollection`` works as you might expect (though 
+    you cannot currently pass a namespace to the ``in`` operator), as does
     ``len(mycollection)``.
 
     However, as an aggregate, :class:`Collection` behaves more like a
@@ -1788,12 +1780,17 @@ class Index(Entity):
         automatically closed at the end of the ``with`` block, even if an 
         exception is raised in the block.
 
-        :param host: The host value for events written to the stream.
-        :type host: ``string``
-        :param source: The source value for events written to the stream.
-        :type source: ``string``
-        :param sourcetype: The sourcetype value for events written to the stream. 
-        :type sourcetype: ``string``
+        :param args: Additional arguments:
+
+            - "host" (``string``): The host value for events written to the stream.
+
+            - "source" (``string``): The source value for events written to the stream.
+
+            - "sourcetype" (``string``): The sourcetype value for events written to the stream. 
+
+        :type args: ``dict``
+        :param kwargs: FRED? 
+        :type kwargs: ``dict``
 
         **Example**::
 

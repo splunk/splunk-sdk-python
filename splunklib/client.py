@@ -177,7 +177,7 @@ def _trailing(template, *targets):
     :type template: ``string``
     :param targets: Strings to successively match in *template*.
     :type targets: list of ``string``s
-    :returns: Trailing string after all targets are matched.
+    :return: Trailing string after all targets are matched.
     :rtype: ``string``
     :raises ValueError: Raised when one of the targets does not match.
     """
@@ -413,7 +413,7 @@ class Service(Context):
         """Returns the information about this instance of Splunk.
 
         :return: The system information.
-        :rtype: ### FRED DOC ME, is this a string?  ###
+        :rtype: FRED DOC ME, is this a string?
         """
         response = self.get("server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
@@ -523,7 +523,7 @@ class Service(Context):
     def restart_required(self):
         """Indicates whether splunkd is in a state that requires a restart.
 
-        :return: A ``string`` that indicates whether a restart is required. ###FRED IS THIS TRUE
+        :return: A ``string`` that indicates whether a restart is required. FRED IS THIS TRUE
         """
         response = self.get("messages").body.read()
         messages = data.load(response)['feed']
@@ -946,7 +946,7 @@ class Entity(Endpoint):
         plus at most two additional round trips if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param state: ### FRED DOC ME -- what are the values?
+        :param state: FRED DOC ME -- what are the values?
         :type state: ``string`` 
         :raises EntityDeletedException: Raised if the entity no longer exists on
             the server.
@@ -974,7 +974,7 @@ class Entity(Endpoint):
     def access(self):
         """Returns the access metadata for this entity.
 
-        :return: ### FRED DOC ME ###
+        :return: FRED DOC ME
         """
         return self.state.access
 
@@ -982,7 +982,7 @@ class Entity(Endpoint):
     def content(self):
         """Returns the contents of the entity.
 
-        :return: ### FRED DOC ME ###
+        :return: FRED DOC ME
         """
         return self.state.content
 
@@ -1000,7 +1000,7 @@ class Entity(Endpoint):
     def fields(self):
         """Returns the content metadata for this entity.
 
-        :return: ### FRED DOC ME ###
+        :return: FRED DOC ME
         """
         return self.state.fields
 
@@ -1008,7 +1008,7 @@ class Entity(Endpoint):
     def links(self):
         """Returns a dictionary of related resources.
 
-        :return: ### FRED DOC ME ###
+        :return: FRED DOC ME
         :rtype: ``dict``
         """
         return self.state.links
@@ -1048,7 +1048,7 @@ class Entity(Endpoint):
     def state(self):
         """Returns the entity's state record.
 
-        :return: ### FRED DOC ME ###
+        :return: FRED DOC ME
         """
         if self._state is None: self.refresh()
         return self._state
@@ -1070,6 +1070,9 @@ class Entity(Endpoint):
 
             # This works
             x.update(**{'check-new': False, 'email.to': 'boris@utopia.net'})
+
+        :param kwargs: Additional entity-specific arguments (optional).
+        :type kwargs: ``dict``
         """
         # The peculiarity in question: the REST API creates a new
         # Entity if we pass name in the dictionary, instead of the
@@ -1178,6 +1181,8 @@ class ReadOnlyCollection(Endpoint):
     def __iter__(self, **kwargs):
         """Iterate over the entities in the collection.
 
+        :param kwargs: Additional arguments.
+        :type kwargs: ``dict``
         :rtype: iterator over entities.
 
         Implemented to give Collection a listish interface. This
@@ -1226,7 +1231,7 @@ class ReadOnlyCollection(Endpoint):
         itself, sans namespace.
 
         :rtype: ``string``
-        :returns: an absolute path
+        :return: an absolute path
         """
         # This has been factored out so that it can be easily
         # overloaded by Configurations, which has to switch its
@@ -1341,7 +1346,7 @@ class ReadOnlyCollection(Endpoint):
         :type count: ``integer``
         :param pagesize: The number of entities to load (optional).
         :type pagesize: ``integer``
-        :param kwargs: ###FRED which params are these? sort_dir, sort_key, sort_mode, search?
+        :param kwargs: FRED which params are these? sort_dir, sort_key, sort_mode, search?
         :type kwargs: ``dict``
 
         **Example**::
@@ -1380,18 +1385,21 @@ class ReadOnlyCollection(Endpoint):
 
         :param count: The maximum number of entities to return (optional).
         :type count: ``integer``
-        :param offset: The index of the first entity to return (optional).
-        :type offset: ``integer``
-        :param search: The search query to filter responses (optional).
-        :type search: ``string``
-        :param sort_dir: The direction to sort returned items: "asc" or "desc"
-                           (optional).
-        :type sort_dir: ``string``
-        :param sort_key: The field to use for sorting (optional).
-        :type sort_key: ``string``
-        :param sort_mode: The collating sequence for sorting returned items:
-                            "auto", "alpha", "alpha_case", or "num" (optional).
-        :type sort_mode: ``string``
+        :param kwargs: Additional arguments (optional). Valid values are:
+
+            - "offset" (``integer``): The offset of the first item to return.
+
+            - "search" (``string``): The search query to filter responses.
+
+            - "sort_dir" (``string``): The direction to sort returned items:
+              "asc" or "desc".
+
+            - "sort_key" (``string``): The field to use for sorting (optional).
+
+            - "sort_mode" (``string``): The collating sequence for sorting 
+              returned items: "auto", "alpha", "alpha_case", or "num".
+                
+        :type kwargs: ``dict``
         :return: A collection of entities.
         :rtype: ``list``
         """
@@ -1408,18 +1416,21 @@ class ReadOnlyCollection(Endpoint):
 
         :param count: The maximum number of entities to return (optional).
         :type count: ``integer``
-        :param offset: The index of the first entity to return (optional).
-        :type offset: ``integer``
-        :param search: The search query to filter responses (optional).
-        :type search: ``string``
-        :param sort_dir: The direction to sort returned items: "asc" or "desc"
-                           (optional).
-        :type sort_dir: ``string``
-        :param sort_key: The field to use for sorting (optional).
-        :type sort_key: ``string``
-        :param sort_mode: The collating sequence for sorting returned items:
-                            "auto", "alpha", "alpha_case", or "num" (optional).
-        :type sort_mode: ``string``
+        :param kwargs: Additional arguments (optional). Valid values are:
+
+            - "offset" (``integer``): The offset of the first item to return.
+
+            - "search" (``string``): The search query to filter responses.
+
+            - "sort_dir" (``string``): The direction to sort returned items: 
+              "asc" or "desc".
+
+            - "sort_key" (``string``): The field to use for sorting (optional).
+
+            - "sort_mode" (``string``): The collating sequence for sorting 
+              returned items: "auto", "alpha", "alpha_case", or "num".
+                
+        :type kwargs: ``dict``
         :return: A list of entity names.
         :rtype: ``list``
         """
@@ -1482,7 +1493,7 @@ class Collection(ReadOnlyCollection):
         :type name: ``string``
         :param namespace: A namespace, as created by the :func:`splunklib.binding.namespace`
             function (optional).  You can also set ``owner``, ``app``, and 
-            ``sharing`` in ``params``. ### FRED is that true--in the params?
+            ``sharing`` in ``params``. FRED this isn't listed in the create params list
         :type namespace: A :class:`splunklib.data.Record` object with keys ``owner``, ``app``,
             and ``sharing``. 
         :param params: Additional entity-specific arguments (optional).
@@ -1562,8 +1573,8 @@ class Collection(ReadOnlyCollection):
         return self
 
 class ConfigurationFile(Collection):
-    """This class contains a single configuration, which is a collection of 
-    stanzas."""
+    """This class contains all of the stanzas from one configuration file. 
+    """
     # __init__'s arguments must match those of an Entity, not a
     # Collection, since it is being created as the elements of a
     # Configurations, which is a Collection subclass.
@@ -1572,11 +1583,12 @@ class ConfigurationFile(Collection):
         self.name = kwargs['state']['title']
 
 class Configurations(Collection):
-    """Configuration files of this Splunk instance.
+    """This class provides access to the configuration files from this Splunk 
+    instance. Retrieve this collection using :meth:`Service.confs`.
 
     Splunk's configuration is divided into files, and each file into
     stanzas. This collection is unusual in that the values in it are
-    themselves collections: ``ConfigurationFile`` objects.
+    themselves collections of :class:`ConfigurationFile` objects.
     """
     def __init__(self, service):
         Collection.__init__(self, service, PATH_PROPERTIES, item=ConfigurationFile)
@@ -1609,6 +1621,16 @@ class Configurations(Collection):
                 raise
 
     def create(self, name, **kwargs):
+        """ Creates a stanza in a given configuration file. 
+
+        :param name: The name of the configuration file.
+        :type name: ``string``
+        :param kwargs: An arbitrary set of key-value pairs to place in the 
+            stanza.
+        :type kwargs: ``dict``
+
+        :return: The :class:`ConfigurationFile` object.
+        """
         # This has to be overridden to handle the plumbing of creating
         # a ConfigurationFile (which is a Collection) instead of some
         # Entity.
@@ -1623,6 +1645,11 @@ class Configurations(Collection):
             raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
 
     def delete(self, key):
+        """ Deletes a stanza from a given configuration file. 
+
+        :param key: The name of the stanza.
+        :type key: ``string``
+        """
         try:
             super(Configurations, self).delete(key)
         except HTTPError as he:
@@ -1641,7 +1668,12 @@ class Configurations(Collection):
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):
-        """Populates a stanza in the .conf file."""
+        """Populates a stanza in a given configuration file. FRED? Thought KV pairs would be what you provide, not a single name.
+
+        :param stanza: The name of the stanza.
+        :type stanza: ``string``
+        :return: The new  :class:`Stanza` object.
+        """
         self.service.request(self.path, method="POST", body=stanza)
         return self
 
@@ -1653,8 +1685,8 @@ class Stanza(Entity):
                     if not x.startswith('eai') and x != 'disabled'])
 
 class AlertGroup(Entity):
-    """This class contains an entity that represents a group of fired alerts 
-    that can be accessed through the :meth:`alerts` property."""
+    """This class represents a group of fired alerts for a saved search. Access
+    it using the :meth:`alerts` property."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
@@ -1663,23 +1695,42 @@ class AlertGroup(Entity):
 
     @property
     def alerts(self):
-        """Returns the collection of triggered alert instances.
+        """Returns a collection of triggered alerts.
 
-        :rtype: :class:`Collection`
+        :return: A :class:`Collection` of triggered alerts.
         """
         return Collection(self.service, self.path)
 
     @property
     def count(self):
-        """The count of triggered alerts."""
+        """The count of triggered alerts.
+
+        :return: The triggered alert count.
+        :rtype: ``integer``
+        """
         return int(self.content.get('triggered_alert_count', 0))
 
 class Indexes(Collection):
+    """This class contains the collection of indexes in this Splunk instance. 
+    Retrieve this collection using :meth:`Service.indexes`.
+    """
     def default(self):
+        """ Returns the default index.
+        
+        :return: An :class:`Index` object.
+
+        """
         index = self['_audit']
         return index['defaultDatabase']
 
     def delete(self, name):
+        """ Deletes a given index. 
+
+        **Note**: This method is only supported in Splunk 5.0 and later.
+
+        :param name: The name of the index to delete.
+        :type name: ``string``
+        """
         if self.service.splunk_version >= (5,):
             Collection.delete(self, name)
         else:
@@ -1687,20 +1738,24 @@ class Indexes(Collection):
                                             "not supported before Splunk version 5.")
 
 class Index(Entity):
-    """This class is an index class used to access specific operations."""
+    """This class represents an index and provides different operations, such as 
+    cleaning the index, writing to the index, and so forth."""
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
 
     def attach(self, host=None, source=None, sourcetype=None):
         """Opens a stream (a writable socket) for writing events to the index.
 
-        :param `host`: The host value for events written to the stream.
+        :param host: The host value for events written to the stream.
         :type host: ``string``
-        :param `source`: The source value for events written to the stream.
+        :param source: The source value for events written to the stream.
         :type source: ``string``
-        :param `sourcetype`: The sourcetype value for events written to the 
-                            stream.
+        :param sourcetype: The sourcetype value for events written to the 
+            stream.
         :type sourcetype: ``string``
+        
+        :return: A writable socket.
+        :rtype: FRED?
         """
         args = { 'index': self.name }
         if host is not None: args['host'] = host
@@ -1724,16 +1779,17 @@ class Index(Entity):
 
     @contextlib.contextmanager
     def attached_socket(self, *args, **kwargs):
-        """Open a raw socket in a with block to write data to Splunk.
+        """Opens a raw socket in a ``with`` block to write data to Splunk.
 
-        The arguments are identical to those for ``attach``. The socket is automatically
-        closed at the end of the with block, even if an exception is raised in the block.
+        The arguments are identical to those for :meth:`attach`. The socket is 
+        automatically closed at the end of the ``with`` block, even if an 
+        exception is raised in the block.
 
-        :param `host`: The host value for events written to the stream.
+        :param host: The host value for events written to the stream.
         :type host: ``string``
-        :param `source`: The source value for events written to the stream.
+        :param source: The source value for events written to the stream.
         :type source: ``string``
-        :param `sourcetype`: The sourcetype value for events written to the stream. 
+        :param sourcetype: The sourcetype value for events written to the stream. 
         :type sourcetype: ``string``
 
         **Example**::
@@ -1755,12 +1811,14 @@ class Index(Entity):
     def clean(self, timeout=60):
         """Deletes the contents of the index.
 
-        The ``clean`` method blocks until the index is empty, because it needs to restore
-        values at the end.
+        This method blocks until the index is empty, because it needs to restore
+        values at the end of the operation.
 
-        :param `timeout`: The time-out period for the operation, in seconds (the
-                          default is 60).
+        :param timeout: The time-out period for the operation, in seconds (the
+            default is 60).
         :type timeout: ``integer``
+        
+        :return: The :class:`Index`.
         """
         self.refresh()
         tds = self['maxTotalDataSizeMB']
@@ -1794,33 +1852,46 @@ class Index(Entity):
         return self
 
     def disable(self):
-        """Disables this index."""
+        """Disables this index.
+
+        :return: The :class:`Index`.
+        """
         # Starting in Ace, we have to do this with specific sharing,
         # unlike most other entities.
         self.post("disable")
         return self
 
     def enable(self):
-        """Enables this index."""
+        """Enables this index.
+        
+        :return: The :class:`Index`.
+        """
         # Starting in Ace, we have to reenable this with a specific
         # sharing unlike most other entities.
         self.post("enable")
         return self
 
     def roll_hot_buckets(self):
-        """Performs rolling hot buckets for this index."""
+        """Performs rolling hot buckets for this index.
+        
+        :return: The :class:`Index`.
+        """
         self.post("roll-hot-buckets")
         return self
 
     def submit(self, event, host=None, source=None, sourcetype=None):
-        """Submit a single event to the index using ``HTTP POST``.
+        """Submits a single event to the index using ``HTTP POST``.
 
+        :param event: The event to submit.
+        :type event: ``string``
         :param `host`: The host value of the event.
         :type host: ``string``
         :param `source`: The source value of the event.
         :type source: ``string``
         :param `sourcetype`: The sourcetype value of the event.
         :type sourcetype: ``string``
+        
+        :return: The :class:`Index`.
         """
         args = { 'index': self.name }
         if host is not None: args['host'] = host
@@ -1838,15 +1909,16 @@ class Index(Entity):
     def upload(self, filename, **kwargs):
         """Uploads a file for immediate indexing. 
         
-        .. Note: The file must be locally accessible from the server.
+        **Note**: The file must be locally accessible from the server.
         
-        :param `filename`: The name of the file to upload. The file can be 
-                           a plain, compressed, or archived file.
-        :param `kwargs`: Additional arguments (optional). For details, see the 
-                         `POST data/inputs/oneshot 
-                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput#POST_data.2Finputs.2Foneshot>`_
-                         endpoint in the Splunk REST API documentation.
+        :param filename: The name of the file to upload. The file can be a 
+            plain, compressed, or archived file.
+        :type filename: ``string``
+        :param kwargs: Additional arguments (optional). For more about the 
+            available parameters, see `Index parameters <http://dev.splunk.com/view/SP-CAAAEE6#indexparams>`_ on Splunk Developer Portal. 
         :type kwargs: ``dict``
+        
+        :return: The :class:`Index`.
         """
         kwargs['index'] = self.name
         path = 'data/inputs/oneshot'
@@ -1856,7 +1928,8 @@ class Index(Entity):
 class Input(Entity):
     """This class represents a Splunk input. This class is the base for all 
     typed input classes and is also used when the client does not recognize an
-    input kind."""
+    input kind.
+    """
     def __init__(self, service, path, kind=None, **kwargs):
         # kind can be omitted (in which case it is inferred from the path)
         # Otherwise, valid values are the paths from data/inputs ("udp",
@@ -1880,6 +1953,16 @@ class Input(Entity):
             self.kind = 'tcp/cooked'
 
     def update(self, **kwargs):
+        """Makes any changes to the current input on the server, along with any
+        additional properties you specify.
+
+        :param kwargs: Additional arguments (optional). For more about the 
+            available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
+        :type kwargs: ``dict`` 
+        
+        :return: 
+        :rtype: 
+        """
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
             result = super(Input, self).update(**kwargs)
             return result
@@ -1923,7 +2006,8 @@ class Input(Entity):
 class Inputs(Collection):
     """This class represents a collection of inputs. The collection is 
     heterogeneous and each member of the collection contains a *kind* property
-    that indicates the specific type of input."""
+    that indicates the specific type of input. 
+    Retrieve this collection using :meth:`Service.inputs`."""
 
     def __init__(self, service, kindmap=None):
         Collection.__init__(self, service, PATH_INPUTS, item=Input)
@@ -2003,17 +2087,37 @@ class Inputs(Collection):
         """Creates an input of a specific kind in this collection, with any 
         arguments you specify. 
 
-        :param `kind`: The kind of input to create.
-        :type kind: ``input kind`` ################### what is this
+        :param `kind`: The kind of input:
+
+            - "ad": Active Directory
+
+            - "monitor": Files and directories
+
+            - "registry": Windows Registry
+
+            - "script": Scripts
+
+            - "splunktcp": TCP, processed
+
+            - "tcp": TCP, unprocessed
+
+            - "udp": UDP
+
+            - "win-event-log-collections": Windows event log
+
+            - "win-perfmon": Performance monitoring
+
+            - "win-wmi-collections": WMI
+
+        :type kind: ``string``
         :param `name`: The input name.
         :type name: ``string``
-        :param `kwargs`: Additional entity-specific arguments (optional). For
-                         valid arguments, see the POST requests for the
-                         `/data/inputs/ 
-                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>`_ 
-                         endpoints in the Splunk REST API documentation.
+        :param `kwargs`: Additional arguments (optional). For more about the 
+            available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
+
         :type kwargs: ``dict``
-        :return: The new input.
+
+        :return: The new :class:`Input`.
         """
         kindpath = self.kindpath(kind)
         self.post(kindpath, name=name, **kwargs)
@@ -2030,8 +2134,34 @@ class Inputs(Collection):
 
     def delete(self, kind, name=None):
         """Removes an input from the collection.
+
+        :param `kind`: The kind of input:
+
+            - "ad": Active Directory
+
+            - "monitor": Files and directories
+
+            - "registry": Windows Registry
+
+            - "script": Scripts
+
+            - "splunktcp": TCP, processed
+
+            - "tcp": TCP, unprocessed
+
+            - "udp": UDP
+
+            - "win-event-log-collections": Windows event log
+
+            - "win-perfmon": Performance monitoring
+
+            - "win-wmi-collections": WMI
+
+        :type kind: ``string``
+        :param name: The name of the input to remove.
+        :type name: ``string``
         
-        :param `name`: The name of the input to remove.
+        :return: The :class:`Inputs` collection.
         """
         if name is None:
             name = kind
@@ -2041,7 +2171,35 @@ class Inputs(Collection):
         return self
 
     def itemmeta(self, kind):
-        """Returns metadata for the members of a given kind."""
+        """Returns metadata for the members of a given kind.
+
+        :param `kind`: The kind of input:
+
+            - "ad": Active Directory
+
+            - "monitor": Files and directories
+
+            - "registry": Windows Registry
+
+            - "script": Scripts
+
+            - "splunktcp": TCP, processed
+
+            - "tcp": TCP, unprocessed
+
+            - "udp": UDP
+
+            - "win-event-log-collections": Windows event log
+
+            - "win-perfmon": Performance monitoring
+
+            - "win-wmi-collections": WMI
+
+        :type kind: ``string``
+        
+        :return: The metadata.
+        :rtype: FRED?
+        """
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
@@ -2064,14 +2222,45 @@ class Inputs(Collection):
 
     @property
     def kinds(self, subpath=[]):
-        """The list of input kinds that this collection contains."""
+        """Returns the input kinds for a given path.
+
+        :param subpath: The relative endpoint path.
+        :type subpath: ``string``
+        
+        :return: The list of input kinds.
+        :rtype: ``list``
+        """
         return self._get_kind_list()
 
     def kindpath(self, kind):
         """Returns a path to the resources for a given input kind.
 
-        :param `kind`: The input kind.
-        :type kind: ``input kind`` ################### what is this
+        :param `kind`: The kind of input:
+
+            - "ad": Active Directory
+
+            - "monitor": Files and directories
+
+            - "registry": Windows Registry
+
+            - "script": Scripts
+
+            - "splunktcp": TCP, processed
+
+            - "tcp": TCP, unprocessed
+
+            - "udp": UDP
+
+            - "win-event-log-collections": Windows event log
+
+            - "win-perfmon": Performance monitoring
+
+            - "win-wmi-collections": WMI
+
+        :type kind: ``string``
+
+        :return: The relative endpoint path.
+        :rtype: ``string``
         """
         if kind in self.kinds:
             return kind
@@ -2084,34 +2273,60 @@ class Inputs(Collection):
             raise ValueError("No such kind on server: %s" % kind)
 
     def list(self, *kinds, **kwargs):
-        """Returns a list of inputs that belong to the collection. You can also
-        filter by one or more input kinds.
+        """Returns a list of inputs that are in the :class:`Inputs` collection.
+        You can also filter by one or more input kinds.
 
-        This function iterates over all possible inputs no matter what arguments you
-        specify. Because the inputs collection is the union of all the inputs of each
-        kind, we have to implement count, search, etc. at the Python level once all the
-        data is fetched. There tend not to be vast numbers of inputs so this usually
-        isn't a problem, but be aware of it.
+        This function iterates over all possible inputs, regardless of any arguments you
+        specify. Because the :class:`Inputs` collection is the union of all the inputs of each
+        kind, this method implements parameters such as "count", "search", and so 
+        on at the Python level once all the data has been fetched. The exception
+        is when you specify a single input kind, and then this method makes a single request
+        with the usual semantics for parameters.
 
-        The exception is when you specify a single kind. Then it makes a single request
-        with the usual semantics for count, offset, search, etc.
+        :param kinds: The input kinds to return (optional).
 
-        :param `count`: The maximum number of items to return (optional).
-        :type count: ``integer``
-        :param `offset`: The offset of the first item to return (optional).
-        :type offset: ``integer``
-        :param `search`: The search expression to filter responses (optional).
-        :type search: ``string``
-        :param `sort_dir`: The direction to sort returned items: *asc* or *desc*
-                           (optional).
-        :type sort_dir: ``string``
-        :param `sort_key`: The field to use for sorting (optional).
-        :type sort_key: ``string``
-        :param `sort_mode`: The collating sequence for sorting returned items:
-                            *auto*, *alpha*, *alpha_case*, *num* (optional).
-        :type sort_mode: ``string``
-        :param `kinds`: The input kinds to return (optional).
-        :type kinds: ``input kind`` ##################### what is this
+            - "ad": Active Directory
+
+            - "monitor": Files and directories
+
+            - "registry": Windows Registry
+
+            - "script": Scripts
+
+            - "splunktcp": TCP, processed
+
+            - "tcp": TCP, unprocessed
+
+            - "udp": UDP
+
+            - "win-event-log-collections": Windows event log
+
+            - "win-perfmon": Performance monitoring
+
+            - "win-wmi-collections": WMI
+
+        :type kinds: ``string``
+        :param kwargs: Additional arguments (optional). Valid values are:
+
+            - "count" (``integer``): The maximum number of items to return.
+
+            - "offset" (``integer``): The offset of the first item to return.
+
+            - "search" (``string``): The search query to filter responses.
+
+            - "sort_dir" (``string``): The direction to sort returned items: 
+              "asc" or "desc".
+
+            - "sort_key" (``string``): The field to use for sorting (optional).
+
+            - "sort_mode" (``string``): The collating sequence for sorting 
+              returned items: "auto", "alpha", "alpha_case", or "num".
+
+        :type kwargs: ``dict``
+
+        
+        :return: A list of input kinds.
+        :rtype: ``list`` 
         """
         if len(kinds) == 0:
             kinds = self.kinds
@@ -2191,10 +2406,39 @@ class Inputs(Collection):
             yield item
 
     def iter(self, **kwargs):
+        """ Iterates over the collection of inputs.
+
+        :param kwargs: Additional arguments (optional). Valid values are:
+
+            - "count" (``integer``): The maximum number of items to return.
+
+            - "offset" (``integer``): The offset of the first item to return.
+
+            - "search" (``string``): The search query to filter responses.
+
+            - "sort_dir" (``string``): The direction to sort returned items: 
+              "asc" or "desc".
+
+            - "sort_key" (``string``): The field to use for sorting (optional).
+
+            - "sort_mode" (``string``): The collating sequence for sorting 
+              returned items: "auto", "alpha", "alpha_case", or "num".
+                
+        :type kwargs: ``dict``
+        """
         for item in self.list(**kwargs):
             yield item
 
     def oneshot(self, path, **kwargs):
+        """ Creates a oneshot data input, which is an upload of a single file 
+        for one-time indexing. 
+
+        :param path: The path and filename.
+        :type path: ``string``
+        :param kwargs: Additional arguments (optional). For more about the 
+            available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
+        :type kwargs: ``dict``
+        """
         try:
             self.post('oneshot', name=path, **kwargs)
         except HTTPError as he:
@@ -2217,7 +2461,10 @@ class Job(Entity):
         return _load_atom(response).entry
 
     def cancel(self):
-        """Stops the current search and deletes the result cache."""
+        """Stops the current search and deletes the result cache.
+        
+        :return: The :class:`Job`.
+        """
         try:
             self.post("control", action="cancel")
         except HTTPError as he:
@@ -2230,30 +2477,47 @@ class Job(Entity):
         return self
 
     def disable_preview(self):
-        """Disables preview for this job."""
+        """Disables preview for this job.
+        
+        :return: The :class:`Job`.
+        """
         self.post("control", action="disablepreview")
         return self
 
     def enable_preview(self):
         """Enables preview for this job (although doing so might slow search
-        considerably)."""
+        considerably).
+        
+        :return: The :class:`Job`.
+        """
         self.post("control", action="enablepreview")
         return self
 
     def events(self, **kwargs):
-        """Returns an InputStream IO handle for this job's events."""
+        """Returns an InputStream IO handle for this job's events.
+
+        :param kwargs: 
+        :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         return self.get("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results available for 
-        retrieval."""
+        retrieval.
+        
+        :return: The :class:`Job`.
+        """
         self.post("control", action="finalize")
         return self
 
     def is_done(self):
         """Has this job finished running on the server yet?
-
-        :returns: ``boolean``
+        
+        :return: 
+        :rtype: ``boolean``
         """
         if (not self.is_ready()):
             return False
@@ -2262,7 +2526,7 @@ class Job(Entity):
     def is_ready(self):
         """Is this job queryable on the server yet?
 
-        :returns: ``boolean``
+        :return: ``boolean``
         """
         try:
             self.refresh()
@@ -2274,11 +2538,18 @@ class Job(Entity):
 
     @property
     def name(self):
-        """The name of the search job."""
+        """The name of the search job.
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         return self.sid
 
     def pause(self):
-        """Suspends the current search."""
+        """Suspends the current search.
+        
+        :return: The :class:`Job`.
+        """
         self.post("control", action="pause")
         return self
 
@@ -2291,8 +2562,9 @@ class Job(Entity):
         plus at most two additional round trips if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param state: The state #################
+        :param state: The state FRED?
         :type state: ``string``
+        :return: The :class:`Job`.
 
         **Example**::
 
@@ -2300,6 +2572,7 @@ class Job(Entity):
             s = client.connect(...)
             search = s.jobs.create('search index=_internal | head 1')
             search.refresh()
+        
         """
         if state is not None:
             self._state = state
@@ -2352,7 +2625,9 @@ class Job(Entity):
         :type wait_time: ``float``
         :param query_params: Optional arguments for querying results. See the REST API documentation on `GET search/jobs/{search_id}/results <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
         :type query_params: ``dict``
-        :returns: A streaming handle over the response body.
+
+        :return: A streaming handle over the response body.
+        :rtype: ```` :class:``
 
         """
         if timeout is None:
@@ -2407,6 +2682,9 @@ class Job(Entity):
                         <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults_preview>`_ 
                         endpoint in the REST API documentation.
         :type query_params: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         response = self.get("results_preview", **query_params)
         if response.status == 204:
@@ -2422,6 +2700,10 @@ class Job(Entity):
                          `GET search/jobs/{search_id}/search.log 
                          <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsearch.log>`_ 
                          endpoint in the REST API documentation.
+        :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         return self.get("search.log", **kwargs).body
 
@@ -2434,6 +2716,8 @@ class Job(Entity):
 
         :param `value`: The search priority.
         :type value: ``integer``
+        
+        :return: The :class:`Job`.
         """
         self.post('control', action="setpriority", priority=value)
         return self
@@ -2446,6 +2730,9 @@ class Job(Entity):
                          <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fsummary>`_ 
                          endpoint in the REST API documentation.
         :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         return self.get("summary", **kwargs).body
 
@@ -2457,12 +2744,19 @@ class Job(Entity):
                          <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Ftimeline>`_ 
                          endpoint in the REST API documentation.
         :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         return self.get("timeline", **kwargs).body
 
     def touch(self):
         """Extends the expiration time of the search to the current time plus 
-        the time-to-live value (now + ttl)."""
+        the time-to-live value (now + ttl).
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         self.post("control", action="touch")
         return self
 
@@ -2472,17 +2766,24 @@ class Job(Entity):
 
         :param `value`: The ttl value, in seconds.
         :type value: ``integer``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         self.post("control", action="setttl", ttl=value)
         return self
 
     def unpause(self):
-        """Resumes the current search, if paused."""
+        """Resumes the current search, if paused.
+        
+        :return: The :class:`Job`.
+        """
         self.post("control", action="unpause")
         return self
 
 class Jobs(Collection):
-    """This class represents a collection of search jobs."""
+    """This class represents a collection of search jobs. Retrieve this 
+    collection using :meth:`Service.jobs`."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_JOBS, item=Job)
         # The count value to say list all the contents of this
@@ -2504,6 +2805,16 @@ class Jobs(Collection):
         return entities
 
     def create(self, query, **kwargs):
+        """ DOC ME
+
+        :param name: 
+        :type name: 
+        :param kwargs: 
+        :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         try:
@@ -2543,7 +2854,9 @@ class Jobs(Collection):
         :type query: ``string``
         :param params: Additional arguments to export (see the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs.2Fexport>`_).
         :type params: ``dict``
-        :returns: An :class:`InputStream` over raw XML returned from the server.
+        
+        :return: An :class:`InputStream` over raw XML returned from the server.
+        :rtype: ```` :class:``
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
@@ -2556,6 +2869,8 @@ class Jobs(Collection):
                 raise
 
     def itemmeta(self):
+        """ DOC ME
+        """
         raise NotSupportedError()
 
     def oneshot(self, query, **params):
@@ -2586,7 +2901,9 @@ class Jobs(Collection):
         :type query: ``string``
         :param params: Additional arguments to oneshot (see the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTsearch#search.2Fjobs>`_).
         :type params: ``dict``
-        :returns: InputStream over raw XML returned from the server.
+        
+        :return: InputStream over raw XML returned from the server.
+        :rtype: ```` :class:``
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
@@ -2599,11 +2916,14 @@ class Jobs(Collection):
                 raise
                 
 class Loggers(Collection):
-    """This class represents a collection of service logging categories."""
+    """This class represents a collection of service logging categories. 
+    Retrieve this collection using :meth:`Service.loggers`."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
+        """ DOC ME
+        """
         raise NotSupportedError
 
 class Message(Entity):
@@ -2612,10 +2932,17 @@ class Message(Entity):
 
     @property
     def value(self):
-        """The message value."""
+        """The message value.
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         return self[self.name]
 
 class ModularInputKind(Entity):
+    """This class contains the different types of modular inputs.  Retrieve this
+    collection using :meth:`Service.modular_input_kinds`.
+    """
     def __contains__(self, name):
         args = self.state.content['endpoints']['args']
         if name in args:
@@ -2632,7 +2959,11 @@ class ModularInputKind(Entity):
 
     @property
     def arguments(self):
-        """ DOC ME """
+        """ DOC ME 
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         return self.state.content['endpoint']['args']
 
     def update(self, **kwargs):
@@ -2647,7 +2978,11 @@ class SavedSearch(Entity):
 
     def acknowledge(self):
         """Acknowledges the suppression of alerts from this saved search and 
-        resumes alerting."""
+        resumes alerting.
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         self.post("acknowledge")
         return self
 
@@ -2669,6 +3004,7 @@ class SavedSearch(Entity):
                          endpoint in the REST API documentation.
         :type kwargs: ``dict``
         :return: The new search job.
+        :rtype: ```` :class:``
         """
         response = self.post("dispatch", **kwargs)
         sid = _load_sid(response)
@@ -2680,8 +3016,9 @@ class SavedSearch(Entity):
 
         If the search is not scheduled, raises ``IllegalOperationException``.
 
-        :raises IllegalOperationException: Raised when ###################
-        :returns: A collection of :class:`AlertGroup` entities.
+        :raises IllegalOperationException: Raised when FRED
+        :return: A collection of :class:`AlertGroup` entities.
+        :rtype: ```` :class:``
         """
         if self['is_scheduled'] == '0':
             raise IllegalOperationException('Unscheduled saved searches have no alerts.')
@@ -2697,6 +3034,7 @@ class SavedSearch(Entity):
         """Returns a list of search jobs corresponding to this saved search.
 
         :return: A list of :class:`Job` objects.
+        :rtype: ```` :class:``
         """
         response = self.get("history")
         entries = _load_atom_entries(response)
@@ -2714,6 +3052,9 @@ class SavedSearch(Entity):
         :type search: ``string``
         :param `kwargs`: Additional update arguments (optional). 
         :type kwargs: ``dict``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         # Updates to a saved search *require* that the search string be 
         # passed, so we pass the current search string if a value wasn't
@@ -2734,6 +3075,9 @@ class SavedSearch(Entity):
         :type earliest_time: ``string``
         :param latest_time: The latest time.
         :type latest_time: ``string``
+        
+        :return: 
+        :rtype: ```` :class:``
         """
         response = self.get("scheduled_times", 
                             earliest_time=earliest_time, 
@@ -2745,13 +3089,24 @@ class SavedSearch(Entity):
         return times
 
     def suppress(self, expiration):
-        """Skip any scheduled runs of this search in the next *expiration* seconds."""
+        """Skip any scheduled runs of this search in the next *expiration* seconds.
+
+        :param expiration: 
+        :type expiration: 
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         self.post("suppress", suppressed="1", expiration=expiration)
         return self
 
     @property
     def suppressed(self):
-        """The number of seconds that this search is blocked from running (possibly 0)."""
+        """The number of seconds that this search is blocked from running (possibly 0).
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         r = self._run_method("suppress")
         if r.suppressed == "1":
             return int(r.expiration)
@@ -2759,13 +3114,18 @@ class SavedSearch(Entity):
             return 0
 
     def unsuppress(self):
-        """Cancel suppression and make this search run as scheduled."""
+        """Cancel suppression and make this search run as scheduled.
+        
+        :return: 
+        :rtype: ```` :class:``
+        """
         self.post("suppress", suppressed="0", expiration="0")
         return self
         
 
 class SavedSearches(Collection):
-    """This class represents a collection of saved searches."""
+    """This class represents a collection of saved searches. Retrieve this 
+    collection using :meth:`Service.saved_searches`."""
     def __init__(self, service):
         Collection.__init__(
             self, service, PATH_SAVED_SEARCHES, item=SavedSearch)
@@ -2784,25 +3144,37 @@ class SavedSearches(Collection):
         return Collection.create(self, name, search=search, **kwargs)
 
 class Settings(Entity):
-    """This class represents configuration settings for a Splunk service."""
+    """This class represents configuration settings for a Splunk service. 
+    Retrieve this collection using :meth:`Service.settings`."""
     def __init__(self, service, **kwargs):
         Entity.__init__(self, service, "server/settings", **kwargs)
 
     # Updates on the settings endpoint are POSTed to server/settings/settings.
     def update(self, **kwargs):
+        """ DOC ME
+
+        :param kwargs: 
+        :type kwargs: ``dict``
+        :return: 
+        :rtype: ```` :class:``
+        """
         self.service.post("server/settings/settings", **kwargs)
         return self
 
 class User(Entity):
     @property
     def role_entities(self):
-        """A list of entities representing all the roles assigned to this user."""
+        """A list of entities representing all the roles assigned to this user.
+        
+        :return: 
+        :rtype: ```` :class:``"""
         return [self.service.roles[name] for name in self.content.roles]
 
 # Splunk automatically lowercases new user names so we need to match that 
 # behavior here to ensure that the subsequent member lookup works correctly.
 class Users(Collection):
-    """This class represents a Splunk user."""
+    """This class represents a Splunk user. Retrieve this collection using 
+    :meth:`Service.users`."""
     def __init__(self, service):
         Collection.__init__(self, service, PATH_USERS, item=User)
 
@@ -2834,6 +3206,7 @@ class Users(Collection):
         :type roles: ``string`` or list of ``string``
         :param params: Optional parameters. See the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTaccess#POST_authentication.2Fusers>`_.
         :type params: ``dict``
+
         :return: A reference to the new user.
         :rtype: ``Entity``
 
@@ -2863,13 +3236,17 @@ class Users(Collection):
     def delete(self, name):
         """ Deletes the user and returns the resulting collection of users. 
 
+        :param name: 
+        :type name: 
+
+        :return: 
         :rtype: :class:`Collection`
         """
         return Collection.delete(self, name.lower())
 
 
 class Role(Entity):
-    """This class ##########
+    """This class represents a user role.
     """
     def grant(self, *capabilities_to_grant):
         """Grant additional capabilities to this role.
@@ -2887,6 +3264,7 @@ class Role(Entity):
         :param capabilities_to_grant: Zero or more capabilities to grant this role.
         :type capabilities_to_grant: ``string`` or a list of ``string``
         :return: The :class:`Role` object.
+        :rtype: ```` :class:``
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_grant:
@@ -2912,7 +3290,9 @@ class Role(Entity):
 
         :param capabilities_to_revoke: Zero or more capabilities to revoke from this role.
         :type capabilities_to_revoke: ``string`` or a list of ``string``
+
         :return: A :class:`Role` object.
+        :rtype: ```` :class:``
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_revoke:
@@ -2935,7 +3315,8 @@ class Role(Entity):
 
 
 class Roles(Collection):
-    """Roles in the Splunk instance."""
+    """Roles in the Splunk instance. Retrieve this collection using 
+    :meth:`Service.roles`."""
     def __init__(self, service):
         return Collection.__init__(self, service, PATH_ROLES, item=Role)
 
@@ -2963,6 +3344,7 @@ class Roles(Collection):
         :type name: ``string``
         :param params: Optional parameters. See the `REST API documentation <http://docs/Documentation/Splunk/latest/RESTAPI/RESTaccess#POST_authorization.2Froles>`_.
         :type params: ``dict``
+
         :return: A reference to the new role. 
         :rtype: ``Entity``
 
@@ -2990,6 +3372,9 @@ class Roles(Collection):
 
     def delete(self, name):
         """ Deletes the role and returns the resulting collection of roles. 
+
+        :param name: 
+        :type name: 
 
         :rtype: :class:`Collection`
         """

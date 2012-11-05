@@ -53,9 +53,10 @@ __all__ = [
 ]
 
 class Message(object):
-    """This class represents Splunk messages that are returned in the XML stream.
+    """This class represents informational messages that Splunk interleaves in the results stream.
 
-    :param `object`: The object. ### FRED: DOC ME ###
+    ``Message`` takes two arguments: a string giving the message type (e.g., "DEBUG"), and
+    a string giving the message itself.
 
     **Example**::
 

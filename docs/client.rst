@@ -5,106 +5,141 @@ splunklib.client
 
 .. autofunction:: connect
 
-.. autoclass:: Collection
+.. autoclass:: AmbiguousReferenceException
     :members:
-    :inherited-members:
-    :undoc-members:
 
-.. autoclass:: Endpoint
-    :members:
+.. autoclass:: Application
+    :members: setupInfo, package, updateInfo
     :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Entity
-    :members:
-    :inherited-members:
-    :undoc-members:
-
-.. autoclass:: Service
-    :members:
-    :inherited-members:
-    :undoc-members:
 
 .. autoclass:: AlertGroup
-    :members:
+    :members: alerts, count
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: Collection
+    :members: create, delete
+    :inherited-members:
 
 .. autoclass:: ConfigurationFile
-    :members:
     :inherited-members:
-    :undoc-members:
 
 .. autoclass:: Configurations
-    :members:
+    :members: create, delete
     :inherited-members:
-    :undoc-members:
 
-.. autoclass:: Stanza
-    :members:
+.. autoclass:: Endpoint
+    :members: get, post
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: Entity
+    :members: access, delete, disable, enable, fields, get, links, name, namespace, post, refresh, reload, update
+    :inherited-members:
+
+.. autoclass:: EntityDeletedException
+    :members:
+
+.. autoclass:: IllegalOperationException
+    :members:
+
+.. autoclass:: IncomparableException
+    :members:
 
 .. autoclass:: Index
-    :members:
+    :members: attach, attached_socket, clean, disable, enable, roll_hot_buckets, submit, upload
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: Indexes
+    :members: default, delete
+    :inherited-members:
 
 .. autoclass:: Input
-    :members:
+    :members: update
     :inherited-members:
-    :undoc-members:
 
 .. autoclass:: Inputs
-    :members:
+    :members: create, delete, itemmeta, kinds, kindpath, list, iter, oneshot
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: InvalidNameException
+    :members:
 
 .. autoclass:: Job
-    :members:
+    :members: cancel, disable_preview, enable_preview, events, finalize, is_done, is_ready, name, pause, refresh, results, preview, searchlog, set_priority, summary, timeline, touch, set_ttl, unpause
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: JobNotReadyException
+    :members:
 
 .. autoclass:: Jobs
-    :members:
+    :members: create, export, itemmeta, oneshot
     :inherited-members:
-    :undoc-members:
 
 .. autoclass:: Loggers
-    :members:
+    :members: itemmeta
     :inherited-members:
 
 .. autoclass:: Message
-    :members:
+    :members: value
     :inherited-members:
-    :undoc-members:
 
-.. autoclass:: SavedSearch
-    :members:
+.. autoclass:: ModularInputKind
+    :members: arguments, update
     :inherited-members:
-    :undoc-members:
 
-.. autoclass:: SavedSearches
+.. autoclass:: NoSuchApplicationException
     :members:
-    :inherited-members:
-    :undoc-members:
 
-.. autoclass:: Settings
+.. autoclass:: NoSuchCapability
     :members:
-    :inherited-members:
-    :undoc-members:
 
-.. autoclass:: Users
+.. autoclass:: NoSuchUserException
     :members:
-    :inherited-members:
-    :undoc-members:
 
 .. autoclass:: NotSupportedError
     :members:
-    :inherited-members:
-    :undoc-members:
 
 .. autoclass:: OperationError
     :members:
+
+.. autoclass:: OperationFailedException
+    :members:
+
+.. autoclass:: ReadOnlyCollection
+    :members: itemmeta, iter, list, names
     :inherited-members:
-    :undoc-members:
+
+.. autoclass:: Role
+    :members: grant, revoke
+    :inherited-members:
+
+.. autoclass:: Roles
+    :members: create, delete
+    :inherited-members:
+
+.. autoclass:: SavedSearch
+    :members: acknowledge, alert_count, dispatch, fired_alerts, history, scheduled_times, suppress, suppressed, unsuppress, update
+    :inherited-members:
+
+.. autoclass:: SavedSearches
+    :members: create
+    :inherited-members:
+
+.. autoclass:: Service
+    :members: apps, confs, capabilities, event_types, fired_alerts, indexes, info, inputs, jobs, loggers, messages, modular_input_kinds, parse, restart, restart_required, roles, search, saved_searches, settings, splunk_version, users
+    :inherited-members:
+
+.. autoclass:: Settings
+    :members: update
+    :inherited-members:
+
+.. autoclass:: Stanza
+    :members: submit
+    :inherited-members:
+
+.. autoclass:: User
+    :members: role_entities
+    :inherited-members:
+
+.. autoclass:: Users
+    :members: create, delete
+    :inherited-members:

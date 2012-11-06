@@ -12,17 +12,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""This module provides a streaming XML reader for Splunk search results.
+"""The **splunklib.results** module provides a streaming XML reader for Splunk 
+search results.
 
-Splunk search results can be returned in a variety of formats including XML,
-JSON, and CSV. Search results in XML format are returned as a stream of XML 
-*fragments*, not as a single XML document, to make it easier to stream search 
-results. This module supports incrementally reading one result record at a time 
-from such a result stream. This module also provides a friendly iterator-based 
-interface for accessing search results while avoiding buffering of the result 
-set, which can be very large.
+Splunk search results can be returned in a variety of formats including XML, 
+JSON, and CSV. To make it easier to stream search results in XML format, they 
+are returned as a stream of XML *fragments*, not as a single XML document. This 
+module supports incrementally reading one result record at a time from such a 
+result stream. This module also provides a friendly iterator-based interface for
+accessing search results while avoiding buffering the result set, which can be 
+very large.
 
-To use the reader, instantiate **ResultsReader** on a search result stream::
+To use the reader, instantiate :class:`ResultsReader` on a search result stream
+as follows:::
 
     reader = ResultsReader(result_stream)
     for item in reader:
@@ -51,7 +53,10 @@ __all__ = [
 ]
 
 class Message(object):
-    """Messages returned in splunkd's XML.
+    """This class represents informational messages that Splunk interleaves in the results stream.
+
+    ``Message`` takes two arguments: a string giving the message type (e.g., "DEBUG"), and
+    a string giving the message itself.
 
     **Example**::
 
@@ -76,7 +81,7 @@ class _ConcatenatedStream(object):
     As you read from the concatenated stream, you get characters from
     each stream passed to ``_ConcatenatedStream``, in order.
 
-    **Example**:
+    **Example**::
 
         from StringIO import StringIO
         s = _ConcatenatedStream(StringIO("abc"), StringIO("def"))
@@ -144,30 +149,31 @@ class _XMLDTDFilter(object):
         return response
 
 class ResultsReader(object):
-    """Lazily yield dicts from a streaming XML results stream.
+    """This class returns dictionaries and Splunk messages from an XML results 
+    stream.
 
-    ``ResultsReader`` is iterable. What comes back are either
-    ``dict``s (for results) or ``Message`` objects (for Splunk
-    messages). It has one field: ``is_preview``, which is ``True`` if
-    the results returned are a preview from a running search, or
-    ``False`` if the results come from a completed search. For example,::
+    ``ResultsReader`` is iterable, and returns a ``dict`` for results, or a 
+    :class:`Message` object for Splunk messages. This class has one field, 
+    ``is_preview``, which is ``True`` when the results are a preview from a 
+    running search, or ``False`` when the results are from a completed search.
 
-    :param stream: The stream to read from (any object support ``.read()``).
+    This function has no network activity other than what is implicit in the 
+    stream it operates on.
 
-    This function has no network activity other than what is implicit
-    in the stream it operates on.
+    :param `stream`: The stream to read from (any object that supports 
+        ``.read()``).
 
-    **Example**:
+    **Example**::
 
-    import results
-    response = ... # the body of an HTTP response
-    reader = results.ResultsReader(response)
-    for result in reader:
-        if isinstance(result, dict):
-            print "Result: %s" % result
-        elif isinstance(result, results.Message):
-            print "Message: %s" % result
-    print "is_preview = %s " % reader.is_preview)
+        import results
+        response = ... # the body of an HTTP response
+        reader = results.ResultsReader(response)
+        for result in reader:
+            if isinstance(result, dict):
+                print "Result: %s" % result
+            elif isinstance(result, results.Message):
+                print "Message: %s" % result
+        print "is_preview = %s " % reader.is_preview
     """
     # Be sure to update the docstrings of client.Jobs.oneshot,
     # client.Job.results_preview and client.Job.results to match any

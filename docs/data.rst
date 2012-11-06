@@ -8,5 +8,5 @@ splunklib.data
 .. autofunction:: record
 
 .. autoclass:: Record
-    :members:
-    :undoc-members:
+    :members: 
+

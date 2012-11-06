@@ -5,14 +5,28 @@ splunklib.binding
 
 .. autofunction:: connect
 
-.. autoclass:: Context
-    :members:
-    :inherited-members:
-    :undoc-members:
-
 .. autofunction:: handler
+
+.. autofunction:: namespace
+
+.. autoclass:: AuthenticationError
+    :members:
+
+.. autoclass:: Context
+    :members: connect, delete, get, login, logout, post, request
 
 .. autoclass:: HTTPError
     :members:
-    :inherited-members:
-    :undoc-members:
+
+.. autoclass:: HttpLib
+    :members: delete, get, post, request
+
+.. autoclass:: NoAuthenticationToken
+    :members:
+
+.. autoclass:: ResponseReader
+    :members: close, empty, peek, read
+
+.. autoclass:: UrlEncoded
+    :members:
+

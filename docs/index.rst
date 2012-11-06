@@ -1,5 +1,5 @@
 Welcome to the API reference for the Splunk Python SDK, which describes the modules that are included in the Splunk Python SDK.
-For more information about the SDK, see the `Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
+For more information about the SDK, see the `Splunk Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -9,15 +9,28 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     :func:`~splunklib.binding.connect` function
 
+    :func:`~splunklib.binding.namespace` function
+
     :class:`~splunklib.binding.Context` class
+
+    :class:`~splunklib.binding.ResponseReader` class
+
+    :class:`~splunklib.binding.UrlEncoded` class
+
 
     **Exceptions**
 
     :func:`~splunklib.binding.handler` function
 
+    :class:`~splunklib.binding.AuthenticationError` class
+
+    :class:`~splunklib.binding.NoAuthenticationToken` class
+
     **Custom HTTP handler**
 
     :class:`~splunklib.binding.HTTPError` class 
+
+    :class:`~splunklib.binding.HttpLib` class
 
 
 :doc:`client`
@@ -29,20 +42,24 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     :class:`~splunklib.client.Endpoint` base class 
 
+
     **Entities and collections**
 
-    :class:`~splunklib.client.AlertGroup` class
-
-    :class:`~splunklib.client.Application` class
+    :class:`~splunklib.client.Entity` class
 
     :class:`~splunklib.client.Collection` class
 
+    :class:`~splunklib.client.ReadOnlyCollection` class
+
+    :class:`~splunklib.client.Application` class
+
+    :class:`~splunklib.client.AlertGroup` class
 
     :class:`~splunklib.client.ConfigurationFile` class
 
-    :class:`~splunklib.client.Configurations` class
+    :class:`~splunklib.client.Stanza` class
 
-    :class:`~splunklib.client.Entity` class
+    :class:`~splunklib.client.Configurations` class
 
     :class:`~splunklib.client.Index` class
 
@@ -62,8 +79,6 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     :class:`~splunklib.client.ModularInputKind` class
 
-    :class:`~splunklib.client.ReadOnlyCollection` class
-
     :class:`~splunklib.client.Role` class
 
     :class:`~splunklib.client.Roles` class
@@ -74,11 +89,10 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 
     :class:`~splunklib.client.Settings` class
 
-    :class:`~splunklib.client.Stanza` class
-
     :class:`~splunklib.client.User` class
 
     :class:`~splunklib.client.Users` class
+    
 
     **Exceptions**
 
@@ -120,3 +134,5 @@ For more information about the SDK, see the `Developer Portal <http://dev.splunk
 --------------
 
     :class:`~splunklib.results.ResultsReader` class 
+
+    :class:`~splunklib.results.Message` class 

@@ -2,6 +2,7 @@
 
 ## 1.0
 
+* Stanza.submit now takes a dictionary of key/value pairs specifying the stanza instead of a raw string.
 * Namespace handling has changed subtly. Code that depends on namespace handling in detail may break.
 * Added User.role_entities to return a list of the actual entity objects for the
   roles of a user. User.roles still returns a list of the role names.

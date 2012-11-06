@@ -17,6 +17,7 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.binding.UrlEncoded` class
 
+
     **Exceptions**
 
     :func:`~splunklib.binding.handler` function
@@ -41,15 +42,22 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.client.Endpoint` base class 
 
+
     **Entities and collections**
 
-    :class:`~splunklib.client.AlertGroup` class
-
-    :class:`~splunklib.client.Application` class
+    :class:`~splunklib.client.Entity` class
 
     :class:`~splunklib.client.Collection` class
 
+    :class:`~splunklib.client.ReadOnlyCollection` class
+
+    :class:`~splunklib.client.Application` class
+
+    :class:`~splunklib.client.AlertGroup` class
+
     :class:`~splunklib.client.ConfigurationFile` class
+
+    :class:`~splunklib.client.Stanza` class
 
     :class:`~splunklib.client.Configurations` class
 
@@ -71,8 +79,6 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.client.ModularInputKind` class
 
-    :class:`~splunklib.client.ReadOnlyCollection` class
-
     :class:`~splunklib.client.Role` class
 
     :class:`~splunklib.client.Roles` class
@@ -83,11 +89,10 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.client.Settings` class
 
-    :class:`~splunklib.client.Stanza` class
-
     :class:`~splunklib.client.User` class
 
     :class:`~splunklib.client.Users` class
+    
 
     **Exceptions**
 

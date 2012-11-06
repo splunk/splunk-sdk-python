@@ -3,18 +3,17 @@ splunklib.binding
 
 .. automodule:: splunklib.binding
 
-.. autoclass:: Context
-    :members: connect, delete, get, login, logout, post, request
-
 .. autofunction:: connect
+
+.. autofunction:: handler
 
 .. autofunction:: namespace
 
-.. autoclass:: UrlEncoded
+.. autoclass:: AuthenticationError
     :members:
 
-.. autoclass:: ResponseReader
-    :members: close, empty, peek, read
+.. autoclass:: Context
+    :members: connect, delete, get, login, logout, post, request
 
 .. autoclass:: HTTPError
     :members:
@@ -22,11 +21,12 @@ splunklib.binding
 .. autoclass:: HttpLib
     :members: delete, get, post, request
 
-.. autofunction:: handler
-
-.. autoclass:: AuthenticationError
+.. autoclass:: NoAuthenticationToken
     :members:
 
-.. autoclass:: NoAuthenticationToken
+.. autoclass:: ResponseReader
+    :members: close, empty, peek, read
+
+.. autoclass:: UrlEncoded
     :members:
 

@@ -381,8 +381,8 @@ class Service(Context):
     def event_types(self):
         """Returns the collection of event types defined in this Splunk instance.
 
-        :return: A :class:`Collection` of event types.
-        """ #  FRED: what kind of entity is in this collection?
+        :return: An :class:`Entity` containing the event types.
+        """
         return Collection(self, PATH_EVENT_TYPES)
 
     @property
@@ -406,8 +406,8 @@ class Service(Context):
     def info(self):
         """Returns the information about this instance of Splunk.
 
-        :return: The system information.
-        :rtype: FRED DOC ME, is this a string?
+        :return: The system information, as key-value pairs.
+        :rtype: ``dict``
         """
         response = self.get("server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
@@ -517,7 +517,7 @@ class Service(Context):
     def restart_required(self):
         """Indicates whether splunkd is in a state that requires a restart.
 
-        :return: A ``string`` that indicates whether a restart is required. FRED IS THIS TRUE
+        :return: A ``boolean`` that indicates whether a restart is required.
         """
         response = self.get("messages").body.read()
         messages = data.load(response)['feed']
@@ -654,7 +654,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.get() == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -717,7 +717,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.post(name='boris') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '2908'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -940,8 +940,8 @@ class Entity(Endpoint):
         plus at most two additional round trips if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param state: FRED DOC ME -- what are the values?
-        :type state: ``string`` 
+        :param state: Entity-specific arguments (optional).
+        :type state: ``dict`` 
         :raises EntityDeletedException: Raised if the entity no longer exists on
             the server.
 
@@ -968,7 +968,8 @@ class Entity(Endpoint):
     def access(self):
         """Returns the access metadata for this entity.
 
-        :return: FRED DOC ME
+        :return: A :class:`splunklib.data.Record` object with three keys: 
+            ``owner``, ``app``, and ``sharing``.
         """
         return self.state.access
 
@@ -976,7 +977,7 @@ class Entity(Endpoint):
     def content(self):
         """Returns the contents of the entity.
 
-        :return: FRED DOC ME
+        :return: A ``dict`` containing values.
         """
         return self.state.content
 
@@ -994,7 +995,8 @@ class Entity(Endpoint):
     def fields(self):
         """Returns the content metadata for this entity.
 
-        :return: FRED DOC ME
+        :return: A :class:`splunklib.data.Record` object with three keys: 
+            ``required``, ``optional``, and ``wildcard``.
         """
         return self.state.fields
 
@@ -1002,8 +1004,7 @@ class Entity(Endpoint):
     def links(self):
         """Returns a dictionary of related resources.
 
-        :return: FRED DOC ME
-        :rtype: ``dict``
+        :return: A ``dict`` with keys and corresponding URLs.
         """
         return self.state.links
 
@@ -1042,7 +1043,7 @@ class Entity(Endpoint):
     def state(self):
         """Returns the entity's state record.
 
-        :return: FRED DOC ME
+        :return: A ``dict`` containing fields and metadata for the entity.
         """
         if self._state is None: self.refresh()
         return self._state
@@ -1068,6 +1069,9 @@ class Entity(Endpoint):
 
         :param kwargs: Additional entity-specific arguments (optional).
         :type kwargs: ``dict``
+
+        :return: #FRED? 
+        :rtype: 
         """
         # The peculiarity in question: the REST API creates a new
         # Entity if we pass name in the dictionary, instead of the
@@ -1343,7 +1347,18 @@ class ReadOnlyCollection(Endpoint):
         :type count: ``integer``
         :param pagesize: The number of entities to load (optional).
         :type pagesize: ``integer``
-        :param kwargs: FRED which params are these? sort_dir, sort_key, sort_mode, search?
+        :param kwargs: Additional arguments (optional): 
+
+            - "search" (``string``): The search query to filter responses.
+
+            - "sort_dir" (``string``): The direction to sort returned items:
+              "asc" or "desc".
+
+            - "sort_key" (``string``): The field to use for sorting (optional).
+
+            - "sort_mode" (``string``): The collating sequence for sorting 
+              returned items: "auto", "alpha", "alpha_case", or "num".
+                
         :type kwargs: ``dict``
 
         **Example**::
@@ -1382,7 +1397,7 @@ class ReadOnlyCollection(Endpoint):
 
         :param count: The maximum number of entities to return (optional).
         :type count: ``integer``
-        :param kwargs: Additional arguments (optional). Valid values are:
+        :param kwargs: Additional arguments (optional):
 
             - "offset" (``integer``): The offset of the first item to return.
 
@@ -1412,7 +1427,7 @@ class ReadOnlyCollection(Endpoint):
 
         :param count: The maximum number of entities to return (optional).
         :type count: ``integer``
-        :param kwargs: Additional arguments (optional). Valid values are:
+        :param kwargs: Additional arguments (optional):
 
             - "offset" (``integer``): The offset of the first item to return.
 
@@ -1488,7 +1503,7 @@ class Collection(ReadOnlyCollection):
         :type name: ``string``
         :param namespace: A namespace, as created by the :func:`splunklib.binding.namespace`
             function (optional).  You can also set ``owner``, ``app``, and 
-            ``sharing`` in ``params``. FRED this isn't listed in the create params list
+            ``sharing`` in ``params``.
         :type namespace: A :class:`splunklib.data.Record` object with keys ``owner``, ``app``,
             and ``sharing``. 
         :param params: Additional entity-specific arguments (optional).
@@ -1663,7 +1678,7 @@ class Configurations(Collection):
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):
-        """Populates a stanza in a given configuration file. FRED? Thought KV pairs would be what you provide, not a single name.
+        """Populates a stanza in a given configuration file. #FRED? Thought KV pairs would be what you provide, not a single name.
 
         :param stanza: The name of the stanza.
         :type stanza: ``string``
@@ -1750,7 +1765,6 @@ class Index(Entity):
         :type sourcetype: ``string``
         
         :return: A writable socket.
-        :rtype: FRED?
         """
         args = { 'index': self.name }
         if host is not None: args['host'] = host
@@ -1789,7 +1803,7 @@ class Index(Entity):
             - "sourcetype" (``string``): The sourcetype value for events written to the stream. 
 
         :type args: ``dict``
-        :param kwargs: FRED? 
+        :param kwargs: #FRED, what do you specify in **kwargs? or if the host/source/sourcetype go HERE, what goes in *args? 
         :type kwargs: ``dict``
 
         **Example**::
@@ -1960,7 +1974,7 @@ class Input(Entity):
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
         :type kwargs: ``dict`` 
         
-        :return: 
+        :return: #FRED? 
         :rtype: 
         """
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
@@ -2198,7 +2212,7 @@ class Inputs(Collection):
         :type kind: ``string``
         
         :return: The metadata.
-        :rtype: FRED?
+        :rtype: #FRED--a ``dict`` or ``record``?
         """
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
@@ -2306,7 +2320,7 @@ class Inputs(Collection):
             - "win-wmi-collections": WMI
 
         :type kinds: ``string``
-        :param kwargs: Additional arguments (optional). Valid values are:
+        :param kwargs: Additional arguments (optional):
 
             - "count" (``integer``): The maximum number of items to return.
 
@@ -2408,7 +2422,7 @@ class Inputs(Collection):
     def iter(self, **kwargs):
         """ Iterates over the collection of inputs.
 
-        :param kwargs: Additional arguments (optional). Valid values are:
+        :param kwargs: Additional arguments (optional):
 
             - "count" (``integer``): The maximum number of items to return.
 
@@ -2565,8 +2579,8 @@ class Job(Entity):
         plus at most two additional round trips if 
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :param state: The state FRED WHAT ARE THE STATES
-        :type state: ``string``
+        :param state: Entity-specific arguments (optional).
+        :type state: ``dict`` 
         :return: The :class:`Job`.
 
         **Example**::
@@ -2593,7 +2607,7 @@ class Job(Entity):
 
     def results(self, timeout=None, wait_time=1, **query_params):
         """Returns a streaming handle to this job's search results. To get a 
-        nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultReader``,
+        nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultsReader`,
         as in::
 
             import splunklib.client as client
@@ -2654,12 +2668,12 @@ class Job(Entity):
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
 
-        Unlike :class:`splunklib.results.ResultReader``, which requires a job to
+        Unlike :class:`splunklib.results.ResultsReader`, which requires a job to
         be finished to
         return any results, the ``preview`` method returns any results that have
         been generated so far, whether the job is running or not. The
         returned search results are the raw data from the server. Pass
-        the handle returned to :class:`splunklib.results.ResultReader`` to get a
+        the handle returned to :class:`splunklib.results.ResultsReader` to get a
         nice, Pythonic iterator over objects, as in::
 
             import splunklib.client as client
@@ -2748,8 +2762,8 @@ class Job(Entity):
         return self.get("timeline", **kwargs).body
 
     def touch(self):
-        """Extends the expiration time of the search to the current time plus 
-        the time-to-live (ttl) value (now + ttl).
+        """Extends the expiration time of the search to the current time (now) plus 
+        the time-to-live (ttl) value.
         
         :return: The :class:`Job`.
         """
@@ -2827,7 +2841,7 @@ class Jobs(Collection):
         """Runs a search and immediately starts streaming preview events.
         This method returns a streaming handle to this job's events as an XML
         document from the server. To parse this stream into usable Python objects, 
-        pass the handle to :class:`splunklib.results.ResultReader``::
+        pass the handle to :class:`splunklib.results.ResultsReader`::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2843,8 +2857,7 @@ class Jobs(Collection):
         to two for :meth:`create` followed by :meth:`preview`), plus at most two
         more if the ``autologin`` field of :func:`connect` is set to ``True``.
 
-        :raises ValueError: Raised for invalid queries.
-
+        :raises `ValueError`: Raised for invalid queries.
         :param query: The search query.
         :type query: ``string``
         :param params: Additional arguments (optional). For a list of valid
@@ -2866,7 +2879,7 @@ class Jobs(Collection):
                 raise
 
     def itemmeta(self):
-        """ FRED DOC ME
+        """ #FRED DOC ME
         """
         raise NotSupportedError()
 
@@ -2875,7 +2888,7 @@ class Jobs(Collection):
 
         The ``InputStream`` object streams XML fragments from the server. To 
         parse this stream into usable Python objects, 
-        pass the handle to :class:`splunklib.results.ResultReader``::
+        pass the handle to :class:`splunklib.results.ResultsReader`::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2895,7 +2908,7 @@ class Jobs(Collection):
 
         :param query: The search query.
         :type query: ``string``
-        :param params: Additional arguments (optional). Valid parameters are: 
+        :param params: Additional arguments (optional): 
 
             - "output_mode": Specifies the output format of the results (XML, 
               JSON, or CSV).
@@ -2931,7 +2944,7 @@ class Loggers(Collection):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
-        """ FRED DOC ME
+        """ #FRED DOC ME
         """
         raise NotSupportedError
 
@@ -2967,7 +2980,7 @@ class ModularInputKind(Entity):
 
     @property
     def arguments(self):
-        """ FRED DOC ME 
+        """ #FRED DOC ME 
         
         :return: 
         :rtype: 
@@ -3227,9 +3240,9 @@ class Users(Collection):
         :type params: ``dict``
 
         :return: The new user.
-        :rtype: :class:`Entity` FRED, not :class:`User`?
+        :rtype: :class:`Entity` #FRED, not :class:`User`?
 
-        **Example**:
+        **Example**::
 
             import splunklib.client as client
             c = client.connect(...)
@@ -3259,7 +3272,7 @@ class Users(Collection):
         :type name: ``string``
 
         :return: 
-        :rtype: :class:`Collection` FRED, not :class:`Users`?
+        :rtype: :class:`Collection` #FRED, not :class:`Users`?
         """
         return Collection.delete(self, name.lower())
 
@@ -3364,7 +3377,7 @@ class Roles(Collection):
         :type params: ``dict``
 
         :return: The new role. 
-        :rtype: :class:`Entity` FRED why not :class:`Role`?
+        :rtype: :class:`Entity` #FRED why not :class:`Role`?
 
         **Example**::
 
@@ -3394,7 +3407,7 @@ class Roles(Collection):
         :param name: The name of the role to delete.
         :type name: ``string``
 
-        :rtype: The :class:`Collection` of roles FRED not :class:`Roles`?
+        :rtype: The :class:`Collection` of roles #FRED not :class:`Roles`?
         """
 
         return Collection.delete(self, name.lower())
@@ -3412,7 +3425,10 @@ class Application(Entity):
     """Represents a locally-installed Splunk app."""
     @property
     def setupInfo(self):
-        """Returns the setup information for the app."""
+        """Returns the setup information for the app.
+        
+        :return: The setup information.
+        """
         return self.content.get('eai:setup', None)
 
     def package(self):

@@ -5,8 +5,8 @@ splunklib.data
 
 .. autofunction:: load
 
+.. autofunction:: record
+
 .. autoclass:: Record
     :members: 
-
-.. autofunction:: record
 

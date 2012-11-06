@@ -11,3 +11,4 @@ build/
 proxypid
 proxy.log
 MANIFEST
+coverage_report

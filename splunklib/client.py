@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode
 from data import record
 import data
 
@@ -1678,13 +1678,14 @@ class Configurations(Collection):
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):
-        """Populates a stanza in a given configuration file. #FRED? Thought KV pairs would be what you provide, not a single name.
+        """Sets the keys in *stanza* this Stanza.
 
         :param stanza: A dictionary of key/value pairs to set in this stanza.
         :type stanza: ``dict``
         :return: The :class:`Stanza` object this method is called on.
         """
-        self.service.post(self.path, **stanza)
+        body = _encode(**stanza)
+        self.service.post(self.path, body=body)
         return self
 
     def __len__(self):

@@ -1070,8 +1070,8 @@ class Entity(Endpoint):
         :param kwargs: Additional entity-specific arguments (optional).
         :type kwargs: ``dict``
 
-        :return: #FRED? 
-        :rtype: 
+        :return: The entity this method is called on.
+        :rtype: class:`Entity`
         """
         # The peculiarity in question: the REST API creates a new
         # Entity if we pass name in the dictionary, instead of the
@@ -1794,17 +1794,15 @@ class Index(Entity):
         automatically closed at the end of the ``with`` block, even if an 
         exception is raised in the block.
 
-        :param args: Additional arguments:
+        :param host: The host value for events written to the stream.
+        :type host: ``string``
+        :param source: The source value for events written to the stream.
+        :type source: ``string``
+        :param sourcetype: The sourcetype value for events written to the
+            stream.
+        :type sourcetype: ``string``
 
-            - "host" (``string``): The host value for events written to the stream.
-
-            - "source" (``string``): The source value for events written to the stream.
-
-            - "sourcetype" (``string``): The sourcetype value for events written to the stream. 
-
-        :type args: ``dict``
-        :param kwargs: #FRED, what do you specify in **kwargs? or if the host/source/sourcetype go HERE, what goes in *args? 
-        :type kwargs: ``dict``
+        :returns: Nothing.
 
         **Example**::
 
@@ -1974,8 +1972,8 @@ class Input(Entity):
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
         :type kwargs: ``dict`` 
         
-        :return: #FRED? 
-        :rtype: 
+        :return: The input this method was called on.
+        :rtype: class:`Input`
         """
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
             result = super(Input, self).update(**kwargs)
@@ -2212,7 +2210,7 @@ class Inputs(Collection):
         :type kind: ``string``
         
         :return: The metadata.
-        :rtype: #FRED--a ``dict`` or ``record``?
+        :rtype: class:``splunklib.data.Record``
         """
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
@@ -2879,7 +2877,11 @@ class Jobs(Collection):
                 raise
 
     def itemmeta(self):
-        """ #FRED DOC ME
+        """There is no metadata available for class:``Jobs``.
+
+        Any call to this method raises a class:``NotSupportedError``.
+
+        :raises: class:``NotSupportedError``
         """
         raise NotSupportedError()
 
@@ -2944,9 +2946,13 @@ class Loggers(Collection):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
-        """ #FRED DOC ME
+        """There is no metadata available for class:``Jobs``.
+
+        Any call to this method raises a class:``NotSupportedError``.
+
+        :raises: class:``NotSupportedError``
         """
-        raise NotSupportedError
+        raise NotSupportedError()
 
 class Message(Entity):
     def __init__(self, service, path, **kwargs):
@@ -2980,10 +2986,17 @@ class ModularInputKind(Entity):
 
     @property
     def arguments(self):
-        """ #FRED DOC ME 
-        
-        :return: 
-        :rtype: 
+        """A dictionary of all the arguments supported by this modular input kind.
+
+        The keys in the dictionary are the names of the arguments. The values are
+        another dictionary giving the metadata about that argument. The possible
+        keys in that dictionary are ``"title"``, ``"description"``, ``"required_on_create``",
+        ``"required_on_edit"``, ``"data_type"``. Each value is a string. It should be one
+        of ``"true"`` or ``"false"`` for ``"required_on_create"`` and ``"required_on_edit"``,
+        and one of ``"boolean"``, ``"string"``, or ``"number``" for ``"data_type"``.
+
+        :return: A dictionary describing the arguments this modular input kind takes.
+        :rtype: ``dict``
         """
         return self.state.content['endpoint']['args']
 
@@ -3240,7 +3253,7 @@ class Users(Collection):
         :type params: ``dict``
 
         :return: The new user.
-        :rtype: :class:`Entity` #FRED, not :class:`User`?
+        :rtype: :class:`User`
 
         **Example**::
 
@@ -3272,7 +3285,7 @@ class Users(Collection):
         :type name: ``string``
 
         :return: 
-        :rtype: :class:`Collection` #FRED, not :class:`Users`?
+        :rtype: :class:`Users`
         """
         return Collection.delete(self, name.lower())
 
@@ -3377,7 +3390,7 @@ class Roles(Collection):
         :type params: ``dict``
 
         :return: The new role. 
-        :rtype: :class:`Entity` #FRED why not :class:`Role`?
+        :rtype: :class:`Role`
 
         **Example**::
 
@@ -3407,7 +3420,7 @@ class Roles(Collection):
         :param name: The name of the role to delete.
         :type name: ``string``
 
-        :rtype: The :class:`Collection` of roles #FRED not :class:`Roles`?
+        :rtype: The :class:`Roles`
         """
 
         return Collection.delete(self, name.lower())

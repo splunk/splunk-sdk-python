@@ -50,6 +50,7 @@ class TestConfs(testlib.SDKTestCase):
 
     def tearDown(self):
         self.service.apps.delete(self.app_name)
+        self.clear_restart_message()
 
     def test_confs(self):
         confs = self.app_service.confs
@@ -82,6 +83,14 @@ class TestConfs(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: stanza.refresh() and len(stanza) == 1, pause_time=0.2)
         self.assertEqual(len(stanza), 1)
         self.assertTrue(key in stanza)
+
+        values = {testlib.tmpname(): testlib.tmpname(),
+                  testlib.tmpname(): testlib.tmpname()}
+        stanza.submit(values)
+        stanza.refresh()
+        for key, value in values.iteritems():
+            self.assertTrue(key in stanza)
+            self.assertEqual(value, stanza[key])
 
         count = len(conf)
         conf.delete(stanza_name)

@@ -1680,11 +1680,11 @@ class Stanza(Entity):
     def submit(self, stanza):
         """Populates a stanza in a given configuration file. #FRED? Thought KV pairs would be what you provide, not a single name.
 
-        :param stanza: The name of the stanza.
-        :type stanza: ``string``
-        :return: The new  :class:`Stanza` object.
+        :param stanza: A dictionary of key/value pairs to set in this stanza.
+        :type stanza: ``dict``
+        :return: The :class:`Stanza` object this method is called on.
         """
-        self.service.request(self.path, method="POST", body=stanza)
+        self.service.post(self.path, **stanza)
         return self
 
     def __len__(self):

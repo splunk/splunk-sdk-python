@@ -285,7 +285,16 @@ def connect(**kwargs):
     """
     return Service(**kwargs).login()
 
-class Service(Context):
+# In preparation for adding Storm support, we added an
+# intermediary class between Service and Context. Storm's
+# API is not going to be the same as enterprise Splunk's
+# API, so we will derive both Service (for enterprise Splunk)
+# and StormService for (Splunk Storm) from _BaseService, and
+# put any shared behavior on it.
+class _BaseService(Context):
+    pass
+
+class Service(_BaseService):
     """A Pythonic binding to Splunk instances.
 
     A :class:`Service` represents a binding to a Splunk instane on an
@@ -334,7 +343,7 @@ class Service(Context):
         s = client.Service(token="atg232342aa34324a")
     """
     def __init__(self, **kwargs):
-        Context.__init__(self, **kwargs)
+        super(Service, self).__init__(self, **kwargs)
         self._splunk_version = None
 
     @property

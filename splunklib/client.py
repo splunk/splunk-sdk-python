@@ -1233,8 +1233,8 @@ class ReadOnlyCollection(Endpoint):
         prefixes from it to leave only the relative path of the entity
         itself, sans namespace.
 
+        :return: An absolute path
         :rtype: ``string``
-        :return: an absolute path
         """
         # This has been factored out so that it can be easily
         # overloaded by Configurations, which has to switch its
@@ -2240,8 +2240,7 @@ class Inputs(Collection):
         :param subpath: The relative endpoint path.
         :type subpath: ``string``
         
-        :return: The list of input kinds.
-        :rtype: ``list``
+        :return: A ``list`` of input kinds.
         """
         return self._get_kind_list()
 
@@ -2272,8 +2271,7 @@ class Inputs(Collection):
 
         :type kind: ``string``
 
-        :return: The relative endpoint path.
-        :rtype: ``string``
+        :return: A ``string`` containing the relative endpoint path.
         """
         if kind in self.kinds:
             return kind
@@ -2338,8 +2336,7 @@ class Inputs(Collection):
         :type kwargs: ``dict``
 
         
-        :return: A list of input kinds.
-        :rtype: ``list`` 
+        :return: A ``list`` of input kinds.
         """
         if len(kinds) == 0:
             kinds = self.kinds
@@ -2500,7 +2497,7 @@ class Job(Entity):
     def enable_preview(self):
         """Enables preview for this job.
 
-        **Note**: Enabling preview might slow search considerably.
+            **Note**: Enabling preview might slow search considerably.
         
         :return: The :class:`Job`.
         """
@@ -2556,8 +2553,7 @@ class Job(Entity):
     def name(self):
         """Returns the name of the search job, which is the search ID (SID).
         
-        :return: The search ID.
-        :rtype: ``string``
+        :return: A ``string`` containing the search ID.
         """
         return self.sid
 
@@ -2878,11 +2874,11 @@ class Jobs(Collection):
                 raise
 
     def itemmeta(self):
-        """There is no metadata available for class:``Jobs``.
+        """Metadata is not available for :class:`Jobs`.
 
-        Any call to this method raises a class:``NotSupportedError``.
+        Any call to this method raises a :class:`NotSupportedError`.
 
-        :raises: class:``NotSupportedError``
+        :raises: :class:`NotSupportedError`
         """
         raise NotSupportedError()
 
@@ -2947,11 +2943,11 @@ class Loggers(Collection):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
-        """There is no metadata available for class:``Jobs``.
+        """Metadata is not available for :class:`Jobs`.
 
-        Any call to this method raises a class:``NotSupportedError``.
+        Any call to this method raises a :class:`NotSupportedError`.
 
-        :raises: class:``NotSupportedError``
+        :raises: :class:`NotSupportedError`
         """
         raise NotSupportedError()
 
@@ -2991,13 +2987,14 @@ class ModularInputKind(Entity):
 
         The keys in the dictionary are the names of the arguments. The values are
         another dictionary giving the metadata about that argument. The possible
-        keys in that dictionary are ``"title"``, ``"description"``, ``"required_on_create``",
-        ``"required_on_edit"``, ``"data_type"``. Each value is a string. It should be one
-        of ``"true"`` or ``"false"`` for ``"required_on_create"`` and ``"required_on_edit"``,
-        and one of ``"boolean"``, ``"string"``, or ``"number``" for ``"data_type"``.
+        keys in that dictionary are: 
+        "title": A ``string``.
+        "description": A ``string``.
+        "required_on_create": A ``string`` that is "true" or "false".
+        "required_on_edit": A ``string`` that is "true" or "false".
+        "data_type": A ``string`` that is "boolean", "string", or "number". 
 
-        :return: A dictionary describing the arguments this modular input kind takes.
-        :rtype: ``dict``
+        :return: A ``dict`` of arguments that are supported by this modular input kind.
         """
         return self.state.content['endpoint']['args']
 
@@ -3207,8 +3204,7 @@ class User(Entity):
     def role_entities(self):
         """Returns a list of roles assigned to this user.
         
-        :return: The list of roles.
-        :rtype: ``list``
+        :return: The ``list`` of roles.
         """
         return [self.service.roles[name] for name in self.content.roles]
 
@@ -3253,8 +3249,7 @@ class Users(Collection):
             on Splunk Developer Portal. 
         :type params: ``dict``
 
-        :return: The new user.
-        :rtype: :class:`User`
+        :return: The new :class:`User`.
 
         **Example**::
 
@@ -3285,8 +3280,7 @@ class Users(Collection):
         :param name: The name of the user to delete.
         :type name: ``string``
 
-        :return: 
-        :rtype: :class:`Users`
+        :return: The :class:`Users` collection.
         """
         return Collection.delete(self, name.lower())
 
@@ -3390,8 +3384,7 @@ class Roles(Collection):
             on Splunk Developer Portal.
         :type params: ``dict``
 
-        :return: The new role. 
-        :rtype: :class:`Role`
+        :return: The new :class:`Role`.
 
         **Example**::
 
@@ -3421,7 +3414,7 @@ class Roles(Collection):
         :param name: The name of the role to delete.
         :type name: ``string``
 
-        :rtype: The :class:`Roles`
+        :return: The :class:`Roles` collection.
         """
 
         return Collection.delete(self, name.lower())

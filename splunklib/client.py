@@ -171,7 +171,7 @@ def _trailing(template, *targets):
     :type template: ``string``
     :param targets: Strings to successively match in *template*.
     :type targets: list of ``string``s
-    :return: Trailing string after all targets are matched.
+    :return: The trailing string after all targets are matched.
     :rtype: ``string``
     :raises ValueError: Raised when one of the targets does not match.
     """
@@ -417,8 +417,7 @@ class Service(_BaseService):
     def info(self):
         """Returns the information about this instance of Splunk.
 
-        :return: The system information, as key-value pairs.
-        :rtype: ``dict``
+        :return: The system information, as a ``dict`` of key-value pairs.
         """
         response = self.get("server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
@@ -915,10 +914,6 @@ class Entity(Endpoint):
         showing up due to wildcards in the service's namespace. We replace the wildcards with the
         namespace of the entity we want.
 
-        :param owner:
-        :param app:
-        :param sharing:
-        :return:
         """
         if owner is None and app is None and sharing is None and\
             (self.service.namespace.owner == '-' or self.service.namespace.app == '-'):
@@ -1023,8 +1018,7 @@ class Entity(Endpoint):
     def name(self):
         """Returns the entity name.
 
-        :return: The entity name.
-        :rtype: ``string``
+        :return: A ``string`` containing the entity name.
         """
         return self.state.title
 
@@ -1081,8 +1075,7 @@ class Entity(Endpoint):
         :param kwargs: Additional entity-specific arguments (optional).
         :type kwargs: ``dict``
 
-        :return: The entity this method is called on.
-        :rtype: class:`Entity`
+        :return: The :class:`Entity`.
         """
         # The peculiarity in question: the REST API creates a new
         # Entity if we pass name in the dictionary, instead of the
@@ -1689,11 +1682,11 @@ class Configurations(Collection):
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
     def submit(self, stanza):
-        """Sets the keys in *stanza* this Stanza.
+        """Sets the keys in this stanza.
 
-        :param stanza: A dictionary of key/value pairs to set in this stanza.
+        :param stanza: A dictionary of key-value pairs to set in this stanza.
         :type stanza: ``dict``
-        :return: The :class:`Stanza` object this method is called on.
+        :return: The :class:`Stanza` object.
         """
         body = _encode(**stanza)
         self.service.post(self.path, body=body)
@@ -1748,7 +1741,7 @@ class Indexes(Collection):
     def delete(self, name):
         """ Deletes a given index. 
 
-        **Note**: This method is only supported in Splunk 5.0 and later.
+            **Note**: This method is only supported in Splunk 5.0 and later.
 
         :param name: The name of the index to delete.
         :type name: ``string``
@@ -1813,8 +1806,6 @@ class Index(Entity):
         :param sourcetype: The sourcetype value for events written to the
             stream.
         :type sourcetype: ``string``
-
-        :returns: Nothing.
 
         **Example**::
 
@@ -1933,7 +1924,7 @@ class Index(Entity):
     def upload(self, filename, **kwargs):
         """Uploads a file for immediate indexing. 
         
-        **Note**: The file must be locally accessible from the server.
+            **Note**: The file must be locally accessible from the server.
         
         :param filename: The name of the file to upload. The file can be a 
             plain, compressed, or archived file.
@@ -1984,8 +1975,7 @@ class Input(Entity):
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal. 
         :type kwargs: ``dict`` 
         
-        :return: The input this method was called on.
-        :rtype: class:`Input`
+        :return: The :class:`Input`.
         """
         if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
             result = super(Input, self).update(**kwargs)
@@ -2221,8 +2211,7 @@ class Inputs(Collection):
 
         :type kind: ``string``
         
-        :return: The metadata.
-        :rtype: class:``splunklib.data.Record``
+        :return: A :class:`splunklib.data.Record` containing the metadata.
         """
         response = self.get("%s/_new" % self._kindmap[kind])
         content = _load_atom(response, MATCH_ENTRY_CONTENT)

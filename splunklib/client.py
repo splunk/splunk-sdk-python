@@ -665,7 +665,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.get() == \\
-                {'body': ...a response reader object...,
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -728,7 +728,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.post(name='boris') == \\
-                {'body': ...a response reader object...,
+                {'body': '...a response reader object...',
                  'headers': [('content-length', '2908'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),

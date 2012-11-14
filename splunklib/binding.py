@@ -498,7 +498,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.delete('saved/searches/boris') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '1786'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -556,7 +556,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.get('apps/local') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -622,7 +622,7 @@ class Context(object):
             c = binding.connect(...)
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '10455'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -687,7 +687,7 @@ class Context(object):
 
             c = binding.connect(...)
             c.request('saved/searches', method='GET') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '46722'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),

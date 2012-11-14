@@ -664,7 +664,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.get() == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '26208'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -727,7 +727,7 @@ class Endpoint(object):
             s = client.service(...)
             apps = s.apps
             apps.post(name='boris') == \\
-                {'body': '...a response reader object...',
+                {'body': ...a response reader object...,
                  'headers': [('content-length', '2908'),
                              ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
                              ('server', 'Splunkd'),
@@ -2987,12 +2987,15 @@ class ModularInputKind(Entity):
 
         The keys in the dictionary are the names of the arguments. The values are
         another dictionary giving the metadata about that argument. The possible
-        keys in that dictionary are: 
-        "title": A ``string``.
-        "description": A ``string``.
-        "required_on_create": A ``string`` that is "true" or "false".
-        "required_on_edit": A ``string`` that is "true" or "false".
-        "data_type": A ``string`` that is "boolean", "string", or "number". 
+        keys in that dictionary are:
+
+            - "title" (``string``): The title of the input.
+            - "description" (``string``): The description.
+            - "required_on_create" (``string``): Indicates whether the parameter
+              is required for create ("true" or "false").
+            - "required_on_edit" (``string``): Indicates whether the parameter 
+              is required for edit ("true" or "false").
+            - "data_type" (``string``): The data type ("boolean", "string", or "number"). 
 
         :return: A ``dict`` of arguments that are supported by this modular input kind.
         """

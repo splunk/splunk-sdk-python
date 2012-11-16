@@ -17,7 +17,7 @@
 import testlib
 import logging
 
-import unittest
+import unittest2 as unittest
 
 import splunklib.client as client
 import splunklib.results as results
@@ -248,10 +248,13 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                import collections
-                self.assertTrue(isinstance(r, collections.OrderedDict) 
+                try:
+                    from collections import OrderedDict
+                except:
+                    from splunklib.ordereddict import OrderedDict
+                self.assertTrue(isinstance(r, OrderedDict) 
                                 or isinstance(r, results.Message))
-                if isinstance(r, collections.OrderedDict):
+                if isinstance(r, OrderedDict):
                     N_results += 1
                 elif isinstance(r, results.Message):
                     N_messages += 1
@@ -267,10 +270,13 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                import collections
-                self.assertTrue(isinstance(r, collections.OrderedDict) 
+                try:
+                    from collections import OrderedDict
+                except:
+                    from splunklib.ordereddict import OrderedDict
+                self.assertTrue(isinstance(r, OrderedDict) 
                                 or isinstance(r, results.Message))
-                if isinstance(r, collections.OrderedDict):
+                if isinstance(r, OrderedDict):
                     N_results += 1
                 elif isinstance(r, results.Message):
                     N_messages += 1
@@ -292,5 +298,4 @@ class TestResultsReader(unittest.TestCase):
         self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
-    import unittest
     unittest.main()

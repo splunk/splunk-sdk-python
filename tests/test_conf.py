@@ -103,5 +103,5 @@ class TestConfs(testlib.SDKTestCase):
         self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
-    import unittest
+    import unittest2 as unittest
     unittest.main()

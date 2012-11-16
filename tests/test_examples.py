@@ -340,5 +340,5 @@ class ExamplesTestCase(testlib.SDKTestCase):
  
 if __name__ == "__main__":
     os.chdir("../examples")
-    import unittest
+    import unittest2 as unittest
     unittest.main()

@@ -19,11 +19,11 @@ import os, shutil
 import splunklib
 
 def run_test_suite():
-    import unittest
+    import unittest2
     original_cwd = os.path.abspath(os.getcwd())
     os.chdir('tests')
-    suite = unittest.defaultTestLoader.discover('.')
-    unittest.TextTestRunner().run(suite)
+    suite = unittest2.defaultTestLoader.discover('.')
+    unittest2.TextTestRunner().run(suite)
     os.chdir(original_cwd)
 
 class CoverageCommand(Command):

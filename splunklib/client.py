@@ -2472,7 +2472,7 @@ class Inputs(Collection):
             self.post('oneshot', name=path, **kwargs)
         except HTTPError as he:
             if he.status == 400:
-                raise OperationFailedException(he.message)
+                raise OperationFailedException(str(he))
             else:
                 raise
 
@@ -2848,7 +2848,7 @@ class Jobs(Collection):
             response = self.post(search=query, **kwargs)
         except HTTPError as he:
             if he.status == 400: # Bad request. Raise a TypeError with the reason.
-                raise TypeError(he.message)
+                raise TypeError(str(he))
         sid = _load_sid(response)
         return Job(self.service, sid)
 

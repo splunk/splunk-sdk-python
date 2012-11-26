@@ -174,7 +174,12 @@ class TestSavedSearch(testlib.SDKTestCase):
         time_pairs = zip(scheduled_times[:-1], scheduled_times[1:])
         for earlier, later in time_pairs:
             diff = later-earlier
-            self.assertEqual(diff.total_seconds()/60, 5)
+            # diff is an instance of datetime.timedelta, which
+            # didn't get a total_seconds() method until Python 2.7.
+            # Since we support Python 2.6, we have to calculate the
+            # total seconds ourselves.
+            total_seconds = diff.days*24*60*60 + diff.seconds
+            self.assertEqual(total_seconds/60.0, 5)
 
     def test_no_equality(self):
         self.assertRaises(client.IncomparableException,

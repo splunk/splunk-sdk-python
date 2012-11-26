@@ -66,7 +66,7 @@ class TestUtilities(testlib.SDKTestCase):
             bad_search = "abcd|asfwqqq"
             jobs.create(bad_search)
         except TypeError as te:
-            self.assertTrue('abcd' in te.message)
+            self.assertTrue('abcd' in str(te))
             return
         self.fail("Job with garbage search failed to raise TypeError.")
 

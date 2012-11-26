@@ -90,5 +90,8 @@ class FiredAlertTestCase(testlib.SDKTestCase):
                 alert.content
 
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

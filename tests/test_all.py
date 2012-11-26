@@ -17,10 +17,13 @@
 """Runs all the Splunk Python SDK unit tests."""
 
 import os
-import unittest2
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import testlib
 
-suite = unittest2.defaultTestLoader.discover('.')
+suite = unittest.defaultTestLoader.discover('.')
 
 if __name__ == '__main__':
-    unittest2.TextTestRunner().run(suite)
+    unittest.TextTestRunner().run(suite)

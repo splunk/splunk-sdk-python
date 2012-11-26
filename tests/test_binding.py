@@ -581,7 +581,9 @@ def test_connect_with_preexisting_token_sans_user_and_pass(self):
         socket.write("\r\n")
         socket.close()
 
-        
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

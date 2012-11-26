@@ -44,5 +44,8 @@ class LoggerTestCase(testlib.SDKTestCase):
         self.assertEqual(self.service.loggers['AuditLogger']['level'], saved)
 
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

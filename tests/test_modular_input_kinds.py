@@ -60,3 +60,10 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)
+
+if __name__ == "__main__":
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

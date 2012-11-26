@@ -246,6 +246,9 @@ class DataTestCase(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    import unittest2
-    unittest2.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()
 

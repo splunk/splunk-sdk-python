@@ -298,4 +298,8 @@ class TestResultsReader(unittest.TestCase):
         self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

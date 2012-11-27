@@ -130,3 +130,10 @@ class ResultsTestCase(testlib.SDKTestCase):
         results_reader = results.ResultsReader(StringIO(xml_text))
         actual_results = [x for x in results_reader]
         self.assertEquals(expected_results, actual_results)
+
+if __name__ == "__main__":
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

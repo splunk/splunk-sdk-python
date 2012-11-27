@@ -302,8 +302,9 @@ class TestInput(testlib.SDKTestCase):
             remaining -= 1
 
 
-
-
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

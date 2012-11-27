@@ -117,5 +117,8 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+4, timeout=60)
 
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()

@@ -1688,8 +1688,14 @@ class Configurations(Collection):
 
 class Stanza(Entity):
     """This class contains a single configuration stanza."""
+
     def submit(self, stanza):
         """Sets the keys in *stanza* this Stanza.
+
+        *stanza* will usually be a dictionary of key/value pairs, but can also
+        by a raw string to send as the POST body of the request (e.g.,
+        `"key=some+value&other+key=another+value"`). Sending raw strings should
+        be considered deprecated.
 
         :param stanza: A dictionary of key/value pairs to set in this stanza.
         :type stanza: ``dict``

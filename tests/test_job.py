@@ -17,7 +17,10 @@
 import testlib
 import logging
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import splunklib.client as client
 import splunklib.results as results
@@ -298,8 +301,4 @@ class TestResultsReader(unittest.TestCase):
         self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import sys
 from os import path
 import xml.etree.ElementTree as et
 
@@ -114,7 +115,12 @@ class DataTestCase(testlib.SDKTestCase):
         self.assertEqual(result.feed.entry.content.os_version, '10.8.0')
 
     def test_invalid(self):
-        self.assertRaises(et.ParseError, data.load, "<dict</dict>")
+        if sys.version_info[1] >= 7:
+            self.assertRaises(et.ParseError, data.load, "<dict</dict>")
+        else:
+            from xml.parsers.expat import ExpatError
+            self.assertRaises(ExpatError, data.load, "<dict</dict>")
+            
         self.assertRaises(KeyError, data.load, "<dict><key>a</key></dict>")
 
     def test_dict(self):
@@ -240,6 +246,9 @@ class DataTestCase(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     unittest.main()
 

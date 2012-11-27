@@ -22,6 +22,10 @@ fetch it from `https://github.com/splunk/sdk-app-collection`. Put the
 whole repository in `$SPLUNK_HOME/etc/apps`, so the git root would be
 `$SPLUNK_HOME/etc/apps/sdk-app-collection`.
 
+If you are running Python 2.6, you must install the `unittest2` library,
+since the test suite depends on features added to `unittest` in Python 2.7.
+Python 2.7 should run the test suite using only Python's standard library.
+
 The test suite depends on nothing but Python's standard library. You can
 simply execute:
 

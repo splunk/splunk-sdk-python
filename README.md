@@ -141,10 +141,18 @@ away some of the lower level details of the _binding_ layer.
 ### Unit tests
 
 The SDK contains a small but growing collection of unit tests. Running the
-tests is simple and rewarding:
+tests is simple and rewarding. If you are using Python 2.7, the test suite
+will run using only Python's standard library. If you are using Python 2.6,
+you need to install the `unittest2` library, since the test suite depends on
+features added to `unittest` in Python 2.7. `unittest2` is only needed for
+the running test suite, not for using the SDK.
 
-> cd tests<br>
-> python runtests.py
+To run the test suite, run the following command in the top level directory
+of the SDK repository:
+
+> python setup.py test
+
+You can also run the test_all.py script in the tests/ directory.
 
 Alternatively, you can read more about our testing "framework" 
 [here](https://github.com/splunk/splunk-sdk-python/tree/master/tests).

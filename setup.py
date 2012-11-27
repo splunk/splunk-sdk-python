@@ -19,7 +19,10 @@ import os, shutil
 import splunklib
 
 def run_test_suite():
-    import unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
     original_cwd = os.path.abspath(os.getcwd())
     os.chdir('tests')
     suite = unittest.defaultTestLoader.discover('.')

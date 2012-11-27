@@ -137,10 +137,6 @@ class AmbiguousReferenceException(ValueError):
     """Thrown when the name used to fetch an entity matches more than one entity."""
     pass
 
-class EntityDeletedException(Exception):
-    """Thrown when the entity that has been referred to has been deleted."""
-    pass
-
 class InvalidNameException(Exception):
     """Thrown when the specified name contains characters that are not allowed
     in Splunk entity names."""
@@ -209,8 +205,8 @@ def _load_atom_entries(response):
         entries = r.feed.get('entry', None)
         if entries is None: return None
         return entries if isinstance(entries, list) else [entries]
-    # This rigamarole is because the jobs endpoint doesn't
-    # returned an entry inside a feed, it just returns and entry.
+    # The jobs endpoint doesn't returns a bare <entry> element
+    # instead of an <entry> element inside a <feed> element.
     else:
         entries = r.get('entry', None)
         if entries is None: return None
@@ -549,9 +545,8 @@ class Service(_BaseService):
         return Roles(self)
 
     def search(self, query, **kwargs):
-        """Runs a oneshot synchronous search using a search query and any
-        optional arguments you provide. A oneshot search doesn't create a search
-        job and ID, but rather it returns the search results once completed.
+        """Runs a search using a search query and any optional arguments you
+        provide, and returns a `Job` object representing the search.
 
         :param query: A search query.
         :type query: ``string``
@@ -576,6 +571,8 @@ class Service(_BaseService):
               search.
 
         :type kwargs: ``dict``
+        :rtype: class:`Job`
+        :returns: An object representing the created job.
         """
         return self.jobs.create(query, **kwargs)
 
@@ -882,17 +879,14 @@ class Entity(Endpoint):
     def _load_atom_entry(self, response):
         elem = _load_atom(response, XNAME_ENTRY)
         if isinstance(elem, list):
-            return [x.entry for x in elem]
+            raise AmbiguousReferenceException("Fetch from server returned multiple entries for name %s." % self.name)
         else:
             return elem.entry
 
     # Load the entity state record from the given response
     def _load_state(self, response):
         entry = self._load_atom_entry(response)
-        if isinstance(entry, list):
-            raise AmbiguousReferenceException("Fetch from server returned multiple entries for name %s." % self.name)
-        else:
-            return _parse_atom_entry(entry)
+        return _parse_atom_entry(entry)
 
     def _run_method(self, path_segment, **kwargs):
         """Run a method and return the content Record from the returned XML.
@@ -911,24 +905,26 @@ class Entity(Endpoint):
     def _proper_namespace(self, owner=None, app=None, sharing=None):
         """Produce a namespace sans wildcards for use in entity requests.
 
-        This method handles the case of two entities with the same name in different namespaces
-        showing up due to wildcards in the service's namespace. We replace the wildcards with the
-        namespace of the entity we want.
+        This method tries to fill in the fields of the namespace which are `None`
+        or wildcard (`'-'`) from the entity's namespace. If that fails, it uses
+        the service's namespace.
 
         :param owner:
         :param app:
         :param sharing:
         :return:
         """
-        if owner is None and app is None and sharing is None and\
-            (self.service.namespace.owner == '-' or self.service.namespace.app == '-'):
-            # If no namespace is specified and there are wildcards in the service's namespace,
-            # we need to use the entity's namespace to avoid name collisions.
-            if 'access' in self._state:
-                owner = self._state.access.owner
-                app = self._state.access.app
-                sharing = self._state.access.sharing
-        return (owner, app, sharing)
+        if owner is None and app is None and sharing is None: # No namespace provided
+            if self._state is not None and 'access' in self._state:
+                return (self._state.access.owner,
+                        self._state.access.app,
+                        self._state.access.sharing)
+            else:
+                return (self.service.namespace['owner'],
+                        self.service.namespace['app'],
+                        self.service.namespace['sharing'])
+        else:
+            return (owner,app,sharing)
 
     def delete(self):
         owner, app, sharing = self._proper_namespace()
@@ -966,13 +962,7 @@ class Entity(Endpoint):
         if state is not None:
             self._state = state
         else:
-            try:
-                raw_state = self.read()
-            except HTTPError, he:
-                if he.status == 404:
-                    raise EntityDeletedException("Entity %s was already deleted" % self.name)
-            raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
-            self._state = raw_state
+            self._state = self.read()
         return self
 
     @property
@@ -1043,6 +1033,12 @@ class Entity(Endpoint):
         """Reads the current state of the entity from the server."""
         response = self.get()
         results = self._load_state(response)
+        # In lower layers of the SDK, we end up trying to URL encode
+        # text to be dispatched via HTTP. However, these links are already
+        # URL encoded when they arrive, and we need to mark them as such.
+        unquoted_links = dict([(k, UrlEncoded(v, skip_encode=True))
+                               for k,v in results['links'].iteritems()])
+        results['links'] = unquoted_links
         return results
 
     def reload(self):

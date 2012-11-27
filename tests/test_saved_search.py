@@ -83,7 +83,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertTrue(self.saved_search_name in self.service.saved_searches)
         self.service.saved_searches.delete(self.saved_search_name)
         self.assertFalse(self.saved_search_name in self.service.saved_searches)
-        self.assertRaises(client.EntityDeletedException,
+        self.assertRaises(client.HTTPError,
                           self.saved_search.refresh)
 
     

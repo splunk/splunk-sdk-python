@@ -297,7 +297,7 @@ class TestInput(testlib.SDKTestCase):
                         inputs.delete, name)
                 self.service.inputs.delete(kind, name)
                 self.assertFalse((kind,name) in inputs)
-            self.assertRaises(client.EntityDeletedException,
+            self.assertRaises(client.HTTPError,
                               input_entity.refresh)
             remaining -= 1
 

@@ -55,7 +55,7 @@ class UserTestCase(testlib.SDKTestCase):
     def test_delete(self):
         self.service.users.delete(self.username)
         self.assertFalse(self.username in self.service.users)
-        with self.assertRaises(client.EntityDeletedException):
+        with self.assertRaises(client.HTTPError):
             self.user.refresh()
 
     def test_update(self):

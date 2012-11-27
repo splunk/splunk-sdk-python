@@ -1690,7 +1690,7 @@ class Stanza(Entity):
     """This class contains a single configuration stanza."""
 
     def submit(self, stanza):
-        """Sets the keys in *stanza* this Stanza.
+        """Sets the keys in *stanza* on this Stanza.
 
         *stanza* will usually be a dictionary of key/value pairs, but can also
         by a raw string to send as the POST body of the request (e.g.,
@@ -2359,7 +2359,6 @@ class Inputs(Collection):
 
         :type kwargs: ``dict``
 
-
         :return: A list of input kinds.
         :rtype: ``list``
         """
@@ -2969,7 +2968,7 @@ class Loggers(Collection):
         Collection.__init__(self, service, PATH_LOGGER)
 
     def itemmeta(self):
-        """There is no metadata available for class:``Jobs``.
+        """There is no metadata available for class:``Loggers``.
 
         Any call to this method raises a class:``NotSupportedError``.
 

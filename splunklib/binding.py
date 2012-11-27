@@ -69,21 +69,23 @@ class AuthenticationError(Exception):
     """Raised when a login request to Splunk fails.
 
     If your username was unknown or you provided an incorrect password
-    in a call to Context.login() or Service.login(), this exception is
-    raised.
+    in a call to :meth:`Context.login` or :meth:`splunklib.client.Service.login`,
+    this exception is raised.
     """
     pass
 
 # Singleton values to eschew None
 class NoAuthenticationToken(object):
-    """The value stored in a Context or Service that is not logged in.
+    """The value stored in a :class:`Context` or :class:`splunklib.client.Service`
+    class that is not logged in.
 
-    If a Context or Service is created without an authentication token,
-    and there has not yet been a call to the login method, the token
-    field of the Context or Service is set to ``NoAuthenticationToken``.
+    If a ``Context`` or ``Service`` object is created without an authentication
+    token, and there has not yet been a call to the ``login`` method, the token
+    field of the ``Context`` or ``Service`` object is set to 
+    ``NoAuthenticationToken``.
 
-    Likewise, after a Context or Service has been logged out, the token
-    is set to this value again.
+    Likewise, after a ``Context`` or ``Service`` object has been logged out, the
+    token is set to this value again.
     """
     pass
 
@@ -936,51 +938,62 @@ def _spliturl(url):
 class HttpLib(object):
     """A set of convenient methods for making HTTP calls.
 
-    HttpLib provides a general ``request`` method, and ``delete``, ``post``,
-    and ``get`` methods for the three HTTP methods that Splunk uses.
+    ``HttpLib`` provides a general :meth:`request` method, and :meth:`delete`, 
+    :meth:`post`, and :meth:`get` methods for the three HTTP methods that Splunk
+    uses.
 
-    By default, ``HttpLib`` will use Python's built-in ``httplib`` library,
-    but you can replace it by passing your own handling function to
-    ``HttpLib``'s constructor.
+    By default, ``HttpLib`` uses Python's built-in ``httplib`` library,
+    but you can replace it by passing your own handling function to the 
+    constructor for ``HttpLib``.
 
-    The handling function should have the type::
+    The handling function should have the type:
 
-        handler(url, request_dict) -> response_dict
+        ``handler(`url`, `request_dict`) -> response_dict``
 
-    where ``url`` is the URL to make the request to (including any query and
-    fragment sections), ``request_dict`` is a dictionary with the following keys:
+    where `url` is the URL to make the request to (including any query and
+    fragment sections) as a dictionary with the following keys:
 
-    - method: the method for the request, typically ``'GET'``, ``'POST'``, or ``'DELETE'``.
-    - headers: A list of pairs specifying the HTTP headers (e.g., ``[('key': value), ...]``)
-    - body: A string giving the body to send with the request (should default to ``''``).
+        - method: The method for the request, typically ``GET``, ``POST``, or ``DELETE``.
+
+        - headers: A list of pairs specifying the HTTP headers (for example: ``[('key': value), ...]``).
+
+        - body: A string containing the body to send with the request (this string 
+          should default to '').
 
     and ``response_dict`` is a dictionary with the following keys:
 
-    - status: An integer giving the HTTP status code (e.g., 200, 404).
-    - reason: The reason phrase, if any, returned by the server
-    - headers: A list of pairs giving the response headers (e.g., ``[('key': value), ...]``)
-    - body: A stream-like object supporting ``read(size=None)`` and ``close()``
-            methods to get the body of the response.
+        - status: An integer containing the HTTP status code (such as 200 or 404).
 
-    The response dictionary will be returned directly by ``HttpLib``'s methods with
-    no further processing. By default, ``HttpLib`` calls the function ``handler``
-    to get a handler function. See it for an example.
+        - reason: The reason phrase, if any, returned by the server.
+
+        - headers: A list of pairs containing the response headers (for example, ``[('key': value), ...]``).
+
+        - body: A stream-like object supporting ``read(size=None)`` and ``close()``
+          methods to get the body of the response.
+
+    The response dictionary is returned directly by ``HttpLib``'s methods with
+    no further processing. By default, ``HttpLib`` calls the :func:`handler` function
+    to get a handler function. 
     """
     def __init__(self, custom_handler=None):
         self.handler = handler() if custom_handler is None else custom_handler
 
     def delete(self, url, headers=None, **kwargs):
-        """Send a DELETE request to *url*.
+        """Sends a DELETE request to a URL.
 
-        *headers* should be a list of pairs specifying the headers for
-        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
-
-        Any additional keyword arguments are interpreted as the query
-        part of the URL. The order of keyword arguments is not preserved
-        in the request, but the keywords and their arguments will be URL
-        encoded.
-
-        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP 
+            response (for example, ``[('Content-Type': 'text/cthulhu'), ('Token': 'boris')]``).
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional). These arguments
+            are interpreted as the query part of the URL. The order of keyword 
+            arguments is not preserved in the request, but the keywords and 
+            their arguments will be URL encoded.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
         """
         if headers is None: headers = []
         if kwargs: 
@@ -995,17 +1008,21 @@ class HttpLib(object):
         return self.request(url, message)
 
     def get(self, url, headers=None, **kwargs):
-        """Issue a GET request to *url*
+        """Sends a GET request to a URL. 
 
-        *headers* should be a list of pairs specifying the headers for
-        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
-
-        Any additional keyword arguments are interpreted as the query
-        part of the URL. The order of keyword arguments is not preserved
-        in the request, but the keywords and their arguments will be URL
-        encoded.
-
-        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP 
+            response (for example, ``[('Content-Type': 'text/cthulhu'), ('Token': 'boris')]``).
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional). These arguments
+            are interpreted as the query part of the URL. The order of keyword 
+            arguments is not preserved in the request, but the keywords and 
+            their arguments will be URL encoded.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
         """
         if headers is None: headers = []
         if kwargs: 
@@ -1016,19 +1033,22 @@ class HttpLib(object):
         return self.request(url, { 'method': "GET", 'headers': headers })
 
     def post(self, url, headers=None, **kwargs):
-        """Issue a POST request to *url*.
+        """Sends a POST request to a URL.
 
-        *headers* should be a list of pairs specifying the headers for
-        the HTTP response (e.g., [('Content-Type': 'text/cthulhu'), ('Token': 'boris')]).
-
-        If ``post`` receives a keyword argument ``body``, it will use
-        its value as the body for the request, and encode the rest of the
-        keyword arguments into the URL's query as ``get`` or ``delete``
-        does. If there is no ``body`` keyword argument, then all the keyword
-        arguments are encoded into the body of the request in the
-        ``x-www-form-urlencoded`` format.
-
-        :returns: A dictionary describing the response (see ``HttpLib`` for its structure).
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP 
+            response (for example, ``[('Content-Type': 'text/cthulhu'), ('Token': 'boris')]``).
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional). If the argument 
+            is ``body``, the value is used as the body for the request, and the 
+            keywords and their arguments will be URL encoded. If there is no 
+            ``body`` keyword argument, all the keyword arguments are encoded 
+            into the body of the request in the format ``x-www-form-urlencoded``.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
         """
         if headers is None: headers = []
         headers.append(("Content-Type", "application/x-www-form-urlencoded")),
@@ -1048,12 +1068,19 @@ class HttpLib(object):
         return self.request(url, message)
 
     def request(self, url, message, **kwargs):
-        """Issue an HTTP request to *url*.
+        """Issues an HTTP request to a URL.
 
-        *message* should be a dictionary of the format understood
-        by the HTTP handler (see ``HttpLib`` for a description of
-        the format). Any additional keyword arguments are passed
-        unchanged to the handler.
+        :param url: The URL.
+        :type url: ``string``
+        :param message: A dictionary with the format as described in 
+            :class:`HttpLib`. 
+        :type message: ``dict``
+        :param kwargs: Additional keyword arguments (optional). These arguments
+            are passed unchanged to the handler.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
         """
         response = self.handler(url, message, **kwargs)
         response = record(response)

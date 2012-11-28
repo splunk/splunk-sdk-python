@@ -1693,11 +1693,6 @@ class Stanza(Entity):
         """Adds keys to the current configuration stanza as a 
         dictionary of key-value pairs.
         
-        *stanza* can also be a raw string to send as the POST body of the 
-        request (for example, `"key=some+value&other+key=another+value"`). 
-        However, you should avoid sending raw strings because this feature has
-        been deprecated.
-
         :param stanza: A dictionary of key-value pairs for the stanza.
         :type stanza: ``dict``
         :return: The :class:`Stanza` object.

@@ -1018,17 +1018,6 @@ class Entity(Endpoint):
         """
         return self.state.title
 
-    @property
-    def namespace(self):
-        """Returns the namespace for this entity.
-
-        :return: A :class:`splunklib.data.Record` object with three keys:
-            ``owner``, ``app``, and ``sharing``.
-        """
-        return namespace(owner = self._state.access['owner'],
-                         app = self._state.access['app'],
-                         sharing = self._state.access['sharing'])
-
     def read(self):
         """Reads the current state of the entity from the server."""
         response = self.get()
@@ -3075,8 +3064,9 @@ class SavedSearch(Entity):
         c = Collection(
             self.service,
             self.service._abspath(PATH_FIRED_ALERTS + self.name,
-                                  owner=self.namespace.owner, app=self.namespace.app,
-                                  sharing=self.namespace.sharing),
+                                  owner=self._state.access.owner,
+                                  app=self._state.access.app,
+                                  sharing=self._state.access.sharing),
             item=AlertGroup)
         return c
 

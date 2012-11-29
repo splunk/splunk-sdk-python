@@ -1713,7 +1713,7 @@ class Indexes(Collection):
     """This class contains the collection of indexes in this Splunk instance.
     Retrieve this collection using :meth:`Service.indexes`.
     """
-    def default(self):
+    def get_default(self):
         """ Returns the default index.
 
         :return: An :class:`Index` object.
@@ -1843,33 +1843,14 @@ class Index(Entity):
         finally:
             # Restore original values
             self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
-            if self.content.totalEventCount != '0':
-                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." % \
-                                      (self.name, timeout)
             if (not was_disabled_initially and \
                 self.service.splunk_version < (5,)):
                 # Re-enable the index if it was originally enabled and we messed with it.
                 self.enable()
-        return self
+            if self.content.totalEventCount != '0':
+                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
+                                      (self.name, timeout)
 
-    def disable(self):
-        """Disables this index.
-
-        :return: The :class:`Index`.
-        """
-        # Starting in Ace, we have to do this with specific sharing,
-        # unlike most other entities.
-        self.post("disable")
-        return self
-
-    def enable(self):
-        """Enables this index.
-
-        :return: The :class:`Index`.
-        """
-        # Starting in Ace, we have to reenable this with a specific
-        # sharing unlike most other entities.
-        self.post("enable")
         return self
 
     def roll_hot_buckets(self):

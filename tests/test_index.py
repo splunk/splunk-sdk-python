@@ -57,7 +57,7 @@ class IndexTest(testlib.SDKTestCase):
         self.check_entity(self.index)
 
     def test_default(self):
-        default = self.service.indexes.default()
+        default = self.service.indexes.get_default()
         self.assertTrue(isinstance(default, str))
 
     def test_disable_enable(self):

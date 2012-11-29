@@ -2,7 +2,7 @@
 
 ## 1.0
 
-* Confs has been renamed to Configurations.
+* Confs has been renamed to Configurations, and ConfFile to ConfigurationFile.
 * Stanza.submit now takes a dictionary of key/value pairs specifying the stanza instead of a raw string.
 * Namespace handling has changed subtly. Code that depends on namespace handling in detail may break.
 * Added User.role_entities to return a list of the actual entity objects for the

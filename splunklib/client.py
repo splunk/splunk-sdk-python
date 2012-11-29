@@ -1152,14 +1152,15 @@ class ReadOnlyCollection(Endpoint):
                 'mysearch',
                 client.namespace(sharing='user', owner='boris', app='search')]
         """
-        if isinstance(key, tuple) and len(key) == 2:
-            # x[a,b] is translated to x.__getitem__( (a,b) ), so we
-            # have to extract values out.
-            key, ns = key
-        else:
-            ns = self.service.namespace
         try:
-            response = self.get(key, owner=ns.owner, app=ns.app)
+            if isinstance(key, tuple) and len(key) == 2:
+                # x[a,b] is translated to x.__getitem__( (a,b) ), so we
+                # have to extract values out.
+                key, ns = key
+                response = self.get(key, owner=ns.owner, app=ns.app)
+            else:
+                response = self.get(key)
+
             entries = self._load_list(response)
             if len(entries) > 1:
                 raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
@@ -1626,14 +1627,14 @@ class Configurations(Collection):
             else:
                 raise
 
-    def create(self, name, **kwargs):
-        """ Creates a stanza in a given configuration file.
+    def create(self, name):
+        """ Creates a configuration file named *name*.
+
+        If there is already a configuration file with that name,
+        the existing file is returned.
 
         :param name: The name of the configuration file.
         :type name: ``string``
-        :param kwargs: An arbitrary set of key-value pairs to place in the
-            stanza.
-        :type kwargs: ``dict``
 
         :return: The :class:`ConfigurationFile` object.
         """
@@ -1642,7 +1643,7 @@ class Configurations(Collection):
         # Entity.
         if not isinstance(name, basestring):
             raise ValueError("Invalid name: %s" % repr(name))
-        response = self.post(__conf=name, **kwargs)
+        response = self.post(__conf=name)
         if response.status == 303:
             return self[name]
         elif response.status == 201:
@@ -1651,18 +1652,8 @@ class Configurations(Collection):
             raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
 
     def delete(self, key):
-        """ Deletes a stanza from a given configuration file.
-
-        :param key: The name of the stanza.
-        :type key: ``string``
-        """
-        try:
-            super(Configurations, self).delete(key)
-        except HTTPError as he:
-            if he.status == 405:
-                raise IllegalOperationException("Cannot delete configuration files from the REST API.")
-            else:
-                raise
+        """Raises `IllegalOperationException`."""
+        raise IllegalOperationException("Cannot delete configuration files from the REST API.")
 
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects

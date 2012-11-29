@@ -57,7 +57,7 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertTrue(self.role_name in self.service.roles)
         self.service.roles.delete(self.role_name)
         self.assertFalse(self.role_name in self.service.roles)
-        self.assertRaises(client.EntityDeletedException, self.role.refresh)
+        self.assertRaises(client.HTTPError, self.role.refresh)
 
     def test_grant_and_revoke(self):
         self.assertFalse('edit_user' in self.role.capabilities)

@@ -1668,22 +1668,12 @@ class Stanza(Entity):
     def submit(self, stanza):
         """Sets the keys in *stanza* on this Stanza.
 
-        *stanza* will usually be a dictionary of key/value pairs, but can also
-        by a raw string to send as the POST body of the request (e.g.,
-        `"key=some+value&other+key=another+value"`). Sending raw strings should
-        be considered deprecated.
-
         :param stanza: A dictionary of key/value pairs to set in this stanza.
         :type stanza: ``dict``
         :return: The :class:`Stanza` object this method is called on.
         """
-        if isinstance(stanza, str):
-            message = { 'method': "POST", 'body': stanza }
-            self.service.request(self.path, **message)
-        elif isinstance(stanza, dict):
-            body = _encode(**stanza)
-            self.service.post(self.path, body=body)
-
+        body = _encode(**stanza)
+        self.service.post(self.path, body=body)
         return self
 
     def __len__(self):

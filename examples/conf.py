@@ -43,6 +43,8 @@ class Program:
             kvpair = argv[2].split("=")
             if len(kvpair) != 2:
                 error("Creating a k/v pair requires key and value", 2)
+            else:
+                key, value = kvpair
 
         if not cpres and not spres:
             error("Conf name and stanza name is required for create", 2)
@@ -58,7 +60,7 @@ class Program:
 
         # create key/value pair under existing stanza
         stanza = conf[stan]
-        stanza.submit(argv[2])
+        stanza.submit({key: value})
 
 
     def delete(self, opts):

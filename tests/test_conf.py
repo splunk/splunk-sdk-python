@@ -92,13 +92,6 @@ class TestConfs(testlib.SDKTestCase):
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 
-        key2 = testlib.tmpname()
-        val2 = testlib.tmpname()
-        stanza.submit("%s=%s&%s=%s" % (key2, val2, key2, val2))
-        stanza.refresh()
-        self.assertTrue(key2 in stanza)
-        self.assertEqual(val2, stanza[key2])
-
         count = len(conf)
         conf.delete(stanza_name)
         self.assertFalse(stanza_name in conf)

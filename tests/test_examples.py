@@ -80,14 +80,26 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.assertEquals(result, 0)
 
     def test_conf(self):
-        self.check_commands(
-            "conf.py --help",
-            "conf.py",
-            "conf.py viewstates",
-            'conf.py --app=search --owner=admin viewstates',
-            "conf.py create server SDK-STANZA",
-            "conf.py create server SDK-STANZA testkey=testvalue",
-            "conf.py delete server SDK-STANZA")
+        try:
+            conf = self.service.confs['server']
+            if 'SDK-STANZA' in conf:
+                conf.delete("SDK-STANZA")
+        except Exception, e:
+            pass
+
+        try:
+            self.check_commands(
+                "conf.py --help",
+                "conf.py",
+                "conf.py viewstates",
+                'conf.py --app=search --owner=admin viewstates',
+                "conf.py create server SDK-STANZA",
+                "conf.py create server SDK-STANZA testkey=testvalue",
+                "conf.py delete server SDK-STANZA")
+        finally:
+            conf = self.service.confs['server']
+            if 'SDK-STANZA' in conf:
+                conf.delete('SDK-STANZA')
 
     def test_event_types(self):
         self.check_commands(

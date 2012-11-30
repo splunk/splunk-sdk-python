@@ -17,11 +17,13 @@
 """Tails a realtime search using the export endpoint and prints results to
    stdout."""
 
-from pprint import pprint
 import sys
+sys.path.insert(0, '../')
+
+from pprint import pprint
 
 from splunklib.client import connect
-import splunklib.results as results
+from splunklib.results import ResultsReader
 
 import utils
 
@@ -43,13 +45,9 @@ def main():
             latest_time="rt", 
             search_mode="realtime")
 
-        reader = results.ResultsReader(result.body)
-        while True:
-            kind = reader.read()
-            if kind == None: break
-            if kind == results.RESULT:
-                event = reader.value
-                pprint(event)
+        for result in ResultsReader(result.body):
+            if result is not None:
+                print pprint(result)
 
     except KeyboardInterrupt:
         print "\nInterrupted."

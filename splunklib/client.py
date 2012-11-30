@@ -873,11 +873,11 @@ class Entity(Endpoint):
         entry = self._load_atom_entry(response)
         return _parse_atom_entry(entry)
 
-    def _run_method(self, path_segment, **kwargs):
+    def _run_action(self, path_segment, **kwargs):
         """Run a method and return the content Record from the returned XML.
 
         A method is a relative path from an Entity that is not itself
-        an Entity. _run_method assumes that the returned XML is an
+        an Entity. _run_action assumes that the returned XML is an
         Atom field containing one Entry, and the contents of Entry is
         what should be the return value. This is right in enough cases
         to make this method useful.
@@ -3058,7 +3058,7 @@ class SavedSearch(Entity):
         :return: The number of seconds.
         :rtype: ``integer``
         """
-        r = self._run_method("suppress")
+        r = self._run_action("suppress")
         if r.suppressed == "1":
             return int(r.expiration)
         else:
@@ -3349,11 +3349,11 @@ class Application(Entity):
 
     def package(self):
         """ Creates a compressed package of the app for archiving."""
-        return self._run_method("package")
+        return self._run_action("package")
 
     def updateInfo(self):
         """Returns any update information that is available for the app."""
-        return self._run_method("update")
+        return self._run_action("update")
 
 
 

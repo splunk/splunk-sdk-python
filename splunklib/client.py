@@ -1276,22 +1276,6 @@ class ReadOnlyCollection(Endpoint):
             entities.append(entity)
         return entities
 
-    def contains(self, name):
-        """**Deprecated**: Use the ``in`` operator instead.
-
-        Indicates whether an entity name exists in the collection.
-
-        Makes a single roundtrip to the server, plus at most two more
-        if
-        the ``autologin`` field of :func:`connect` is set to ``True``.
-
-        :param name: The entity name.
-        :type name: ``string``
-        :return: ``True`` if the entity exists, ``False`` if not.
-        :rtype: ``boolean``
-        """
-        return name in self
-
     def itemmeta(self):
         """Returns metadata for members of the collection.
 
@@ -3196,13 +3180,6 @@ class Users(Collection):
     def __contains__(self, name):
         return Collection.__contains__(self, name.lower())
 
-    def contains(self, name):
-        """**Deprecated**: Use ``in`` operator instead.
-
-        Checks whether there is a user *name* in this Splunk instance.
-        """
-        return Collection.__contains__(self, name.lower())
-
     def create(self, username, password, roles, **params):
         """Creates a new user.
 
@@ -3335,13 +3312,6 @@ class Roles(Collection):
         return Collection.__getitem__(self, key.lower())
 
     def __contains__(self, name):
-        return Collection.__contains__(self, name.lower())
-
-    def contains(self, name):
-        """**Deprecated**: Use ``in`` operator instead.
-
-        Checks whether there is a user *name* in this Splunk instance.
-        """
         return Collection.__contains__(self, name.lower())
 
     def create(self, name, **params):

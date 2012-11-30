@@ -59,7 +59,7 @@ def main(argv):
     service = client.connect(**kwargs_splunk)
 
     name = opts.kwargs['index']
-    if not service.indexes.contains(name):
+    if name not in service.indexes:
         error("Index '%s' does not exist." % name, 2)
     index = service.indexes[name]
 

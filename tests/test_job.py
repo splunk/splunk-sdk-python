@@ -30,7 +30,7 @@ from splunklib.binding import _log_duration
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
         job = self.service.search('search index=_internal earliest=-1m | head 3')
-        self.assertTrue(self.service.jobs.contains(job.sid))
+        self.assertTrue(job.sid in self.service.jobs)
         job.cancel()
 
     def test_oneshot_with_garbage_fails(self):

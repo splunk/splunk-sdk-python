@@ -131,7 +131,7 @@ class Program:
         if len(opts.args) == 0:
             error("Command requires an index name", 2)
         for name in opts.args:
-            if not self.service.indexes.contains(name):
+            if name not in self.service.indexes:
                 error("Index '%s' does not exist" % name, 2)
             index = self.service.indexes[name]
             func(index)
@@ -143,7 +143,7 @@ class Program:
             error("Command requires an index name", 2)
         name = argv[0]
 
-        if not self.service.indexes.contains(name):
+        if name not in self.service.indexes:
             error("Index '%s' does not exist" % name, 2)
         index = self.service.indexes[name]
 

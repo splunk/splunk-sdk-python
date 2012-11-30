@@ -2,6 +2,7 @@
 
 ## 1.0
 
+* All the .contains methods on collections have been removed. Use Python's `in` operator instead.
 * Confs has been renamed to Configurations, and ConfFile to ConfigurationFile.
 * Stanza.submit now takes a dictionary of key/value pairs specifying the stanza instead of a raw string.
 * Namespace handling has changed subtly. Code that depends on namespace handling in detail may break.

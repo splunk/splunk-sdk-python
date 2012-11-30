@@ -44,9 +44,11 @@ class AnalyticsTracker:
         if ANALYTICS_SOURCETYPE not in self.splunk.confs['props']:
             self.splunk.confs["props"].create(ANALYTICS_SOURCETYPE)
             stanza = self.splunk.confs["props"][ANALYTICS_SOURCETYPE]
-            stanza.submit("LINE_BREAKER = (%s)" % EVENT_TERMINATOR)
-            stanza.submit("CHARSET = UTF-8")
-            stanza.submit("SHOULD_LINEMERGE = false")
+            stanza.submit({
+                "LINE_BREAKER": "(%s)" % EVENT_TERMINATOR,
+                "CHARSET": "UTF-8",
+                "SHOULD_LINEMERGE": "false"
+            })
         assert(ANALYTICS_SOURCETYPE in self.splunk.confs['props'])
 
     @staticmethod

@@ -67,7 +67,7 @@ class Program:
 
         name = argv[0]
 
-        if self.service.indexes.contains(name):
+        if name in self.service.indexes:
             print "Index '%s' already exists" % name
             return
 

@@ -48,7 +48,7 @@ def main(argv):
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
     service = client.connect(**kwargs_splunk)
 
-    if not service.indexes.contains(index):
+    if index not in service.indexes:
         error("Index '%s' does not exist." % index, 2)
 
     kwargs_submit = dslice(opts.kwargs, 

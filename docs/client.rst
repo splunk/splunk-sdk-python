@@ -35,9 +35,6 @@ splunklib.client
     :members: access, delete, disable, enable, fields, get, links, name, namespace, post, refresh, reload, update
     :inherited-members:
 
-.. autoclass:: EntityDeletedException
-    :members:
-
 .. autoclass:: IllegalOperationException
     :members:
 

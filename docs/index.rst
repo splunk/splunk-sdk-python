@@ -98,8 +98,6 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.client.AmbiguousReferenceException` class
 
-    :class:`~splunklib.client.EntityDeletedException` class
-
     :class:`~splunklib.client.IllegalOperationException` class
 
     :class:`~splunklib.client.IncomparableException` class

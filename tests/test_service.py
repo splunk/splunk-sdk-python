@@ -150,8 +150,33 @@ class TestTrailing(unittest.TestCase):
         self.assertEqual('boris/search/another/path/segment/that runs on', client._trailing(self.template, 'ervicesNS/'))
 
     def test_trailing_with_n_args_works(self):
-        self.assertEqual('another/path/segment/that runs on', client._trailing(self.template, 'servicesNS/', '/', '/'))
+        self.assertEqual(
+            'another/path/segment/that runs on',
+            client._trailing(self.template, 'servicesNS/', '/', '/')
+        )
 
+class TestEntityNamespacing(testlib.SDKTestCase):
+    def test_proper_namespace_with_arguments(self):
+        entity = self.service.apps['search']
+        self.assertEquals((None,None,"global"), entity._proper_namespace(sharing="global"))
+        self.assertEquals((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
+        self.assertEquals(
+            ("admin", "search", "user"),
+            entity._proper_namespace(sharing="user", app="search", owner="admin")
+        )
+
+    def test_proper_namespace_with_entity_namespace(self):
+        entity = self.service.apps['search']
+        namespace = (entity.access.owner, entity.access.app, entity.access.sharing)
+        self.assertEquals(namespace, entity._proper_namespace())
+
+    def test_proper_namespace_with_service_namespace(self):
+        entity = client.Entity(self.service, client.PATH_APPS + "search")
+        del entity._state['access']
+        namespace = (self.service.namespace.owner,
+                     self.service.namespace.app,
+                     self.service.namespace.sharing)
+        self.assertEquals(namespace, entity._proper_namespace())
 
 if __name__ == "__main__":
     try:

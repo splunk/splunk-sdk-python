@@ -193,8 +193,10 @@ def _load_atom_entries(response):
         entries = r.feed.get('entry', None)
         if entries is None: return None
         return entries if isinstance(entries, list) else [entries]
-    # The jobs endpoint doesn't returns a bare <entry> element
-    # instead of an <entry> element inside a <feed> element.
+    # Unlike most other endpoints, the jobs endpoint does not return
+    # its state wrapped in another element, but at the top level.
+    # For example, in XML, it returns <entry>...</entry> instead of
+    # <feed><entry>...</entry></feed>.
     else:
         entries = r.get('entry', None)
         if entries is None: return None

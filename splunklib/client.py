@@ -131,6 +131,14 @@ class NoSuchCapability(Exception):
     """Thrown when the capability that has been referred to doesn't exist."""
     pass
 
+class OperationError(Exception):
+    """Raised for a failed operation, such as a time out."""
+    pass
+
+class NotSupportedError(Exception):
+    """Raised for operations that are not supported on a given object."""
+    pass
+
 def _trailing(template, *targets):
     """Substring of *template* following all *targets*.
 
@@ -2479,7 +2487,7 @@ class Job(Entity):
         self.post("control", action="pause")
         return self
 
-    def results(self, timeout=None, wait_time=1, **query_params):
+    def results(self, **query_params):
         """Returns a streaming handle to this job's search results. To get a
         nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultsReader`,
         as in::
@@ -2494,50 +2502,21 @@ class Job(Entity):
                 # events are returned as dicts with strings as values.
                 print event
 
-        Results are not available until the job has finished. The method's
-        behavior when called on an unfinished job is controlled by the *timeout*
-        parameter. If *timeout* is
-        "None" (the default), ``results`` throws a
-        ``ValueError`` exception immediately. If *timeout* is an integer,
-        ``results`` waits up to the value of *timeout* for the job to
-        finish, and then throws a ``ValueError`` exception.
+        Results are not available until the job has finished. If called on
+        an unfinished job, the result is an empty event set.
 
-        When *timeout* is "None", this method makes a single roundtrip
+        This method makes a single roundtrip
         to the server, plus at most two additional round trips if
         the ``autologin`` field of :func:`connect` is set to ``True``.
-        With *timeout* set to an integer, this method
-        polls repeatedly until it times out or the search has finished.
 
-        :param timeout: The timeout period, in seconds, or "None" to fail immediately.
-        :type timeout: ``float``
-        :param wait_time: The minimum number of seconds to wait between polls.
-        :type wait_time: ``float``
-        :param kwargs: Additional parameters (optional). For a list of valid
+        :param query_params: Additional parameters (optional). For a list of valid
             parameters, see `GET search/jobs/{search_id}/results
             <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTsearch#GET_search.2Fjobs.2F.7Bsearch_id.7D.2Fresults>`_.
         :type query_params: ``dict``
 
         :return: The ``InputStream`` IO handle to this job's results.
         """
-        if timeout is None:
-            response = self.get("results", **query_params)
-            if response.status == 204:
-                raise ValueError("Job is still running; cannot return any events.")
-            else:
-                return response.body
-        else:
-            timeout = timedelta(seconds=timeout)
-            start = datetime.now()
-            while True:
-                response = self.get("results", **query_params)
-                if response.status == 204:
-                    if datetime.now() - start < timeout:
-                        sleep(wait_time)
-                    else:
-                        raise ValueError("Job is still running; cannot return any events.")
-                else:
-                    return response.body
-
+        return self.get("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -3270,17 +3249,8 @@ class Roles(Collection):
 
         :rtype: The :class:`Roles`
         """
-
         return Collection.delete(self, name.lower())
 
-
-class OperationError(Exception):
-    """Raised for a failed operation, such as a time out."""
-    pass
-
-class NotSupportedError(Exception):
-    """Raised for operations that are not supported on a given object."""
-    pass
 
 class Application(Entity):
     """Represents a locally-installed Splunk app."""

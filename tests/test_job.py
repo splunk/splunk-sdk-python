@@ -50,7 +50,7 @@ class TestUtilities(testlib.SDKTestCase):
 
     def test_export_with_garbage_fails(self):
         jobs = self.service.jobs
-        self.assertRaises(ValueError, jobs.export, "asdaf;lkj2r23=")
+        self.assertRaises(client.HTTPError, jobs.export, "asdaf;lkj2r23=")
 
     def test_export(self):
         jobs = self.service.jobs
@@ -68,8 +68,8 @@ class TestUtilities(testlib.SDKTestCase):
         try:
             bad_search = "abcd|asfwqqq"
             jobs.create(bad_search)
-        except TypeError as te:
-            self.assertTrue('abcd' in str(te))
+        except client.HTTPError as he:
+            self.assertTrue('abcd' in str(he))
             return
         self.fail("Job with garbage search failed to raise TypeError.")
 

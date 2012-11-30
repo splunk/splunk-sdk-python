@@ -108,16 +108,6 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
-class NoSuchUserException(Exception):
-    """Thrown when a request is made to Splunk using a namespace that contains
-    a nonexistant user."""
-    pass
-
-class NoSuchApplicationException(Exception):
-    """Thrown when a request is made to Splunk using a namespace that contains
-    a nonexistant application."""
-    pass
-
 class IllegalOperationException(Exception):
     """Thrown when an operation is not possible on the Splunk instance that a
     :class:`Service` object is connected to."""
@@ -140,11 +130,6 @@ class AmbiguousReferenceException(ValueError):
 class InvalidNameException(Exception):
     """Thrown when the specified name contains characters that are not allowed
     in Splunk entity names."""
-    pass
-
-class OperationFailedException(Exception):
-    """Thrown when the requested operation resulted in an error in Splunk (and a
-    400 HTTP return status)."""
     pass
 
 class NoSuchCapability(Exception):
@@ -2403,13 +2388,7 @@ class Inputs(Collection):
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal.
         :type kwargs: ``dict``
         """
-        try:
-            self.post('oneshot', name=path, **kwargs)
-        except HTTPError as he:
-            if he.status == 400:
-                raise OperationFailedException(str(he))
-            else:
-                raise
+        self.post('oneshot', name=path, **kwargs)
 
 
 class Job(Entity):
@@ -2779,11 +2758,7 @@ class Jobs(Collection):
         """
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
-        try:
-            response = self.post(search=query, **kwargs)
-        except HTTPError as he:
-            if he.status == 400: # Bad request. Raise a TypeError with the reason.
-                raise TypeError(str(he))
+        response = self.post(search=query, **kwargs)
         sid = _load_sid(response)
         return Job(self.service, sid)
 
@@ -2820,13 +2795,7 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
-        try:
-            return self.post(path_segment="export", search=query, **params).body
-        except HTTPError as he:
-            if he.status == 400:
-                raise ValueError(str(he))
-            else:
-                raise
+        return self.post(path_segment="export", search=query, **params).body
 
     def itemmeta(self):
         """There is no metadata available for class:``Jobs``.
@@ -2883,13 +2852,8 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        try:
-            return self.post(search=query, exec_mode="oneshot", **params).body
-        except HTTPError as he:
-            if he.status == 400:
-                raise ValueError(str(he))
-            else:
-                raise
+        return self.post(search=query, exec_mode="oneshot", **params).body
+
 
 class Loggers(Collection):
     """This class represents a collection of service logging categories.

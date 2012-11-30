@@ -13,6 +13,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+from splunklib.binding import HTTPError
 
 import testlib
 import logging
@@ -196,7 +197,7 @@ class TestRead(testlib.SDKTestCase):
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()
-        self.assertRaises(client.OperationFailedException,
+        self.assertRaises(HTTPError,
             self.service.inputs.oneshot, name)
 
 class TestInput(testlib.SDKTestCase):

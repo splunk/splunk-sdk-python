@@ -2170,7 +2170,9 @@ class Inputs(Collection):
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
         return _parse_atom_metadata(content)
 
-    def _get_kind_list(self, subpath=[]):
+    def _get_kind_list(self, subpath=None):
+        if subpath is None:
+            subpath = []
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)
@@ -2187,11 +2189,8 @@ class Inputs(Collection):
         return kinds
 
     @property
-    def kinds(self, subpath=[]):
-        """Returns the input kinds for a given path.
-
-        :param subpath: The relative endpoint path.
-        :type subpath: ``string``
+    def kinds(self):
+        """Returns the input kinds on this Splunk instance.
 
         :return: The list of input kinds.
         :rtype: ``list``

@@ -2457,6 +2457,7 @@ class Job(Entity):
         """
         if (not self.is_ready()):
             return False
+        self.refresh()
         return self['isDone'] == '1'
 
     def is_ready(self):

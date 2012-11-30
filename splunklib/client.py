@@ -1945,7 +1945,6 @@ class Input(Entity):
 # Inputs is a "kinded" collection, which is a heterogenous collection where
 # each item is tagged with a kind, that provides a single merged view of all
 # input kinds.
-# UNDONE: contains needs to take a kind arg to disambiguate
 class Inputs(Collection):
     """This class represents a collection of inputs. The collection is
     heterogeneous and each member of the collection contains a *kind* property
@@ -1958,7 +1957,7 @@ class Inputs(Collection):
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
-            kind, key = key
+            key, kind = key
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -2026,10 +2025,12 @@ class Inputs(Collection):
                         raise
             return False
 
-    def create(self, kind, name, **kwargs):
+    def create(self, name, kind, **kwargs):
         """Creates an input of a specific kind in this collection, with any
         arguments you specify.
 
+        :param `name`: The input name.
+        :type name: ``string``
         :param `kind`: The kind of input:
 
             - "ad": Active Directory
@@ -2053,8 +2054,6 @@ class Inputs(Collection):
             - "win-wmi-collections": WMI
 
         :type kind: ``string``
-        :param `name`: The input name.
-        :type name: ``string``
         :param `kwargs`: Additional arguments (optional). For more about the
             available parameters, see `Input parameters <http://dev.splunk.com/view/SP-CAAAEE6#inputparams>`_ on Splunk Developer Portal.
 
@@ -2075,7 +2074,7 @@ class Inputs(Collection):
         )
         return Input(self.service, path, kind)
 
-    def delete(self, kind, name=None):
+    def delete(self, name, kind=None):
         """Removes an input from the collection.
 
         :param `kind`: The kind of input:
@@ -2106,11 +2105,10 @@ class Inputs(Collection):
 
         :return: The :class:`Inputs` collection.
         """
-        if name is None:
-            name = kind
+        if kind is None:
             self.service.delete(self[name].path)
         else:
-            self.service.delete(self[kind, name].path)
+            self.service.delete(self[name, kind].path)
         return self
 
     def itemmeta(self, kind):
@@ -2308,8 +2306,6 @@ class Inputs(Collection):
                 else:
                     raise
 
-            # UNDONE: Should use _load_list for the following, but need to
-            # pass kind to the `item` method.
             entries = _load_atom_entries(response)
             if entries is None: continue # No inputs to process
             for entry in entries:

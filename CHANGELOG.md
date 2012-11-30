@@ -2,6 +2,8 @@
 
 ## 1.0
 
+* The argument order of Inputs.create has been swapped to have name first. This is consistent with
+  all other collections and all other operations on Inputs.
 * All the .contains methods on collections have been removed. Use Python's `in` operator instead.
 * Confs has been renamed to Configurations, and ConfFile to ConfigurationFile.
 * Stanza.submit now takes a dictionary of key/value pairs specifying the stanza instead of a raw string.

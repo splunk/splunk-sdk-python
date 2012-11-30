@@ -44,7 +44,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
         port = base_port
         while True: # Find the next unbound port
             try:
-                input = self.service.inputs.create(kind, str(port), **options)
+                input = self.service.inputs.create(str(port), kind, **options)
                 return input
             except client.HTTPError as he:
                 if he.status == 400:
@@ -52,21 +52,21 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_create_tcp_port(self):
         for kind in ['tcp', 'splunktcp']:
-            input = self.service.inputs.create(kind, str(self.base_port))
+            input = self.service.inputs.create(str(self.base_port), kind)
             self.check_entity(input)
             input.delete()
 
     def test_cannot_create_with_restrictToHost_in_name(self):
         self.assertRaises(
             client.HTTPError,
-            lambda: self.service.inputs.create('tcp', 'boris:10000')
+            lambda: self.service.inputs.create('boris:10000', 'tcp')
         )
 
     def test_create_tcp_ports_with_restrictToHost(self):
         for kind in ['tcp', 'splunktcp']: # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
-            boris = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
-            natasha = self.service.inputs.create(kind, str(self.base_port), restrictToHost='natasha')
+            boris = self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
+            natasha = self.service.inputs.create(str(self.base_port), kind, restrictToHost='natasha')
             # And that they both function
             boris.refresh()
             natasha.refresh()
@@ -77,21 +77,21 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_restricted_to_unrestricted_collision(self):
         for kind in ['tcp', 'splunktcp', 'udp']:
-            restricted = self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+            restricted = self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
             self.assertTrue('boris:' + str(self.base_port) in self.service.inputs)
             self.assertRaises(
                 client.HTTPError,
-                lambda: self.service.inputs.create(kind, str(self.base_port))
+                lambda: self.service.inputs.create(str(self.base_port), kind)
             )
             restricted.delete()
 
     def test_unrestricted_to_restricted_collision(self):
         for kind in ['tcp', 'splunktcp', 'udp']:
-            unrestricted = self.service.inputs.create(kind, str(self.base_port))
+            unrestricted = self.service.inputs.create(str(self.base_port), kind)
             self.assertTrue(str(self.base_port) in self.service.inputs)
             self.assertRaises(
                 client.HTTPError,
-                lambda: self.service.inputs.create(kind, str(self.base_port), restrictToHost='boris')
+                lambda: self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
             )
             unrestricted.delete()
 
@@ -177,11 +177,11 @@ class TestInput(testlib.SDKTestCase):
         self._test_entities = {}
 
         self._test_entities['tcp'] = \
-            inputs.create('tcp', unrestricted_port, host='sdk-test')
+            inputs.create(unrestricted_port, 'tcp', host='sdk-test')
         self._test_entities['udp'] = \
-            inputs.create('udp', unrestricted_port, host='sdk-test')
+            inputs.create(unrestricted_port, 'udp', host='sdk-test')
         self._test_entities['restrictedTcp'] = \
-            inputs.create('tcp', restricted_port, restrictToHost='boris')
+            inputs.create(restricted_port, 'tcp', restrictToHost='boris')
 
     def tearDown(self):
         super(TestInput, self).tearDown()
@@ -210,10 +210,10 @@ class TestInput(testlib.SDKTestCase):
             self.uncheckedRestartSplunk()
 
             inputs = self.service.inputs
-            if ('test2','abcd') not in inputs:
-                inputs.create('test2', 'abcd', field1='boris')
+            if ('abcd','test2') not in inputs:
+                inputs.create('abcd', 'test2', field1='boris')
 
-            input = inputs['test2', 'abcd']
+            input = inputs['abcd', 'test2']
             self.assertEqual(input.field1, 'boris')
 
 
@@ -232,7 +232,7 @@ class TestInput(testlib.SDKTestCase):
         inputs = self.service.inputs
         for this_entity in self._test_entities.itervalues():
             kind, name = this_entity.kind, this_entity.name
-            read_entity = inputs[kind, name]
+            read_entity = inputs[name, kind]
             self.assertEqual(this_entity.kind, read_entity.kind)
             self.assertEqual(this_entity.name, read_entity.name)
             self.assertEqual(this_entity.host, read_entity.host)
@@ -253,7 +253,7 @@ class TestInput(testlib.SDKTestCase):
             name = input_entity.name
             kind = input_entity.kind
             self.assertTrue(name in inputs)
-            self.assertTrue((kind,name) in inputs)
+            self.assertTrue((name,kind) in inputs)
             if remaining == 0:
                 inputs.delete(name)
                 self.assertFalse(name in inputs)
@@ -261,8 +261,8 @@ class TestInput(testlib.SDKTestCase):
                 if not name.startswith('boris'):
                     self.assertRaises(client.AmbiguousReferenceException,
                         inputs.delete, name)
-                self.service.inputs.delete(kind, name)
-                self.assertFalse((kind,name) in inputs)
+                self.service.inputs.delete(name, kind)
+                self.assertFalse((name, kind) in inputs)
             self.assertRaises(client.HTTPError,
                               input_entity.refresh)
             remaining -= 1

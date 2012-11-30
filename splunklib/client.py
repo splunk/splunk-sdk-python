@@ -118,11 +118,6 @@ class IncomparableException(Exception):
     so on) of a type that doesn't support it."""
     pass
 
-class JobNotReadyException(Exception):
-    """Thrown when :meth:`Entity.refresh` is called on a job that is not ready,
-    and so can't be refreshed yet."""
-    pass
-
 class AmbiguousReferenceException(ValueError):
     """Thrown when the name used to fetch an entity matches more than one entity."""
     pass
@@ -2462,13 +2457,10 @@ class Job(Entity):
         :return: ``True`` if the job is ready, ``False`` if not.
         :rtype: ``boolean``
         """
-        try:
-            self.refresh()
-            self._is_ready = True
-            return self._is_ready
-        except JobNotReadyException:
-            self._is_ready = False
+        if self.get().status == 204:
             return False
+        else:
+            return True
 
     @property
     def name(self):
@@ -2485,41 +2477,6 @@ class Job(Entity):
         :return: The :class:`Job`.
         """
         self.post("control", action="pause")
-        return self
-
-    def refresh(self, state=None):
-        """Refreshes the state of the search job.
-
-        If *state* is provided, this method loads it as the new state for this
-        job. Otherwise, the method makes a roundtrip to the server (by calling
-        the :meth:`read` method of ``self``) to fetch an updated state,
-        plus at most two additional round trips if
-        the ``autologin`` field of :func:`connect` is set to ``True``.
-
-        :param state: Entity-specific arguments (optional).
-        :type state: ``dict``
-        :return: The :class:`Job`.
-
-        **Example**::
-
-            import splunklib.client as client
-            s = client.connect(...)
-            search = s.jobs.create('search index=_internal | head 1')
-            search.refresh()
-
-        """
-        if state is not None:
-            self._state = state
-        else:
-            response = self.get()
-            if response.status == 204:
-                self._is_ready = False
-                raise JobNotReadyException()
-            else:
-                self._is_ready = True
-                raw_state = self._load_state(response)
-                raw_state['links'] = dict([(k, urllib.unquote(v)) for k,v in raw_state['links'].iteritems()])
-                self._state = raw_state
         return self
 
     def results(self, timeout=None, wait_time=1, **query_params):

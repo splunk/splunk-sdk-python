@@ -1914,40 +1914,32 @@ class Input(Entity):
         :return: The input this method was called on.
         :rtype: class:`Input`
         """
-        if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked']:
-            result = super(Input, self).update(**kwargs)
-            return result
+        # UDP and TCP inputs require special handling due to their restrictToHost
+        # field. For all other inputs kinds, we can dispatch to the superclass method.
+        if self.kind not in ['tcp', 'splunktcp', 'tcp/raw', 'tcp/cooked', 'udp']:
+            return super(Input, self).update(**kwargs)
         else:
-            # TCP inputs have a property 'restrictToHost' which requires special care.
+            # The behavior of restrictToHost is inconsistent across input kinds and versions of Splunk.
+            # In Splunk 4.x, the name of the entity is only the port, independent of the value of
+            # restrictToHost. In Splunk 5.0 this changed so the name will be of the form <restrictToHost>:<port>.
+            # In 5.0 and 5.0.1, if you don't supply the restrictToHost value on every update, it will
+            # remove the host restriction from the input. As of 5.0.2 you simply can't change restrictToHost
+            # on an existing input.
 
-            # There is a bug in Splunk < 5.0. Don't bother trying to update restrictToHost.
-            if 'restrictToHost' in kwargs and self.service.splunk_version < (5,):
-                raise IllegalOperationException("Updating restrictToHost has no effect before Splunk 5.0")
-
-            # In Splunk 4.x, if you update without restrictToHost as one of the fields,
-            # restrictToHost keeps its previous state. In 5.0, it is set to empty string.
-            # Thus, we must pass it every time. This doesn't actually introduce a race
-            # condition because if someone else has set restrictToHost to a new value on this
-            # TCP input, our update request will fail, since our reference to it still uses
-            # the old path.
+            # The logic to handle all these cases:
+            # - Throw an exception if the user tries to set restrictToHost on an existing input
+            #   for *any* version of Splunk.
+            # - Set the existing restrictToHost value on the update args internally so we don't
+            #   cause it to change in Splunk 5.0 and 5.0.1.
             to_update = kwargs.copy()
-            to_update['restrictToHost'] = kwargs.get('restrictToHost', self._state.content.get('restrictToHost', ''))
+
+            if 'restrictToHost' in kwargs:
+                raise IllegalOperationException("Cannot set restrictToHost on an existing input with the SDK.")
+            elif 'restrictToHost' in self._state.content:
+                to_update['restrictToHost'] = self._state.content['restrictToHost']
 
             # Do the actual update operation.
-            result = super(Input, self).update(**to_update)
-
-            # Now we must update the path in case it changed.
-            # The pieces we break it into are:
-            #  https://localhost:8089/services/data/inputs/tcp/raw/   boris:  10000
-            # |------------------ base_path -----------------------| | host || port|
-            assert self.path.endswith('/')
-            base_path = self.path.rsplit('/', 2)[0]
-            host = to_update['restrictToHost'] + ':' if to_update['restrictToHost'] != '' else ''
-            port = self.name.split(':', 1)[-1]
-            self.path = base_path + '/' + host + port
-            # We don't have to update self.name, since it's part of the data
-            # fetched from splunkd.
-            return result
+            return super(Input, self).update(**to_update)
 
 
 # Inputs is a "kinded" collection, which is a heterogenous collection where

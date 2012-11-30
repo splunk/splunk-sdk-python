@@ -62,16 +62,6 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             lambda: self.service.inputs.create('tcp', 'boris:10000')
         )
 
-    def test_remove_host_restriction(self):
-        if self.service.splunk_version < (5,):
-            # We can't set restrictToHost before 5.0 due to a bug in splunkd.
-            return
-        input = self.service.inputs.create('tcp', str(self.base_port), restrictToHost='boris')
-        input.update(restrictToHost='')
-        input.refresh()
-        self.check_entity(input)
-        input.delete()
-
     def test_create_tcp_ports_with_restrictToHost(self):
         for kind in ['tcp', 'splunktcp']: # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
@@ -105,39 +95,14 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             )
             unrestricted.delete()
 
-    def test_update_restrictToHost(self):
+    def test_update_restrictToHost_fails(self):
         for kind in ['tcp', 'splunktcp']: # No UDP, since it's broken in Splunk
             boris = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
 
-            # No matter what version we're actually running against,
-            # we can check that on Splunk < 5.0, we get an exception
-            # from trying to update restrictToHost.
-            with self.fake_splunk_version((4,3)):
-                self.assertRaises(
-                    client.IllegalOperationException,
-                    lambda: boris.update(restrictToHost='hilda')
-                )
-
-            # And now back to real tests...
-            if self.service.splunk_version >= (5,):
-                boris.update(restrictToHost='hilda')
-                boris.refresh()
-                self.assertEqual('hilda:' + str(self.base_port), boris.name)
-                boris.refresh()
-                self.check_entity(boris)
-                boris.delete()
-
-    def test_update_nonrestrictToHost(self):
-        for kind in ['tcp', 'splunktcp']: # No UDP since it's broken in Splunk
-            input = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
-
-            try:
-                input.update(host='meep')
-                input.refresh()
-                self.assertTrue(input.name.startswith('boris'))
-            except:
-                input.delete()
-                raise
+            self.assertRaises(
+                client.IllegalOperationException,
+                lambda: boris.update(restrictToHost='hilda')
+            )
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):

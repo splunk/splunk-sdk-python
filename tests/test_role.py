@@ -88,7 +88,7 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertRaises(client.NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
 
     def test_revoke_capability_not_granted(self):
-        self.assertRaises(ValueError, self.role.revoke, 'change_own_password')
+        self.role.revoke('change_own_password')
 
 
 def test_update(self):

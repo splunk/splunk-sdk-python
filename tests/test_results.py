@@ -15,12 +15,18 @@
 # under the License.
 
 from StringIO import StringIO
-
 import testlib
-
+from time import sleep
 import splunklib.results as results
 
+
 class ResultsTestCase(testlib.SDKTestCase):
+    def test_read_from_empty_result_set(self):
+        job = self.service.jobs.create("search index=_internal_does_not_exist | head 2")
+        while not job.is_done():
+            sleep(0.5)
+        self.assertEquals(0, len(list(results.ResultsReader(job.results()))))
+
     def test_read_normal_results(self):
         xml_text = """
 <?xml version='1.0' encoding='UTF-8'?>

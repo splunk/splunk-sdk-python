@@ -69,7 +69,7 @@ def main(argv):
     cn = service.indexes[index].attach(**kwargs_submit)
     try:
         while True:
-            line = sys.stdin.readline()
+            line = sys.stdin.readline().rstrip('\r\n')
             if len(line) == 0: break
             cn.write(line)
     finally:

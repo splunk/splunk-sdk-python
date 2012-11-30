@@ -3148,7 +3148,6 @@ class Role(Entity):
         for capability in capabilities_to_grant:
             if capability not in possible_capabilities:
                 raise NoSuchCapability(capability)
-        self.refresh()
         new_capabilities = self['capabilities'] + list(capabilities_to_grant)
         self.post(capabilities=new_capabilities)
         return self
@@ -3174,11 +3173,7 @@ class Role(Entity):
         for capability in capabilities_to_revoke:
             if capability not in possible_capabilities:
                 raise NoSuchCapability(capability)
-        self.refresh()
         old_capabilities = self['capabilities']
-        for capability in capabilities_to_revoke:
-            if capability not in old_capabilities:
-                raise ValueError("Role does not have capability %s" % capability)
         new_capabilities = []
         for c in old_capabilities:
             if c not in capabilities_to_revoke:

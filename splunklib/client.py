@@ -1640,11 +1640,12 @@ class Stanza(Entity):
     """This class contains a single configuration stanza."""
 
     def submit(self, stanza):
-        """Sets the keys in *stanza* on this Stanza.
-
-        :param stanza: A dictionary of key/value pairs to set in this stanza.
+        """Adds keys to the current configuration stanza as a 
+        dictionary of key-value pairs.
+        
+        :param stanza: A dictionary of key-value pairs for the stanza.
         :type stanza: ``dict``
-        :return: The :class:`Stanza` object this method is called on.
+        :return: The :class:`Stanza` object.
         """
         body = _encode(**stanza)
         self.service.post(self.path, body=body)

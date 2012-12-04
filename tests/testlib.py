@@ -22,9 +22,6 @@ import sys
 sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')
 
-import re
-import warnings
-import splunklib.data as data
 import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
@@ -32,7 +29,13 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-from utils import parse
+
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 import os
 import time
 

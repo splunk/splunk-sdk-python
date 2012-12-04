@@ -25,7 +25,11 @@ from pprint import pprint
 from splunklib.client import connect
 from splunklib.results import ResultsReader
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main():
     usage = "usage: %prog <search>"

@@ -22,7 +22,11 @@ from xml.etree import ElementTree
 
 import splunklib.binding as binding
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 # Invoke the url using the given opts parameters
 def invoke(path, **kwargs):

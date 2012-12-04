@@ -25,7 +25,12 @@ from xml.etree import ElementTree
 
 import splunklib.client as client
 import splunklib.results as results
-from utils import parse, error
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 
 leftronic_access_key = ""
 

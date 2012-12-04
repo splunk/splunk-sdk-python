@@ -27,7 +27,12 @@ sys.path.insert(0, '../')
 
 import splunklib.binding as binding
 import splunklib.client as client
-from utils import parse, error
+try:
+    from utils import parse, error
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 
 # Placeholder for a specific implementation of `urllib2`,
 # to be defined depending on whether or not we are running

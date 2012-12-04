@@ -26,7 +26,11 @@ import sys
 sys.path.insert(0, '../')
 
 from splunklib.client import connect
-from utils import error, parse, cmdline
+try:
+    from utils import error, parse, cmdline
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 HELP_EPILOG = """
 Commands:            

@@ -22,7 +22,11 @@ from time import strptime, mktime
 
 from input import AnalyticsTracker
 from output import AnalyticsRetriever, TimeRange
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 splunk_opts = None
 retrievers = {}

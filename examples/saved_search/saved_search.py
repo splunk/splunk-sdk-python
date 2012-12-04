@@ -22,7 +22,11 @@ import urllib
 
 import splunklib.binding as binding
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 # these 'rules' allow for setting parameters primarily for creating saved searches
 RULES = {

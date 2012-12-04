@@ -21,7 +21,11 @@ sys.path.insert(0, '../')
 
 from splunklib.client import connect
 
-from utils import parse
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")

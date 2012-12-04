@@ -21,12 +21,15 @@ from pprint import pprint
 from StringIO import StringIO
 import sys
 sys.path.insert(0, '../')
-import urllib2
 
 import splunklib.binding as binding
 import splunklib.client as client
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def handler():
     default = binding.handler()

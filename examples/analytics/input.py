@@ -17,7 +17,12 @@
 import urllib2, sys
 from datetime import datetime
 import splunklib.client as client
-import utils
+
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 __all__ = [
     "AnalyticsTracker",

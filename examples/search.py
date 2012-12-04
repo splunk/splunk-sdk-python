@@ -25,7 +25,11 @@ from time import sleep
 from splunklib.binding import HTTPError
 import splunklib.client as client
 
-from utils import *
+try:
+    from utils import *
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 FLAGS_TOOL = [ "verbose" ]
 

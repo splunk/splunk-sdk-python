@@ -24,7 +24,11 @@ sys.path.insert(0, '../')
 from splunklib.client import connect
 import splunklib.results as results
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def pretty(response):
     reader = results.ResultsReader(response)

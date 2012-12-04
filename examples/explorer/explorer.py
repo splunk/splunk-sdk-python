@@ -21,7 +21,11 @@ import os
 
 sys.path.insert(0, '../../') # Use splunklib and utils without installing
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 import urllib
 
 PORT = 8080

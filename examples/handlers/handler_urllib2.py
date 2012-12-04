@@ -24,7 +24,11 @@ import urllib2
 
 import splunklib.client as client
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def request(url, message, **kwargs):
     method = message['method'].lower()

@@ -44,8 +44,7 @@ __all__ = [
     "connect",
     "Context",
     "handler",
-    "HTTPError",
-    "UrlEncoded"
+    "HTTPError"
 ]
 
 # If you change these, update the docstring 
@@ -90,7 +89,8 @@ class NoAuthenticationToken(object):
     pass
 
 class UrlEncoded(str):
-    """This class creates URL-encoded strings.
+    """This class marks URL-encoded strings.
+    It should be considered an SDK-private implementation detail.
 
     Manually tracking whether strings are URL encoded can be difficult. Avoid 
     calling ``urllib.quote`` to replace special characters with escapes. When 

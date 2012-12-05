@@ -15,8 +15,6 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.binding.ResponseReader` class
 
-    :class:`~splunklib.binding.UrlEncoded` class
-
 
     **Exceptions**
 

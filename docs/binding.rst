@@ -26,7 +26,3 @@ splunklib.binding
 
 .. autoclass:: ResponseReader
     :members: close, empty, peek, read
-
-.. autoclass:: UrlEncoded
-    :members:
-

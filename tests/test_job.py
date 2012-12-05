@@ -114,6 +114,7 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
+@unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
         super(TestJobWithDelayedDone, self).setUp()

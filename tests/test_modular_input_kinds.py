@@ -15,8 +15,13 @@
 # under the License.
 
 import testlib
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 import splunklib.client as client
 
+@unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(ModularInputKindTestCase, self).setUp()

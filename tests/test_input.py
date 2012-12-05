@@ -17,6 +17,10 @@ from splunklib.binding import HTTPError
 
 import testlib
 import logging
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 
 import splunklib.client as client
 
@@ -143,6 +147,7 @@ class TestRead(testlib.SDKTestCase):
         found = [x.name for x in self.service.inputs.list('monitor', search=search)]
         self.assertEqual(expected, found)
 
+    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_oneshot(self):
         self.install_app_from_collection('file_to_upload')
 
@@ -200,6 +205,7 @@ class TestInput(testlib.SDKTestCase):
         for input in input_list:
             self.assertTrue(input.name is not None)
 
+    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_lists_modular_inputs(self):
         if self.service.splunk_version[0] < 5:
             return # Modular inputs don't exist prior to 5.0

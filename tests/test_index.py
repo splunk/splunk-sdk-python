@@ -17,6 +17,10 @@
 from os import path
 import time
 import testlib
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 
 import splunklib.client as client
 
@@ -107,6 +111,7 @@ class IndexTest(testlib.SDKTestCase):
             sock.send('Hello world!\r\n')
         self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
+    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_upload(self):
         self.install_app_from_collection("file_to_upload")
 

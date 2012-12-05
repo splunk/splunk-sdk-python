@@ -51,6 +51,8 @@ class NoRestartRequiredError(Exception):
 class WaitTimedOutError(Exception):
     pass
 
+has_app_collection = False
+
 def to_bool(x):
     if x == '1':
         return True
@@ -172,6 +174,10 @@ class SDKTestCase(unittest.TestCase):
                 raise IOError("App %s not found in app collection" % name)
         self.installedApps.append(name)
 
+    def app_collection_installed(self):
+        collectionName = 'sdk-app-collection'
+        return collectionName in self.service.apps
+
     def pathInApp(self, appName, pathComponents):
         """Return a path to *pathComponents* in *appName*.
 
@@ -226,6 +232,9 @@ class SDKTestCase(unittest.TestCase):
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
             service.restart(timeout=120)
+
+        global has_app_collection
+        has_app_collection = 'sdk-app-collection' in service.apps
 
     def setUp(self):
         unittest.TestCase.setUp(self)

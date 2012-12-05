@@ -63,21 +63,20 @@ Alternatively, you can use **setup.py** on the sources you cloned from GitHub:
 
     [sudo] python setup.py install
 
-However, it's not necessarry to install the libraries to run the
+However, it's not necessary to install the libraries to run the
 examples and unit tests from the SDK.
 
 
-### Running the examples and units
+### Running the examples and unit tests
 
 To run the examples and unit tests, you must put the root of
 the SDK on your PYTHONPATH. For example, add the following line to your **.bash_profile**:
 
     export PYTHONPATH=~/splunk-sdk-python
 
-The SDK command line examples require a common set of command line arguments
-that specify things like the Splunk host and port and login credentials. You
-can get a full list of command line arguments by typing `--help` as an argument
-to any of the command line examples. 
+The SDK command-line examples require a common set of arguments
+that specify things like the Splunk host, port, and login credentials. For a full list of 
+command-line arguments, include `--help` as an argument to any of the examples. 
 
 #### .splunkrc
 
@@ -145,18 +144,19 @@ To get help for an example, use the `--help` argument with an example:
 
 #### Unit tests
 
-The Splunk Python SDK contains a collection of unit tests. To run them, go to the
-**/splunk-sdk-python/tests** directory and enter: 
+The Splunk Python SDK contains a collection of unit tests. To run them, open a command prompt in the 
+**/splunk-sdk-python** directory and enter:
 
-    python runtests.py
+    python setup.py test
 
-You can also run the test_all.py script in the tests/ directory.
+You can also run individual test files, which are located in **/splunk-sdk-python/tests**. For example, 
+to run the apps test, open a command prompt in the **/splunk-sdk-python/tests** subdirectory and enter:
 
-If you are using Python 2.7, the test suite will run using only Python's
-standard library. If you are using Python 2.6, you need to install the
-`unittest2` library, since the test suite depends on features added to
-`unittest` in Python 2.7. `unittest2` is only needed for the running test
-suite, not for using the SDK.
+    python test_app.py
+
+The test suite uses Python's standard library and the built-in `unittest` library. If you're using Python 2.7,
+you're all set. However, if you are using Python 2.6, you'll also need to install the `unittest2` library to
+get the additional features that were added to Python 2.7.
 
 You can read more about our testing framework on
 [GitHub](https://github.com/splunk/splunk-sdk-python/tree/master/tests).

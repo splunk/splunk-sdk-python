@@ -1,41 +1,75 @@
 # Splunk Python SDK Changelog
 
-## 1.0
+## Version 1.0
 
-* The argument order of Inputs.create has been swapped to have name first. This is consistent with
-  all other collections and all other operations on Inputs.
-* All the .contains methods on collections have been removed. Use Python's `in` operator instead.
-* Confs has been renamed to Configurations, and ConfFile to ConfigurationFile.
-* Stanza.submit now takes a dictionary of key/value pairs specifying the stanza instead of a raw string.
-* Namespace handling has changed subtly. Code that depends on namespace handling in detail may break.
-* Added User.role_entities to return a list of the actual entity objects for the
-  roles of a user. User.roles still returns a list of the role names.
-* The first time .cancel() is called on job, it cancels it. Any calls to it thereafter on that
-  job are a nop.
+### New features and APIs
+
+* Added a distinct `AuthenticationError` and optional autologin/autorelogin.
+* Added `is_ready` and `is_done` methods to `Job`.
+    - Job objects are no longer guaranteed to be ready, so `is_ready` should be
+      checked if your code assumes this.
+* Collection listings are optionally paginated.
+* Added modular inputs (for Splunk 5.0+).
+* Added `Jobs.export()` method.
 * Service.restart now takes a timeout argument. If it is specified, the function blocks until
   splunkd has restarted or the timeout has passed; if it is not specified, then it returns
   immediately and you have to check whether splunkd has restarted yourself.
-* Added .alert_count and .fired_alerts properties to SavedSearch entity.
-* Added Index.attached_socket(), which provides the same functionality as Index.attach(), but as
-  a with block.
-* Added Indexes.default() which returns the name of the default index that data will be submitted into.
-* Connecting with a preexisting token works whether the token begins with 'Splunk ' or not;
+* `Collections.__getitem__` can fetch items from collections
+  with an explicit namespace. For example, instead of
+  `'Top five sourcetypes' in service.saved_searches`, you can also write
+  `('Top five sourcetypes', record({'owner': 'nobody', 'app': 'search'})) in service.saved_searches`.
+    [FIXME: This looks ridiculous. Has it been tested?
+            Given a lack of record() calls in the tests, I doubt it.]
+* Extended `SavedSearch`:
+    - New properties: `alert_count`, `fired_alerts`, `scheduled_times`, `suppressed`
+    - New operations: `suppress`, `unsuppress`
+* Added `Index.attached_socket()` which can be used inside a with-block to
+  submit multiple events to an index. This is a more idiomatic style than
+  using the preexisting `Index.attach()` method.
+* Added `Indexes.get_default()` which returns the name of the default index that data will be submitted into.
+* Connecting with a preexisting session token works whether the token begins with 'Splunk ' or not;
   the SDK will handle either case correctly.
-* Added .is_ready() and .is_done() methods to Job to make it easy to loop until either point as been reached.
-* Expanded endpoint coverage. Now at parity with the Java SDK.
-* Replaced ResultsReader with something shorter. Iteration now
-  results either Message objects or dicts, and moved preview from
-  iteration to a field.
-* Entities can be fetched from collections by name plus namespace
-  combinations (which are unique, unlike names alone). Fetching
-  entries by name alone properly throws errors on name conflicts.
-* Added a distinct AuthenticationError and optional autologin/autorelogin.
-* Reduced roundtrips and listings with specific lookups in __getitem__ 
-  and similar methods.
-* Put in types and operations to make URL encoding of strings consistent.
-* Pagination is implemented to stream search results a hunk at a time.
+* Added `Service.search()` method as a shortcut for creating a search job.
+* Added `User.role_entities` as a convenience to return a list of the actual
+  entity objects for the roles of a user. `User.roles` still returns a list
+  of the role names.
+* Added `Role.grant` and `revoke` as convenience methods to add and remove
+  capabilities from a role.
+* Added `Application.package()` and `updateInfo()` methods.
 * Lots of docstrings expanded.
 * Lots of small bugs fixed.
+
+### Breaking changes
+
+* Authentication errors are now reported as `AuthenticationError` instead of as
+  an `HTTPError` with code 401.
+* `Job` objects are no longer guaranteed to be ready for querying.
+  Client code should call `Job.is_ready()` to determine when it is safe to
+  access properties on the job.
+* `Jobs.create()` can no longer be used to create a oneshot search
+  (with `exec_mode=oneshot`). Use the `Jobs.oneshot()` method instead.
+* The `ResultsReader` interface has changed completely.
+    - The `read` method has been removed.
+      Instead iterate over the `ResultsReader` object directly.
+    - Results from the iteration are either `dict`s or `results.Message`
+      instances.
+* All `contains` methods on collections have been removed.
+  Use Python's `in` operator instead. For example, instead of
+  `service.apps.contains('search')`, use `'search' in service.apps`.
+* `Collections.__getitem__` will throw an `AmbiguousReferenceException` if
+  there are multiple entities that have the specified entity name in
+  the current namespace.
+* The argument order of `Inputs.create` has changed to have the `name`
+  argument first. This is consistent with all other collections and all other
+  operations on `Inputs`.
+* `ConfFile` has been renamed to `ConfigurationFile`.
+  `Confs` has been renamed to `Configurations`.
+* Namespace handling has changed subtly.
+  Code that depends on namespace handling in detail may break.
+* Calling `Job.cancel()` on a job that has already been cancelled no longer
+  has any effect.
+* `Stanza.submit` now takes a dict instead of a raw string.
+
 
 ## 0.8.0 (beta)
 

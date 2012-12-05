@@ -2705,6 +2705,10 @@ class Jobs(Collection):
                 assert kind == 'RESULT'
                 # events are returned as dicts with strings as values.
                 print event
+        
+        Running an export search is more efficient than running a similar
+        preview search because no post-processing is done on the retrieved
+        events. The raw events are simply returned.
 
         The ``export`` method makes a single roundtrip to the server (as opposed
         to two for :meth:`create` followed by :meth:`preview`), plus at most two

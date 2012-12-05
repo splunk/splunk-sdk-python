@@ -2498,13 +2498,20 @@ class Job(Entity):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            job = s.jobs.create("search * | head 5")
-            r = results.ResultsReader(job.results())
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                # events are returned as dicts with strings as values.
-                print event
+            from time import sleep
+            service = client.connect(...)
+            job = service.jobs.create("search * | head 5")
+            while not job.is_done():
+                sleep(.2)
+            rr = results.ResultsReader(job.results())
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
 
         Results are not available until the job has finished. If called on
         an unfinished job, the result is an empty event set.
@@ -2535,17 +2542,20 @@ class Job(Entity):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            job = s.jobs.create("search * | head 5")
-            r = results.ResultsReader(job.preview())
-            if r.is_preview:
+            service = client.connect(...)
+            job = service.jobs.create("search * | head 5")
+            rr = results.ResultsReader(job.preview())
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            if rr.is_preview:
                 print "Preview of a running search job."
             else:
                 print "Job is finished. Results are final."
-            for kind, event in r:
-                assert kind == 'result'
-                # events are returned as dicts with strings as values.
-                print event
 
         This method makes one roundtrip to the server, plus at most
         two more if
@@ -2698,13 +2708,16 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            r = results.ResultsReader(s.jobs.export("search * | head 5"))
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                assert kind == 'RESULT'
-                # events are returned as dicts with strings as values.
-                print event
+            service = client.connect(...)
+            rr = results.ResultsReader(service.jobs.export("search * | head 5"))
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
         
         Running an export search is more efficient than running a similar
         preview search because no post-processing is done on the retrieved
@@ -2747,13 +2760,16 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            r = results.ResultsReader(s.jobs.oneshot("search * | head 5"))
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                assert kind == 'RESULT'
-                # events are returned as dicts with strings as values.
-                print event
+            service = client.connect(...)
+            rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
 
         The ``oneshot`` method makes a single roundtrip to the server (as opposed
         to two for :meth:`create` followed by :meth:`results`), plus at most two more

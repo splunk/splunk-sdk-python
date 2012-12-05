@@ -427,7 +427,7 @@ class Context(object):
         :returns: A list of 2-tuples containing key and value
         """
         # Ensure the token is properly formatted
-        if self.token.startswith('Splunk'):
+        if self.token.startswith('Splunk '):
             token = self.token
         else:
             token = 'Splunk %s' % self.token

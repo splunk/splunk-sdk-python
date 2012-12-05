@@ -531,11 +531,11 @@ class TestTokenAuthentication(BindingTestCase):
 
     def test_preexisting_token_sans_splunk(self):
         token = self.context.token
-        if token.startswith('Splunk'):
+        if token.startswith('Splunk '):
             token = token.split(' ', 1)[1]
-            self.assertFalse(token.startswith('Splunk'))
+            self.assertFalse(token.startswith('Splunk '))
         else:
-            self.fail("Token did not start with Splunk.")
+            self.fail('Token did not start with "Splunk ".')
         opts = self.opts.kwargs.copy()
         opts["token"] = token
         opts["username"] = "boris the mad baboon"

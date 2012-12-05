@@ -447,7 +447,7 @@ class Context(object):
             import splunklib.binding as binding
             c = binding.connect(...)
             socket = c.connect()
-            socket.write("POST %s HTTP/1.1\\r\\n" % c._abspath("some/path/to/post/to"))
+            socket.write("POST %s HTTP/1.1\\r\\n" % "some/path/to/post/to")
             socket.write("Host: %s:%s\\r\\n" % (c.host, c.port))
             socket.write("Accept-Encoding: identity\\r\\n")
             socket.write("Authorization: %s\\r\\n" % c.token)

@@ -1689,9 +1689,9 @@ class Indexes(Collection):
     Retrieve this collection using :meth:`Service.indexes`.
     """
     def get_default(self):
-        """ Returns the default index.
+        """ Returns the name of the default index.
 
-        :return: An :class:`Index` object.
+        :return: The name of the default index.
 
         """
         index = self['_audit']

@@ -15,11 +15,15 @@
   splunkd has restarted or the timeout has passed; if it is not specified, then it returns
   immediately and you have to check whether splunkd has restarted yourself.
 * `Collections.__getitem__` can fetch items from collections
-  with an explicit namespace. For example, instead of
-  `'Top five sourcetypes' in service.saved_searches`, you can also write
-  `('Top five sourcetypes', record({'owner': 'nobody', 'app': 'search'})) in service.saved_searches`.
-    [FIXME: This looks ridiculous. Has it been tested?
-            Given a lack of record() calls in the tests, I doubt it.]
+  with an explicit namespace. For example, in addition to
+  `result = service.saved_searches['Top five sourcetypes']`, you can write:
+
+```
+from splunklib.binding import namespace
+ns = client.namespace(owner='nobody', app='search')
+result = service.saved_searches['Top five sourcetypes', ns]
+```
+
 * Extended `SavedSearch`:
     - New properties: `alert_count`, `fired_alerts`, `scheduled_times`, `suppressed`
     - New operations: `suppress`, `unsuppress`

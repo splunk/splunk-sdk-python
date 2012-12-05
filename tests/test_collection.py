@@ -238,6 +238,11 @@ class CollectionTestCase(testlib.SDKTestCase):
             name = testlib.tmpname()
             self.assertTrue(name not in coll)
             self.assertRaises(KeyError, coll.__getitem__, name)
+    
+    def test_getitem_with_namespace_sample_in_changelog(self):
+        from splunklib.binding import namespace
+        ns = client.namespace(owner='nobody', app='search')
+        result = self.service.saved_searches['Top five sourcetypes', ns]
 
 if __name__ == "__main__":
     try:

@@ -74,14 +74,14 @@ class AuthenticationError(Exception):
     pass
 
 # Singleton values to eschew None
-class NoAuthenticationToken(object):
+class _NoAuthenticationToken(object):
     """The value stored in a :class:`Context` or :class:`splunklib.client.Service`
     class that is not logged in.
 
     If a ``Context`` or ``Service`` object is created without an authentication
     token, and there has not yet been a call to the ``login`` method, the token
     field of the ``Context`` or ``Service`` object is set to 
-    ``NoAuthenticationToken``.
+    ``_NoAuthenticationToken``.
 
     Likewise, after a ``Context`` or ``Service`` object has been logged out, the
     token is set to this value again.
@@ -227,7 +227,7 @@ def _authentication(request_fun):
     """
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is NoAuthenticationToken:
+        if self.token is _NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -403,9 +403,9 @@ class Context(object):
     """
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
-        self.token = kwargs.get("token", NoAuthenticationToken)
+        self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
-            self.token = NoAuthenticationToken
+            self.token = _NoAuthenticationToken
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = int(kwargs.get("port", DEFAULT_PORT))
@@ -742,7 +742,7 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
-        if self.token is not NoAuthenticationToken and \
+        if self.token is not _NoAuthenticationToken and \
                 (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
@@ -765,7 +765,7 @@ class Context(object):
 
     def logout(self):
         """Forgets the current session token."""
-        self.token = NoAuthenticationToken
+        self.token = _NoAuthenticationToken
         return self
 
     def _abspath(self, path_segment, 

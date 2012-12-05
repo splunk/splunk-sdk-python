@@ -22,8 +22,6 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.binding.AuthenticationError` class
 
-    :class:`~splunklib.binding.NoAuthenticationToken` class
-
     **Custom HTTP handler**
 
     :class:`~splunklib.binding.HTTPError` class 

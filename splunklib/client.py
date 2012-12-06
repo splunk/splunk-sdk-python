@@ -1773,6 +1773,7 @@ class Index(Entity):
         :return: The :class:`Index`.
         """
         self.refresh()
+        
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         was_disabled_initially = self.disabled
@@ -1785,12 +1786,16 @@ class Index(Entity):
             self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
             self.roll_hot_buckets()
 
+            # Wait until event count goes to 0.
             start = datetime.now()
             diff = timedelta(seconds=timeout)
-            # Wait until event count goes to 0.
             while self.content.totalEventCount != '0' and datetime.now() < start+diff:
                 sleep(1)
                 self.refresh()
+            
+            if self.content.totalEventCount != '0':
+                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
+                                      (self.name, timeout)
         finally:
             # Restore original values
             self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
@@ -1798,9 +1803,6 @@ class Index(Entity):
                 self.service.splunk_version < (5,)):
                 # Re-enable the index if it was originally enabled and we messed with it.
                 self.enable()
-            if self.content.totalEventCount != '0':
-                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
-                                      (self.name, timeout)
 
         return self
 

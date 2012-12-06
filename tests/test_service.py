@@ -109,7 +109,20 @@ class ServiceTestCase(testlib.SDKTestCase):
     
     def test_query_without_login(self):
         service = self._create_unauthenticated_service()
+        
+        # Ensure raises AuthenticationError
         self.assertRaises(AuthenticationError, lambda: service.indexes.list())
+        
+        # Ensure raises HTTPError 401
+        try:
+            service.indexes.list()
+            self.fail('Expected HTTP 401.')
+        except HTTPError as he:
+            if he.code == 401:
+                # Good
+                pass
+            else:
+                raise
     
     def test_server_info_without_login(self):
         service = self._create_unauthenticated_service()

@@ -22,6 +22,8 @@ import unittest
 import splunklib.data as data
 
 import splunklib.client as client
+from splunklib.client import AuthenticationError
+from splunklib.client import Service
 from splunklib.binding import HTTPError
 
 class ServiceTestCase(testlib.SDKTestCase):
@@ -104,6 +106,10 @@ class ServiceTestCase(testlib.SDKTestCase):
         for version in [(4,3,3), (5,), (5,0,1)]:
             with self.fake_splunk_version(version):
                 self.assertEqual(version, self.service.splunk_version)
+    
+    def test_query_without_login(self):
+        service = Service()
+        self.assertRaises(AuthenticationError, lambda: service.splunk_version)
 
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):

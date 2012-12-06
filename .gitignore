@@ -12,3 +12,4 @@ proxypid
 proxy.log
 MANIFEST
 coverage_report
+test.log

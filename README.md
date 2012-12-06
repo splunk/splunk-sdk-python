@@ -71,7 +71,8 @@ examples and unit tests from the SDK.
 ### Running the examples and unit tests
 
 To run the examples and unit tests, you must put the root of
-the SDK on your PYTHONPATH. For example, add the following line to your 
+the SDK on your PYTHONPATH. For example, if you have downloaded the SDK to your
+home folder and are running Mac OS X or Linux, add the following line to your
 **.bash_profile**:
 
     export PYTHONPATH=~/splunk-sdk-python

@@ -588,8 +588,8 @@ class Service(_BaseService):
         """Returns the version of the splunkd instance this object is attached
         to.
 
-        The version is returned as a three-tuple of the version components as
-        integers (for example, `(4,3,3)` or `(5,0,0)`).
+        The version is returned as a tuple of the version components as
+        integers (for example, `(4,3,3)` or `(5,)`).
 
         :return: A ``tuple`` of ``integers``.
         """
@@ -1389,34 +1389,6 @@ class ReadOnlyCollection(Endpoint):
         # return self._load_list(response)
         return list(self.iter(count=count, **kwargs))
 
-    def names(self, count=None, **kwargs):
-        """Returns a list of the names of all the entities in this collection.
-
-        The entire list is loaded at once in a single roundtrip to the server,
-        plus at most two more if the ``autologin`` field of :func:`connect` is
-        set to ``True``. There is no caching--every call makes at least one round trip.
-
-        :param count: The maximum number of entities to return (optional).
-        :type count: ``integer``
-        :param kwargs: Additional arguments (optional):
-
-            - "offset" (``integer``): The offset of the first item to return.
-
-            - "search" (``string``): The search query to filter responses.
-
-            - "sort_dir" (``string``): The direction to sort returned items:
-              "asc" or "desc".
-
-            - "sort_key" (``string``): The field to use for sorting (optional).
-
-            - "sort_mode" (``string``): The collating sequence for sorting
-              returned items: "auto", "alpha", "alpha_case", or "num".
-
-        :type kwargs: ``dict``
-        :return: A ``list`` of entity names.
-        """
-        return [ent.name for ent in self.iter(count=count, **kwargs)]
-
 class Collection(ReadOnlyCollection):
     """A collection of entities.
 
@@ -1577,6 +1549,10 @@ class Configurations(Collection):
             raise ValueError("Configurations cannot have wildcards in namespace.")
 
     def __getitem__(self, key):
+        # The superclass implementation is designed for collections that contain
+        # entities. This collection (Configurations) contains collections
+        # (ConfigurationFile).
+        # 
         # The configurations endpoint returns multiple entities when we ask for a single file.
         # This screws up the default implementation of __getitem__ from Collection, which thinks
         # that multiple entities means a name collision, so we have to override it here.
@@ -1689,9 +1665,9 @@ class Indexes(Collection):
     Retrieve this collection using :meth:`Service.indexes`.
     """
     def get_default(self):
-        """ Returns the default index.
+        """ Returns the name of the default index.
 
-        :return: An :class:`Index` object.
+        :return: The name of the default index.
 
         """
         index = self['_audit']
@@ -1797,6 +1773,7 @@ class Index(Entity):
         :return: The :class:`Index`.
         """
         self.refresh()
+        
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         was_disabled_initially = self.disabled
@@ -1809,12 +1786,16 @@ class Index(Entity):
             self.update(maxTotalDataSizeMB=1, frozenTimePeriodInSecs=1)
             self.roll_hot_buckets()
 
+            # Wait until event count goes to 0.
             start = datetime.now()
             diff = timedelta(seconds=timeout)
-            # Wait until event count goes to 0.
             while self.content.totalEventCount != '0' and datetime.now() < start+diff:
                 sleep(1)
                 self.refresh()
+            
+            if self.content.totalEventCount != '0':
+                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
+                                      (self.name, timeout)
         finally:
             # Restore original values
             self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
@@ -1822,9 +1803,6 @@ class Index(Entity):
                 self.service.splunk_version < (5,)):
                 # Re-enable the index if it was originally enabled and we messed with it.
                 self.enable()
-            if self.content.totalEventCount != '0':
-                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
-                                      (self.name, timeout)
 
         return self
 
@@ -2154,11 +2132,14 @@ class Inputs(Collection):
     def _get_kind_list(self, subpath=None):
         if subpath is None:
             subpath = []
+        
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)
         for entry in content:
             this_subpath = subpath + [entry.title]
+            # The "all" endpoint doesn't work yet.
+            # The "tcp/ssl" endpoint is not a real input collection.
             if entry.title == 'all' or this_subpath == ['tcp','ssl']:
                 continue
             elif 'create' in [x.rel for x in entry.link]:
@@ -2345,7 +2326,7 @@ class Inputs(Collection):
         return entities
 
     def __iter__(self, **kwargs):
-        for item in self.list(**kwargs):
+        for item in self.iter(**kwargs):
             yield item
 
     def iter(self, **kwargs):
@@ -2498,13 +2479,20 @@ class Job(Entity):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            job = s.jobs.create("search * | head 5")
-            r = results.ResultsReader(job.results())
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                # events are returned as dicts with strings as values.
-                print event
+            from time import sleep
+            service = client.connect(...)
+            job = service.jobs.create("search * | head 5")
+            while not job.is_done():
+                sleep(.2)
+            rr = results.ResultsReader(job.results())
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
 
         Results are not available until the job has finished. If called on
         an unfinished job, the result is an empty event set.
@@ -2535,17 +2523,20 @@ class Job(Entity):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            job = s.jobs.create("search * | head 5")
-            r = results.ResultsReader(job.preview())
-            if r.is_preview:
+            service = client.connect(...)
+            job = service.jobs.create("search * | head 5")
+            rr = results.ResultsReader(job.preview())
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            if rr.is_preview:
                 print "Preview of a running search job."
             else:
                 print "Job is finished. Results are final."
-            for kind, event in r:
-                assert kind == 'result'
-                # events are returned as dicts with strings as values.
-                print event
 
         This method makes one roundtrip to the server, plus at most
         two more if
@@ -2559,11 +2550,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
-        response = self.get("results_preview", **query_params)
-        if response.status == 204:
-            raise ValueError("No events yet. Try again later.")
-        else:
-            return response.body
+        return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2698,13 +2685,20 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            r = results.ResultsReader(s.jobs.export("search * | head 5"))
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                assert kind == 'RESULT'
-                # events are returned as dicts with strings as values.
-                print event
+            service = client.connect(...)
+            rr = results.ResultsReader(service.jobs.export("search * | head 5"))
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
+        
+        Running an export search is more efficient than running a similar
+        preview search because no post-processing is done on the retrieved
+        events. The raw events are simply returned.
 
         The ``export`` method makes a single roundtrip to the server (as opposed
         to two for :meth:`create` followed by :meth:`preview`), plus at most two
@@ -2743,13 +2737,16 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
-            s = client.connect(...)
-            r = results.ResultsReader(s.jobs.oneshot("search * | head 5"))
-            assert r.is_preview == False # The job is finished when we get here
-            for kind, event in r:
-                assert kind == 'RESULT'
-                # events are returned as dicts with strings as values.
-                print event
+            service = client.connect(...)
+            rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
+            for result in rr:
+                if isinstance(result, results.Message):
+                    # Diagnostic messages may be returned in the results
+                    print '%s: %s' % (result.type, result.message)
+                elif isinstance(result, dict):
+                    # Normal events are returned as dicts
+                    print result
+            assert rr.is_preview == False
 
         The ``oneshot`` method makes a single roundtrip to the server (as opposed
         to two for :meth:`create` followed by :meth:`results`), plus at most two more

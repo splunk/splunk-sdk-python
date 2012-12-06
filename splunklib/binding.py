@@ -44,8 +44,7 @@ __all__ = [
     "connect",
     "Context",
     "handler",
-    "HTTPError",
-    "UrlEncoded"
+    "HTTPError"
 ]
 
 # If you change these, update the docstring 
@@ -75,14 +74,14 @@ class AuthenticationError(Exception):
     pass
 
 # Singleton values to eschew None
-class NoAuthenticationToken(object):
+class _NoAuthenticationToken(object):
     """The value stored in a :class:`Context` or :class:`splunklib.client.Service`
     class that is not logged in.
 
     If a ``Context`` or ``Service`` object is created without an authentication
     token, and there has not yet been a call to the ``login`` method, the token
     field of the ``Context`` or ``Service`` object is set to 
-    ``NoAuthenticationToken``.
+    ``_NoAuthenticationToken``.
 
     Likewise, after a ``Context`` or ``Service`` object has been logged out, the
     token is set to this value again.
@@ -90,7 +89,8 @@ class NoAuthenticationToken(object):
     pass
 
 class UrlEncoded(str):
-    """This class creates URL-encoded strings.
+    """This class marks URL-encoded strings.
+    It should be considered an SDK-private implementation detail.
 
     Manually tracking whether strings are URL encoded can be difficult. Avoid 
     calling ``urllib.quote`` to replace special characters with escapes. When 
@@ -163,7 +163,7 @@ class UrlEncoded(str):
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
     def __repr__(self):
-        return "UrlEncoded('%s')" % urllib.unquote(self)
+        return "UrlEncoded(%s)" % repr(urllib.unquote(self))
 
 @contextmanager
 def _handle_auth_error(msg):
@@ -227,7 +227,7 @@ def _authentication(request_fun):
     """
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is NoAuthenticationToken:
+        if self.token is _NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -403,9 +403,9 @@ class Context(object):
     """
     def __init__(self, handler=None, **kwargs):        
         self.http = HttpLib(handler)
-        self.token = kwargs.get("token", NoAuthenticationToken)
+        self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
-            self.token = NoAuthenticationToken
+            self.token = _NoAuthenticationToken
         self.scheme = kwargs.get("scheme", DEFAULT_SCHEME)
         self.host = kwargs.get("host", DEFAULT_HOST)
         self.port = int(kwargs.get("port", DEFAULT_PORT))
@@ -427,7 +427,7 @@ class Context(object):
         :returns: A list of 2-tuples containing key and value
         """
         # Ensure the token is properly formatted
-        if self.token.startswith('Splunk'):
+        if self.token.startswith('Splunk '):
             token = self.token
         else:
             token = 'Splunk %s' % self.token
@@ -447,7 +447,7 @@ class Context(object):
             import splunklib.binding as binding
             c = binding.connect(...)
             socket = c.connect()
-            socket.write("POST %s HTTP/1.1\\r\\n" % c._abspath("some/path/to/post/to"))
+            socket.write("POST %s HTTP/1.1\\r\\n" % "some/path/to/post/to")
             socket.write("Host: %s:%s\\r\\n" % (c.host, c.port))
             socket.write("Accept-Encoding: identity\\r\\n")
             socket.write("Authorization: %s\\r\\n" % c.token)
@@ -578,7 +578,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def post(self, path_segment, owner=None, app=None, sharing=None, headers=[], **query):
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
         """Performs a POST operation from the REST path segment with the given 
         namespace and query.
 
@@ -610,6 +610,8 @@ class Context(object):
         :type app: ``string``
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param query: All other keyword arguments, which are used as query 
             parameters.
         :type query: ``string``
@@ -638,22 +640,19 @@ class Context(object):
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1')
         """
+        if headers is None:
+            headers = []
+        
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        if isinstance(headers, dict):
-            all_headers = [(k,v) for k,v in headers.iteritems()]
-        elif isinstance(headers, list):
-            all_headers = headers
-        else:
-            raise ValueError("headers must be a list or dict (found: %s)" % headers)
-        all_headers += self._auth_headers
+        all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
     @_authentication
     @_log_duration
-    def request(self, path_segment, method="GET", headers=[], body="",
+    def request(self, path_segment, method="GET", headers=None, body="",
                 owner=None, app=None, sharing=None):
         """Issues an arbitrary HTTP request to the REST path segment.
         
@@ -670,6 +669,12 @@ class Context(object):
              *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
+        :param method: The HTTP method to use (optional).
+        :type method: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
+        :param body: Content of the HTTP request (optional).
+        :type body: ``string``
         :param owner: The owner context of the namespace (optional).
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
@@ -701,19 +706,12 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
+        if headers is None:
+            headers = []
+        
         path = self.authority \
             + self._abspath(path_segment, owner=owner, 
                             app=app, sharing=sharing)
-        # all_headers can't be named headers, due to how
-        # Python implements closures. In particular:
-        # def f(x):
-        #     def g():
-        #         x = x + "a"
-        #         return x
-        #     return g()
-        # throws UnboundLocalError, since x must be either a member of
-        # f's local namespace or g's, and cannot switch between them
-        # during the run of the function.
         all_headers = headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)", 
                       method, path, str(all_headers), repr(body))
@@ -742,7 +740,7 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
-        if self.token is not NoAuthenticationToken and \
+        if self.token is not _NoAuthenticationToken and \
                 (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
@@ -765,7 +763,7 @@ class Context(object):
 
     def logout(self):
         """Forgets the current session token."""
-        self.token = NoAuthenticationToken
+        self.token = _NoAuthenticationToken
         return self
 
     def _abspath(self, path_segment, 

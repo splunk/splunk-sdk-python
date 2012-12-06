@@ -1389,34 +1389,6 @@ class ReadOnlyCollection(Endpoint):
         # return self._load_list(response)
         return list(self.iter(count=count, **kwargs))
 
-    def names(self, count=None, **kwargs):
-        """Returns a list of the names of all the entities in this collection.
-
-        The entire list is loaded at once in a single roundtrip to the server,
-        plus at most two more if the ``autologin`` field of :func:`connect` is
-        set to ``True``. There is no caching--every call makes at least one round trip.
-
-        :param count: The maximum number of entities to return (optional).
-        :type count: ``integer``
-        :param kwargs: Additional arguments (optional):
-
-            - "offset" (``integer``): The offset of the first item to return.
-
-            - "search" (``string``): The search query to filter responses.
-
-            - "sort_dir" (``string``): The direction to sort returned items:
-              "asc" or "desc".
-
-            - "sort_key" (``string``): The field to use for sorting (optional).
-
-            - "sort_mode" (``string``): The collating sequence for sorting
-              returned items: "auto", "alpha", "alpha_case", or "num".
-
-        :type kwargs: ``dict``
-        :return: A ``list`` of entity names.
-        """
-        return [ent.name for ent in self.iter(count=count, **kwargs)]
-
 class Collection(ReadOnlyCollection):
     """A collection of entities.
 

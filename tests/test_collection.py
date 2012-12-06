@@ -87,17 +87,6 @@ class CollectionTestCase(testlib.SDKTestCase):
                              msg='on %s (expected: %s, found: %s)' % \
                                  (coll_name, expected, found))
 
-    def test_names(self):
-        for coll_name in collections:
-            coll = getattr(self.service, coll_name)
-            expected = [ent.name for ent in coll.list(count=10, sort_mode="auto")]
-            if len(expected) == 0:
-                logging.debug("No entities in collection %s; skipping test.", coll_name)
-            found = coll.names(count=10, sort_mode="auto")
-            self.assertEqual(expected, found,
-                             msg='on %s (expected: %s, found %s)' % \
-                                 (coll_name, expected, found))
-
     def test_list_with_count(self):
         N = 5
         for coll_name in collections:

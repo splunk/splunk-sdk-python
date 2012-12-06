@@ -2132,11 +2132,14 @@ class Inputs(Collection):
     def _get_kind_list(self, subpath=None):
         if subpath is None:
             subpath = []
+        
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)
         for entry in content:
             this_subpath = subpath + [entry.title]
+            # The "all" endpoint is not a real input collection.
+            # The "tcp/ssl" endpoint is not a real input collection.
             if entry.title == 'all' or this_subpath == ['tcp','ssl']:
                 continue
             elif 'create' in [x.rel for x in entry.link]:
@@ -2323,7 +2326,7 @@ class Inputs(Collection):
         return entities
 
     def __iter__(self, **kwargs):
-        for item in self.list(**kwargs):
+        for item in self.iter(**kwargs):
             yield item
 
     def iter(self, **kwargs):

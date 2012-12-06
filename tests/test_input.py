@@ -147,8 +147,10 @@ class TestRead(testlib.SDKTestCase):
         found = [x.name for x in self.service.inputs.list('monitor', search=search)]
         self.assertEqual(expected, found)
 
-    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_oneshot(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
         self.install_app_from_collection('file_to_upload')
 
         index_name = testlib.tmpname()
@@ -205,10 +207,13 @@ class TestInput(testlib.SDKTestCase):
         for input in input_list:
             self.assertTrue(input.name is not None)
 
-    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_lists_modular_inputs(self):
         if self.service.splunk_version[0] < 5:
-            return # Modular inputs don't exist prior to 5.0
+            print "Modular inputs don't exist prior to Splunk 5.0. Skipping."
+            return
+        elif not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
         else:
             # Install modular inputs to list, and restart
             # so they'll show up.

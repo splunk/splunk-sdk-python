@@ -114,33 +114,48 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
-@unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
         super(TestJobWithDelayedDone, self).setUp()
+        self.job = None
+
+    def tearDown(self):
+        super(TestJobWithDelayedDone, self).tearDown()
+        if self.job is not None:
+            self.job.cancel()
+            self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
+
+    def test_enable_preview(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
         self.install_app_from_collection("sleep_command")
-        self.query = "search index=_internal | sleep done=100"
+        self.query = "search index=_internal | sleep 100"
         self.job = self.service.jobs.create(
             query=self.query,
             earliest_time="-1m",
             priority=5,
             latest_time="now")
-
-    def tearDown(self):
-        super(TestJobWithDelayedDone, self).tearDown()
-        self.job.cancel()
-        self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
-
-    def test_enable_preview(self):
         self.assertEqual(self.job['isPreviewEnabled'], '0')
         self.job.enable_preview()
         def is_preview():
+            self.job.refresh()
             if self.job.is_done():
                 self.fail('Job finished before preview enabled.')
             return self.job['isPreviewEnabled'] == '1'
         self.assertEventuallyTrue(is_preview)
 
     def test_setpriority(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("sleep_command")
+        self.query = "search index=_internal | sleep 100"
+        self.job = self.service.jobs.create(
+            query=self.query,
+            earliest_time="-1m",
+            priority=5,
+            latest_time="now")
         # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
         # of a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
@@ -232,7 +247,7 @@ class TestJob(testlib.SDKTestCase):
         # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
         # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
         # so we'll wait 1.1s before we start.
-        import time; time.sleep(1.1)
+        import time; time.sleep(2)
         old_ttl = int(self.job['ttl'])
         self.job.touch()
         self.job.refresh()

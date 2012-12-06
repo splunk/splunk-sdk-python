@@ -21,14 +21,17 @@ except ImportError:
     import unittest2 as unittest
 import splunklib.client as client
 
-@unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(ModularInputKindTestCase, self).setUp()
-        self.install_app_from_collection("modular-inputs")
         self.uncheckedRestartSplunk()
 
     def test_list_arguments(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("modular-inputs")
+
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0
             return
@@ -43,6 +46,11 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.assertEqual(expected_args, found_args)
 
     def test_update_raises_exception(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("modular-inputs")
+
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0
             return
@@ -59,6 +67,11 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             self.assertEqual('simple', m['streaming_mode'])
 
     def test_list_modular_inputs(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("modular-inputs")
+
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0
             return

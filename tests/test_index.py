@@ -111,8 +111,10 @@ class IndexTest(testlib.SDKTestCase):
             sock.send('Hello world!\r\n')
         self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
-    @unittest.skipUnless(testlib.has_app_collection, "Test requires sdk-app-collection.")
     def test_upload(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
         self.install_app_from_collection("file_to_upload")
 
         eventCount = int(self.index['totalEventCount'])

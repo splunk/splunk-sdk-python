@@ -2550,11 +2550,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
-        response = self.get("results_preview", **query_params)
-        if response.status == 204:
-            raise ValueError("No events yet. Try again later.")
-        else:
-            return response.body
+        return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.

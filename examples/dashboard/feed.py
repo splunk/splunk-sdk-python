@@ -21,7 +21,7 @@
 
 
 import sys, os, urllib2, json
-sys.path.insert(0, os.path.join(__file__, "../.."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from xml.etree import ElementTree
 
 import splunklib.client as client

@@ -19,7 +19,7 @@ import webbrowser
 import sys
 import os
 
-sys.path.insert(0, os.path.join(__file__, "../.."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 try:
     import utils

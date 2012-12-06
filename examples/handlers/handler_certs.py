@@ -38,7 +38,7 @@ import ssl
 import socket
 import sys
 import os
-sys.path.insert(0, os.path.join(__file__, "../.."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import urllib
 
 import splunklib.client as client

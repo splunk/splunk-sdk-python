@@ -20,7 +20,7 @@
  
 from pprint import pprint
 import sys, os
-sys.path.insert(0, os.path.join(__file__, "../"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.results as results
 

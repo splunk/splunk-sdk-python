@@ -710,16 +710,6 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner, 
                             app=app, sharing=sharing)
-        # all_headers can't be named headers, due to how
-        # Python implements closures. In particular:
-        # def f(x):
-        #     def g():
-        #         x = x + "a"
-        #         return x
-        #     return g()
-        # throws UnboundLocalError, since x must be either a member of
-        # f's local namespace or g's, and cannot switch between them
-        # during the run of the function.
         all_headers = headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)", 
                       method, path, str(all_headers), repr(body))

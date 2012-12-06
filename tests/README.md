@@ -1,56 +1,52 @@
-# Splunk Test "Framework"
+# Splunk Test Suite
 
-The truth is that there really isn't a Splunk Test Framework. It simply uses
-Python's builtin unittest module.
+The test suite uses Python's standard library and the built-in **unittest** 
+library. If you're using Python 2.7, you're all set. However, if you are using 
+Python 2.6, you'll also need to install the **unittest2** library to get the 
+additional features that were added to Python 2.7 (just run `pip install 
+unittest2` or `easy_install unittest2`).
 
-Each distinct area of the SDK is tested in a single file. For example,
-roles are tested in `test_role.py`, while the examples are tested
-in `test_examples.py`.
-
-Before running the test suite, make sure the instance of Splunk you
-are testing against doesn't have new events being dumped continuously
-into it. Several of the tests rely on a stable event count. It's best
-to test against a clean install of Splunk, but if you cannot, you
-should at least disable the *NIX and Windows apps. Do not run the test
-suite against a production instance of Splunk! It will run just fine
-with the free Splunk license, so don't be stingy with instances.
-
-You also need to install the `sdk-app-collection` app in your instance of
-Splunk. The `sdk-app-collection` is a set of small, single purpose apps
-for testing capabilities that cannot be created with the REST API.You can
-fetch it from `https://github.com/splunk/sdk-app-collection`. Put the
-whole repository in `$SPLUNK_HOME/etc/apps`, so the git root would be
-`$SPLUNK_HOME/etc/apps/sdk-app-collection`.
-
-If you are running Python 2.6, you must install the `unittest2` library,
-since the test suite depends on features added to `unittest` in Python 2.7.
-Python 2.7 should run the test suite using only Python's standard library.
-
-The test suite depends on nothing but Python's standard library. You can
-simply execute:
+To run the unit tests, open a command prompt in the **/splunk-sdk-python** 
+directory and enter:
 
     python setup.py test
 
-or run the test_all.py script in the tests/ directory.
+You can also run individual test files, which are located in 
+**/splunk-sdk-python/tests**. Each distinct area of the SDK is tested in a 
+single file. For example, roles are tested
+in `test_role.py`. To run this test, open a command prompt in
+the **/splunk-sdk-python/tests** subdirectory and enter:
+
+    python test_role.py
+
+NOTE: Before running the test suite, make sure the instance of Splunk you
+are testing against doesn't have new events being dumped continuously
+into it. Several of the tests rely on a stable event count. It's best
+to test against a clean install of Splunk, but if you can't, you
+should at least disable the *NIX and Windows apps. Do not run the test
+suite against a production instance of Splunk! It will run just fine
+with the free Splunk license.
+
 
 ## Code Coverage
 
-We have support for using the excellent `coverage.py`, which needs to be
-installed on your system. You can get more information about the module
-at the author's website: http://nedbatchelder.com/code/coverage/
+Coverage.py is an excellent tool for measuring code coverage of Python programs.
 
-To install it, simply use `easy_install` or `pip`:
-
-    pip install coverage
-
-or
+To install it, use easy_install:
 
     easy_install coverage
 
-Once you have `coverage.py` installed, you can run get coverage information
-as follows:
+Or use pip:
+
+    pip install coverage
+
+To generate a report of the code coverage of the unit test suite, open a command
+prompt in the **/splunk-sdk-python** directory and enter:
 
     python setup.py coverage
 
-This will create an HTML report in coverage_html/. Open `coverage_html/index.html`
-in your favorite browser to see the coverage report.
+This command runs the entire test suite and writes an HTML coverage report to 
+the **/splunk-sdk-python/coverage_report** directory.
+
+For more information about Coverage.py, see the author's website 
+([http://nedbatchelder.com/code/coverage/](http://nedbatchelder.com/code/coverage/)).

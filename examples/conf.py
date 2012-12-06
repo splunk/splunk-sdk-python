@@ -16,8 +16,8 @@
 
 """Create, delete or list stanza information from/to Splunk confs."""
 
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 from splunklib.client import connect
 

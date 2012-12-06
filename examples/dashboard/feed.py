@@ -20,7 +20,8 @@
 # in the README.
 
 
-import sys, datetime, urllib2, json
+import sys, os, urllib2, json
+sys.path.insert(0, os.path.join(__file__, "../.."))
 from xml.etree import ElementTree
 
 import splunklib.client as client

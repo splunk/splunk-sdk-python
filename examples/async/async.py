@@ -20,10 +20,9 @@
 
 #### Main Code
 
-import sys, datetime
+import sys, os, datetime
 import urllib
-from time import sleep
-sys.path.insert(0, '../')
+sys.path.insert(0, os.path.join(__file__, "../.."))
 
 import splunklib.binding as binding
 import splunklib.client as client

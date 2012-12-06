@@ -17,8 +17,8 @@
 """Tails a realtime search using the export endpoint and prints results to
    stdout."""
 
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 from pprint import pprint
 

@@ -19,8 +19,8 @@
    example, eg: './search.py "search 404" | ./results.py'"""
  
 from pprint import pprint
-import sys
-import time
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 import splunklib.results as results
 

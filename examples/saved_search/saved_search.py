@@ -17,7 +17,9 @@
 """A command line utility for manipulating saved searches 
    (list-all/create/list/delete)."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../.."))
+
 import urllib
 
 import splunklib.binding as binding

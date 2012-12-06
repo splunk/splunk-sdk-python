@@ -41,7 +41,7 @@ from Cookie import SimpleCookie
 from tempfile import TemporaryFile
 from traceback import format_exc
 from urllib import urlencode, quote as urlquote, unquote as urlunquote
-from urlparse import urlunsplit, urljoin, SplitResult as UrlSplitResult
+from urlparse import urljoin, SplitResult as UrlSplitResult
 
 try: from collections import MutableMapping as DictMixin
 except ImportError: # pragma: no cover

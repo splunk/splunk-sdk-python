@@ -14,7 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys, json
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../.."))
 
 from bottle import route, run, debug, template, static_file, request
 

@@ -16,8 +16,8 @@
 
 """A command line utility that submits event data to Splunk from stdin."""
 
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 import splunklib.client as client
 

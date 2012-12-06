@@ -16,10 +16,8 @@
 
 """A command line utility for executing Splunk searches."""
 
-from pprint import pprint
-
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 from time import sleep
 
 from splunklib.binding import HTTPError

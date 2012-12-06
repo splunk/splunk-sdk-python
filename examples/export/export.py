@@ -20,7 +20,8 @@ using a parameterized chunking mechanism.
 """
 
 # installation support files
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../.."))
 import time
 from os import path
 

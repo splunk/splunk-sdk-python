@@ -19,7 +19,7 @@ import webbrowser
 import sys
 import os
 
-sys.path.insert(0, '../../') # Use splunklib and utils without installing
+sys.path.insert(0, os.path.join(__file__, "../.."))
 
 try:
     import utils

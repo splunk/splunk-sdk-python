@@ -17,8 +17,8 @@
 """A command line utility that uploads a file to Splunk for indexing."""
 
 from os import path
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 import splunklib.client as client
 
 try:

@@ -18,9 +18,8 @@
    and prints debugging information to stdout."""
 
 from pprint import pprint
-from StringIO import StringIO
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../.."))
 
 import splunklib.binding as binding
 import splunklib.client as client

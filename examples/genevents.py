@@ -17,8 +17,8 @@
 """A tool to generate event data to a named index."""
 
 import socket
-import sys
-sys.path.insert(0, '..')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 import time
 import datetime
 from splunklib.client import connect

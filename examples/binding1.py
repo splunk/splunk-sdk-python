@@ -19,8 +19,8 @@
    binds to a sampling of endpoints showing how to access collections,
    entities and 'method-like' endpoints."""
 
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 from splunklib.binding import connect
 

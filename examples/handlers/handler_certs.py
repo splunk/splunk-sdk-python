@@ -37,7 +37,8 @@ from StringIO import StringIO
 import ssl
 import socket
 import sys
-sys.path.insert(0, '../')
+import os
+sys.path.insert(0, os.path.join(__file__, "../.."))
 import urllib
 
 import splunklib.client as client

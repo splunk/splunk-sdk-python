@@ -22,6 +22,9 @@ import httplib
 import json
 import socket
 import sys
+import os
+sys.path.insert(0, os.path.join(__file__, "../.."))
+
 
 import splunklib.client as client
 

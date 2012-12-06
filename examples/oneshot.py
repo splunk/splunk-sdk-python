@@ -18,8 +18,8 @@
 
 from pprint import pprint
 import socket
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 from splunklib.client import connect
 import splunklib.results as results

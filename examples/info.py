@@ -16,8 +16,8 @@
 
 """An example that prints Splunk service info & settings."""
 
-import sys
-sys.path.insert(0, '../')
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../"))
 
 import splunklib.client as client
 

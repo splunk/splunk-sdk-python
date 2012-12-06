@@ -14,7 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import urllib2, sys
+import sys, os
+sys.path.insert(0, os.path.join(__file__, "../.."))
 import splunklib.client as client
 import splunklib.results as results
 try:

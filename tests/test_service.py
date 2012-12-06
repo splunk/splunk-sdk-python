@@ -109,12 +109,7 @@ class ServiceTestCase(testlib.SDKTestCase):
     
     def test_query_without_login(self):
         service = Service()
-        try:
-            service.splunk_version
-            self.fail('Expected AuthenticationError.')
-        except AuthenticationError:
-            # Good
-            pass
+        self.assertRaises(AuthenticationError, lambda: service.splunk_version)
 
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):

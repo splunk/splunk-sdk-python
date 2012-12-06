@@ -2138,7 +2138,7 @@ class Inputs(Collection):
         content = _load_atom_entries(response)
         for entry in content:
             this_subpath = subpath + [entry.title]
-            # The "all" endpoint is not a real input collection.
+            # The "all" endpoint doesn't work yet.
             # The "tcp/ssl" endpoint is not a real input collection.
             if entry.title == 'all' or this_subpath == ['tcp','ssl']:
                 continue

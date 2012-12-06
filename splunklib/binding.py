@@ -32,6 +32,7 @@ import functools
 import logging
 from datetime import datetime
 from functools import wraps
+from StringIO import StringIO
 
 from contextlib import contextmanager
 
@@ -62,16 +63,6 @@ def _log_duration(f):
         logging.debug("Operation took %s", end_time-start_time)
         return val
     return new_f
-
-# Custom exceptions
-class AuthenticationError(Exception):
-    """Raised when a login request to Splunk fails.
-
-    If your username was unknown or you provided an incorrect password
-    in a call to :meth:`Context.login` or :meth:`splunklib.client.Service.login`,
-    this exception is raised.
-    """
-    pass
 
 # Singleton values to eschew None
 class _NoAuthenticationToken(object):
@@ -187,7 +178,7 @@ def _handle_auth_error(msg):
         yield
     except HTTPError as he:
         if he.status == 401:
-            raise AuthenticationError(msg)
+            raise AuthenticationError(msg, he)
         else:
             raise
 
@@ -234,7 +225,11 @@ def _authentication(request_fun):
                 # AuthenticationError if it fails.
                 self.login()
             else:
-                raise AuthenticationError("Request aborted: not logged in.")
+                # Try the request anyway without authentication.
+                # Most requests will fail. Some will succeed, such as
+                # 'GET server/info'.
+                with _handle_auth_error("Request aborted: not logged in."):
+                    return request_fun(self, *args, **kwargs)
         try:
             # Issue the request
             return request_fun(self, *args, **kwargs)
@@ -248,7 +243,7 @@ def _authentication(request_fun):
                 with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something's very wrong."):
                     return request_fun()
             elif he.status == 401 and not self.autologin:
-                raise AuthenticationError("Request failed: Session is not logged in.")
+                raise AuthenticationError("Request failed: Session is not logged in.", he)
             else:
                 raise
     return wrapper
@@ -426,12 +421,15 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        # Ensure the token is properly formatted
-        if self.token.startswith('Splunk '):
-            token = self.token
+        if self.token is _NoAuthenticationToken:
+            return []
         else:
-            token = 'Splunk %s' % self.token
-        return [("Authorization", token)]
+            # Ensure the token is properly formatted
+            if self.token.startswith('Splunk '):
+                token = self.token
+            else:
+                token = 'Splunk %s' % self.token
+            return [("Authorization", token)]
 
     def connect(self):
         """Returns an open connection (socket) to the Splunk instance.
@@ -757,7 +755,7 @@ class Context(object):
             return self
         except HTTPError as he:
             if he.status == 401:
-                raise AuthenticationError("Login failed.")
+                raise AuthenticationError("Login failed.", he)
             else:
                 raise
 
@@ -874,18 +872,33 @@ def connect(**kwargs):
 # handler that wants to read multiple messages can do so.
 class HTTPError(Exception):
     """This exception is raised for HTTP responses that return an error."""
-    def __init__(self, response):
+    def __init__(self, response, _message=None):
         status = response.status
         reason = response.reason
         body = response.body.read()
         detail = XML(body).findtext("./messages/msg")
         message = "HTTP %d %s%s" % (
             status, reason, "" if detail is None else " -- %s" % detail)
-        Exception.__init__(self, message) 
+        Exception.__init__(self, _message or message) 
         self.status = status
         self.reason = reason
         self.headers = response.headers
         self.body = body
+        self._response = response
+
+class AuthenticationError(HTTPError):
+    """Raised when a login request to Splunk fails.
+
+    If your username was unknown or you provided an incorrect password
+    in a call to :meth:`Context.login` or :meth:`splunklib.client.Service.login`,
+    this exception is raised.
+    """
+    def __init__(self, message, cause):
+        # HACK: Put the body back in the response so that HTTPError's
+        #       constructor can read it again.
+        cause._response.body = StringIO(cause.body)
+        
+        HTTPError.__init__(self, cause._response, message)
 
 #
 # The HTTP interface used by the Splunk binding layer abstracts the underlying

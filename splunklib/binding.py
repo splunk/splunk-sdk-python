@@ -610,6 +610,8 @@ class Context(object):
         :type app: ``string``
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param query: All other keyword arguments, which are used as query 
             parameters.
         :type query: ``string``
@@ -644,13 +646,7 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        if isinstance(headers, dict):
-            all_headers = [(k,v) for k,v in headers.iteritems()]
-        elif isinstance(headers, list):
-            all_headers = headers
-        else:
-            raise ValueError("headers must be a list or dict (found: %s)" % headers)
-        all_headers += self._auth_headers
+        all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
@@ -673,6 +669,12 @@ class Context(object):
              *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
+        :param method: The HTTP method to use (optional).
+        :type method: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
+        :param body: Content of the HTTP request (optional).
+        :type body: ``string``
         :param owner: The owner context of the namespace (optional).
         :type owner: ``string``
         :param app: The app context of the namespace (optional).

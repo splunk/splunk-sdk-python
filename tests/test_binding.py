@@ -211,7 +211,7 @@ class TestUserManipulation(BindingTestCase):
         text = 'Hello, world!'
         response = self.context.post(
             '/services/receivers/simple',
-            headers={'x-splunk-input-mode': 'streaming'},
+            headers=[('x-splunk-input-mode', 'streaming')],
             source='sdk', sourcetype='sdk_test',
             body=text
         )

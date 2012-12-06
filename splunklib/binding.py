@@ -578,7 +578,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def post(self, path_segment, owner=None, app=None, sharing=None, headers=[], **query):
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
         """Performs a POST operation from the REST path segment with the given 
         namespace and query.
 
@@ -638,6 +638,9 @@ class Context(object):
             c.post('saved/searches', name='boris', 
                    search='search * earliest=-1m | head 1')
         """
+        if headers is None:
+            headers = []
+        
         path = self.authority + self._abspath(path_segment, owner=owner, 
                                               app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
@@ -653,7 +656,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def request(self, path_segment, method="GET", headers=[], body="",
+    def request(self, path_segment, method="GET", headers=None, body="",
                 owner=None, app=None, sharing=None):
         """Issues an arbitrary HTTP request to the REST path segment.
         
@@ -701,6 +704,9 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
+        if headers is None:
+            headers = []
+        
         path = self.authority \
             + self._abspath(path_segment, owner=owner, 
                             app=app, sharing=sharing)

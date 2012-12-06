@@ -1549,6 +1549,10 @@ class Configurations(Collection):
             raise ValueError("Configurations cannot have wildcards in namespace.")
 
     def __getitem__(self, key):
+        # The superclass implementation is designed for collections that contain
+        # entities. This collection (Configurations) contains collections
+        # (ConfigurationFile).
+        # 
         # The configurations endpoint returns multiple entities when we ask for a single file.
         # This screws up the default implementation of __getitem__ from Collection, which thinks
         # that multiple entities means a name collision, so we have to override it here.

@@ -64,9 +64,6 @@ splunklib.client
     :members: cancel, disable_preview, enable_preview, events, finalize, is_done, is_ready, name, pause, refresh, results, preview, searchlog, set_priority, summary, timeline, touch, set_ttl, unpause
     :inherited-members:
 
-.. autoclass:: JobNotReadyException
-    :members:
-
 .. autoclass:: Jobs
     :members: create, export, itemmeta, oneshot
     :inherited-members:
@@ -83,22 +80,13 @@ splunklib.client
     :members: arguments, update
     :inherited-members:
 
-.. autoclass:: NoSuchApplicationException
-    :members:
-
 .. autoclass:: NoSuchCapability
-    :members:
-
-.. autoclass:: NoSuchUserException
     :members:
 
 .. autoclass:: NotSupportedError
     :members:
 
 .. autoclass:: OperationError
-    :members:
-
-.. autoclass:: OperationFailedException
     :members:
 
 .. autoclass:: ReadOnlyCollection

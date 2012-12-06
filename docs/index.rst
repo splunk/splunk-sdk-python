@@ -100,20 +100,12 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
 
     :class:`~splunklib.client.InvalidNameException` class
 
-    :class:`~splunklib.client.JobNotReadyException` class
-
-    :class:`~splunklib.client.NoSuchApplicationException` class
-
     :class:`~splunklib.client.NoSuchCapability` class
-
-    :class:`~splunklib.client.NoSuchUserException` class
 
     :class:`~splunklib.client.NotSupportedError` class
 
     :class:`~splunklib.client.OperationError` class
 
-    :class:`~splunklib.client.OperationFailedException` class
-    
 
 :doc:`data`
 -----------

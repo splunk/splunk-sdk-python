@@ -588,8 +588,8 @@ class Service(_BaseService):
         """Returns the version of the splunkd instance this object is attached
         to.
 
-        The version is returned as a three-tuple of the version components as
-        integers (for example, `(4,3,3)` or `(5,0,0)`).
+        The version is returned as a tuple of the version components as
+        integers (for example, `(4,3,3)` or `(5,)`).
 
         :return: A ``tuple`` of ``integers``.
         """

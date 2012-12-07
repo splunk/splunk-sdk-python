@@ -5,6 +5,8 @@
 ### New features and APIs
 
 * An `AuthenticationError` exception has been added.
+  This is a subclass of `HTTPError` so preexisting code that expects HTTP 401
+  (Unauthorized) will still work.
  
 * An `"autologin"` argument has been added to the `splunklib.client.connect` and
   `splunklib.binding.connect` functions. When set to true, Splunk automatically 
@@ -57,9 +59,6 @@
 
 ### Breaking changes
 
-* Authentication errors are now reported as `AuthenticationError` instead of as
-  `HTTPError` with code 401.
-  
 * `Job` objects are no longer guaranteed to be ready for querying.
   Client code should call the `Job.is_ready` method to determine when it is safe
   to access properties on the job.

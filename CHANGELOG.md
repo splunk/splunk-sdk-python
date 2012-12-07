@@ -5,8 +5,8 @@
 ### New features and APIs
 
 * An `AuthenticationError` exception has been added.
-  This is a subclass of `HTTPError` so preexisting code that expects HTTP 401
-  (Unauthorized) will still work.
+  This exception is a subclass of `HTTPError`, so existing code that expects 
+  HTTP 401 (Unauthorized) will continue to work.
  
 * An `"autologin"` argument has been added to the `splunklib.client.connect` and
   `splunklib.binding.connect` functions. When set to true, Splunk automatically 

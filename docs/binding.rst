@@ -21,12 +21,5 @@ splunklib.binding
 .. autoclass:: HttpLib
     :members: delete, get, post, request
 
-.. autoclass:: NoAuthenticationToken
-    :members:
-
 .. autoclass:: ResponseReader
     :members: close, empty, peek, read
-
-.. autoclass:: UrlEncoded
-    :members:
-

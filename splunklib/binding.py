@@ -894,8 +894,8 @@ class AuthenticationError(HTTPError):
     this exception is raised.
     """
     def __init__(self, message, cause):
-        # HACK: Put the body back in the response so that HTTPError's
-        #       constructor can read it again.
+        # Put the body back in the response so that HTTPError's constructor can
+        # read it again.
         cause._response.body = StringIO(cause.body)
         
         HTTPError.__init__(self, cause._response, message)

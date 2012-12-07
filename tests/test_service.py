@@ -107,9 +107,35 @@ class ServiceTestCase(testlib.SDKTestCase):
             with self.fake_splunk_version(version):
                 self.assertEqual(version, self.service.splunk_version)
     
-    def test_query_without_login(self):
-        service = Service()
-        self.assertRaises(AuthenticationError, lambda: service.splunk_version)
+    def test_query_without_login_raises_auth_error(self):
+        service = self._create_unauthenticated_service()
+        self.assertRaises(AuthenticationError, lambda: service.indexes.list())
+    
+    # This behavior is needed for backward compatibility for code
+    # prior to the introduction of AuthenticationError
+    def test_query_without_login_raises_http_401(self):
+        service = self._create_unauthenticated_service()
+        try:
+            service.indexes.list()
+            self.fail('Expected HTTP 401.')
+        except HTTPError as he:
+            if he.status == 401:
+                # Good
+                pass
+            else:
+                raise
+    
+    def test_server_info_without_login(self):
+        service = self._create_unauthenticated_service()
+        # Should succeed without AuthenticationError
+        service.info['version']
+    
+    def _create_unauthenticated_service(self):
+        return Service(**{
+            'host': self.opts.get('host', 'localhost'),
+            'port': self.opts.get('port', 8089),
+            'scheme': self.opts.get('scheme', 'https')
+        })
 
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):

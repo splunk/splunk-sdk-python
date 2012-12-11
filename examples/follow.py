@@ -40,13 +40,8 @@ def follow(job, count, items):
             job.refresh()
             continue
         stream = items(offset+1)
-        reader = results.ResultsReader(stream)
-        while True:
-            kind = reader.read()
-            if kind == None: break
-            if kind == results.RESULT:
-                event = reader.value
-                pprint(event)
+        for event in results.ResultsReader(stream):
+            pprint(event)
         offset = total
 
 def main():

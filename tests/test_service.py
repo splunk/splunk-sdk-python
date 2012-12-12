@@ -132,9 +132,9 @@ class ServiceTestCase(testlib.SDKTestCase):
     
     def _create_unauthenticated_service(self):
         return Service(**{
-            'host': self.opts.get('host', 'localhost'),
-            'port': self.opts.get('port', 8089),
-            'scheme': self.opts.get('scheme', 'https')
+            'host': self.opts.kwargs['host'],
+            'port': self.opts.kwargs['port'],
+            'scheme': self.opts.kwargs['scheme']
         })
 
 class TestSettings(testlib.SDKTestCase):

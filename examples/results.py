@@ -19,52 +19,15 @@
    example, eg: './search.py "search 404" | ./results.py'"""
  
 from pprint import pprint
-import sys
-import time
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.results as results
 
 def pretty():
     reader = results.ResultsReader(sys.stdin)
-    while True:
-        kind = reader.read()
-        if kind == None: break
-        if kind == results.RESULT:
-            event = reader.value
-            pprint(event)
-
-def summary():
-    reader = results.ResultsReader(sys.stdin)
-    last = None
-    count = 0 
-    while True:
-        kind = reader.read()
-        if kind == None: 
-            print
-            break
-        if kind == results.RESULTS:
-            if last == results.RESULT: print
-            print "# Results: preview = %s" % reader.value['preview']
-        elif kind == results.MESSAGE:
-            if last == results.RESULT: print
-            print "# Messasge: %s" % reader.value['message']
-        elif kind == results.RESULT:
-            count += 1
-            if last != results.RESULT or count % 1 == 0: 
-                sys.stdout.write(".")
-                sys.stdout.flush()
-        last = kind
-
-def timeit():
-    start = time.time()
-    reader = results.ResultsReader(sys.stdin)
-    count = 0
-    while True:
-        kind = reader.read()
-        if kind == None: break
-        if kind == results.RESULT: count += 1
-    delta = time.time() - start
-    print "%d results in %f secs = %f results/sec" % (count, delta, count/delta)
+    for event in reader:
+        pprint(event)
 
 if __name__ == "__main__":
     pretty()

@@ -129,16 +129,14 @@ div.box .input_text{
 
 div.box .button
 {
-    padding:4px 4px;
-    width:100%;
+    display: block;
+    padding:0.2em;
+    width: 9em;
     margin: 0px auto;
-    background: #ccc; /*#CC0000;*/
-    border: 0px;
-    color: #222;
-    border-bottom: 1px double #222;
-    border-top: 1px double #222;
-    border-left:1px double #222;
-    border-right:1px double #222;
+    background-color: #FF6600;
+    color: #000;
+    font-weight: bold;
+    border: 0.2em solid #E9692C;
 } 
 
 /* SERVER INFO CSS */

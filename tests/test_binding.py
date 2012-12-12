@@ -14,16 +14,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from StringIO import StringIO
-import urllib2
+
 import uuid
+import urllib2
+from StringIO import StringIO
 from xml.etree.ElementTree import XML
 
-import splunklib.binding as binding
-from splunklib.binding import HTTPError
-import splunklib.data as data
-
+import logging
 import testlib
+import unittest
+
+import splunklib.binding as binding
+from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
+import splunklib.data as data
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"
@@ -45,17 +48,330 @@ XNAME_FEED = XNAMEF_ATOM % "feed"
 XNAME_ID = XNAMEF_ATOM % "id"
 XNAME_TITLE = XNAMEF_ATOM % "title"
 
-def isatom(body):
-    """Answers if the given response body looks like ATOM."""
-    root = XML(body)
-    return \
-        root.tag == XNAME_FEED and \
-        root.find(XNAME_AUTHOR) is not None and \
-        root.find(XNAME_ID) is not None and \
-        root.find(XNAME_TITLE) is not None
 
 def load(response):
     return data.load(response.body.read())
+
+class BindingTestCase(unittest.TestCase):
+    context = None
+    def setUp(self):
+        logging.info("%s", self.__class__.__name__)
+        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.context = binding.connect(**self.opts.kwargs)
+        logging.debug("Connected to splunkd.")
+
+class TestResponseReader(BindingTestCase):
+    def test_empty(self):
+        response = binding.ResponseReader(StringIO(""))
+        self.assertTrue(response.empty)
+        self.assertEqual(response.peek(10), "")
+        self.assertEqual(response.read(10), "")
+        self.assertTrue(response.empty)
+
+    def test_read_past_end(self):
+        txt = "abcd"
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertFalse(response.empty)
+        self.assertEqual(response.peek(10), txt)
+        self.assertEqual(response.read(10), txt)
+        self.assertTrue(response.empty)
+        self.assertEqual(response.peek(10), "")
+        self.assertEqual(response.read(10), "")
+
+    def test_read_partial(self):
+        txt = "This is a test of the emergency broadcasting system."
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertEqual(response.peek(5), txt[:5])
+        self.assertFalse(response.empty)
+        self.assertEqual(response.read(), txt)
+        self.assertTrue(response.empty)
+        self.assertEqual(response.read(), '')
+
+class TestUrlEncoded(BindingTestCase):
+    def test_idempotent(self):
+        a = UrlEncoded('abc')
+        self.assertEqual(a, UrlEncoded(a))
+
+    def test_append(self):
+        self.assertEqual(UrlEncoded('a') + UrlEncoded('b'),
+                         UrlEncoded('ab'))
+    
+    def test_append_string(self):
+        self.assertEqual(UrlEncoded('a') + '%',
+                         UrlEncoded('a%'))
+
+    def test_append_to_string(self):
+        self.assertEqual('%' + UrlEncoded('a'),
+                         UrlEncoded('%a'))
+
+    def test_interpolation_fails(self):
+        self.assertRaises(TypeError, lambda: UrlEncoded('%s') % 'boris')
+
+    def test_chars(self):
+        for char, code in [(' ', '%20'),
+                           ('"', '%22'),
+                           ('%', '%25')]:
+            self.assertEqual(UrlEncoded(char), 
+                             UrlEncoded(code, skip_encode=True))
+
+    def test_repr(self):
+        self.assertEqual(repr(UrlEncoded('% %')), "UrlEncoded('% %')")
+
+class TestAuthority(unittest.TestCase):
+    def test_authority_default(self):
+        self.assertEqual(binding._authority(), 
+                         "https://localhost:8089")
+
+    def test_ipv4_host(self):
+        self.assertEqual(
+            binding._authority(
+                host="splunk.utopia.net"),
+            "https://splunk.utopia.net:8089")
+
+    def test_ipv6_host(self):
+        self.assertEqual(
+            binding._authority(
+                host="2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+            "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
+
+    def test_all_fields(self):
+        self.assertEqual(
+            binding._authority(
+                scheme="http", 
+                host="splunk.utopia.net",
+                port="471"),
+            "http://splunk.utopia.net:471")
+
+class TestUserManipulation(BindingTestCase):
+    def setUp(self):
+        BindingTestCase.setUp(self)
+        self.username = testlib.tmpname()
+        self.password = "changeme"
+        self.roles = "power"
+
+        # Delete user if it exists already
+        try:
+            response = self.context.delete(PATH_USERS + self.username)
+            self.assertEqual(response.status, 200)
+        except HTTPError, e:
+            self.assertEqual(e.status, 400)
+
+    def tearDown(self):
+        BindingTestCase.tearDown(self)
+        try:
+            self.context.delete(PATH_USERS + self.username)
+        except HTTPError, e:
+            if e.status != 400:
+                raise
+
+    def test_user_without_role_fails(self):
+        self.assertRaises(binding.HTTPError,
+                          self.context.post,
+                          PATH_USERS, name=self.username,
+                          password=self.password)
+
+    def test_create_user(self):
+        response = self.context.post(
+            PATH_USERS, name=self.username, 
+            password=self.password, roles=self.roles)
+        self.assertEqual(response.status, 201)
+
+        response = self.context.get(PATH_USERS + self.username)
+        entry = load(response).feed.entry
+        self.assertEqual(entry.title, self.username)
+
+    def test_update_user(self):
+        self.test_create_user()
+        response = self.context.post(
+            PATH_USERS + self.username,
+            password=self.password,
+            roles=self.roles,
+            defaultApp="search",
+            realname="Renzo",
+            email="email.me@now.com")
+        self.assertEqual(response.status, 200)
+
+        response = self.context.get(PATH_USERS + self.username)
+        self.assertEqual(response.status, 200)
+        entry = load(response).feed.entry
+        self.assertEqual(entry.title, self.username)
+        self.assertEqual(entry.content.defaultApp, "search")
+        self.assertEqual(entry.content.realname, "Renzo")
+        self.assertEqual(entry.content.email, "email.me@now.com")
+
+    def test_post_with_body_behaves(self):
+        self.test_create_user()
+        response = self.context.post(
+            PATH_USERS + self.username,
+            body="defaultApp=search",
+        )
+        self.assertEqual(response.status, 200)
+
+    def test_post_with_get_arguments_to_receivers_stream(self):
+        text = 'Hello, world!'
+        response = self.context.post(
+            '/services/receivers/simple',
+            headers=[('x-splunk-input-mode', 'streaming')],
+            source='sdk', sourcetype='sdk_test',
+            body=text
+        )
+        self.assertEqual(response.status, 200)
+
+
+class TestSocket(BindingTestCase):
+    def test_socket(self):
+        socket = self.context.connect()
+        socket.write("POST %s HTTP/1.1\r\n" % \
+                         self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" % \
+                         (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" % \
+                         self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+    def test_unicode_socket(self):
+        socket = self.context.connect()
+        socket.write(u"POST %s HTTP/1.1\r\n" %\
+                     self.context._abspath("some/path/to/post/to"))
+        socket.write(u"Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write(u"Accept-Encoding: identity\r\n")
+        socket.write(u"Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write(u"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+class TestUnicodeConnect(BindingTestCase):
+    def test_unicode_connect(self):
+        opts = self.opts.kwargs.copy()
+        opts['host'] = unicode(opts['host'])
+        context = binding.connect(**opts)
+        # Just check to make sure the service is alive
+        response = context.get("/services")
+        self.assertEqual(response.status, 200)
+
+class TestAutologin(BindingTestCase):
+    def test_with_autologin(self):
+        self.context.autologin = True
+        self.assertEqual(self.context.get("/services").status, 200)
+        self.context.logout()
+        self.assertEqual(self.context.get("/services").status, 200)
+
+    def test_without_autologin(self):
+        self.context.autologin = False
+        self.assertEqual(self.context.get("/services").status, 200)
+        self.context.logout()
+        self.assertRaises(AuthenticationError, 
+                          self.context.get, "/services")
+
+class TestAbspath(BindingTestCase):
+    def setUp(self):
+        BindingTestCase.setUp(self)
+        self.kwargs = self.opts.kwargs.copy()
+        if 'app' in self.kwargs: del self.kwargs['app']
+        if 'owner' in self.kwargs: del self.kwargs['owner']
+
+
+    def test_default(self):
+        path = self.context._abspath("foo", owner=None, app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/services/foo")
+
+    def test_with_owner(self):
+        path = self.context._abspath("foo", owner="me", app=None)
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/system/foo")
+
+    def test_with_app(self):
+        path = self.context._abspath("foo", owner=None, app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_with_both(self):
+        path = self.context._abspath("foo", owner="me", app="MyApp")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+    def test_user_sharing(self):
+        path = self.context._abspath("foo", owner="me", app="MyApp", sharing="user")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+    def test_sharing_app(self):
+        path = self.context._abspath("foo", owner="me", app="MyApp", sharing="app")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_sharing_global(self):
+        path = self.context._abspath("foo", owner="me", app="MyApp",sharing="global")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_sharing_system(self):
+        path = self.context._abspath("foo bar", owner="me", app="MyApp",sharing="system")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/system/foo%20bar")
+
+    def test_url_forbidden_characters(self):
+        path = self.context._abspath('/a/b c/d')
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, '/a/b%20c/d')
+
+    def test_context_defaults(self):
+        context = binding.connect(**self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/services/foo")
+
+    def test_context_with_owner(self):
+        context = binding.connect(owner="me", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/system/foo")
+
+    def test_context_with_app(self):
+        context = binding.connect(app="MyApp", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_context_with_both(self):
+        context = binding.connect(owner="me", app="MyApp", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+    def test_context_with_user_sharing(self):
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="user", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
+
+    def test_context_with_app_sharing(self):
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="app", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_context_with_global_sharing(self):
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="global", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
+
+    def test_context_with_system_sharing(self):
+        context = binding.connect(
+            owner="me", app="MyApp", sharing="system", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/nobody/system/foo")
 
 # An urllib2 based HTTP request handler, used to test the binding layers
 # support for pluggable request handlers.
@@ -75,178 +391,47 @@ def urllib2_handler(url, message, **kwargs):
         'body': StringIO(response.read())
     }
 
-class TestCase(testlib.TestCase):
-    # Verify that we can create (and delete) a resource
-    def test_create(self):
-        context = binding.connect(**self.opts.kwargs)
+def isatom(body):
+    """Answers if the given response body looks like ATOM."""
+    root = XML(body)
+    return \
+        root.tag == XNAME_FEED and \
+        root.find(XNAME_AUTHOR) is not None and \
+        root.find(XNAME_ID) is not None and \
+        root.find(XNAME_TITLE) is not None
 
-        username = "sdk-test-user"
-        password = "changeme"
-        roles = "power"
-
-        try: 
-            response = context.delete(PATH_USERS + username)
-            self.assertEqual(response.status, 200)
-        except HTTPError, e:
-            self.assertEqual(e.status, 400) # User doesnt exist
-
-        # Can't create a user without a role
-        try:
-            context.post(PATH_USERS, name=username, password=password)
-            self.fail()
-        except HTTPError, e:
-            self.assertEqual(e.status, 400)
-        except: 
-            self.fail()
-
-        # Create a user with the required role
-        response = context.post(
-            PATH_USERS, name=username, password=password, roles=roles)
-        self.assertEqual(response.status, 201)
-
-        response = context.get(PATH_USERS + username)
-        entry = load(response).feed.entry
-        self.assertEqual(entry.title, username)
-
-        context.delete(PATH_USERS + username)
-
-    # Verify that we can connect to the service.
-    def test_connect(self):
-        context = binding.connect(**self.opts.kwargs)
-
-        # Just check to make sure the service is alive
-        response = context.get("/services")
-        self.assertEqual(response.status, 200)
-
-        # Make sure we can open a socket to the service
-        context.connect().close()
-
-    # Verify that Context.fullpath behaves as expected.
-    def test_fullpath(self):
-        context = binding.connect(**self.opts.kwargs)
-
-        # Verify that Context.fullpath works as expected.
-
-        path = context.fullpath("foo", owner=None, app=None)
-        self.assertEqual(path, "/services/foo")
-
-        path = context.fullpath("foo", owner="me", app=None)
-        self.assertEqual(path, "/servicesNS/me/-/foo")
-
-        path = context.fullpath("foo", owner=None, app="MyApp")
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing=None)
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing="user")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp", sharing="app")
-        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp",sharing="global")
-        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
-
-        path = context.fullpath("foo", owner="me", app="MyApp",sharing="system")
-        self.assertEqual(path, "/servicesNS/nobody/system/foo")
-
-        # Verify constructing resource paths using context defaults
-
-        kwargs = self.opts.kwargs.copy()
-        if 'app' in kwargs: del kwargs['app']
-        if 'owner' in kwargs: del kwargs['owner']
-
-        context = binding.connect(**kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/services/foo")
-
-        context = binding.connect(owner="me", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/me/-/foo")
-
-        context = binding.connect(app="MyApp", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/-/MyApp/foo")
-
-        context = binding.connect(owner="me", app="MyApp", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing=None, **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="user", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/me/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="app", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="global", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
-
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="system", **kwargs)
-        path = context.fullpath("foo")
-        self.assertEqual(path, "/servicesNS/nobody/system/foo")
-
+class TestPluggableHTTP(testlib.SDKTestCase):
     # Verify pluggable HTTP reqeust handlers.
     def test_handlers(self):
-        paths = [
-            "/services", 
-            "authentication/users", 
-            "search/jobs"
-        ]
-
-        handlers = [
-            binding.handler(),  # default handler
-            urllib2_handler,
-        ]
-
+        paths = ["/services", "authentication/users", 
+                 "search/jobs"]
+        handlers = [binding.handler(),  # default handler
+                    urllib2_handler]
         for handler in handlers:
-            context = binding.connect(handler=handler, **self.opts.kwargs)
+            logging.debug("Connecting with handler %s", handler)
+            context = binding.connect(
+                handler=handler,
+                **self.opts.kwargs)
             for path in paths:
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
 
-    def test_list(self):
-        context = binding.connect(**self.opts.kwargs)
-
-        response = context.get(PATH_USERS)
-        self.assertEqual(response.status, 200)
-
-        response = context.get(PATH_USERS + "/_new")
-        self.assertEqual(response.status, 200)
-
+class TestLogout(BindingTestCase):
     def test_logout(self):
-        context = binding.connect(**self.opts.kwargs)
-
-        response = context.get("/services")
+        response = self.context.get("/services")
+        self.assertEqual(response.status, 200)
+        self.context.logout()
+        self.assertRaises(AuthenticationError, 
+                          self.context.get, "/services")
+        self.assertRaises(AuthenticationError,
+                          self.context.post, "/services")
+        self.assertRaises(AuthenticationError,
+                          self.context.delete, "/services")
+        self.context.login()
+        response = self.context.get("/services")
         self.assertEqual(response.status, 200)
 
-        context.logout()
-        try:
-            context.get("/services")
-            self.fail()
-        except HTTPError, e:
-            self.assertEqual(e.status, 401)
-        except: self.fail()
-
-        context.login()
-        response = context.get("/services")
-        self.assertEqual(response.status, 200)
-
+class TestNamespace(unittest.TestCase):
     def test_namespace(self):
         tests = [
             ({ },
@@ -306,58 +491,99 @@ class TestCase(testlib.TestCase):
             ({ 'sharing': "system", 'app': "search" },
              { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
 
-            ({ 'sharing': "system", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" })]
+            ({ 'sharing': "system", 'owner': "Bob",    'app': "search" },
+             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+
+            ({ 'sharing': 'user',   'owner': '-',      'app': '-'},
+             { 'sharing': 'user',   'owner': '-',      'app': '-'})]
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
             for k, v in expected.iteritems():
                 self.assertEqual(namespace[k], v)
 
-        with self.assertRaises(ValueError):
-            binding.namespace(sharing="gobble")
+    def test_namespace_fails(self):
+        self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
-    # Verify that we can update a resource
-    def test_update(self):
-        context = binding.connect(**self.opts.kwargs)
-
-        username = "sdk-test-user"
-        password = "changeme"
-        roles = ["power", "user"]
-
-        try: 
-            response = context.delete(PATH_USERS + username)
-            self.assertEqual(response.status, 200)
-        except HTTPError, e:
-            self.assertEqual(e.status, 400) # User doesnt exist
-
-        # Create the test user
-        response = context.post(
-            PATH_USERS, name=username, password=password, roles=roles)
-        self.assertEqual(response.status, 201)
-
-        response = context.get(PATH_USERS + username)
-        self.assertEqual(response.status, 200)
-        entry = load(response).feed.entry
-        self.assertEqual(entry.title, username)
-
-        # Update the test user
-        response = context.post(
-            PATH_USERS + username,
-            defaultApp="search",
-            realname="Renzo",
-            email="email.me@now.com")
-        self.assertEqual(response.status, 200)
-
-        response = context.get(PATH_USERS + username)
-        self.assertEqual(response.status, 200)
-        entry = load(response).feed.entry
-        self.assertEqual(entry.title, username)
-        self.assertEqual(entry.content.defaultApp, "search")
-        self.assertEqual(entry.content.realname, "Renzo")
-        self.assertEqual(entry.content.email, "email.me@now.com")
-
-        context.delete(PATH_USERS + username)
+class TestTokenAuthentication(BindingTestCase):
+    def test_preexisting_token(self):
+        token = self.context.token
+        opts = self.opts.kwargs.copy()
+        opts["token"] = token
+        opts["username"] = "boris the mad baboon"
+        opts["password"] = "nothing real"
         
+        newContext = binding.Context(**opts)
+        response = newContext.get("/services")
+        self.assertEqual(response.status, 200)
+        
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" % \
+                         self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" % \
+                         (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" % \
+                         self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+    def test_preexisting_token_sans_splunk(self):
+        token = self.context.token
+        if token.startswith('Splunk '):
+            token = token.split(' ', 1)[1]
+            self.assertFalse(token.startswith('Splunk '))
+        else:
+            self.fail('Token did not start with "Splunk ".')
+        opts = self.opts.kwargs.copy()
+        opts["token"] = token
+        opts["username"] = "boris the mad baboon"
+        opts["password"] = "nothing real"
+
+        newContext = binding.Context(**opts)
+        response = newContext.get("/services")
+        self.assertEqual(response.status, 200)
+
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" %\
+                    self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" %\
+                     (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" %\
+                     self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
+
+def test_connect_with_preexisting_token_sans_user_and_pass(self):
+        token = self.context.token
+        opts = self.opts.kwargs.copy()
+        del opts['username']
+        del opts['password']
+        opts["token"] = token
+
+        newContext = binding.connect(**opts)
+        response = newContext.get('/services')
+        self.assertEqual(response.status, 200)
+
+        socket = newContext.connect()
+        socket.write("POST %s HTTP/1.1\r\n" % \
+                         self.context._abspath("some/path/to/post/to"))
+        socket.write("Host: %s:%s\r\n" % \
+                         (self.context.host, self.context.port))
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" % \
+                         self.context.token)
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("\r\n")
+        socket.close()
+
 if __name__ == "__main__":
-    testlib.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

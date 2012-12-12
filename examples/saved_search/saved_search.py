@@ -17,12 +17,18 @@
 """A command line utility for manipulating saved searches 
    (list-all/create/list/delete)."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
 import urllib
 
 import splunklib.binding as binding
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 # these 'rules' allow for setting parameters primarily for creating saved searches
 RULES = {

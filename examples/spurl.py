@@ -16,17 +16,22 @@
 
 """A simple command line interface for the Splunk REST APIs."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from xml.etree import ElementTree
 
 import splunklib.binding as binding
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 # Invoke the url using the given opts parameters
 def invoke(path, **kwargs):
-    message = { "method": kwargs.get("method", "GET"), }
-    return binding.connect(**kwargs).request(path, message)
+    method = kwargs.get("method", "GET")
+    return binding.connect(**kwargs).request(path, method=method)
 
 def print_response(response):
     if response.status != 200:

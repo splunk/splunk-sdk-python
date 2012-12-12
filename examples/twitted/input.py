@@ -22,6 +22,9 @@ import httplib
 import json
 import socket
 import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
 
 import splunklib.client as client
 
@@ -245,18 +248,18 @@ def main():
     service = client.connect(**kwargs)
 
     # Create the index if it doesn't exist
-    if not service.indexes.contains("twitter"):
+    if 'twitter' not in service.indexes:
         if verbose > 0: print "Creating index 'twitter' .."
         service.indexes.create("twitter")
 
     # Create the TCP input if it doesn't exist
     input_host = kwargs.get("inputhost", DEFAULT_SPLUNK_HOST)
-    input_port = int(kwargs.get("inputport", DEFAULT_SPLUNK_PORT))
+    input_port = kwargs.get("inputport", DEFAULT_SPLUNK_PORT)
     input_name = str(input_port)
-    if not service.inputs.contains(input_name):
+    if input_name not in service.inputs:
         if verbose > 0: print "Creating input '%s'" % input_name
         service.inputs.create(
-            "tcp", input_port, index="twitter", sourcetype="twitter")
+            input_port, "tcp", index="twitter", sourcetype="twitter")
     
     global ingest
     ingest = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -37,12 +37,17 @@ from StringIO import StringIO
 import ssl
 import socket
 import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import urllib
-import urlparse
 
 import splunklib.client as client
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 RULES = {
     "ca_file": {

@@ -17,13 +17,19 @@
 """Tails a realtime search using the export endpoint and prints results to
    stdout."""
 
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from pprint import pprint
-import sys
 
 from splunklib.client import connect
-import splunklib.results as results
+from splunklib.results import ResultsReader
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main():
     usage = "usage: %prog <search>"
@@ -43,13 +49,9 @@ def main():
             latest_time="rt", 
             search_mode="realtime")
 
-        reader = results.ResultsReader(result.body)
-        while True:
-            kind = reader.read()
-            if kind == None: break
-            if kind == results.RESULT:
-                event = reader.value
-                pprint(event)
+        for result in ResultsReader(result.body):
+            if result is not None:
+                print pprint(result)
 
     except KeyboardInterrupt:
         print "\nInterrupted."

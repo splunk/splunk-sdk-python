@@ -20,13 +20,18 @@
 
 #### Main Code
 
-import sys, datetime
+import sys, os, datetime
 import urllib
-from time import sleep
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import splunklib.binding as binding
 import splunklib.client as client
-from utils import parse, error
+try:
+    from utils import parse, error
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 
 # Placeholder for a specific implementation of `urllib2`,
 # to be defined depending on whether or not we are running

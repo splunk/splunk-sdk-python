@@ -19,9 +19,9 @@ from subprocess import PIPE, Popen
 import time
 import sys
 
-import splunklib.client as client
-
 import testlib 
+
+import splunklib.client as client
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -48,16 +48,16 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     if isinstance(script, str):
         script = script.split()
     script = ["python"] + script
-    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr)
+    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
 
 # Rudimentary sanity check for each of the examples
-class TestCase(testlib.TestCase):
+class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args: 
             self.assertEquals(run(arg), 0)
 
     def setUp(self):
-        testlib.TestCase.setUp(self)
+        super(ExamplesTestCase, self).setUp()
 
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
@@ -80,14 +80,26 @@ class TestCase(testlib.TestCase):
         self.assertEquals(result, 0)
 
     def test_conf(self):
-        self.check_commands(
-            "conf.py --help",
-            "conf.py",
-            "conf.py viewstates",
-            'conf.py --app=search --owner=admin viewstates',
-            "conf.py create server SDK-STANZA",
-            "conf.py create server SDK-STANZA testkey=testvalue",
-            "conf.py delete server SDK-STANZA")
+        try:
+            conf = self.service.confs['server']
+            if 'SDK-STANZA' in conf:
+                conf.delete("SDK-STANZA")
+        except Exception, e:
+            pass
+
+        try:
+            self.check_commands(
+                "conf.py --help",
+                "conf.py",
+                "conf.py viewstates",
+                'conf.py --app=search --owner=admin viewstates',
+                "conf.py create server SDK-STANZA",
+                "conf.py create server SDK-STANZA testkey=testvalue",
+                "conf.py delete server SDK-STANZA")
+        finally:
+            conf = self.service.confs['server']
+            if 'SDK-STANZA' in conf:
+                conf.delete('SDK-STANZA')
 
     def test_event_types(self):
         self.check_commands(
@@ -143,6 +155,7 @@ class TestCase(testlib.TestCase):
             "index.py disable sdk-tests",
             "index.py enable sdk-tests",
             "index.py clean sdk-tests")
+        self.restartSplunk()
 
     def test_info(self):
         self.check_commands(
@@ -241,18 +254,18 @@ class TestCase(testlib.TestCase):
         custom_searches = [ 
             {
                 "script": "custom_search/bin/usercount.py",
-                "input": "../tests/custom_search/usercount.in",
-                "baseline": "../tests/custom_search/usercount.baseline"
+                "input": "../tests/data/custom_search/usercount.in",
+                "baseline": "../tests/data/custom_search/usercount.baseline"
             },
             { 
                 "script": "twitted/twitted/bin/hashtags.py",
-                "input": "../tests/custom_search/hashtags.in",
-                "baseline": "../tests/custom_search/hashtags.baseline"
+                "input": "../tests/data/custom_search/hashtags.in",
+                "baseline": "../tests/data/custom_search/hashtags.baseline"
             },
             { 
                 "script": "twitted/twitted/bin/tophashtags.py",
-                "input": "../tests/custom_search/tophashtags.in",
-                "baseline": "../tests/custom_search/tophashtags.baseline"
+                "input": "../tests/data/custom_search/tophashtags.in",
+                "baseline": "../tests/data/custom_search/tophashtags.baseline"
             }
         ]
 
@@ -283,7 +296,7 @@ class TestCase(testlib.TestCase):
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
         # Wait until the events get indexed
-        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
+        self.assertEventuallyTrue(lambda: index.refresh()['totalEventCount'] == '2', timeout=200)
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(
@@ -339,4 +352,8 @@ class TestCase(testlib.TestCase):
  
 if __name__ == "__main__":
     os.chdir("../examples")
-    testlib.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

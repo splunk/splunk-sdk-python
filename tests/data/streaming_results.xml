@@ -1,0 +1,48 @@
+<results preview='1'>
+<meta>
+<fieldOrder>
+<field>count</field>
+</fieldOrder>
+</meta>
+<messages>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
+</messages>
+
+	<result offset='0'>
+		<field k='count'>
+			<value><text>1</text></value>
+		</field>
+	</result>
+</results>
+<results preview='1'>
+<meta>
+<fieldOrder>
+<field>count</field>
+</fieldOrder>
+</meta>
+<messages>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
+</messages>
+
+	<result offset='0'>
+		<field k='count'>
+			<value><text>3</text></value>
+		</field>
+	</result>
+</results>
+<results preview='1'>
+<meta>
+<fieldOrder>
+<field>count</field>
+</fieldOrder>
+</meta>
+<messages>
+  <msg type="DEBUG">search context: user="admin", app="search", bs-pathname="/an/obviously/bogus/path/to/splunk/etc"</msg>
+</messages>
+
+	<result offset='0'>
+		<field k='count'>
+			<value><text>54</text></value>
+		</field>
+	</result>
+</results>

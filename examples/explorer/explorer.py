@@ -19,7 +19,13 @@ import webbrowser
 import sys
 import os
 
-import utils
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 import urllib
 
 PORT = 8080

@@ -14,117 +14,84 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import testlib
+import logging
+
 import splunklib.client as client
 
-import testlib
+class FiredAlertTestCase(testlib.SDKTestCase):
+    def setUp(self):
+        super(FiredAlertTestCase, self).setUp()
+        self.index_name = testlib.tmpname()
+        self.assertFalse(self.index_name in self.service.indexes)
+        self.index = self.service.indexes.create(self.index_name)
+        saved_searches = self.service.saved_searches
+        self.saved_search_name = testlib.tmpname()
+        self.assertFalse(self.saved_search_name in saved_searches)
+        query = "search index=%s" % self.index_name
+        kwargs = {'alert_type': 'always',
+                  'alert.severity': "3",
+                  'alert.suppress': "0",
+                  'alert.track': "1",
+                  'dispatch.earliest_time': "-1h",
+                  'dispatch.latest_time': "now",
+                  'is_scheduled': "1",
+                  'cron_schedule': "* * * * *"}
+        self.saved_search = saved_searches.create(
+            self.saved_search_name,
+            query, **kwargs)
 
-def event_count(index):
-    return int(index.content.totalEventCount)
+    def tearDown(self):
+        super(FiredAlertTestCase, self).tearDown()
+        if (self.service.splunk_version >= (5,)):
+            self.service.indexes.delete(self.index_name)
+        for saved_search in self.service.saved_searches:
+            if saved_search.name.startswith('delete-me'):
+                self.service.saved_searches.delete(saved_search.name)
+                self.assertFalse(saved_search.name in self.service.saved_searches)
+                self.assertFalse(saved_search.name in self.service.fired_alerts)
 
-def alert_count(search):
-    return int(search.content.get('triggered_alert_count', 0))
+    def test_new_search_is_empty(self):
+        self.assertEqual(self.saved_search.alert_count, 0)
+        self.assertEqual(len(self.saved_search.history()), 0)
+        self.assertEqual(len(self.saved_search.fired_alerts), 0)
+        self.assertFalse(self.saved_search_name in self.service.fired_alerts)
+        
+    def test_alerts_on_events(self):
+        self.assertEqual(self.saved_search.alert_count, 0)
+        self.assertEqual(len(self.saved_search.fired_alerts), 0)
 
-class TestCase(testlib.TestCase):
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+        self.index.enable()
+        self.assertEventuallyTrue(lambda: self.index.refresh() and self.index['disabled'] == '0', timeout=25)
 
-        searches = service.saved_searches
-        fired_alerts = service.fired_alerts
+        eventCount = int(self.index['totalEventCount'])
+        self.assertEqual(self.index['sync'], '0')
+        self.assertEqual(self.index['disabled'], '0')
+        self.index.refresh()
+        self.index.submit('This is a test ' + testlib.tmpname(),
+                          sourcetype='sdk_use', host='boris')
+        def f():
+            self.index.refresh()
+            return int(self.index['totalEventCount']) == eventCount+1
+        self.assertEventuallyTrue(f, timeout=50)
 
-        if 'sdk-tests' not in service.indexes:
-            service.indexes.create("sdk-tests")
+        def g():
+            self.saved_search.refresh()
+            return self.saved_search.alert_count == 1
+        self.assertEventuallyTrue(g, timeout=200)
 
-        # Clean out the test index
-        index = service.indexes['sdk-tests']
-        index.clean()
-        index.refresh()
-        self.assertEqual(event_count(index), 0)
-
-        # Delete any leftover test search
-        search_name = "sdk-test-search"
-        if search_name in searches: searches.delete(search_name)
-        self.assertFalse(search_name in searches)
-
-        # Create a saved search that will register an alert for any event
-        # submitted to the `sdk-tests` index. Note that the search is not
-        # yet scheduled - we wil schedule after doing a little more cleanup.
-        query = "index=sdk-tests"
-        kwargs = {
-            'actions': "rss",
-            'alert_type': "always",
-            'alert_comparator': "greater than",
-            'alert_threshold': "0",
-            'alert.severity': "5",
-            'alert.suppress': "0",
-            'alert.track': "1",
-            'dispatch.earliest_time': "rt",
-            'dispatch.latest_time': "rt",
-            'is_scheduled': "0",
-            'realtime_schedule': "1",
-            'cron_schedule': "* * * * *"
-        }
-        search = searches.create(search_name, query, **kwargs)
-        self.assertEqual(search.name, search_name)
-        self.assertEqual(search.content.is_scheduled, "0")
-
-        # Clear out any search history that may have matched due to reuse of 
-        # the saved search name.
-        for job in search.history(): job.cancel()
-        testlib.wait(search, lambda search: len(search.history()) == 0)
-        self.assertEqual(len(search.history()), 0)
-
-        # Now schedule the saved search
-        search.update(is_scheduled=1)
-        search.refresh()
-        self.assertEqual(search.content.is_scheduled, "1")
-        self.assertEqual(alert_count(search), 0)
-
-        # Wait for the saved search to run. When it runs we will see a new job
-        # show up in the search's history.
-        testlib.wait(search, lambda search: len(search.history()) == 1)
-        self.assertEqual(len(search.history()), 1)
-
-        # When it first runs the alert count should be zero.
-        search.refresh()
-        self.assertEqual(alert_count(search), 0)
-
-        # And the fired alerts category should not exist
-        self.assertFalse(search_name in fired_alerts)
-
-        # Submit events and verify that they each trigger the expected alert
-        for count in xrange(1, 6):
-            # Submit an event that the search is expected to match, and wait 
-            # for the indexer to process.
-            self.assertTrue(event_count(index) <= count)
-            index.submit("Hello #%d!!!" % count)
-            testlib.wait(index, lambda index: event_count(index) == count)
-
-            # Wait for the saved search to register the triggered alert
-            self.assertTrue(alert_count(search) <= count)
-            testlib.wait(
-                search, 
-                lambda search: alert_count(search) == count, 
-                timeout=120)
-            self.assertEqual(alert_count(search), count)
-
-            # And now .. after all that trouble, verify that we see the alerts!
-            self.assertTrue(search_name in fired_alerts)
-            alert_group = fired_alerts[search_name]
-            self.assertEqual(alert_group.name, search_name)
-            self.assertEqual(alert_group.count, count)
-
-        # Cleanup
-        searches.delete(search_name)
-        self.assertFalse(search_name in searches)
-        self.assertFalse(search_name in fired_alerts)
+        alerts = self.saved_search.fired_alerts
+        self.assertEqual(len(alerts), 1)
 
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for alert_group in service.fired_alerts:
+        for alert_group in self.service.fired_alerts:
             alert_group.count
             for alert in alert_group.alerts:
                 alert.content
 
 if __name__ == "__main__":
-    testlib.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

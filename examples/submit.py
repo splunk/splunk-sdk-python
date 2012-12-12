@@ -16,11 +16,16 @@
 
 """A command line utility that submits event data to Splunk from stdin."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.client as client
 
-from utils import *
+try:
+    from utils import *
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 RULES = {
     "eventhost": {
@@ -47,7 +52,7 @@ def main(argv):
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
     service = client.connect(**kwargs_splunk)
 
-    if not service.indexes.contains(index):
+    if index not in service.indexes:
         error("Index '%s' does not exist." % index, 2)
 
     kwargs_submit = dslice(opts.kwargs, 
@@ -68,7 +73,7 @@ def main(argv):
     cn = service.indexes[index].attach(**kwargs_submit)
     try:
         while True:
-            line = sys.stdin.readline()
+            line = sys.stdin.readline().rstrip('\r\n')
             if len(line) == 0: break
             cn.write(line)
     finally:

@@ -17,11 +17,16 @@
 """A tool to generate event data to a named index."""
 
 import socket
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import time
 import datetime
 from splunklib.client import connect
-from utils import parse
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 SPLUNK_HOST = "localhost"
 SPLUNK_PORT = 9002

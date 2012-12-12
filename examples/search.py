@@ -16,15 +16,18 @@
 
 """A command line utility for executing Splunk searches."""
 
-from pprint import pprint
-
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from time import sleep
 
 from splunklib.binding import HTTPError
 import splunklib.client as client
 
-from utils import *
+try:
+    from utils import *
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 FLAGS_TOOL = [ "verbose" ]
 
@@ -76,12 +79,12 @@ def main(argv):
 
     job = service.jobs.create(search, **kwargs_create)
     while True:
-        stats = job.refresh()(
-            'isDone', 
-            'doneProgress', 
-            'scanCount', 
-            'eventCount', 
-            'resultCount')
+        job.refresh()
+        stats = {'isDone': job['isDone'],
+                 'doneProgress': job['doneProgress'],
+                 'scanCount': job['scanCount'],
+                 'eventCount': job['eventCount'],
+                 'resultCount': job['resultCount']}
         progress = float(stats['doneProgress'])*100
         scanned = int(stats['scanCount'])
         matched = int(stats['eventCount'])

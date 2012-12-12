@@ -13,6 +13,8 @@
 # under the License.
 
 """Retrieves a list of installed apps from Splunk using the client module."""
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import splunklib.client as client
 

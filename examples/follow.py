@@ -18,14 +18,18 @@
    results to stdout."""
 
 from pprint import pprint
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import time
 
 import splunklib.client as client
-import splunklib.data as data
 import splunklib.results as results
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def follow(job, count, items):
     offset = 0 # High-water mark
@@ -36,13 +40,8 @@ def follow(job, count, items):
             job.refresh()
             continue
         stream = items(offset+1)
-        reader = results.ResultsReader(stream)
-        while True:
-            kind = reader.read()
-            if kind == None: break
-            if kind == results.RESULT:
-                event = reader.value
-                pprint(event)
+        for event in results.ResultsReader(stream):
+            pprint(event)
         offset = total
 
 def main():

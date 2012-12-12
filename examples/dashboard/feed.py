@@ -20,12 +20,18 @@
 # in the README.
 
 
-import sys, datetime, urllib2, json
+import sys, os, urllib2, json
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from xml.etree import ElementTree
 
 import splunklib.client as client
 import splunklib.results as results
-from utils import parse, error
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 
 leftronic_access_key = ""
 
@@ -54,14 +60,14 @@ def top_sources(service):
         reader = results.ResultsReader(job.preview())
         data = []
 
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 status_source_xml = result["status_source"].strip()
                 source = status_source_xml
-                if (status_source_xml.startswith("<a")):
+                if status_source_xml.startswith("<a"):
                     try:
                         source = ElementTree.XML(status_source_xml).text
-                    except:
+                    except Exception, e:
                         print status_source_xml
                         raise e
                 
@@ -72,7 +78,7 @@ def top_sources(service):
 
         send_data(access_key = leftronic_access_key, stream_name = "top_sources", point = { "leaderboard": data })
 
-    return (created_job, lambda job: iterate(job))
+    return created_job, lambda job: iterate(job)
 
 def geo(service):
     query = "search index=twitter coordinates_type=Point coordinates_coordinates=* | fields coordinates_coordinates"
@@ -81,8 +87,8 @@ def geo(service):
     def iterate(job):
         reader = results.ResultsReader(job.preview())
         points = []
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 lng, lat = result["coordinates_coordinates"].split(",")
                 point = {
                     "latitude": lat,
@@ -94,7 +100,7 @@ def geo(service):
         send_data(access_key = leftronic_access_key, stream_name = "geo", command = "clear")
         send_data(access_key = leftronic_access_key, stream_name = "geo", point = points)
 
-    return (created_job, lambda job: iterate(job))
+    return created_job, lambda job: iterate(job)
 
 def tweets(service):
     query = "search index=twitter | head 15 | fields user_name, user_screen_name, text, user_profile_image_url "
@@ -102,8 +108,8 @@ def tweets(service):
 
     def iterate(job):
         reader = results.ResultsReader(job.preview())
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 user = result.get("user_name", result.get("user_screen_name", ""))
                 text = result.get("text", "")
                 img = result.get("user_profile_image_url", "")
@@ -115,7 +121,7 @@ def tweets(service):
                 
                 send_data(access_key = leftronic_access_key, stream_name = "tweets", point = point)
     
-    return (created_job, lambda job: iterate(job))
+    return created_job, lambda job: iterate(job)
 
 def counts(service):    
     query = "search index=twitter | stats count by user_id | fields user_id, count | stats count(user_id) as user_count, sum(count) as tweet_count"
@@ -123,8 +129,8 @@ def counts(service):
 
     def iterate(job):
         reader = results.ResultsReader(job.preview())
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 user_count = result["user_count"]
                 tweet_count = result.get("tweet_count", 0)
 
@@ -136,7 +142,7 @@ def counts(service):
                 point = int(tweet_count)
                 send_data(access_key = leftronic_access_key, stream_name = "tweets_count_5m", point = point)
 
-    return (created_job, lambda job: iterate(job))
+    return created_job, lambda job: iterate(job)
 
 def top_tags(service):
     query = 'search index=twitter text=* | rex field=text max_match=1000 "#(?<tag>\w{1,})" | fields tag | mvexpand tag | top 5 tag'
@@ -146,8 +152,8 @@ def top_tags(service):
         reader = results.ResultsReader(job.preview())
         data = []
 
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 tag = result["tag"]
                 count = result["count"]
 
@@ -158,7 +164,7 @@ def top_tags(service):
 
         send_data(access_key = leftronic_access_key, stream_name = "top_tags", point = { "leaderboard": data })
     
-    return (created_job, lambda job: iterate(job))
+    return created_job, lambda job: iterate(job)
 
 def main(argv):
     # Parse the command line args.

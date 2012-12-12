@@ -15,81 +15,117 @@
 # under the License.
 
 from os import path
+import time
+import testlib
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 
 import splunklib.client as client
 
-import testlib
+import logging
 
-class TestCase(testlib.TestCase):
-    def check_index(self, index):
-        self.check_entity(index)
-        keys = [
-            'thawedPath', 'quarantineFutureSecs',
-            'isInternal', 'maxHotBuckets', 'disabled', 'homePath',
-            'compressRawdata', 'maxWarmDBCount', 'frozenTimePeriodInSecs',
-            'memPoolMB', 'maxHotSpanSecs', 'minTime', 'blockSignatureDatabase',
-            'serviceMetaPeriod', 'coldToFrozenDir', 'quarantinePastSecs',
-            'maxConcurrentOptimizes', 'maxMetaEntries', 'minRawFileSyncSecs',
-            'maxMemMB', 'maxTime', 'partialServiceMetaPeriod', 'maxHotIdleSecs',
-            'coldToFrozenScript', 'thawedPath_expanded', 'coldPath_expanded',
-            'defaultDatabase', 'throttleCheckPeriod', 'totalEventCount',
-            'enableRealtimeSearch', 'indexThreads', 'maxDataSize',
-            'currentDBSizeMB', 'homePath_expanded', 'blockSignSize',
-            'syncMeta', 'assureUTF8', 'rotatePeriodInSecs', 'sync',
-            'suppressBannerList', 'rawChunkSizeBytes', 'coldPath',
-            'maxTotalDataSizeMB'
-        ]
-        for key in keys: self.assertTrue(key in index.content)
+class IndexTest(testlib.SDKTestCase):
+    def setUp(self):
+        super(IndexTest, self).setUp()
+        self.index_name = testlib.tmpname()
+        self.index = self.service.indexes.create(self.index_name)
+        self.assertEventuallyTrue(lambda: self.index.refresh()['disabled'] == '0')
 
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
+    def tearDown(self):
+        super(IndexTest, self).tearDown()
+        # We can't delete an index with the REST API before Splunk
+        # 5.0. In 4.x, we just have to leave them lying around until
+        # someone cares to go clean them up. Unique naming prevents
+        # clashes, though.
+        if self.service.splunk_version >= (5,):
+            if self.index_name in self.service.indexes:
+                self.service.indexes.delete(self.index_name)
+            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
+        else:
+            logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
+                            "delete indexes via the REST API in Splunk 4.x")
 
-        for index in service.indexes: 
-            self.check_index(index)
-            index.refresh()
-            self.check_index(index)
+    def totalEventCount(self):
+        self.index.refresh()
+        return int(self.index['totalEventCount'])
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+    def test_delete(self):
+        if self.service.splunk_version >= (5,):
+            self.assertTrue(self.index_name in self.service.indexes)
+            self.service.indexes.delete(self.index_name)
+            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
 
-        if not service.indexes.contains("sdk-tests"):
-            service.indexes.create("sdk-tests")
-        self.assertTrue(service.indexes.contains("sdk-tests"))
+    def test_integrity(self):
+        self.check_entity(self.index)
 
-        index = service.indexes['sdk-tests']
+    def test_default(self):
+        default = self.service.indexes.get_default()
+        self.assertTrue(isinstance(default, str))
 
-        index.disable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '1')
+    def test_disable_enable(self):
+        self.index.disable()
+        self.restartSplunk()
+        self.index.refresh()
+        self.assertEqual(self.index['disabled'], '1')
+        self.index.enable()
+        self.index.refresh()
+        self.assertEqual(self.index['disabled'], '0')
 
-        index.enable()
-        index.refresh()
-        self.assertEqual(index['disabled'], '0')
-            
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
+    def test_submit_and_clean(self):
+        self.index.refresh()
+        originalCount = int(self.index['totalEventCount'])
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == originalCount+1, timeout=50)
 
-        cn = index.attach()
-        cn.write("Hello World!")
+        # Cleaning an enabled index on 4.x takes forever, so we disable it.
+        # However, cleaning it on 5 requires it to be enabled.
+        if self.service.splunk_version < (5,):
+            self.index.disable()
+            self.restartSplunk()
+        self.index.clean(timeout=500)
+        self.assertEqual(self.index['totalEventCount'], '0')
+
+    def test_prefresh(self):
+        self.assertEqual(self.index['disabled'], '0') # Index is prefreshed
+
+    def test_submit(self):
+        eventCount = int(self.index['totalEventCount'])
+        self.assertEqual(self.index['sync'], '0')
+        self.assertEqual(self.index['disabled'], '0')
+        self.index.submit("Hello again!", sourcetype="Boris", host="meep")
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=50)
+
+    def test_submit_via_attach(self):
+        eventCount = int(self.index['totalEventCount'])
+        cn = self.index.attach()
+        cn.send("Hello Boris!\r\n")
         cn.close()
-        testlib.wait(index, lambda index: index['totalEventCount'] == '1')
-        self.assertEqual(index['totalEventCount'], '1')
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
-        index.submit("Hello again!!")
-        testlib.wait(index, lambda index: index['totalEventCount'] == '2')
-        self.assertEqual(index['totalEventCount'], '2')
+    def test_submit_via_attached_socket(self):
+        eventCount = int(self.index['totalEventCount'])
+        f = self.index.attached_socket
+        with f() as sock:
+            sock.send('Hello world!\r\n')
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+1, timeout=60)
 
-        # The following test must run on machine where splunkd runs,
-        # otherwise a failure is expected
-        testpath = path.dirname(path.abspath(__file__))
-        index.upload(path.join(testpath, "testfile.txt"))
-        testlib.wait(index, lambda index: index['totalEventCount'] == '3')
-        self.assertEqual(index['totalEventCount'], '3')
+    def test_upload(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("file_to_upload")
 
-        index.clean()
-        index.refresh()
-        self.assertEqual(index['totalEventCount'], '0')
+        eventCount = int(self.index['totalEventCount'])
+
+        path = self.pathInApp("file_to_upload", ["log.txt"])
+        self.index.upload(path)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == eventCount+4, timeout=60)
 
 if __name__ == "__main__":
-    testlib.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

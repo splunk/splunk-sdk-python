@@ -1,46 +1,52 @@
-# Splunk Test "Framework"
+# Splunk Test Suite
 
-The truth is that there really isn't a Splunk Test Framework. It simply uses
-Python's builtin unittest module.
+The test suite uses Python's standard library and the built-in **unittest** 
+library. If you're using Python 2.7, you're all set. However, if you are using 
+Python 2.6, you'll also need to install the **unittest2** library to get the 
+additional features that were added to Python 2.7 (just run `pip install 
+unittest2` or `easy_install unittest2`).
 
-Each distinct area of the SDK is tested in a single file. For example,
-`splunk.client` is tested in `test_client.py`, while the examples are tested
-in `test_examples.py`.
+To run the unit tests, open a command prompt in the **/splunk-sdk-python** 
+directory and enter:
 
-There are no dependencies to run the tests. You can simply execute:
+    python setup.py test
 
-    cd tests
-    python runtests.py
+You can also run individual test files, which are located in 
+**/splunk-sdk-python/tests**. Each distinct area of the SDK is tested in a 
+single file. For example, roles are tested
+in `test_role.py`. To run this test, open a command prompt in
+the **/splunk-sdk-python/tests** subdirectory and enter:
 
-or:
+    python test_role.py
 
-    cd tests
-    ./runtests.py
+NOTE: Before running the test suite, make sure the instance of Splunk you
+are testing against doesn't have new events being dumped continuously
+into it. Several of the tests rely on a stable event count. It's best
+to test against a clean install of Splunk, but if you can't, you
+should at least disable the *NIX and Windows apps. Do not run the test
+suite against a production instance of Splunk! It will run just fine
+with the free Splunk license.
+
 
 ## Code Coverage
 
-We have support for using the excellent `coverage.py`, which needs to be
-installed on your system. You can get more information about the module
-at the author's website: http://nedbatchelder.com/code/coverage/
+Coverage.py is an excellent tool for measuring code coverage of Python programs.
 
-To install it, simply use `easy_install` or `pip`:
+To install it, use easy_install:
 
     easy_install coverage
 
-or
+Or use pip:
 
     pip install coverage
 
-Once you have `coverage.py` installed, you can run get coverage information
-as follows:
+To generate a report of the code coverage of the unit test suite, open a command
+prompt in the **/splunk-sdk-python** directory and enter:
 
-    cd tests
-    coverage run runtests.py
-    coverage combine
-    coverage report
+    python setup.py coverage
 
-Should you want to get an HTML report:
+This command runs the entire test suite and writes an HTML coverage report to 
+the **/splunk-sdk-python/coverage_report** directory.
 
-    coverage html
-
-and open `coverage_html_report/index.html` in your favorite browser.
+For more information about Coverage.py, see the author's website 
+([http://nedbatchelder.com/code/coverage/](http://nedbatchelder.com/code/coverage/)).

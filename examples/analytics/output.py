@@ -14,10 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import urllib2, sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import splunklib.client as client
 import splunklib.results as results
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 __all__ = [
     "TimeRange",
@@ -37,6 +42,18 @@ class TimeRange:
     WEEK="1w"
     MONTH="1mon"    
 
+def counts(job, result_key):
+    applications = []
+    reader = results.ResultsReader(job.results())
+    for result in reader:
+        if isinstance(result, dict):
+            applications.append({
+                    "name": result[result_key],
+                    "count": int(result["count"] or 0)
+                    })
+    return applications
+    
+
 class AnalyticsRetriever:
     def __init__(self, application_name, splunk_info, index = ANALYTICS_INDEX_NAME):
         self.application_name = application_name
@@ -46,32 +63,12 @@ class AnalyticsRetriever:
     def applications(self):
         query = "search index=%s | stats count by application" % (self.index)
         job = self.splunk.jobs.create(query, exec_mode="blocking")
-
-        applications = []
-        reader = results.ResultsReader(job.results())
-        for kind,result in reader:
-            if kind == results.RESULT:
-                applications.append({
-                    "name": result["application"],
-                    "count": int(result["count"] or 0)
-                })
-
-        return applications
+        return counts(job, "application")
 
     def events(self):
         query = "search index=%s application=%s | stats count by event" % (self.index, self.application_name)
         job = self.splunk.jobs.create(query, exec_mode="blocking")
-
-        events = []
-        reader = results.ResultsReader(job.results())
-        for kind,result in reader:
-            if kind == results.RESULT:
-                events.append({
-                    "name": result["event"],
-                    "count": int(result["count"] or 0)
-                })
-
-        return events
+        return counts(job, "event")
 
     def properties(self, event_name):
         query = 'search index=%s application=%s event="%s" | stats dc(%s*) as *' % (
@@ -81,17 +78,18 @@ class AnalyticsRetriever:
 
         properties = []
         reader = results.ResultsReader(job.results())
-        for kind,result in reader:
-            if kind == results.RESULT:
-                for field, count in result.iteritems():
-                    # Ignore internal ResultsReader properties
-                    if field.startswith("$"):
-                        continue
+        for result in reader:
+            if not isinstance(result, dict):
+                continue
+            for field, count in result.iteritems():
+                # Ignore internal ResultsReader properties
+                if field.startswith("$"):
+                    continue
 
-                    properties.append({
+                properties.append({
                         "name": field,
                         "count": int(count or 0)
-                    })
+                        })
 
         return properties
 
@@ -105,8 +103,8 @@ class AnalyticsRetriever:
 
         values = []
         reader = results.ResultsReader(job.results())
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 if result[property]:
                     values.append({
                         "name": result[property],
@@ -125,8 +123,8 @@ class AnalyticsRetriever:
 
         over_time = {}
         reader = results.ResultsReader(job.results())
-        for kind,result in reader:
-            if kind == results.RESULT:
+        for result in reader:
+            if isinstance(result, dict):
                 # Get the time for this entry
                 time = result["_time"]
                 del result["_time"]

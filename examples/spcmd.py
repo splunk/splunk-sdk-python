@@ -28,11 +28,16 @@ try:
     import readline # Activates readline editing, ignore for windows
 except ImportError:
     pass
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.client as client
 
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 class Session(InteractiveInterpreter):
     def __init__(self, **kwargs):

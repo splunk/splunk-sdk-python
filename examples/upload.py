@@ -17,11 +17,15 @@
 """A command line utility that uploads a file to Splunk for indexing."""
 
 from os import path
-import sys
-
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import splunklib.client as client
 
-from utils import *
+try:
+    from utils import *
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 RULES = {
     "eventhost": {
@@ -59,7 +63,7 @@ def main(argv):
     service = client.connect(**kwargs_splunk)
 
     name = opts.kwargs['index']
-    if not service.indexes.contains(name):
+    if name not in service.indexes:
         error("Index '%s' does not exist." % name, 2)
     index = service.indexes[name]
 

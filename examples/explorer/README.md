@@ -23,6 +23,17 @@ When the API call is made, it will issue a call to the Splunk server (through a
 locally hosted redirect server to work around cross-domain issues), and display
 the response it received.
 
+If you are using a web browser on a different machine than you're running
+explorer.py on, you need to open explorer.html by hand, and set the values at
+the top of the page appropriately. Scheme, host, and port are the values
+required for explorer.py to refer to splunkd. So if explorer.py is running on
+the same machine as splunkd, then host can be set to localhost even though from
+the browser you are opening explorer.html in, it may not be localhost. The values
+of redirect host and redirect port are the host and port your browser needs to refer
+to to reach explorer.py. The default port for explorer.py is 8080. You can leave
+owner and app empty, but set username and password to your login information for
+splunkd.
+
 ## Future Work
 
 - Switch to JSONP once the server supports it

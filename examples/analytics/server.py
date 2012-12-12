@@ -14,7 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys, json
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from bottle import route, run, debug, template, static_file, request
 
@@ -22,7 +23,11 @@ from time import strptime, mktime
 
 from input import AnalyticsTracker
 from output import AnalyticsRetriever, TimeRange
-import utils
+try:
+    import utils
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 splunk_opts = None
 retrievers = {}

@@ -17,11 +17,16 @@
 """A command line tool lists out the Splunk logging categories and their
    current logging level."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.client as client
 
-from utils import error, parse
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main(argv):
     usage = "usage: %prog [options]"

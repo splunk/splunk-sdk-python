@@ -22,10 +22,15 @@
 # on.
 
 from pprint import pprint
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from splunklib.client import connect
-from utils import error, parse, cmdline
+try:
+    from utils import error, parse, cmdline
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 HELP_EPILOG = """
 Commands:            
@@ -182,7 +187,7 @@ class Program:
         """Convert the given search specifier into a search-id (sid)."""
         if spec.startswith('@'):
             index = int(spec[1:])
-            jobs = self.service.jobs()
+            jobs = self.service.jobs.list()
             if index < len(jobs):
                 return jobs[index].sid
         return spec # Assume it was already a valid sid

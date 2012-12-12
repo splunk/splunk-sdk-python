@@ -7,6 +7,9 @@
 .coverage.*
 __stdout__
 docs/_build
+build/
 proxypid
 proxy.log
 MANIFEST
+coverage_report
+test.log

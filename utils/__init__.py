@@ -63,6 +63,11 @@ RULES_SPLUNK = {
         'default': None,
         'help': "Password to login with" 
     },
+    'version': {
+        'flags': ["--version"],
+        'default': None,
+        'help': 'Ignore. Used by JavaScript SDK.'
+    }
 }
 
 FLAGS_SPLUNK = RULES_SPLUNK.keys()

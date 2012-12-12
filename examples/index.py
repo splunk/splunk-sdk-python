@@ -16,11 +16,16 @@
 
 """A command line utility for interacting with Splunk indexes."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from splunklib.client import connect
 
-from utils import *
+try:
+    from utils import *
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 HELP_EPILOG = """
 Commands:
@@ -66,7 +71,7 @@ class Program:
 
         name = argv[0]
 
-        if self.service.indexes.contains(name):
+        if name in self.service.indexes:
             print "Index '%s' already exists" % name
             return
 
@@ -130,7 +135,7 @@ class Program:
         if len(opts.args) == 0:
             error("Command requires an index name", 2)
         for name in opts.args:
-            if not self.service.indexes.contains(name):
+            if name not in self.service.indexes:
                 error("Index '%s' does not exist" % name, 2)
             index = self.service.indexes[name]
             func(index)
@@ -142,7 +147,7 @@ class Program:
             error("Command requires an index name", 2)
         name = argv[0]
 
-        if not self.service.indexes.contains(name):
+        if name not in self.service.indexes:
             error("Index '%s' does not exist" % name, 2)
         index = self.service.indexes[name]
 

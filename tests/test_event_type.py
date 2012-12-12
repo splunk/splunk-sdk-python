@@ -14,30 +14,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import testlib
+import logging
+
 import splunklib.client as client
 
-import testlib
-
-class TestCase(testlib.TestCase):
-    def check_event_type(self, event_type):
-        self.check_entity(event_type)
-        keys = ['description', 'priority', 'search']
-        for key in keys: self.assertTrue(key, event_type)
-
+class TestRead(testlib.SDKTestCase):
     def test_read(self):
-        service = client.connect(**self.opts.kwargs)
+        for event_type in self.service.event_types.list(count=1):
+            self.check_entity(event_type)
 
-        for event_type in service.event_types:
-            self.check_event_type(event_type)
-
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
-
-        event_types = service.event_types
-
-        if 'sdk-test' in event_types:
-            event_types.delete('sdk-test')
-        self.assertFalse('sdk-test' in event_types)
+class TestCreate(testlib.SDKTestCase):
+    def test_create(self):
+        self.event_type_name = testlib.tmpname()
+        event_types = self.service.event_types
+        self.assertFalse(self.event_type_name in event_types)
 
         kwargs = {}
         kwargs['search'] = "index=_internal *"
@@ -45,25 +36,60 @@ class TestCase(testlib.TestCase):
         kwargs['disabled'] = 1
         kwargs['priority'] = 2
 
-        event_type = event_types.create('sdk-test', **kwargs)
-        self.assertTrue('sdk-test' in event_types)
+        event_type = event_types.create(self.event_type_name, **kwargs)
+        self.assertTrue(self.event_type_name in event_types)
+        self.assertEqual(self.event_type_name, event_type.name)
 
-        self.assertEqual('sdk-test', event_type.name)
-        self.check_content(event_type, **kwargs)
+    def tearDown(self):
+        super(TestCreate, self).setUp()
+        try:
+            self.service.event_types.delete(self.event_type_name)
+        except KeyError:
+            pass
 
+class TestEventType(testlib.SDKTestCase):
+    def setUp(self):
+        super(TestEventType, self).setUp()
+        self.event_type_name = testlib.tmpname()
+        self.event_type = self.service.event_types.create(
+            self.event_type_name,
+            search="index=_internal *")
+
+    def tearDown(self):
+        super(TestEventType, self).setUp()
+        try:
+            self.service.event_types.delete(self.event_type_name)
+        except KeyError:
+            pass
+
+    def test_delete(self):
+        self.assertTrue(self.event_type_name in self.service.event_types)
+        self.service.event_types.delete(self.event_type_name)
+        self.assertFalse(self.event_type_name in self.service.event_types)
+
+    def test_update(self):
+        kwargs = {}
         kwargs['search'] = "index=_audit *"
         kwargs['description'] = "An audit event"
-        kwargs['priority'] = 3
-        event_type.update(**kwargs)
-        event_type.refresh()
-        self.check_content(event_type, **kwargs)
-
-        event_type.enable()
-        event_type.refresh()
-        self.check_content(event_type, disabled=0)
-
-        event_types.delete('sdk-test')
-        self.assertFalse('sdk-teset' in event_types)
+        kwargs['priority'] = '3'
+        self.event_type.update(**kwargs)
+        self.event_type.refresh()
+        self.assertEqual(self.event_type['search'], kwargs['search'])
+        self.assertEqual(self.event_type['description'], kwargs['description'])
+        self.assertEqual(self.event_type['priority'], kwargs['priority'])
+                         
+    def test_enable_disable(self):
+        self.assertEqual(self.event_type['disabled'], '0')
+        self.event_type.disable()
+        self.event_type.refresh()
+        self.assertEqual(self.event_type['disabled'], '1')
+        self.event_type.enable()
+        self.event_type.refresh()
+        self.assertEqual(self.event_type['disabled'], '0')
 
 if __name__ == "__main__":
-    testlib.main()
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    unittest.main()

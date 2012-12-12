@@ -19,11 +19,17 @@
    binds to a sampling of endpoints showing how to access collections,
    entities and 'method-like' endpoints."""
 
-import sys
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from splunklib.binding import connect
 
-from utils import parse
+try:
+    from utils import parse
+except ImportError:
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+
 
 class Service:
     def __init__(self, context):

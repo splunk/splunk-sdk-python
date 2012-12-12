@@ -1,5 +1,119 @@
 # Splunk Python SDK Changelog
 
+## Version 1.0
+
+### New features and APIs
+
+* An `AuthenticationError` exception has been added.
+  This exception is a subclass of `HTTPError`, so existing code that expects 
+  HTTP 401 (Unauthorized) will continue to work.
+ 
+* An `"autologin"` argument has been added to the `splunklib.client.connect` and
+  `splunklib.binding.connect` functions. When set to true, Splunk automatically 
+  tries to log in again if the session terminates.
+ 
+* The `is_ready` and `is_done` methods have been added to the `Job` class to 
+  improve the verification of a job's completion status.
+ 
+* Modular inputs have been added (requires Splunk 5.0+).
+ 
+* The `Jobs.export` method has been added, enabling you to run export searches.
+ 
+* The `Service.restart` method now takes a `"timeout"` argument. If a timeout 
+  period is specified, the function blocks until splunkd has restarted or the 
+  timeout period has passed. Otherwise, if a timeout period has not been 
+  specified, the function returns immediately and you must check whether splunkd
+  has restarted yourself.
+ 
+* The `Collections.__getitem__` method can fetch items from collections with an 
+  explicit namespace. This example shows how to retrieve a saved search for a 
+  specific namespace:
+
+        from splunklib.binding import namespace
+        ns = client.namespace(owner='nobody', app='search')
+        result = service.saved_searches['Top five sourcetypes', ns]       
+
+* The `SavedSearch` class has been extended by adding the following:
+    - Properties: `alert_count`, `fired_alerts`, `scheduled_times`, `suppressed`
+    - Methods: `suppress`, `unsuppress`
+ 
+* The `Index.attached_socket` method has been added. This method can be used 
+  inside a `with` block to submit multiple events to an index, which is a more 
+  idiomatic style than using the existing `Index.attach` method.
+ 
+* The `Indexes.get_default` method has been added for returnings the name of the
+  default index.
+ 
+* The `Service.search` method has been added as a shortcut for creating a search
+  job.
+ 
+* The `User.role_entities` convenience method has been added for returning a 
+  list of role entities of a user.
+ 
+* The `Role` class has been added, including the `grant` and `revoke` 
+  convenience methods for adding and removing capabilities from a role.
+ 
+* The `Application.package` and `Application.updateInfo` methods have been 
+  added.
+ 
+
+### Breaking changes
+
+* `Job` objects are no longer guaranteed to be ready for querying.
+  Client code should call the `Job.is_ready` method to determine when it is safe
+  to access properties on the job.
+  
+* The `Jobs.create` method can no longer be used to create a oneshot search
+  (with `"exec_mode=oneshot"`). Use the `Jobs.oneshot` method instead.
+  
+* The `ResultsReader` interface has changed completely, including:
+    - The `read` method has been removed and you must iterate over the 
+      `ResultsReader` object directly.
+    - Results from the iteration are either `dict`s or instances of 
+      `results.Message`.
+      
+* All `contains` methods on collections have been removed.
+  Use Python's `in` operator instead. For example: 
+  
+        # correct usage
+        'search' in service.apps
+       
+        # incorrect usage
+        service.apps.contains('search')
+    
+* The `Collections.__getitem__` method throws `AmbiguousReferenceException` if
+  there are multiple entities that have the specified entity name in
+  the current namespace.
+  
+* The order of arguments in the `Inputs.create` method has changed. The `name`
+  argument is now first, to be consistent with all other collections and all 
+  other operations on `Inputs`.
+  
+* The `ConfFile` class has been renamed to `ConfigurationFile`.
+
+* The `Confs` class has been renamed to `Configurations`.
+  
+* Namespace handling has changed and any code that depends on namespace handling
+  in detail may break.
+  
+* Calling the `Job.cancel` method on a job that has already been cancelled no 
+  longer has any effect.
+  
+* The `Stanza.submit` method now takes a `dict` instead of a raw string.
+
+
+### Bug fixes and miscellaneous changes
+
+* Collection listings are optionally paginated.
+ 
+* Connecting with a pre-existing session token works whether the token begins 
+  with 'Splunk ' or not; the SDK handles either case correctly.
+  
+* Documentation has been improved and expanded.
+ 
+* Many small bugs have been fixed.
+
+
 ## 0.8.0 (beta)
 
 ### Features

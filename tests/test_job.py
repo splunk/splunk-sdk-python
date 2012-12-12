@@ -14,149 +14,371 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from time import sleep
+import testlib
+import logging
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import splunklib.client as client
 import splunklib.results as results
 
-import testlib
+from splunklib.binding import _log_duration
 
-class TestCase(testlib.TestCase):
-    # UNDONE: Shouldn't the following assert something on exit?
-    def check_properties(self, job, properties, secs = 10):
-        while secs > 0 and len(properties) > 0:
-            content = job.refresh().content
+class TestUtilities(testlib.SDKTestCase):
+    def test_service_search(self):
+        job = self.service.search('search index=_internal earliest=-1m | head 3')
+        self.assertTrue(job.sid in self.service.jobs)
+        job.cancel()
 
-            # Try and check every property we specified. If we fail,
-            # we'll try again later. If we succeed, delete it so we
-            # don't check it again.
-            for k, v in properties.items():
-                try:
-                    self.assertEqual(content[k], v)
-                    
-                    # Since we succeeded, delete it
-                    del properties[k]
-                except:
-                    pass
+    def test_oneshot_with_garbage_fails(self):
+        jobs = self.service.jobs
+        self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
 
-            secs -= 1
-            sleep(1)
+    def test_oneshot(self):
+        jobs = self.service.jobs
+        stream = jobs.oneshot("search index=_internal earliest=-1m | head 3")
+        result = results.ResultsReader(stream)
+        ds = list(result)
+        self.assertEqual(result.is_preview, False)
+        self.assertTrue(isinstance(ds[0], dict) or \
+                            isinstance(ds[0], results.Message))
+        nonmessages = [d for d in ds if isinstance(d, dict)]
+        self.assertTrue(len(nonmessages) <= 3)
+
+    def test_export_with_garbage_fails(self):
+        jobs = self.service.jobs
+        self.assertRaises(client.HTTPError, jobs.export, "asdaf;lkj2r23=")
+
+    def test_export(self):
+        jobs = self.service.jobs
+        stream = jobs.export("search index=_internal earliest=-1m | head 3")
+        result = results.ResultsReader(stream)
+        ds = list(result)
+        self.assertEqual(result.is_preview, False)
+        self.assertTrue(isinstance(ds[0], dict) or \
+                            isinstance(ds[0], results.Message))
+        nonmessages = [d for d in ds if isinstance(d, dict)]
+        self.assertTrue(len(nonmessages) <= 3)
+    
+    def test_export_docstring_sample(self):
+        import splunklib.client as client
+        import splunklib.results as results
+        service = self.service # cheat
+        rr = results.ResultsReader(service.jobs.export("search * | head 5"))
+        for result in rr:
+            if isinstance(result, results.Message):
+                # Diagnostic messages may be returned in the results
+                pass #print '%s: %s' % (result.type, result.message)
+            elif isinstance(result, dict):
+                # Normal events are returned as dicts
+                pass #print result
+        assert rr.is_preview == False
+    
+    def test_results_docstring_sample(self):
+        import splunklib.client as client
+        import splunklib.results as results
+        from time import sleep
+        service = self.service # cheat
+        job = service.jobs.create("search * | head 5")
+        while not job.is_done():
+            sleep(.2)
+        rr = results.ResultsReader(job.results())
+        for result in rr:
+            if isinstance(result, results.Message):
+                # Diagnostic messages may be returned in the results
+                pass #print '%s: %s' % (result.type, result.message)
+            elif isinstance(result, dict):
+                # Normal events are returned as dicts
+                pass #print result
+        assert rr.is_preview == False
+    
+    def test_preview_docstring_sample(self):
+        import splunklib.client as client
+        import splunklib.results as results
+        service = self.service # cheat
+        job = service.jobs.create("search * | head 5")
+        rr = results.ResultsReader(job.preview())
+        for result in rr:
+            if isinstance(result, results.Message):
+                # Diagnostic messages may be returned in the results
+                pass #print '%s: %s' % (result.type, result.message)
+            elif isinstance(result, dict):
+                # Normal events are returned as dicts
+                pass #print result
+        if rr.is_preview:
+            pass #print "Preview of a running search job."
+        else:
+            pass #print "Job is finished. Results are final."
+    
+    def test_oneshot_docstring_sample(self):
+        import splunklib.client as client
+        import splunklib.results as results
+        service = self.service # cheat
+        rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
+        for result in rr:
+            if isinstance(result, results.Message):
+                # Diagnostic messages may be returned in the results
+                pass #print '%s: %s' % (result.type, result.message)
+            elif isinstance(result, dict):
+                # Normal events are returned as dicts
+                pass #print result
+        assert rr.is_preview == False
+
+    def test_normal_job_with_garbage_fails(self):
+        jobs = self.service.jobs
+        try:
+            bad_search = "abcd|asfwqqq"
+            jobs.create(bad_search)
+        except client.HTTPError as he:
+            self.assertTrue('abcd' in str(he))
+            return
+        self.fail("Job with garbage search failed to raise TypeError.")
+
+    def test_cancel(self):
+        jobs = self.service.jobs
+        job = jobs.create(query="search index=_internal | head 3",
+                          earliest_time="-1m",
+                          latest_time="now")
+        self.assertTrue(job.sid in jobs)
+        job.cancel()
+        self.assertFalse(job.sid in jobs)
+
+    def test_cancel_is_idempotent(self):
+        jobs = self.service.jobs
+        job = jobs.create(query="search index=_internal | head 3",
+                          earliest_time="-1m",
+                          latest_time="now")
+        self.assertTrue(job.sid in jobs)
+        job.cancel()
+        job.cancel() # Second call should be nop
 
     def check_job(self, job):
         self.check_entity(job)
+        keys = ['cursorTime', 'delegate', 'diskUsage', 'dispatchState',
+                'doneProgress', 'dropCount', 'earliestTime', 'eventAvailableCount',
+                'eventCount', 'eventFieldCount', 'eventIsStreaming',
+                'eventIsTruncated', 'eventSearch', 'eventSorting', 'isDone',
+                'isFailed', 'isFinalized', 'isPaused', 'isPreviewEnabled',
+                'isRealTimeSearch', 'isRemoteTimeline', 'isSaved', 'isSavedSearch',
+                'isZombie', 'keywords', 'label', 'latestTime', 'messages',
+                'numPreviews', 'priority', 'remoteSearch', 'reportSearch',
+                'resultCount', 'resultIsStreaming', 'resultPreviewCount',
+                'runDuration', 'scanCount', 'searchProviders', 'sid',
+                'statusBuckets', 'ttl']
+        for key in keys:
+            self.assertTrue(key in job.content)
 
-        keys = [
-            'cursorTime', 'delegate', 'diskUsage', 'dispatchState',
-            'doneProgress', 'dropCount', 'earliestTime', 'eventAvailableCount',
-            'eventCount', 'eventFieldCount', 'eventIsStreaming',
-            'eventIsTruncated', 'eventSearch', 'eventSorting', 'isDone',
-            'isFailed', 'isFinalized', 'isPaused', 'isPreviewEnabled',
-            'isRealTimeSearch', 'isRemoteTimeline', 'isSaved', 'isSavedSearch',
-            'isZombie', 'keywords', 'label', 'latestTime', 'messages',
-            'numPreviews', 'priority', 'remoteSearch', 'reportSearch',
-            'resultCount', 'resultIsStreaming', 'resultPreviewCount',
-            'runDuration', 'scanCount', 'searchProviders', 'sid',
-            'statusBuckets', 'ttl'
-        ]
-        for key in keys: self.assertTrue(key in job.content)
-
-    def test_read(self):
-        service = client.connect(**self.opts.kwargs)
-
-        for job in service.jobs: 
+    def test_read_jobs(self):
+        jobs = self.service.jobs
+        for job in jobs.list(count=5):
             self.check_job(job)
             job.refresh()
             self.check_job(job)
 
-    def test_crud(self):
-        service = client.connect(**self.opts.kwargs)
+class TestJobWithDelayedDone(testlib.SDKTestCase):
+    def setUp(self):
+        super(TestJobWithDelayedDone, self).setUp()
+        self.job = None
 
-        jobs = service.jobs
+    def tearDown(self):
+        super(TestJobWithDelayedDone, self).tearDown()
+        if self.job is not None:
+            self.job.cancel()
+            self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
 
-        if not service.indexes.contains("sdk-tests"):
-            service.indexes.create("sdk-tests")
-        service.indexes['sdk-tests'].clean()
+    def test_enable_preview(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("sleep_command")
+        self.query = "search index=_internal | sleep 100"
+        self.job = self.service.jobs.create(
+            query=self.query,
+            earliest_time="-1m",
+            priority=5,
+            latest_time="now")
+        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        self.job.enable_preview()
+        def is_preview():
+            self.job.refresh()
+            if self.job.is_done():
+                self.fail('Job finished before preview enabled.')
+            return self.job['isPreviewEnabled'] == '1'
+        self.assertEventuallyTrue(is_preview)
 
-        # Make sure we can create a job
-        job = jobs.create("search index=sdk-tests")
-        self.assertTrue(jobs.contains(job.sid))
+    def test_setpriority(self):
+        if not self.app_collection_installed():
+            print "Test requires sdk-app-collection. Skipping."
+            return
+        self.install_app_from_collection("sleep_command")
+        self.query = "search index=_internal | sleep 100"
+        self.job = self.service.jobs.create(
+            query=self.query,
+            earliest_time="-1m",
+            priority=5,
+            latest_time="now")
+        # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
+        # of a job unless Splunk is running as root. This is because Splunk jobs
+        # are tied up with operating system processes and their priorities.
+        self.assertEqual(5, int(self.job['priority']))
 
-        # Make sure we can cancel the job
-        job.cancel()
-        self.assertFalse(jobs.contains(job.sid))
+        new_priority = 3
+        self.job.set_priority(new_priority)
 
-        # Search for non-existant data
-        job = jobs.create("search index=sdk-tests TERM_DOES_NOT_EXIST")
-        testlib.wait(job, lambda job: job['isDone'] == '1')
-        self.assertEqual(job['isDone'], '1')
-        self.assertEqual(job['eventCount'], '0')
-        job.finalize()
+        def f():
+            if self.job.is_done():
+                self.fail("Job already done before priority was set.")
+            self.job.refresh()
+            return int(self.job['priority']) == new_priority
+        self.assertEventuallyTrue(f, timeout=120)
+
+class TestJob(testlib.SDKTestCase):
+    def setUp(self):
+        super(TestJob, self).setUp()
+        self.query = "search index=_internal | head 3"
+        self.job = self.service.jobs.create(
+            query=self.query, 
+            earliest_time="-1m", 
+            latest_time="now")
+
+    def tearDown(self):
+        super(TestJob, self).tearDown()
+        self.job.cancel()
+
+    @_log_duration
+    def test_get_preview_and_events(self):
+        self.assertEventuallyTrue(self.job.is_done)
+        self.assertLessEqual(int(self.job['eventCount']), 3)
+
+        preview_stream = self.job.preview()
+        preview_r = results.ResultsReader(preview_stream)
+        self.assertFalse(preview_r.is_preview)
+
+        events_stream = self.job.events()
+        events_r = results.ResultsReader(events_stream)
+
+        n_events = len([x for x in events_r if isinstance(x, dict)])
+        n_preview = len([x for x in preview_r if isinstance(x, dict)])
+        self.assertEqual(n_events, n_preview)
+
+    def test_pause(self):
+        if self.job['isPaused'] == '1':
+            self.job.unpause()
+            self.job.refresh()
+            self.assertEqual(self.job['isPaused'], '0')
+
+        self.job.pause()
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
+
+    def test_unpause(self):
+        if self.job['isPaused'] == '0':
+            self.job.pause()
+            self.job.refresh()
+            self.assertEqual(self.job['isPaused'], '1')
+        self.job.unpause()
+        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '0')
+
+    def test_finalize(self):
+        if self.job['isFinalized'] == '1':
+            self.fail("Job is already finalized; can't test .finalize() method.")
+        else:
+            self.job.finalize()
+            self.assertEventuallyTrue(lambda: self.job.refresh()['isFinalized'] == '1')
+
+    def test_setttl(self):
+        old_ttl = int(self.job['ttl'])
+        new_ttl = old_ttl + 1000
         
-        # Create a new job
-        job = jobs.create("search * | head 1 | stats count")
-        self.assertTrue(jobs.contains(job.sid))
+        from datetime import datetime
+        start_time = datetime.now()
+        self.job.set_ttl(new_ttl)
 
-        # Set various properties on it
-        job.disable_preview()
-        job.pause()
-        job.set_ttl(1000)
-        job.set_priority(5)
-        job.touch()
-        job.refresh()
+        tries = 3
+        while True:
+            self.job.refresh()
+            ttl = int(self.job['ttl'])
+            if ttl <= new_ttl and ttl > old_ttl:
+                break
+            else:
+                tries -= 1
+        self.assertLessEqual(ttl, new_ttl)
+        self.assertGreater(ttl, old_ttl)
 
-        # Assert that the properties got set properly
-        self.check_properties(job, {
-            'isPreviewEnabled': '0',
-            'isPaused': '1',
-            'ttl': '1000',
-            'priority': '5'
-        })
+    def test_touch(self):
+        # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
+        # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
+        # so we'll wait 1.1s before we start.
+        import time; time.sleep(2)
+        old_ttl = int(self.job['ttl'])
+        self.job.touch()
+        self.job.refresh()
+        new_ttl = int(self.job['ttl'])
+        if new_ttl == old_ttl:
+            self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
+        self.assertGreater(int(self.job['ttl']), old_ttl)
 
-        # Set more properties
-        job.enable_preview()
-        job.unpause()
-        job.finalize()
-        job.refresh()
+class TestResultsReader(unittest.TestCase):
+    def test_results_reader(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('data/results.xml') as input:
+            reader = results.ResultsReader(input)
+            self.assertFalse(reader.is_preview)
+            N_results = 0
+            N_messages = 0
+            for r in reader:
+                try:
+                    from collections import OrderedDict
+                except:
+                    from splunklib.ordereddict import OrderedDict
+                self.assertTrue(isinstance(r, OrderedDict) 
+                                or isinstance(r, results.Message))
+                if isinstance(r, OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 4999)
+            self.assertEqual(N_messages, 2)
 
-        # Assert that they got set properly
-        self.check_properties(job, {
-            'isPreviewEnabled': '1',
-            'isPaused': '0',
-            'isFinalized': '1'
-        })
+    def test_results_reader_with_streaming_results(self):
+        # Run jobs.export("search index=_internal | stats count",
+        # earliest_time="rt", latest_time="rt") and you get a
+        # streaming sequence of XML fragments containing results.
+        with open('data/streaming_results.xml') as input:
+            reader = results.ResultsReader(input)
+            N_results = 0
+            N_messages = 0
+            for r in reader:
+                try:
+                    from collections import OrderedDict
+                except:
+                    from splunklib.ordereddict import OrderedDict
+                self.assertTrue(isinstance(r, OrderedDict) 
+                                or isinstance(r, results.Message))
+                if isinstance(r, OrderedDict):
+                    N_results += 1
+                elif isinstance(r, results.Message):
+                    N_messages += 1
+            self.assertEqual(N_results, 3)
+            self.assertEqual(N_messages, 3)
+        
 
-        job.cancel()
-        self.assertFalse(jobs.contains(job.sid))
+    def test_xmldtd_filter(self):
+        from StringIO import StringIO
+        s = results._XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
+        self.assertEqual(s.read(), "<boris>Other stuf</boris> ab")
 
-    def test_results(self):
-        service = client.connect(**self.opts.kwargs)
-
-        jobs = service.jobs
-
-        # Run a new job to get the results, but we also make
-        # sure that there is at least one event in the index already
-        index = service.indexes['sdk-tests']
-        old_event_count = int(index['totalEventCount'])
-        if old_event_count == 0:
-            index.submit("test event")
-            testlib.wait(index, lambda index: index['totalEventCount'] == '1')
-
-        job = jobs.create("search index=sdk-tests | head 1 | stats count")
-        testlib.wait(job, lambda job: job['isDone'] == '1')
-        self.assertEqual(job['isDone'], '1')
-
-        # Fetch the results
-        reader = results.ResultsReader(job.results())
-
-        # The first one should always be RESULTS
-        kind, result = reader.next()
-        self.assertEqual(results.RESULTS, kind)
-        self.assertEqual(int(result["preview"]), 0)
-
-        # The second is always the actual result
-        kind, result = reader.next()
-        self.assertEqual(results.RESULT, kind)
-        self.assertEqual(int(result["count"]), 1)
+    def test_concatenated_stream(self):
+        from StringIO import StringIO
+        s = results._ConcatenatedStream(StringIO("This is a test "),
+                                       StringIO("of the emergency broadcast system."))
+        self.assertEqual(s.read(3), "Thi")
+        self.assertEqual(s.read(20), 's is a test of the e')
+        self.assertEqual(s.read(), 'mergency broadcast system.')
 
 if __name__ == "__main__":
-    testlib.main()
+    unittest.main()

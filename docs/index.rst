@@ -1,4 +1,4 @@
-Welcome to the API reference for the Splunk Python SDK, which describes the modules that are included in the Splunk Python SDK.
+Welcome to the API reference for the Splunk SDK for Python, which describes the modules that are included in the Splunk SDK for Python.
 For more information about the SDK, see the `Splunk Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
 
 .. toctree::

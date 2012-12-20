@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Runs all the Splunk Python SDK unit tests."""
+"""Runs all the Splunk SDK for Python unit tests."""
 
 import os
 try:

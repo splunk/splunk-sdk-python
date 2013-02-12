@@ -15,7 +15,7 @@
 # under the License.
 
 # A sample that demonstrates a custom HTTP handler for the Splunk service,
-# as well as showing how you could use the Splunk Python SDK with coroutine
+# as well as showing how you could use the Splunk SDK for Python with coroutine
 # based systems like Eventlet.
 
 #### Main Code

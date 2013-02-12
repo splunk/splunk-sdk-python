@@ -1,4 +1,4 @@
-# Splunk Python SDK Changelog
+# Splunk SDK for Python Changelog
 
 ## Version 1.0
 

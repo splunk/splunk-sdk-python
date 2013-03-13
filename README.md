@@ -45,10 +45,8 @@ Splunk and system requirements, see
 [Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). 
 
 #### Splunk SDK for Python
-Get the Splunk SDK for Python from [GitHub](https://github.com/) and clone the 
-resources to your computer. For example, use the following command: 
+Get the Splunk SDK for Python&mdash;[download the SDK as a ZIP](https://github.com/splunk/splunk-sdk-python/archive/master.zip) and extract the files. Or, if you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
-    git clone https://github.com/splunk/splunk-sdk-python.git
 
 ### Installing the SDK
 

@@ -154,7 +154,7 @@ class UrlEncoded(str):
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
     def __repr__(self):
-        return "UrlEncoded(%s)" % repr(urllib.unquote(self))
+        return "UrlEncoded(%s)" % repr(urllib.unquote(str(self)))
 
 @contextmanager
 def _handle_auth_error(msg):

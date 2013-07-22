@@ -15,17 +15,15 @@
 # under the License.
 
 try:
-    import unittest
-except ImportError:
     import unittest2 as unittest
-import splunklib.client as client
+except ImportError:
+    import unittest
 import testlib
 
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(ModularInputKindTestCase, self).setUp()
         self.uncheckedRestartSplunk()
-
     
     def test_lists_modular_inputs(self):
         if self.service.splunk_version[0] < 5:
@@ -59,8 +57,4 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             self.assertEqual('simple', m['streaming_mode'])
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

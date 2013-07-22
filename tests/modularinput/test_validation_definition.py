@@ -15,16 +15,19 @@
 # under the License.
 
 try:
-    import unittest
-except ImportError:
     import unittest2 as unittest
+except ImportError:
+    import unittest
 import sys
 from splunklib.modularinput.validation_definition import ValidationDefinition
+
 sys.path.insert(0, "../..")
 
 class ValidationDefinitionTestCase(unittest.TestCase):
-    """Check equality of parsed ValidationDefinition object from known XML
-    with manually initialized ValidationDefinition object."""
+    """
+    Check equality of parsed ValidationDefinition object from known XML
+    with manually initialized ValidationDefinition object.
+    """
     def setUp(self):
         super(ValidationDefinitionTestCase, self).setUp()
 
@@ -44,8 +47,4 @@ class ValidationDefinitionTestCase(unittest.TestCase):
         self.assertEqual(expected, found)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

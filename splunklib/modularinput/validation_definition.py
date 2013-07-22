@@ -20,9 +20,8 @@ except ImportError as ie:
 from malformed_data_exception import MalformedDataException
 
 class ValidationDefinition(object):
-    """This class represents the XML sent by Splunk for external validation of a new modular input.
-
-    ``ValidationDefinition`` takes no arguments.
+    """
+    This class represents the XML sent by Splunk for external validation of a new modular input.
 
     **Example**::
 
@@ -33,7 +32,9 @@ class ValidationDefinition(object):
         self.parameters = {}
 
     def parseDefintion(self, stream):
-        """Create a ValidationDefinition from a provided stream containing XML. The XML typically will look like
+        """
+        Creates a ValidationDefinition from a provided stream containing XML.
+        The XML typically will look like
 
         <items>
             <server_host>myHost</server_host>
@@ -49,20 +50,16 @@ class ValidationDefinition(object):
                 </param_list>
             </item>
         </items>
+
         :param stream: stream containing XML to parse
         :return definition: a ValidationDefinition object
         """
-
-        if not isinstance(stream, file):
-            raise ValueError("Stream is invalid, cannot be parsed")
         try:
             definition = ValidationDefinition()
 
-            # read everything from the stream
-            validation_str = stream.read()
+            # parse XML from the stream, then get the root node
+            root = ET.parse(stream).getroot()
 
-            # parse the validation XML
-            root = ET.fromstring(validation_str)
             for node in root:
                 # lone item node
                 if node.tag == "item":
@@ -78,16 +75,17 @@ class ValidationDefinition(object):
                             for multi_val_param in param_node:
                                 definition.parameters[param_node.get("name")].append(multi_val_param.text)
                         else:
-                            raise MalformedDataException, "Invalid configuration scheme, "+param_node.tag+" tag unexpected."
+                            raise MalformedDataException("Invalid configuration scheme, %s tag unexpected." % param_node.tag)
                 else:
                     # Store anything else in metadata
                     definition.metadata[node.tag] = node.text
             return definition
-        except Exception, e:
+        except Exception as e:
             raise Exception, "Error getting validation definition: %s" % str(e)
 
     def __eq__(self, other):
-        """Test the equality of self, and other by comparing metadata and parameters
+        """
+        Test the equality of self and other by comparing metadata and parameters
 
         :param other: a ValidationDefinition object
         :return boolean: True for equality, else False

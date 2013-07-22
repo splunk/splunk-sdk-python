@@ -17,36 +17,32 @@ except ImportError as ie:
 from malformed_data_exception import MalformedDataException
 
 class InputDefinition:
-    """ InputDefinition encodes the XML defining inputs that Splunk passes to
-        a modular input script
+    """
+    InputDefinition encodes the XML defining inputs that Splunk passes to
+    a modular input script
 
-        ``InputDefinition`` takes no arguments.
+     **Example**::
 
-         **Example**::
-
-            i = InputDefinition()
+        i = InputDefinition()
 
     """
     def __init__ (self):
         self.metadata = {}
         self.inputs = {}
 
-    def parseDefinition(self, stream):
-        """ Parse a stream containing XML into an InputDefinition.
+    def parse_definition(self, stream):
+        """
+        Parse a stream containing XML into an InputDefinition.
 
         :param stream: stream containing XML to parse
         :return: definition: a InputDefinition object
         """
-        if not isinstance(stream, file):
-            raise ValueError("Stream is invalid, cannot be parsed")
         try:
             definition = InputDefinition()
 
-            # read everything from the stream
-            config_str = stream.read()
+            # parse XML from the stream, then get the root node
+            root = ET.parse(stream).getroot()
 
-            # parse the configuration XML
-            root = ET.fromstring(config_str)
             for node in root:
                 if node.tag == "configuration":
                     # get config for each stanza
@@ -57,17 +53,18 @@ class InputDefinition:
                             for param in config_stanza:
                                 definition.parseParameters(param, config_stanza.get("name"))
                         else:
-                            raise MalformedDataException, "Invalid configuration scheme, "+config_stanza.tag+" tag unexpected."
+                            raise MalformedDataException("Invalid configuration scheme, %s tag unexpected." % config_stanza.tag)
                 else:
                     definition.metadata[node.tag] = node.text
             return definition
         except MalformedDataException:
             raise
-        except Exception, e:
+        except Exception as e:
             raise Exception, "Error getting configuration: %s" % str(e)
 
     def parseParameters(self, paramNode, stanzaName):
-        """A helper function to clean up the code for parsing XML parameters
+        """
+        A helper function to clean up the code for parsing XML parameters
 
         :param paramNode: XML node, it should have param or param_list tag
         :param stanzaName: string of the stanza name containing the node
@@ -80,10 +77,9 @@ class InputDefinition:
             for mvp in paramNode:
                 self.inputs[stanzaName][paramNode.get("name")].append(mvp.text)
         else:
-            raise MalformedDataException, "Invalid configuration scheme, "+paramNode.tag+" tag unexpected."
+            raise MalformedDataException("Invalid configuration scheme, %s tag unexpected." % paramNode.tag)
 
-
-    def __eq__(self,other):
+    def __eq__(self, other):
         if not isinstance(other, InputDefinition):
             return False
         return self.metadata == other.metadata and self.inputs == other.inputs

@@ -15,12 +15,13 @@
 # under the License.
 
 try:
-    import unittest
-except ImportError:
     import unittest2 as unittest
+except ImportError:
+    import unittest
 import sys
 from splunklib.modularinput.input_definition import InputDefinition
 from splunklib.modularinput.malformed_data_exception import MalformedDataException
+
 sys.path.insert(0, "../..")
 
 class InputDefinitionTestCase(unittest.TestCase):
@@ -28,10 +29,8 @@ class InputDefinitionTestCase(unittest.TestCase):
     def setUp(self):
         super(InputDefinitionTestCase, self).setUp()
 
-    def test_parse_zero_inputs(self):
-        """Check equality of parsed InputDefinition object from known XML
-        with 1 input defined with manually initialized Input Definition object."""
-        found = InputDefinition().parseDefinition(open("data/conf_with_0_inputs.xml"))
+    def test_parse_inputdef_with_zero_inputs(self):
+        found = InputDefinition().parse_definition(open("data/conf_with_0_inputs.xml"))
 
         expectedDefinition = InputDefinition()
         expectedDefinition.metadata = {
@@ -43,10 +42,8 @@ class InputDefinitionTestCase(unittest.TestCase):
 
         self.assertEqual(found, expectedDefinition)
 
-    def test_parse_two_inputs(self):
-        """Check equality of parsed InputDefinition object from known XML
-        with 2 inputs definedwith manually initialized Input Definition object."""
-        found = InputDefinition().parseDefinition(open("data/conf_with_2_inputs.xml"))
+    def test_parse_inputdef_with_two_inputs(self):
+        found = InputDefinition().parse_definition(open("data/conf_with_2_inputs.xml"))
 
         expectedDefinition = InputDefinition()
         expectedDefinition.metadata = {
@@ -73,15 +70,13 @@ class InputDefinitionTestCase(unittest.TestCase):
         self.assertEqual(expectedDefinition, found)
 
 
-    def test_parse_malformed_input_definition(self):
-        """Check that parsing an InputDefinition from malformed XML produces the expected exception."""
+    def test_attempt_to_parse_malformed_input_definition_will_throw_exception(self):
+        """
+        Check that parsing an InputDefinition from malformed XML produces the expected exception.
+        """
         with self.assertRaises(MalformedDataException):
-            found = InputDefinition().parseDefinition(open("data/conf_with_invalid_inputs.xml"))
+            found = InputDefinition().parse_definition(open("data/conf_with_invalid_inputs.xml"))
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

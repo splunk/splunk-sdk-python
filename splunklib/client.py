@@ -76,7 +76,8 @@ __all__ = [
     "NotSupportedError",
     "OperationError",
     "IncomparableException",
-    "Service"
+    "Service",
+    "namespace"
 ]
 
 PATH_APPS = "apps/local/"
@@ -95,7 +96,7 @@ PATH_JOBS = "search/jobs/"
 PATH_LOGGER = "server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
-PATH_ROLES = "authentication/roles/"
+PATH_ROLES = "authorization/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
@@ -2423,7 +2424,12 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's events.
         """
-        return self.get("events", **kwargs).body
+        if 'segmentation' not in kwargs:
+            segmentation = 'none'
+        else:
+            segmentation = kwargs.pop('segmentation')
+        return self.get("events", segmentation=segmentation,
+                        **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2508,7 +2514,12 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's results.
         """
-        return self.get("results", **query_params).body
+        if 'segmentation' not in query_params:
+            segmentation = 'none'
+        else:
+            segmentation = query_params.pop('segmentation')
+        return self.get("results", segmentation=segmentation,
+                        **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2550,7 +2561,12 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
-        return self.get("results_preview", **query_params).body
+        if 'segmentation' not in query_params:
+            segmentation = 'none'
+        else:
+            segmentation = query_params.pop('segmentation')
+        return self.get("results_preview", segmentation=segmentation,
+                        **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2717,7 +2733,14 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
-        return self.post(path_segment="export", search=query, **params).body
+        if 'segmentation' not in params:
+            segmentation = 'none'
+        else:
+            segmentation = params.pop('segmentation')
+        return self.post(path_segment="export", 
+                         search=query, 
+                         segmentation=segmentation,
+                         **params).body
 
     def itemmeta(self):
         """There is no metadata available for class:``Jobs``.
@@ -2777,7 +2800,14 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        return self.post(search=query, exec_mode="oneshot", **params).body
+        if 'segmentation' not in params:
+            segmentation = 'none'
+        else:
+            segmentation = params.pop('segmentation')
+        return self.post(search=query, 
+                         exec_mode="oneshot", 
+                         segmentation=segmentation,
+                         **params).body
 
 
 class Loggers(Collection):

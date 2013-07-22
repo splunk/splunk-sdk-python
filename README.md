@@ -19,9 +19,9 @@ technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
 
-## Getting started with the Splunk Python SDK
+## Getting started with the Splunk SDK for Python
 
-The Splunk Python SDK contains library code and examples that show how to 
+The Splunk SDK for Python contains library code and examples that show how to 
 programmatically interact with Splunk for a variety of scenarios including 
 searching, saved searches, data inputs, and many more, along with building 
 complete applications. 
@@ -31,11 +31,11 @@ in-depth information be sure to visit the
 [Splunk Developer Portal](http://dev.splunk.com/view/SP-CAAAEBB). 
 ### Requirements
 
-Here's what you need to get going with the Splunk Python SDK.
+Here's what you need to get going with the Splunk SDK for Python.
 
 #### Python
 
-The Splunk Python SDK requires Python 2.6+. 
+The Splunk SDK for Python requires Python 2.6+. 
 
 #### Splunk
 
@@ -44,15 +44,13 @@ If you haven't already installed Splunk, download it
 Splunk and system requirements, see 
 [Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). 
 
-#### Splunk Python SDK
-Get the Splunk Python SDK from [GitHub](https://github.com/) and clone the 
-resources to your computer. For example, use the following command: 
+#### Splunk SDK for Python
+Get the Splunk SDK for Python&mdash;[download the SDK as a ZIP](http://dev.splunk.com/view/SP-CAAAEBB) and extract the files. Or, if you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
-    git clone https://github.com/splunk/splunk-sdk-python.git
 
 ### Installing the SDK
 
-You can install the Splunk Python SDK libraries by using `easy_install` or `pip`:
+You can install the Splunk SDK for Python libraries by using `easy_install` or `pip`:
 
     [sudo] easy_install splunk-sdk
 
@@ -151,7 +149,7 @@ To get help for an example, use the `--help` argument with an example:
 
 #### Unit tests
 
-The Splunk Python SDK contains a collection of unit tests. To run them, open a 
+The Splunk SDK for Python contains a collection of unit tests. To run them, open a 
 command prompt in the **/splunk-sdk-python** directory and enter:
 
     python setup.py test
@@ -220,10 +218,10 @@ If you need to know more:
   [Splunk Developer Portal](http://dev.splunk.com).
 
 * For conceptual and how-to documentation, see the 
-  [Overview of the Splunk Python SDK](http://dev.splunk.com/view/SP-CAAAEBB).
+  [Overview of the Splunk SDK for Python](http://dev.splunk.com/view/SP-CAAAEBB).
 
 * For API reference documentation, see the 
-  [Splunk Python SDK Reference](http://docs.splunk.com/Documentation/PythonSDK).
+  [Splunk SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK).
 
 * For more about the Splunk REST API, see the 
   [REST API Reference](http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI).
@@ -281,7 +279,7 @@ If you would like to contribute to the SDK, go here for more information:
 
 1. You will be granted support if you or your company are already covered 
    under an existing maintenance/support agreement. Send an email to 
-   _support@splunk.com_ and include "Splunk Python SDK" in the subject line. 
+   _support@splunk.com_ and include "Splunk SDK for Python" in the subject line. 
 
 2. If you are not covered under an existing maintenance/support agreement, you 
    can find help through the broader community at:

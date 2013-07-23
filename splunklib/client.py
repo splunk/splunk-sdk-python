@@ -2424,12 +2424,8 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's events.
         """
-        if 'segmentation' not in kwargs:
-            segmentation = 'none'
-        else:
-            segmentation = kwargs.pop('segmentation')
-        return self.get("events", segmentation=segmentation,
-                        **kwargs).body
+        kwargs['segmentation'] = kwargs.get('segmentation', 'none')
+        return self.get("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2514,12 +2510,8 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's results.
         """
-        if 'segmentation' not in query_params:
-            segmentation = 'none'
-        else:
-            segmentation = query_params.pop('segmentation')
-        return self.get("results", segmentation=segmentation,
-                        **query_params).body
+        query_params['segmentation'] = query_params.get('segmentation', 'none')
+        return self.get("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2561,12 +2553,8 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
-        if 'segmentation' not in query_params:
-            segmentation = 'none'
-        else:
-            segmentation = query_params.pop('segmentation')
-        return self.get("results_preview", segmentation=segmentation,
-                        **query_params).body
+        query_params['segmentation'] = query_params.get('segmentation', 'none')
+        return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2733,13 +2721,9 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
-        if 'segmentation' not in params:
-            segmentation = 'none'
-        else:
-            segmentation = params.pop('segmentation')
-        return self.post(path_segment="export", 
+        params['segmentation'] = params.get('segmentation', 'none')
+        return self.post(path_segment="export",
                          search=query, 
-                         segmentation=segmentation,
                          **params).body
 
     def itemmeta(self):
@@ -2800,13 +2784,9 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        if 'segmentation' not in params:
-            segmentation = 'none'
-        else:
-            segmentation = params.pop('segmentation')
-        return self.post(search=query, 
+        params['segmentation'] = params.get('segmentation', 'none')
+        return self.post(search=query,
                          exec_mode="oneshot", 
-                         segmentation=segmentation,
                          **params).body
 
 

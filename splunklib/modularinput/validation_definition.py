@@ -17,11 +17,10 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
-from malformed_data_exception import MalformedDataException
+from splunklib.modularinput.modularinput_testlib import parse_xml_data
 
 class ValidationDefinition(object):
-    """
-    This class represents the XML sent by Splunk for external validation of a new modular input.
+    """This class represents the XML sent by Splunk for external validation of a new modular input.
 
     **Example**::
 
@@ -31,9 +30,9 @@ class ValidationDefinition(object):
         self.metadata = {}
         self.parameters = {}
 
-    def parseDefintion(self, stream):
-        """
-        Creates a ValidationDefinition from a provided stream containing XML.
+    def parse_definition(self, stream):
+        """Creates a ValidationDefinition from a provided stream containing XML.
+
         The XML typically will look like
 
         <items>
@@ -54,42 +53,25 @@ class ValidationDefinition(object):
         :param stream: stream containing XML to parse
         :return definition: a ValidationDefinition object
         """
-        try:
-            definition = ValidationDefinition()
 
-            # parse XML from the stream, then get the root node
-            root = ET.parse(stream).getroot()
+        definition = ValidationDefinition()
 
-            for node in root:
-                # lone item node
-                if node.tag == "item":
-                    # name from item node
-                    definition.metadata["name"] = node.get("name")
-                    for param_node in node:
-                        # single value params
-                        if param_node.tag == "param":
-                            definition.parameters[param_node.get("name")] = param_node.text
-                        # multi-value params
-                        elif param_node.tag == "param_list":
-                            definition.parameters[param_node.get("name")] = []
-                            for multi_val_param in param_node:
-                                definition.parameters[param_node.get("name")].append(multi_val_param.text)
-                        else:
-                            raise MalformedDataException("Invalid configuration scheme, %s tag unexpected." % param_node.tag)
-                else:
-                    # Store anything else in metadata
-                    definition.metadata[node.tag] = node.text
-            return definition
-        except Exception as e:
-            raise Exception, "Error getting validation definition: %s" % str(e)
+        # parse XML from the stream, then get the root node
+        root = ET.parse(stream).getroot()
+
+        for node in root:
+            # lone item node
+            if node.tag == "item":
+                # name from item node
+                definition.metadata["name"] = node.get("name")
+                definition.parameters = parse_xml_data(node, "")
+            else:
+                # Store anything else in metadata
+                definition.metadata[node.tag] = node.text
+
+        return definition
 
     def __eq__(self, other):
-        """
-        Test the equality of self and other by comparing metadata and parameters
-
-        :param other: a ValidationDefinition object
-        :return boolean: True for equality, else False
-        """
         if not isinstance(other, ValidationDefinition):
             return False
         return self.metadata == other.metadata and self.parameters == other.parameters

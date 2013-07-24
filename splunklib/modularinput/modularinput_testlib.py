@@ -48,3 +48,42 @@ def parse_xml_data(parentNode, childNodeTag):
         elif "item" == parentNode.tag:
             data[child.get("name")] = parse_parameters(child)
     return data
+
+def xml_compare(expected, found):
+    """Checks equality of two ElementTrees
+
+    :param expected: an ElementTree object
+    :param found: an ElementTree object
+    :return: boolean, equality of expected and found
+    """
+    #TODO: error handling & exception throwing
+
+    try:
+        import xml.etree.cElementTree as ET
+    except ImportError:
+        import xml.etree.ElementTree as ET
+
+    # if comparing the same ET object
+    if expected == found:
+        return True
+
+    # compare element attributes, ignoring order
+    if not set(expected.items()) == set(found.items()):
+        return False
+    expectedChildren = list(expected)
+    foundChildren = list(found)
+    if len(expectedChildren) != len(foundChildren):
+        return False
+
+    # compare children
+    for i, child in enumerate(expectedChildren):
+        if not xml_compare(child, foundChildren[i]):
+            return False
+    # compare element text if it exists, else elements are equal
+    if expected.text and expected.text.strip() != "":
+        if expected.tag == found.tag and expected.text == found.text:
+            return True
+        else:
+            return False
+    else:
+        return True

@@ -1,0 +1,10 @@
+<stream>
+<event stanza="fubar" unbroken="1">
+    <time>1372275124.466</time>
+    <source>hilda</source>
+    <sourceType>misc</sourceType>
+    <index>main</index>
+    <host>localhost</host>
+    <data>This is a test of the emergency broadcast system.</data>
+</event>
+</stream>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scheme>
+    <title>abcd</title>
+    <use_external_validation>true</use_external_validation>
+    <use_single_instance>false</use_single_instance>
+    <streaming_mode>xml</streaming_mode>
+    <endpoint>
+        <args>
+        </args>
+    </endpoint>
+</scheme>

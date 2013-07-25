@@ -6,6 +6,7 @@
         <index>main</index>
         <host>localhost</host>
         <data>This is a test of the emergency broadcast system.</data>
+        <done/>
     </event>
     <event stanza="fubar" unbroken="1">
         <time>1372275124.466</time>
@@ -14,5 +15,6 @@
         <index>main</index>
         <host>localhost</host>
         <data>This is a test of the emergency broadcast system.</data>
+        <done/>
     </event>
 </stream>

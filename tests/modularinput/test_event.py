@@ -16,26 +16,22 @@
 
 from splunklib.modularinput.modularinput_testlib import unittest, xml_compare
 from splunklib.modularinput.event import Event, ET
-from splunklib.modularinput.event_writer import EventWriter
-
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+from splunklib.modularinput.event_writer import EventWriter, StringIO
 
 class EventTestCase(unittest.TestCase):
     def test_event_without_enough_fields_fails(self):
         """Check that events without data throw an error"""
         with self.assertRaises(ValueError):
             event = Event()
-            stream = StringIO.StringIO()
+            stream = StringIO()
             event.write_to(stream)
         self.assertTrue(True)
 
     def test_xml_of_event_with_minimal_configuration(self):
-        """Generate XML from an event object with a small number of fields, and see if it matches what we expect."""
+        """Generate XML from an event object with a small number of fields,
+        and see if it matches what we expect."""
 
-        stream = StringIO.StringIO()
+        stream = StringIO()
         event = Event()
         event.time = "%.3f" % 1372187084.000
         event.stanza = "fubar"
@@ -48,8 +44,9 @@ class EventTestCase(unittest.TestCase):
         self.assertTrue(xml_compare(expected, constructed))
 
     def test_xml_of_event_with_more_configuration(self):
-        """Generate XML from an even object with all fields set, see if it matches what we expect"""
-        stream = StringIO.StringIO()
+        """Generate XML from an even object with all fields set, see if
+        it matches what we expect"""
+        stream = StringIO()
 
         event = Event()
         event.stanza = "fubar"
@@ -69,10 +66,10 @@ class EventTestCase(unittest.TestCase):
         self.assertTrue(xml_compare(expected, constructed))
 
     def test_writing_events_on_event_writer(self):
-        """Write a pair of events with an EventWriter, and ensure that they are
-        being encoded immediately and correctly onto the output stream"""
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        """Write a pair of events with an EventWriter, and ensure that they
+        are being encoded immediately and correctly onto the output stream"""
+        out = StringIO()
+        err = StringIO()
 
         ew = EventWriter(out, err)
 
@@ -103,10 +100,11 @@ class EventTestCase(unittest.TestCase):
         self.assertTrue(xml_compare(expected, found))
 
     def test_error_in_event_writer(self):
-        """An event which cannot write itself onto an output stream (such as because it doesn't have a data field set)
+        """An event which cannot write itself onto an output stream
+        (such as because it doesn't have a data field set)
         should write an error. Check that it does so."""
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        out = StringIO()
+        err = StringIO()
 
         ew = EventWriter(out, err)
         e = Event()
@@ -116,9 +114,10 @@ class EventTestCase(unittest.TestCase):
             self.assertTrue(err.getvalue().startswith(ew.WARN))
 
     def test_logging_errors_with_event_writer(self):
-        """Check that the log method on EventWriter produces the expected error message."""
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        """Check that the log method on EventWriter produces the
+        expected error message."""
+        out = StringIO()
+        err = StringIO()
 
         ew = EventWriter(out, err)
 
@@ -127,9 +126,10 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual("ERROR Something happened!\n", err.getvalue())
 
     def test_write_xml_is_sane(self):
-        """Check that EventWriter.writeXmlDocument writes sensible XML to the output stream."""
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        """Check that EventWriter.writeXmlDocument writes sensible
+        XML to the output stream."""
+        out = StringIO()
+        err = StringIO()
 
         ew = EventWriter(out, err)
 

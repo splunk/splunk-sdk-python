@@ -12,17 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys, time
-
 try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
 
-try:
-    import cStringIO as StringIO
-except ImportError as ie:
-    import StringIO
+#todo: extend the docs. What would you want to know about this class if you were faced with it for the first time and had to use it?
 
 class Event(object):
     """Represents an event or fragment of an event to be written by this modular input to Splunk."""
@@ -50,32 +45,24 @@ class Event(object):
             event.set("stanza", self.stanza)
         event.set("unbroken", str(int(self.unbroken)))
 
-        if(self.time):
-            epoch_time = self.time
-        else:
-            epoch_time = time.time()
+        # if a time isn't set, let Splunk guess by not creating a <time> element
+        if self.time:
+            ET.SubElement(event, "time").text = str(self.time)
 
-        create_subelement(event, "time", str(epoch_time))
-        create_subelement(event, "source", self.source)
-        create_subelement(event, "sourceType", self.sourceType)
-        create_subelement(event, "index", self.index)
-        create_subelement(event, "host", self.host)
-        create_subelement(event, "data", self.data)
+        # add all other subelements to this event
+        subElements = [
+            ("source", self.source),
+            ("sourceType", self.sourceType),
+            ("index", self.index),
+            ("host", self.host),
+            ("data", self.data)
+        ]
+        for node, value in subElements:
+            if value:
+                ET.SubElement(event, node).text = value
 
-        if not self.unbroken and self.done:
+        if self.done:
             done = ET.SubElement(event, "done")
 
         stream.write(ET.tostring(event))
-        sys.stdout.flush()
-
-def create_subelement(parent, name, text):
-    """Create an XML subelement with tag and text specified
-
-    :param parent: parent XML element
-    :param name: name of XML node tag
-    :param text: text to go inside <name>
-    """
-    if not text:
-        return
-    subelement = ET.SubElement(parent, name)
-    subelement.text = text
+        stream.flush()

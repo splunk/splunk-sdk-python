@@ -37,8 +37,8 @@ class Scheme(object):
         self.title = title
         self.description = None
         self.use_external_validation = True
-        self.useSingleInstance = False
-        self.streamingMode = Scheme.streaming_mode_xml
+        self.use_single_instance = False
+        self.streaming_mode = Scheme.streaming_mode_xml
 
         # list of Argument objects, each to be represented by an <arg> tag
         self.arguments = []
@@ -65,8 +65,8 @@ class Scheme(object):
 
         # add other subelements
         ET.SubElement(root, "use_external_validation").text = str(self.use_external_validation).lower()
-        ET.SubElement(root, "use_single_instance").text = str(self.useSingleInstance).lower()
-        ET.SubElement(root, "streaming_mode").text = self.streamingMode.lower()
+        ET.SubElement(root, "use_single_instance").text = str(self.use_single_instance).lower()
+        ET.SubElement(root, "streaming_mode").text = self.streaming_mode.lower()
 
         endpoint = ET.SubElement(root, "endpoint")
 

@@ -40,9 +40,9 @@ class SchemeTest(unittest.TestCase):
 
         scheme = Scheme("abcd")
         scheme.description = u"쎼 and 쎶 and <&> für"
-        scheme.streamingMode = Scheme.streaming_mode_simple
+        scheme.streaming_mode = Scheme.streaming_mode_simple
         scheme.use_external_validation = "false"
-        scheme.useSingleInstance = "true"
+        scheme.use_single_instance = "true"
 
         arg1 = Argument(name="arg1")
         scheme.add_argument(arg1)

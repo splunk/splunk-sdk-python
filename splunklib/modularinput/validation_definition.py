@@ -17,7 +17,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
-from splunklib.modularinput.modularinput_testlib import parse_xml_data
+from tests.modularinput.modularinput_testlib import parse_xml_data
 
 class ValidationDefinition(object):
     """This class represents the XML sent by Splunk for external validation of a new modular input.

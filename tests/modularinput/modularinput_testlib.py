@@ -22,7 +22,7 @@ except ImportError:
     import unittest
 import sys, os
 
-sys.path.insert(0, os.path.join('..', '..'))
+sys.path.insert(0, os.path.join('../../splunklib', '..'))
 
 # utility functions
 
@@ -37,15 +37,15 @@ def parse_parameters(paramNode):
     else:
         raise ValueError("Invalid configuration scheme, %s tag unexpected." % paramNode.tag)
 
-def parse_xml_data(parentNode, childNodeTag):
+def parse_xml_data(parent_node, child_node_tag):
     data = {}
-    for child in parentNode:
-        if child.tag == childNodeTag:
-            if childNodeTag == "stanza":
+    for child in parent_node:
+        if child.tag == child_node_tag:
+            if child_node_tag == "stanza":
                 data[child.get("name")] = {}
                 for param in child:
                     data[child.get("name")][param.get("name")] = parse_parameters(param)
-        elif "item" == parentNode.tag:
+        elif "item" == parent_node.tag:
             data[child.get("name")] = parse_parameters(child)
     return data
 
@@ -66,14 +66,22 @@ def xml_compare(expected, found):
         return False
 
     # check for equal number of children
-    expectedChildren = list(expected)
-    foundChildren = list(found)
-    if len(expectedChildren) != len(foundChildren):
+    expected_children = list(expected)
+    found_children = list(found)
+    if len(expected_children) != len(found_children):
         return False
 
+
+    #todo: uncomment this bit, remove import & explicit loop
     # compare children
-    if not all([xml_compare(a, b) for a, b in zip(expectedChildren, foundChildren)]):
-        return False
+    #if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
+    #    return False
+
+    import xml.etree.ElementTree as ET
+
+    for i, child in enumerate(expected_children):
+        if not xml_compare(child, found_children[i]):
+            return False
 
     # compare element text if it exists, else elements are equal
     if expected.text and expected.text.strip() != "":

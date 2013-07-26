@@ -14,7 +14,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
-from splunklib.modularinput.modularinput_testlib import parse_xml_data
+from tests.modularinput.modularinput_testlib import parse_xml_data
 
 class InputDefinition:
     """InputDefinition encodes the XML defining inputs that Splunk passes to

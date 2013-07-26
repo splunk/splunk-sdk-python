@@ -14,9 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.modularinput.modularinput_testlib import unittest, xml_compare
+from tests.modularinput.modularinput_testlib import unittest, xml_compare
 from splunklib.modularinput.event import Event, ET
-from splunklib.modularinput.event_writer import EventWriter, StringIO
+from splunklib.modularinput.event_writer import EventWriter
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 class EventTestCase(unittest.TestCase):
     def test_event_without_enough_fields_fails(self):
@@ -30,12 +35,14 @@ class EventTestCase(unittest.TestCase):
     def test_xml_of_event_with_minimal_configuration(self):
         """Generate XML from an event object with a small number of fields,
         and see if it matches what we expect."""
-
         stream = StringIO()
-        event = Event()
-        event.time = "%.3f" % 1372187084.000
-        event.stanza = "fubar"
-        event.data = "This is a test of the emergency broadcast system."
+
+        event = Event(
+            data="This is a test of the emergency broadcast system.",
+            stanza="fubar",
+            time="%.3f" % 1372187084.000
+        )
+
         event.write_to(stream)
 
         constructed = ET.fromstring(stream.getvalue())
@@ -48,16 +55,17 @@ class EventTestCase(unittest.TestCase):
         it matches what we expect"""
         stream = StringIO()
 
-        event = Event()
-        event.stanza = "fubar"
-        event.data = "This is a test of the emergency broadcast system."
-        event.time = "%.3f" % 1372274622.493
-        event.host = "localhost"
-        event.index = "main"
-        event.source = "hilda"
-        event.sourceType = "misc"
-        event.done = True
-        event.unbroken = True
+        event = Event(
+            data="This is a test of the emergency broadcast system.",
+            stanza="fubar",
+            time="%.3f" % 1372274622.493,
+            host="localhost",
+            index="main",
+            source="hilda",
+            sourceType="misc",
+            done=True,
+            unbroken=True
+        )
         event.write_to(stream)
 
         constructed = ET.fromstring(stream.getvalue())
@@ -73,16 +81,17 @@ class EventTestCase(unittest.TestCase):
 
         ew = EventWriter(out, err)
 
-        e = Event()
-        e.time = "%.3f" % 1372275124.466
-        e.stanza = "fubar"
-        e.data = "This is a test of the emergency broadcast system."
-        e.host = "localhost"
-        e.index = "main"
-        e.source = "hilda"
-        e.sourceType = "misc"
-        e.done = True
-        e.unbroken = True
+        e = Event(
+            data="This is a test of the emergency broadcast system.",
+            stanza="fubar",
+            time="%.3f" % 1372275124.466,
+            host="localhost",
+            index="main",
+            source="hilda",
+            sourceType="misc",
+            done=True,
+            unbroken=True
+        )
         ew.write_event(e)
 
         found = ET.fromstring("%s</stream>" % out.getvalue())
@@ -111,7 +120,7 @@ class EventTestCase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             ew.write_event(e)
-            self.assertTrue(err.getvalue().startswith(ew.WARN))
+            self.assertTrue(err.getvalue().startswith(EventWriter.WARN))
 
     def test_logging_errors_with_event_writer(self):
         """Check that the log method on EventWriter produces the
@@ -121,7 +130,7 @@ class EventTestCase(unittest.TestCase):
 
         ew = EventWriter(out, err)
 
-        ew.log(ew.ERROR, "Something happened!")
+        ew.log(EventWriter.ERROR, "Something happened!")
 
         self.assertEqual("ERROR Something happened!\n", err.getvalue())
 

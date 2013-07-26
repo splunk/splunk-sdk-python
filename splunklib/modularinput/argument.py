@@ -17,30 +17,54 @@ try:
 except ImportError:
     import xml.etree.cElementTree as ET
 
-#TODO: extend docs
-
 class Argument(object):
-    """Class representing an argument to a modular input kind."""
-    def __init__(self, name):
-        """
-        :param name: string identifier for this argument in Splunk
+    """Class representing an argument to a modular input kind.
+    Argument is meant to be used with Scheme to generate an XML definition of the modular input
+    kind that Splunk understands."""
+
+    # Constant values, do not change
+    dataTypeBoolean = "BOOLEAN"
+    dataTypeNumber = "NUMBER"
+    dataTypeString = "STRING"
+
+    def __init__(self, name, description=None, validation=None, \
+                 dataType=dataTypeString, requiredOnEdit=False, requiredOnCreate=False):
+        """name is the only required parameter for the constructor
+
+        Example with least parameters:
+
+            arg1 = Argument(name="arg1")
+
+        Example with all parameters:
+
+            arg2 = Argument(
+                name="arg2",
+                description="This is an argument with lots of parameters",
+                validation="is_pos_int('some_name')",
+                dataType=Argument.dataTypeNumber,
+                requiredOnEdit=True,
+                requiredOnCreate=True
+            )
+
+        :param name: string, identifier for this argument in Splunk
+        :param description: string, human readable description of the argument
+        :param validation: string, specifying how the argument should be validated, if using internal validation. If using
+        external validation, this will be ignored.
+        :param dataType: string, data type of this field; use the class constants
+        dataTypeBoolean, dataTypeNumber, or dataTypeString
+        :param requiredOnEdit: boolean, is this arg required when editing an existing modular input of this kind?
+        :param requiredOnCreate: boolean, is this arg required when creating a modular input of this kind?
         """
         self.name = name
-        self.description = None
-        self.validation = None
+        self.description = description
+        self.validation = validation
+        self.dataType = dataType
+        self.requiredOnEdit = requiredOnEdit
+        self.requiredOnCreate = requiredOnCreate
 
-        # Constant values, do not change
-        self.dataTypeBoolean = "BOOLEAN"
-        self.dataTypeNumber = "NUMBER"
-        self.dataTypeString = "STRING"
-
-        self.dataType = self.dataTypeString
-
-        self.requiredOnEdit = False
-        self.requiredOnCreate = False
-
-    def addToDocument(self, parent):
+    def add_to_document(self, parent):
         """Adds an <arg> SubElement to the Parent Element, typically <args>
+        and setup its subelements with their respective text
 
         :param parent: an ET.Element to be the parent of a new <arg> SubElement
         :return: an ET.Element object representing this argument #TODO: might not need to return here..
@@ -48,21 +72,14 @@ class Argument(object):
         arg = ET.SubElement(parent, "arg")
         arg.set("name", self.name)
 
-        if self.description:
-            description = ET.SubElement(arg, "description")
-            description.text = self.description
+        if self.description is not None:
+            ET.SubElement(arg, "description").text = self.description
 
         if self.validation:
-            validation = ET.SubElement(arg, "validation")
-            validation.text = self.validation
+            ET.SubElement(arg, "validation").text = self.validation
 
-        data_type = ET.SubElement(arg, "data_type")
-        data_type.text = self.dataType.lower()
-
-        required_on_edit = ET.SubElement(arg, "required_on_edit")
-        required_on_edit.text = str(self.requiredOnEdit).lower()
-
-        required_on_create = ET.SubElement(arg, "required_on_create")
-        required_on_create.text = str(self.requiredOnCreate).lower()
+        ET.SubElement(arg, "data_type").text = self.dataType.lower()
+        ET.SubElement(arg, "required_on_edit").text = str(self.requiredOnEdit).lower()
+        ET.SubElement(arg, "required_on_create").text = str(self.requiredOnCreate).lower()
 
         return arg

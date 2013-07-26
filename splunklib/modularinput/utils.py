@@ -45,3 +45,26 @@ def xml_compare(expected, found):
         return True
     else:
         return expected.tag == found.tag and expected.text == found.text and expected.attrib == found.attrib
+
+def parse_parameters(paramNode):
+    if paramNode.tag == "param":
+        return paramNode.text
+    elif paramNode.tag == "param_list":
+        parameters = []
+        for mvp in paramNode:
+            parameters.append(mvp.text)
+        return parameters
+    else:
+        raise ValueError("Invalid configuration scheme, %s tag unexpected." % paramNode.tag)
+
+def parse_xml_data(parent_node, child_node_tag):
+    data = {}
+    for child in parent_node:
+        if child.tag == child_node_tag:
+            if child_node_tag == "stanza":
+                data[child.get("name")] = {}
+                for param in child:
+                    data[child.get("name")][param.get("name")] = parse_parameters(param)
+        elif "item" == parent_node.tag:
+            data[child.get("name")] = parse_parameters(child)
+    return data

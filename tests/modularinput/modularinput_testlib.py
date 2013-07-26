@@ -14,8 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Utility file for common functions and imports
-
+# Utility file for unit tests, import common functions and modules
 try:
     import unittest2 as unittest
 except ImportError:

@@ -29,7 +29,13 @@ class InputDefinition:
         self.metadata = {}
         self.inputs = {}
 
-    def parse_definition(self, stream):
+
+    def __eq__(self, other):
+        if not isinstance(other, InputDefinition):
+            return False
+        return self.metadata == other.metadata and self.inputs == other.inputs
+
+def parse_input_definition(stream):
         """Parse a stream containing XML into an InputDefinition.
 
         :param stream: stream containing XML to parse
@@ -48,8 +54,3 @@ class InputDefinition:
                 definition.metadata[node.tag] = node.text
 
         return definition
-
-    def __eq__(self, other):
-        if not isinstance(other, InputDefinition):
-            return False
-        return self.metadata == other.metadata and self.inputs == other.inputs

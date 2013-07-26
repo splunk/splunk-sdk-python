@@ -15,12 +15,12 @@
 # under the License.
 
 from tests.modularinput.modularinput_testlib import unittest
-from splunklib.modularinput.validation_definition import ValidationDefinition
+from splunklib.modularinput.validation_definition import ValidationDefinition, parse_validation_definition
 
 class ValidationDefinitionTestCase(unittest.TestCase):
     def test_validation_definition_parse(self):
         """Check that parsing produces expected result"""
-        found = ValidationDefinition().parse_definition(open("data/validation.xml"))
+        found = parse_validation_definition(open("data/validation.xml"))
 
         expected = ValidationDefinition()
         expected.metadata = {

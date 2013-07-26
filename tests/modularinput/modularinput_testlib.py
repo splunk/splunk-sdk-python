@@ -72,16 +72,10 @@ def xml_compare(expected, found):
         return False
 
 
-    #todo: uncomment this bit, remove import & explicit loop
+
     # compare children
-    #if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
-    #    return False
-
-    import xml.etree.ElementTree as ET
-
-    for i, child in enumerate(expected_children):
-        if not xml_compare(child, found_children[i]):
-            return False
+    if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
+        return False
 
     # compare element text if it exists, else elements are equal
     if expected.text and expected.text.strip() != "":

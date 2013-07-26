@@ -24,6 +24,8 @@ import sys, os
 
 sys.path.insert(0, os.path.join('../../splunklib', '..'))
 
+from splunklib.modularinput.utils import xml_compare
+
 # utility functions
 
 def parse_parameters(paramNode):
@@ -48,43 +50,3 @@ def parse_xml_data(parent_node, child_node_tag):
         elif "item" == parent_node.tag:
             data[child.get("name")] = parse_parameters(child)
     return data
-
-def xml_compare(expected, found):
-    """Checks equality of two ElementTrees
-
-    :param expected: an ElementTree object
-    :param found: an ElementTree object
-    :return: boolean, equality of expected and found
-    """
-
-    # if comparing the same ET object
-    if expected == found:
-        return True
-
-    # compare element attributes, ignoring order
-    if set(expected.items()) != set(found.items()):
-        return False
-
-    # check for equal number of children
-    expected_children = list(expected)
-    found_children = list(found)
-    if len(expected_children) != len(found_children):
-        return False
-
-
-
-    # compare children
-    if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
-        return False
-
-    # compare element text if it exists, else elements are equal
-    if expected.text and expected.text.strip() != "":
-        if expected.tag == found.tag and expected.text == found.text:
-            if expected.attrib == found.attrib:
-                return True
-            else:
-                return False
-        else:
-            return False
-    else:
-        return True

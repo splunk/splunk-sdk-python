@@ -19,17 +19,11 @@ except ImportError:
 
 class Argument(object):
     """Class representing an argument to a modular input kind.
+
     Argument is meant to be used with Scheme to generate an XML definition of the modular input
-    kind that Splunk understands."""
+    kind that Splunk understands.
 
-    # Constant values, do not change
-    dataTypeBoolean = "BOOLEAN"
-    dataTypeNumber = "NUMBER"
-    dataTypeString = "STRING"
-
-    def __init__(self, name, description=None, validation=None, \
-                 dataType=dataTypeString, requiredOnEdit=False, requiredOnCreate=False):
-        """name is the only required parameter for the constructor
+    name is the only required parameter for the constructor
 
         Example with least parameters:
 
@@ -41,29 +35,40 @@ class Argument(object):
                 name="arg2",
                 description="This is an argument with lots of parameters",
                 validation="is_pos_int('some_name')",
-                dataType=Argument.dataTypeNumber,
-                requiredOnEdit=True,
-                requiredOnCreate=True
+                data_type=Argument.data_type_number,
+                required_on_edit=True,
+                required_on_create=True
             )
+    """
 
+    # Constant values, do not change
+    data_type_boolean = "BOOLEAN"
+    data_type_number = "NUMBER"
+    data_type_string = "STRING"
+
+    def __init__(self, name, description=None, validation=None, \
+                 data_type=data_type_string, required_on_edit=False, required_on_create=False):
+        """
         :param name: string, identifier for this argument in Splunk
         :param description: string, human readable description of the argument
-        :param validation: string, specifying how the argument should be validated, if using internal validation. If using
-        external validation, this will be ignored.
-        :param dataType: string, data type of this field; use the class constants
-        dataTypeBoolean, dataTypeNumber, or dataTypeString
-        :param requiredOnEdit: boolean, is this arg required when editing an existing modular input of this kind?
-        :param requiredOnCreate: boolean, is this arg required when creating a modular input of this kind?
+        :param validation: string, specifying how the argument should be validated, if using internal validation.
+        If using external validation, this will be ignored.
+        :param data_type: string, data type of this field; use the class constants
+        data_type_boolean, data_type_number, or data_type_string
+        :param required_on_edit: boolean, is this arg required when editing an existing modular input of this kind?
+        :param required_on_create: boolean, is this arg required when creating a modular input of this kind?
         """
         self.name = name
         self.description = description
         self.validation = validation
-        self.dataType = dataType
-        self.requiredOnEdit = requiredOnEdit
-        self.requiredOnCreate = requiredOnCreate
+        self.data_type = data_type
+        self.required_on_edit = required_on_edit
+        self.required_on_create = required_on_create
 
     def add_to_document(self, parent):
-        """Adds an <arg> SubElement to the Parent Element, typically <args>
+        """Add an Argument object to this ElementTree Document
+
+        Adds an <arg> SubElement to the Parent Element, typically <args>
         and setup its subelements with their respective text
 
         :param parent: an ET.Element to be the parent of a new <arg> SubElement
@@ -75,11 +80,11 @@ class Argument(object):
         if self.description is not None:
             ET.SubElement(arg, "description").text = self.description
 
-        if self.validation:
+        if self.validation is not None:
             ET.SubElement(arg, "validation").text = self.validation
 
-        ET.SubElement(arg, "data_type").text = self.dataType.lower()
-        ET.SubElement(arg, "required_on_edit").text = str(self.requiredOnEdit).lower()
-        ET.SubElement(arg, "required_on_create").text = str(self.requiredOnCreate).lower()
+        ET.SubElement(arg, "data_type").text = self.data_type.lower()
+        ET.SubElement(arg, "required_on_edit").text = str(self.required_on_edit).lower()
+        ET.SubElement(arg, "required_on_create").text = str(self.required_on_create).lower()
 
         return arg

@@ -27,8 +27,8 @@ class Scheme(object):
     """
 
     # Constant values, do not change
-    streamingModeSimple = "SIMPLE"
-    streamingModeXML = "XML"
+    streaming_mode_simple = "SIMPLE"
+    streaming_mode_xml = "XML"
 
     def __init__(self, title):
         """
@@ -36,9 +36,9 @@ class Scheme(object):
         """
         self.title = title
         self.description = None
-        self.useExternalValidation = True
+        self.use_external_validation = True
         self.useSingleInstance = False
-        self.streamingMode = Scheme.streamingModeXML
+        self.streamingMode = Scheme.streaming_mode_xml
 
         # list of Argument objects, each to be represented by an <arg> tag
         self.arguments = []
@@ -57,23 +57,16 @@ class Scheme(object):
         """
         root = ET.Element("scheme")
 
-        title = ET.SubElement(root, "title")
-        title.text = self.title
+        ET.SubElement(root, "title").text = self.title
 
         # add a description subelement if it's defined
         if self.description is not None:
-            description = ET.SubElement(root, "description")
-            description.text = self.description
+            ET.SubElement(root, "description").text = self.description
 
         # add other subelements
-        use_external_validation = ET.SubElement(root, "use_external_validation")
-        use_external_validation.text = str(self.useExternalValidation).lower()
-
-        use_single_instance = ET.SubElement(root, "use_single_instance")
-        use_single_instance.text = str(self.useSingleInstance).lower()
-
-        streaming_mode = ET.SubElement(root, "streaming_mode")
-        streaming_mode.text = self.streamingMode.lower()
+        ET.SubElement(root, "use_external_validation").text = str(self.use_external_validation).lower()
+        ET.SubElement(root, "use_single_instance").text = str(self.useSingleInstance).lower()
+        ET.SubElement(root, "streaming_mode").text = self.streamingMode.lower()
 
         endpoint = ET.SubElement(root, "endpoint")
 

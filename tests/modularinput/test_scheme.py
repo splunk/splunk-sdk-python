@@ -40,8 +40,8 @@ class SchemeTest(unittest.TestCase):
 
         scheme = Scheme("abcd")
         scheme.description = u"쎼 and 쎶 and <&> für"
-        scheme.streamingMode = Scheme.streamingModeSimple
-        scheme.useExternalValidation = "false"
+        scheme.streamingMode = Scheme.streaming_mode_simple
+        scheme.use_external_validation = "false"
         scheme.useSingleInstance = "true"
 
         arg1 = Argument(name="arg1")
@@ -51,9 +51,9 @@ class SchemeTest(unittest.TestCase):
             name="arg2",
             description=u"쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
-            dataType=Argument.dataTypeNumber,
-            requiredOnEdit=True,
-            requiredOnCreate=True
+            data_type=Argument.data_type_number,
+            required_on_edit=True,
+            required_on_create=True
         )
         scheme.add_argument(arg2)
 
@@ -82,9 +82,9 @@ class SchemeTest(unittest.TestCase):
             name="some_name",
             description=u"쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
-            dataType=Argument.dataTypeBoolean,
-            requiredOnEdit="true",
-            requiredOnCreate="true"
+            data_type=Argument.data_type_boolean,
+            required_on_edit="true",
+            required_on_create="true"
         )
 
         root = ET.Element("")

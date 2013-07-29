@@ -88,7 +88,7 @@ class Event(object):
         if self.time is not None:
             ET.SubElement(event, "time").text = str(self.time)
 
-        # add all other subelements to this event, represented by (tag, text)
+        # add all other subelements to this Event, represented by (tag, text)
         subelements = [
             ("source", self.source),
             ("sourceType", self.sourceType),

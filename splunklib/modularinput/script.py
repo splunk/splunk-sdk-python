@@ -13,10 +13,11 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
+import sys
+
+from splunklib.modularinput.event_writer import EventWriter
 from splunklib.modularinput.input_definition import InputDefinition
 from splunklib.modularinput.validation_definition import ValidationDefinition
-from splunklib.modularinput.event_writer import EventWriter
-import sys
 
 try:
     import xml.etree.cElementTree as ET
@@ -28,28 +29,32 @@ class Script(object):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override get_scheme, stream_events,
-    and optional validate_input if the modular Input uses
+    and optionally validate_input if the modular Input uses
     external validation.
 
-    The important function is run, which is used to run modular inputs
+    The run function is used to run modular inputs, it typically should
+    not be overridden.
     """
     __metaclass__ = ABCMeta
 
     def run(self, args):
-        """This function is stable, call run to run a modular input
+        """Run this modular input
 
-        :param args: String[] args from Java
-        :return:
+        :param args: list of command line arguments passed to this script
+        :return: an integer to be used as the exit value of this program
         """
+
+        # call the run_script function, which handles the specifics of running
+        # a modular input
         return self.run_script(args, EventWriter(), sys.stdin)
 
     def run_script(self, args, event_writer, input_stream):
         """Handles all the specifics of running a modular input
 
-        :param args:
-        :param event_writer:
-        :param input_stream:
-        :return:
+        :param args: list of command line arguments passed to this script
+        :param event_writer: an EventWriter object for writing events
+        :param input_stream: an input stream for reading inputs
+        :return: an integer to be used as the exit value of this program
         """
 
         try:
@@ -83,9 +88,9 @@ class Script(object):
                     event_writer.write_xml_document(root)
 
                     return 1
-
-            err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(args)
-            event_writer._err.write(err_string)
+            else:
+                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(args)
+                event_writer._err.write(err_string)
 
         except Exception as e:
             err_string = EventWriter.ERROR + e.message
@@ -112,6 +117,8 @@ class Script(object):
 
         :param definition: The parameters for the proposed input passed by splunkd
         """
+        pass
+
     @abstractmethod
     def stream_events(self, inputs, ew):
         """The method called to stream events into Splunk. It should do all of its output via
@@ -120,4 +127,3 @@ class Script(object):
         :param inputs: an InputDefinition object
         :param ew: an object with methods to write events and log messages to Splunk
         """
-        return

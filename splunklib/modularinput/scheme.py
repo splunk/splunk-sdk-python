@@ -64,14 +64,14 @@ class Scheme(object):
         if self.description is not None:
             ET.SubElement(root, "description").text = self.description
 
-        # add other subelements; represented by (tag, text)
+        # add all other subelements to this Scheme, represented by (tag, text)
         subelements = [
-            ("use_external_validation", str(self.use_external_validation).lower()),
-            ("use_single_instance", str(self.use_single_instance).lower()),
-            ("streaming_mode", self.streaming_mode.lower())
+            ("use_external_validation", self.use_external_validation),
+            ("use_single_instance", self.use_single_instance),
+            ("streaming_mode", self.streaming_mode)
         ]
         for name, value in subelements:
-            ET.SubElement(root, name).text = value
+            ET.SubElement(root, name).text = str(value).lower()
 
         endpoint = ET.SubElement(root, "endpoint")
 

@@ -17,6 +17,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
+
 from utils import parse_xml_data
 
 class ValidationDefinition(object):

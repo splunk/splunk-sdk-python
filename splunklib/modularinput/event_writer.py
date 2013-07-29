@@ -12,8 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.modularinput.event import ET
 import sys
+
+from splunklib.modularinput.event import ET
 
 try:
     from cStringIO import StringIO

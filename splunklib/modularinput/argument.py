@@ -84,8 +84,14 @@ class Argument(object):
         if self.validation is not None:
             ET.SubElement(arg, "validation").text = self.validation
 
-        ET.SubElement(arg, "data_type").text = self.data_type.lower()
-        ET.SubElement(arg, "required_on_edit").text = str(self.required_on_edit).lower()
-        ET.SubElement(arg, "required_on_create").text = str(self.required_on_create).lower()
+        # add all other subelements to this Argument, represented by (tag, text)
+        subelements = [
+            ("data_type", self.data_type),
+            ("required_on_edit", self.required_on_edit),
+            ("required_on_create", self.required_on_create)
+        ]
+
+        for name, value in subelements:
+            ET.SubElement(arg, name).text = str(value).lower()
 
         return arg

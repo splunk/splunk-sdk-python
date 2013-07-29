@@ -29,13 +29,13 @@ class InputDefinition:
         self.metadata = {}
         self.inputs = {}
 
-
     def __eq__(self, other):
         if not isinstance(other, InputDefinition):
             return False
         return self.metadata == other.metadata and self.inputs == other.inputs
 
-def parse_input_definition(stream):
+    @staticmethod
+    def parse_input_definition(stream):
         """Parse a stream containing XML into an InputDefinition.
 
         :param stream: stream containing XML to parse

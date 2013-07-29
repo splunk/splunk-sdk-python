@@ -13,11 +13,10 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
-import sys
-from splunklib.modularinput.input_definition import InputDefinition, parse_input_definition
-from splunklib.modularinput.validation_definition import ValidationDefinition, parse_validation_definition
+from splunklib.modularinput.input_definition import InputDefinition
+from splunklib.modularinput.validation_definition import ValidationDefinition
 from splunklib.modularinput.event_writer import EventWriter
-from splunklib.modularinput.scheme import Scheme
+import sys
 
 try:
     import xml.etree.cElementTree as ET
@@ -28,12 +27,11 @@ except ImportError:
 class Script(object):
     """An abstract base class for implementing modular inputs.
 
-    Subclasses should override getScheme, StreamEvents,
-    and optional configureValidator if the modular Input uses
+    Subclasses should override get_scheme, stream_events,
+    and optional validate_input if the modular Input uses
     external validation.
 
     The important function is run, which is used to run modular inputs
-
     """
     __metaclass__ = ABCMeta
 
@@ -58,7 +56,7 @@ class Script(object):
             if len(args) == 0:
                 # This script is running as an input. Input definitions will be passed on stdin
                 # as XML, and the script will write events on stdout and log entries on stderr.
-                input_definition = parse_input_definition(input_stream)
+                input_definition = InputDefinition.parse_input_definition(input_stream)
                 self.stream_events(input_definition, event_writer)
                 event_writer.close()
                 return 0
@@ -71,11 +69,11 @@ class Script(object):
                     event_writer.log(EventWriter.FATAL, "Modular input script returned a null scheme.")
                     return 1
                 else:
-                    event_writer.write_xml_document(scheme.to_XML())
+                    event_writer.write_xml_document(scheme.to_xml())
                     return 0
 
             elif args[0].lower() == "--validate-arguments":
-                validation_definition = parse_validation_definition(input_stream)
+                validation_definition = ValidationDefinition.parse_validation_definition(input_stream)
                 try:
                     self.validate_input(validation_definition)
                     return 0

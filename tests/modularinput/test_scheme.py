@@ -29,7 +29,7 @@ class SchemeTest(unittest.TestCase):
 
         scheme = Scheme("abcd")
 
-        constructed = scheme.to_XML()
+        constructed = scheme.to_xml()
         expected = ET.parse(open("data/scheme_with_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
@@ -57,7 +57,7 @@ class SchemeTest(unittest.TestCase):
         )
         scheme.add_argument(arg2)
 
-        constructed = scheme.to_XML()
+        constructed = scheme.to_xml()
         expected = ET.parse(open("data/scheme_without_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))

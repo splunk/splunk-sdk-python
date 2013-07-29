@@ -27,6 +27,7 @@ class Scheme(object):
     """
 
     # Constant values, do not change
+    # These should be used for setting the value of a Scheme object's streaming_mode field.
     streaming_mode_simple = "SIMPLE"
     streaming_mode_xml = "XML"
 
@@ -50,7 +51,7 @@ class Scheme(object):
         """
         self.arguments.append(arg)
 
-    def to_XML(self):
+    def to_xml(self):
         """Creates an ET.Element representing self, then returns it
 
         :return root, an ET.Element representing this scheme
@@ -63,10 +64,14 @@ class Scheme(object):
         if self.description is not None:
             ET.SubElement(root, "description").text = self.description
 
-        # add other subelements
-        ET.SubElement(root, "use_external_validation").text = str(self.use_external_validation).lower()
-        ET.SubElement(root, "use_single_instance").text = str(self.use_single_instance).lower()
-        ET.SubElement(root, "streaming_mode").text = self.streaming_mode.lower()
+        # add other subelements; represented by (tag, text)
+        subelements = [
+            ("use_external_validation", str(self.use_external_validation).lower()),
+            ("use_single_instance", str(self.use_single_instance).lower()),
+            ("streaming_mode", self.streaming_mode.lower())
+        ]
+        for name, value in subelements:
+            ET.SubElement(root, name).text = value
 
         endpoint = ET.SubElement(root, "endpoint")
 

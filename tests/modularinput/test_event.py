@@ -135,7 +135,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual("ERROR Something happened!\n", err.getvalue())
 
     def test_write_xml_is_sane(self):
-        """Check that EventWriter.writeXmlDocument writes sensible
+        """Check that EventWriter.write_xml_document writes sensible
         XML to the output stream."""
         out = StringIO()
         err = StringIO()

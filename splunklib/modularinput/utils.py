@@ -41,21 +41,23 @@ def xml_compare(expected, found):
         return False
 
     # compare elements, if there is no text node, return True
-    if (expected.text is None or expected.text.strip() == "") and (found.text is None or found.text.strip() == ""):
+    if (expected.text is None or expected.text.strip() == "") \
+        and (found.text is None or found.text.strip() == ""):
         return True
     else:
-        return expected.tag == found.tag and expected.text == found.text and expected.attrib == found.attrib
+        return expected.tag == found.tag and expected.text == found.text \
+            and expected.attrib == found.attrib
 
-def parse_parameters(paramNode):
-    if paramNode.tag == "param":
-        return paramNode.text
-    elif paramNode.tag == "param_list":
+def parse_parameters(param_node):
+    if param_node.tag == "param":
+        return param_node.text
+    elif param_node.tag == "param_list":
         parameters = []
-        for mvp in paramNode:
+        for mvp in param_node:
             parameters.append(mvp.text)
         return parameters
     else:
-        raise ValueError("Invalid configuration scheme, %s tag unexpected." % paramNode.tag)
+        raise ValueError("Invalid configuration scheme, %s tag unexpected." % param_node.tag)
 
 def parse_xml_data(parent_node, child_node_tag):
     data = {}

@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.modularinput.event import Event, ET
+from splunklib.modularinput.event import ET
 import sys
 
 try:
@@ -48,9 +48,6 @@ class EventWriter(object):
 
     def write_event(self, event):
         """Write an Event object to Splunk.
-        If the opening <stream> tag hasn't been written,
-        write it & set header_written to True
-        Then, write the event.
 
         :param event: an Event object
         """

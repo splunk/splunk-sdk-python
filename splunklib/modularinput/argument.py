@@ -41,12 +41,13 @@ class Argument(object):
             )
     """
 
-    # Constant values, do not change
+    # Constant values, do not change.
+    # These should be used for setting the value of an Argument object's data_type field.
     data_type_boolean = "BOOLEAN"
     data_type_number = "NUMBER"
     data_type_string = "STRING"
 
-    def __init__(self, name, description=None, validation=None, \
+    def __init__(self, name, description=None, validation=None,
                  data_type=data_type_string, required_on_edit=False, required_on_create=False):
         """
         :param name: string, identifier for this argument in Splunk

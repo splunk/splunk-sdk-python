@@ -13,8 +13,9 @@
 # under the License.
 
 from modularinput_testlib import unittest, xml_compare
-from splunklib.modularinput.event_writer import EventWriter, Event
 from splunklib.modularinput.argument import Argument
+from splunklib.modularinput.event import Event
+from splunklib.modularinput.event_writer import EventWriter
 from splunklib.modularinput.script import Script
 from splunklib.modularinput.scheme import Scheme
 

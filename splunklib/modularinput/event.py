@@ -22,7 +22,7 @@ class Event(object):
 
     To write an input to a stream, call the write_to function, passing in a stream.
     """
-    def __init__(self, data=None, stanza=None, time=None, host=None, index=None, source=None,\
+    def __init__(self, data=None, stanza=None, time=None, host=None, index=None, source=None,
                  sourceType=None, done=True, unbroken=True):
         """There are no required parameters for constructing an Event
 
@@ -71,7 +71,8 @@ class Event(object):
     def write_to(self, stream):
         """Write an XML representation of self, an Event object, to the given stream
 
-        The Event object will only be written if its data field is defined
+        The Event object will only be written if its data field is defined,
+        else a ValueError is raised.
 
         :param stream: stream to write XML to
         """
@@ -96,10 +97,10 @@ class Event(object):
             ("data", self.data)
         ]
         for node, value in subelements:
-            if value:
+            if value is not None:
                 ET.SubElement(event, node).text = value
 
-        if self.done:
+        if self.done is not None:
             ET.SubElement(event, "done")
 
         stream.write(ET.tostring(event))

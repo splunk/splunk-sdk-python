@@ -25,9 +25,9 @@ except ImportError:
     from StringIO import StringIO
 
 try:
-    import  xml.etree.cElementTree as ET
+    import xml.etree.cElementTree as ET
 except ImportError:
-    import  xml.etree.ElementTree as ET
+    import xml.etree.ElementTree as ET
 
 class ScriptTest(unittest.TestCase):
     def test_error_on_script_with_null_scheme(self):
@@ -45,17 +45,17 @@ class ScriptTest(unittest.TestCase):
         
         script = NewScript()
 
-        _out = StringIO()
-        _err = StringIO()
-        ew = EventWriter(_out, _err)
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
 
-        _in = StringIO()
+        in_stream = StringIO()
 
         args = ["--scheme"]
-        return_value = script.run_script(args, ew, _in)
+        return_value = script.run_script(args, ew, in_stream)
 
-        self.assertEqual("", _out.getvalue())
-        self.assertEqual("FATAL Modular input script returned a null scheme.\n", _err.getvalue())
+        self.assertEqual("", out.getvalue())
+        self.assertEqual("FATAL Modular input script returned a null scheme.\n", err.getvalue())
         self.assertNotEqual(0, return_value)
 
     def test_scheme_properly_generated_by_script(self):
@@ -89,17 +89,17 @@ class ScriptTest(unittest.TestCase):
 
         script = NewScript()
 
-        _out = StringIO()
-        _err = StringIO()
-        ew = EventWriter(_out, _err)
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
 
         args = ["--scheme"]
-        return_value = script.run_script(args, ew, _err)
+        return_value = script.run_script(args, ew, err)
 
-        self.assertEqual("", _err.getvalue())
+        self.assertEqual("", err.getvalue())
         self.assertEqual(0, return_value)
 
-        found = ET.fromstring(_out.getvalue())
+        found = ET.fromstring(out.getvalue())
         expected = ET.parse(open("data/scheme_without_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, found))
@@ -122,16 +122,16 @@ class ScriptTest(unittest.TestCase):
 
         script = NewScript()
 
-        _out = StringIO()
-        _err = StringIO()
-        ew = EventWriter(_out, _err)
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
 
         args = ["--validate-arguments"]
 
         return_value = script.run_script(args, ew, open("data/validation.xml"))
 
-        self.assertEqual("", _err.getvalue())
-        self.assertEqual("", _out.getvalue())
+        self.assertEqual("", err.getvalue())
+        self.assertEqual("", out.getvalue())
         self.assertEqual(0, return_value)
 
     def test_failed_validation(self):
@@ -151,18 +151,18 @@ class ScriptTest(unittest.TestCase):
 
         script = NewScript()
 
-        _out = StringIO()
-        _err = StringIO()
-        ew = EventWriter(_out, _err)
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
 
         args = ["--validate-arguments"]
 
         return_value = script.run_script(args, ew, open("data/validation.xml"))
 
         expected = ET.parse(open("data/validation_error.xml")).getroot()
-        found = ET.fromstring(_out.getvalue())
+        found = ET.fromstring(out.getvalue())
 
-        self.assertEqual("", _err.getvalue())
+        self.assertEqual("", err.getvalue())
         self.assertTrue(xml_compare(expected, found))
         self.assertNotEqual(0, return_value)
 
@@ -193,17 +193,17 @@ class ScriptTest(unittest.TestCase):
         script = NewScript()
         input_configuration = open("data/conf_with_2_inputs.xml")
 
-        _out = StringIO()
-        _err = StringIO()
-        ew = EventWriter(_out, _err)
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
 
         return_value = script.run_script([], ew, input_configuration)
 
         self.assertEqual(0, return_value)
-        self.assertEqual("", _err.getvalue())
+        self.assertEqual("", err.getvalue())
 
         expected = ET.parse(open("data/stream_with_two_events.xml")).getroot()
-        found = ET.fromstring(_out.getvalue())
+        found = ET.fromstring(out.getvalue())
 
         self.assertTrue(xml_compare(expected, found))
 

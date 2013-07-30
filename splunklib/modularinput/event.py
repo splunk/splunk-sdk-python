@@ -23,7 +23,7 @@ class Event(object):
     To write an input to a stream, call the write_to function, passing in a stream.
     """
     def __init__(self, data=None, stanza=None, time=None, host=None, index=None, source=None,
-                 sourceType=None, done=True, unbroken=True):
+                 sourcetype=None, done=True, unbroken=True):
         """There are no required parameters for constructing an Event
 
         Example with minimal configuration:
@@ -43,7 +43,7 @@ class Event(object):
                 host="localhost",
                 index="main",
                 source="Splunk",
-                sourceType="misc",
+                sourcetype="misc",
                 done=True,
                 unbroken=True
             )
@@ -54,7 +54,7 @@ class Event(object):
         :param host: string, the event's host, ex: localhost
         :param index: string, the index this event is specified to write to, or None if default index
         :param source: string, the source of this event, or None to have Splunk guess
-        :param sourceType: string, source type currently set on this event, or None to have Splunk guess
+        :param sourcetype: string, source type currently set on this event, or None to have Splunk guess
         :param done: boolean, is this a complete Event? False if an Event fragment
         :param unbroken: boolean, Is this event completely encapsulated in this Event object?
         """
@@ -63,7 +63,7 @@ class Event(object):
         self.host = host
         self.index = index
         self.source = source
-        self.sourceType = sourceType
+        self.sourceType = sourcetype
         self.stanza = stanza
         self.time = time
         self.unbroken = unbroken
@@ -72,7 +72,7 @@ class Event(object):
         """Write an XML representation of self, an Event object, to the given stream
 
         The Event object will only be written if its data field is defined,
-        else a ValueError is raised.
+        otherwise a ValueError is raised.
 
         :param stream: stream to write XML to
         """

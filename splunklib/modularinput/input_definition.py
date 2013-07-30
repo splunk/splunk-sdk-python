@@ -36,7 +36,7 @@ class InputDefinition:
         return self.metadata == other.metadata and self.inputs == other.inputs
 
     @staticmethod
-    def parse_input_definition(stream):
+    def parse(stream):
         """Parse a stream containing XML into an InputDefinition.
 
         :param stream: stream containing XML to parse

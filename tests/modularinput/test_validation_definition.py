@@ -20,7 +20,7 @@ from splunklib.modularinput.validation_definition import ValidationDefinition
 class ValidationDefinitionTestCase(unittest.TestCase):
     def test_validation_definition_parse(self):
         """Check that parsing produces expected result"""
-        found = ValidationDefinition.parse_validation_definition(open("data/validation.xml"))
+        found = ValidationDefinition.parse(open("data/validation.xml"))
 
         expected = ValidationDefinition()
         expected.metadata = {

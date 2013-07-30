@@ -61,7 +61,7 @@ class Script(object):
             if len(args) == 0:
                 # This script is running as an input. Input definitions will be passed on stdin
                 # as XML, and the script will write events on stdout and log entries on stderr.
-                input_definition = InputDefinition.parse_input_definition(input_stream)
+                input_definition = InputDefinition.parse(input_stream)
                 self.stream_events(input_definition, event_writer)
                 event_writer.close()
                 return 0
@@ -78,7 +78,7 @@ class Script(object):
                     return 0
 
             elif args[0].lower() == "--validate-arguments":
-                validation_definition = ValidationDefinition.parse_validation_definition(input_stream)
+                validation_definition = ValidationDefinition.parse(input_stream)
                 try:
                     self.validate_input(validation_definition)
                     return 0

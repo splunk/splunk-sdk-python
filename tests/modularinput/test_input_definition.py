@@ -22,7 +22,7 @@ class InputDefinitionTestCase(unittest.TestCase):
     def test_parse_inputdef_with_zero_inputs(self):
         """Check parsing of XML that contains only metadata"""
 
-        found = InputDefinition.parse_input_definition(open("data/conf_with_0_inputs.xml"))
+        found = InputDefinition.parse(open("data/conf_with_0_inputs.xml"))
 
         expectedDefinition = InputDefinition()
         expectedDefinition.metadata = {
@@ -37,7 +37,7 @@ class InputDefinitionTestCase(unittest.TestCase):
     def test_parse_inputdef_with_two_inputs(self):
         """Check parsing of XML that contains 2 inputs"""
 
-        found = InputDefinition.parse_input_definition(open("data/conf_with_2_inputs.xml"))
+        found = InputDefinition.parse(open("data/conf_with_2_inputs.xml"))
 
         expectedDefinition = InputDefinition()
         expectedDefinition.metadata = {
@@ -67,7 +67,7 @@ class InputDefinitionTestCase(unittest.TestCase):
         """Does malformed XML cause the expected exception."""
 
         with self.assertRaises(ValueError):
-            found = InputDefinition.parse_input_definition(open("data/conf_with_invalid_inputs.xml"))
+            found = InputDefinition.parse(open("data/conf_with_invalid_inputs.xml"))
 
 if __name__ == "__main__":
     unittest.main()

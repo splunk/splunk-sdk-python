@@ -37,7 +37,7 @@ class ValidationDefinition(object):
         return self.metadata == other.metadata and self.parameters == other.parameters
 
     @staticmethod
-    def parse_validation_definition(stream):
+    def parse(stream):
         """Creates a ValidationDefinition from a provided stream containing XML.
 
         The XML typically will look like

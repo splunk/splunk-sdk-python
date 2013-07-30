@@ -62,7 +62,7 @@ class EventTestCase(unittest.TestCase):
             host="localhost",
             index="main",
             source="hilda",
-            sourceType="misc",
+            sourcetype="misc",
             done=True,
             unbroken=True
         )
@@ -88,7 +88,7 @@ class EventTestCase(unittest.TestCase):
             host="localhost",
             index="main",
             source="hilda",
-            sourceType="misc",
+            sourcetype="misc",
             done=True,
             unbroken=True
         )

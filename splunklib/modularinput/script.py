@@ -58,7 +58,7 @@ class Script(object):
         """
 
         try:
-            if len(args) == 0:
+            if len(args) == 1:
                 # This script is running as an input. Input definitions will be passed on stdin
                 # as XML, and the script will write events on stdout and log entries on stderr.
                 input_definition = InputDefinition.parse(input_stream)
@@ -66,7 +66,7 @@ class Script(object):
                 event_writer.close()
                 return 0
 
-            elif str(args[0]).lower() == "--scheme":
+            elif str(args[1]).lower() == "--scheme":
                 # Splunk has requested XML specifying the scheme for this modular input.
                 # Return it and exit.
                 scheme = self.get_scheme()
@@ -77,7 +77,7 @@ class Script(object):
                     event_writer.write_xml_document(scheme.to_xml())
                     return 0
 
-            elif args[0].lower() == "--validate-arguments":
+            elif args[1].lower() == "--validate-arguments":
                 validation_definition = ValidationDefinition.parse(input_stream)
                 try:
                     self.validate_input(validation_definition)

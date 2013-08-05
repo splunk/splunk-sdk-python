@@ -69,7 +69,7 @@ class MyScript(Script):
         max_argument.required_on_create = True
         scheme.add_argument(max_argument)
 
-        return scheme # Return the scheme
+        return scheme
 
     def validate_input(self, validation_definition):
         """In this example we are using external validation to verify that min is
@@ -120,4 +120,4 @@ class MyScript(Script):
             ew.write_event(event)
 
 if __name__ == "__main__":
-    sys.exit(MyScript().run(sys.argv[1:]))
+    sys.exit(MyScript().run(sys.argv))

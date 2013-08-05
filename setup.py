@@ -75,45 +75,55 @@ def get_python_files(files):
 
     return python_files
 
-def setup_examples():
-    """Function to create .spl files for modular input examples"""
-    app_names = ["random_numbers", "github_forks"]
+class DistCommand(Command):
+    """setup.py command to create .spl files for modular input examples"""
+    description = "Build modular input example .spl files."
+    user_options = []
 
-    splunklib_dir = "splunklib"
-    modinput_dir = os.path.join(splunklib_dir, "modularinput")
+    def initialize_options(self):
+        pass
 
-    for app in app_names:
-        spl = tarfile.open(os.path.join("build", app + ".spl"), "w")
+    def finalize_options(self):
+        pass
 
-        spl.add(
-            os.path.join("examples", app, app + ".py"),
-            arcname=os.path.join(app, "bin", app + ".py")
-        )
+    def run(self):
+        app_names = ["random_numbers", "github_forks"]
 
-        spl.add(
-            os.path.join("examples", app, "default", "app.conf"),
-            arcname=os.path.join(app, "default", "app.conf")
-        )
-        spl.add(
-            os.path.join("examples", app, "README", "inputs.conf.spec"),
-            arcname=os.path.join(app, "README", "inputs.conf.spec")
-        )
+        splunklib_dir = "splunklib"
+        modinput_dir = os.path.join(splunklib_dir, "modularinput")
 
-        splunklib_files = get_python_files(os.listdir(splunklib_dir))
-        for file_name in splunklib_files:
+        for app in app_names:
+            spl = tarfile.open(os.path.join("build", app + ".spl"), "w")
+
             spl.add(
-                os.path.join(splunklib_dir, file_name),
-                arcname=os.path.join(app, "bin", splunklib_dir, file_name)
+                os.path.join("examples", app, app + ".py"),
+                arcname=os.path.join(app, "bin", app + ".py")
             )
 
-        modinput_files = get_python_files(os.listdir(modinput_dir))
-        for file_name in modinput_files:
             spl.add(
-                os.path.join(modinput_dir, file_name),
-                arcname=os.path.join(app, "bin", modinput_dir, file_name)
+                os.path.join("examples", app, "default", "app.conf"),
+                arcname=os.path.join(app, "default", "app.conf")
+            )
+            spl.add(
+                os.path.join("examples", app, "README", "inputs.conf.spec"),
+                arcname=os.path.join(app, "README", "inputs.conf.spec")
             )
 
-        spl.close()
+            splunklib_files = get_python_files(os.listdir(splunklib_dir))
+            for file_name in splunklib_files:
+                spl.add(
+                    os.path.join(splunklib_dir, file_name),
+                    arcname=os.path.join(app, "bin", splunklib_dir, file_name)
+                )
+
+            modinput_files = get_python_files(os.listdir(modinput_dir))
+            for file_name in modinput_files:
+                spl.add(
+                    os.path.join(modinput_dir, file_name),
+                    arcname=os.path.join(app, "bin", modinput_dir, file_name)
+                )
+
+            spl.close()
 
 setup(
     author="Splunk, Inc.",
@@ -121,7 +131,8 @@ setup(
     author_email="devinfo@splunk.com",
 
     cmdclass={'coverage': CoverageCommand,
-              'test': TestCommand},
+              'test': TestCommand,
+              'dist': DistCommand},
 
     description="The Splunk Software Development Kit for Python.",
 
@@ -146,5 +157,3 @@ setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
 )
-
-setup_examples()

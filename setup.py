@@ -15,7 +15,7 @@
 # under the License.
 
 from distutils.core import setup, Command
-import os, shutil
+import os, shutil, tarfile
 import splunklib
 
 def run_test_suite():
@@ -66,6 +66,55 @@ class TestCommand(Command):
     def run(self):
         run_test_suite()
 
+def get_python_files(files):
+    """Utility function to get .py files from a list"""
+    python_files = []
+    for file_name in files:
+        if file_name.endswith(".py"):
+            python_files.append(file_name)
+
+    return python_files
+
+def setup_examples():
+    """Function to create .spl files for modular input examples"""
+    app_names = ["random_numbers", "github_forks"]
+
+    splunklib_dir = "splunklib"
+    modinput_dir = os.path.join(splunklib_dir, "modularinput")
+
+    for app in app_names:
+        spl = tarfile.open(os.path.join("build", app+".spl"), "w")
+
+        spl.add(
+            os.path.join("examples", app, app+".py"),
+            arcname=os.path.join(app, "bin", app+".py")
+        )
+
+        spl.add(
+            os.path.join("examples", app, "default", "app.conf"),
+            arcname=os.path.join(app, "default", "app.conf")
+        )
+        spl.add(
+            os.path.join("examples", app, "README", "inputs.conf.spec"),
+            arcname=os.path.join(app, "README", "inputs.conf.spec")
+        )
+
+        splunklib_files = get_python_files(os.listdir(splunklib_dir))
+        for file_name in splunklib_files:
+            spl.add(
+                os.path.join(splunklib_dir, file_name),
+                arcname=os.path.join(app, "bin", splunklib_dir, file_name)
+            )
+
+        modinput_files = get_python_files(os.listdir(modinput_dir))
+        for file_name in modinput_files:
+            spl.add(
+                os.path.join(modinput_dir, file_name),
+                arcname=os.path.join(app, "bin", modinput_dir, file_name)
+            )
+
+        spl.close()
+
 setup(
     author="Splunk, Inc.",
 
@@ -98,4 +147,4 @@ setup(
     ],
 )
 
-
+setup_examples()

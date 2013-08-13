@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from modularinput_testlib import unittest, xml_compare
+from tests.modularinput.modularinput_testlib import unittest, xml_compare
 from splunklib.modularinput.argument import Argument
 from splunklib.modularinput.event import Event
 from splunklib.modularinput.event_writer import EventWriter
@@ -29,7 +29,10 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
+TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__" #TODO: replace empty first args...
+
 class ScriptTest(unittest.TestCase):
+
     def test_error_on_script_with_null_scheme(self):
         """A script that returns a null scheme should generate no output on
         stdout and an error on stderr saying that it the scheme was null."""
@@ -51,7 +54,7 @@ class ScriptTest(unittest.TestCase):
 
         in_stream = StringIO()
 
-        args = ["--scheme"]
+        args = [TEST_SCRIPT_PATH, "--scheme"]
         return_value = script.run_script(args, ew, in_stream)
 
         self.assertEqual("", out.getvalue())
@@ -93,7 +96,7 @@ class ScriptTest(unittest.TestCase):
         err = StringIO()
         ew = EventWriter(out, err)
 
-        args = ["--scheme"]
+        args = [TEST_SCRIPT_PATH, "--scheme"]
         return_value = script.run_script(args, ew, err)
 
         self.assertEqual("", err.getvalue())
@@ -126,7 +129,7 @@ class ScriptTest(unittest.TestCase):
         err = StringIO()
         ew = EventWriter(out, err)
 
-        args = ["--validate-arguments"]
+        args = [TEST_SCRIPT_PATH, "--validate-arguments"]
 
         return_value = script.run_script(args, ew, open("data/validation.xml"))
 
@@ -155,7 +158,7 @@ class ScriptTest(unittest.TestCase):
         err = StringIO()
         ew = EventWriter(out, err)
 
-        args = ["--validate-arguments"]
+        args = [TEST_SCRIPT_PATH, "--validate-arguments"]
 
         return_value = script.run_script(args, ew, open("data/validation.xml"))
 
@@ -197,7 +200,7 @@ class ScriptTest(unittest.TestCase):
         err = StringIO()
         ew = EventWriter(out, err)
 
-        return_value = script.run_script([], ew, input_configuration)
+        return_value = script.run_script([TEST_SCRIPT_PATH], ew, input_configuration)
 
         self.assertEqual(0, return_value)
         self.assertEqual("", err.getvalue())

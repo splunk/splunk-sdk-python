@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare
+from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
 
@@ -46,7 +46,7 @@ class EventTestCase(unittest.TestCase):
         event.write_to(stream)
 
         constructed = ET.fromstring(stream.getvalue())
-        expected = ET.parse(open("data/event_minimal.xml")).getroot()
+        expected = ET.parse(data_open("data/event_minimal.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 
@@ -69,7 +69,7 @@ class EventTestCase(unittest.TestCase):
         event.write_to(stream)
 
         constructed = ET.fromstring(stream.getvalue())
-        expected = ET.parse(open("data/event_maximal.xml")).getroot()
+        expected = ET.parse(data_open("data/event_maximal.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 
@@ -95,7 +95,7 @@ class EventTestCase(unittest.TestCase):
         ew.write_event(e)
 
         found = ET.fromstring("%s</stream>" % out.getvalue())
-        expected = ET.parse(open("data/stream_with_one_event.xml")).getroot()
+        expected = ET.parse(data_open("data/stream_with_one_event.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, found))
         self.assertEqual(err.getvalue(), "")
@@ -104,7 +104,7 @@ class EventTestCase(unittest.TestCase):
         ew.close()
 
         found = ET.fromstring(out.getvalue())
-        expected = ET.parse(open("data/stream_with_two_events.xml")).getroot()
+        expected = ET.parse(data_open("data/stream_with_two_events.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, found))
 
@@ -142,7 +142,7 @@ class EventTestCase(unittest.TestCase):
 
         ew = EventWriter(out, err)
 
-        expected_xml = ET.parse(open("data/event_maximal.xml")).getroot()
+        expected_xml = ET.parse(data_open("data/event_maximal.xml")).getroot()
 
         ew.write_xml_document(expected_xml)
         found_xml = ET.fromstring(out.getvalue())

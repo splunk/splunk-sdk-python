@@ -24,3 +24,6 @@ import sys, os
 sys.path.insert(0, os.path.join('../../splunklib', '..'))
 
 from splunklib.modularinput.utils import xml_compare, parse_xml_data, parse_parameters
+
+def data_open(filepath):
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath)

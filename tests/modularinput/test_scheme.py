@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare
+from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.scheme import Scheme
 from splunklib.modularinput.argument import Argument
 
@@ -30,7 +30,7 @@ class SchemeTest(unittest.TestCase):
         scheme = Scheme("abcd")
 
         constructed = scheme.to_xml()
-        expected = ET.parse(open("data/scheme_with_defaults.xml")).getroot()
+        expected = ET.parse(data_open("data/scheme_with_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 
@@ -58,7 +58,7 @@ class SchemeTest(unittest.TestCase):
         scheme.add_argument(arg2)
 
         constructed = scheme.to_xml()
-        expected = ET.parse(open("data/scheme_without_defaults.xml")).getroot()
+        expected = ET.parse(data_open("data/scheme_without_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 
@@ -71,7 +71,7 @@ class SchemeTest(unittest.TestCase):
         root = ET.Element("")
         constructed = argument.add_to_document(root)
 
-        expected = ET.parse(open("data/argument_with_defaults.xml")).getroot()
+        expected = ET.parse(data_open("data/argument_with_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 
@@ -90,7 +90,7 @@ class SchemeTest(unittest.TestCase):
         root = ET.Element("")
         constructed = argument.add_to_document(root)
 
-        expected = ET.parse(open("data/argument_without_defaults.xml")).getroot()
+        expected = ET.parse(data_open("data/argument_without_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, constructed))
 

@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare
+from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.argument import Argument
 from splunklib.modularinput.event import Event
 from splunklib.modularinput.event_writer import EventWriter
@@ -103,7 +103,7 @@ class ScriptTest(unittest.TestCase):
         self.assertEqual(0, return_value)
 
         found = ET.fromstring(out.getvalue())
-        expected = ET.parse(open("data/scheme_without_defaults.xml")).getroot()
+        expected = ET.parse(data_open("data/scheme_without_defaults.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, found))
 
@@ -131,7 +131,7 @@ class ScriptTest(unittest.TestCase):
 
         args = [TEST_SCRIPT_PATH, "--validate-arguments"]
 
-        return_value = script.run_script(args, ew, open("data/validation.xml"))
+        return_value = script.run_script(args, ew, data_open("data/validation.xml"))
 
         self.assertEqual("", err.getvalue())
         self.assertEqual("", out.getvalue())
@@ -160,9 +160,9 @@ class ScriptTest(unittest.TestCase):
 
         args = [TEST_SCRIPT_PATH, "--validate-arguments"]
 
-        return_value = script.run_script(args, ew, open("data/validation.xml"))
+        return_value = script.run_script(args, ew, data_open("data/validation.xml"))
 
-        expected = ET.parse(open("data/validation_error.xml")).getroot()
+        expected = ET.parse(data_open("data/validation_error.xml")).getroot()
         found = ET.fromstring(out.getvalue())
 
         self.assertEqual("", err.getvalue())
@@ -194,7 +194,7 @@ class ScriptTest(unittest.TestCase):
                 ew.write_event(event)
 
         script = NewScript()
-        input_configuration = open("data/conf_with_2_inputs.xml")
+        input_configuration = data_open("data/conf_with_2_inputs.xml")
 
         out = StringIO()
         err = StringIO()
@@ -205,7 +205,7 @@ class ScriptTest(unittest.TestCase):
         self.assertEqual(0, return_value)
         self.assertEqual("", err.getvalue())
 
-        expected = ET.parse(open("data/stream_with_two_events.xml")).getroot()
+        expected = ET.parse(data_open("data/stream_with_two_events.xml")).getroot()
         found = ET.fromstring(out.getvalue())
 
         self.assertTrue(xml_compare(expected, found))

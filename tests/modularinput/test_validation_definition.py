@@ -14,13 +14,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests.modularinput.modularinput_testlib import unittest
+from tests.modularinput.modularinput_testlib import unittest, data_open
 from splunklib.modularinput.validation_definition import ValidationDefinition
 
 class ValidationDefinitionTestCase(unittest.TestCase):
     def test_validation_definition_parse(self):
         """Check that parsing produces expected result"""
-        found = ValidationDefinition.parse(open("data/validation.xml"))
+        found = ValidationDefinition.parse(data_open("data/validation.xml"))
 
         expected = ValidationDefinition()
         expected.metadata = {

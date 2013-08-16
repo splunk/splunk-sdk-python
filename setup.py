@@ -17,6 +17,7 @@
 from distutils.core import setup, Command
 import os, shutil, tarfile
 import splunklib
+from contextlib import closing
 
 def run_test_suite():
     try:
@@ -94,7 +95,7 @@ class DistCommand(Command):
         modinput_dir = os.path.join(splunklib_dir, "modularinput")
 
         for app in app_names:
-            with tarfile.open(os.path.join("build", app + ".spl"), "w") as spl:
+            with closing(tarfile.open(os.path.join("build", app + ".spl"), "w")) as spl:
                 spl.add(
                     os.path.join("examples", app, app + ".py"),
                     arcname=os.path.join(app, "bin", app + ".py")

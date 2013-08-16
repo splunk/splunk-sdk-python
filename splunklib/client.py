@@ -490,7 +490,7 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-        result = self.get("server/control/restart")
+        result = self.post("server/control/restart")
         if timeout is None: return result
         start = datetime.now()
         diff = timedelta(seconds=10)

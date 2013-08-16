@@ -73,7 +73,7 @@ class Argument(object):
         and sets up its subelements with their respective text.
 
         :param parent: An ``ET.Element`` to be the parent of a new <arg> subelement
-        :returns: An ``ET.Element`` object representing this argument. #TODO: might not need to return here..
+        :returns: An ``ET.Element`` object representing this argument.
         """
         arg = ET.SubElement(parent, "arg")
         arg.set("name", self.name)

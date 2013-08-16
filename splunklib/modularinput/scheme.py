@@ -20,10 +20,10 @@ except ImportError:
 class Scheme(object):
     """Class representing the metadata for a modular input kind.
 
-    A Scheme specifies a title, description, several options of how Splunk should run modular inputs of this
+    A ``Scheme`` specifies a title, description, several options of how Splunk should run modular inputs of this
     kind, and a set of arguments which define a particular modular input's properties.
 
-    The primary use of Scheme is to abstract away the construction of XML to feed to Splunk.
+    The primary use of ``Scheme`` is to abstract away the construction of XML to feed to Splunk.
     """
 
     # Constant values, do not change
@@ -33,7 +33,7 @@ class Scheme(object):
 
     def __init__(self, title):
         """
-        :param title: string identifier for this Scheme in Splunk
+        :param title: ``string`` identifier for this Scheme in Splunk.
         """
         self.title = title
         self.description = None
@@ -45,16 +45,16 @@ class Scheme(object):
         self.arguments = []
 
     def add_argument(self, arg):
-        """Add the provided argument, arg, to the self.arguments list
+        """Add the provided argument, ``arg``, to the ``self.arguments`` list.
 
-        :param arg: an Argument object to add to self.arguments
+        :param arg: An ``Argument`` object to add to ``self.arguments``.
         """
         self.arguments.append(arg)
 
     def to_xml(self):
-        """Creates an ET.Element representing self, then returns it
+        """Creates an ``ET.Element`` representing self, then returns it.
 
-        :return root, an ET.Element representing this scheme
+        :returns root, an ``ET.Element`` representing this scheme.
         """
         root = ET.Element("scheme")
 

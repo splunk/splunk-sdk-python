@@ -22,10 +22,10 @@ except ImportError:
     from StringIO import StringIO
 
 class EventWriter(object):
-    """EventWriter writes events and error messages to Splunk from a modular input.
+    """``EventWriter`` writes events and error messages to Splunk from a modular input.
 
-    Its two important methods are writeEvent, which takes an Event object,
-    and log, which takes a severity and an error message.
+    Its two important methods are ``writeEvent``, which takes an ``Event`` object,
+    and ``log``, which takes a severity and an error message.
     """
 
     # Severities that Splunk understands for log messages from modular inputs.
@@ -38,8 +38,8 @@ class EventWriter(object):
 
     def __init__(self, output = sys.stdout, error = sys.stderr):
         """
-        :param output: where to write the output, defaults to sys.stdout
-        :param error: where to write any errors, defaults to sys.stderr
+        :param output: Where to write the output; defaults to sys.stdout.
+        :param error: Where to write any errors; defaults to sys.stderr.
         """
         self._out = output
         self._err = error
@@ -48,9 +48,9 @@ class EventWriter(object):
         self.header_written = False
 
     def write_event(self, event):
-        """Write an Event object to Splunk.
+        """Writes an ``Event`` object to Splunk.
 
-        :param event: an Event object
+        :param event: An ``Event`` object.
         """
 
         if not self.header_written:
@@ -60,21 +60,21 @@ class EventWriter(object):
         event.write_to(self._out)
 
     def log(self, severity, message):
-        """Log messages about the state of this modular input to Splunk.
-        These messages will show up in Splunk's internal logs
+        """Logs messages about the state of this modular input to Splunk.
+        These messages will show up in Splunk's internal logs.
 
-        :param severity: string, severity of message, see severites defined as class constants
-        :param message: message to log
+        :param severity: ``string``, severity of message, see severites defined as class constants.
+        :param message: Message to log.
         """
 
         self._err.write("%s %s\n" % (severity, message))
         self._err.flush()
 
     def write_xml_document(self, document):
-        """Write a string representation of an
-        ElementTree object to the output stream
+        """Writes a string representation of an
+        ``ElementTree`` object to the output stream.
 
-        :param document: an ElementTree object
+        :param document: An ``ElementTree`` object.
         """
         self._out.write(ET.tostring(document, "utf-8", "xml"))
         self._out.flush()

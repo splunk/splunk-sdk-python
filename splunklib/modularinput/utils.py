@@ -15,11 +15,11 @@
 # File for utility functions
 
 def xml_compare(expected, found):
-    """Checks equality of two ElementTree objects
+    """Checks equality of two ``ElementTree`` objects.
 
-    :param expected: an ElementTree object
-    :param found: an ElementTree object
-    :return: boolean, equality of expected and found
+    :param expected: An ``ElementTree`` object.
+    :param found: An ``ElementTree`` object.
+    :return: ``Boolean``, whether the two objects are equal.
     """
 
     # if comparing the same ET object

@@ -38,7 +38,7 @@ class ValidationDefinition(object):
 
     @staticmethod
     def parse(stream):
-        """Creates a ValidationDefinition from a provided stream containing XML.
+        """Creates a ``ValidationDefinition`` from a provided stream containing XML.
 
         The XML typically will look like
 
@@ -57,8 +57,8 @@ class ValidationDefinition(object):
             </item>
         </items>
 
-        :param stream: stream containing XML to parse
-        :return definition: a ValidationDefinition object
+        :param stream: ``Stream`` containing XML to parse.
+        :return definition: A ``ValidationDefinition`` object.
         """
 
         definition = ValidationDefinition()

@@ -28,20 +28,20 @@ except ImportError:
 class Script(object):
     """An abstract base class for implementing modular inputs.
 
-    Subclasses should override get_scheme, stream_events,
-    and optionally validate_input if the modular Input uses
+    Subclasses should override ``get_scheme``, ``stream_events``,
+    and optionally ``validate_input`` if the modular input uses
     external validation.
 
-    The run function is used to run modular inputs, it typically should
+    The ``run`` function is used to run modular inputs; it typically should
     not be overridden.
     """
     __metaclass__ = ABCMeta
 
     def run(self, args):
-        """Run this modular input
+        """Runs this modular input
 
-        :param args: list of command line arguments passed to this script
-        :return: an integer to be used as the exit value of this program
+        :param args: List of command line arguments passed to this script.
+        :returns: An integer to be used as the exit value of this program.
         """
 
         # call the run_script function, which handles the specifics of running
@@ -51,10 +51,10 @@ class Script(object):
     def run_script(self, args, event_writer, input_stream):
         """Handles all the specifics of running a modular input
 
-        :param args: list of command line arguments passed to this script
-        :param event_writer: an EventWriter object for writing events
-        :param input_stream: an input stream for reading inputs
-        :return: an integer to be used as the exit value of this program
+        :param args: List of command line arguments passed to this script.
+        :param event_writer: An ``EventWriter`` object for writing events.
+        :param input_stream: An input stream for reading inputs.
+        :returns: An integer to be used as the exit value of this program.
         """
 
         try:
@@ -101,21 +101,21 @@ class Script(object):
     def get_scheme(self):
         """The scheme defines the parameters understood by this modular input.
 
-        :return: a Scheme object representing the parameters for this modular input
+        :return: a ``Scheme`` object representing the parameters for this modular input.
         """
 
     def validate_input(self, definition):
         """Handles external validation for modular input kinds. When Splunk
-        called a modular input script in validation mode, it will pass in an XML document
+        calls a modular input script in validation mode, it will pass in an XML document
         giving information about the Splunk instance (so you can call back into it if needed)
         and the name and parameters of the proposed input.
 
         If this function does not throw an exception, the validation is assumed to succeed.
-        Otherwise any error throws will be turned into a string and logged back to Splunk.
+        Otherwise any errors thrown will be turned into a string and logged back to Splunk.
 
         The default implementation always passes.
 
-        :param definition: The parameters for the proposed input passed by splunkd
+        :param definition: The parameters for the proposed input passed by splunkd.
         """
         pass
 
@@ -124,6 +124,6 @@ class Script(object):
         """The method called to stream events into Splunk. It should do all of its output via
         EventWriter rather than assuming that there is a console attached.
 
-        :param inputs: an InputDefinition object
-        :param ew: an object with methods to write events and log messages to Splunk
+        :param inputs: An ``InputDefinition`` object.
+        :param ew: An object with methods to write events and log messages to Splunk.
         """

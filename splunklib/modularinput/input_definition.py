@@ -1,3 +1,5 @@
+# Copyright 2011-2013 Splunk, Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -18,8 +20,8 @@ except ImportError as ie:
 from utils import parse_xml_data
 
 class InputDefinition:
-    """InputDefinition encodes the XML defining inputs that Splunk passes to
-    a modular input script
+    """``InputDefinition`` encodes the XML defining inputs that Splunk passes to
+    a modular input script.
 
      **Example**::
 
@@ -37,10 +39,10 @@ class InputDefinition:
 
     @staticmethod
     def parse(stream):
-        """Parse a stream containing XML into an InputDefinition.
+        """Parse a stream containing XML into an ``InputDefinition``.
 
-        :param stream: stream containing XML to parse
-        :return: definition: a InputDefinition object
+        :param stream: stream containing XML to parse.
+        :return: definition: an ``InputDefinition`` object.
         """
         definition = InputDefinition()
 

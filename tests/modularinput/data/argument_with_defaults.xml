@@ -1,0 +1,5 @@
+<arg name="some_name">
+    <data_type>string</data_type>
+    <required_on_edit>false</required_on_edit>
+    <required_on_create>false</required_on_create>
+</arg>

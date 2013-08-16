@@ -13,3 +13,5 @@ proxy.log
 MANIFEST
 coverage_report
 test.log
+examples/*/local
+examples/*/metadata

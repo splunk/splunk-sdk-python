@@ -1,0 +1,7 @@
+<arg name="some_name">
+    <description>쎼 and 쎶 and &lt;&amp;&gt; für</description>
+    <validation>is_pos_int('some_name')</validation>
+    <data_type>boolean</data_type>
+    <required_on_edit>true</required_on_edit>
+    <required_on_create>true</required_on_create>
+</arg>

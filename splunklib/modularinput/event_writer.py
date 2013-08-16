@@ -76,7 +76,7 @@ class EventWriter(object):
 
         :param document: An ``ElementTree`` object.
         """
-        self._out.write(ET.tostring(document, "utf-8", "xml"))
+        self._out.write(ET.tostring(document))
         self._out.flush()
 
     def close(self):

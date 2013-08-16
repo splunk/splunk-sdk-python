@@ -29,7 +29,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__" #TODO: replace empty first args...
+TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__"
 
 class ScriptTest(unittest.TestCase):
 

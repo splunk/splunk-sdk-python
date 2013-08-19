@@ -122,3 +122,8 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
     :class:`~splunklib.results.ResultsReader` class 
 
     :class:`~splunklib.results.Message` class 
+
+:doc:`modularinput`
+--------------
+
+    :class:`~splunklib.modularinput.EventWriter` class 

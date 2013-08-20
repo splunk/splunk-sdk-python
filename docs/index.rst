@@ -126,4 +126,16 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 :doc:`modularinput`
 --------------
 
+    :class:`~splunklib.modularinput.Argument` class 
+
+    :class:`~splunklib.modularinput.Event` class 
+
     :class:`~splunklib.modularinput.EventWriter` class 
+
+    :class:`~splunklib.modularinput.InputDefinition` class 
+
+    :class:`~splunklib.modularinput.Scheme` class 
+    
+    :class:`~splunklib.modularinput.Script` class 
+    
+    :class:`~splunklib.modularinput.ValidationDefinition` class 

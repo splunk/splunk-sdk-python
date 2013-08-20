@@ -21,8 +21,5 @@ splunklib.modularinput
 .. autoclass:: Script
     :members: 
 
-.. autoclass:: Script
-    :members: 
-
 .. autoclass:: ValidationDefinition
     :members: 

@@ -42,8 +42,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Splunk Python SDK'
-copyright = u'2012, Splunk Inc'
+project = u'Splunk SDK for Python'
+copyright = u'2013, Splunk Inc'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -107,7 +107,7 @@ html_theme = 'epub'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "Splunk Python SDK Reference"
+html_title = "Splunk SDK for Python API Reference"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = "Splunk Python SDK Reference"
@@ -191,7 +191,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'SplunkPythonSDK.tex', u'Splunk Python SDK Documentation',
+  ('index', 'SplunkPythonSDK.tex', u'Splunk SDK for Python Documentation',
    u'Splunk Inc.', 'manual'),
 ]
 
@@ -221,7 +221,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'splunkpythonsdk', u'Splunk Python SDK Documentation',
+    ('index', 'splunkpythonsdk', u'Splunk SDK for Python API Documentation',
      [u'Splunk Inc.'], 1)
 ]
 
@@ -235,8 +235,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'SplunkPythonSDK', u'Splunk Python SDK Documentation',
-   u'Splunk Inc.', 'SplunkPythonSDK', 'One line description of project.',
+  ('index', 'SplunkPythonSDK', u'Splunk SDK for Python API Documentation',
+   u'Splunk Inc.', 'SplunkPythonSDK', 'API reference for Splunk SDK for Python.',
    'Miscellaneous'),
 ]
 

@@ -1,5 +1,25 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.1
+
+### New features and APIs
+
+* Added support for building modular input scripts in Python using the Splunk
+  SDK for Python.
+
+### Minor additions
+
+* Added 2 modular input examples: `Github forks` and `random numbers`.
+
+* Added a `dist` command to `setup.py`. Running `setup.py dist` will generate
+  2 `.spl` files for the new modular input example apps.
+
+* `client.py` in  the `splunklib` module will now restart Splunk via an HTTP
+  post request instead of an HTTP get request.
+
+* `.gitignore` has been updated to ignore `local` and `metadata` subdirectories
+for any examples.
+
 ## Version 1.0
 
 ### New features and APIs

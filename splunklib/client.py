@@ -76,7 +76,8 @@ __all__ = [
     "NotSupportedError",
     "OperationError",
     "IncomparableException",
-    "Service"
+    "Service",
+    "namespace"
 ]
 
 PATH_APPS = "apps/local/"
@@ -95,7 +96,7 @@ PATH_JOBS = "search/jobs/"
 PATH_LOGGER = "server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
-PATH_ROLES = "authentication/roles/"
+PATH_ROLES = "authorization/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
@@ -490,7 +491,7 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-        result = self.get("server/control/restart")
+        result = self.post("server/control/restart")
         if timeout is None: return result
         start = datetime.now()
         diff = timedelta(seconds=10)
@@ -2423,6 +2424,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's events.
         """
+        kwargs['segmentation'] = kwargs.get('segmentation', 'none')
         return self.get("events", **kwargs).body
 
     def finalize(self):
@@ -2508,6 +2510,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's results.
         """
+        query_params['segmentation'] = query_params.get('segmentation', 'none')
         return self.get("results", **query_params).body
 
     def preview(self, **query_params):
@@ -2550,6 +2553,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
+        query_params['segmentation'] = query_params.get('segmentation', 'none')
         return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
@@ -2717,7 +2721,10 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to export.")
-        return self.post(path_segment="export", search=query, **params).body
+        params['segmentation'] = params.get('segmentation', 'none')
+        return self.post(path_segment="export",
+                         search=query, 
+                         **params).body
 
     def itemmeta(self):
         """There is no metadata available for class:``Jobs``.
@@ -2777,7 +2784,10 @@ class Jobs(Collection):
         """
         if "exec_mode" in params:
             raise TypeError("Cannot specify an exec_mode to oneshot.")
-        return self.post(search=query, exec_mode="oneshot", **params).body
+        params['segmentation'] = params.get('segmentation', 'none')
+        return self.post(search=query,
+                         exec_mode="oneshot", 
+                         **params).body
 
 
 class Loggers(Collection):

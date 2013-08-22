@@ -1,0 +1,5 @@
+<event stanza="fubar" unbroken="1">
+    <time>1372187084.000</time>
+    <data>This is a test of the emergency broadcast system.</data>
+    <done/>
+</event>

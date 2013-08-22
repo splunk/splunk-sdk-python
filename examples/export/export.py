@@ -28,7 +28,7 @@ from os import path
 # splunk support files
 from splunklib.binding import connect
 try:
-    from utils import error, parse
+    from utils import parse
 except ImportError:
     raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
@@ -329,7 +329,9 @@ def main():
 
     if path.exists(options.kwargs['output']):
         if options.kwargs['recover'] == False:
-            error("Export file %s exists, and recover option nor specified" % options.kwargs['output'], exitcode=1)
+            print "Export file %s exists, and recover option nor specified" % \
+                  options.kwargs['output']
+            sys.exit(1)
         else:
             options.kwargs['end'] = recover(options)
             options.kwargs['fixtail'] = True

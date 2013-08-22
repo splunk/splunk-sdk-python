@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Splunk Python SDK documentation build configuration file, created by
+# Splunk SDK for Python documentation build configuration file, created by
 # sphinx-quickstart on Fri Apr 13 12:28:15 2012.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -110,7 +110,7 @@ html_theme = 'epub'
 html_title = "Splunk SDK for Python API Reference"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = "Splunk Python SDK Reference"
+#html_short_title = "Splunk SDK for Python Reference"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.

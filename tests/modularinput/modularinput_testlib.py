@@ -14,16 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Runs all the Splunk SDK for Python unit tests."""
-
-import os
+# Utility file for unit tests, import common functions and modules
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-import testlib
+import sys, os
 
-suite = unittest.defaultTestLoader.discover('.')
+sys.path.insert(0, os.path.join('../../splunklib', '..'))
 
-if __name__ == '__main__':
-    unittest.TextTestRunner().run(suite)
+from splunklib.modularinput.utils import xml_compare, parse_xml_data, parse_parameters
+
+def data_open(filepath):
+    return open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath))

@@ -1,5 +1,5 @@
-Welcome to the API reference for the Splunk Python SDK, which describes the modules that are included in the Splunk Python SDK.
-For more information about the SDK, see the `Splunk Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
+Welcome to the API reference for the Splunk SDK for Python, which describes the modules that are included in the SDK.
+For more information, see the `Splunk Developer Portal <http://dev.splunk.com/view/python-sdk/SP-CAAAEBB>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -122,3 +122,20 @@ For more information about the SDK, see the `Splunk Developer Portal <http://dev
     :class:`~splunklib.results.ResultsReader` class 
 
     :class:`~splunklib.results.Message` class 
+
+:doc:`modularinput`
+--------------
+
+    :class:`~splunklib.modularinput.Argument` class 
+
+    :class:`~splunklib.modularinput.Event` class 
+
+    :class:`~splunklib.modularinput.EventWriter` class 
+
+    :class:`~splunklib.modularinput.InputDefinition` class 
+
+    :class:`~splunklib.modularinput.Scheme` class 
+    
+    :class:`~splunklib.modularinput.Script` class 
+    
+    :class:`~splunklib.modularinput.ValidationDefinition` class 

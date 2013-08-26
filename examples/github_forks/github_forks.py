@@ -110,7 +110,7 @@ class MyScript(Script):
     def stream_events(self, inputs, ew):
         """This function handles all the action: splunk calls this modular input
         without arguments, streams XML describing the inputs to stdin, and waits
-        for XML on stout describing events.
+        for XML on stdout describing events.
 
         If you set use_single_instance to True on the scheme in get_scheme, it
         will pass all the instances of this input to a single instance of this

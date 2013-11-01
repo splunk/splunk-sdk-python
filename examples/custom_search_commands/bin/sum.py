@@ -33,7 +33,7 @@ class SumCommand(ReportingCommand):
         **Syntax:** **total=***<fieldname>*
         **Description:** Name of the field that will hold the computed sum''')
 
-    @Configuration(clear_required_fields=False)
+    @Configuration(clear_required_fields=True)
     def map(self, records):
         """ Computes sum(fieldname, 1, n) and stores the result in 'total' """
         log.debug('Map.configuration=%s' % self.map.configuration)
@@ -43,12 +43,12 @@ class SumCommand(ReportingCommand):
                 total += float(record[fieldname])
         yield {self.total: total}
 
-    def reduce(self, events):
+    def reduce(self, records):
         """ Computes sum(total, 1, N) and stores the result in 'total' """
         log.debug('Reduce.configuration=%s' % self.configuration)
         total = 0.0
-        for event in events:
-            total += float(event[self.total])
+        for record in records:
+            total += float(record[self.total])
         yield {self.total: total}
 
 

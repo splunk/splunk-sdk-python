@@ -29,7 +29,8 @@ class CountMatchesCommand(StreamingCommand):
 
     ##Syntax
 
-    countmatches fieldname=**<field-name>** pattern=**<regular-expression>** **<field-name>**...
+    countmatches fieldname=**<field-name>** pattern=**<regular-expression>**
+    **<field-name>**...
 
     ##Description
 

@@ -53,7 +53,7 @@ class GeneratingCommand(SearchCommand):
 
     #region Methods
 
-    def _configure(self, argv, input_file):
+    def _prepare(self, argv, input_file):
         configuration = type(self)._configuration
         argv = argv[2:]
         return argv, configuration, self.generate, 'ANY'
@@ -75,11 +75,6 @@ class GeneratingCommand(SearchCommand):
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ TODO: Documentation
         """
-        def __init__(self, settings, target_class):
-            self._generates_timeorder = False
-            self._local = False
-            self._streaming = False
-
         #region Properties
 
         @property
@@ -92,31 +87,38 @@ class GeneratingCommand(SearchCommand):
         def generates_timeorder(self):
             """ TODO: Documentation
             """
-            return self._generates_timeorder
+            return type(self)._generates_timeorder
 
-        @generates_timeorder.setter
-        def generates_timeorder(self, value):
-            self._generates_timeorder = bool(value)
+        _generates_timeorder = False
 
         @property
         def local(self):
             """ TODO: Documentation
             """
-            return self._local
+            return type(self)._local
 
-        @local.setter
-        def local(self, value):
-            self._local = bool(value)
+        _local = False
 
         @property
         def streaming(self):
             """ TODO: Documentation
             """
-            return self._streaming
+            return type(self)._streaming
 
-        @streaming.setter
-        def streaming(self, value):
-            self._streaming = bool(value)
+        _streaming = False
+
+        #endregion
+
+        #region Methods
+
+        @classmethod
+        def fix_up(cls, command):
+            """ TODO: Documentation
+
+            """
+            if command.reduce == GeneratingCommand.generate:
+                raise AttributeError('No GeneratingCommand.generate override')
+            return
 
         #endregion
 

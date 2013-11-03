@@ -63,7 +63,7 @@ class CountMatchesCommand(StreamingCommand):
                      validate=validators.RegularExpression())
 
     def stream(self, records):
-        self.logger.debug('CountMatchesCommand: %s' % self)  # reports fully-formed command line
+        self.logger.debug('CountMatchesCommand: %s' % self)  # logs command line
         for record in records:
             count = 0.0
             for fieldname in self.fieldnames:

@@ -63,7 +63,7 @@ class StreamingCommand(SearchCommand):
     def stream(self, records):
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
-    def _configure(self, argv, input_file):
+    def _prepare(self, argv, input_file):
         configuration = type(self)._configuration
         argv = argv[2:]
         if input_file is None:
@@ -84,10 +84,7 @@ class StreamingCommand(SearchCommand):
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ TODO: Documentation
         """
-        def __init__(self, settings, target_class):
-            self._local = False
-            self._overrides_timeorder = False
-            super(StreamingCommand.ConfigurationSettings, self).__init__(settings, target_class)
+        #region Properties
 
         @property
         def local(self):
@@ -114,3 +111,18 @@ class StreamingCommand(SearchCommand):
             """ TODO: Documentation
             """
             return True
+
+        #endregion
+
+        #region Methods
+
+        @classmethod
+        def fix_up(cls, command):
+            """ TODO: Documentation
+
+            """
+            if command.reduce == StreamingCommand.stream:
+                raise AttributeError('No StreamingCommand.stream override')
+            return
+
+        #endregion

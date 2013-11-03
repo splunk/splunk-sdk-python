@@ -34,10 +34,8 @@ class Configuration(object):
     [1]: http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide "Search command style guide"
 
     """
-
     # TODO: Add support for all configuration settings defined in
     # Command.conf.spec save two: supports_getinfo and filename.
-
     # TODO: Add documentation for all configuration settings
 
     def __init__(self, **settings):
@@ -48,17 +46,56 @@ class Configuration(object):
             # We must wait to finalize configuration as the class containing
             # this function is under construction at the time this call to
             # decorate a member function is made
-            o._configuration = self.settings
+            o._settings = self.settings
         elif isclass(o):
-            o._configuration = o.ConfigurationSettings(self.settings, o)
             name = o.__name__
             if name.endswith('Command'):
                 name = name[:-len('Command')]
             o.name = name.lower()
+            if self.settings is not None:
+                o.ConfigurationSettings = Configuration.SettingsType(
+                    name='ConfigurationSettings',
+                    bases=(o.ConfigurationSettings,),
+                    dictionary={
+                        'module': '.'.join((o.__module__, o.__name__)),
+                        'settings': self.settings})
+            o.ConfigurationSettings.fix_up(o)
             Option.fix_up(o)
         else:
             raise TypeError('Incorrect usage')  # TODO: Real diagnostic message
         return o
+
+    class SettingsType(type):
+        """ TODO: Documentation
+
+        """
+        def __new__(cls, name, bases, dictionary):
+            cls = super(Configuration.SettingsType, cls).__new__(
+                cls, name, bases, {})
+            return cls
+
+        def __init__(cls, name, bases, dictionary):
+            # TODO: Attribute errors should report using full class name, (e.g.,
+            # SumCommand.ConfigurationSettings, not ConfigurationSettings
+            # TODO: Deal with computed configuration settings
+            # TODO: Deal with validation errors
+
+            super(Configuration.SettingsType, cls).__init__(name, bases, None)
+            configuration_settings = cls.configuration_settings()
+
+            for name, value in dictionary['settings'].iteritems():
+                try:
+                    prop, backing_field = configuration_settings[name]
+                except KeyError:
+                    raise AttributeError(
+                        '%s has no %s setting' % (cls.__name__, name))
+                if backing_field is None:
+                    raise AttributeError(
+                        'Setting %s has fixed value %s', (name, getattr(cls, name)))
+                setattr(cls, backing_field, value)
+
+            cls.__module__ = dictionary['module']
+            return
 
 
 class Option(property):

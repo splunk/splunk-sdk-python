@@ -20,11 +20,8 @@ from __future__ import absolute_import
 
 from .StreamingCommand import StreamingCommand
 from .SearchCommand import SearchCommand
+from .decorators import Configuration
 from . import csv
-
-import inspect
-import sys
-import logging as log
 
 
 class ReportingCommand(SearchCommand):
@@ -64,20 +61,20 @@ class ReportingCommand(SearchCommand):
 
     #region Methods
 
-    def _configure(self, argv, input_file):
+    def _prepare(self, argv, input_file):
         if len(argv) >= 3 and argv[2] == '__map__':
-            configuration = type(self).map._configuration
+            ConfigurationSettings = type(self).map.ConfigurationSettings
             operation = self.map
             argv = argv[3:]
         else:
-            configuration = type(self)._configuration
+            ConfigurationSettings = type(self).ConfigurationSettings
             operation = self.reduce
             argv = argv[2:]
         if input_file is None:
             reader = None
         else:
             reader = csv.DictReader(input_file)
-        return argv, configuration, operation, reader
+        return ConfigurationSettings, operation, argv, reader
 
     def _execute(self, operation, reader, writer):
         try:
@@ -100,59 +97,80 @@ class ReportingCommand(SearchCommand):
         """ TODO: Documentation
 
         """
-        def __init__(self, settings, target_class):
-            """ TODO: Documentation
-
-            """
-            if target_class.reduce == ReportingCommand.reduce:
-                raise AttributeError(
-                    'You must override the ReportingCommand.reduce method')
-
-            # If target_class overrides the map method, configure and remember it
-            map_method = target_class.map
-
-            if map_method == ReportingCommand.map:
-                self._streaming_preop = None
-                self._requires_preop = None
-            else:
-                settings = getattr(map_method, 'configuration', None)  # decorators.Configuration sets this "raw" value
-                map_method.__dict__['configuration'] = StreamingCommand.ConfigurationSettings(settings, target_class)
-                # TODO: Why does this not work: setattr(map_method, 'configuration', settings)?
-                self._streaming_preop = target_class.map
-                self._requires_preop = False
-
-            super(ReportingCommand.ConfigurationSettings, self).__init__(settings, target_class)
-
         #region Properties
 
         @property
         def requires_preop(self):
             """ TODO: Documentation
             """
-            return self._requires_preop
+            return type(self)._requires_preop
 
-        @requires_preop.setter
-        def requires_preop(self, value):
-            """ TODO: Documentation
-            """
-            # TODO: Consider complaining or prohibiting setting this property of
-            # self.streaming_preop is None
-            self._requires_preop = bool(value)
+        _requires_preop = False
 
         @property
         def streaming_preop(self):
             """ TODO: Documentation
             """
-            # TODO: Linkage between this property and the command arguments
-            # passed to `target_class`. This method must return that or None, if
-            # there is no preop
-            return type(self)._get_streaming_preop
+            command_line = str(self.command)
+            command_name = type(self.command).name
+            text = ' '.join([
+                command_name, '__map__', command_line[len(command_name) + 1:]])
+            return text
+
+        #endregion
+
+        #region Methods
 
         @classmethod
-        def _get_streaming_preop(cls, command):
-            command_line = str(command)
-            command_name = type(command).name
-            return ' '.join([command_name, '__map__', command_line[len(command_name) + 1:]])
+        def fix_up(cls, command):
+            """ Verifies `command` class structure and configures `map` method
+
+            Verifies that `command` derives from `ReportingCommand` and
+            overrides `ReportingCommand.reduce`. It then configures
+            `command.reduce`, if an overriding implementation of
+            `ReportingCommand.reduce` has been provided.
+
+            :param command: `ReportingCommand` class
+
+            Exceptions:
+            `TypeError` `command` class is not derived from `ReportingCommand`
+            `AttributeError` No `ReportingCommand.reduce` override
+
+            """
+            if not issubclass(command, ReportingCommand):
+                raise TypeError('%s is not a ReportingCommand' % command)
+
+            if command.reduce == ReportingCommand.reduce:
+                raise AttributeError('No ReportingCommand.reduce override')
+
+            m = command.map
+
+            if m == ReportingCommand.map:
+                # TODO: Consider complaining if cls._requires_preop is True
+                cls._requires_preop = None
+                return
+
+            # Create `StreamingCommand.ConfigurationSettings` class using
+            # settings, if any, saved by the `map` method's `Configuration`
+            # decorator
+
+            settings = getattr(m, '_settings', None)
+
+            if settings is None:
+                m.ConfigurationSettings = StreamingCommand.ConfigurationSettings
+                return
+
+            module = '.'.join([command.__module__, command.__name__, 'map'])
+            name = 'ConfigurationSettings'
+            bases = (StreamingCommand.ConfigurationSettings,)
+
+            # TODO: Why do setattr and delattr not work here?
+
+            m.__dict__['ConfigurationSettings'] = Configuration.SettingsType(
+                name, bases, {'module': module, 'settings': settings})
+            del m.__dict__['_settings']
+
+            return
 
         #endregion
 

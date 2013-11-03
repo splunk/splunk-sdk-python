@@ -15,9 +15,9 @@
 
 from __future__ import absolute_import
 
+from inspect import getmembers, ismethod
 from collections import OrderedDict
 from logging import getLogger, NOTSET
-import inspect
 import sys
 
 from . import csv
@@ -134,9 +134,11 @@ class SearchCommand(object):
     #region Methods
 
     def process(self, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout):
-        """ Process items on the pipeline using instructions on the command line
+        """ Process search result records as specified by command arguments
 
-        TODO: Description
+        :param argv: Sequence of command arguments
+        :param input_file: Pipeline input file
+        :param output_file: Pipeline output file
 
         """
         self.logger.debug('Command line: %s' % argv)
@@ -146,7 +148,7 @@ class SearchCommand(object):
 
             # BFR: Check if Splunk gives us an input header on __GETINFO__
 
-            argv, configuration, operation, fieldnames = self._configure(
+            ConfigurationSettings, operation, argv, reader = self._prepare(
                 argv, input_file=None)
             try:
                 self.parser.parse(argv, self, 'ANY')
@@ -155,22 +157,19 @@ class SearchCommand(object):
                 writer.writerow({'ERROR': e})
                 self.logger.error(e)
                 return
-            self._configuration = configuration.get_effective(self)
+            self._configuration = ConfigurationSettings(self)
             if self.show_configuration:
-                self.messages.append(
-                    'info_message', '\n'.join(
-                        ['%s = %s' % (n, v)
-                         for n, v in self.configuration.iteritems()]))
+                self.messages.append('info_message', str(self.configuration))
             writer = csv.DictWriter(
-                self, output_file, fieldnames=sorted(self.configuration.keys()),
+                self, output_file, fieldnames=self.configuration.keys(),
                 mv_delimiter=',')
-            writer.writerow(self.configuration)
+            writer.writerow(self.configuration.settings())
 
         elif len(argv) >= 2 and argv[1] == '__EXECUTE__':
 
             self.input_header.read(input_file)
             # TODO: Do generating commands get input headers?
-            argv, configuration, operation, reader = self._configure(
+            ConfigurationSettings, operation, argv, reader = self._prepare(
                 argv, input_file)
 
             try:
@@ -181,7 +180,7 @@ class SearchCommand(object):
                 self.logger.error(e)
                 return
 
-            self._configuration = configuration.get_effective(self)
+            self._configuration = ConfigurationSettings(self)
             writer = csv.DictWriter(self, output_file)
             self._execute(operation, reader, writer)
 
@@ -202,7 +201,7 @@ class SearchCommand(object):
             yield record
         return
 
-    def _configure(self, argv, input_file):
+    def _prepare(self, argv, input_file):
         raise NotImplementedError('SearchCommand._configure(self, argv)')
 
     def _execute(self, operation, reader, writer):
@@ -216,17 +215,16 @@ class SearchCommand(object):
         """ TODO: Documentation
 
         """
-        def __init__(self, settings, target_class):
-            # TODO: Validate against property list with friendly diagnostic
-            # messages when properties don't check
-            if settings is not None:
-                for setting, value in settings.iteritems():
-                    setattr(self, setting, value)
-            self._clear_required_fields = False
+        def __init__(self, command):
+            self.command = command
 
         def __str__(self):
-            # TODO: Return command.conf stanza
-            return ''
+            """ TODO: Documentation
+
+            """
+            text = '\n'.join(
+                ['%s = %s' % (k, getattr(self, k)) for k in self.keys()])
+            return text
 
         #region Properties
 
@@ -243,11 +241,9 @@ class SearchCommand(object):
             for streaming commands and true for reporting commands.
 
             """
-            return self._clear_required_fields
+            return type(self)._clear_required_fields
 
-        @clear_required_fields.setter
-        def clear_required_fields(self, value):
-            self._clear_required_fields = bool(value)
+        _clear_required_fields = False
 
         @property
         def enableheader(self):
@@ -276,57 +272,66 @@ class SearchCommand(object):
             """
             return True
 
-        # Derived configuration settings
+        # Computed configuration settings
 
         @property
         def required_fields(self):
-            """ TODO: Documentation
-
-            """
-            return SearchCommand.ConfigurationSettings._get_required_fields
-
-        #endregion
-
-        #region Methods
-
-        def get_effective(self, command):
-            """ TODO: Documentation
-
-            """
-            cls = type(self)
-            if cls._settings is None:
-                cls._settings = OrderedDict()
-                for name in dir(cls):
-                    attr = getattr(cls, name)
-                    if isinstance(attr, property):
-                        cls._settings[name] = attr
-            settings = OrderedDict()
-            for name, prop in cls._settings.iteritems():
-                value = prop.__get__(self)
-                if inspect.ismethod(value):
-                    value = value(command)
-                settings[name] = value
-            command.logger.debug('Configuration: %s' % settings)
-            return settings
-
-        @classmethod
-        def _get_required_fields(cls, command):
-            """ Assemble comma-separated list of required field names
+            """ Assembles comma-separated list of required field names
 
             This is the union of the set of fieldnames and fieldname valued
             options given as argument to `command`.
 
             """
+            command = self.command
+
             fieldnames = set(command.fieldnames)
             options = command.options
             command_type = type(command)
+
+            # TODO: Rework this loop leveraging the fact that `options` is an
+            # Option.View
+
             for option_name in options:
-                option_object = getattr(command_type, option_name)
-                if isinstance(option_object.validate, Fieldname):
+                option = getattr(command_type, option_name)
+                if isinstance(option.validate, Fieldname):
                     value = getattr(command, option_name)
                     if value is not None:
                         fieldnames.add(value)
-            return ','.join(fieldnames)
+
+            text = ','.join(fieldnames)
+            return text
+
+        #endregion
+
+        #region Methods
+
+        @classmethod
+        def configuration_settings(cls):
+            """ TODO: Documentation
+
+            """
+            if cls._settings is None:
+                is_property = lambda x: isinstance(x, property)
+                cls._settings = {}
+                for name, prop in getmembers(cls, is_property):
+                    backing_field = '_' + name
+                    if not hasattr(cls, backing_field):
+                        backing_field = None
+                    cls._settings[name] = (prop, backing_field)
+            return cls._settings
+
+        @classmethod
+        def fix_up(cls, command_class):
+            """ TODO: Documentation
+
+            """
+            raise NotImplementedError('SearchCommand.fix_up method')
+
+        def keys(self):
+            return sorted(type(self).configuration_settings().keys())
+
+        def settings(self):
+            return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
 
         #endregion
 

@@ -17,9 +17,9 @@
 
 from __future__ import absolute_import
 
+from .ConfigurationSettingsType import ConfigurationSettingsType
 from .StreamingCommand import StreamingCommand
 from .SearchCommand import SearchCommand
-from .decorators import Configuration
 from . import csv
 
 
@@ -165,7 +165,7 @@ class ReportingCommand(SearchCommand):
 
             # TODO: Why do setattr and delattr not work here?
 
-            m.__dict__['ConfigurationSettings'] = Configuration.SettingsType(
+            m.__dict__['ConfigurationSettings'] = ConfigurationSettingsType(
                 name, bases, {'module': module, 'settings': settings})
             del m.__dict__['_settings']
 

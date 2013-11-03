@@ -218,7 +218,9 @@ class SearchCommand(object):
             self.command = command
 
         def __str__(self):
-            """ TODO: Documentation
+            """ Retrieves the string representation of this instance
+
+            :return: String of newline-separated `name = value` pairs
 
             """
             text = '\n'.join(
@@ -280,6 +282,8 @@ class SearchCommand(object):
             This is the union of the set of fieldnames and fieldname valued
             options given as argument to `command`.
 
+            :return: String of comma-separated field names.
+
             """
             command = self.command
 
@@ -306,7 +310,15 @@ class SearchCommand(object):
 
         @classmethod
         def configuration_settings(cls):
-            """ TODO: Documentation
+            """ Represents this class as a dictionary of `property` instances
+            and `backing_field` names keyed by setting name
+
+            This method is used by the `ConfigurationSettingsType` meta-class to
+            construct new `ConfigurationSettings` classes. It is used by
+            instances of this class to retrieve configuration setting names and
+            values.
+
+            See `SearchCommand.keys` and `SearchCommand.settings`.
 
             """
             if cls._settings is None:
@@ -321,15 +333,34 @@ class SearchCommand(object):
 
         @classmethod
         def fix_up(cls, command_class):
-            """ TODO: Documentation
+            """ Adjusts and validates command classes and configuration settings
+
+            Derived classes must override this method.
+
+            :param command_class: Search command class targeted by this
+            ConfigurationSettings class
 
             """
-            raise NotImplementedError('SearchCommand.fix_up method')
+            raise NotImplementedError(
+                'SearchCommand.fix_up method must be overridden')
 
         def keys(self):
+            """ Retrieves the names of the `ConfigurationSettings` represented
+            by this class
+
+            :return: Sorted list of setting names.
+
+            """
             return sorted(type(self).configuration_settings().keys())
 
         def settings(self):
+            """ Retrieves the values of the `ConfigurationSettings` represented
+            by this class
+
+            :return: OrderedDict containing `ConfigurationSettings` values keyed
+            by setting name.
+
+            """
             return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
 
         #endregion

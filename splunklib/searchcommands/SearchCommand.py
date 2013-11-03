@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -15,15 +14,15 @@
 
 from __future__ import absolute_import
 
-from inspect import getmembers, ismethod
 from collections import OrderedDict
-from logging import getLogger, NOTSET
+from inspect import getmembers
+from logging import getLogger
 import sys
 
 from . import csv
 from . import logging
 from . decorators import Option
-from . validators import Boolean, Fieldname, Set
+from . validators import Boolean, Fieldname
 from . InputHeader import InputHeader
 from . MessagesHeader import MessagesHeader
 from . SearchCommandParser import SearchCommandParser

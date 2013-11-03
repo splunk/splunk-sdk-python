@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -15,7 +14,6 @@
 
 from __future__ import absolute_import
 import csv
-import sys
 
 # TODO: Consider decoding additional data types (e.g., bool)
 

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -12,8 +11,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
-import sys
 
 # BFR: Fix this bug: sys.stdin and sys.stdout must be opened in binary,  not
 # text mode to ensure we read/write carriage returns correctly on all platforms.

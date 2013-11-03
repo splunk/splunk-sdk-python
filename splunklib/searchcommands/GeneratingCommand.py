@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -14,7 +13,6 @@
 # under the License.
 
 from .SearchCommand import SearchCommand
-import sys
 
 
 class GeneratingCommand(SearchCommand):

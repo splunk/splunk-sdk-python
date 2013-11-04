@@ -17,6 +17,8 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from inspect import getmembers
 from logging import getLogger
+
+import os
 import sys
 
 from . import csv
@@ -166,8 +168,9 @@ class SearchCommand(object):
 
         elif len(argv) >= 2 and argv[1] == '__EXECUTE__':
 
-            self.input_header.read(input_file)
             # TODO: Do generating commands get input headers?
+
+            self.input_header.read(input_file)
             ConfigurationSettings, operation, argv, reader = self._prepare(
                 argv, input_file)
 
@@ -184,9 +187,14 @@ class SearchCommand(object):
             self._execute(operation, reader, writer)
 
         else:
-            message = ('Static configuration is unsupported in this release. ' +
-                       'Please add this setting to commands.conf: ' +
-                       'supports_getinfo = true')
+            message = ('Static configuration is unsupported in this release. '
+                       'Please configure this command as follows in '
+                       'default/commands.conf:\n\n'
+                       '[default]\n'
+                       'supports_getinfo = true\n'
+                       '[%s]\n'
+                       'filename = %s' %
+                       (type(self).name, os.path.basename(sys.argv[0])))
             self.messages.append('error_message', message)
             self.messages.write()
             self.logger.error(message)
@@ -233,14 +241,14 @@ class SearchCommand(object):
 
         @property
         def clear_required_fields(self):
-            """ Indicates whether `required_fields` are additive fields required
-            by subsequent commands
+            """ Signals if `required_fields` are the only fields required by
+            subsequent commands
 
-            If `True`, `required_fields` represents the *only* fields required.
-            If `False`, required_fields are additive to any fields that may be
-            required by subsequent commands. In most cases, `False` is
-            appropriate for streaming commands and `True` for reporting
-            commands.
+            If `True`, `required_fields` are the *only* fields required by
+            subsequent commands. If `False`, required_fields are additive to any
+            fields that may be required by subsequent commands. In most cases
+            `False` is appropriate for streaming commands and `True` is
+            appropriate for reporting commands.
 
             """
             return type(self)._clear_required_fields
@@ -278,30 +286,21 @@ class SearchCommand(object):
 
         @property
         def required_fields(self):
-            """ Assembles comma-separated list of required field names
+            """ Comma-separated list of required field names
 
-            This is the union of the set of fieldnames and fieldname valued
-            options given as argument to `command`.
-
-            :return: String of comma-separated field names.
+            This list is the union of the set of fieldnames and fieldname-valued
+            options given as argument to a command.
 
             """
-            command = self.command
+            # TODO: Represent fieldnames as set to eliminate dups straight away
+            # TODO: Verify that option.itervalues() works
 
-            fieldnames = set(command.fieldnames)
-            options = command.options
-            command_type = type(command)
-
-            # TODO: Rework this loop leveraging the fact that `options` is an
-            # Option.View
-
-            for option_name in options:
-                option = getattr(command_type, option_name)
-                if isinstance(option.validate, Fieldname):
-                    value = getattr(command, option_name)
+            fieldnames = set(self.command.fieldnames)
+            for name, option in self.command.options.iteritems():
+                if isinstance(option.validator, Fieldname):
+                    value = option.value
                     if value is not None:
                         fieldnames.add(value)
-
             text = ','.join(fieldnames)
             return text
 
@@ -339,7 +338,8 @@ class SearchCommand(object):
             Derived classes must override this method. It is used by the
             `Configuration` decorator to fix up the `SearchCommand` classes
             that it adorns. This method is overridden by `GeneratingCommand`,
-            `ReportingCommand`, and `SearchCommand`.
+            `ReportingCommand`, and `SearchCommand`, the built-in base types
+            for all other search commands.
 
             :param command_class: Command class targeted by this class
 

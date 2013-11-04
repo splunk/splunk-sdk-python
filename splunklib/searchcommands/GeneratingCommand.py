@@ -98,6 +98,14 @@ class GeneratingCommand(SearchCommand):
         _local = False
 
         @property
+        def retainsevents(self):
+            """ TODO: Documentation
+            """
+            return type(self)._retainsevents
+
+        _retainsevents = False
+
+        @property
         def streaming(self):
             """ TODO: Documentation
             """

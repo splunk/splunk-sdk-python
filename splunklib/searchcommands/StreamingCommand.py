@@ -89,21 +89,25 @@ class StreamingCommand(SearchCommand):
         def local(self):
             """ TODO: Documentation
             """
-            return self._local
+            return type(self)._local
 
-        @local.setter
-        def local(self, value):
-            self._local = bool(value)
+        _local = False
 
         @property
         def overrides_timeorder(self):
             """ TODO: Documentation
             """
-            return self._overrides_timeorder
+            return type(self)._overrides_timeorder
 
-        @overrides_timeorder.setter
-        def local(self, value):
-            self._overrides_timeorder = bool(value)
+        _overrides_timeorder = False
+
+        @property
+        def retainsevents(self):
+            """ TODO: Documentation
+            """
+            return type(self)._retainsevents
+
+        _retainsevents = True
 
         @property
         def streaming(self):

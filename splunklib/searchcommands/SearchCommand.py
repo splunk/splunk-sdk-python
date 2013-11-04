@@ -14,17 +14,18 @@
 
 from __future__ import absolute_import
 
+# Absolute imports
 from collections import OrderedDict
 from inspect import getmembers
 from logging import getLogger
+from os import path
 from sys import argv, stdin, stdout
 
+# Relative imports
 from . import csv, logging
-from .decorators import Option
-from .validators import Boolean, Fieldname
-from .internals import InputHeader, MessagesHeader, SearchCommandParser
-
-import os
+from . decorators import Option
+from . validators import Boolean, Fieldname
+from . internals import InputHeader, MessagesHeader, SearchCommandParser
 
 
 class SearchCommand(object):
@@ -190,7 +191,7 @@ class SearchCommand(object):
                 'supports_getinfo = true\n'
                 '[%s]\n'
                 'filename = %s' %
-                (type(self).name, os.path.basename(argv[0])))
+                (type(self).name, path.basename(argv[0])))
             self.messages.append('error_message', message)
             self.messages.write()
             self.logger.error(message)
@@ -233,6 +234,18 @@ class SearchCommand(object):
         # Constant configuration settings
 
         @property
+        def changes_colorder(self):
+            """ Specifies whether output should be used to change the column
+            ordering of fields
+
+            Default: True.
+
+            """
+            return type(self)._changes_colorder
+
+        _changes_colorder = True
+
+        @property
         def clear_required_fields(self):
             """ Signals if `required_fields` are the only fields required by
             subsequent commands
@@ -256,11 +269,113 @@ class SearchCommand(object):
             return True
 
         @property
+        def maxinputs(self):
+            """ Maximum number of events that may be passed to an invocation of
+            the command
+
+            This limit may not exceed the value of `maxresultrows` as defined in
+            limits.conf (default: 50,000). Use a value  of zero (0) to select a
+            limit of `maxresultrows`.
+
+            Default: maxinputs=0
+
+            """
+            return type(self)._maxinputs
+
+        _maxinputs = 0
+
+        @property
+        def needs_empty_results(self):
+            """ Specifies whether or not this search command must be called with
+            intermediate empty search results
+
+            Default: True
+
+            """
+            return type(self)._needs_empty_results
+
+        _needs_empty_results = True
+
+
+        @property
         def outputheader(self):
             """ TODO: Documentation
 
             """
             return True
+
+        @property
+        def passauth(self):
+            """ Specifies whether or not this search command requires an
+            authentication token on the start of input
+
+            Default: False
+
+            """
+            return type(self)._passauth
+
+        _passauth = False
+
+
+        @property
+        def perf_warn_limit(self):
+            """ Instructs Splunk to issue a performance warning message if more
+            than this many input events are passed to this search command
+
+            A value of zero (0) disables performance warning messages.
+
+            Default: 0
+
+            """
+            return type(self)._perf_warn_limit
+
+        _perf_warn_limit = 0
+
+        @property
+        def requires_srinfo(self):
+            """ Specifies if the command requires search results information
+
+            If true the full path name to a search results information file
+            will be provided in the `self.input_headers` under the key
+            `'infoPath'`.
+
+            Default: False
+
+            """
+            return type(self)._requires_srinfo
+
+        _requires_srinfo = False
+
+        @property
+        def run_in_preview(self):
+            """ Specify whether to run this command if generating results just
+            for preview rather than final output
+
+            Default: True
+
+            """
+            return type(self)._run_in_preview
+
+        _run_in_preview = True
+
+        @property
+        def stderr_dest(self):
+            """ Specified what to do with messages logged to `stderr`
+
+            You may specify on of these string values:
+
+            Value     | Meaning
+            ----------|---------------------------------------------------------
+            `log`     | Write messages to the job's search.log file
+            `message` | Write each line of each message as a search info message
+            `none`    | Discard all messages logged to stderr
+
+            Default: `log`
+
+            """
+            return type(self)._stderr_dest
+
+        _stderr_dest = 'log'
 
         @property
         def supports_multivalue(self):

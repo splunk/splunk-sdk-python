@@ -17,9 +17,9 @@
 
 from __future__ import absolute_import
 
-from .internals import ConfigurationSettingsType
-from .StreamingCommand import StreamingCommand
-from .SearchCommand import SearchCommand
+from . internals import ConfigurationSettingsType
+from . StreamingCommand import StreamingCommand
+from . SearchCommand import SearchCommand
 from . import csv
 
 
@@ -106,6 +106,12 @@ class ReportingCommand(SearchCommand):
             return type(self)._requires_preop
 
         _requires_preop = False
+
+        @property
+        def retainsevents(self):
+            """ TODO: Documentation
+            """
+            return False
 
         @property
         def streaming(self):

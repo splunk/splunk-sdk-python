@@ -63,13 +63,13 @@ class StreamingCommand(SearchCommand):
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
     def _prepare(self, argv, input_file):
-        configuration = type(self)._configuration
+        ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
         if input_file is None:
             reader = None
         else:
             reader = csv.DictReader(input_file)
-        return argv, configuration, self.stream, reader
+        return ConfigurationSettings, argv, self.stream, reader
 
     def _execute(self, operation, reader, writer):
         try:

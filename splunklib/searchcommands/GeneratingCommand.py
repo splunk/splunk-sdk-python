@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from .SearchCommand import SearchCommand
+from . SearchCommand import SearchCommand
 
 
 class GeneratingCommand(SearchCommand):
@@ -51,10 +51,13 @@ class GeneratingCommand(SearchCommand):
 
     #region Methods
 
+    def generate(self):
+        raise NotImplementedError('GeneratingCommand.generate(self, records)')
+
     def _prepare(self, argv, input_file):
-        configuration = type(self)._configuration
+        ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
-        return argv, configuration, self.generate, 'ANY'
+        return ConfigurationSettings, argv, self.generate, 'ANY'
 
     def _execute(self, operation, reader, writer):
         try:
@@ -62,9 +65,6 @@ class GeneratingCommand(SearchCommand):
                 writer.writerow(record)
         except Exception as e:
             self.logger.error(e)
-
-    def generate(self):
-        raise NotImplementedError('GeneratingCommand.generate(self, records)')
 
     #endregion
 

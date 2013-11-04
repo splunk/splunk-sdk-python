@@ -101,14 +101,23 @@ class ReportingCommand(SearchCommand):
         @property
         def requires_preop(self):
             """ TODO: Documentation
+
             """
             return type(self)._requires_preop
 
         _requires_preop = False
 
         @property
+        def streaming(self):
+            """ TODO: Documentation
+
+            """
+            return False
+
+        @property
         def streaming_preop(self):
             """ TODO: Documentation
+
             """
             command_line = str(self.command)
             command_name = type(self.command).name
@@ -166,7 +175,7 @@ class ReportingCommand(SearchCommand):
             # TODO: Why do setattr and delattr not work here?
 
             m.__dict__['ConfigurationSettings'] = ConfigurationSettingsType(
-                name, bases, {'module': module, 'settings': settings})
+                module, name, bases, settings)
             del m.__dict__['_settings']
 
             return

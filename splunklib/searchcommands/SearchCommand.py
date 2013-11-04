@@ -186,20 +186,17 @@ class SearchCommand(object):
             self._execute(operation, reader, writer)
 
         else:
-            message = ('Static configuration is unsupported in this release. '
-                       'Please configure this command as follows in '
-                       'default/commands.conf:\n\n'
-                       '[default]\n'
-                       'supports_getinfo = true\n'
-                       '[%s]\n'
-                       'filename = %s' %
-                       (type(self).name, os.path.basename(argv[0])))
+            message = (
+                'Static configuration is unsupported. Please configure this '
+                'command as follows in default/commands.conf:\n\n'
+                '[default]\n'
+                'supports_getinfo = true\n'
+                '[%s]\n'
+                'filename = %s' %
+                (type(self).name, os.path.basename(argv[0])))
             self.messages.append('error_message', message)
             self.messages.write()
             self.logger.error(message)
-            # TODO: Support static configuration by verifying the implementation
-            # based on configuration. Can we support map/reduce commands or must
-            # commands be either map or reduce in this scenario?
 
     @staticmethod
     def records(reader):

@@ -17,13 +17,13 @@ class ConfigurationSettingsType(type):
     """ TODO: Documentation
 
     """
-    def __new__(cls, name, bases, dictionary):
+    def __new__(cls, module, name, bases, settings):
         cls = super(ConfigurationSettingsType, cls).__new__(
             cls, name, bases, {})
         return cls
 
-    def __init__(cls, name, bases, dictionary):
-        # TODO: Attribute errors should report using full class name, (e.g.,
+    def __init__(cls, module, name, bases, settings):
+        # TODO: Attribute errors should report full class name, (e.g.,
         # SumCommand.ConfigurationSettings, not ConfigurationSettings
         # TODO: Deal with computed configuration settings
         # TODO: Deal with validation errors
@@ -31,7 +31,7 @@ class ConfigurationSettingsType(type):
         super(ConfigurationSettingsType, cls).__init__(name, bases, None)
         configuration_settings = cls.configuration_settings()
 
-        for name, value in dictionary['settings'].iteritems():
+        for name, value in settings.iteritems():
             try:
                 prop, backing_field = configuration_settings[name]
             except KeyError:
@@ -42,5 +42,5 @@ class ConfigurationSettingsType(type):
                     'Setting %s has fixed value %s', (name, getattr(cls, name)))
             setattr(cls, backing_field, value)
 
-        cls.__module__ = dictionary['module']
+        cls.__module__ = module
         return

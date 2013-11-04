@@ -45,7 +45,8 @@ class Configuration(object):
         if isfunction(o):
             # We must wait to finalize configuration as the class containing
             # this function is under construction at the time this call to
-            # decorate a member function is made
+            # decorate a member function. This will be handled in the call to
+            # o.ConfigurationSettings.fix_up(o), below.
             o._settings = self.settings
         elif isclass(o):
             name = o.__name__
@@ -54,11 +55,10 @@ class Configuration(object):
             o.name = name.lower()
             if self.settings is not None:
                 o.ConfigurationSettings = ConfigurationSettingsType(
+                    module='.'.join((o.__module__, o.__name__)),
                     name='ConfigurationSettings',
                     bases=(o.ConfigurationSettings,),
-                    dictionary={
-                        'module': '.'.join((o.__module__, o.__name__)),
-                        'settings': self.settings})
+                    settings=self.settings)
             o.ConfigurationSettings.fix_up(o)
             Option.fix_up(o)
         else:

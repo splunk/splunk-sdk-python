@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import
 
-from .ConfigurationSettingsType import ConfigurationSettingsType
+from .internals import ConfigurationSettingsType
 from .StreamingCommand import StreamingCommand
 from .SearchCommand import SearchCommand
 from . import csv

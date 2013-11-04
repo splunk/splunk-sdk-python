@@ -13,6 +13,147 @@
 # under the License.
 
 import re
+import collections
+import urllib2 as urllib
+
+
+class ConfigurationSettingsType(type):
+    """ Metaclass for constructing ConfigurationSettings types
+
+    TODO: Description
+
+    """
+    def __new__(cls, module, name, bases, settings):
+        cls = super(ConfigurationSettingsType, cls).__new__(
+            cls, name, bases, {})
+        return cls
+
+    def __init__(cls, module, name, bases, settings):
+        # TODO: Attribute errors should report full class name, (e.g.,
+        # SumCommand.ConfigurationSettings, not ConfigurationSettings
+        # TODO: Deal with computed configuration settings
+        # TODO: Deal with validation errors
+
+        super(ConfigurationSettingsType, cls).__init__(name, bases, None)
+        configuration_settings = cls.configuration_settings()
+
+        for name, value in settings.iteritems():
+            try:
+                prop, backing_field = configuration_settings[name]
+            except KeyError:
+                raise AttributeError(
+                    '%s has no %s setting' % (cls.__name__, name))
+            if backing_field is None:
+                raise AttributeError(
+                    'Setting %s has fixed value %s', (name, getattr(cls, name)))
+            setattr(cls, backing_field, value)
+
+        cls.__module__ = module
+        return
+
+
+class InputHeader(object):
+    def __init__(self):
+        self._settings = collections.OrderedDict()
+
+    def __getitem__(self, name):
+        return self._settings[name]
+
+    def __iter__(self):
+        for item in self._settings.items():
+            yield item
+
+    def __repr__(self):
+        return ''.join(
+            [InputHeader.__name__, '(', repr(self._settings.items()), ')'])
+
+    def read(self, input_file):
+        """ Reads an InputHeader from sys.stdin
+
+        The input header is read as a sequence of *<name>***:***<value>* pairs
+        separated by a newline. The end of the input header is signalled by an
+        empty line or an end-of-file.
+
+        """
+        name = None
+        for line in input_file:
+            if line[-1] == '\n':
+                line = line[:-1]
+            if len(line) == 0:
+                break
+            value = line.split(':', 1)
+            if len(value) == 2:
+                name, value = value
+                self._settings[name] = urllib.unquote(value)
+            elif name is not None:
+                # add new line to multi-line value
+                self._settings[name] = '\n'.join(
+                    [self._settings[name], urllib.unquote(line)])
+            else:
+                pass  # on unnamed multi-line value
+
+
+class MessagesHeader(object):
+    """ Represents an output messages header
+
+    Messages in the header are of the form
+
+          *<message-level>***=***<message-text>***\r\n**
+
+    Message levels include:
+
+        + info_message
+        + warn_message
+        + error_messages
+        + TODO: ... (?)
+
+    The end of the messages header is signalled by the occurrence of a single
+    blank line (`\r\n').
+
+    References:
+    + [command.conf.spec](http://docs.splunk.com/Documentation/Splunk/6.0/Admin/Commandsconf#commands.conf.spec)
+
+    """
+
+    # TODO: Consider replacing this structure borrowed from Intersplunk
+    # It is unsatisfying that it doesn't retain the full temporal order of
+    # messages. You can see the order in which `info_message` level messages
+    # arrived, but you cannot see how they interleaved with `warn_message` and
+    # `error_message` level messages
+
+    def __init__(self):
+        self._messages = collections.OrderedDict(
+            [('warn_message', []), ('info_message', []), ('error_message', [])])
+
+    def __iadd__(self, level, text):
+        self.append(level, text)
+
+    def __iter__(self):
+        for message_level in self._messages:
+            for message_text in self._messages[message_level]:
+                yield (message_level, message_text)
+
+    def __repr__(self):
+        messages = [message for message in self]
+        return ''.join([MessagesHeader.__name__, '(', repr(messages), ')'])
+
+    def append(self, level, text):
+        """ Adds a message level/text pair to this MessagesHeader """
+        if not level in self._messages.keys():
+            raise ValueError('level="%s"' % level)
+        self._messages[level].append(text)
+
+    def write(self, output_file):
+        """ Writes this MessageHeader to an output stream
+
+        Messages are written as a sequence of *<message-level>***=**
+        *<message-text>* pairs separated by '\r\n'. The sequence is terminated
+        by a pair of '\r\n' sequences.
+
+        """
+        for level, message in self:
+            output_file.write('%s=%s\r\n' % (level, message))
+        output_file.write('\r\n')
 
 
 class SearchCommandParser(object):

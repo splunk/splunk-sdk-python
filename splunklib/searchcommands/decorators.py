@@ -17,7 +17,7 @@ from types import FunctionType, MethodType
 from collections import OrderedDict
 from json import JSONEncoder
 
-from .ConfigurationSettingsType import ConfigurationSettingsType
+from .internals import ConfigurationSettingsType
 from .validators import OptionName
 
 

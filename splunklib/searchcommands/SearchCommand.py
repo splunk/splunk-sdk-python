@@ -19,15 +19,12 @@ from inspect import getmembers
 from logging import getLogger
 from sys import argv, stdin, stdout
 
-import os
+from . import csv, logging
+from .decorators import Option
+from .validators import Boolean, Fieldname
+from .internals import InputHeader, MessagesHeader, SearchCommandParser
 
-from . import csv
-from . import logging
-from . decorators import Option
-from . validators import Boolean, Fieldname
-from . InputHeader import InputHeader
-from . MessagesHeader import MessagesHeader
-from . SearchCommandParser import SearchCommandParser
+import os
 
 
 class SearchCommand(object):

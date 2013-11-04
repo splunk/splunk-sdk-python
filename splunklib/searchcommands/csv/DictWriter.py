@@ -22,12 +22,12 @@ import csv
 class DictWriter(csv.DictWriter, object):
     """ Splunk multi-value-aware CSV dictionary writer """
 
-    def __init__(self, command, of, fieldnames=None, mv_delimiter='\n'):
-        super(DictWriter, self).__init__(of, fieldnames, dialect='splunk')
+    def __init__(self, f, command, fieldnames=None, mv_delimiter='\n'):
+        super(DictWriter, self).__init__(f, fieldnames, dialect='splunk')
         self._command = command
         self._fieldnames = None
         self._mv_delimiter = mv_delimiter
-        self._output_file = of
+        self._output_file = f
 
     def writeheader(self):
 

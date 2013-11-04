@@ -17,9 +17,9 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from inspect import getmembers
 from logging import getLogger
+from sys import argv, stdin, stdout
 
 import os
-import sys
 
 from . import csv
 from . import logging
@@ -134,27 +134,27 @@ class SearchCommand(object):
 
     #region Methods
 
-    def process(self, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout):
+    def process(self, args=argv, input_file=stdin, output_file=stdout):
         """ Process search result records as specified by command arguments
 
-        :param argv: Sequence of command arguments
+        :param args: Sequence of command arguments
         :param input_file: Pipeline input file
         :param output_file: Pipeline output file
 
         """
-        self.logger.debug('Command line: %s' % argv)
+        self.logger.debug('Command line: %s' % args)
         self._configuration = None
 
-        if len(argv) >= 2 and argv[1] == '__GETINFO__':
+        if len(args) >= 2 and args[1] == '__GETINFO__':
 
             # BFR: Check if Splunk gives us an input header on __GETINFO__
 
-            ConfigurationSettings, operation, argv, reader = self._prepare(
-                argv, input_file=None)
+            ConfigurationSettings, operation, args, reader = self._prepare(
+                args, input_file=None)
             try:
-                self.parser.parse(argv, self, 'ANY')
+                self.parser.parse(args, self, 'ANY')
             except (SyntaxError, ValueError) as e:
-                writer = csv.DictWriter(self, fieldnames=['ERROR'])
+                writer = csv.DictWriter(output_file, self, fieldnames=['ERROR'])
                 writer.writerow({'ERROR': e})
                 self.logger.error(e)
                 return
@@ -162,20 +162,19 @@ class SearchCommand(object):
             if self.show_configuration:
                 self.messages.append('info_message', str(self.configuration))
             writer = csv.DictWriter(
-                self, output_file, fieldnames=self.configuration.keys(),
-                mv_delimiter=',')
+                output_file, self, self.configuration.keys(), mv_delimiter=',')
             writer.writerow(self.configuration.items())
 
-        elif len(argv) >= 2 and argv[1] == '__EXECUTE__':
+        elif len(args) >= 2 and args[1] == '__EXECUTE__':
 
             # TODO: Do generating commands get input headers?
 
             self.input_header.read(input_file)
-            ConfigurationSettings, operation, argv, reader = self._prepare(
-                argv, input_file)
+            ConfigurationSettings, operation, args, reader = self._prepare(
+                args, input_file)
 
             try:
-                self.parser.parse(argv, self, reader.fieldnames)
+                self.parser.parse(args, self, reader.fieldnames)
             except (SyntaxError, ValueError) as e:
                 self.messages.append("error_message", e)
                 self.messages.write(output_file)
@@ -183,7 +182,7 @@ class SearchCommand(object):
                 return
 
             self._configuration = ConfigurationSettings(self)
-            writer = csv.DictWriter(self, output_file)
+            writer = csv.DictWriter(output_file, self)
             self._execute(operation, reader, writer)
 
         else:
@@ -194,7 +193,7 @@ class SearchCommand(object):
                        'supports_getinfo = true\n'
                        '[%s]\n'
                        'filename = %s' %
-                       (type(self).name, os.path.basename(sys.argv[0])))
+                       (type(self).name, os.path.basename(argv[0])))
             self.messages.append('error_message', message)
             self.messages.write()
             self.logger.error(message)
@@ -292,7 +291,7 @@ class SearchCommand(object):
             options given as argument to a command.
 
             """
-            # TODO: Represent fieldnames as set to eliminate dups straight away
+            # TODO: Represent fieldnames as `set` to eliminate dups right away
             # TODO: Verify that option.itervalues() works
 
             fieldnames = set(self.command.fieldnames)
@@ -311,14 +310,12 @@ class SearchCommand(object):
         @classmethod
         def configuration_settings(cls):
             """ Represents this class as a dictionary of `property` instances
-            and `backing_field` names keyed by setting name
+            and `backing_field` names keyed by configuration setting name
 
             This method is used by the `ConfigurationSettingsType` meta-class to
-            construct new `ConfigurationSettings` classes. It is used by
+            construct new `ConfigurationSettings` classes. It is also used by
             instances of this class to retrieve configuration setting names and
-            values.
-
-            See `SearchCommand.keys` and `SearchCommand.settings`.
+            their values. See `SearchCommand.keys` and `SearchCommand.items`.
 
             """
             if cls._settings is None:
@@ -360,7 +357,7 @@ class SearchCommand(object):
             return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
 
         def keys(self):
-            """ Gets the setting names represented by this instance
+            """ Gets the names of the settings represented by this instance
 
             :return: Sorted list of setting names.
 

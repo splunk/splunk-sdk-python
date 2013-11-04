@@ -162,7 +162,7 @@ class SearchCommand(object):
             writer = csv.DictWriter(
                 self, output_file, fieldnames=self.configuration.keys(),
                 mv_delimiter=',')
-            writer.writerow(self.configuration.settings())
+            writer.writerow(self.configuration.items())
 
         elif len(argv) >= 2 and argv[1] == '__EXECUTE__':
 
@@ -233,13 +233,14 @@ class SearchCommand(object):
 
         @property
         def clear_required_fields(self):
-            """ Indicates whether required_fields are additive fields required
+            """ Indicates whether `required_fields` are additive fields required
             by subsequent commands
 
-            If true, required_fields represents the *only* fields required.	If
-            false, required_fields are additive to any fields that may be
-            required by subsequent commands. In most cases, false is appropriate
-            for streaming commands and true for reporting commands.
+            If `True`, `required_fields` represents the *only* fields required.
+            If `False`, required_fields are additive to any fields that may be
+            required by subsequent commands. In most cases, `False` is
+            appropriate for streaming commands and `True` for reporting
+            commands.
 
             """
             return type(self)._clear_required_fields
@@ -333,35 +334,38 @@ class SearchCommand(object):
 
         @classmethod
         def fix_up(cls, command_class):
-            """ Adjusts and validates command classes and configuration settings
+            """ Adjusts and checks this class and its search command class
 
-            Derived classes must override this method.
+            Derived classes must override this method. It is used by the
+            `Configuration` decorator to fix up the `SearchCommand` classes
+            that it adorns. This method is overridden by `GeneratingCommand`,
+            `ReportingCommand`, and `SearchCommand`.
 
-            :param command_class: Search command class targeted by this
-            ConfigurationSettings class
+            :param command_class: Command class targeted by this class
 
             """
             raise NotImplementedError(
                 'SearchCommand.fix_up method must be overridden')
 
+        def items(self):
+            """ Represents this instance as an `OrderedDict`
+
+            This method is used by the SearchCommand.process method to report
+            configuration settings to Splunk during the `__GETINFO__` phase of
+            a request to process a chunk of search results.
+
+            :return: OrderedDict containing setting values keyed by name
+
+            """
+            return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
+
         def keys(self):
-            """ Retrieves the names of the `ConfigurationSettings` represented
-            by this class
+            """ Gets the setting names represented by this instance
 
             :return: Sorted list of setting names.
 
             """
             return sorted(type(self).configuration_settings().keys())
-
-        def settings(self):
-            """ Retrieves the values of the `ConfigurationSettings` represented
-            by this class
-
-            :return: OrderedDict containing `ConfigurationSettings` values keyed
-            by setting name.
-
-            """
-            return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
 
         #endregion
 

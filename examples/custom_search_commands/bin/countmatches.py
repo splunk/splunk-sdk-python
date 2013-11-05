@@ -14,15 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
 import sys
 
-from splunklib.searchcommands import StreamingCommand, Configuration, Option, validators
+from splunklib.searchcommands import (
+    dispatch, StreamingCommand, Configuration, Option, validators)
 
-# TODO: Pick configuration settings that make sense
-
-
-@Configuration()
+@Configuration
 class CountMatchesCommand(StreamingCommand):
     """ Counts the number of non-overlapping matches to a regular expression in
     a set of fields.
@@ -41,7 +38,6 @@ class CountMatchesCommand(StreamingCommand):
     Event records are otherwise passed through to the next pipeline processor
     unmodified.
 
-
     ## Example
 
     ```
@@ -52,15 +48,17 @@ class CountMatchesCommand(StreamingCommand):
     `word_count`.
 
     """
-    fieldname = Option(doc='''
+    fieldname = Option(
+        doc='''
         **Syntax:** **fieldname=***<fieldname>*
         **Description:** Name of the field that will hold the match count''',
-                       require=True, validate=validators.Fieldname())
+        require=True, validate=validators.Fieldname())
 
-    pattern = Option(doc='''
+    pattern = Option(
+        doc='''
         **Syntax:** **pattern=***<regular-expression>*
-        **Description:** Regular expression pattern to match''', require=True,
-                     validate=validators.RegularExpression())
+        **Description:** Regular expression pattern to match''',
+        require=True, validate=validators.RegularExpression())
 
     def stream(self, records):
         self.logger.debug('CountMatchesCommand: %s' % self)  # logs command line
@@ -73,10 +71,4 @@ class CountMatchesCommand(StreamingCommand):
             record[self.fieldname] = count
             yield record
 
-
-if __name__ == '__main__':
-    try:
-        CountMatchesCommand().process(sys.argv, sys.stdin, sys.stdout)
-    except:
-        import traceback
-        logging.fatal(traceback.format_exc())
+dispatch(CountMatchesCommand, sys.argv, sys.stdin, sys.stdout)

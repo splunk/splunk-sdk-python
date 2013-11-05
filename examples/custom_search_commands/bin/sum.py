@@ -14,10 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.searchcommands import ReportingCommand, Configuration, Option
-from splunklib.searchcommands.validators import Fieldname
-import logging as log
 import sys
+
+from splunklib.searchcommands import (
+    dispatch, ReportingCommand, Configuration, Option, validators)
 
 
 @Configuration(clear_required_fields=True, requires_preop=True)
@@ -29,14 +29,16 @@ class SumCommand(ReportingCommand):
     n = number of fields, N = number of records.
 
     """
-    total = Option(require=True, validate=Fieldname(), doc='''
+    total = Option(
+        doc='''
         **Syntax:** **total=***<fieldname>*
-        **Description:** Name of the field that will hold the computed sum''')
+        **Description:** Name of the field that will hold the computed sum''',
+        require=True, validate=validators.Fieldname())
 
     @Configuration(clear_required_fields=True)
     def map(self, records):
         """ Computes sum(fieldname, 1, n) and stores the result in 'total' """
-        log.debug('Map.configuration=%s' % self.map.configuration)
+        self.logger.debug('Map.configuration=%s' % self.map.configuration)
         total = 0.0
         for record in records:
             for fieldname in self.fieldnames:
@@ -45,16 +47,10 @@ class SumCommand(ReportingCommand):
 
     def reduce(self, records):
         """ Computes sum(total, 1, N) and stores the result in 'total' """
-        log.debug('Reduce.configuration=%s' % self.configuration)
+        self.logger.debug('Reduce.configuration=%s' % self.configuration)
         total = 0.0
         for record in records:
             total += float(record[self.total])
         yield {self.total: total}
 
-
-if __name__ == '__main__':
-    try:
-        SumCommand().process(sys.argv, sys.stdin, sys.stdout)
-    except:
-        import traceback
-        log.fatal(traceback.format_exc())
+dispatch(SumCommand, sys.argv, sys.stdin, sys.stdout)

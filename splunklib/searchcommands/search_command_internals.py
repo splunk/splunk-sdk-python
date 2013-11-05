@@ -18,9 +18,26 @@ import urllib2 as urllib
 
 
 class ConfigurationSettingsType(type):
-    """ Metaclass for constructing ConfigurationSettings types
+    """ Metaclass for constructing ConfigurationSettings classes
 
-    TODO: Description
+    Instances of the ConfigurationSettingsType construct ConfigurationSettings
+    classes from a base ConfigurationSettings class and a dictionary of
+    configuration settings. The settings in the dictionary are validated against
+    the settings in the base class. You cannot add settings, you can only
+    change their backing-field values and you cannot modify settings without
+    backing-field values. These are considered fixed configuration setting
+    values.
+
+    This is an internal class used in two places:
+
+    + decorators.Configuration.__call__
+
+      Adds a ConfigurationSettings attribute to a SearchCommand class.
+
+    + reporting_command.ReportingCommand.fix_up
+
+      Adds a ConfigurationSettings attribute to a ReportingCommand.map method,
+      if there is one.
 
     """
     def __new__(cls, module, name, bases, settings):
@@ -53,6 +70,11 @@ class ConfigurationSettingsType(type):
 
 
 class InputHeader(object):
+    """ Represents a Splunk input header as a collection of name/value pairs
+
+    TODO: Description
+
+    """
     def __init__(self):
         self._settings = collections.OrderedDict()
 
@@ -68,11 +90,13 @@ class InputHeader(object):
             [InputHeader.__name__, '(', repr(self._settings.items()), ')'])
 
     def read(self, input_file):
-        """ Reads an InputHeader from sys.stdin
+        """ Reads an InputHeader from `input_file`
 
         The input header is read as a sequence of *<name>***:***<value>* pairs
         separated by a newline. The end of the input header is signalled by an
         empty line or an end-of-file.
+
+        :param input_file: File-like object that supports iteration over lines
 
         """
         name = None
@@ -98,7 +122,7 @@ class MessagesHeader(object):
 
     Messages in the header are of the form
 
-          *<message-level>***=***<message-text>***\r\n**
+        *<message-level>***=***<message-text>***\r\n**
 
     Message levels include:
 
@@ -286,6 +310,7 @@ class SearchCommandParser(object):
         '""') are replaced by a single double-quote ('"').
 
         **NOTE**
+
         We are not using a json.JSONDecoder because Splunk quote rules are
         different than JSON quote rules. A json.JSONDecoder does not recognize
         a pair of double-quotes ('""') as an escaped quote ('"') and will decode

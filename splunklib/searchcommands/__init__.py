@@ -129,9 +129,27 @@
 from __future__ import absolute_import
 
 from . import logging
-from . decorators import *
-from . validators import *
+from .decorators import *
+from .validators import *
 
-from . generating_command import GeneratingCommand
-from . reporting_command import ReportingCommand
-from . streaming_command import StreamingCommand
+from .generating_command import GeneratingCommand
+from .reporting_command import ReportingCommand
+from .streaming_command import StreamingCommand
+
+
+def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
+             sys.stdout):
+    """ TODO: Documentation
+
+    """
+    if command_class.__module__ != '__main__':
+        return False
+
+    try:
+        command_class().process(argv, input_file, output_file)
+    except:
+        import logging, traceback
+
+        logging.fatal(traceback.format_exc())
+
+    return True

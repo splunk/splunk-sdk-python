@@ -14,24 +14,31 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
 import random
 import csv
 import sys
 import time
 
-from splunklib.searchcommands import GeneratingCommand, Configuration, Option, validators
+from splunklib.searchcommands import (
+    dispatch, GeneratingCommand, Configuration, Option, validators)
 
 
 @Configuration(streaming=True, local=False)
 class SimulateCommand(GeneratingCommand):
-    """ Generates a sequence of events drawn from a CSV file using repeated random sampling
+    """ Generates a sequence of events drawn from a CSV file using repeated
+    random sampling
 
     ##Syntax
 
-    simulate csv=<path> interval=<time-interval> rate=<expected-number-of-events>...
+    simulate csv=<path> interval=<time-interval> rate=<expected-event-count>
+    runtime=<duration>
 
     ##Description
+
+    The `simulate` command uses repeated random samples of the event records
+    in `csv` for the duration of `runtime`. Samples sizes are determined for
+    each time `interval` in `runtime` using a Poisson distribution with an
+    average `rate` specifying the expected event count during `interval`.
 
     ##Example
 
@@ -40,29 +47,30 @@ class SimulateCommand(GeneratingCommand):
     ```
 
     """
-    csv_file = Option(doc='''
-        **Syntax:** **csv=***<path>*
-        **Description:** CSV file from which repeated random samples will be drawn''',
-                      require=True, validate=validators.File())
+    csv_file = Option(
+        doc='''**Syntax:** **csv=***<path>*
+        **Description:** CSV file from which repeated random samples will be
+        drawn''',
+        require=True, validate=validators.File())
 
-    interval = Option(doc='''
-        **Syntax:** **interval=***<time-interval>*
-        **Description:** Event arrival interval''', require=True,
-                      validate=validators.Duration())
+    interval = Option(
+        doc='''**Syntax:** **interval=***<time-interval>*
+        **Description:** Sampling interval''',
+        require=True, validate=validators.Duration())
 
-    rate = Option(doc='''
-        **Syntax:** **rate=***<expected-number-of-events-during-interval>*
-        **Description:** Duration of simulation''', require=True,
-                  validate=validators.Integer(1))
+    rate = Option(
+        doc='''**Syntax:** **rate=***<expected-event-count>*
+        **Description:** Average event count during sampling `interval`''',
+        require=True, validate=validators.Integer(1))
 
-    runtime = Option(doc='''
-        **Syntax:** **runtime=***<time-interval>*
-        **Description:** Duration of simulation''', require=True,
-                     validate=validators.Duration())
+    runtime = Option(
+        doc='''**Syntax:** **runtime=***<time-interval>*
+        **Description:** Duration of simulation''',
+        require=True, validate=validators.Duration())
 
     def generate(self):
-        """ Yields one random record at a time for the duration of the runtime """
-        self.logger.debug('SimulateCommand: %s' % self)  # reports fully-formed command line
+        """ Yields one random record at a time for the duration of `runtime` """
+        self.logger.debug('SimulateCommand: %s' % self)  # log command line
         if not self.records:
             self.records = [record for record in csv.DictReader(self.csv_file)]
             self.lambda_value = 1.0 / (self.rate / float(self.interval))
@@ -82,10 +90,4 @@ class SimulateCommand(GeneratingCommand):
         self.lambda_value = None
         self.records = None
 
-
-if __name__ == '__main__':
-    try:
-        SimulateCommand().process(sys.argv, sys.stdin, sys.stdout)
-    except:
-        import traceback
-        logging.fatal(traceback.format_exc())
+dispatch(SimulateCommand, sys.argv, sys.stdin, sys.stdout)

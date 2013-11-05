@@ -87,7 +87,11 @@ class StreamingCommand(SearchCommand):
 
         @property
         def local(self):
-            """ TODO: Documentation
+            """ Specifies whether this command should only be run on the search
+            head
+
+            Default: False
+
             """
             return type(self)._local
 
@@ -95,7 +99,11 @@ class StreamingCommand(SearchCommand):
 
         @property
         def overrides_timeorder(self):
-            """ TODO: Documentation
+            """ Specifies whether this command changes the time ordering of
+            event records
+
+            Default: False
+
             """
             return type(self)._overrides_timeorder
 
@@ -103,7 +111,11 @@ class StreamingCommand(SearchCommand):
 
         @property
         def retainsevents(self):
-            """ TODO: Documentation
+            """ Specifies whether this command retains _raw events or transforms
+            them
+
+            Default: True
+
             """
             return type(self)._retainsevents
 
@@ -111,7 +123,16 @@ class StreamingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ TODO: Documentation
+            """ Signals that this command is streamable
+
+            By default streamable commands may be run on the search head or one
+            or more indexers, depending on performance scheduling
+            considerations. This behavior may be overridden by setting
+            `local=True`. This forces a streamable command to be run on the
+            search head.
+
+            Fixed: True.
+
             """
             return True
 

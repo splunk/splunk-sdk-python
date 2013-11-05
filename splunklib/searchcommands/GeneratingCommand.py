@@ -77,13 +77,20 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def generating(self):
-            """ TODO: Documentation
+            """ Signals that this command generates new events
+
+            Fixed: True
+
             """
             return True
 
         @property
         def generates_timeorder(self):
-            """ TODO: Documentation
+            """ Specifies whether this command generates events in descending
+            time order
+
+            Default: False
+
             """
             return type(self)._generates_timeorder
 
@@ -91,7 +98,11 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def local(self):
-            """ TODO: Documentation
+            """ Specifies whether this command should only be run on the search
+            head
+
+            Default: False
+
             """
             return type(self)._local
 
@@ -99,7 +110,11 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def retainsevents(self):
-            """ TODO: Documentation
+            """ Specifies whether this command retains _raw events or transforms
+            them
+
+            Default: False
+
             """
             return type(self)._retainsevents
 
@@ -107,7 +122,16 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ TODO: Documentation
+            """ Specifies whether this command is streamable
+
+            By default streamable commands may be run on the search head or one
+            or more indexers, depending on performance scheduling
+            considerations. This behavior may be overridden by setting
+            `local=True`. This forces a streamable command to be run on the
+            search head.
+
+            Default: False.
+
             """
             return type(self)._streaming
 

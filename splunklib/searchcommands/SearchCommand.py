@@ -256,6 +256,8 @@ class SearchCommand(object):
             `False` is appropriate for streaming commands and `True` is
             appropriate for reporting commands.
 
+            Default: False
+
             """
             return type(self)._clear_required_fields
 
@@ -263,10 +265,21 @@ class SearchCommand(object):
 
         @property
         def enableheader(self):
-            """ TODO: Documentation
+            """ Specifies that search commands expect header information
+
+            Fixed: True
 
             """
             return True
+
+        @property
+        def generating(self):
+            """ Signals that this command does not generate new events
+
+            Fixed: False
+
+            """
+            return False
 
         @property
         def maxinputs(self):
@@ -299,7 +312,10 @@ class SearchCommand(object):
 
         @property
         def outputheader(self):
-            """ TODO: Documentation
+            """ Specifies that the output of a search command is a messages
+            header section followed by a blank line and csv search results
+
+            Fixed: True
 
             """
             return True
@@ -378,15 +394,20 @@ class SearchCommand(object):
         _stderr_dest = 'log'
 
         @property
-        def supports_multivalue(self):
-            """ TODO: Documentation
+        def supports_multivalues(self):
+            """ Specifies that search commands support multivalues
+
+            Fixed: True
 
             """
             return True
 
         @property
         def supports_rawargs(self):
-            """ TODO: Documentation
+            """ Specifies that search commands parse raw arguments
+
+            Fixed: True
+
             """
             return True
 

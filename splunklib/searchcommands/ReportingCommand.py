@@ -96,6 +96,12 @@ class ReportingCommand(SearchCommand):
         """ TODO: Documentation
 
         """
+        # TODO: streaming_preop should be None unless this command overrides
+        # ReportingCommand.map
+
+        # TODO: requires_preop should not be an option unless this command
+        # overrides ReportingCommand.map
+
         #region Properties
 
         @property

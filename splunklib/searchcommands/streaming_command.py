@@ -51,18 +51,18 @@ class StreamingCommand(SearchCommand):
     ```
 
     """
-    # TODO: process method implementation
-    # TODO: Documentation
-
-    def __init__(self):
-        super(StreamingCommand, self).__init__()
-
     #region Methods
 
     def stream(self, records):
+        """ TODO: Documentation
+
+        """
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
     def _prepare(self, argv, input_file):
+        """ TODO: Documentation
+
+        """
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
         if input_file is None:
@@ -72,6 +72,9 @@ class StreamingCommand(SearchCommand):
         return ConfigurationSettings, argv, self.stream, reader
 
     def _execute(self, operation, reader, writer):
+        """ TODO: Documentation
+
+        """
         try:
             for record in operation(self, SearchCommand.records(reader)):
                 writer.writerow(record)
@@ -82,6 +85,7 @@ class StreamingCommand(SearchCommand):
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ TODO: Documentation
+
         """
         #region Properties
 

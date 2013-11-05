@@ -34,10 +34,6 @@ class Configuration(object):
     [1]: http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide "Search command style guide"
 
     """
-    # TODO: Add support for all configuration settings defined in
-    # Command.conf.spec save two: supports_getinfo and filename.
-    # TODO: Add documentation for all configuration settings
-
     def __init__(self, **settings):
         self.settings = settings
 

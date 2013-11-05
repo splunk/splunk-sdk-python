@@ -1,5 +1,5 @@
-splunk-app-custom_search_commands
-=================================
+splunk-sdk-python custom_search_commands example
+================================================
 
 This app provides *<app-description>*. It is tested on Splunk 6.0.
 

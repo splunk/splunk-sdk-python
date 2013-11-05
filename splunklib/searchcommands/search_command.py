@@ -220,9 +220,12 @@ class SearchCommand(object):
             self.command = command
 
         def __str__(self):
-            """ Retrieves the string representation of this instance
+            """ Converts the value of this instance to its string representation
 
-            :return: String of newline-separated `name = value` pairs
+            The value of this ConfigurationSettings instance is represented as a
+            string of newline-separated `name = value` pairs
+
+            :return: String representation of this instance
 
             """
             text = '\n'.join(

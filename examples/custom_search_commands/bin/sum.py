@@ -54,8 +54,6 @@ class SumCommand(ReportingCommand):
 
 if __name__ == '__main__':
     try:
-        # TODO: Are command multi-use or single-use? The code below indicates
-        # they are multi-use
         SumCommand().process(sys.argv, sys.stdin, sys.stdout)
     except:
         import traceback

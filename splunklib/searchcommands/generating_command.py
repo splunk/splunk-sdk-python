@@ -43,23 +43,29 @@ class GeneratingCommand(SearchCommand):
 
     """
 
-    # TODO: process method implementation
-    # TODO: Documentation
-
     def __init__(self):
         super(GeneratingCommand, self).__init__()
 
     #region Methods
 
     def generate(self):
+        """ TODO: Documentation
+
+        """
         raise NotImplementedError('GeneratingCommand.generate(self, records)')
 
     def _prepare(self, argv, input_file):
+        """ TODO: Documentation
+
+        """
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
         return ConfigurationSettings, argv, self.generate, 'ANY'
 
     def _execute(self, operation, reader, writer):
+        """ TODO: Documentation
+
+        """
         try:
             for record in operation(self):
                 writer.writerow(record)
@@ -72,6 +78,7 @@ class GeneratingCommand(SearchCommand):
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ TODO: Documentation
+
         """
         #region Properties
 
@@ -101,6 +108,10 @@ class GeneratingCommand(SearchCommand):
             """ Specifies whether this command should only be run on the search
             head
 
+            This setting is used to override Splunk's default policy for running
+            streamable search commands. See the `streaming` configuration
+            setting.
+
             Default: False
 
             """
@@ -122,10 +133,10 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ Specifies whether this command is streamable
+            """ Specifies whether this search command is streamable
 
-            By default streamable commands may be run on the search head or one
-            or more indexers, depending on performance scheduling
+            By default streamable search commands may be run on the search head
+            or one or more indexers, depending on performance and scheduling
             considerations. This behavior may be overridden by setting
             `local=True`. This forces a streamable command to be run on the
             search head.

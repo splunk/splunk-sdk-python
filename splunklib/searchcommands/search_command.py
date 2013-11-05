@@ -247,8 +247,8 @@ class SearchCommand(object):
 
         @property
         def clear_required_fields(self):
-            """ Signals if `required_fields` are the only fields required by
-            subsequent commands
+            """ Specifies whether `required_fields` are the only fields required
+            by subsequent commands
 
             If `True`, `required_fields` are the *only* fields required by
             subsequent commands. If `False`, required_fields are additive to any
@@ -265,7 +265,7 @@ class SearchCommand(object):
 
         @property
         def enableheader(self):
-            """ Specifies that search commands expect header information
+            """ Signals that this command expects header information
 
             Fixed: True
 
@@ -283,14 +283,14 @@ class SearchCommand(object):
 
         @property
         def maxinputs(self):
-            """ Maximum number of events that may be passed to an invocation of
-            the command
+            """ Specifies the maximum number of events that may be passed to an
+            invocation of this command
 
             This limit may not exceed the value of `maxresultrows` as defined in
             limits.conf (default: 50,000). Use a value  of zero (0) to select a
             limit of `maxresultrows`.
 
-            Default: maxinputs=0
+            Default: 0
 
             """
             return type(self)._maxinputs
@@ -312,8 +312,8 @@ class SearchCommand(object):
 
         @property
         def outputheader(self):
-            """ Specifies that the output of a search command is a messages
-            header section followed by a blank line and csv search results
+            """ Signals that the output of this command is a messages header
+            followed by a blank line and csv search results
 
             Fixed: True
 
@@ -335,7 +335,7 @@ class SearchCommand(object):
 
         @property
         def perf_warn_limit(self):
-            """ Instructs Splunk to issue a performance warning message if more
+            """ Tells Splunk to issue a performance warning message if more
             than this many input events are passed to this search command
 
             A value of zero (0) disables performance warning messages.
@@ -349,22 +349,24 @@ class SearchCommand(object):
 
         @property
         def requires_srinfo(self):
-            """ Specifies if the command requires search results information
+            """ Specifies whether or not this command requires search results
+            information
 
-            If true the full path name to a search results information file
-            will be provided in the `self.input_headers` under the key
-            `'infoPath'`.
+            If `True` the full path to a search results information file is
+            provided by `self.input_headers['infoPath']`.
 
             Default: False
 
             """
+            # TODO: Consider providing access to the contents of the file
+            # located at `self.input_headers['infoPath']`
             return type(self)._requires_srinfo
 
         _requires_srinfo = False
 
         @property
         def run_in_preview(self):
-            """ Specify whether to run this command if generating results just
+            """ Tells Splunk whether to run this command when generating results
             for preview rather than final output
 
             Default: True
@@ -376,9 +378,9 @@ class SearchCommand(object):
 
         @property
         def stderr_dest(self):
-            """ Specified what to do with messages logged to `stderr`
+            """ Tells Splunk what to do with messages logged to `stderr`
 
-            You may specify on of these string values:
+            Specify one of these string values:
 
             Value     | Meaning
             ----------|---------------------------------------------------------
@@ -395,7 +397,7 @@ class SearchCommand(object):
 
         @property
         def supports_multivalues(self):
-            """ Specifies that search commands support multivalues
+            """ Signals that this search command supports multivalues
 
             Fixed: True
 
@@ -404,7 +406,7 @@ class SearchCommand(object):
 
         @property
         def supports_rawargs(self):
-            """ Specifies that search commands parse raw arguments
+            """ Signals that this search command parses raw arguments
 
             Fixed: True
 
@@ -415,10 +417,10 @@ class SearchCommand(object):
 
         @property
         def required_fields(self):
-            """ Comma-separated list of required field names
+            """ Specifies a comma-separated list of required field names
 
-            This list is the union of the set of fieldnames and fieldname-valued
-            options given as argument to a command.
+            This list is computed as the union of the set of fieldnames and
+            fieldname-valued options given as argument to this command.
 
             """
             # TODO: Represent fieldnames as `set` to eliminate dups right away

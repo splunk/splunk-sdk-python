@@ -25,7 +25,7 @@ from sys import argv, stdin, stdout
 from . import csv, logging
 from . decorators import Option
 from . validators import Boolean, Fieldname
-from . internals import InputHeader, MessagesHeader, SearchCommandParser
+from . search_command_internals import InputHeader, MessagesHeader, SearchCommandParser
 
 
 class SearchCommand(object):

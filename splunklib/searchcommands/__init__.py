@@ -15,7 +15,7 @@
 
 """ Splunk search command library
 
-    #Design Notes for draft 1
+    #Design Notes
 
     1. Command lines are constrained to this grammar (expressed informally):
 
@@ -45,7 +45,7 @@
        with command execution.
 
     4. Commands do not support parsed arguments on the command line.
-       Splunk parses argument when `supports_rawargs=false`. This class sets
+       Splunk parses arguments when `supports_rawargs=false`. This class sets
        `supports_rawargs=true` unconditionally.
 
        **Rationale:*
@@ -86,31 +86,30 @@
        record on the output stream and extra processing time by the next
        processor in the pipeline.
 
-    9. Commands do not compose. In this first draft a SearchCommand must
-       implement both its map (a.k.a, streaming preop) and reduce (a.k.a.,
-       reporting operations. Map/reduce command lines are distinguished as
-       exemplified below:
+    9. A ReportingCommand must implement both its map (a.k.a, streaming preop)
+       and reduce (a.k.a., reporting) operations. Map/reduce command lines are
+       distinguished as exemplified below:
 
        **Command:**
        ```
-       ...|sum fieldname=total date_hour
+       ...| sum total=total_date_hour date_hour
        ```
 
        **Reduce command line:**
        ```
-       sum __GETINFO__ fieldname=total date_hour
-       sum __EXECUTE__ fieldname=total date_hour
+       sum __GETINFO__ total=total_date_hour date_hour
+       sum __EXECUTE__ total=total_date_hour date_hour
        ```
 
        **Map command line:**
        ```
-       sum __GETINFO__ __map__ fieldname=total date_hour
-       sum __EXECUTE__ __map__ fieldname=total date_hour
+       sum __GETINFO__ __map__ total=total_date_hour date_hour
+       sum __EXECUTE__ __map__ total=total_date_hour date_hour
        ```
 
-       The `__map__`` argument is introduce by the `SearchCommand.process``
-       method. SearchCommand authors cannot influence the contents of the
-       command line in this first draft.
+       The `__map__`` argument is introduced by the `ReportingCommand._execute`
+       method. ReportingCommand authors cannot influence the contents of the
+       command line in this release.
 
     #References
 
@@ -133,6 +132,6 @@ from . import logging
 from . decorators import *
 from . validators import *
 
-from . GeneratingCommand import GeneratingCommand
-from . ReportingCommand import ReportingCommand
-from . StreamingCommand import StreamingCommand
+from . generating_command import GeneratingCommand
+from . reporting_command import ReportingCommand
+from . streaming_command import StreamingCommand

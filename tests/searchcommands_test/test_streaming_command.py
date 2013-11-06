@@ -15,5 +15,14 @@
 # under the License.
 
 
-from . import utilities
+from searchcommands_test.utilities import open_data_file
 import countmatches
+import os
+
+os.chdir(os.path.dirname(countmatches.__file__))
+
+countmatches.CountMatchesCommand().process(
+    ['countmatches', '__GETINFO__', 'total=total', 'count'])
+countmatches.CountMatchesCommand().process(
+    ['countmatches', '__EXECUTE__', 'total=total', 'count'],
+    open_data_file('tweets.csv'))

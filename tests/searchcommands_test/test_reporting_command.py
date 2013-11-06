@@ -14,14 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from . import *
+from searchcommands_test.utilities import open_data_file
+import sum
+import os
 
-_data_directory = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'data')
+os.chdir(os.path.dirname(sum.__file__))
 
-
-def open_data_file(relative_path):
-    if os.path.isabs(relative_path):
-        raise ValueError(
-            'Expected relative path to data file, not "%s"' % relative_path)
-    return open(os.path.join(_data_directory, relative_path))
+sum.SumCommand().process(
+    ['sum', '__GETINFO__', 'total=total', 'count'])
+sum.SumCommand().process(
+    ['sum', '__EXECUTE__', 'total=total', 'count'],
+    open_data_file('numbers.csv'))

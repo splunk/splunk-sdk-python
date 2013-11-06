@@ -14,14 +14,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from . import *
 
-_data_directory = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'data')
+import simulate
+import os
 
+os.chdir(os.path.dirname(simulate.__file__))
 
-def open_data_file(relative_path):
-    if os.path.isabs(relative_path):
-        raise ValueError(
-            'Expected relative path to data file, not "%s"' % relative_path)
-    return open(os.path.join(_data_directory, relative_path))
+simulate.SimulateCommand().process(
+    ['simulate', '__GETINFO__', 'total=total', 'count'])
+simulate.SimulateCommand().process(
+    ['simulate', '__EXECUTE__', 'total=total', 'count'])

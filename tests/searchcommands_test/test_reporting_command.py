@@ -15,13 +15,16 @@
 # under the License.
 
 from searchcommands_test.utilities import open_data_file
-import sum
 import os
+import sum
 
 os.chdir(os.path.dirname(sum.__file__))
 
 sum.SumCommand().process(
     ['sum', '__GETINFO__', 'total=total', 'count'])
 sum.SumCommand().process(
+    ['sum', '__EXECUTE__', '__map__', 'total=total', 'count'],
+    open_data_file('counts.csv'))
+sum.SumCommand().process(
     ['sum', '__EXECUTE__', 'total=total', 'count'],
-    open_data_file('numbers.csv'))
+    open_data_file('totals.csv'))

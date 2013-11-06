@@ -46,12 +46,17 @@ class DictWriter(csv.DictWriter, object):
 
         self._fieldnames = _fieldnames
 
-    def writerow(self, record):
+    def _writeheader(self, record):
+        if self.fieldnames is None:
+            self.fieldnames = sorted(record.keys())
         self.writeheader()
+
+    def writerow(self, record):
+        self._writeheader(record)
         self._writerow(record)
 
     def writerows(self, records):
-        self.writeheader()
+        self._writeheader(records[0])
         for record in records:
             self._writerow(record)
 

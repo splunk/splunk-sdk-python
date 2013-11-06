@@ -101,10 +101,10 @@ class InputHeader(object):
         """
         name = None
         for line in input_file:
+            if line == '\n':
+                break
             if line[-1] == '\n':
                 line = line[:-1]
-            if len(line) == 0:
-                break
             value = line.split(':', 1)
             if len(value) == 2:
                 name, value = value

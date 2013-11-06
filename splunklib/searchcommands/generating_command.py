@@ -67,7 +67,7 @@ class GeneratingCommand(SearchCommand):
 
         """
         try:
-            for record in operation(self):
+            for record in operation():
                 writer.writerow(record)
         except Exception as e:
             self.logger.error(e)

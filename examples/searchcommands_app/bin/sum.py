@@ -38,7 +38,7 @@ class SumCommand(ReportingCommand):
     @Configuration(clear_required_fields=True)
     def map(self, records):
         """ Computes sum(fieldname, 1, n) and stores the result in 'total' """
-        self.logger.debug('Map.configuration=%s' % self.map.configuration)
+        self.logger.debug('Map command=%s' % self)
         total = 0.0
         for record in records:
             for fieldname in self.fieldnames:
@@ -47,7 +47,7 @@ class SumCommand(ReportingCommand):
 
     def reduce(self, records):
         """ Computes sum(total, 1, N) and stores the result in 'total' """
-        self.logger.debug('Reduce.configuration=%s' % self.configuration)
+        self.logger.debug('Reduce command=%s' % self)
         total = 0.0
         for record in records:
             total += float(record[self.total])

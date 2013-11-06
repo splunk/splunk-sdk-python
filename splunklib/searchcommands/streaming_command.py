@@ -76,7 +76,7 @@ class StreamingCommand(SearchCommand):
 
         """
         try:
-            for record in operation(self, SearchCommand.records(reader)):
+            for record in operation(SearchCommand.records(reader)):
                 writer.writerow(record)
         except Exception as e:
             self.logger.error(e)

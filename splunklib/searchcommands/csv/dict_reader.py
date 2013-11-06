@@ -38,19 +38,22 @@ class DictReader(csv.DictReader, object):
             self.__fieldnames = []
             for name in self._fieldnames:
                 if name.startswith('__mv_'):
-                    self.__mv_fieldnames += name[len('__mv_'):], name
+                    # Store this pair: <fieldname>, __mv_<fieldname>
+                    self.__mv_fieldnames.append((name[len('__mv_'):], name))
                 else:
-                    self.__fieldnames += name
+                    self.__fieldnames.append(name)
         return self.__fieldnames
 
     def next(self):
         row = super(DictReader, self).next()
         self.fieldnames  # for side effects
         for fieldname, mv_fieldname in self.__mv_fieldnames:
+            # Decode, store and then delete all multi-value fields in `row`
             list_value = DictReader._decode_list(row[mv_fieldname])
             if list_value is not None:
                 row[fieldname] = list_value if len(list_value) > 1 else list[0]
             del row[mv_fieldname]
+        return row
 
     # TODO: Report conversion errors
     @staticmethod

@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
 from searchcommands_test.utilities import open_data_file
 import countmatches
 import os

@@ -60,6 +60,19 @@ class ReportingCommand(SearchCommand):
 
     #region Methods
 
+    def map(self, records):
+        raise NotImplementedError('map(self, records)')
+
+    def reduce(self, records):
+        raise NotImplementedError('reduce(self, records)')
+
+    def _execute(self, operation, reader, writer):
+        try:
+            for record in operation(SearchCommand.records(reader)):
+                writer.writerow(record)
+        except Exception as e:
+            self.logger.error(e)
+
     def _prepare(self, argv, input_file):
         if len(argv) >= 3 and argv[2] == '__map__':
             ConfigurationSettings = type(self).map.ConfigurationSettings
@@ -74,19 +87,6 @@ class ReportingCommand(SearchCommand):
         else:
             reader = csv.DictReader(input_file)
         return ConfigurationSettings, operation, argv, reader
-
-    def _execute(self, operation, reader, writer):
-        try:
-            for record in operation(SearchCommand.records(reader)):
-                writer.writerow(record)
-        except Exception as e:
-            self.logger.error(e)
-
-    def map(self, records):
-        raise NotImplementedError('map(self, records)')
-
-    def reduce(self, records):
-        raise NotImplementedError('reduce(self, records)')
 
     #endregion
 

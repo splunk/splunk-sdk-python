@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 import csv
 
-# TODO: Consider decoding additional data types (e.g., bool)
-
 
 class DictReader(csv.DictReader, object):
     """ Splunk multi-value-aware CSV dictionary reader """
@@ -48,14 +46,13 @@ class DictReader(csv.DictReader, object):
         row = super(DictReader, self).next()
         self.fieldnames  # for side effects
         for fieldname, mv_fieldname in self.__mv_fieldnames:
-            # Decode, store and then delete all multi-value fields in `row`
+            # Decode, store and then delete all `__mv_` fields in `row`
             list_value = DictReader._decode_list(row[mv_fieldname])
             if list_value is not None:
                 row[fieldname] = list_value if len(list_value) > 1 else list[0]
             del row[mv_fieldname]
         return row
 
-    # TODO: Report conversion errors
     @staticmethod
     def _decode_list(mv):
         if len(mv) == 0:

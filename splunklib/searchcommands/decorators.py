@@ -113,12 +113,9 @@ class Option(property):
     [1]: http://docs.python.org/reference/datamodel.html#object.__del__ "Python data model: Objects, values and types"
 
     """
-
-    # TODO: Option.deleter semantics.
-
     def __init__(self, fget=None, fset=None, fdel=None, doc=None, name=None,
                  default=None, require=None, validate=None):
-        """
+        """ TODO: Documentation
 
         """
         super(Option, self).__init__(fget, fset, fdel, doc)

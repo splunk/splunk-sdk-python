@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 import csv
 
-# TODO: Consider encoding additional data types (more than list and bool)
 # TODO: Optimize (there's too much data copying, especially in writerows imo)
 
 
@@ -46,11 +45,6 @@ class DictWriter(csv.DictWriter, object):
 
         self._fieldnames = _fieldnames
 
-    def _writeheader(self, record):
-        if self.fieldnames is None:
-            self.fieldnames = sorted(record.keys())
-        self.writeheader()
-
     def writerow(self, record):
         self._writeheader(record)
         self._writerow(record)
@@ -72,6 +66,11 @@ class DictWriter(csv.DictWriter, object):
 
     def _header_written(self):
         return self._fieldnames is not None
+
+    def _writeheader(self, record):
+        if self.fieldnames is None:
+            self.fieldnames = sorted(record.keys())
+        self.writeheader()
 
     def _writerow(self, record):
         row = {}

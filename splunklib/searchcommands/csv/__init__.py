@@ -19,11 +19,11 @@ from . dict_reader import DictReader
 from . dict_writer import DictWriter
 
 
-# TODO: Data conversion:
-# + What is the set of data types native to Splunk?
-# + We process lists. We know about boolean, numeric, and fieldname (a kind of
-#   string identity type), but how do we read/write the others, whatever they
-#   happen to be?
+# TODO: Data conversion from Splunk data types to Python data types:
+# + Enumerate the set of data types native to Splunk
+# + Map them to Python data types
+# + Ensure input/output conversions (we do it for bool and list types today)
+
 from . import dialect
 
 __version_info__ = (0, 8, 0)

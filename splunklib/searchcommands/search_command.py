@@ -174,8 +174,11 @@ class SearchCommand(object):
             ConfigurationSettings, operation, args, reader = self._prepare(
                 args, input_file)
 
+            # TODO: Eliminate field name checking or make it optional
+            # At present, we're not using it.
+
             try:
-                self.parser.parse(args, self, reader.fieldnames)
+                self.parser.parse(args, self, 'ANY')
             except (SyntaxError, ValueError) as e:
                 self.messages.append("error_message", e)
                 self.messages.write(output_file)

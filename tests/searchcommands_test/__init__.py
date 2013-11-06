@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-#
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,14 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Utility file for unit tests, import common functions and modules
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-import sys, os
+import os
+import sys
+import unittest
 
-sys.path.insert(0, os.path.join('../../splunklib', '..'))
+_sdk_directory = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '../..'))
 
-def data_open(filepath):
-    return open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath))
+sys.path.insert(
+    0, os.path.join(_sdk_directory, 'examples/searchcommands_app/bin'))
+sys.path.insert(0, _sdk_directory)

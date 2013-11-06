@@ -118,6 +118,9 @@ class Option(property):
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None, name=None,
                  default=None, require=None, validate=None):
+        """
+
+        """
         super(Option, self).__init__(fget, fset, fdel, doc)
         self.name = None if name is None else OptionName()(name)
         self.default = default

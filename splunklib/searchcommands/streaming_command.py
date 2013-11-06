@@ -149,7 +149,7 @@ class StreamingCommand(SearchCommand):
             """ TODO: Documentation
 
             """
-            if command.reduce == StreamingCommand.stream:
+            if command.stream == StreamingCommand.stream:
                 raise AttributeError('No StreamingCommand.stream override')
             return
 

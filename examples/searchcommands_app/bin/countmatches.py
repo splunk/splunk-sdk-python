@@ -19,7 +19,7 @@ import sys
 from splunklib.searchcommands import (
     dispatch, StreamingCommand, Configuration, Option, validators)
 
-@Configuration
+@Configuration()
 class CountMatchesCommand(StreamingCommand):
     """ Counts the number of non-overlapping matches to a regular expression in
     a set of fields.

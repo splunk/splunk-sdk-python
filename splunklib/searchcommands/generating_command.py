@@ -157,7 +157,7 @@ class GeneratingCommand(SearchCommand):
             """ TODO: Documentation
 
             """
-            if command.reduce == GeneratingCommand.generate:
+            if command.generate == GeneratingCommand.generate:
                 raise AttributeError('No GeneratingCommand.generate override')
             return
 

@@ -58,7 +58,9 @@ class Configuration(object):
             o.ConfigurationSettings.fix_up(o)
             Option.fix_up(o)
         else:
-            raise TypeError('Incorrect usage')  # TODO: Real diagnostic message
+            raise TypeError(
+                'Incorrect usage: Configuration decorator applied to %s'
+                % (type(o), o.__name__))
         return o
 
 
@@ -74,10 +76,10 @@ class Option(property):
 
     ```
     total = splunklib.Option(
-        name='total', require=True, validate=splunklib.Fieldname(), doc='''
-        **Syntax:** **total=***<fieldname>*
+        doc=''' **Syntax:** **total=***<fieldname>*
         **Description:** Name of the field that will hold the computed
-        sum''')
+        sum''',
+        require=True, validate=splunklib.Fieldname())
     ```
 
     **Example:**

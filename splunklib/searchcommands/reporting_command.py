@@ -163,33 +163,32 @@ class ReportingCommand(SearchCommand):
             if command.reduce == ReportingCommand.reduce:
                 raise AttributeError('No ReportingCommand.reduce override')
 
-            m = command.map
+            f = vars(command)['map']   # Function backing the map method
+                # There is no way to add custom attributes to methods. See
+                # [Why does setattr fail on a method](http://goo.gl/aiOsqh)
+                # for an explanation.
 
-            if m == ReportingCommand.map:
+            if f == vars(ReportingCommand)['map']:
                 # TODO: Consider complaining if cls._requires_preop is True
+                # because there is no streaming_preop
                 cls._requires_preop = None
                 return
 
-            # Create `StreamingCommand.ConfigurationSettings` class using
-            # settings, if any, saved by the `map` method's `Configuration`
-            # decorator
-
-            settings = getattr(m, '_settings', None)
-
-            if settings is None:
-                m.ConfigurationSettings = StreamingCommand.ConfigurationSettings
+            try:
+                settings = f._settings
+            except AttributeError:
+                f.ConfigurationSettings = StreamingCommand.ConfigurationSettings
                 return
+
+            # Create new `StreamingCommand.ConfigurationSettings` class
 
             module = '.'.join([command.__module__, command.__name__, 'map'])
             name = 'ConfigurationSettings'
             bases = (StreamingCommand.ConfigurationSettings,)
 
-            # TODO: Why do setattr and delattr not work here?
-
-            m.__dict__['ConfigurationSettings'] = ConfigurationSettingsType(
+            f.ConfigurationSettings = ConfigurationSettingsType(
                 module, name, bases, settings)
-            del m.__dict__['_settings']
-
+            del f._settings
             return
 
         #endregion

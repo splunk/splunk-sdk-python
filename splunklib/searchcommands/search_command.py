@@ -37,6 +37,7 @@ class SearchCommand(object):
 
     """
     def __init__(self):
+
         # Variables that may be used, but not altered by derived classes
 
         self.logger, self._logging_configuration = logging.configure(type(self))
@@ -45,10 +46,10 @@ class SearchCommand(object):
 
         # Variables backing option/property values
 
+        self._default_logging_level = self.logger.level
         self._configuration = None
         self._option_view = None
         self._fieldnames = None
-        self._logging_configuration = None
 
         self.parser = SearchCommandParser()
 
@@ -93,10 +94,8 @@ class SearchCommand(object):
     @logging_level.setter
     def logging_level(self, value):
         if value is None:
-            # TODO: Return to logging level as set by logging.configure
-            pass
-        else:
-            self.logger.setLevel(value)
+            value = self._default_logging_level
+        self.logger.setLevel(value)
         return
 
     show_configuration = Option(doc='''
@@ -430,9 +429,6 @@ class SearchCommand(object):
             fieldname-valued options given as argument to this command.
 
             """
-            # TODO: Represent fieldnames as `set` to eliminate dups right away
-            # TODO: Verify that option.itervalues() works
-
             fieldnames = set(self.command.fieldnames)
             for name, option in self.command.options.iteritems():
                 if isinstance(option.validator, Fieldname):

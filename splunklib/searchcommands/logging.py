@@ -47,6 +47,11 @@ def configure(cls, path=None):
     :param path: Location of an alternative logging configuration file or `None`
 
     """
+
+    # TODO: Logging configuration files should be loaded once and only once
+    # Does the Python logging system ensure this? Is it possible for us to
+    # check so that we can skip some of this work?
+
     module = inspect.getmodule(cls)
     app_directory = os.path.dirname(os.path.dirname(module.__file__))
     if path is None:

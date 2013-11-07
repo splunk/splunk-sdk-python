@@ -46,8 +46,7 @@ class ConfigurationSettingsType(type):
         return cls
 
     def __init__(cls, module, name, bases, settings):
-        # TODO: Attribute errors should report full class name, (e.g.,
-        # SumCommand.ConfigurationSettings, not ConfigurationSettings
+
         # TODO: Deal with computed configuration settings
         # TODO: Deal with validation errors
 
@@ -59,10 +58,11 @@ class ConfigurationSettingsType(type):
                 prop, backing_field = configuration_settings[name]
             except KeyError:
                 raise AttributeError(
-                    '%s has no %s setting' % (cls.__name__, name))
+                    '%s has no %s configuration setting' % (cls, name))
             if backing_field is None:
                 raise AttributeError(
-                    'Setting %s has fixed value %s', (name, getattr(cls, name)))
+                    'Configuration setting %s has fixed value %s'
+                    % (name, getattr(cls, name)))
             setattr(cls, backing_field, value)
 
         cls.__module__ = module

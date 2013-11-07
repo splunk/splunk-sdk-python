@@ -47,8 +47,7 @@ class ConfigurationSettingsType(type):
 
     def __init__(cls, module, name, bases, settings):
 
-        # TODO: Deal with computed configuration settings
-        # TODO: Deal with validation errors
+        # TODO: Deal with setting validation errors
 
         super(ConfigurationSettingsType, cls).__init__(name, bases, None)
         configuration_settings = cls.configuration_settings()
@@ -61,8 +60,7 @@ class ConfigurationSettingsType(type):
                     '%s has no %s configuration setting' % (cls, name))
             if backing_field is None:
                 raise AttributeError(
-                    'Configuration setting %s has fixed value %s'
-                    % (name, getattr(cls, name)))
+                    'The value of configuration setting %s is managed' % name)
             setattr(cls, backing_field, value)
 
         cls.__module__ = module

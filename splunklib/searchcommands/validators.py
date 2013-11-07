@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from time import strptime
 import re
 import sys
 
@@ -46,14 +47,14 @@ class Boolean(Validator):
 class Duration(Validator):
     """ TODO: Documentation
     """
-    from time import strptime
-
     def __call__(self, value):
-        try:
-            value = strptime(value, '%H:%M:%S')
-        except ValueError as e:
-            raise ValueError(str(e).capitalize())
-        return 3600 * value.tm_hour + 60 * value.tm_min + value.tm_sec
+        if value is not None:
+            try:
+                value = strptime(value, '%H:%M:%S')
+            except ValueError as e:
+                raise ValueError(str(e).capitalize())
+            value = 3600 * value.tm_hour + 60 * value.tm_min + value.tm_sec
+        return value
 
 
 class Fieldname(Validator):
@@ -78,11 +79,13 @@ class File(Validator):
         self.buffering = buffering
 
     def __call__(self, value):
-        try:
-            value = open(str(value), self.mode, self.buffering)
-        except IOError as e:
-            raise ValueError('Cannot open %s with mode=%s and buffering=%s: %s'
-                             % (value, self.mode, self.buffering, e))
+        if value is not None:
+            try:
+                value = open(str(value), self.mode, self.buffering)
+            except IOError as e:
+                raise ValueError(
+                    'Cannot open %s with mode=%s and buffering=%s: %s'
+                    % (value, self.mode, self.buffering, e))
         return value
 
 
@@ -95,10 +98,12 @@ class Integer(Validator):
         self.maximum = maximum
 
     def __call__(self, value):
-        value = int(value)
-        if not (self.minimum <= value <= self.maximum):
-            raise ValueError('Expected integer in the range [%d,%d]: %d' %
-                             (self.minimum, self.maximum, value))
+        if value is not None:
+            value = int(value)
+            if not (self.minimum <= value <= self.maximum):
+                raise ValueError(
+                    'Expected integer in the range [%d,%d]: %d'
+                    % (self.minimum, self.maximum, value))
         return value
 
 

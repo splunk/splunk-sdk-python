@@ -60,7 +60,7 @@ class GeneratingCommand(SearchCommand):
         """
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
-        return ConfigurationSettings, argv, self.generate, 'ANY'
+        return ConfigurationSettings, self.generate, argv, 'ANY'
 
     def _execute(self, operation, reader, writer):
         """ TODO: Documentation

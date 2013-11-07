@@ -25,19 +25,21 @@ from sys import argv, stdin, stdout
 from . import csv, logging
 from . decorators import Option
 from . validators import Boolean, Fieldname
-from . search_command_internals import InputHeader, MessagesHeader, SearchCommandParser
+from . search_command_internals import (
+    InputHeader, MessagesHeader, SearchCommandParser)
 
 
 class SearchCommand(object):
-    """ TODO: Documentation
+    """ Represents a custom search command
+
+    TODO: Description (argument parsing, builtin-in options, logging
+    configuration, etc.)
 
     """
     def __init__(self):
-        logging.configure()
-
         # Variables that may be used, but not altered by derived classes
 
-        self.logger = getLogger(type(self).__name__)
+        self.logger, self._logging_configuration = logging.configure(type(self))
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
 
@@ -73,12 +75,8 @@ class SearchCommand(object):
 
     @logging_configuration.setter
     def logging_configuration(self, value):
-        if value is None:
-            # TODO: Return to configuration as set by logging.configure
-            pass
-        else:
-            logging.configure(value)
-            self._logging_configuration = value
+        self.logger, self._logging_configuration = logging.configure(
+            type(self), value)
         return
 
     @Option

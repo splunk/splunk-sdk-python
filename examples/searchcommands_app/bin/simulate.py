@@ -79,7 +79,8 @@ class SimulateCommand(GeneratingCommand):
         if not self.records:
             self.records = [record for record in csv.DictReader(self.csv_file)]
             self.lambda_value = 1.0 / (self.rate / float(self.interval))
-        while self.runtime > 0:
+        runtime = self.runtime
+        while runtime > 0:
             count = long(round(random.expovariate(self.lambda_value)))
             start_time = time.clock()
             for record in random.sample(self.records, count):
@@ -87,7 +88,7 @@ class SimulateCommand(GeneratingCommand):
             interval = time.clock() - start_time
             if interval < self.interval:
                 time.sleep(self.interval - interval)
-            self.runtime -= max(interval, self.interval)
+            runtime -= max(interval, self.interval)
         return
 
     def __init__(self):

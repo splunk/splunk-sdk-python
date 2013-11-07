@@ -15,21 +15,19 @@
 from __future__ import absolute_import
 
 from logging.config import fileConfig
+from logging import getLogger
+import inspect
 import os
-import sys
-
-_script_directory = os.path.dirname(sys.argv[0])
-_app_directory = os.path.dirname(os.path.abspath(_script_directory))
 
 
-def configure(path=None):
-    """ Read logging configuration from the logging.conf file, if it exists
+def configure(cls, path=None):
+    """ Configure logging for the app containing a class and get its logger
 
-    This function expects a Splunk application directory structure:
+    This function expects a Splunk app directory structure:
 
         <app-root>
             bin
-                <custom-search-command>.py
+                <module>.py
                 ...
             default
                 logging.conf
@@ -45,17 +43,25 @@ def configure(path=None):
     The current directory is reset to its previous value before this function
     returns.
 
+    :param cls: Class contained in <app-root>/bin/<module>.py
+    :param path: Location of an alternative logging configuration file or `None`
+
     """
+    module = inspect.getmodule(cls)
+    app_directory = os.path.dirname(os.path.dirname(module.__file__))
     if path is None:
         for relative_path in 'local/logging.conf', 'default/logging.conf':
-            configuration_file = os.path.join(_app_directory, relative_path)
+            configuration_file = os.path.join(app_directory, relative_path)
             if os.path.exists(configuration_file):
                 path = configuration_file
                 break
     if path is not None:
         working_directory = os.getcwd()
-        os.chdir(_app_directory)
+        os.chdir(app_directory)
         try:
+            path = os.path.abspath(path)
             fileConfig(path)
         finally:
             os.chdir(working_directory)
+    logger = getLogger(cls.__name__)
+    return logger, path

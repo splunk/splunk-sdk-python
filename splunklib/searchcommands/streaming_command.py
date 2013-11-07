@@ -69,7 +69,7 @@ class StreamingCommand(SearchCommand):
             reader = None
         else:
             reader = csv.DictReader(input_file)
-        return ConfigurationSettings, argv, self.stream, reader
+        return ConfigurationSettings, self.stream, argv, reader
 
     def _execute(self, operation, reader, writer):
         """ TODO: Documentation

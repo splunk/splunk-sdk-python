@@ -16,12 +16,16 @@
 
 from . import *
 
-_data_directory = os.path.join(
+data_directory = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'data')
+
+
+def chdir(module):
+    os.chdir(os.path.dirname(module.__file__))
 
 
 def open_data_file(relative_path):
     if os.path.isabs(relative_path):
         raise ValueError(
             'Expected relative path to data file, not "%s"' % relative_path)
-    return open(os.path.join(_data_directory, relative_path))
+    return open(os.path.join(data_directory, relative_path))

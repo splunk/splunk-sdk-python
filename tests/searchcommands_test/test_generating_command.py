@@ -14,12 +14,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from searchcommands_test.utilities import chdir, data_directory
 import simulate
-import os
 
-os.chdir(os.path.dirname(simulate.__file__))
+chdir(simulate)
 
 simulate.SimulateCommand().process(
-    ['simulate', '__GETINFO__', 'total=total', 'count'])
+    ['simulate', '__GETINFO__', 'csv=%s/tweets.csv' % data_directory, 'interval=00:00:01', 'rate=200', 'runtime=10'])
+
 simulate.SimulateCommand().process(
-    ['simulate', '__EXECUTE__', 'total=total', 'count'])
+    ['simulate', '__EXECUTE__', 'csv=%s/tweets.csv' % data_directory, 'interval=00:00:01', 'rate=200', 'runtime=10'])

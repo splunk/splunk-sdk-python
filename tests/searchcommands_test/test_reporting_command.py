@@ -14,11 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from searchcommands_test.utilities import open_data_file
-import os
+from searchcommands_test.utilities import chdir, open_data_file
 import sum
 
-os.chdir(os.path.dirname(sum.__file__))
+chdir(sum)
 
 sum.SumCommand().process(
     ['sum', '__GETINFO__', 'total=total', 'count'])

@@ -51,7 +51,7 @@ class SimulateCommand(GeneratingCommand):
         doc='''**Syntax:** **csv=***<path>*
         **Description:** CSV file from which repeated random samples will be
         drawn''',
-        require=True, validate=validators.File())
+        name='csv', require=True, validate=validators.File())
 
     interval = Option(
         doc='''**Syntax:** **interval=***<time-interval>*

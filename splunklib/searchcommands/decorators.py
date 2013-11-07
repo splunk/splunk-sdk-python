@@ -197,6 +197,10 @@ class Option(property):
 
     #region Types
 
+    class Encoder(JSONEncoder):
+        def default(self, o):
+            return str(o)
+
     class Item(object):
         """ Presents an instance/class view over a search command `Option`
 
@@ -214,8 +218,9 @@ class Option(property):
             return str(self)
 
         def __str__(self):
-            encoder = JSONEncoder()
-            return '='.join([self._option.name, encoder.encode(self.value)])
+            encoder = Option.Encoder()
+            text = '='.join([self._option.name, encoder.encode(self.value)])
+            return text
 
         #region Properties
 

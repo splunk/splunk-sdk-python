@@ -14,14 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from searchcommands_test.utilities import open_data_file
+from searchcommands_test.utilities import chdir, open_data_file
 import countmatches
-import os
 
-os.chdir(os.path.dirname(countmatches.__file__))
+chdir(countmatches)
 
 countmatches.CountMatchesCommand().process(
-    ['countmatches', '__GETINFO__', 'total=total', 'count'])
+    ['countmatches', '__GETINFO__', 'fieldname=word_count', 'pattern=\\w+', 'text'])
+
 countmatches.CountMatchesCommand().process(
-    ['countmatches', '__EXECUTE__', 'total=total', 'count'],
+    ['countmatches', '__EXECUTE__', 'fieldname=word_count', 'pattern=\\w+', 'text'],
     open_data_file('tweets.csv'))

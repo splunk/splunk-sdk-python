@@ -124,7 +124,41 @@
     2. `# TODO` comments denote issues that should be eliminated or reported as
        issues to be addressed in a later draft following formal review.
 
- """
+"""
+
+# TODO: .search_command_internals.SearchCommandParser
+# Eliminate field name checking or make it an option for search command
+# developers. At present, we're not using it because we can't distinguish
+# between fields that must be present in the input stream (we use this list
+# to validate fields at present), fields that are created by the command, or
+# fields that are unused by parts of a command (e.g., ReportingCommand.map
+# may use and/or create some fields and ReportingCommand.reduce may use and/or
+# create others.)
+
+# TODO: .search_command_internals.SearchCommandParser
+# Consider an alternative to raising one error at a time. It would be nice to
+# get all ValueErrors (e.g., illegal values, missing options,...) in one shot.
+
+# TODO: .search_command_internals.SearchCommandParser
+# Finish BNF and ensure that regular expressions agree with it. One known point
+# of departure: regular expressions and <name>, in the BNF that's presented in
+# the source.
+
+# TODO: .search_command_internals.ConfigurationSettingsType
+# Validate setting values. Today we verify that settings provided by a search
+# command are settable (Unmanaged settings are not settable; managed settings
+# are not. Managed settings are those without a backing class field. There are
+# two types of managed settings: fixed and computed. Managed settings include
+# computed: required_fields, streaming_preop and fixed: enableheaders,...)
+
+# TODO: .search_command_internals.MessagesHeader
+# Consider improving the interface and replacing its data structure borrowed
+# from Intersplunk. The data structure is unsatisfying in that it doesn't retain
+# the full temporal order of messages. For example, you can see the order in
+# which `info_message` level messages arrive, but you cannot see how they
+# interleaved with `warn_message` and `error_message` level messages.
+
+
 
 from __future__ import absolute_import
 

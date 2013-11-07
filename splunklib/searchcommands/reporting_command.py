@@ -48,16 +48,6 @@ class ReportingCommand(SearchCommand):
     ReportingCommand.map method. Configure it like you would a StreamingCommand.
 
     """
-
-    # BFR: Can the streaming_preop command be the simple name of a python
-    # script? Need it be configured in commands.conf?
-
-    def __init__(self):
-        super(ReportingCommand, self).__init__()
-        self.fieldnames = []
-        self.reader = None
-        self.writer = None
-
     #region Methods
 
     def map(self, records):

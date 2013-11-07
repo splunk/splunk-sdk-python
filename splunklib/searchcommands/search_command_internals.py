@@ -47,8 +47,6 @@ class ConfigurationSettingsType(type):
 
     def __init__(cls, module, name, bases, settings):
 
-        # TODO: Deal with setting validation errors
-
         super(ConfigurationSettingsType, cls).__init__(name, bases, None)
         configuration_settings = cls.configuration_settings()
 
@@ -137,12 +135,6 @@ class MessagesHeader(object):
 
     """
 
-    # TODO: Consider replacing this structure borrowed from Intersplunk
-    # It is unsatisfying that it doesn't retain the full temporal order of
-    # messages. You can see the order in which `info_message` level messages
-    # arrived, but you cannot see how they interleaved with `warn_message` and
-    # `error_message` level messages
-
     def __init__(self):
         self._messages = collections.OrderedDict(
             [('warn_message', []), ('info_message', []), ('error_message', [])])
@@ -208,13 +200,6 @@ class SearchCommandParser(object):
     setting the built-in log_level immediately changes the log_level.
 
     """
-
-    # TODO: Finish BNF and ensure that regular expressions agree with it
-    # One known point of departure: regular expressions and <name>
-
-    # TODO: Consider an alternative to raising one error at a time. It would be
-    # nice to get all ValueErrors (e.g., illegal values, missing options,...) in
-    # one shot
 
     # TODO: Fix this bug: self.parse raises a SyntaxError when no options are
     # provided on the command line
@@ -330,7 +315,7 @@ class SearchCommandParser(object):
                 (?:[^\s"]+|"(?:[^"]+|""|\\")*")\s*? # value
             )+
         )
-        (?P<fieldnames> # Match a trailing set of (presumably) field names
+        (?P<fieldnames> # Match a trailing set of field names
             (?:\s+\w+)*
         )
         \s*$

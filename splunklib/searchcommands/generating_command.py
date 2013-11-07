@@ -42,10 +42,6 @@ class GeneratingCommand(SearchCommand):
     :<source lang=python>@Configuration(generates_timeorder=True)</source>
 
     """
-
-    def __init__(self):
-        super(GeneratingCommand, self).__init__()
-
     #region Methods
 
     def generate(self):

@@ -31,7 +31,7 @@ class SimulateCommand(GeneratingCommand):
     ##Syntax
 
     simulate csv=<path> interval=<time-interval> rate=<expected-event-count>
-    runtime=<duration>
+        runtime=<duration>
 
     ##Description
 
@@ -43,8 +43,13 @@ class SimulateCommand(GeneratingCommand):
     ##Example
 
     ```
-    simulate csv="/path/to/events.csv" interval=00:00:01 rate=200 runtime=00:00:30
+    simulate csv="/path/to/events.csv" rate=200 interval=00:00:01
+        runtime=00:00:30
     ```
+
+    This example generates events drawn from repeated random sampling of events
+    from `/path/to/events.csv` at an average rate of 200 events per second.
+    for 30 seconds.
 
     """
     csv_file = Option(

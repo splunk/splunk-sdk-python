@@ -54,6 +54,7 @@ class ReportingCommand(SearchCommand):
         """ TODO: Documentation
 
         """
+        self  # Turns off ide guidance that method may be static
         return NotImplemented
 
     def reduce(self, records):

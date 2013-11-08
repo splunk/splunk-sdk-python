@@ -23,9 +23,8 @@ chdir(countmatches)
 argv = ['fieldname=word_count', 'pattern=\\w+', 'text']
 
 dispatch(
-    countmatches.CountMatchesCommand, ['countmatches', '__GETINFO__'] + argv,
-    predicate=test)
+    countmatches.CountMatchesCommand, ['countmatches', '__GETINFO__'] + argv)
 
 dispatch(
     countmatches.CountMatchesCommand, ['countmatches', '__EXECUTE__'] + argv,
-    input_file=open_data_file('tweets.csv'), predicate=test)
+    input_file=open_data_file('tweets.csv'))

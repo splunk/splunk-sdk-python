@@ -27,10 +27,8 @@ argv = [
     'runtime=00:00:10']
 
 dispatch(
-    simulate.SimulateCommand, ['simulate', '__GETINFO__'] + argv,
-    predicate=test)
+    simulate.SimulateCommand, ['simulate', '__GETINFO__'] + argv)
 
 dispatch(
     simulate.SimulateCommand, ['simulate', '__EXECUTE__'] + argv,
-    predicate=test,
     input_file=open_data_file('_empty_input_header.txt'))

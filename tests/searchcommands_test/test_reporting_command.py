@@ -20,8 +20,6 @@ import sum
 chdir(sum)
 
 sum.SumCommand().process(
-    ['sum', '__GETINFO__', 'total=total', 'count'])
-sum.SumCommand().process(
     ['sum', '__EXECUTE__', '__map__', 'total=total', 'count'],
     open_data_file('counts.csv'))
 sum.SumCommand().process(

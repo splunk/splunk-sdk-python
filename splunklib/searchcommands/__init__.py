@@ -21,9 +21,9 @@
 
        command-line = `*<command>* [*<option>***=**<value>**]… [*<field>*]…`
        command = `\w+`
-       option = `\w+`
+       option = `[_a-zA-Z][_a-zA-Z0-9]+`
        value = `([^\s"]+|"(?:[^"]+|""|\\")*")`
-       field = `"?[.-\w]"?`
+       field = `"[_a-zA-Z][._a-zA-Z0-9-]+|"[_a-zA-Z][._a-zA-Z0-9-]"`
 
        Note that this grammar does not indicate that *<field>* values may be
        comma-separated. This is because Splunk strips commas from the command

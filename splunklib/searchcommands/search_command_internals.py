@@ -309,14 +309,14 @@ class SearchCommandParser(object):
         ^\s*
         (?P<options>    # Match a leading set of name/value pairs
             (?:
-                (?:\w+)                             # keyword
+                (?:[_a-zA-Z][_a-zA-Z0-9]+)          # name
                 \s*=\s*                             # =
                 (?:[^\s"]+|"(?:[^"]+|""|\\")*")\s*? # value
             )*
         )
         \s*
         (?P<fieldnames> # Match a trailing set of field names
-            (?:\w+\s*)*
+            (?:(?:[_a-zA-Z][_.a-zA-Z0-9-]+|"[_a-zA-Z][_.a-zA-Z0-9-]+")\s*)*
         )
         \s*$
         """, re.VERBOSE)
@@ -327,9 +327,9 @@ class SearchCommandParser(object):
 
     _options_re = re.compile(r"""
         # Captures a set of name/value pairs when used with re.finditer
-        (\w+)                         # name
-        \s*=\s*                       # =
-        ([^\s"]+|"(?:[^"]+|""|\\")*") # value
+        ([_a-zA-Z][_a-zA-Z0-9]+)       # name
+        \s*=\s*                        # =
+        ([^\s"]+|"(?:[^"]+|""|\\")*")  # value
         """, re.VERBOSE)
 
     #endregion

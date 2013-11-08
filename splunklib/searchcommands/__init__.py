@@ -207,12 +207,16 @@ from .reporting_command import ReportingCommand
 from .streaming_command import StreamingCommand
 
 
+def is_main(command_class):
+    return command_class.__module__ == '__main__'
+
+
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
-             sys.stdout):
+             sys.stdout, predicate=is_main):
     """ TODO: Documentation
 
     """
-    if command_class.__module__ != '__main__':
+    if not predicate(command_class):
         return False
 
     try:

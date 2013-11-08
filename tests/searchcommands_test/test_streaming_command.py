@@ -15,13 +15,17 @@
 # under the License.
 
 from searchcommands_test.utilities import chdir, open_data_file
+from splunklib.searchcommands import dispatch
 import countmatches
 
 chdir(countmatches)
 
-countmatches.CountMatchesCommand().process(
-    ['countmatches', '__GETINFO__', 'fieldname=word_count', 'pattern=\\w+', 'text'])
+dispatch(
+    countmatches.CountMatchesCommand,
+    ['countmatches', '__GETINFO__', 'fieldname=word_count', 'pattern=\\w+',
+     'text'], predicate=lambda x: True)
 
-countmatches.CountMatchesCommand().process(
-    ['countmatches', '__EXECUTE__', 'fieldname=word_count', 'pattern=\\w+', 'text'],
-    open_data_file('tweets.csv'))
+dispatch(
+    countmatches.CountMatchesCommand,
+    ['countmatches', '__EXECUTE__', 'fieldname=word_count', 'pattern=\\w+',
+     'text'], input_file=open_data_file('tweets.csv'), predicate=lambda x: True)

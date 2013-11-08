@@ -15,15 +15,20 @@
 # under the License.
 
 from searchcommands_test.utilities import chdir, data_directory, open_data_file
+from splunklib.searchcommands import dispatch
 import simulate
 
 chdir(simulate)
 
-simulate.SimulateCommand().process(
+dispatch(
+    simulate.SimulateCommand,
     ['simulate', '__GETINFO__', 'csv=%s/sample.csv' % data_directory,
-     'interval=00:00:01', 'rate=200', 'runtime=00:00:10'])
+     'interval=00:00:01', 'rate=200', 'runtime=00:00:10'],
+    predicate=lambda x: True)
 
-simulate.SimulateCommand().process(
+dispatch(
+    simulate.SimulateCommand,
     ['simulate', '__EXECUTE__', 'csv=%s/sample.csv' % data_directory,
      'interval=00:00:01', 'rate=200', 'runtime=00:00:10'],
-    open_data_file('_empty_input_header.txt'))
+    input_file=open_data_file('_empty_input_header.txt'),
+    predicate=lambda x: True)

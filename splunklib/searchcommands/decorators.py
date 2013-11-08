@@ -34,8 +34,8 @@ class Configuration(object):
     [1]: http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide "Search command style guide"
 
     """
-    def __init__(self, **settings):
-        self.settings = settings
+    def __init__(self, **kwargs):
+        self.settings = kwargs
 
     def __call__(self, o):
         if isfunction(o):

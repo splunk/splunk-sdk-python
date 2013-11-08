@@ -14,14 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
-import sys
-from splunklib.searchcommands import GeneratingCommand, Configuration, Option, validators
-
+from splunklib.searchcommands import \
+    dispatch, GeneratingCommand, Configuration, Option, validators
 
 @Configuration()
 class %(command.title())Command(GeneratingCommand):
-   """ %(Synopsis)
+   """ %(synopsis)
 
    ##Syntax
 
@@ -34,13 +32,7 @@ class %(command.title())Command(GeneratingCommand):
    """
    @Configuration()
    def generate(self, events):
-       # Put your event generation code here
+       # Put your event  code here
        pass
 
-
-if __name__ == '__main__':
-   try:
-       %(command.title())Command().process(sys.argv, sys.stdin, sys.stdout)
-   except:
-       import traceback
-       logging.fatal(traceback.format_exc())
+dispatch(%(command.title())Command, sys.argv, sys.stdin, sys.stdout, __name__)

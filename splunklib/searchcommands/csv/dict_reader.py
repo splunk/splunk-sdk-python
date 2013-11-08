@@ -20,7 +20,8 @@ class DictReader(csv.DictReader, object):
     """ Splunk multi-value-aware CSV dictionary reader """
 
     def __init__(self, input_file):
-        super(DictReader, self).__init__(input_file, dialect='splunk')
+        super(DictReader, self).__init__(
+            input_file, dialect='splunklib.searchcommands')
         self.__fieldnames = None
         self.__mv_fieldnames = None
 

@@ -19,8 +19,8 @@ import csv
 import sys
 import time
 
-from splunklib.searchcommands import (
-    dispatch, GeneratingCommand, Configuration, Option, validators)
+from splunklib.searchcommands import \
+    dispatch, GeneratingCommand, Configuration, Option, validators
 
 
 @Configuration(streaming=True, local=False)
@@ -96,4 +96,4 @@ class SimulateCommand(GeneratingCommand):
         self.lambda_value = None
         self.records = None
 
-dispatch(SimulateCommand, sys.argv, sys.stdin, sys.stdout)
+dispatch(SimulateCommand, sys.argv, sys.stdin, sys.stdout, __name__)

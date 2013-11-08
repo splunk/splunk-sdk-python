@@ -16,8 +16,8 @@
 
 import sys
 
-from splunklib.searchcommands import (
-    dispatch, StreamingCommand, Configuration, Option, validators)
+from splunklib.searchcommands import \
+    dispatch, StreamingCommand, Configuration, Option, validators
 
 @Configuration()
 class CountMatchesCommand(StreamingCommand):
@@ -71,4 +71,4 @@ class CountMatchesCommand(StreamingCommand):
             record[self.fieldname] = count
             yield record
 
-dispatch(CountMatchesCommand, sys.argv, sys.stdin, sys.stdout)
+dispatch(CountMatchesCommand, sys.argv, sys.stdin, sys.stdout, __name__)

@@ -16,8 +16,8 @@
 
 import sys
 
-from splunklib.searchcommands import (
-    dispatch, ReportingCommand, Configuration, Option, validators)
+from splunklib.searchcommands import \
+    dispatch, ReportingCommand, Configuration, Option, validators
 
 
 @Configuration(clear_required_fields=True, requires_preop=True)
@@ -51,4 +51,4 @@ class SumCommand(ReportingCommand):
             total += float(record[self.total])
         yield {self.total: total}
 
-dispatch(SumCommand, sys.argv, sys.stdin, sys.stdout)
+dispatch(SumCommand, sys.argv, sys.stdin, sys.stdout, __name__)

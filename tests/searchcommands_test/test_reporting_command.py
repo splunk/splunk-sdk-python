@@ -15,7 +15,7 @@
 # under the License.
 
 from searchcommands_test.utilities import chdir, open_data_file
-from splunklib.searchcommands import dispatch, test
+from splunklib.searchcommands import dispatch
 import sum
 
 chdir(sum)
@@ -24,8 +24,8 @@ argv = ['total=total', 'count']
 
 dispatch(
     sum.SumCommand, ['sum', '__EXECUTE__', '__map__'] + argv,
-    input_file=open_data_file('counts.csv'), predicate=test)
+    input_file=open_data_file('counts.csv'))
 
 dispatch(
     sum.SumCommand, ['sum', '__EXECUTE__'] + argv,
-    input_file=open_data_file('totals.csv'), predicate=test)
+    input_file=open_data_file('totals.csv'))

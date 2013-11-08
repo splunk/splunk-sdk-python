@@ -127,9 +127,20 @@
 """
 
 # TODO: .
+# For examples inside the Python example files, we should do an entire search
+# string, not just the specific invocation.
+
+# TODO: .
+# Is changing commands.conf [default] a good or bad idea? Follow-up with Anirban
+# on this.
+
+# TODO: .
 # Meet the bar for a __repr__ implementation: format value as a Python
 # expression, if you can provide an exact representation. We have more than
 # one __repr__ implementation. Ensure they meet the bar.
+
+# TODO: .
+# Doc comment sweep
 
 # TODO: .csv
 # Optimize because there's too much data copying, especially in writerows.
@@ -195,10 +206,13 @@
 # + streaming_preop = ''
 # Pay special attention to ReportingCommand.ConfigurationSettings.fix_up
 
+# TODO: .validators.Boolean
+# Consider using the Splunk normalizeBoolean function
+
+
 
 from __future__ import absolute_import
 
-from . import logging
 from .decorators import *
 from .validators import *
 
@@ -207,17 +221,13 @@ from .reporting_command import ReportingCommand
 from .streaming_command import StreamingCommand
 
 
-def is_main(command_class):
-    return command_class.__module__ == '__main__'
-
-
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
-             sys.stdout, predicate=is_main):
+             sys.stdout, module_name=None):
     """ TODO: Documentation
 
     """
-    if not predicate(command_class):
-        return False
+    if module_name is not None and module_name != '__main__':
+        return
 
     try:
         command_class().process(argv, input_file, output_file)
@@ -226,7 +236,4 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
 
         logging.fatal(traceback.format_exc())
 
-    return True
-
-def test(command_class):
-    return True
+    return

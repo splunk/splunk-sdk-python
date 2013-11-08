@@ -51,9 +51,15 @@ class ReportingCommand(SearchCommand):
     #region Methods
 
     def map(self, records):
-        raise NotImplementedError('map(self, records)')
+        """ TODO: Documentation
+
+        """
+        return NotImplemented
 
     def reduce(self, records):
+        """ TODO: Documentation
+
+        """
         raise NotImplementedError('reduce(self, records)')
 
     def _execute(self, operation, reader, writer):

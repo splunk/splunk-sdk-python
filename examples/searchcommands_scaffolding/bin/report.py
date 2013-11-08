@@ -14,14 +14,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
-import sys
-from splunklib.searchcommands import ReportingCommand, Configuration, Option, validators
+from splunklib.searchcommands import \
+    dispatch, ReportingCommand, Configuration, Option, validators
 
 
 @Configuration()
 class %(command.title())Command(ReportingCommand):
-    """ %(Synopsis)
+    """ %(synopsis)
 
     ##Syntax
 
@@ -43,10 +42,4 @@ class %(command.title())Command(ReportingCommand):
         # Put your reporting implementation
         pass
 
-
-if __name__ == '__main__':
-    try:
-        %(command.title())Command().process(sys.argv, sys.stdin, sys.stdout)
-    except:
-        import traceback
-        logging.fatal(traceback.format_exc())
+dispatch(%(command.title())Command, sys.argv, sys.stdin, sys.stdout, __name__)

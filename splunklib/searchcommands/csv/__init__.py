@@ -20,9 +20,6 @@ from .dict_writer import DictWriter
 
 import csv
 
-__version_info__ = (0, 8, 0)
-__version__ = ".".join(map(str, __version_info__))
-
 # Set the maximum allowable CSV field size
 #
 # The default of the csv module is 128KB; upping to 10MB. See SPL-12117 for

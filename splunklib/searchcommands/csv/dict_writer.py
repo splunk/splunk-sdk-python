@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 import csv
 
-# TODO: Optimize (there's too much data copying, especially in writerows imo)
-
 
 class DictWriter(csv.DictWriter, object):
     """ Splunk multi-value-aware CSV dictionary writer """

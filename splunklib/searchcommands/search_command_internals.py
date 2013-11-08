@@ -200,10 +200,6 @@ class SearchCommandParser(object):
     setting the built-in log_level immediately changes the log_level.
 
     """
-
-    # TODO: Fix this bug: self.parse raises a SyntaxError when no options are
-    # provided on the command line
-
     def parse(self, argv, command, fieldnames='ANY'):
         """ Splits an argument list into an options dictionary and a fieldname
         list
@@ -239,7 +235,8 @@ class SearchCommandParser(object):
 
         # Parse options
 
-        for option in SearchCommandParser._options_re.finditer(command_args.group('options')):
+        for option in SearchCommandParser._options_re.finditer(
+                command_args.group('options')):
             name, value = option.group(1), option.group(2)
             if not name in command.options:
                 raise ValueError('Unrecognized option: %s = %s' % (name, value))
@@ -273,7 +270,7 @@ class SearchCommandParser(object):
                     undefined_fields += [name]
             if len(undefined_fields) > 0:
                 raise ValueError(
-                    "Unrecognized field(s): %s" % ', '.join(undefined_fields))
+                    'Unrecognized field(s): %s' % ', '.join(undefined_fields))
             command.fieldnames = selected_fields
 
         elif len(selected_fields) > 0:
@@ -282,6 +279,8 @@ class SearchCommandParser(object):
                     'one was' if len(selected_fields) == 1 else 'some were',
                     ', '.join(selected_fields)))
 
+        command.logger.debug(
+            'Parsed %s: %s' % (type(command).__name__, command))
         return
 
     @classmethod
@@ -308,15 +307,16 @@ class SearchCommandParser(object):
 
     _arguments_re = re.compile(r"""
         ^\s*
-        (?P<options>  # Match a leading set of name/value pairs
+        (?P<options>    # Match a leading set of name/value pairs
             (?:
                 (?:\w+)                             # keyword
                 \s*=\s*                             # =
                 (?:[^\s"]+|"(?:[^"]+|""|\\")*")\s*? # value
-            )+
+            )*
         )
+        \s*
         (?P<fieldnames> # Match a trailing set of field names
-            (?:\s+\w+)*
+            (?:\w+\s*)*
         )
         \s*$
         """, re.VERBOSE)

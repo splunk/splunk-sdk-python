@@ -215,8 +215,6 @@ class Option(property):
             self._is_set = False
 
         def __repr__(self):
-            # TODO: Meet the bar for a __repr__ implementation: format value as a
-            # Python expression, if you can provide an exact representation
             return str(self)
 
         def __str__(self):

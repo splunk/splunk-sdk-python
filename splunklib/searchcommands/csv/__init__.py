@@ -13,18 +13,12 @@
 # under the License.
 
 from __future__ import absolute_import
-import csv
-
-from . dict_reader import DictReader
-from . dict_writer import DictWriter
-
-
-# TODO: Data conversion from Splunk data types to Python data types:
-# + Enumerate the set of data types native to Splunk
-# + Map them to Python data types
-# + Ensure input/output conversions (we do it for bool and list types today)
 
 from . import dialect
+from .dict_reader import DictReader
+from .dict_writer import DictWriter
+
+import csv
 
 __version_info__ = (0, 8, 0)
 __version__ = ".".join(map(str, __version_info__))

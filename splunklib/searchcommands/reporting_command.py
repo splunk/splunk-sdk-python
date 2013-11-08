@@ -86,12 +86,6 @@ class ReportingCommand(SearchCommand):
         """ TODO: Documentation
 
         """
-        # TODO: streaming_preop should be None unless this command overrides
-        # ReportingCommand.map
-
-        # TODO: requires_preop should not be an option unless this command
-        # overrides ReportingCommand.map
-
         #region Properties
 
         @property
@@ -159,9 +153,7 @@ class ReportingCommand(SearchCommand):
                 # for an explanation.
 
             if f == vars(ReportingCommand)['map']:
-                # TODO: Consider complaining if cls._requires_preop is True
-                # because there is no streaming_preop
-                cls._requires_preop = None
+                cls._requires_preop = False
                 return
 
             try:

@@ -54,12 +54,12 @@ class SearchCommand(object):
         self.parser = SearchCommandParser()
 
     def __repr__(self):
-        # TODO: Meet the bar for a __repr__ implementation: format value as a
-        # Python expression, if you can provide an exact representation
         return str(self)
 
     def __str__(self):
-        return ' '.join([type(self).name, str(self.options)] + self.fieldnames)
+        values = [type(self).name, str(self.options)] + self.fieldnames
+        text = ' '.join([value for value in values if len(value) > 0])
+        return text
 
     #region Options
 
@@ -140,7 +140,7 @@ class SearchCommand(object):
         :param output_file: Pipeline output file
 
         """
-        self.logger.debug('Command line: %s' % args)
+        self.logger.debug('%s arguments: %s' % (type(self).__name__, args))
         self._configuration = None
 
         if len(args) >= 2 and args[1] == '__GETINFO__':
@@ -164,8 +164,6 @@ class SearchCommand(object):
             writer.writerow(self.configuration.items())
 
         elif len(args) >= 2 and args[1] == '__EXECUTE__':
-
-            # TODO: Do generating commands get input headers?
 
             self.input_header.read(input_file)
             ConfigurationSettings, operation, args, reader = self._prepare(
@@ -361,8 +359,6 @@ class SearchCommand(object):
             Default: False
 
             """
-            # TODO: Consider providing access to the contents of the file
-            # located at `self.input_headers['infoPath']`
             return type(self)._requires_srinfo
 
         _requires_srinfo = False

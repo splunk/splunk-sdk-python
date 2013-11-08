@@ -126,6 +126,28 @@
 
 """
 
+# TODO: .
+# Meet the bar for a __repr__ implementation: format value as a Python
+# expression, if you can provide an exact representation. We have more than
+# one __repr__ implementation. Ensure they meet the bar.
+
+# TODO: .csv
+# Optimize because there's too much data copying, especially in writerows.
+# Consider replacing csv.DictReader/Writer with csv.reader/writer. We're not
+# getting much use out of the higher level variants.
+
+# TODO: .csv, .validators
+# Data conversion from Splunk data types to Python data types:
+# + Enumerate the set of data types native to Splunk
+# + Map them to Python data types
+# + Ensure input/output conversions (we do it for bool and list types today)
+
+# TODO: .logging
+# Logging configuration files should be loaded once and only once. Does the
+# Python logging system ensure this? Is it possible for us to check so that we
+# can skip some of the work of logging.configure on repeated calls?
+
+
 # TODO: .search_command_internals.SearchCommandParser
 # Eliminate field name checking or make it an option for search command
 # developers. At present, we're not using it because we can't distinguish
@@ -151,6 +173,11 @@
 # two types of managed settings: fixed and computed. Managed settings include
 # computed: required_fields, streaming_preop and fixed: enableheaders,...)
 
+# TODO: .search_command_internals.InputHeaders
+# Consider providing access to the contents of the file located at
+# `self.input_headers['infoPath']`. This header is provided by Splunk when
+# `requires_srinfo = True`
+
 # TODO: .search_command_internals.MessagesHeader
 # Consider improving the interface and replacing its data structure borrowed
 # from Intersplunk. The data structure is unsatisfying in that it doesn't retain
@@ -158,6 +185,12 @@
 # which `info_message` level messages arrive, but you cannot see how they
 # interleaved with `warn_message` and `error_message` level messages.
 
+# TODO: .reporting_command.ReportingCommand.ConfigurationSettings
+# Unless a ReportingCommand overrides the map method these settings should be
+# fixed:
+# + requires_preop = False
+# + streaming_preop = ''
+# Pay special attention to ReportingCommand.ConfigurationSettings.fix_up
 
 
 from __future__ import absolute_import

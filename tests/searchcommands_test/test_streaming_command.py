@@ -20,12 +20,12 @@ import countmatches
 
 chdir(countmatches)
 
-dispatch(
-    countmatches.CountMatchesCommand,
-    ['countmatches', '__GETINFO__', 'fieldname=word_count', 'pattern=\\w+',
-     'text'], predicate=lambda x: True)
+argv = ['fieldname=word_count', 'pattern=\\w+', 'text']
 
 dispatch(
-    countmatches.CountMatchesCommand,
-    ['countmatches', '__EXECUTE__', 'fieldname=word_count', 'pattern=\\w+',
-     'text'], input_file=open_data_file('tweets.csv'), predicate=lambda x: True)
+    countmatches.CountMatchesCommand, ['countmatches', '__GETINFO__'] + argv,
+    predicate=lambda x: True)
+
+dispatch(
+    countmatches.CountMatchesCommand, ['countmatches', '__EXECUTE__'] + argv,
+    predicate=lambda x: True, input_file=open_data_file('tweets.csv'))

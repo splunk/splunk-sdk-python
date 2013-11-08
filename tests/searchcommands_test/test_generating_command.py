@@ -20,15 +20,17 @@ import simulate
 
 chdir(simulate)
 
+argv = [
+    'csv=%s/sample.csv' % data_directory,
+    'interval=00:00:01',
+    'rate=200',
+    'runtime=00:00:10']
+
 dispatch(
-    simulate.SimulateCommand,
-    ['simulate', '__GETINFO__', 'csv=%s/sample.csv' % data_directory,
-     'interval=00:00:01', 'rate=200', 'runtime=00:00:10'],
+    simulate.SimulateCommand, ['simulate', '__GETINFO__'] + argv,
     predicate=lambda x: True)
 
 dispatch(
-    simulate.SimulateCommand,
-    ['simulate', '__EXECUTE__', 'csv=%s/sample.csv' % data_directory,
-     'interval=00:00:01', 'rate=200', 'runtime=00:00:10'],
-    input_file=open_data_file('_empty_input_header.txt'),
-    predicate=lambda x: True)
+    simulate.SimulateCommand, ['simulate', '__EXECUTE__'] + argv,
+    predicate=lambda x: True,
+    input_file=open_data_file('_empty_input_header.txt'))

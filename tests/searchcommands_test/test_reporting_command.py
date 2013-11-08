@@ -20,12 +20,12 @@ import sum
 
 chdir(sum)
 
+argv = ['total=total', 'count']
+
 dispatch(
-    sum.SumCommand,
-    ['sum', '__EXECUTE__', '__map__', 'total=total', 'count'],
+    sum.SumCommand, ['sum', '__EXECUTE__', '__map__'] + argv,
     input_file=open_data_file('counts.csv'), predicate=lambda x: True)
 
 dispatch(
-    sum.SumCommand,
-    ['sum', '__EXECUTE__', 'total=total', 'count'],
+    sum.SumCommand, ['sum', '__EXECUTE__'] + argv,
     input_file=open_data_file('totals.csv'), predicate=lambda x: True)

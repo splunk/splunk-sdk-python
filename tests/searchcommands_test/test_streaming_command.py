@@ -15,7 +15,7 @@
 # under the License.
 
 from searchcommands_test.utilities import chdir, open_data_file
-from splunklib.searchcommands import dispatch
+from splunklib.searchcommands import dispatch, test
 import countmatches
 
 chdir(countmatches)
@@ -24,8 +24,8 @@ argv = ['fieldname=word_count', 'pattern=\\w+', 'text']
 
 dispatch(
     countmatches.CountMatchesCommand, ['countmatches', '__GETINFO__'] + argv,
-    predicate=lambda x: True)
+    predicate=test)
 
 dispatch(
     countmatches.CountMatchesCommand, ['countmatches', '__EXECUTE__'] + argv,
-    predicate=lambda x: True, input_file=open_data_file('tweets.csv'))
+    input_file=open_data_file('tweets.csv'), predicate=test)

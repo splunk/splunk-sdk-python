@@ -227,3 +227,6 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
         logging.fatal(traceback.format_exc())
 
     return True
+
+def test(command_class):
+    return True

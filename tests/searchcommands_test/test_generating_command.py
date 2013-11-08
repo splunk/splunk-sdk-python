@@ -15,7 +15,7 @@
 # under the License.
 
 from searchcommands_test.utilities import chdir, data_directory, open_data_file
-from splunklib.searchcommands import dispatch
+from splunklib.searchcommands import dispatch, test
 import simulate
 
 chdir(simulate)
@@ -28,9 +28,9 @@ argv = [
 
 dispatch(
     simulate.SimulateCommand, ['simulate', '__GETINFO__'] + argv,
-    predicate=lambda x: True)
+    predicate=test)
 
 dispatch(
     simulate.SimulateCommand, ['simulate', '__EXECUTE__'] + argv,
-    predicate=lambda x: True,
+    predicate=test,
     input_file=open_data_file('_empty_input_header.txt'))

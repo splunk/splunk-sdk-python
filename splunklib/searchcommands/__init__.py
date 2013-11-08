@@ -147,6 +147,9 @@
 # Python logging system ensure this? Is it possible for us to check so that we
 # can skip some of the work of logging.configure on repeated calls?
 
+# TODO: .search_command.SearchCommand.ConfigurationSettingsType
+# Configuration matrix (an Excel spreadsheet) for each of the three command
+# types: Generating, reporting, and streaming.
 
 # TODO: .search_command_internals.SearchCommandParser
 # Eliminate field name checking or make it an option for search command

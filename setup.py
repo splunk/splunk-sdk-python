@@ -15,9 +15,12 @@
 # under the License.
 
 from distutils.core import setup, Command
-import os, shutil, tarfile
-import splunklib
 from contextlib import closing
+from fnmatch import fnmatch
+
+import os
+import splunklib
+import tarfile
 
 def run_test_suite():
     try:
@@ -29,6 +32,7 @@ def run_test_suite():
     suite = unittest.defaultTestLoader.discover('.')
     unittest.TextTestRunner().run(suite)
     os.chdir(original_cwd)
+
 
 class CoverageCommand(Command):
     """setup.py command to run code coverage of the test suite."""
@@ -68,8 +72,9 @@ class TestCommand(Command):
         run_test_suite()
 
 class DistCommand(Command):
-    """setup.py command to create .spl files for modular input examples"""
-    description = "Build modular input example .spl files."
+    """setup.py command to create .spl files for modular input and search
+    command examples"""
+    description = "Build modular input and search command example .spl files."
     user_options = []
 
     def initialize_options(self):
@@ -89,8 +94,9 @@ class DistCommand(Command):
         return python_files
 
     def run(self):
-        app_names = ["random_numbers", "github_forks"]
+        # Create random_numbers.spl and github_forks.spl
 
+        app_names = ['random_numbers', 'github_forks']
         splunklib_dir = "splunklib"
         modinput_dir = os.path.join(splunklib_dir, "modularinput")
 
@@ -125,6 +131,32 @@ class DistCommand(Command):
                     )
 
                 spl.close()
+
+        # Create searchcommands_app.spl
+
+        sdk_dir = os.path.abspath('.')
+
+        tarball = os.path.join(sdk_dir, 'build', 'searchcommands_app.spl')
+
+        app_dir = os.path.join(sdk_dir, 'examples', 'searchcommands_app')
+        lib_dir = os.path.join(sdk_dir, 'splunklib', 'searchcommands')
+
+        arc_app_dir = 'searchcommands_app'
+        arc_app_lib_dir = os.path.join(arc_app_dir, 'bin', 'splunklib', 'searchcommands')
+
+        def exclude(path):
+            basename = os.path.basename(path)
+            result = (
+                fnmatch(basename, '.DS_Store') or
+                fnmatch(basename, '.idea') or
+                fnmatch(basename, '*.py[co]') or
+                fnmatch(basename, '*.log'))
+            return result
+
+        with closing(tarfile.open(tarball, "w")) as spl:
+            spl.add(app_dir, arcname=arc_app_dir, exclude=exclude)
+            spl.add(lib_dir, arcname=arc_app_lib_dir, exclude = exclude)
+
 
 setup(
     author="Splunk, Inc.",

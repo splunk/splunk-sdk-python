@@ -145,8 +145,6 @@ class SearchCommand(object):
 
         if len(args) >= 2 and args[1] == '__GETINFO__':
 
-            # BFR: Check if Splunk gives us an input header on __GETINFO__
-
             ConfigurationSettings, operation, args, reader = self._prepare(
                 args, input_file=None)
             try:

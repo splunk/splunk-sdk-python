@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -141,6 +141,13 @@
 
 # TODO: .
 # Doc comment sweep
+
+# TODO: .
+# Q&A
+# Does Splunk redundantly store the value of a single-value list in the
+# shadowing **__mv_** field?
+# Does Splunk gives us an input header on __GETINFO__?
+# What does it really mean for a generating command to be streamable?
 
 # TODO: .csv
 # Optimize because there's too much data copying, especially in writerows.

@@ -12,9 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# BFR: Does Splunk redundantly store the value of a single-value list in
-# the shadowing **__mv_** field?
-
 from __future__ import absolute_import
 
 from . search_command_internals import ConfigurationSettingsType
@@ -30,7 +27,7 @@ class ReportingCommand(SearchCommand):
     reduce part runs on a search head and is responsible for processing a single
     chunk of search results to produce the command's reporting data structure.
     The map part is called a streaming preop. It feeds the reduce part with
-    partial results and by default is runs on the search head and/or one or more
+    partial results and by default runs on the search head and/or one or more
     indexers.
 
     You must implement a `reduce` method as a generator function that iterates
@@ -39,13 +36,14 @@ class ReportingCommand(SearchCommand):
     event records and yields `dict` or `list(dict)` instances.
 
     ##ReportingCommand configuration
+
+    Configure the `map` operation using a Configuration decorator on your
+    ReportingCommand.map method. Configure it like you would a StreamingCommand.
+
     Configure the `reduce` operation using a Configuration decorator on your
     ReportingCommand class.
 
     [TODO: ReportingCommand configuration highlights]
-
-    Configure the `map` operation using a Configuration decorator on your
-    ReportingCommand.map method. Configure it like you would a StreamingCommand.
 
     """
     #region Methods

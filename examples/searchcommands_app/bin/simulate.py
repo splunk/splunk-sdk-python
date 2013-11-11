@@ -23,33 +23,35 @@ from splunklib.searchcommands import \
     dispatch, GeneratingCommand, Configuration, Option, validators
 
 
-@Configuration(streaming=True, local=False)
+@Configuration(streaming=True)
 class SimulateCommand(GeneratingCommand):
     """ Generates a sequence of events drawn from a CSV file using repeated
     random sampling
 
     ##Syntax
 
-    simulate csv=<path> interval=<time-interval> rate=<expected-event-count>
-        runtime=<duration>
+    simulate csv=<path> rate=<average-event-count> interval=<time-interval>
+        duration=<run-time-period>
 
     ##Description
 
     The `simulate` command uses repeated random samples of the event records
-    in `csv` for the duration of `runtime`. Samples sizes are determined for
+    in `csv` for the duration of `run_time`. Samples sizes are determined for
     each time `interval` in `runtime` using a Poisson distribution with an
     average `rate` specifying the expected event count during `interval`.
 
     ##Example
 
     ```
-    simulate csv="/path/to/events.csv" rate=200 interval=00:00:01
-        runtime=00:00:30
+    | simulate csv="tweets.csv" rate=200 interval=00:00:01 duration=00:00:30 |
+    countmatches fieldname=word_count pattern=\w+ text
     ```
 
     This example generates events drawn from repeated random sampling of events
-    from `/path/to/events.csv` at an average rate of 200 events per second.
-    for 30 seconds.
+    from `tweets.csv`. Events are drawn at an average rate of 200 events per
+    second for a duration of 30 seconds. Events are piped to the `countmatches`
+    command which adds a `word_count` field containing the number of words in
+    the `text` of each tweet.
 
     """
     csv_file = Option(
@@ -57,6 +59,11 @@ class SimulateCommand(GeneratingCommand):
         **Description:** CSV file from which repeated random samples will be
         drawn''',
         name='csv', require=True, validate=validators.File())
+
+    duration = Option(
+        doc='''**Syntax:** **duration=***<time-interval>*
+        **Description:** Duration of simulation''',
+        require=True, validate=validators.Duration())
 
     interval = Option(
         doc='''**Syntax:** **interval=***<time-interval>*
@@ -68,19 +75,14 @@ class SimulateCommand(GeneratingCommand):
         **Description:** Average event count during sampling `interval`''',
         require=True, validate=validators.Integer(1))
 
-    runtime = Option(
-        doc='''**Syntax:** **runtime=***<time-interval>*
-        **Description:** Duration of simulation''',
-        require=True, validate=validators.Duration())
-
     def generate(self):
-        """ Yields one random record at a time for the duration of `runtime` """
+        """ Yields one random record at a time for the duration of `duration` """
         self.logger.debug('SimulateCommand: %s' % self)  # log command line
         if not self.records:
             self.records = [record for record in csv.DictReader(self.csv_file)]
             self.lambda_value = 1.0 / (self.rate / float(self.interval))
-        runtime = self.runtime
-        while runtime > 0:
+        duration = self.duration
+        while duration > 0:
             count = long(round(random.expovariate(self.lambda_value)))
             start_time = time.clock()
             for record in random.sample(self.records, count):
@@ -88,7 +90,7 @@ class SimulateCommand(GeneratingCommand):
             interval = time.clock() - start_time
             if interval < self.interval:
                 time.sleep(self.interval - interval)
-            runtime -= max(interval, self.interval)
+            duration -= max(interval, self.interval)
         return
 
     def __init__(self):

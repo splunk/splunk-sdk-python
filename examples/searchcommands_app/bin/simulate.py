@@ -44,14 +44,17 @@ class SimulateCommand(GeneratingCommand):
 
     ```
     | simulate csv="tweets.csv" rate=200 interval=00:00:01 duration=00:00:30 |
-    countmatches fieldname=word_count pattern=\w+ text
+    countmatches fieldname=word_count pattern=\w+ text |
+    stats mean(word_count) stdev(word_count)
     ```
 
     This example generates events drawn from repeated random sampling of events
     from `tweets.csv`. Events are drawn at an average rate of 200 events per
-    second for a duration of 30 seconds. Events are piped to the `countmatches`
-    command which adds a `word_count` field containing the number of words in
-    the `text` of each tweet.
+    second for a duration of 30 seconds. Events are piped to the example
+    `countmatches` command which adds a `word_count` field containing the number
+    of words in the `text` of each tweet. The mean and standard deviation of the
+    `word_count` are then computed by the builtin `stats` command.
+
 
     """
     csv_file = Option(

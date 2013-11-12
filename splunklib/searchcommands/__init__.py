@@ -264,7 +264,7 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
 
         dispatch(CountMatchesCommand, module_name=__name__)
 
-    Dispatches the CountMatchesCommand, if and only if `__name__` is equal to
+    Dispatches the `CountMatchesCommand`, if and only if `__name__` is equal to
     `__main__`.
 
     """

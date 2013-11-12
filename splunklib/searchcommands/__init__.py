@@ -237,11 +237,11 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
         if module_name is None or module_name == '__main__':
             # execute command
 
-    If you would like the module calling this function to act as either a
-    reusable module or a standalone program, call it at module scope passing
-    `__name__` as the value of `module_name`. Otherwise, if you wish this
-    function to unconditionally instantiate and execute `command_class`, pass
-    `None` as the value of `module_name`.
+    If you would like this function's caller to act as either a reusable module
+    or a standalone program, call it at module scope with `__name__` as the
+    value of `module_name`. Otherwise, if you wish this function to
+    unconditionally instantiate and execute `command_class`, pass `None` as the
+    value of `module_name`.
 
     :param command_class: Class to instantiate and execute.
     :type command_class: ``.search_command.SearchCommand``
@@ -253,6 +253,7 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
     :type output_file: ``file``
     :param module_name: Name of the module calling dispatch or `None`.
     :type module_name: ``str``
+    :returns: ``None``
 
     **Example**::
 

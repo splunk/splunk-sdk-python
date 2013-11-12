@@ -217,7 +217,6 @@
 # Consider using the Splunk normalizeBoolean function
 
 
-
 from __future__ import absolute_import
 
 from .decorators import *
@@ -230,35 +229,42 @@ from .streaming_command import StreamingCommand
 
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
              sys.stdout, module_name=None):
-    """ Dispatches a search command
+    """ Instantiates and executes a search command class
 
     This function implements a [conditional script stanza](http://goo.gl/OFaox6)
-    based on the value of `module_name`. If you would like the module calling
-    this function to act as either a reusable module or a standalone program,
-    call it at module scope and pass `__name__` as the value of `module_name`.
-    Otherwise, if you wish this function to unconditionally execute a command,
-    set the value of `module_name` to `None`. This is the default.
+    based on the value of `module_name`::
 
-    **Example:**
+        if module_name is None or module_name == '__main__':
+            # execute command
 
-    ```python
-    #!/usr/bin/env python
-    ...
-    class CountMatchesCommand(StreamingCommand):
+    If you would like the module calling this function to act as either a
+    reusable module or a standalone program, call it at module scope passing
+    `__name__` as the value of `module_name`. Otherwise, if you wish this
+    function to unconditionally instantiate and execute `command_class`, pass
+    `None` as the value of `module_name`.
+
+    :param command_class: Class to instantiate and execute.
+    :type command_class: ``.search_command.SearchCommand``
+    :param argv: List of arguments to the command.
+    :type argv: ``list``
+    :param input_file: File from which the command will read data.
+    :type input_file: ``file``
+    :param output_file: File to which the command will write data.
+    :type output_file: ``file``
+    :param module_name: Name of the module calling dispatch or `None`.
+    :type module_name: ``str``
+
+    **Example**::
+
+        #!/usr/bin/env python
         ...
+        class CountMatchesCommand(StreamingCommand):
+            ...
 
-    dispatch(CountMatchesCommand, module_name=__name__)
-    ```
+        dispatch(CountMatchesCommand, module_name=__name__)
 
     Dispatches the CountMatchesCommand, if and only if `__name__` is equal to
     `__main__`.
-
-    :param command_class: Search command class to instantiate and execute.
-    :param argv: List of arguments to the command.
-    :param input_file: File-like object from which the command will read data.
-    :param output_file: File-like object to which the command will write data.
-    :param module_name: Name of module calling dispatch (the value contained in
-    `__name__`) or `None`.
 
     """
     if module_name is not None and module_name != '__main__':

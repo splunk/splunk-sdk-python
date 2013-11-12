@@ -230,7 +230,35 @@ from .streaming_command import StreamingCommand
 
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
              sys.stdout, module_name=None):
-    """ TODO: Documentation
+    """ Dispatches a search command
+
+    This function implements a [conditional script stanza](http://goo.gl/OFaox6)
+    based on the value of `module_name`. If you would like the module calling
+    this function to act as either a reusable module or a standalone program,
+    call it at module scope and pass `__name__` as the value of `module_name`.
+    Otherwise, if you wish this function to unconditionally execute a command,
+    set the value of `module_name` to `None`. This is the default.
+
+    **Example:**
+
+    ```python
+    #!/usr/bin/env python
+    ...
+    class CountMatchesCommand(StreamingCommand):
+        ...
+
+    dispatch(CountMatchesCommand, module_name=__name__)
+    ```
+
+    Dispatches the CountMatchesCommand, if and only if `__name__` is equal to
+    `__main__`.
+
+    :param command_class: Search command class to instantiate and execute.
+    :param argv: List of arguments to the command.
+    :param input_file: File-like object from which the command will read data.
+    :param output_file: File-like object to which the command will write data.
+    :param module_name: Name of module calling dispatch (the value contained in
+    `__name__`) or `None`.
 
     """
     if module_name is not None and module_name != '__main__':
@@ -239,8 +267,8 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
     try:
         command_class().process(argv, input_file, output_file)
     except:
-        import logging, traceback
-
+        import logging
+        import traceback
         logging.fatal(traceback.format_exc())
 
     return

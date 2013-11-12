@@ -53,8 +53,8 @@ class SimulateCommand(GeneratingCommand):
     from `tweets.csv`. Events are drawn at an average rate of 200 events per
     second for a duration of 30 seconds. Events are piped to the example
     `countmatches` command which adds a `word_count` field containing the number
-    of words in the `text` of each tweet. The mean and standard deviation of the
-    `word_count` are then computed by the builtin `stats` command.
+    of words in the `text` field of each event. The mean and standard deviation
+    of the `word_count` are then computed by the builtin `stats` command.
 
 
     """

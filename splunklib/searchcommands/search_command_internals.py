@@ -171,58 +171,66 @@ class MessagesHeader(object):
 
 
 class SearchCommandParser(object):
-    """ Parses a search command line
+    """ Parses the arguments to a search command
 
     A search command line is described by the following syntax.
 
-    **Syntax:**
+    **Syntax**::
 
-    *<command-line>* ::= *<command>* (*<option>*)\* (*<field>*)\*
+       command       = command-name *[wsp option] *[wsp [dquote] field-name [dquote]]
+       command-name  = alpha *( alpha / digit )
+       option        = option-name [wsp] "=" [wsp] option-value
+       option-name   = alpha *( alpha / digit / "_" )
+       option-value  = word / quoted-string
+       word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
+       quoted-string = dquote *( word / wsp / "\" dquote ) dquote
+       field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
-    *<command>* ::= *<name>*
-    *<option>* ::= *<name>* <opt-whitespace> "=" <opt-whitespace> *<value>*
-    *<field>* ::= *<name>*
+    **Note:**
 
-    *<name>* ::= (*<letter>* | "_")(*<letter>* | *<digit>* | "_")\*
-    *<value>* ::= (*<quoted-string>* | *<unquoted-string>*)
-    *<quoted-string>* ::= '"' (*<any-character>* - '"' | *<escaped-quote>*)\*'"'
-    *<unquoted-string>* ::= (*<any-character>* - ('"' | whitespace)
-                            (*<any-character>* - ('"' | whitespace))\*
+    This syntax is constrained to an 8-bit character set.
 
-    *<escaped-quote>* ::= ('\"' | '""')
+    **Note:**
+
+    This syntax does not show that `field-name` values may be comma-separated
+    when in fact they can be. This is because Splunk strips commas from the
+    command line. A custom search command will never see them.
 
     **Example:**
     countmatches fieldname = word_count pattern = \w+ some_text_field
 
-    Option names are mapped to properties in the targeted `SearchCommand`. It is
-    the responsibility of the property setters to validate the values they
+    Option names are mapped to properties in the targeted ``SearchCommand``. It
+    is the responsibility of the property setters to validate the values they
     receive. Property setters may also produce side effects. For example,
-    setting the built-in log_level immediately changes the log_level.
+    setting the built-in `log_level` immediately changes the `log_level`.
 
     """
     def parse(self, argv, command, fieldnames='ANY'):
         """ Splits an argument list into an options dictionary and a fieldname
         list
 
-        The argument list must be of the form:
+        The argument list, `argv`, must be of the form::
 
-            [*<option-name>***=***<option-value>**]... [*<field-name>*]...
+            *[option]... *[<field-name>]
 
-        Options names are validated against the list of `self.command` property
-        names. Option values are validated by `self.command` property setters.
-        Field names are checked against `fieldnames`.
+        Options are validated and assigned to items in `command.options`. Field
+        names are validated and stored in the list of `command.fieldnames`.
 
-        :param argv: List representing a search command line.
-        :param fieldnames: List of valid field names, 'ANY', or None.
-        :return: search_fieldnames, search_options. Options not included on the
-        search command line are assigned a value of None.
+        #Arguments:
 
-        Exceptions:
-        `SyntaxError`: Argument list is incorrectly formed.
-        `ValueError`: Unrecognized option/field name, or an illegal field value.
+        :param command: Search command instance.
+        :type command: ``SearchCommand``
+        :param argv: List of search command arguments.
+        :type argv: ``list``
+        :return: ``None``
+
+        #Exceptions:
+
+        ``SyntaxError``: Argument list is incorrectly formed.
+        ``ValueError``: Unrecognized option/field name, or an illegal field value.
 
         """
-        # Get ready
+        # Prepare
 
         command_args = ' '.join(argv)
         command.fieldnames = None

@@ -139,10 +139,11 @@ class DistCommand(Command):
         tarball = os.path.join(sdk_dir, 'build', 'searchcommands_app.spl')
 
         app_dir = os.path.join(sdk_dir, 'examples', 'searchcommands_app')
-        lib_dir = os.path.join(sdk_dir, 'splunklib', 'searchcommands')
-
         arc_app_dir = 'searchcommands_app'
-        arc_app_lib_dir = os.path.join(arc_app_dir, 'bin', 'splunklib', 'searchcommands')
+
+        lib_dir = os.path.join(sdk_dir, 'splunklib', 'searchcommands')
+        arc_app_lib_dir = os.path.join(
+            arc_app_dir, 'bin', 'splunklib', 'searchcommands')
 
         def exclude(path):
             basename = os.path.basename(path)
@@ -153,9 +154,9 @@ class DistCommand(Command):
                 fnmatch(basename, '*.log'))
             return result
 
-        with closing(tarfile.open(tarball, "w")) as spl:
+        with tarfile.open(tarball, "w") as spl:
             spl.add(app_dir, arcname=arc_app_dir, exclude=exclude)
-            spl.add(lib_dir, arcname=arc_app_lib_dir, exclude = exclude)
+            spl.add(lib_dir, arcname=arc_app_lib_dir, exclude=exclude)
 
 
 setup(

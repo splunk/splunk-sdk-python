@@ -30,15 +30,16 @@ class SimulateCommand(GeneratingCommand):
 
     ##Syntax
 
-    simulate csv=<path> rate=<average-event-count> interval=<time-interval>
-        duration=<run-time-period>
+    simulate csv=<path> rate=<expected-event-count> interval=<sampling-period>
+        duration=<execution-period>
 
     ##Description
 
     The `simulate` command uses repeated random samples of the event records
-    in `csv` for the duration of `run_time`. Samples sizes are determined for
-    each time `interval` in `runtime` using a Poisson distribution with an
-    average `rate` specifying the expected event count during `interval`.
+    in `csv` for the execution period of `duration`. Samples sizes are
+    determined for each time `interval` in `duration` using a Poisson
+    distribution with an average `rate` specifying the expected event count
+    during `interval`.
 
     ##Example
 

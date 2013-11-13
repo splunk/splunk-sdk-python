@@ -142,17 +142,14 @@ class DistCommand(Command):
         arc_app_dir = 'searchcommands_app'
 
         lib_dir = os.path.join(sdk_dir, 'splunklib', 'searchcommands')
-        arc_app_lib_dir = os.path.join(
-            arc_app_dir, 'bin', 'splunklib', 'searchcommands')
+        arc_app_lib_dir = os.path.join(arc_app_dir, 'bin', 'splunklib', 'searchcommands')
 
         def exclude(path):
             basename = os.path.basename(path)
-            result = (
-                fnmatch(basename, '.DS_Store') or
-                fnmatch(basename, '.idea') or
-                fnmatch(basename, '*.py[co]') or
-                fnmatch(basename, '*.log'))
-            return result
+            for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
+                if fnmatch(basename, pattern):
+                    return False
+            return True
 
         with tarfile.open(tarball, "w") as spl:
             spl.add(app_dir, arcname=arc_app_dir, exclude=exclude)

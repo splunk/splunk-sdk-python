@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -25,7 +24,7 @@
        option-name   = alpha *( alpha / digit / "_" )
        option-value  = word / quoted-string
        word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
-       quoted-string = dquote *( word / wsp / "\" dquote ) dquote
+       quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
        field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
    **Note:**

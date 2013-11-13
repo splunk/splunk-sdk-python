@@ -183,7 +183,7 @@ class SearchCommandParser(object):
        option-name   = alpha *( alpha / digit / "_" )
        option-value  = word / quoted-string
        word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
-       quoted-string = dquote *( word / wsp / "\" dquote ) dquote
+       quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
        field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
     **Note:**

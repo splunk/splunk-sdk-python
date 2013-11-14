@@ -20,45 +20,62 @@ import inspect
 import os
 
 
-def configure(instance, path=None):
-    """ Configure logging for the app containing a class and get its logger
+def configure(name, path=None):
+    """ Configure logging and return a logger and the location of its logging
+    configuration file
 
-    This function expects a Splunk app directory structure:
+    This function expects:
+
+    + A Splunk app directory structure::
 
         <app-root>
             bin
-                <module>.py
                 ...
             default
-                logging.conf
                 ...
             local
-                logging.conf
                 ...
 
-    The **logging.conf** file must be in ConfigParser-format. The current
-    working directory is set to *<app-root>* before the logging.conf file is
-    loaded. Hence, relative path names should be set relative to *<app-root>*.
+    + The current working directory is *<app-root>***/bin**.
 
-    The current directory is reset to its previous value before this function
-    returns.
+      Splunk guarantees this. If you are running the app outside of Splunk, be
+      sure to set the current working directory to *<app-root>***/bin** before
+      calling.
+
+    This function looks for a logging configuration file at each of these
+    locations, loading the first, if any, logging configuration file that it
+    finds::
+
+        local/{name}.logging.conf
+        default/{name}.logging.conf
+        local/logging.conf
+        default/logging.conf
+
+    The current working directory is set to *<app-root>* before the logging
+    configuration file is loaded. Hence, paths in the logging configuration
+    file are relative to *<app-root>*. The current directory is reset before
+    return.
+
+    You may short circuit the search for a logging configuration file by
+    providing an alternative file location in `path`. Logging configuration
+    files must be in `ConfigParser format`_.
 
     #Arguments:
 
-    :param cls: Class contained in <app-root>/bin/<module>.py
-    :type cls: type
+    :param name: Logger name
+    :type name: str
     :param path: Location of an alternative logging configuration file or `None`
     :type path: str or NoneType
+    :returns: A logger and the location of its logging configuration file
+
+    .. _ConfigParser format: http://goo.gl/K6edZ8
 
     """
-    cls = type(instance)
-    logger_name = cls.__name__
-    module = inspect.getmodule(cls)
-    app_directory = os.path.dirname(os.path.dirname(module.__file__))
+    app_directory = os.path.dirname(os.getcwd())
     if path is None:
         probing_path = [
-            'local/%s.logging.conf' % logger_name,
-            'default/%s.logging.conf' % logger_name,
+            'local/%s.logging.conf' % name,
+            'default/%s.logging.conf' % name,
             'local/logging.conf',
             'default/logging.conf']
         for relative_path in probing_path:
@@ -74,5 +91,5 @@ def configure(instance, path=None):
             fileConfig(path)
         finally:
             os.chdir(working_directory)
-    logger = getLogger(logger_name)
+    logger = getLogger(name)
     return logger, path

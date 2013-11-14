@@ -40,7 +40,8 @@ class SearchCommand(object):
 
         # Variables that may be used, but not altered by derived classes
 
-        self.logger, self._logging_configuration = logging.configure(self)
+        self.logger, self._logging_configuration = logging.configure(
+            type(self).__name__)
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
 
@@ -77,7 +78,7 @@ class SearchCommand(object):
     @logging_configuration.setter
     def logging_configuration(self, value):
         self.logger, self._logging_configuration = logging.configure(
-            self, value)
+            type(self).__name__, value)
         return
 
     @Option

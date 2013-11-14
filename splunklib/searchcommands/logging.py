@@ -43,14 +43,24 @@ def configure(cls, path=None):
     The current directory is reset to its previous value before this function
     returns.
 
+    #Arguments:
+
     :param cls: Class contained in <app-root>/bin/<module>.py
+    :type cls: type
     :param path: Location of an alternative logging configuration file or `None`
+    :type path: str or NoneType
 
     """
+    logger_name = cls.__name__
     module = inspect.getmodule(cls)
     app_directory = os.path.dirname(os.path.dirname(module.__file__))
     if path is None:
-        for relative_path in 'local/logging.conf', 'default/logging.conf':
+        probing_path = [
+            'local/%s.logging.conf' % logger_name,
+            'default/%s.logging.conf' % logger_name,
+            'local/logging.conf',
+            'default/logging.conf']
+        for relative_path in probing_path:
             configuration_file = os.path.join(app_directory, relative_path)
             if os.path.exists(configuration_file):
                 path = configuration_file
@@ -63,5 +73,5 @@ def configure(cls, path=None):
             fileConfig(path)
         finally:
             os.chdir(working_directory)
-    logger = getLogger(cls.__name__)
+    logger = getLogger(logger_name)
     return logger, path

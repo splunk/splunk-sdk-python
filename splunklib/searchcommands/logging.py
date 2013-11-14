@@ -20,7 +20,7 @@ import inspect
 import os
 
 
-def configure(cls, path=None):
+def configure(instance, path=None):
     """ Configure logging for the app containing a class and get its logger
 
     This function expects a Splunk app directory structure:
@@ -51,6 +51,7 @@ def configure(cls, path=None):
     :type path: str or NoneType
 
     """
+    cls = type(instance)
     logger_name = cls.__name__
     module = inspect.getmodule(cls)
     app_directory = os.path.dirname(os.path.dirname(module.__file__))

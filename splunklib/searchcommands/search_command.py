@@ -184,10 +184,9 @@ class SearchCommand(object):
             message = (
                 'Static configuration is unsupported. Please configure this '
                 'command as follows in default/commands.conf:\n\n'
-                '[default]\n'
-                'supports_getinfo = true\n'
                 '[%s]\n'
-                'filename = %s' %
+                'filename = %s\n' %
+                'supports_getinfo = true'
                 (type(self).name, path.basename(argv[0])))
             self.messages.append('error_message', message)
             self.messages.write(output_file)

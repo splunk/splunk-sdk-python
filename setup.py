@@ -57,6 +57,7 @@ class CoverageCommand(Command):
         cov.stop()
         cov.html_report(directory='coverage_report')
 
+
 class TestCommand(Command):
     """setup.py command to run the whole test suite."""
     description = "Run test full test suite."

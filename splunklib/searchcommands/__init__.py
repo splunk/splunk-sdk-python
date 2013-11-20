@@ -133,6 +133,14 @@
 2. [Search command style guide](http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide)
 
 """
+
+# TODO: Do not use [defaults] stanza in commands.conf
+# It doesn't work as advertised. Make sure the ERD/PRD/User documentation is
+# updated. The source code already is.
+
+# TODO: Multi-line message headers are incorrectly formatted in Splunk Web UI
+# What should we be using as a newline terminator? Try url encoding.
+
 from __future__ import absolute_import
 
 from .decorators import *

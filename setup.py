@@ -145,13 +145,14 @@ class DistCommand(Command):
         arc_app_lib_dir = os.path.join(arc_app_dir, 'bin', 'splunklib', 'searchcommands')
 
         def exclude(path):
+            # TODO: Replace with filter function because exclude is deprecated
             basename = os.path.basename(path)
             for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
                 if fnmatch(basename, pattern):
-                    return False
-            return True
+                    return True
+            return False
 
-        with tarfile.open(tarball, "w") as spl:
+        with closing(tarfile.open(tarball, "w")) as spl:
             spl.add(app_dir, arcname=arc_app_dir, exclude=exclude)
             spl.add(lib_dir, arcname=arc_app_lib_dir, exclude=exclude)
 

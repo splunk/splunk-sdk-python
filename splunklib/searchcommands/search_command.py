@@ -190,7 +190,7 @@ class SearchCommand(object):
                 'filename = %s' %
                 (type(self).name, path.basename(argv[0])))
             self.messages.append('error_message', message)
-            self.messages.write()
+            self.messages.write(output_file)
             self.logger.error(message)
 
     @staticmethod

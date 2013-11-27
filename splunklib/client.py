@@ -953,7 +953,7 @@ class Entity(Endpoint):
         if state is not None:
             self._state = state
         else:
-            self._state = self.read()
+            self._state = self.read(self.get())
         return self
 
     @property
@@ -1009,9 +1009,8 @@ class Entity(Endpoint):
         """
         return self.state.title
 
-    def read(self):
-        """Reads the current state of the entity from the server."""
-        response = self.get()
+    def read(self, response):
+        """ Reads the current state of the entity from the server. """
         results = self._load_state(response)
         # In lower layers of the SDK, we end up trying to URL encode
         # text to be dispatched via HTTP. However, these links are already
@@ -2441,21 +2440,24 @@ class Job(Entity):
         :return: ``True`` if the job is done, ``False`` if not.
         :rtype: ``boolean``
         """
-        if (not self.is_ready()):
+        if not self.is_ready():
             return False
-        self.refresh()
-        return self['isDone'] == '1'
+        done = (self._state.content['isDone'] == '1')
+        return done
 
     def is_ready(self):
         """Indicates whether this job is ready for querying.
 
         :return: ``True`` if the job is ready, ``False`` if not.
         :rtype: ``boolean``
+
         """
-        if self.get().status == 204:
+        response = self.get()
+        if response.status == 204:
             return False
-        else:
-            return True
+        self._state = self.read(response)
+        ready = self._state.content['dispatchState'] not in ['QUEUED', 'PARSING']
+        return ready
 
     @property
     def name(self):
@@ -2637,6 +2639,7 @@ class Job(Entity):
         """
         self.post("control", action="unpause")
         return self
+
 
 class Jobs(Collection):
     """This class represents a collection of search jobs. Retrieve this

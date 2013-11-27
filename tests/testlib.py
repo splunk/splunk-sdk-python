@@ -59,9 +59,11 @@ def to_bool(x):
     else:
         raise ValueError("Not a boolean value: %s", x)
 
+
 def tmpname():
     name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
     return name
+
 
 def wait(predicate, timeout=60, pause_time=0.5):
     assert pause_time < timeout

@@ -14,8 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from time import sleep
 import testlib
-import logging
 
 try:
     import unittest2 as unittest
@@ -26,6 +26,7 @@ import splunklib.client as client
 import splunklib.results as results
 
 from splunklib.binding import _log_duration
+
 
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
@@ -78,13 +79,11 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
     
     def test_results_docstring_sample(self):
-        import splunklib.client as client
         import splunklib.results as results
-        from time import sleep
-        service = self.service # cheat
+        service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
         while not job.is_done():
-            sleep(.2)
+            sleep(0.2)
         rr = results.ResultsReader(job.results())
         for result in rr:
             if isinstance(result, results.Message):
@@ -178,6 +177,7 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
+
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
         super(TestJobWithDelayedDone, self).setUp()
@@ -202,11 +202,13 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             latest_time="now")
         self.assertEqual(self.job['isPreviewEnabled'], '0')
         self.job.enable_preview()
+
         def is_preview():
             self.job.refresh()
             if self.job.is_done():
                 self.fail('Job finished before preview enabled.')
             return self.job['isPreviewEnabled'] == '1'
+
         self.assertEventuallyTrue(is_preview)
 
     def test_setpriority(self):
@@ -220,6 +222,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             earliest_time="-1m",
             priority=5,
             latest_time="now")
+
         # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
         # of a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
@@ -233,7 +236,9 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
                 self.fail("Job already done before priority was set.")
             self.job.refresh()
             return int(self.job['priority']) == new_priority
+
         self.assertEventuallyTrue(f, timeout=120)
+
 
 class TestJob(testlib.SDKTestCase):
     def setUp(self):
@@ -320,6 +325,7 @@ class TestJob(testlib.SDKTestCase):
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
         self.assertGreater(int(self.job['ttl']), old_ttl)
 
+
 class TestResultsReader(unittest.TestCase):
     def test_results_reader(self):
         # Run jobs.export("search index=_internal | stats count",
@@ -365,7 +371,6 @@ class TestResultsReader(unittest.TestCase):
                     N_messages += 1
             self.assertEqual(N_results, 3)
             self.assertEqual(N_messages, 3)
-        
 
     def test_xmldtd_filter(self):
         from StringIO import StringIO

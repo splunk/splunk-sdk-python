@@ -215,8 +215,9 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         if not self.app_collection_installed():
             print "Test requires sdk-app-collection. Skipping."
             return
+        sleep_duration = 10
         self.install_app_from_collection("sleep_command")
-        self.query = "search index=_internal | sleep 100"
+        self.query = "search index=_internal | sleep %s" % sleep_duration
         self.job = self.service.jobs.create(
             query=self.query,
             earliest_time="-1m",
@@ -226,18 +227,21 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
         # of a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
-        self.assertEqual(5, int(self.job['priority']))
-
         new_priority = 3
         self.job.set_priority(new_priority)
+
+        while not self.job.is_ready():
+            pass
+
+        self.assertEqual(5, int(self.job.content['priority']))
 
         def f():
             if self.job.is_done():
                 self.fail("Job already done before priority was set.")
-            self.job.refresh()
-            return int(self.job['priority']) == new_priority
+            print self.job.content['dispatchState']
+            return int(self.job.content['priority']) == new_priority
 
-        self.assertEventuallyTrue(f, timeout=120)
+        self.assertEventuallyTrue(f, timeout=sleep_duration + 5)
 
 
 class TestJob(testlib.SDKTestCase):

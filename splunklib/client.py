@@ -516,16 +516,21 @@ class Service(_BaseService):
         """Indicates whether splunkd is in a state that requires a restart.
 
         :return: A ``boolean`` that indicates whether a restart is required.
+
         """
         response = self.get("messages").body.read()
         messages = data.load(response)['feed']
         if 'entry' not in messages:
-            titles = []
-        elif isinstance(messages['entry'], dict):
-            titles = [messages['entry']['title']]
+            result = False
         else:
-            titles = [x['title'] for x in messages['entry']]
-        return 'restart_required' in titles
+            if isinstance(messages['entry'], dict):
+                titles = [messages['entry']['title']]
+            else:
+                titles = [x['title'] for x in messages['entry']]
+            for title in titles:
+                print title
+            result = 'restart_required' in titles
+        return result
 
     @property
     def roles(self):
@@ -976,6 +981,8 @@ class Entity(Endpoint):
     def disable(self):
         """Disables the entity at this endpoint."""
         self.post("disable")
+        if self.service._splunk_version[0] < 6:
+            self.restartSplunk()
         return self
 
     def enable(self):
@@ -1687,6 +1694,7 @@ class Indexes(Collection):
             raise IllegalOperationException("Deleting indexes via the REST API is "
                                             "not supported before Splunk version 5.")
 
+
 class Index(Entity):
     """This class represents an index and provides different operations, such as
     cleaning the index, writing to the index, and so forth."""
@@ -1859,6 +1867,7 @@ class Index(Entity):
         path = 'data/inputs/oneshot'
         self.service.post(path, name=filename, **kwargs)
         return self
+
 
 class Input(Entity):
     """This class represents a Splunk input. This class is the base for all
@@ -2372,7 +2381,6 @@ class Job(Entity):
         path = PATH_JOBS + sid
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
-        self._is_ready = False
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):

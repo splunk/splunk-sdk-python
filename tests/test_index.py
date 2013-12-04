@@ -66,7 +66,6 @@ class IndexTest(testlib.SDKTestCase):
 
     def test_disable_enable(self):
         self.index.disable()
-        self.restartSplunk()
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
         self.index.enable()

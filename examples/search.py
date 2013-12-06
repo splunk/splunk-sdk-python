@@ -79,7 +79,8 @@ def main(argv):
 
     job = service.jobs.create(search, **kwargs_create)
     while True:
-        job.refresh()
+        while not job.is_ready():
+            pass
         stats = {'isDone': job['isDone'],
                  'doneProgress': job['doneProgress'],
                  'scanCount': job['scanCount'],

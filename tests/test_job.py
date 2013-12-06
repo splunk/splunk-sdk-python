@@ -194,29 +194,33 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             print "Test requires sdk-app-collection. Skipping."
             return
         self.install_app_from_collection("sleep_command")
-        self.query = "search index=_internal | sleep 100"
+        sleep_duration = 100
+        self.query = "search index=_internal | sleep %d" % sleep_duration
         self.job = self.service.jobs.create(
             query=self.query,
             earliest_time="-1m",
             priority=5,
             latest_time="now")
-        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        while not self.job.is_ready():
+            pass
+        self.assertEqual(self.job.content['isPreviewEnabled'], '0')
         self.job.enable_preview()
 
-        def is_preview():
-            self.job.refresh()
-            if self.job.is_done():
+        def is_preview_enabled():
+            is_done = self.job.is_done()
+            if is_done:
                 self.fail('Job finished before preview enabled.')
-            return self.job['isPreviewEnabled'] == '1'
+            return self.job.content['isPreviewEnabled'] == '1'
 
-        self.assertEventuallyTrue(is_preview)
+        self.assertEventuallyTrue(is_preview_enabled)
+        return
 
     def test_setpriority(self):
         if not self.app_collection_installed():
             print "Test requires sdk-app-collection. Skipping."
             return
-        sleep_duration = 10
         self.install_app_from_collection("sleep_command")
+        sleep_duration = 100
         self.query = "search index=_internal | sleep %s" % sleep_duration
         self.job = self.service.jobs.create(
             query=self.query,
@@ -238,10 +242,10 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         def f():
             if self.job.is_done():
                 self.fail("Job already done before priority was set.")
-            print self.job.content['dispatchState']
             return int(self.job.content['priority']) == new_priority
 
         self.assertEventuallyTrue(f, timeout=sleep_duration + 5)
+        return
 
 
 class TestJob(testlib.SDKTestCase):

@@ -225,7 +225,7 @@ class Record(dict):
     def __getitem__(self, key):
         if key in self:
             return dict.__getitem__(self, key)
-        key = key + self.sep
+        key += self.sep
         result = record()
         for k,v in self.iteritems():
             if not k.startswith(key):

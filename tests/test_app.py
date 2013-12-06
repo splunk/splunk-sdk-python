@@ -70,14 +70,14 @@ class TestApp(testlib.SDKTestCase):
             'author': "Me",
             'description': "Test app description",
             'label': "SDK Test",
-            'manageable': False,
+            'version': "1.1",
             'visible': True,
         }
         self.app.update(**kwargs)
         self.app.refresh()
         self.assertEqual(self.app['author'], "Me")
         self.assertEqual(self.app['label'], "SDK Test")
-        self.assertEqual(self.app['manageable'], "0")
+        self.assertEqual(self.app['version'], "1.1")
         self.assertEqual(self.app['visible'], "1")
 
     def test_delete(self):

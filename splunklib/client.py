@@ -527,8 +527,6 @@ class Service(_BaseService):
                 titles = [messages['entry']['title']]
             else:
                 titles = [x['title'] for x in messages['entry']]
-            for title in titles:
-                print title
             result = 'restart_required' in titles
         return result
 
@@ -981,7 +979,7 @@ class Entity(Endpoint):
     def disable(self):
         """Disables the entity at this endpoint."""
         self.post("disable")
-        if self.service._splunk_version[0] < 6:
+        if self.service.restart_required:
             self.restartSplunk()
         return self
 
@@ -2993,7 +2991,7 @@ class SavedSearch(Entity):
 
         :return: The :class:`SavedSearch`.
         """
-        self.post("suppress", suppressed="1", expiration=expiration)
+        self.post("suppress", expiration=expiration)
         return self
 
     @property
@@ -3015,7 +3013,7 @@ class SavedSearch(Entity):
 
         :return: The :class:`SavedSearch`.
         """
-        self.post("suppress", suppressed="0", expiration="0")
+        self.post("suppress", expiration="0")
         return self
 
 

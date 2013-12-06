@@ -190,7 +190,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertGreaterEqual(suppressed_time, 0)
         new_suppressed_time = suppressed_time+100
         self.saved_search.suppress(new_suppressed_time)
-        self.assertLessEqual(self.saved_search['suppressed'], 
+        self.assertLessEqual(self.saved_search['suppressed'],
                              new_suppressed_time)
         self.assertGreater(self.saved_search['suppressed'],
                            suppressed_time)

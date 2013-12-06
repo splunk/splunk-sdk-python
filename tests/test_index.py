@@ -14,17 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from os import path
-import time
 import testlib
+import logging
+
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
 
-import splunklib.client as client
-
-import logging
 
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):

@@ -60,6 +60,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         for arg in args:
             result = run(arg)
             self.assertEquals(result, 0)
+        self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
         super(ExamplesTestCase, self).setUp()
@@ -160,7 +161,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "index.py disable sdk-tests",
             "index.py enable sdk-tests",
             "index.py clean sdk-tests")
-        self.service.restart(120)
+        return
 
     def test_info(self):
         self.check_commands(

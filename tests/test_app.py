@@ -18,7 +18,7 @@ import testlib
 import logging
 
 import splunklib.client as client
-import splunklib.data as data
+
 
 class TestApp(testlib.SDKTestCase):
     app = None
@@ -39,6 +39,9 @@ class TestApp(testlib.SDKTestCase):
             logging.debug("Creating app %s", self.app_name)
         else:
             logging.debug("App %s already exists. Skipping creation.", self.app_name)
+        if self.service.restart_required:
+            self.service.restart(120)
+        return
 
     def tearDown(self):
         super(TestApp, self).tearDown()

@@ -162,13 +162,14 @@ class TestUtilities(testlib.SDKTestCase):
                 'eventIsTruncated', 'eventSearch', 'eventSorting', 'isDone',
                 'isFailed', 'isFinalized', 'isPaused', 'isPreviewEnabled',
                 'isRealTimeSearch', 'isRemoteTimeline', 'isSaved', 'isSavedSearch',
-                'isZombie', 'keywords', 'label', 'latestTime', 'messages',
+                'isZombie', 'keywords', 'label', 'messages',
                 'numPreviews', 'priority', 'remoteSearch', 'reportSearch',
                 'resultCount', 'resultIsStreaming', 'resultPreviewCount',
                 'runDuration', 'scanCount', 'searchProviders', 'sid',
                 'statusBuckets', 'ttl']
         for key in keys:
             self.assertTrue(key in job.content)
+        return
 
     def test_read_jobs(self):
         jobs = self.service.jobs

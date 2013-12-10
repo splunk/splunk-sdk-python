@@ -300,7 +300,7 @@ class _BaseService(Context):
 class Service(_BaseService):
     """A Pythonic binding to Splunk instances.
 
-    A :class:`Service` represents a binding to a Splunk instane on an
+    A :class:`Service` represents a binding to a Splunk instance on an
     HTTP or HTTPS port. It handles the details of authentication, wire
     formats, and wraps the REST API endpoints into something more
     Pythonic. All of the low-level operations on the instance from

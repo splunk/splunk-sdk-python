@@ -328,7 +328,7 @@ class TestJob(testlib.SDKTestCase):
         # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
         # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
         # so we'll wait 1.1s before we start.
-        import time; time.sleep(2)
+        sleep(2)
         old_ttl = int(self.job['ttl'])
         self.job.touch()
         self.job.refresh()

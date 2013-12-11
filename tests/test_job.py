@@ -232,13 +232,17 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
         # of a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
+
+        if self.service._splunk_version[0] < 6:
+            old_priority = int(self.job.content['priority'])
+            self.assertEqual(5, old_priority)
+
         new_priority = 3
         self.job.set_priority(new_priority)
 
-        while not self.job.is_ready():
-            pass
-
-        self.assertEqual(5, int(self.job.content['priority']))
+        if self.service._splunk_version[0] >= 6:
+            while not self.job.is_ready():
+                pass
 
         def f():
             if self.job.is_done():
@@ -283,7 +287,6 @@ class TestJob(testlib.SDKTestCase):
             self.job.unpause()
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '0')
-
         self.job.pause()
         self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
 

@@ -25,11 +25,11 @@ If you want a friendlier interface to the Splunk REST API, use the
 """
 
 import httplib
+import logging
 import socket
 import ssl
 import urllib
-import functools
-import logging
+
 from datetime import datetime
 from functools import wraps
 from StringIO import StringIO
@@ -64,6 +64,7 @@ def _log_duration(f):
         return val
     return new_f
 
+
 # Singleton values to eschew None
 class _NoAuthenticationToken(object):
     """The value stored in a :class:`Context` or :class:`splunklib.client.Service`
@@ -78,6 +79,7 @@ class _NoAuthenticationToken(object):
     token is set to this value again.
     """
     pass
+
 
 class UrlEncoded(str):
     """This class marks URL-encoded strings.
@@ -240,10 +242,13 @@ def _authentication(request_fun):
                 # an AuthenticationError and give up.
                 with _handle_auth_error("Autologin failed."):
                     self.login()
-                with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something's very wrong."):
+                with _handle_auth_error(
+                        "Autologin succeeded, but there was an auth error on "
+                        "next request. Something is very wrong."):
                     return request_fun()
             elif he.status == 401 and not self.autologin:
-                raise AuthenticationError("Request failed: Session is not logged in.", he)
+                raise AuthenticationError(
+                    "Request failed: Session is not logged in.", he)
             else:
                 raise
 
@@ -353,6 +358,7 @@ def namespace(sharing=None, owner=None, app=None, **kwargs):
     if sharing in ["user", None]:
         return record({'sharing': sharing, 'owner': owner, 'app': app})
     raise ValueError("Invalid value for argument: 'sharing'")
+
 
 class Context(object):
     """This class represents a context that encapsulates a splunkd connection.
@@ -827,6 +833,7 @@ class Context(object):
                           skip_encode=skip_encode)
         return path
 
+
 def connect(**kwargs):
     """This function returns an authenticated :class:`Context` object.
 
@@ -1101,6 +1108,7 @@ class HttpLib(object):
             raise HTTPError(response)
         return response
 
+
 # Converts an httplib response into a file-like object.
 class ResponseReader(object):
     """This class provides a file-like interface for :class:`httplib` responses.
@@ -1155,6 +1163,7 @@ class ResponseReader(object):
             size -= len(r)
         r = r + self._response.read(size)
         return r
+
 
 def handler(key_file=None, cert_file=None, timeout=None):
     """This class returns an instance of the default HTTP request handler using

@@ -229,18 +229,20 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             priority=5,
             latest_time="now")
 
-        # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
-        # of a job unless Splunk is running as root. This is because Splunk jobs
+        # Note: You can only *decrease* the priority (i.e., 5 decreased to 3) of
+        # a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
 
         if self.service._splunk_version[0] < 6:
+            # BUG: Splunk 6 doesn't return priority until job is ready
             old_priority = int(self.job.content['priority'])
             self.assertEqual(5, old_priority)
 
         new_priority = 3
         self.job.set_priority(new_priority)
 
-        if self.service._splunk_version[0] >= 6:
+        if self.service._splunk_version[0] > 5:
+            # BUG: Splunk 6 doesn't return priority until job is ready
             while not self.job.is_ready():
                 pass
 
@@ -325,10 +327,14 @@ class TestJob(testlib.SDKTestCase):
         self.assertGreater(ttl, old_ttl)
 
     def test_touch(self):
-        # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
-        # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
-        # so we'll wait 1.1s before we start.
+        # This cannot be tested very fast. touch will reset the ttl to the
+        # original value for the job, so first we have to wait just long enough
+        # for the ttl to tick down. Its granularity is 1s, so we'll wait a
+        # couple of seconds before we start.
+        while not self.job.is_done():
+            pass
         sleep(2)
+        self.job.refresh()
         old_ttl = int(self.job['ttl'])
         self.job.touch()
         self.job.refresh()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -19,6 +19,7 @@ try:
 except ImportError:
     import unittest
 import testlib
+
 
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):

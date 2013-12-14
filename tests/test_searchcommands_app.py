@@ -19,23 +19,27 @@ try:
 except ImportError:
     import unittest
 
-from searchcommands_test.utilities import data_directory, open_data_file
-from subprocess import PIPE, Popen
-
+from subprocess import Popen
+import shutil
 import os
 import testlib
 
 
-class TestSearchCommands(testlib.SDKTestCase):
+class TestSearchCommandsApp(testlib.SDKTestCase):
 
     def setUp(self):
-        super(TestSearchCommands, self).setUp()
-        # TODO: delete all output files
+        super(TestSearchCommandsApp, self).setUp()
+        for directory in 'error', 'output':
+            path = TestSearchCommandsApp._data_file(directory)
+            if os.path.exists(path):
+                shutil.rmtree(path)
+            os.mkdir(path)
+        return
 
     def test_generating_command(self):
         self._run(
             'simulate', [
-                'csv=%s/sample.csv ' % data_directory,
+                'csv=%s' % TestSearchCommandsApp._data_file("input/sample.csv"),
                 'interval=00:00:01',
                 'rate=200',
                 'runtime=00:00:10'],
@@ -97,21 +101,31 @@ class TestSearchCommands(testlib.SDKTestCase):
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:
             files = kwargs[operation]
-            process = TestSearchCommands._start_process(
-                ['python', command, operation] + args,
-                open_data_file(files[0], 'r'),
-                open_data_file(files[1], 'w'),
-                open_data_file(files[2], 'a'))
+            process = TestSearchCommandsApp._start_process(
+                ['python', command + '.py', operation] + args,
+                TestSearchCommandsApp._open_data_file(files[0], 'r'),
+                TestSearchCommandsApp._open_data_file(files[1], 'w'),
+                TestSearchCommandsApp._open_data_file(files[2], 'a'))
             process.communicate()
             status = process.wait()
             self.assertEqual(status, 0, "%s status: %d" % (operation, status))
         return
 
     @classmethod
-    def _start_process(cls, args, stdin, stdout, stderr):
-        return Popen(args, stdin, stdout, stderr, cwd=cls.app_bin)
+    def _data_file(cls, relative_path):
+        return os.path.join(cls.data_directory, relative_path)
 
-    app_bin = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples/searchcommands_app/bin")
+    @classmethod
+    def _open_data_file(cls, relative_path, mode):
+        return open(cls._data_file(relative_path), mode)
+
+    @classmethod
+    def _start_process(cls, args, stdin, stdout, stderr):
+        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
+
+    package_directory = os.path.dirname(__file__)
+    data_directory = os.path.join(package_directory, 'searchcommands_data')
+    app_bin = os.path.join(os.path.dirname(package_directory), "examples/searchcommands_app/bin")
 
 if __name__ == "__main__":
     unittest.main()

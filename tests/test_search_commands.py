@@ -18,47 +18,100 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
+
+from searchcommands_test.utilities import data_directory, open_data_file
+from subprocess import PIPE, Popen
+
+import os
 import testlib
 
 
-class SearchCommandsTestCase(testlib.SDKTestCase):
+class TestSearchCommands(testlib.SDKTestCase):
+
     def setUp(self):
-        super(SearchCommandsTestCase, self).setUp()
-        self.uncheckedRestartSplunk()
-    
-    def test_lists_search_commands(self):
-        version_major = self.service.splunk_version[0]
-        if version_major < 5:
-            print(
-                'The splunklib.searchcommands module does not support Splunk '
-                '%d. Skipping.'
-                % version_major)
-            return
-        elif not self.app_collection_installed():
-            print('Test requires sdk-app-collection. Skipping.')
-            return
-        else:
-            # Install modular inputs to list, and restart so they'll show up
-            self.install_app_from_collection("modular-inputs")
-            self.uncheckedRestartSplunk()
-            inputs = self.service.inputs
-            if ('abcd','test2') not in inputs:
-                inputs.create('abcd', 'test2', field1='boris')
+        super(TestSearchCommands, self).setUp()
+        # TODO: delete all output files
 
-            input = inputs['abcd', 'test2']
-            self.assertEqual(input.field1, 'boris')
-            for m in self.service.modular_input_kinds:
-                self.check_modular_input_kind(m)
+    def test_generating_command(self):
+        self._run(
+            'simulate', [
+                'csv=%s/sample.csv ' % data_directory,
+                'interval=00:00:01',
+                'rate=200',
+                'runtime=00:00:10'],
+            __GETINFO__=(
+                'input/sample.csv',
+                'output/sample.csv',
+                'error/test_generating_command.log'),
+            __EXECUTE__=(
+                'input/sample.csv',
+                'output/sample.csv',
+                'error/test_generating_command.log')
+            )
+        return
 
-    def check_modular_input_kind(self, m):
-        print m.name
-        if m.name == 'test1':
-            self.assertEqual('Test "Input" - 1', m['title'])
-            self.assertEqual("xml", m['streaming_mode'])
-        elif m.name == 'test2':
-            self.assertEqual('test2', m['title'])
-            self.assertEqual('simple', m['streaming_mode'])
+    def test_reporting_command(self):
+        self._run(
+            'sum', [
+                '__map__', 'total=total', 'count'],
+            __GETINFO__=(
+                'input/counts.csv',
+                'output/subtotals.csv',
+                'error/test_reporting_command.log'),
+            __EXECUTE__=(
+                'input/counts.csv',
+                'output/subtotals.csv',
+                'error/test_reporting_command.log')
+            )
+        self._run(
+            'sum', [
+                'total=total', 'count'],
+            __GETINFO__=(
+                'input/subtotals.csv',
+                'output/totals.csv',
+                'error/test_reporting_command.log'),
+            __EXECUTE__=(
+                'input/subtotals.csv',
+                'output/totals.csv',
+                'error/test_reporting_command.log')
+            )
+        return
 
+    def test_streaming_command(self, m):
+        self._run(
+            'countmatches', [
+                'fieldname=word_count',
+                'pattern=\\w+',
+                'text'],
+            __GETINFO__=(
+                'input/tweets.csv',
+                'output/tweet_and_word_counts.csv',
+                'error/test_streaming_command.log'),
+            __EXECUTE__=(
+                'input/tweets.csv',
+                'output/tweet_and_word_counts.csv',
+                'error/test_generating_command.log')
+            )
+        return
+
+    def _run(self, command, args, **kwargs):
+        for operation in ['__GETINFO__', '__EXECUTE__']:
+            files = kwargs[operation]
+            process = TestSearchCommands._start_process(
+                ['python', command, operation] + args,
+                open_data_file(files[0], 'r'),
+                open_data_file(files[1], 'w'),
+                open_data_file(files[2], 'a'))
+            process.communicate()
+            status = process.wait()
+            self.assertEqual(status, 0, "%s status: %d" % (operation, status))
+        return
+
+    @classmethod
+    def _start_process(cls, args, stdin, stdout, stderr):
+        return Popen(args, stdin, stdout, stderr, cwd=cls.app_bin)
+
+    app_bin = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples/searchcommands_app/bin")
 
 if __name__ == "__main__":
     unittest.main()

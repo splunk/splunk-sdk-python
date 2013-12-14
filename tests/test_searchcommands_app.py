@@ -39,17 +39,17 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def test_generating_command(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file("input/sample.csv"),
+                'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
+                'duration=00:00:10',
                 'interval=00:00:01',
-                'rate=200',
-                'runtime=00:00:10'],
+                'rate=200'],
             __GETINFO__=(
-                'input/sample.csv',
-                'output/sample.csv',
+                'input/population.csv',
+                'output/samples.csv',
                 'error/test_generating_command.log'),
             __EXECUTE__=(
-                'input/sample.csv',
-                'output/sample.csv',
+                'input/population.csv',
+                'output/samples.csv',
                 'error/test_generating_command.log')
             )
         return

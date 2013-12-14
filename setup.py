@@ -180,7 +180,7 @@ setup(
 
     license="http://www.apache.org/licenses/LICENSE-2.0",
 
-    name="splunk-sdk",
+    name="splunk-sdk-python",
 
     packages = ["splunklib"],
 

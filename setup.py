@@ -103,6 +103,9 @@ class DistCommand(Command):
         splunklib_arcname = "splunklib"
         modinput_dir = os.path.join(splunklib_arcname, "modularinput")
 
+        if not os.path.exists("build"):
+            os.makedirs("build")
+
         for app in app_names:
             with closing(tarfile.open(os.path.join("build", app + ".spl"), "w")) as spl:
                 spl.add(

@@ -66,8 +66,7 @@ class CountMatchesCommand(StreamingCommand):
             count = 0.0
             for fieldname in self.fieldnames:
                 matches = self.pattern.finditer(str(record[fieldname]))
-                if matches:
-                    count += len(list(matches))
+                count += len(list(matches))
             record[self.fieldname] = count
             yield record
 

@@ -352,7 +352,7 @@ class SearchCommandParser(object):
         \s*$
         """, re.VERBOSE)
 
-    _escaped_quote_re = re.compile(r"""(\\\\|\\"|""|\\."|\\])""")
+    _escaped_quote_re = re.compile(r"""(\\\\|\\"|""|\\."|\\)""")
 
     _name_re = re.compile(r"""[_a-zA-Z][[_a-zA-Z0-9]+""")
 

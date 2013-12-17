@@ -200,8 +200,16 @@ class Option(property):
     #region Types
 
     class Encoder(JSONEncoder):
+        def __init__(self, item):
+            super(Option.Encoder, self).__init__()
+            self.item = item
+
         def default(self, o):
-            return str(o)
+            # Convert the value of a type unknown to the JSONEncoder
+            validator = self.item.validator
+            if validator is None:
+                return str(o)
+            return validator.format(o)
 
     class Item(object):
         """ Presents an instance/class view over a search command `Option`
@@ -218,8 +226,8 @@ class Option(property):
             return str(self)
 
         def __str__(self):
-            encoder = Option.Encoder()
-            text = '='.join([self._option.name, encoder.encode(self.value)])
+            encoder = Option.Encoder(self)
+            text = '='.join([self.name, encoder.encode(self.value)])
             return text
 
         #region Properties

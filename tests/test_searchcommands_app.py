@@ -20,10 +20,30 @@ except ImportError:
     import unittest
 
 from subprocess import Popen
-import json
+import base64
 import os
 import shutil
 import testlib
+
+from splunklib.searchcommands import \
+    StreamingCommand, Configuration, Option, validators
+
+@Configuration()
+class StubbedCommand(StreamingCommand):
+    fieldname = Option(
+        doc='''
+        **Syntax:** **fieldname=***<fieldname>*
+        **Description:** Name of the field that will hold the match count''',
+        require=True, validate=validators.Fieldname())
+
+    pattern = Option(
+        doc='''
+        **Syntax:** **pattern=***<regular-expression>*
+        **Description:** Regular expression pattern to match''',
+        require=True, validate=validators.RegularExpression())
+
+    def stream(self, records):
+        pass
 
 
 class TestSearchCommandsApp(testlib.SDKTestCase):
@@ -37,15 +57,49 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             os.mkdir(path)
         return
 
-    def test_generating_command_in_isolation(self):
-        encoder = json.JSONEncoder(ensure_ascii=False)
+    def test_command_parser(self):
+        from splunklib.searchcommands.search_command_internals import \
+            SearchCommandParser
+
+        parser = SearchCommandParser()
+        command = StubbedCommand()
+
+        parser.parse(
+            [
+                'fieldname=word_count',
+                'pattern="\\\\w+"',
+                'text_field_1',
+                'text_field_2'
+            ],
+            command)
+
+        command_line = str(command)
+        self.assertEqual('stubbed fieldname="word_count" pattern="\\\\w+" text_field_1 text_field_2', command_line)
+        return
+
+    def test_option_show_configuration(self):
         self._run(
             'simulate', [
                 'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
                 'duration=00:00:10',
                 'interval=00:00:01',
                 'rate=200',
-                'seed=%s' % encoder.encode(TestSearchCommandsApp._seed)],
+                'seed=%s' % TestSearchCommandsApp._seed,
+                'show_configuration=true'],
+            __GETINFO__=(
+                'input/population.csv',
+                'output/samples.csv',
+                'log/test_show_configuration.log'))
+        return
+
+    def test_generating_command_in_isolation(self):
+        self._run(
+            'simulate', [
+                'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
+                'duration=00:00:10',
+                'interval=00:00:01',
+                'rate=200',
+                'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 'input/population.csv',
                 'output/samples.csv',
@@ -108,6 +162,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:
+            if operation not in kwargs:
+                continue
             files = kwargs[operation]
             process = TestSearchCommandsApp._start_process(
                 ['python', command + '.py', operation] + args,
@@ -133,9 +189,11 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     package_directory = os.path.dirname(__file__)
     data_directory = os.path.join(package_directory, 'searchcommands_data')
-    app_bin = os.path.join(os.path.dirname(package_directory), "examples/searchcommands_app/bin")
+    app_bin = os.path.join(
+        os.path.dirname(package_directory), "examples/searchcommands_app/bin")
 
-    _seed = '\xcd{\xf8\xc4\x1c8=\x88\nc\xe2\xc4\xee\xdb\xcal'
+    _seed = base64.encodestring(
+        '\xcd{\xf8\xc4\x1c8=\x88\nc\xe2\xc4\xee\xdb\xcal')
 
 if __name__ == "__main__":
     unittest.main()

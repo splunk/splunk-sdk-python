@@ -17,7 +17,6 @@ from __future__ import absolute_import
 # Absolute imports
 from collections import OrderedDict
 from inspect import getmembers
-from logging import getLogger
 from os import path
 from sys import argv, stdin, stdout
 
@@ -157,6 +156,7 @@ class SearchCommand(object):
                 return
             self._configuration = ConfigurationSettings(self)
             if self.show_configuration:
+                self.logger.debug(str(self.configuration))
                 self.messages.append('info_message', str(self.configuration))
             writer = csv.DictWriter(
                 output_file, self, self.configuration.keys(), mv_delimiter=',')
@@ -185,9 +185,9 @@ class SearchCommand(object):
                 'Static configuration is unsupported. Please configure this '
                 'command as follows in default/commands.conf:\n\n'
                 '[%s]\n'
-                'filename = %s\n' %
-                'supports_getinfo = true'
-                (type(self).name, path.basename(argv[0])))
+                'filename = %s\n'
+                'supports_getinfo = true' %
+                (type(self).__name__, path.basename(argv[0])))
             self.messages.append('error_message', message)
             self.messages.write(output_file)
             self.logger.error(message)

@@ -20,8 +20,9 @@ except ImportError:
     import unittest
 
 from subprocess import Popen
-import shutil
+import json
 import os
+import shutil
 import testlib
 
 
@@ -29,59 +30,64 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     def setUp(self):
         super(TestSearchCommandsApp, self).setUp()
-        for directory in 'error', 'output':
+        for directory in 'log', 'output':
             path = TestSearchCommandsApp._data_file(directory)
             if os.path.exists(path):
                 shutil.rmtree(path)
             os.mkdir(path)
         return
 
-    def test_generating_command(self):
+    def test_generating_command_in_isolation(self):
+        encoder = json.JSONEncoder(ensure_ascii=False)
         self._run(
             'simulate', [
                 'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
                 'duration=00:00:10',
                 'interval=00:00:01',
-                'rate=200'],
+                'rate=200',
+                'seed=%s' % encoder.encode(TestSearchCommandsApp._seed)],
             __GETINFO__=(
                 'input/population.csv',
                 'output/samples.csv',
-                'error/test_generating_command.log'),
+                'log/test_generating_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/population.csv',
                 'output/samples.csv',
-                'error/test_generating_command.log')
-            )
+                'log/test_generating_command_in_isolation.log'))
         return
 
-    def test_reporting_command(self):
+    def test_generating_command_on_server(self):
+        pass
+
+    def test_reporting_command_in_isolation(self):
         self._run(
             'sum', [
                 '__map__', 'total=total', 'count'],
             __GETINFO__=(
                 'input/counts.csv',
                 'output/subtotals.csv',
-                'error/test_reporting_command.log'),
+                'log/test_reporting_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/counts.csv',
                 'output/subtotals.csv',
-                'error/test_reporting_command.log')
-            )
+                'log/test_reporting_command_in_isolation.log'))
         self._run(
             'sum', [
                 'total=total', 'count'],
             __GETINFO__=(
                 'input/subtotals.csv',
                 'output/totals.csv',
-                'error/test_reporting_command.log'),
+                'log/test_reporting_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/subtotals.csv',
                 'output/totals.csv',
-                'error/test_reporting_command.log')
-            )
+                'log/test_reporting_command_in_isolation.log'))
         return
 
-    def test_streaming_command(self, m):
+    def test_reporting_command_on_server(self):
+        pass
+
+    def test_streaming_command_in_isolation(self):
         self._run(
             'countmatches', [
                 'fieldname=word_count',
@@ -89,14 +95,16 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'text'],
             __GETINFO__=(
                 'input/tweets.csv',
-                'output/tweet_and_word_counts.csv',
-                'error/test_streaming_command.log'),
+                'output/tweets_with_word_count.csv',
+                'log/test_streaming_command.log'),
             __EXECUTE__=(
                 'input/tweets.csv',
-                'output/tweet_and_word_counts.csv',
-                'error/test_generating_command.log')
-            )
+                'output/tweets_with_word_count.csv',
+                'log/test_generating_command_in_isolation.log'))
         return
+
+    def test_streaming_command_on_server(self):
+        pass
 
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:
@@ -126,6 +134,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     package_directory = os.path.dirname(__file__)
     data_directory = os.path.join(package_directory, 'searchcommands_data')
     app_bin = os.path.join(os.path.dirname(package_directory), "examples/searchcommands_app/bin")
+
+    _seed = '\xcd{\xf8\xc4\x1c8=\x88\nc\xe2\xc4\xee\xdb\xcal'
 
 if __name__ == "__main__":
     unittest.main()

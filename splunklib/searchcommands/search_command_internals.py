@@ -307,9 +307,32 @@ class SearchCommandParser(object):
         single-quoted strings ("'") in addition to double-quoted ('"') strings.
 
         """
-        if string[0] == '"' and string[-1] == '"':
-            string = string[1:-1]
-        return re.sub(cls._escaped_quote_re, '"', string)
+        if len(string) == 0:
+            return ''
+
+        if string[0] != '"':
+            return string
+
+        if len(string) == 1:
+            return string
+
+        if string[-1] != '"':
+            raise ValueError("Poorly formed string literal: %s" % string)
+
+        def replace(match):
+            value = match.group(0)
+            if value == '\\\\':
+                return '\\'
+            if value == '\\"':
+                return '"'
+            if value == '""':
+                return '"'
+            if len(value) != 2:
+                raise ValueError("Poorly formed string literal: %s" % string)
+            return value  # consistent with python handling
+
+        result = re.sub(cls._escaped_quote_re, replace, string[1:-1])
+        return result
 
     #region Class variables
 
@@ -329,7 +352,7 @@ class SearchCommandParser(object):
         \s*$
         """, re.VERBOSE)
 
-    _escaped_quote_re = re.compile(r"""(""|\\")""")
+    _escaped_quote_re = re.compile(r"""(\\\\|\\"|""|\\."|\\])""")
 
     _name_re = re.compile(r"""[_a-zA-Z][[_a-zA-Z0-9]+""")
 

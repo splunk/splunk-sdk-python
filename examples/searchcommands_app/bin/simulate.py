@@ -79,6 +79,11 @@ class SimulateCommand(GeneratingCommand):
         **Description:** Average event count during sampling `interval`''',
         require=True, validate=validators.Integer(1))
 
+    seed = Option(
+        doc='''**Syntax:** **seed=***<string>*
+        **Description:** Value for initializing the random number generator ''',
+        require=False)
+
     def generate(self):
         """ Yields one random record at a time for the duration of `duration` """
         self.logger.debug('SimulateCommand: %s' % self)  # log command line

@@ -64,7 +64,7 @@ class EventWriter(object):
         These messages will show up in Splunk's internal logs.
 
         :param severity: ``string``, severity of message, see severites defined as class constants.
-        :param message: Message to log.
+        :param message: ``string``, message to log.
         """
 
         self._err.write("%s %s\n" % (severity, message))

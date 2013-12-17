@@ -1,5 +1,19 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.2
+
+### Bug fix
+
+* When running `setup.py dist` without running `setup.py build`, there is no
+  longer an `No such file or directory` error on the command line, and the
+  command behaves as expected.
+
+### Minor changes
+
+* Docstring corrections in modular input examples.
+
+* A minor docstring correction in `splunklib/modularinput/event_writer.py`.
+
 ## Version 1.1
 
 ### New features and APIs

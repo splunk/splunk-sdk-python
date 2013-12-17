@@ -2,13 +2,13 @@
 
 ## Version 1.2
 
-## Bug fix
+### Bug fix
 
 * When running `setup.py dist` without running `setup.py build`, there is no
   longer an `No such file or directory` error on the command line, and the
   command behaves as expected.
 
-## Minor changes
+### Minor changes
 
 * Docstring corrections in modular input examples.
 

@@ -63,7 +63,7 @@ class Event(object):
         self.host = host
         self.index = index
         self.source = source
-        self.sourcetype = sourcetype
+        self.sourceType = sourcetype
         self.stanza = stanza
         self.time = time
         self.unbroken = unbroken
@@ -91,7 +91,7 @@ class Event(object):
         # add all other subelements to this Event, represented by (tag, text)
         subelements = [
             ("source", self.source),
-            ("sourcetype", self.sourcetype),
+            ("sourcetype", self.sourceType),
             ("index", self.index),
             ("host", self.host),
             ("data", self.data)

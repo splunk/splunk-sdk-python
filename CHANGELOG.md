@@ -13,12 +13,13 @@
 
 ### Breaking changes
 
-* If you're not expecting Splunk to index these modular inputs with a sourcetype set,
-  when updating to this version of the SDK you will see these events unexpectedly.
+* If modular inputs were not being indexed by Splunk because a sourcetype was set
+  (and the SDK was not handling them correctly), they will be indexed upon updating
+  to this version of the SDK.
 
 ### Minor changes
 
-* Docstring corrections in modular input examples.
+* Docstring corrections in the modular input examples.
 
 * A minor docstring correction in `splunklib/modularinput/event_writer.py`.
 

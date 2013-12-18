@@ -31,7 +31,7 @@ class SimulateCommand(GeneratingCommand):
     ##Syntax
 
     simulate csv=<path> rate=<expected-event-count> interval=<sampling-period>
-        duration=<execution-period> [seed=<
+        duration=<execution-period> [seed=<string>]
 
     ##Description
 
@@ -44,8 +44,8 @@ class SimulateCommand(GeneratingCommand):
     ##Example
 
     ```
-    | simulate csv="tweets.csv" rate=200 interval=00:00:01 duration=00:00:30 |
-    countmatches fieldname=word_count pattern=\w+ text |
+    | simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:30 |
+    countmatches fieldname=word_count pattern="\\w+" text |
     stats mean(word_count) stdev(word_count)
     ```
 

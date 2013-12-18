@@ -24,9 +24,23 @@ from splunklib.searchcommands import \
 class SumCommand(ReportingCommand):
     """ Computes the sum of a set of fields
 
-    **Syntax:** sum total=*<fieldname>* [*<fieldname>*]...
-    **Description:** The total produced is sum(sum(fieldname, 1, n), 1, N) where
-    n = number of fields, N = number of records.
+    ##Syntax
+
+    sum total=*<fieldname>* [*<fieldname>*]...
+
+    ##Description:
+
+    The total produced is sum(sum(fieldname, 1, n), 1, N) where n = number of
+    fields, N = number of records.
+
+    ##Example
+
+    ```
+    index = _internal | head 200 | sum total=lines linecount
+    ```
+
+    This example computes the total linecount in the first 200 records in the
+    _internal index.
 
     """
     total = Option(

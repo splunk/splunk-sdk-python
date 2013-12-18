@@ -26,8 +26,7 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
    │           └── default.xml ..
    ├── app.conf ................. Used by Splunk to maintain app state [1]
    ├── commands.conf ............ Search command configuration [2]
-   ├── logging.conf ............. Python logging[3] configuration in ConfigParser[4] format
-   └── logging.debug.conf ....... Logs to app root directory as well as the Splunk log file
+   └── logging.conf ............. Python logging[3] configuration in ConfigParser[4] format
 ```
 **References**  
 [1] [app.conf](http://docs.splunk.com/Documentation/Splunk/6.0.1/Admin/Appconf app.conf)  

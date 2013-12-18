@@ -120,6 +120,38 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             command_line)
         return
 
+    def test_option_logging_configuration(self):
+        self._run(
+            'simulate', [
+                'csv=%s' % TestSearchCommandsApp._data_file(
+                    "input/population.csv"),
+                'duration=00:00:10',
+                'interval=00:00:01',
+                'rate=200',
+                'seed=%s' % TestSearchCommandsApp._seed,
+                'logging_configuration=logging.conf'],
+            __GETINFO__=(
+                'input/population.csv',
+                'output/test_option_logging_configuration.csv',
+                'log/test_option_logging_configuration.log'))
+        return
+
+    def test_option_logging_level(self):
+        self._run(
+            'simulate', [
+                'csv=%s' % TestSearchCommandsApp._data_file(
+                    "input/population.csv"),
+                'duration=00:00:10',
+                'interval=00:00:01',
+                'rate=200',
+                'seed=%s' % TestSearchCommandsApp._seed,
+                'logging_level=ERROR'],
+            __GETINFO__=(
+                'input/population.csv',
+                'output/test_option_logging_level.csv',
+                'log/test_option_logging_level.log'))
+        return
+
     def test_option_show_configuration(self):
         self._run(
             'simulate', [
@@ -132,8 +164,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'show_configuration=true'],
             __GETINFO__=(
                 'input/population.csv',
-                'output/samples.csv',
-                'log/test_show_configuration.log'))
+                'output/test_option_show_configuration.csv',
+                'log/test_option_show_configuration.log'))
         return
 
     def test_generating_command_in_isolation(self):

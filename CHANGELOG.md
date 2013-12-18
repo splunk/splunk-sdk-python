@@ -2,6 +2,11 @@
 
 ## Version 1.2
 
+### New features and APIs
+
+* Added support for building custom search commands in Python using the Splunk
+  SDK for Python.
+
 ### Bug fix
 
 * When running `setup.py dist` without running `setup.py build`, there is no

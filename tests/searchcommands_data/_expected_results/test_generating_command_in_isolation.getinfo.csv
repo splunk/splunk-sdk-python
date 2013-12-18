@@ -1,0 +1,3 @@
+
+changes_colorder,clear_required_fields,enableheader,generates_timeorder,generating,local,maxinputs,needs_empty_results,outputheader,passauth,perf_warn_limit,required_fields,requires_srinfo,retainsevents,run_in_preview,stderr_dest,streaming,supports_multivalues,supports_rawargs,__mv_changes_colorder,__mv_clear_required_fields,__mv_enableheader,__mv_generates_timeorder,__mv_generating,__mv_local,__mv_maxinputs,__mv_needs_empty_results,__mv_outputheader,__mv_passauth,__mv_perf_warn_limit,__mv_required_fields,__mv_requires_srinfo,__mv_retainsevents,__mv_run_in_preview,__mv_stderr_dest,__mv_streaming,__mv_supports_multivalues,__mv_supports_rawargs
+1,0,1,0,1,0,0,1,1,0,0,,0,1,1,log,1,1,1,,,,,,,,,,,,,,,,,,,

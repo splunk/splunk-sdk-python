@@ -92,6 +92,23 @@ class ReportingCommand(SearchCommand):
 
         """
         #region Properties
+        @property
+        def clear_required_fields(self):
+            """ Specifies whether `required_fields` are the only fields required
+            by subsequent commands
+
+            If `True`, `required_fields` are the *only* fields required by
+            subsequent commands. If `False`, required_fields are additive to any
+            fields that may be required by subsequent commands. In most cases
+            `False` is appropriate for streaming commands and `True` is
+            appropriate for reporting commands.
+
+            Default: True
+
+            """
+            return type(self)._clear_required_fields
+
+        _clear_required_fields = True
 
         @property
         def requires_preop(self):

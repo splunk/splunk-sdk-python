@@ -125,11 +125,11 @@ class GeneratingCommand(SearchCommand):
             """
             return type(self)._retainsevents
 
-        _retainsevents = False
+        _retainsevents = True
 
         @property
         def streaming(self):
-            """ Specifies whether this search command is streamable
+            """ Specifies that this command is streamable
 
             By default streamable search commands may be run on the search head
             or one or more indexers, depending on performance and scheduling
@@ -137,12 +137,10 @@ class GeneratingCommand(SearchCommand):
             `local=True`. This forces a streamable command to be run on the
             search head.
 
-            Default: False.
+            Fixed: True.
 
             """
-            return type(self)._streaming
-
-        _streaming = False
+            return True
 
         #endregion
 

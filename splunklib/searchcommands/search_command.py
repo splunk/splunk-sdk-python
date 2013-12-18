@@ -31,9 +31,6 @@ from . search_command_internals import InputHeader, MessagesHeader, \
 class SearchCommand(object):
     """ Represents a custom search command
 
-    TODO: Description (argument parsing, builtin-in options, logging
-    configuration, etc.)
-
     """
     def __init__(self):
 
@@ -61,52 +58,54 @@ class SearchCommand(object):
         text = ' '.join([value for value in values if len(value) > 0])
         return text
 
-    #region Options
-
-    @Option
-    def logging_configuration(self):
-        """ **Syntax:** logging_configuration=<path>
-
-        **Description:** Loads an alternative logging configuration file for
-        a command invocation. The logging configuration file must be in Python
-        ConfigParser-format. Path names are relative to the app root directory.
-
-        """
-        return self._logging_configuration
-
-    @logging_configuration.setter
-    def logging_configuration(self, value):
-        self.logger, self._logging_configuration = logging.configure(
-            type(self).__name__, value)
-        return
-
-    @Option
-    def logging_level(self):
-        """ **Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
-
-        **Description:** Sets the threshold for the logger of this command
-        invocation. Logging messages less severe than `logging_level` will be
-        ignored.
-
-        """
-        return self.logger.getEffectiveLevel()
-
-    @logging_level.setter
-    def logging_level(self, value):
-        if value is None:
-            value = self._default_logging_level
-        self.logger.setLevel(value)
-        return
-
-    show_configuration = Option(doc='''
-        **Syntax:** show_configuration=<bool>
-
-        **Description:** When `true`, reports command configuration in the
-        messages header for this command invocation. Defaults to `false`.
-
-        ''', default=False, validate=Boolean())
-
-    #endregion
+    # Disabled in splunk-sdk-python-1.2.0 due to known issues
+    #
+    # #region Options
+    #
+    # @Option
+    # def logging_configuration(self):
+    #     """ **Syntax:** logging_configuration=<path>
+    #
+    #     **Description:** Loads an alternative logging configuration file for
+    #     a command invocation. The logging configuration file must be in Python
+    #     ConfigParser-format. Path names are relative to the app root directory.
+    #
+    #     """
+    #     return self._logging_configuration
+    #
+    # @logging_configuration.setter
+    # def logging_configuration(self, value):
+    #     self.logger, self._logging_configuration = logging.configure(
+    #         type(self).__name__, value)
+    #     return
+    #
+    # @Option
+    # def logging_level(self):
+    #     """ **Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
+    #
+    #     **Description:** Sets the threshold for the logger of this command
+    #     invocation. Logging messages less severe than `logging_level` will be
+    #     ignored.
+    #
+    #     """
+    #     return self.logger.getEffectiveLevel()
+    #
+    # @logging_level.setter
+    # def logging_level(self, value):
+    #     if value is None:
+    #         value = self._default_logging_level
+    #     self.logger.setLevel(value)
+    #     return
+    #
+    # show_configuration = Option(doc='''
+    #     **Syntax:** show_configuration=<bool>
+    #
+    #     **Description:** When `true`, reports command configuration in the
+    #     messages header for this command invocation. Defaults to `false`.
+    #
+    #     ''', default=False, validate=Boolean())
+    #
+    # #endregion
 
     #region Properties
 
@@ -155,8 +154,9 @@ class SearchCommand(object):
                 self.logger.error(e)
                 return
             self._configuration = ConfigurationSettings(self)
-            if self.show_configuration:
-                self.messages.append('info_message', str(self._configuration))
+            # Disabled in splunk-sdk-python-1.2.0 due to known issues
+            # if self.show_configuration:
+            #     self.messages.append('info_message', str(self._configuration))
             writer = csv.DictWriter(
                 output_file, self, self.configuration.keys(), mv_delimiter=',')
             writer.writerow(self.configuration.items())

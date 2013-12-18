@@ -25,11 +25,123 @@ import shutil
 import testlib
 
 from splunklib.searchcommands import \
-    StreamingCommand, Configuration, Option, validators
+    GeneratingCommand, ReportingCommand, StreamingCommand, Configuration, Option, validators
 
 
 @Configuration()
-class StubbedCommand(StreamingCommand):
+class StubbedGeneratingCommand(GeneratingCommand):
+    boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        require=False, validate=validators.Boolean())
+
+    duration = Option(
+        doc='''
+        **Syntax:** **duration=***<value>*
+        **Description:** A length of time''',
+        require=False, validate=validators.Duration())
+
+    fieldname = Option(
+        doc='''
+        **Syntax:** **fieldname=***<value>*
+        **Description:** Name of a field''',
+        require=True, validate=validators.Fieldname())
+
+    file = Option(
+        doc='''
+        **Syntax:** **file=***<value>*
+        **Description:** Name of a file''',
+        validate=validators.File(mode='r'))
+
+    integer = Option(
+        doc='''
+        **Syntax:** **integer=***<value>*
+        **Description:** An integer value''',
+        validate=validators.Integer())
+
+    optionname = Option(
+        doc='''
+        **Syntax:** **optionname=***<value>*
+        **Description:** The name of an option (used internally)''',
+        validate=validators.OptionName())
+
+    regularexpression = Option(
+        doc='''
+        **Syntax:** **regularexpression=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.RegularExpression())
+
+    set = Option(
+        doc='''
+        **Syntax:** **set=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.Set("foo", "bar", "test"))
+
+    def generate(self):
+        pass
+
+
+@Configuration()
+class StubbedReportingCommand(ReportingCommand):
+    boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        require=False, validate=validators.Boolean())
+
+    duration = Option(
+        doc='''
+        **Syntax:** **duration=***<value>*
+        **Description:** A length of time''',
+        require=False, validate=validators.Duration())
+
+    fieldname = Option(
+        doc='''
+        **Syntax:** **fieldname=***<value>*
+        **Description:** Name of a field''',
+        require=True, validate=validators.Fieldname())
+
+    file = Option(
+        doc='''
+        **Syntax:** **file=***<value>*
+        **Description:** Name of a file''',
+        validate=validators.File(mode='r'))
+
+    integer = Option(
+        doc='''
+        **Syntax:** **integer=***<value>*
+        **Description:** An integer value''',
+        validate=validators.Integer())
+
+    optionname = Option(
+        doc='''
+        **Syntax:** **optionname=***<value>*
+        **Description:** The name of an option (used internally)''',
+        validate=validators.OptionName())
+
+    regularexpression = Option(
+        doc='''
+        **Syntax:** **regularexpression=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.RegularExpression())
+
+    set = Option(
+        doc='''
+        **Syntax:** **set=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.Set("foo", "bar", "test"))
+
+    @Configuration()
+    def map(self, records):
+        pass
+
+    def reduce(self, records):
+        pass
+
+
+@Configuration()
+class StubbedStreamingCommand(StreamingCommand):
     boolean = Option(
         doc='''
         **Syntax:** **boolean=***<value>*
@@ -90,6 +202,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             if os.path.exists(path):
                 shutil.rmtree(path)
             os.mkdir(path)
+        self.maxDiff = 2 * 65535
         return
 
     def test_command_parser(self):
@@ -97,7 +210,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             SearchCommandParser
 
         parser = SearchCommandParser()
-        command = StubbedCommand()
+        command = StubbedStreamingCommand()
         file_path = TestSearchCommandsApp._data_file('input/counts.csv')
         parser.parse(
             [
@@ -168,6 +281,10 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'log/test_option_show_configuration.log'))
         return
 
+    def test_generating_command_configuration(self):
+        self._assertCorrectConfiguration(
+            StubbedGeneratingCommand(), 'test_generating_command_configuration')
+
     def test_generating_command_in_isolation(self):
         self._run(
             'simulate', [
@@ -179,46 +296,59 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 'input/population.csv',
-                'output/test_generating_command_in_isolation.csv',
+                'output/test_generating_command_in_isolation.getinfo.csv',
                 'log/test_generating_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/population.csv',
-                'output/test_generating_command_in_isolation.csv',
+                'output/test_generating_command_in_isolation.execute.csv',
                 'log/test_generating_command_in_isolation.log'))
-        self._check_output_file('test_generating_command_in_isolation.csv')
+        self._check_output_file('test_generating_command_in_isolation.getinfo.csv')
+        self._check_output_file('test_generating_command_in_isolation.execute.csv')
         return
 
     def test_generating_command_on_server(self):
         pass
 
+    def test_reporting_command_configuration(self):
+        self._assertCorrectConfiguration(
+            StubbedReportingCommand(), 'test_reporting_command_configuration')
+        return
+
     def test_reporting_command_in_isolation(self):
         self._run(
             'sum', [
-                '__map__', 'total=total', 'count'],
+                '__map__', 'total=subtotal', 'count'],
             __GETINFO__=(
                 'input/counts.csv',
-                'output/subtotals.csv',
+                'output/test_reporting_command_in_isolation.map.getinfo.csv',
                 'log/test_reporting_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/counts.csv',
-                'output/subtotals.csv',
+                'output/test_reporting_command_in_isolation.map.execute.csv',
                 'log/test_reporting_command_in_isolation.log'))
+        self._check_output_file('test_reporting_command_in_isolation.map.getinfo.csv')
+        self._check_output_file('test_reporting_command_in_isolation.map.execute.csv')
         self._run(
             'sum', [
                 'total=total', 'count'],
             __GETINFO__=(
                 'input/subtotals.csv',
-                'output/totals.csv',
+                'output/test_reporting_command_in_isolation.reduce.getinfo.csv',
                 'log/test_reporting_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/subtotals.csv',
-                'output/totals.csv',
+                'output/test_reporting_command_in_isolation.reduce.execute.csv',
                 'log/test_reporting_command_in_isolation.log'))
-        self._check_output_file('test_reporting_command_in_isolation.csv')
+        self._check_output_file('test_reporting_command_in_isolation.reduce.getinfo.csv')
+        self._check_output_file('test_reporting_command_in_isolation.reduce.execute.csv')
         return
 
     def test_reporting_command_on_server(self):
         pass
+
+    def test_streaming_command_configuration(self):
+        self._assertCorrectConfiguration(
+            StubbedStreamingCommand(), 'test_streaming_command_configuration')
 
     def test_streaming_command_in_isolation(self):
         self._run(
@@ -228,17 +358,36 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'text'],
             __GETINFO__=(
                 'input/tweets.csv',
-                'output/test_streaming_command_in_isolation.csv',
+                'output/test_streaming_command_in_isolation.getinfo.csv',
                 'log/test_streaming_command.log'),
             __EXECUTE__=(
                 'input/tweets.csv',
-                'output/test_streaming_command_in_isolation.csv',
+                'output/test_streaming_command_in_isolation.execute.csv',
                 'log/test_generating_command_in_isolation.log'))
-        self._check_output_file('test_streaming_command_in_isolation.csv')
+        self._check_output_file('test_streaming_command_in_isolation.getinfo.csv')
+        self._check_output_file('test_streaming_command_in_isolation.execute.csv')
         return
 
     def test_streaming_command_on_server(self):
         pass
+
+    def _assertCorrectConfiguration(self, command, test_name):
+        expected_file_location = os.path.join('_expected_results', test_name + '.txt')
+        output_file_location = os.path.join('output', test_name + '.csv')
+        with \
+            TestSearchCommandsApp._open_data_file(
+                'input/_empty.csv', 'r') as input_file, \
+            TestSearchCommandsApp._open_data_file(
+                output_file_location, 'w') as output_file:
+            command.process(
+                [command.name, '__GETINFO__', 'fieldname="foo"'],
+                input_file,
+                output_file)
+        actual = str(command.configuration)
+        with TestSearchCommandsApp._open_data_file(
+                expected_file_location, 'r') as input_file:
+            expected = ''.join(input_file.readlines())
+        self.assertMultiLineEqual(expected, actual)
 
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:

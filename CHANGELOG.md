@@ -8,6 +8,14 @@
   longer an `No such file or directory` error on the command line, and the
   command behaves as expected.
 
+* When setting the sourcetype of a modular input event, events are indexed properly.
+  Previously Splunk would encounter an error and skip them.
+
+### Breaking changes
+
+* If you're not expecting Splunk to index these modular inputs with a sourcetype set,
+  when updating to this version of the SDK you will see these events unexpectedly.
+
 ### Minor changes
 
 * Docstring corrections in modular input examples.

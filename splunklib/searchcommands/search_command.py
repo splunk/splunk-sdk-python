@@ -156,8 +156,7 @@ class SearchCommand(object):
                 return
             self._configuration = ConfigurationSettings(self)
             if self.show_configuration:
-                self.logger.debug(str(self.configuration))
-                self.messages.append('info_message', str(self.configuration))
+                self.messages.append('info_message', str(self._configuration))
             writer = csv.DictWriter(
                 output_file, self, self.configuration.keys(), mv_delimiter=',')
             writer.writerow(self.configuration.items())

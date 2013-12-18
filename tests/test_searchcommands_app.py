@@ -20,7 +20,6 @@ except ImportError:
     import unittest
 
 from subprocess import Popen
-import base64
 import os
 import shutil
 import testlib
@@ -28,26 +27,62 @@ import testlib
 from splunklib.searchcommands import \
     StreamingCommand, Configuration, Option, validators
 
+
 @Configuration()
 class StubbedCommand(StreamingCommand):
+    boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        require=False, validate=validators.Boolean())
+
+    duration = Option(
+        doc='''
+        **Syntax:** **duration=***<value>*
+        **Description:** A length of time''',
+        require=False, validate=validators.Duration())
+
     fieldname = Option(
         doc='''
-        **Syntax:** **fieldname=***<fieldname>*
-        **Description:** Name of the field that will hold the match count''',
+        **Syntax:** **fieldname=***<value>*
+        **Description:** Name of a field''',
         require=True, validate=validators.Fieldname())
 
-    pattern = Option(
+    file = Option(
         doc='''
-        **Syntax:** **pattern=***<regular-expression>*
+        **Syntax:** **file=***<value>*
+        **Description:** Name of a file''',
+        validate=validators.File(mode='r'))
+
+    integer = Option(
+        doc='''
+        **Syntax:** **integer=***<value>*
+        **Description:** An integer value''',
+        validate=validators.Integer())
+
+    optionname = Option(
+        doc='''
+        **Syntax:** **optionname=***<value>*
+        **Description:** The name of an option (used internally)''',
+        validate=validators.OptionName())
+
+    regularexpression = Option(
+        doc='''
+        **Syntax:** **regularexpression=***<value>*
         **Description:** Regular expression pattern to match''',
-        require=True, validate=validators.RegularExpression())
+        validate=validators.RegularExpression())
+
+    set = Option(
+        doc='''
+        **Syntax:** **set=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.Set("foo", "bar", "test"))
 
     def stream(self, records):
         pass
 
 
 class TestSearchCommandsApp(testlib.SDKTestCase):
-
     def setUp(self):
         super(TestSearchCommandsApp, self).setUp()
         for directory in 'log', 'output':
@@ -63,24 +98,33 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
         parser = SearchCommandParser()
         command = StubbedCommand()
-
+        file_path = TestSearchCommandsApp._data_file('input/counts.csv')
         parser.parse(
             [
+                'boolean=true',
+                'duration=00:00:10',
                 'fieldname=word_count',
-                'pattern="\\\\w+"',
-                'text_field_1',
-                'text_field_2'
+                'file=%s' % file_path,
+                'integer=10',
+                'optionname=foo_bar',
+                'regularexpression="\\\\w+"',
+                'set=foo',
+                'field_1',
+                'field_2',
+                'field_3'
             ],
             command)
-
         command_line = str(command)
-        self.assertEqual('stubbed fieldname="word_count" pattern="\\\\w+" text_field_1 text_field_2', command_line)
+        self.assertEqual(
+            'stubbed boolean=true duration=10 fieldname="word_count" file="%s" integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % file_path,
+            command_line)
         return
 
     def test_option_show_configuration(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
+                'csv=%s' % TestSearchCommandsApp._data_file(
+                    "input/population.csv"),
                 'duration=00:00:10',
                 'interval=00:00:01',
                 'rate=200',
@@ -95,19 +139,21 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def test_generating_command_in_isolation(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file("input/population.csv"),
-                'duration=00:00:10',
+                'csv=%s' % TestSearchCommandsApp._data_file(
+                    "input/population.csv"),
+                'duration=00:00:02',
                 'interval=00:00:01',
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 'input/population.csv',
-                'output/samples.csv',
+                'output/test_generating_command_in_isolation.csv',
                 'log/test_generating_command_in_isolation.log'),
             __EXECUTE__=(
                 'input/population.csv',
-                'output/samples.csv',
+                'output/test_generating_command_in_isolation.csv',
                 'log/test_generating_command_in_isolation.log'))
+        self._check_output_file('test_generating_command_in_isolation.csv')
         return
 
     def test_generating_command_on_server(self):
@@ -136,6 +182,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'input/subtotals.csv',
                 'output/totals.csv',
                 'log/test_reporting_command_in_isolation.log'))
+        self._check_output_file('test_reporting_command_in_isolation.csv')
         return
 
     def test_reporting_command_on_server(self):
@@ -149,12 +196,13 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'text'],
             __GETINFO__=(
                 'input/tweets.csv',
-                'output/tweets_with_word_count.csv',
+                'output/test_streaming_command_in_isolation.csv',
                 'log/test_streaming_command.log'),
             __EXECUTE__=(
                 'input/tweets.csv',
-                'output/tweets_with_word_count.csv',
+                'output/test_streaming_command_in_isolation.csv',
                 'log/test_generating_command_in_isolation.log'))
+        self._check_output_file('test_streaming_command_in_isolation.csv')
         return
 
     def test_streaming_command_on_server(self):
@@ -172,7 +220,18 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 TestSearchCommandsApp._open_data_file(files[2], 'a'))
             process.communicate()
             status = process.wait()
-            self.assertEqual(status, 0, "%s status: %d" % (operation, status))
+            self.assertEqual(status, 0, '%s status: %d' % (operation, status))
+        return
+
+    def _check_output_file(self, name):
+        expected = os.path.join('_expected_results', name)
+        actual = os.path.join('output', name)
+        with \
+            TestSearchCommandsApp._open_data_file(expected, 'r') as expected, \
+            TestSearchCommandsApp._open_data_file(actual, 'r') as actual:
+            expected = ''.join(expected.readlines())
+            actual = ''.join(actual.readlines())
+            self.assertMultiLineEqual(expected, actual)
         return
 
     @classmethod
@@ -185,15 +244,16 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     @classmethod
     def _start_process(cls, args, stdin, stdout, stderr):
-        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
+        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
+                     cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)
     data_directory = os.path.join(package_directory, 'searchcommands_data')
     app_bin = os.path.join(
         os.path.dirname(package_directory), "examples/searchcommands_app/bin")
 
-    _seed = base64.encodestring(
-        '\xcd{\xf8\xc4\x1c8=\x88\nc\xe2\xc4\xee\xdb\xcal')
+    _seed = '5708bef4-6782-11e3-97ed-10ddb1b57bc3'
+
 
 if __name__ == "__main__":
     unittest.main()

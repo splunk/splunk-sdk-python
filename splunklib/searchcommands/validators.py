@@ -37,11 +37,11 @@ class Boolean(Validator):
         't': True, 'f': False,
         'true': True, 'false': False,
         'y': True, 'n': False,
-        'yes': True, 'No': False
+        'yes': True, 'no': False
     }
 
     def __call__(self, value):
-        if not isinstance(value, bool):
+        if not (value is None or isinstance(value, bool)):
             value = str(value).lower()
             if value not in Boolean.truth_values:
                 raise ValueError('Unrecognized truth value: %s' % value)
@@ -155,18 +155,8 @@ class Set(Validator):
         self.membership = args
 
     def __call__(self, value):
-        value = str(value)
-        if value not in self.membership:
-            raise ValueError('Unrecognized value: %s' % value)
+        if value is not None:
+            value = str(value)
+            if value not in self.membership:
+                raise ValueError('Unrecognized value: %s' % value)
         return value
-
-
-class String(Validator):
-    """ TODO: Documentation
-
-    """
-    def __call__(self, value):
-        return str(value)
-
-    def format(self, value):
-        return str(value)

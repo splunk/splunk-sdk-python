@@ -31,7 +31,7 @@ class SimulateCommand(GeneratingCommand):
     ##Syntax
 
     simulate csv=<path> rate=<expected-event-count> interval=<sampling-period>
-        duration=<execution-period>
+        duration=<execution-period> [seed=<
 
     ##Description
 
@@ -81,13 +81,14 @@ class SimulateCommand(GeneratingCommand):
 
     seed = Option(
         doc='''**Syntax:** **seed=***<string>*
-        **Description:** Value for initializing the random number generator ''',
-        require=False)
+        **Description:** Value for initializing the random number generator ''')
 
     def generate(self):
         """ Yields one random record at a time for the duration of `duration` """
         self.logger.debug('SimulateCommand: %s' % self)  # log command line
         if not self.records:
+            if self.seed is not None:
+                random.seed(self.seed)
             self.records = [record for record in csv.DictReader(self.csv_file)]
             self.lambda_value = 1.0 / (self.rate / float(self.interval))
         duration = self.duration

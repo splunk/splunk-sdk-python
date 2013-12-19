@@ -24,6 +24,9 @@ import os
 import shutil
 import testlib
 
+from splunklib.results import \
+    Message, ResultsReader
+
 from splunklib.searchcommands import \
     GeneratingCommand, ReportingCommand, StreamingCommand, Configuration, Option, validators
 
@@ -307,9 +310,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_generating_command_on_server(self):
-        job = self.service.jobs.create(
+        self._assertCorrectOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
-            app="searchcommands_app")
+            'test_generating_command_on_server')
         return
 
     def test_reporting_command_configuration(self):
@@ -347,9 +350,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_reporting_command_on_server(self):
-        job = self.service.jobs.create(
-            '| inputcsv tweets_with_word_counts.csv | sum=total word_count',
-            app="searchcommands_app")
+        self._assertCorrectOneshotResults(
+            '| inputcsv tweets_with_word_counts.csv | sum total=total word_count',
+            'test_reporting_command_on_server')
         return
 
     def test_streaming_command_configuration(self):
@@ -375,9 +378,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_streaming_command_on_server(self):
-        job = self.service.jobs.create(
-            '| inputcsv tweets.csv | sum total=lines linecount',
-            app="searchcommands_app")
+        self._assertCorrectOneshotResults(
+            '| inputcsv tweets.csv | countmatches fieldname=word_count pattern="\\\\w+" text',
+            'test_streaming_command_on_server')
         return
 
     def _assertCorrectConfiguration(self, command, test_name):
@@ -397,6 +400,20 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 expected_file_location, 'r') as input_file:
             expected = ''.join(input_file.readlines())
         self.assertMultiLineEqual(expected, actual)
+
+    def _assertCorrectOneshotResults(self, query, test_name):
+        response = self.service.jobs.oneshot(query, app="searchcommands_app")
+        reader = ResultsReader(response)
+        actual = ''
+        for result in reader:
+            if isinstance(result, dict):
+                actual += 'Results: %s\n' % result
+            elif isinstance(result, Message):
+                actual += 'Message: %s\n' % result
+        actual += 'is_preview = %s\n' % reader.is_preview
+        with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected:
+            self.assertMultiLineEqual(''.join(expected.readlines()), actual)
+        return
 
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:

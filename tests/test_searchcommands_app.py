@@ -232,22 +232,21 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             command)
         command_line = str(command)
         self.assertEqual(
-            'stubbed boolean=true duration=10 fieldname="word_count" file="%s" integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % file_path,
+            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file="%s" integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % file_path,
             command_line)
         return
 
     def disable_test_option_logging_configuration(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file(
-                    "input/population.csv"),
+                'csv=population.csv',
                 'duration=00:00:10',
                 'interval=00:00:01',
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'logging_configuration=logging.conf'],
             __GETINFO__=(
-                'input/population.csv',
+                'input/_empty.csv',
                 'output/test_option_logging_configuration.csv',
                 'log/test_option_logging_configuration.log'))
         return
@@ -255,8 +254,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def disable_test_option_logging_level(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file(
-                    "input/population.csv"),
+                'csv=population.csv',
                 'duration=00:00:10',
                 'interval=00:00:01',
                 'rate=200',
@@ -271,15 +269,14 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def disable_test_option_show_configuration(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file(
-                    "input/population.csv"),
+                'csv=population.csv',
                 'duration=00:00:10',
                 'interval=00:00:01',
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'show_configuration=true'],
             __GETINFO__=(
-                'input/population.csv',
+                'input/_empty.csv',
                 'output/test_option_show_configuration.csv',
                 'log/test_option_show_configuration.log'))
         return
@@ -291,25 +288,25 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def test_generating_command_in_isolation(self):
         self._run(
             'simulate', [
-                'csv=%s' % TestSearchCommandsApp._data_file(
-                    "input/population.csv"),
+                'csv=population.csv',
                 'duration=00:00:02',
                 'interval=00:00:01',
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
-                'input/population.csv',
+                'input/_empty.csv',
                 'output/test_generating_command_in_isolation.getinfo.csv',
                 'log/test_generating_command_in_isolation.log'),
             __EXECUTE__=(
-                'input/population.csv',
+                'input/_empty.csv',
                 'output/test_generating_command_in_isolation.execute.csv',
                 'log/test_generating_command_in_isolation.log'))
-        self._check_output_file('test_generating_command_in_isolation.getinfo.csv')
-        self._check_output_file('test_generating_command_in_isolation.execute.csv')
+        self._assertCorrectOutputFile('test_generating_command_in_isolation.getinfo.csv')
+        self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
 
-    def test_generating_command_on_server(self):
+    def disabled_test_generating_command_on_server(self):
+        # TODO, use a generating command that doesn't do random sampling
         self._assertCorrectOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
             'test_generating_command_on_server')
@@ -332,8 +329,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'input/counts.csv',
                 'output/test_reporting_command_in_isolation.map.execute.csv',
                 'log/test_reporting_command_in_isolation.log'))
-        self._check_output_file('test_reporting_command_in_isolation.map.getinfo.csv')
-        self._check_output_file('test_reporting_command_in_isolation.map.execute.csv')
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.getinfo.csv')
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.execute.csv')
         self._run(
             'sum', [
                 'total=total', 'count'],
@@ -345,8 +342,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'input/subtotals.csv',
                 'output/test_reporting_command_in_isolation.reduce.execute.csv',
                 'log/test_reporting_command_in_isolation.log'))
-        self._check_output_file('test_reporting_command_in_isolation.reduce.getinfo.csv')
-        self._check_output_file('test_reporting_command_in_isolation.reduce.execute.csv')
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.getinfo.csv')
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.execute.csv')
         return
 
     def test_reporting_command_on_server(self):
@@ -373,8 +370,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'input/tweets.csv',
                 'output/test_streaming_command_in_isolation.execute.csv',
                 'log/test_generating_command_in_isolation.log'))
-        self._check_output_file('test_streaming_command_in_isolation.getinfo.csv')
-        self._check_output_file('test_streaming_command_in_isolation.execute.csv')
+        self._assertCorrectOutputFile('test_streaming_command_in_isolation.getinfo.csv')
+        self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
         return
 
     def test_streaming_command_on_server(self):
@@ -404,15 +401,26 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def _assertCorrectOneshotResults(self, query, test_name):
         response = self.service.jobs.oneshot(query, app="searchcommands_app")
         reader = ResultsReader(response)
-        actual = ''
+        actual = []
         for result in reader:
             if isinstance(result, dict):
-                actual += 'Results: %s\n' % result
+                actual += ['Results: %s' % result]
             elif isinstance(result, Message):
-                actual += 'Message: %s\n' % result
-        actual += 'is_preview = %s\n' % reader.is_preview
+                actual += ['Message: %s' % result]
+        actual = sorted(actual) + ['is_preview = %s' % reader.is_preview]
+        actual = '\n'.join(actual)
         with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected:
-            self.assertMultiLineEqual(''.join(expected.readlines()), actual)
+            self.assertMultiLineEqual(''.join(expected.readlines()), ''.join(actual))
+        return
+
+    def _assertCorrectOutputFile(self, name):
+        expected = os.path.join('_expected_results', name)
+        actual = os.path.join('output', name)
+        with \
+            TestSearchCommandsApp._open_data_file(expected, 'r') as expected, \
+            TestSearchCommandsApp._open_data_file(actual, 'r') as actual:
+            for actual_line, expected_line in zip(actual, expected):
+                self.assertTrue(actual_line == expected_line)
         return
 
     def _run(self, command, args, **kwargs):
@@ -430,29 +438,18 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             self.assertEqual(status, 0, '%s status: %d' % (operation, status))
         return
 
-    def _check_output_file(self, name):
-        expected = os.path.join('_expected_results', name)
-        actual = os.path.join('output', name)
-        with \
-            TestSearchCommandsApp._open_data_file(expected, 'r') as expected, \
-            TestSearchCommandsApp._open_data_file(actual, 'r') as actual:
-            expected = ''.join(expected.readlines())
-            actual = ''.join(actual.readlines())
-            self.assertMultiLineEqual(expected, actual)
-        return
-
     @classmethod
     def _data_file(cls, relative_path):
         return os.path.join(cls.data_directory, relative_path)
 
     @classmethod
     def _open_data_file(cls, relative_path, mode):
-        return open(cls._data_file(relative_path), mode)
+        import codecs
+        return codecs.open(cls._data_file(relative_path), mode, encoding='utf-8')
 
     @classmethod
     def _start_process(cls, args, stdin, stdout, stderr):
-        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
-                     cwd=cls.app_bin)
+        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)
     data_directory = os.path.join(package_directory, 'searchcommands_data')

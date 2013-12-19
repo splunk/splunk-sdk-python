@@ -1,7 +1,7 @@
 <event stanza="fubar" unbroken="1">
     <time>1372274622.493</time>
     <source>hilda</source>
-    <sourceType>misc</sourceType>
+    <sourcetype>misc</sourcetype>
     <index>main</index>
     <host>localhost</host>
     <data>This is a test of the emergency broadcast system.</data>

@@ -41,7 +41,7 @@ class CountMatchesCommand(StreamingCommand):
     ## Example
 
     ```
-    | inputcsv tweets.csv | countmatches fieldname=word_count pattern=\w+ text
+    | inputcsv tweets.csv | countmatches fieldname=word_count pattern="\\w+" text
     ```
 
     Counts the number of words in `some_text_field` and stores the result in

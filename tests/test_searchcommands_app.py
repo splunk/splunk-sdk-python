@@ -407,7 +407,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 actual += ['Results: %s' % result]
             elif isinstance(result, Message):
                 actual += ['Message: %s' % result]
-        actual = sorted(actual) + ['is_preview = %s' % reader.is_preview]
+        actual = actual + ['is_preview = %s' % reader.is_preview]
         actual = '\n'.join(actual)
         with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected:
             self.assertMultiLineEqual(''.join(expected.readlines()), ''.join(actual))

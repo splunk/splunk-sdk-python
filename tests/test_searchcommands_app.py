@@ -383,18 +383,14 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def _assertCorrectConfiguration(self, command, test_name):
         expected_file_location = os.path.join('_expected_results', test_name + '.txt')
         output_file_location = os.path.join('output', test_name + '.csv')
-        with \
-            TestSearchCommandsApp._open_data_file(
-                'input/_empty.csv', 'r') as input_file, \
-            TestSearchCommandsApp._open_data_file(
-                output_file_location, 'w') as output_file:
-            command.process(
-                [command.name, '__GETINFO__', 'fieldname="foo"'],
-                input_file,
-                output_file)
+        with TestSearchCommandsApp._open_data_file('input/_empty.csv', 'r') as input_file:
+            with TestSearchCommandsApp._open_data_file(output_file_location, 'w') as output_file:
+                command.process(
+                    [command.name, '__GETINFO__', 'fieldname="foo"'],
+                    input_file,
+                    output_file)
         actual = str(command.configuration)
-        with TestSearchCommandsApp._open_data_file(
-                expected_file_location, 'r') as input_file:
+        with TestSearchCommandsApp._open_data_file(expected_file_location, 'r') as input_file:
             expected = ''.join(input_file.readlines())
         self.assertMultiLineEqual(expected, actual)
 
@@ -416,11 +412,10 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def _assertCorrectOutputFile(self, name):
         expected = os.path.join('_expected_results', name)
         actual = os.path.join('output', name)
-        with \
-            TestSearchCommandsApp._open_data_file(expected, 'r') as expected, \
-            TestSearchCommandsApp._open_data_file(actual, 'r') as actual:
-            for actual_line, expected_line in zip(actual, expected):
-                self.assertTrue(actual_line == expected_line)
+        with TestSearchCommandsApp._open_data_file(expected, 'r') as expected:
+            with TestSearchCommandsApp._open_data_file(actual, 'r') as actual:
+                for actual_line, expected_line in zip(actual, expected):
+                    self.assertTrue(actual_line == expected_line)
         return
 
     def _run(self, command, args, **kwargs):

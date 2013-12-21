@@ -13,6 +13,7 @@
 # under the License.
 
 import collections
+import os
 import re
 import urllib2 as urllib
 
@@ -169,8 +170,9 @@ class MessagesHeader(object):
         # for level, message in self:
         #     output_file.write('%s=%s\r\n' % (level, message))
         self
-        output_file.write('\r\n')
+        output_file.write(MessagesHeader.line_ending)
 
+    line_ending = '\n' if os.name == 'nt' else '\r\n'
 
 class SearchCommandParser(object):
     """ Parses the arguments to a search command

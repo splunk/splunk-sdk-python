@@ -250,9 +250,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'logging_configuration=logging.conf'],
             __GETINFO__=(
-                'input/_empty.csv',
-                'output/test_option_logging_configuration.csv',
-                'log/test_option_logging_configuration.log'))
+                os.join('input', '_empty.csv'),
+                os.join('output', 'test_option_logging_configuration.csv'),
+                os.join('log', 'test_option_logging_configuration.log')))
         return
 
     def disable_test_option_logging_level(self):
@@ -265,9 +265,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'logging_level=ERROR'],
             __GETINFO__=(
-                'input/population.csv',
-                'output/test_option_logging_level.csv',
-                'log/test_option_logging_level.log'))
+                os.join('input', 'population.csv'),
+                os.join('output', 'test_option_logging_level.csv'),
+                os.join('log', 'test_option_logging_level.log')))
         return
 
     def disable_test_option_show_configuration(self):
@@ -280,9 +280,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'show_configuration=true'],
             __GETINFO__=(
-                'input/_empty.csv',
-                'output/test_option_show_configuration.csv',
-                'log/test_option_show_configuration.log'))
+                os.join('input', '_empty.csv'),
+                os.join('output', 'test_option_show_configuration.csv'),
+                os.join('log', 'test_option_show_configuration.log')))
         return
 
     def test_generating_command_configuration(self):
@@ -298,13 +298,13 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
-                'input/_empty.csv',
-                'output/test_generating_command_in_isolation.getinfo.csv',
-                'log/test_generating_command_in_isolation.log'),
+                os.join('input', '_empty.csv'),
+                os.join('output', 'test_generating_command_in_isolation.getinfo.csv'),
+                os.join('log', 'test_generating_command_in_isolation.log')),
             __EXECUTE__=(
-                'input/_empty.csv',
-                'output/test_generating_command_in_isolation.execute.csv',
-                'log/test_generating_command_in_isolation.log'))
+                os.join('input', '_empty.csv'),
+                os.join('output', 'test_generating_command_in_isolation.execute.csv'),
+                os.join('log', 'test_generating_command_in_isolation.log')))
         self._assertCorrectOutputFile('test_generating_command_in_isolation.getinfo.csv')
         self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
@@ -326,26 +326,26 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             'sum', [
                 '__map__', 'total=subtotal', 'count'],
             __GETINFO__=(
-                'input/counts.csv',
-                'output/test_reporting_command_in_isolation.map.getinfo.csv',
-                'log/test_reporting_command_in_isolation.log'),
+                os.join('input', 'counts.csv'),
+                os.join('output', 'test_reporting_command_in_isolation.map.getinfo.csv'),
+                os.join('log', 'test_reporting_command_in_isolation.log')),
             __EXECUTE__=(
-                'input/counts.csv',
-                'output/test_reporting_command_in_isolation.map.execute.csv',
-                'log/test_reporting_command_in_isolation.log'))
+                os.join('input', 'counts.csv'),
+                os.join('output', 'test_reporting_command_in_isolation.map.execute.csv'),
+                os.join('log', 'test_reporting_command_in_isolation.log')))
         self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.getinfo.csv')
         self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.execute.csv')
         self._run(
             'sum', [
                 'total=total', 'count'],
             __GETINFO__=(
-                'input/subtotals.csv',
-                'output/test_reporting_command_in_isolation.reduce.getinfo.csv',
-                'log/test_reporting_command_in_isolation.log'),
+                os.join('input', 'subtotals.csv'),
+                os.join('output', 'test_reporting_command_in_isolation.reduce.getinfo.csv'),
+                os.join('log', 'test_reporting_command_in_isolation.log')),
             __EXECUTE__=(
-                'input/subtotals.csv',
-                'output/test_reporting_command_in_isolation.reduce.execute.csv',
-                'log/test_reporting_command_in_isolation.log'))
+                os.join('input', 'subtotals.csv'),
+                os.join('output', 'test_reporting_command_in_isolation.reduce.execute.csv'),
+                os.join('log', 'test_reporting_command_in_isolation.log')))
         self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.getinfo.csv')
         self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.execute.csv')
         return
@@ -367,13 +367,13 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'pattern=\\w+',
                 'text'],
             __GETINFO__=(
-                'input/tweets.csv',
-                'output/test_streaming_command_in_isolation.getinfo.csv',
-                'log/test_streaming_command.log'),
+                os.join('input', 'tweets.csv'),
+                os.join('output', 'test_streaming_command_in_isolation.getinfo.csv'),
+                os.join('log', 'test_streaming_command.log')),
             __EXECUTE__=(
-                'input/tweets.csv',
-                'output/test_streaming_command_in_isolation.execute.csv',
-                'log/test_generating_command_in_isolation.log'))
+                os.join('input', 'tweets.csv'),
+                os.join('output', 'test_streaming_command_in_isolation.execute.csv'),
+                os.join('log', 'test_generating_command_in_isolation.log')))
         self._assertCorrectOutputFile('test_streaming_command_in_isolation.getinfo.csv')
         self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
         return
@@ -387,7 +387,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def _assertCorrectConfiguration(self, command, test_name):
         expected_file_location = os.path.join('_expected_results', test_name + '.txt')
         output_file_location = os.path.join('output', test_name + '.csv')
-        with TestSearchCommandsApp._open_data_file('input/_empty.csv', 'r') as input_file:
+        with TestSearchCommandsApp._open_data_file(os.join('input', '_empty.csv'), 'r') as input_file:
             with TestSearchCommandsApp._open_data_file(output_file_location, 'w') as output_file:
                 command.process(
                     [command.name, '__GETINFO__', 'fieldname="foo"'],

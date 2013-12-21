@@ -174,6 +174,7 @@ class MessagesHeader(object):
 
     line_ending = '\n' if os.name == 'nt' else '\r\n'
 
+
 class SearchCommandParser(object):
     """ Parses the arguments to a search command
 

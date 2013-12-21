@@ -211,16 +211,20 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def test_command_parser(self):
         from splunklib.searchcommands.search_command_internals import \
             SearchCommandParser
+        from json import JSONEncoder
 
         parser = SearchCommandParser()
+        encoder = JSONEncoder()
+        file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
+
         command = StubbedStreamingCommand()
-        file_path = TestSearchCommandsApp._data_file('input/counts.csv')
+
         parser.parse(
             [
                 'boolean=true',
                 'duration=00:00:10',
                 'fieldname=word_count',
-                'file=%s' % file_path,
+                'file=%s' % encoder.encode(file_path),
                 'integer=10',
                 'optionname=foo_bar',
                 'regularexpression="\\\\w+"',
@@ -232,7 +236,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             command)
         command_line = str(command)
         self.assertEqual(
-            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file="%s" integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % file_path,
+            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
             command_line)
         return
 

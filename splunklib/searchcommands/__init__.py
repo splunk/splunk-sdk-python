@@ -150,6 +150,14 @@ from .generating_command import GeneratingCommand
 from .reporting_command import ReportingCommand
 from .streaming_command import StreamingCommand
 
+if sys.platform == 'win32':
+    # Work around the fact that on Windows '\n' is mapped to '\r\n'
+    # The typical solution is to simply open files in binary mode, but stdout
+    # is already open, thus this hack
+    import msvcrt
+    import os
+    msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+
 
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
              sys.stdout, module_name=None):

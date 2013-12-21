@@ -14,12 +14,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import sys
 from splunklib.searchcommands import \
-    dispatch, GeneratingCommand, Configuration, Option, validators
+    dispatch, StreamingCommand, Configuration, Option, validators
 
 
 @Configuration()
-class %(command.title())Command(GeneratingCommand):
+class %(command.title())Command(StreamingCommand):
    """ %(synopsis)
 
    ##Syntax

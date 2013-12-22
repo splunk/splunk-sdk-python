@@ -27,6 +27,7 @@ except ImportError:
     raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
+
 def main():
     opts = parse(sys.argv[1:], {}, ".splunkrc")
     service = connect(**opts.kwargs)

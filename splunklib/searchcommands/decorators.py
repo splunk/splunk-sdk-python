@@ -14,8 +14,12 @@
 
 from inspect import getmembers, isclass, isfunction
 from types import FunctionType, MethodType
-from collections import OrderedDict
 from json import JSONEncoder
+
+try:
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from ordereddict import OrderedDict  # must be python 2.6
 
 from .search_command_internals import ConfigurationSettingsType
 from .validators import OptionName

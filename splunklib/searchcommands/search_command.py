@@ -15,12 +15,18 @@
 from __future__ import absolute_import
 
 # Absolute imports
-from collections import OrderedDict
+
+try:
+    from collections import OrderedDict # python 2.7
+except ImportError:
+    from ordereddict import OrderedDict # python 2.6
+
 from inspect import getmembers
 from os import path
 from sys import argv, stdin, stdout
 
 # Relative imports
+
 from . import csv, logging
 from . decorators import Option
 from . validators import Boolean, Fieldname

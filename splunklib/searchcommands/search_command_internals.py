@@ -12,7 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import collections
+try:
+    from collections import OrderedDict  # Python 2.7
+except ImportError:
+    from ordereddict import OrderedDict  # Python 2.6
+
 import re
 import urllib2 as urllib
 
@@ -72,7 +76,7 @@ class InputHeader(object):
 
     """
     def __init__(self):
-        self._settings = collections.OrderedDict()
+        self._settings = OrderedDict()
 
     def __getitem__(self, name):
         return self._settings[name]
@@ -136,7 +140,7 @@ class MessagesHeader(object):
     """
 
     def __init__(self):
-        self._messages = collections.OrderedDict(
+        self._messages = OrderedDict(
             [('warn_message', []), ('info_message', []), ('error_message', [])])
 
     def __iadd__(self, level, text):

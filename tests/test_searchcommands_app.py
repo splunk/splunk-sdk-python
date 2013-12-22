@@ -97,13 +97,13 @@ class StubbedReportingCommand(ReportingCommand):
         doc='''
         **Syntax:** **duration=***<value>*
         **Description:** A length of time''',
-        require=False, validate=validators.Duration())
+        validate=validators.Duration())
 
     fieldname = Option(
         doc='''
         **Syntax:** **fieldname=***<value>*
         **Description:** Name of a field''',
-        require=True, validate=validators.Fieldname())
+        validate=validators.Fieldname())
 
     file = Option(
         doc='''
@@ -149,13 +149,13 @@ class StubbedStreamingCommand(StreamingCommand):
         doc='''
         **Syntax:** **boolean=***<value>*
         **Description:** A boolean value''',
-        require=False, validate=validators.Boolean())
+        require=True, validate=validators.Boolean())
 
     duration = Option(
         doc='''
         **Syntax:** **duration=***<value>*
         **Description:** A length of time''',
-        require=False, validate=validators.Duration())
+        require=True, validate=validators.Duration())
 
     fieldname = Option(
         doc='''
@@ -167,31 +167,31 @@ class StubbedStreamingCommand(StreamingCommand):
         doc='''
         **Syntax:** **file=***<value>*
         **Description:** Name of a file''',
-        validate=validators.File(mode='r'))
+        require=True, validate=validators.File(mode='r'))
 
     integer = Option(
         doc='''
         **Syntax:** **integer=***<value>*
         **Description:** An integer value''',
-        validate=validators.Integer())
+        require=True, validate=validators.Integer())
 
     optionname = Option(
         doc='''
         **Syntax:** **optionname=***<value>*
         **Description:** The name of an option (used internally)''',
-        validate=validators.OptionName())
+        require=True, validate=validators.OptionName())
 
     regularexpression = Option(
         doc='''
         **Syntax:** **regularexpression=***<value>*
         **Description:** Regular expression pattern to match''',
-        validate=validators.RegularExpression())
+        require=True, validate=validators.RegularExpression())
 
     set = Option(
         doc='''
         **Syntax:** **set=***<value>*
         **Description:** Regular expression pattern to match''',
-        validate=validators.Set("foo", "bar", "test"))
+        require=True, validate=validators.Set("foo", "bar", "test"))
 
     def stream(self, records):
         pass
@@ -217,27 +217,30 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         encoder = JSONEncoder()
         file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
 
-        command = StubbedStreamingCommand()
+        command = StubbedStreamingCommand() # All options are required
 
-        parser.parse(
-            [
-                'boolean=true',
-                'duration=00:00:10',
-                'fieldname=word_count',
-                'file=%s' % encoder.encode(file_path),
-                'integer=10',
-                'optionname=foo_bar',
-                'regularexpression="\\\\w+"',
-                'set=foo',
-                'field_1',
-                'field_2',
-                'field_3'
-            ],
-            command)
+        options = [
+            'boolean=true',
+            'duration=00:00:10',
+            'fieldname=word_count',
+            'file=%s' % encoder.encode(file_path),
+            'integer=10',
+            'optionname=foo_bar',
+            'regularexpression="\\\\w+"',
+            'set=foo']
+
+        fields = ['field_1', 'field_2', 'field_3']
+
+        parser.parse(options + fields, command)
         command_line = str(command)
+
         self.assertEqual(
             'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
             command_line)
+
+        for option in options:
+            self.assertRaises(ValueError, parser.parse([x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command))
+
         return
 
     def disable_test_option_logging_configuration(self):

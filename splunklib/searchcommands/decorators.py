@@ -314,7 +314,7 @@ class Option(property):
             missing = [
                 item.name for item in self._items.itervalues()
                 if item.is_required and not item.is_set]
-            return missing.sort() if len(missing) > 0 else None
+            return missing if len(missing) > 0 else None
 
         def iteritems(self):
             return self._items.iteritems()

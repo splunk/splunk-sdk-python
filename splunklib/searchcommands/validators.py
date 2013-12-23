@@ -18,7 +18,15 @@ import sys
 
 
 class Validator(object):
-    """ TODO: Documentation
+    """ Base class for validators that check and format search command options
+
+    You must inherit from this class and override `Validator.__call__` and
+    `Validator.format`. `Validator.__call__` should convert the value it
+    receives as argument and then return it or raise a ValueError, if the value
+    will not convert.
+
+    `Validator.format` should return a human readable version of the value it
+    receives as argument the same way `str` does.
 
     """
     def __call__(self, value):
@@ -29,7 +37,7 @@ class Validator(object):
 
 
 class Boolean(Validator):
-    """ TODO: Documentation
+    """ Validates boolean option values
 
     """
     truth_values = {
@@ -50,7 +58,7 @@ class Boolean(Validator):
 
 
 class Duration(Validator):
-    """ TODO: Documentation
+    """ Validates duration option values
 
     """
     def __call__(self, value):
@@ -64,7 +72,7 @@ class Duration(Validator):
 
 
 class Fieldname(Validator):
-    """ TODO: Documentation
+    """ Validates field name option values
 
     """
     import re
@@ -78,7 +86,7 @@ class Fieldname(Validator):
 
 
 class File(Validator):
-    """ TODO: Documentation
+    """ Validates file option values
 
     """
     def __init__(self, mode='r', buffering=-1):
@@ -100,7 +108,7 @@ class File(Validator):
 
 
 class Integer(Validator):
-    """ TODO: Documentation
+    """ Validates integer option values
 
     """
     def __init__(self, minimum=-sys.maxint-1, maximum=sys.maxint):
@@ -118,7 +126,7 @@ class Integer(Validator):
 
 
 class OptionName(Validator):
-    """ TODO: Documentation
+    """ Validates option names
 
     """
     import re
@@ -132,7 +140,7 @@ class OptionName(Validator):
 
 
 class RegularExpression(Validator):
-    """ TODO: Documentation
+    """ Validates regular expression option values
 
     """
     def __call__(self, value):
@@ -148,7 +156,7 @@ class RegularExpression(Validator):
 
 
 class Set(Validator):
-    """ TODO: Documentation
+    """ Validates set option values
 
     """
     def __init__(self, *args):

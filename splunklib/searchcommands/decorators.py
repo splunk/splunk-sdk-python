@@ -78,13 +78,11 @@ class Option(property):
     Short form (recommended). When you are satisfied with built-in or custom
     validation behaviors.
 
-    ```
-    total = splunklib.Option(
-        doc=''' **Syntax:** **total=***<fieldname>*
-        **Description:** Name of the field that will hold the computed
-        sum''',
-        require=True, validate=splunklib.Fieldname())
-    ```
+    ``total = splunklib.Option(``
+    ``    doc=''' **Syntax:** **total=***<fieldname>*``
+    ``    **Description:** Name of the field that will hold the computed``
+    ``    sum''',``
+    ``    require=True, validate=splunklib.Fieldname())``
 
     **Example:**
 
@@ -94,27 +92,26 @@ class Option(property):
     [destruction][1]. You must be prepared to accept a value of None which
     represents the unset state.
 
-    ```
-    @Option
-    def logging_configuration(self):
-        \""" **Syntax:** logging_configuration=<path>
-        **Description:** Loads an alternative logging configuration file for
-        a command invocation. The logging configuration file must be in
-        Python ConfigParser-format. The *<path>* name and all path names
-        specified in configuration are relative to the app root directory.
+    ``@Option``
+    ``def logging_configuration(self):``
+    ``    \""" **Syntax:** logging_configuration=<path>``
+    ``    **Description:** Loads an alternative logging configuration file for``
+    ``    a command invocation. The logging configuration file must be in``
+    ``    Python ConfigParser-format. The *<path>* name and all path names``
+    ``    specified in configuration are relative to the app root directory.``
+    `` ``
+    ``    \"""``
+    ``    return self._logging_configuration``
 
-        \"""
-        return self._logging_configuration
-
-    @logging_configuration.setter
-    def logging_configuration(self, value):
-        if value is not None
-            logging.configure(value)
-            self._logging_configuration = value
-
-    def __init__(self)
-        self._logging_configuration = None
-    ```
+    ``@logging_configuration.setter``
+    ``def logging_configuration(self, value):``
+    ``    if value is not None``
+    ``        logging.configure(value)``
+    ``        self._logging_configuration = value``
+    `` ``
+    ``def __init__(self)``
+    ``    self._logging_configuration = None``
+    `` ``
 
     [1]: http://docs.python.org/reference/datamodel.html#object.__del__ "Python data model: Objects, values and types"
 

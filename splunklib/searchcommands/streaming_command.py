@@ -35,20 +35,16 @@ class StreamingCommand(SearchCommand):
     You can tell Splunk to run your streaming command locally on a search head,
     never remotely on indexers:
 
-    ```
-    @Configuration(local=False)
-    class CountMatchesCommand(StreamingCommand):
-        ...
-    ```
+    ``@Configuration(local=False)``
+    ``class CountMatchesCommand(StreamingCommand):``
+    ``    ...``
 
     If your streaming command modifies the time order of event records you must
     tell Splunk to ensure correct behavior:
 
-    ```
-    @Configuration(overrides_timeorder=True)
-    class CountMatchesCommand(StreamingCommand):
-        ...
-    ```
+    ``@Configuration(overrides_timeorder=True)``
+    ``class CountMatchesCommand(StreamingCommand):``
+    ``    ...``
 
     """
     #region Methods
@@ -84,7 +80,8 @@ class StreamingCommand(SearchCommand):
     #endregion
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ TODO: Documentation
+        """ Represents the configuration settings that apply to a
+        StreamingCommand
 
         """
         #region Properties

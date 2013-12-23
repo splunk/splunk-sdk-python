@@ -385,7 +385,7 @@ class SearchCommand(object):
             Specify one of these string values:
 
             Value     | Meaning
-            ----------|---------------------------------------------------------
+            ----------+---------------------------------------------------------
             `log`     | Write messages to the job's search.log file
             `message` | Write each line of each message as a search info message
             `none`    | Discard all messages logged to stderr

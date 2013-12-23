@@ -24,7 +24,7 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     **Custom HTTP handler**
 
-    :class:`~splunklib.binding.HTTPError` class 
+    :class:`~splunklib.binding.HTTPError` class
 
     :class:`~splunklib.binding.HttpLib` class
 
@@ -34,9 +34,9 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     :func:`~splunklib.client.connect` function
 
-    :class:`~splunklib.client.Service` class 
+    :class:`~splunklib.client.Service` class
 
-    :class:`~splunklib.client.Endpoint` base class 
+    :class:`~splunklib.client.Endpoint` base class
 
 
     **Entities and collections**
@@ -88,7 +88,7 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
     :class:`~splunklib.client.User` class
 
     :class:`~splunklib.client.Users` class
-    
+
 
     **Exceptions**
 
@@ -114,28 +114,39 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     :func:`~splunklib.data.record` function
 
-    :class:`~splunklib.data.Record` class 
+    :class:`~splunklib.data.Record` class
 
 :doc:`results`
 --------------
 
-    :class:`~splunklib.results.ResultsReader` class 
+    :class:`~splunklib.results.ResultsReader` class
 
-    :class:`~splunklib.results.Message` class 
+    :class:`~splunklib.results.Message` class
 
 :doc:`modularinput`
---------------
+-------------------
 
-    :class:`~splunklib.modularinput.Argument` class 
+    :class:`~splunklib.modularinput.Argument` class
 
-    :class:`~splunklib.modularinput.Event` class 
+    :class:`~splunklib.modularinput.Event` class
 
-    :class:`~splunklib.modularinput.EventWriter` class 
+    :class:`~splunklib.modularinput.EventWriter` class
 
-    :class:`~splunklib.modularinput.InputDefinition` class 
+    :class:`~splunklib.modularinput.InputDefinition` class
 
-    :class:`~splunklib.modularinput.Scheme` class 
-    
-    :class:`~splunklib.modularinput.Script` class 
-    
-    :class:`~splunklib.modularinput.ValidationDefinition` class 
+    :class:`~splunklib.modularinput.Scheme` class
+
+    :class:`~splunklib.modularinput.Script` class
+
+    :class:`~splunklib.modularinput.ValidationDefinition` class
+
+:doc:`searchcommands`
+---------------------
+
+    :class:`~splunklib.searchcommands.GeneratingCommand` class
+
+    :class:`~splunklib.searchcommands.ReportingCommand` class
+
+    :class:`~splunklib.searchcommands.StreamingCommand` class
+
+    :class:`~splunklib.searchcommands.Option` class

@@ -460,13 +460,13 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         actual = []
         for result in reader:
             if isinstance(result, dict):
-                actual += ['Results: %s' % result]
+                actual += [u'Results: %s' % result]
             elif isinstance(result, Message):
-                actual += ['Message: %s' % result]
-        actual = actual + ['is_preview = %s' % reader.is_preview]
-        actual = '\n'.join(actual)
+                actual += [u'Message: %s' % result]
+        actual = actual + [u'is_preview = %s' % reader.is_preview]
+        actual = u'\n'.join(actual)
         with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected_file:
-            expected = ''.join(expected_file.readlines())
+            expected = u''.join(expected_file.readlines())
         return actual, expected
 
     def _run(self, command, args, **kwargs):

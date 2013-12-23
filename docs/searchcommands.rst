@@ -25,6 +25,10 @@ splunklib.searchcommands
 
 .. automodule:: splunklib.searchcommands.decorators
 
+.. autoclass:: Configuration
+    :members:
+    :inherited-members:
+
 .. autoclass:: Option
     :members:
     :inherited-members:

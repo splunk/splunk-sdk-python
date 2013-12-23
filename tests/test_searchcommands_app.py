@@ -19,6 +19,7 @@ try:
 except ImportError:
     import unittest
 
+from json import JSONEncoder
 from subprocess import Popen
 import os
 import shutil
@@ -211,8 +212,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def test_command_parser(self):
         from splunklib.searchcommands.search_command_internals import \
             SearchCommandParser
-        from json import JSONEncoder
-
         parser = SearchCommandParser()
         encoder = JSONEncoder()
         file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
@@ -424,8 +423,21 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         output_file_location = os.path.join('output', test_name + '.csv')
         with TestSearchCommandsApp._open_data_file(os.path.join('input', '_empty.csv'), 'r') as input_file:
             with TestSearchCommandsApp._open_data_file(output_file_location, 'w') as output_file:
+                encoder = JSONEncoder()
+                file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
                 command.process(
-                    [command.name, '__GETINFO__', 'fieldname="foo"'],
+                    [
+                        command.name,
+                        '__GETINFO__',
+                        'boolean=false',
+                        'duration=00:00:10',
+                        'fieldname=foo',
+                        'file=%s' % encoder.encode(file_path),
+                        'integer=10',
+                        'optionname=foo_bar',
+                        'regularexpression="\\\\w+"',
+                        'set=foo'
+                    ],
                     input_file,
                     output_file)
         actual = str(command.configuration)

@@ -14,6 +14,6 @@ retainsevents = False
 run_in_preview = True
 stderr_dest = log
 streaming = False
-streaming_preop = stubbedreporting __map__ boolean=false duration=10 fieldname="foo" file="/Users/david-noble/Workspace/Splunk/splunk-sdk-python/tests/searchcommands_data/input/counts.csv" integer=10 optionname="foo_bar" regularexpression="\\w+" set="foo"
+streaming_preop = stubbedreporting __map__ boolean=false duration=10 fieldname="foo" file={file} integer=10 optionname="foo_bar" regularexpression="\\w+" set="foo"
 supports_multivalues = True
 supports_rawargs = True

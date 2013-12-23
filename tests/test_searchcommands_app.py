@@ -421,10 +421,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     def _assertCorrectConfiguration(self, command, test_name):
         expected_file_location = os.path.join('_expected_results', test_name + '.txt')
         output_file_location = os.path.join('output', test_name + '.csv')
+        file_path = JSONEncoder().encode(TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv')))
         with TestSearchCommandsApp._open_data_file(os.path.join('input', '_empty.csv'), 'r') as input_file:
             with TestSearchCommandsApp._open_data_file(output_file_location, 'w') as output_file:
-                encoder = JSONEncoder()
-                file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
                 command.process(
                     [
                         command.name,
@@ -432,7 +431,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                         'boolean=false',
                         'duration=00:00:10',
                         'fieldname=foo',
-                        'file=%s' % encoder.encode(file_path),
+                        'file=%s' % file_path,
                         'integer=10',
                         'optionname=foo_bar',
                         'regularexpression="\\\\w+"',
@@ -442,7 +441,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                     output_file)
         actual = str(command.configuration)
         with TestSearchCommandsApp._open_data_file(expected_file_location, 'r') as input_file:
-            expected = ''.join(input_file.readlines())
+            expected = ''.join(input_file.readlines()).replace("{file}", file_path)
         self.assertMultiLineEqual(expected, actual)
 
     def _assertCorrectOutputFile(self, name):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -59,9 +59,11 @@ def to_bool(x):
     else:
         raise ValueError("Not a boolean value: %s", x)
 
+
 def tmpname():
     name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
     return name
+
 
 def wait(predicate, timeout=60, pause_time=0.5):
     assert pause_time < timeout
@@ -170,6 +172,8 @@ class SDKTestCase(unittest.TestCase):
         except client.HTTPError as he:
             if he.status == 400:
                 raise IOError("App %s not found in app collection" % name)
+        if self.service.restart_required:
+            self.service.restart(120)
         self.installedApps.append(name)
 
     def app_collection_installed(self):

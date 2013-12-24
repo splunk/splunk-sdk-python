@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,6 +23,7 @@ import testlib
 
 import splunklib.client as client
 
+
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
     testcase.assertTrue(isinstance(first, basestring), 
@@ -35,11 +36,13 @@ def check_multiline(testcase, first, second, message=None):
     if first != second:
         testcase.fail("Multiline strings are not equal: %s" % message)
 
+
 # Run the given python script and return its exit code. 
 def run(script, stdin=None, stdout=PIPE, stderr=None):
     process = start(script, stdin, stdout, stderr)
     process.communicate()
     return process.wait()
+
 
 # Start the given python script and return the corresponding process object.
 # The script can be specified as either a string or arg vector. In either case
@@ -50,11 +53,14 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     script = ["python"] + script
     return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
 
+
 # Rudimentary sanity check for each of the examples
 class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
-        for arg in args: 
-            self.assertEquals(run(arg), 0)
+        for arg in args:
+            result = run(arg)
+            self.assertEquals(result, 0)
+        self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
         super(ExamplesTestCase, self).setUp()
@@ -155,7 +161,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "index.py disable sdk-tests",
             "index.py enable sdk-tests",
             "index.py clean sdk-tests")
-        self.restartSplunk()
+        return
 
     def test_info(self):
         self.check_commands(

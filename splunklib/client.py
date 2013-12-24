@@ -1,4 +1,4 @@
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -516,16 +516,19 @@ class Service(_BaseService):
         """Indicates whether splunkd is in a state that requires a restart.
 
         :return: A ``boolean`` that indicates whether a restart is required.
+
         """
         response = self.get("messages").body.read()
         messages = data.load(response)['feed']
         if 'entry' not in messages:
-            titles = []
-        elif isinstance(messages['entry'], dict):
-            titles = [messages['entry']['title']]
+            result = False
         else:
-            titles = [x['title'] for x in messages['entry']]
-        return 'restart_required' in titles
+            if isinstance(messages['entry'], dict):
+                titles = [messages['entry']['title']]
+            else:
+                titles = [x['title'] for x in messages['entry']]
+            result = 'restart_required' in titles
+        return result
 
     @property
     def roles(self):
@@ -953,7 +956,7 @@ class Entity(Endpoint):
         if state is not None:
             self._state = state
         else:
-            self._state = self.read()
+            self._state = self.read(self.get())
         return self
 
     @property
@@ -976,6 +979,8 @@ class Entity(Endpoint):
     def disable(self):
         """Disables the entity at this endpoint."""
         self.post("disable")
+        if self.service.restart_required:
+            self.service.restart(120)
         return self
 
     def enable(self):
@@ -1009,9 +1014,8 @@ class Entity(Endpoint):
         """
         return self.state.title
 
-    def read(self):
-        """Reads the current state of the entity from the server."""
-        response = self.get()
+    def read(self, response):
+        """ Reads the current state of the entity from the server. """
         results = self._load_state(response)
         # In lower layers of the SDK, we end up trying to URL encode
         # text to be dispatched via HTTP. However, these links are already
@@ -1688,6 +1692,7 @@ class Indexes(Collection):
             raise IllegalOperationException("Deleting indexes via the REST API is "
                                             "not supported before Splunk version 5.")
 
+
 class Index(Entity):
     """This class represents an index and provides different operations, such as
     cleaning the index, writing to the index, and so forth."""
@@ -1860,6 +1865,7 @@ class Index(Entity):
         path = 'data/inputs/oneshot'
         self.service.post(path, name=filename, **kwargs)
         return self
+
 
 class Input(Entity):
     """This class represents a Splunk input. This class is the base for all
@@ -2373,7 +2379,6 @@ class Job(Entity):
         path = PATH_JOBS + sid
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
-        self._is_ready = False
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -2441,21 +2446,24 @@ class Job(Entity):
         :return: ``True`` if the job is done, ``False`` if not.
         :rtype: ``boolean``
         """
-        if (not self.is_ready()):
+        if not self.is_ready():
             return False
-        self.refresh()
-        return self['isDone'] == '1'
+        done = (self._state.content['isDone'] == '1')
+        return done
 
     def is_ready(self):
         """Indicates whether this job is ready for querying.
 
         :return: ``True`` if the job is ready, ``False`` if not.
         :rtype: ``boolean``
+
         """
-        if self.get().status == 204:
+        response = self.get()
+        if response.status == 204:
             return False
-        else:
-            return True
+        self._state = self.read(response)
+        ready = self._state.content['dispatchState'] not in ['QUEUED', 'PARSING']
+        return ready
 
     @property
     def name(self):
@@ -2637,6 +2645,7 @@ class Job(Entity):
         """
         self.post("control", action="unpause")
         return self
+
 
 class Jobs(Collection):
     """This class represents a collection of search jobs. Retrieve this
@@ -2982,7 +2991,7 @@ class SavedSearch(Entity):
 
         :return: The :class:`SavedSearch`.
         """
-        self.post("suppress", suppressed="1", expiration=expiration)
+        self.post("suppress", expiration=expiration)
         return self
 
     @property
@@ -3004,7 +3013,7 @@ class SavedSearch(Entity):
 
         :return: The :class:`SavedSearch`.
         """
-        self.post("suppress", suppressed="0", expiration="0")
+        self.post("suppress", expiration="0")
         return self
 
 

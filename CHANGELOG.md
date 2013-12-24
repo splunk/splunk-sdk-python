@@ -1,5 +1,33 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.2
+
+### New features and APIs
+
+* Added support for building custom search commands in Python using the Splunk
+  SDK for Python.
+
+### Bug fix
+
+* When running `setup.py dist` without running `setup.py build`, there is no
+  longer an `No such file or directory` error on the command line, and the
+  command behaves as expected.
+
+* When setting the sourcetype of a modular input event, events are indexed properly.
+  Previously Splunk would encounter an error and skip them.
+
+### Breaking changes
+
+* If modular inputs were not being indexed by Splunk because a sourcetype was set
+  (and the SDK was not handling them correctly), they will be indexed upon updating
+  to this version of the SDK.
+
+### Minor changes
+
+* Docstring corrections in the modular input examples.
+
+* A minor docstring correction in `splunklib/modularinput/event_writer.py`.
+
 ## Version 1.1
 
 ### New features and APIs

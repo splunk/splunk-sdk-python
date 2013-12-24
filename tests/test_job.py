@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,8 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from time import sleep
 import testlib
-import logging
 
 try:
     import unittest2 as unittest
@@ -26,6 +26,7 @@ import splunklib.client as client
 import splunklib.results as results
 
 from splunklib.binding import _log_duration
+
 
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
@@ -78,13 +79,11 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
     
     def test_results_docstring_sample(self):
-        import splunklib.client as client
         import splunklib.results as results
-        from time import sleep
-        service = self.service # cheat
+        service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
         while not job.is_done():
-            sleep(.2)
+            sleep(0.2)
         rr = results.ResultsReader(job.results())
         for result in rr:
             if isinstance(result, results.Message):
@@ -163,13 +162,14 @@ class TestUtilities(testlib.SDKTestCase):
                 'eventIsTruncated', 'eventSearch', 'eventSorting', 'isDone',
                 'isFailed', 'isFinalized', 'isPaused', 'isPreviewEnabled',
                 'isRealTimeSearch', 'isRemoteTimeline', 'isSaved', 'isSavedSearch',
-                'isZombie', 'keywords', 'label', 'latestTime', 'messages',
+                'isZombie', 'keywords', 'label', 'messages',
                 'numPreviews', 'priority', 'remoteSearch', 'reportSearch',
                 'resultCount', 'resultIsStreaming', 'resultPreviewCount',
                 'runDuration', 'scanCount', 'searchProviders', 'sid',
                 'statusBuckets', 'ttl']
         for key in keys:
             self.assertTrue(key in job.content)
+        return
 
     def test_read_jobs(self):
         jobs = self.service.jobs
@@ -177,6 +177,7 @@ class TestUtilities(testlib.SDKTestCase):
             self.check_job(job)
             job.refresh()
             self.check_job(job)
+
 
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
@@ -194,46 +195,65 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             print "Test requires sdk-app-collection. Skipping."
             return
         self.install_app_from_collection("sleep_command")
-        self.query = "search index=_internal | sleep 100"
+        sleep_duration = 100
+        self.query = "search index=_internal | sleep %d" % sleep_duration
         self.job = self.service.jobs.create(
             query=self.query,
             earliest_time="-1m",
             priority=5,
             latest_time="now")
-        self.assertEqual(self.job['isPreviewEnabled'], '0')
+        while not self.job.is_ready():
+            pass
+        self.assertEqual(self.job.content['isPreviewEnabled'], '0')
         self.job.enable_preview()
-        def is_preview():
-            self.job.refresh()
-            if self.job.is_done():
+
+        def is_preview_enabled():
+            is_done = self.job.is_done()
+            if is_done:
                 self.fail('Job finished before preview enabled.')
-            return self.job['isPreviewEnabled'] == '1'
-        self.assertEventuallyTrue(is_preview)
+            return self.job.content['isPreviewEnabled'] == '1'
+
+        self.assertEventuallyTrue(is_preview_enabled)
+        return
 
     def test_setpriority(self):
         if not self.app_collection_installed():
             print "Test requires sdk-app-collection. Skipping."
             return
         self.install_app_from_collection("sleep_command")
-        self.query = "search index=_internal | sleep 100"
+        sleep_duration = 100
+        self.query = "search index=_internal | sleep %s" % sleep_duration
         self.job = self.service.jobs.create(
             query=self.query,
             earliest_time="-1m",
             priority=5,
             latest_time="now")
-        # Note that you can only *decrease* the priority (i.e., 5 decreased to 3)
-        # of a job unless Splunk is running as root. This is because Splunk jobs
+
+        # Note: You can only *decrease* the priority (i.e., 5 decreased to 3) of
+        # a job unless Splunk is running as root. This is because Splunk jobs
         # are tied up with operating system processes and their priorities.
-        self.assertEqual(5, int(self.job['priority']))
+
+        if self.service._splunk_version[0] < 6:
+            # BUG: Splunk 6 doesn't return priority until job is ready
+            old_priority = int(self.job.content['priority'])
+            self.assertEqual(5, old_priority)
 
         new_priority = 3
         self.job.set_priority(new_priority)
 
+        if self.service._splunk_version[0] > 5:
+            # BUG: Splunk 6 doesn't return priority until job is ready
+            while not self.job.is_ready():
+                pass
+
         def f():
             if self.job.is_done():
                 self.fail("Job already done before priority was set.")
-            self.job.refresh()
-            return int(self.job['priority']) == new_priority
-        self.assertEventuallyTrue(f, timeout=120)
+            return int(self.job.content['priority']) == new_priority
+
+        self.assertEventuallyTrue(f, timeout=sleep_duration + 5)
+        return
+
 
 class TestJob(testlib.SDKTestCase):
     def setUp(self):
@@ -269,7 +289,6 @@ class TestJob(testlib.SDKTestCase):
             self.job.unpause()
             self.job.refresh()
             self.assertEqual(self.job['isPaused'], '0')
-
         self.job.pause()
         self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
 
@@ -308,10 +327,14 @@ class TestJob(testlib.SDKTestCase):
         self.assertGreater(ttl, old_ttl)
 
     def test_touch(self):
-        # This cannot be tested very fast. touch will reset the ttl to the original value for the job,
-        # so first we have to wait just long enough for the ttl to tick down. Its granularity is 1s,
-        # so we'll wait 1.1s before we start.
-        import time; time.sleep(2)
+        # This cannot be tested very fast. touch will reset the ttl to the
+        # original value for the job, so first we have to wait just long enough
+        # for the ttl to tick down. Its granularity is 1s, so we'll wait a
+        # couple of seconds before we start.
+        while not self.job.is_done():
+            pass
+        sleep(2)
+        self.job.refresh()
         old_ttl = int(self.job['ttl'])
         self.job.touch()
         self.job.refresh()
@@ -319,6 +342,7 @@ class TestJob(testlib.SDKTestCase):
         if new_ttl == old_ttl:
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
         self.assertGreater(int(self.job['ttl']), old_ttl)
+
 
 class TestResultsReader(unittest.TestCase):
     def test_results_reader(self):
@@ -365,7 +389,6 @@ class TestResultsReader(unittest.TestCase):
                     N_messages += 1
             self.assertEqual(N_results, 3)
             self.assertEqual(N_messages, 3)
-        
 
     def test_xmldtd_filter(self):
         from StringIO import StringIO

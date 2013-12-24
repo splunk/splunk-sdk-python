@@ -91,7 +91,7 @@ class Event(object):
         # add all other subelements to this Event, represented by (tag, text)
         subelements = [
             ("source", self.source),
-            ("sourceType", self.sourceType),
+            ("sourcetype", self.sourceType),
             ("index", self.index),
             ("host", self.host),
             ("data", self.data)

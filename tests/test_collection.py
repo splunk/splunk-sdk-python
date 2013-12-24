@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -138,17 +138,28 @@ class CollectionTestCase(testlib.SDKTestCase):
                                  (coll_name, expected, found))
 
     def test_list_with_sort_mode_auto(self):
+        # The jobs collection requires special handling. The sort_dir kwarg is
+        # needed because the default sorting direction for jobs is "desc", not
+        # "asc". The sort_key kwarg is required because there is no default
+        # sort_key for jobs in Splunk 6.
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            # sort_dir is needed because the default sorting direction
-            # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
-            expected = [ent.name for ent in coll.list(sort_mode="auto", sort_dir="asc")]
+            if coll_name == 'jobs':
+                expected = [ent.name for ent in coll.list(
+                    sort_mode="auto", sort_dir="asc", sort_key="sid")]
+            else:
+                expected = [ent.name for ent in coll.list(sort_mode="auto")]
+
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            found = [ent.name for ent in coll.list(sort_dir="asc")]
-            self.assertEqual(expected, found,
-                             msg='on %s (expected: %s, found: %s)' % \
-                                 (coll_name, expected, found))
+
+            if coll_name == 'jobs':
+                found = [ent.name for ent in coll.list(
+                    sort_dir="asc", sort_key="sid")]
+            else:
+                found = [ent.name for ent in coll.list()]
+
+            self.assertEqual(expected, found, msg='on %s (expected: %s, found: %s)' % (coll_name, expected, found))
 
     def test_list_with_sort_mode_alpha_case(self):
         for coll_name in collections:

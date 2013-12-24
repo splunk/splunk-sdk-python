@@ -1,5 +1,5 @@
 splunklib.modularinput
---------------
+----------------------
 
 .. automodule:: splunklib.modularinput
 

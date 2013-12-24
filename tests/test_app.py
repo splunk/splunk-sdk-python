@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@ import testlib
 import logging
 
 import splunklib.client as client
-import splunklib.data as data
+
 
 class TestApp(testlib.SDKTestCase):
     app = None
@@ -39,6 +39,9 @@ class TestApp(testlib.SDKTestCase):
             logging.debug("Creating app %s", self.app_name)
         else:
             logging.debug("App %s already exists. Skipping creation.", self.app_name)
+        if self.service.restart_required:
+            self.service.restart(120)
+        return
 
     def tearDown(self):
         super(TestApp, self).tearDown()
@@ -70,14 +73,14 @@ class TestApp(testlib.SDKTestCase):
             'author': "Me",
             'description': "Test app description",
             'label': "SDK Test",
-            'manageable': False,
+            'version': "1.2",
             'visible': True,
         }
         self.app.update(**kwargs)
         self.app.refresh()
         self.assertEqual(self.app['author'], "Me")
         self.assertEqual(self.app['label'], "SDK Test")
-        self.assertEqual(self.app['manageable'], "0")
+        self.assertEqual(self.app['version'], "1.2")
         self.assertEqual(self.app['visible'], "1")
 
     def test_delete(self):

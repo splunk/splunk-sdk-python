@@ -1,4 +1,4 @@
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -25,6 +25,7 @@ def error(message, exitcode = None):
     print >> sys.stderr, "Error: %s" % message
     if exitcode is not None: sys.exit(exitcode)
 
+
 class record(dict):
     def __getattr__(self, name):
         try: 
@@ -34,6 +35,7 @@ class record(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
+
 
 class Parser(OptionParser):
     def __init__(self, rules = None, **kwargs):
@@ -104,6 +106,7 @@ class Parser(OptionParser):
 
     def format_epilog(self, formatter):
         return self.epilog or ""
+
 
 def cmdline(argv, rules=None, config=None, **kwargs):
     """Simplified cmdopts interface that does not default any parsing rules

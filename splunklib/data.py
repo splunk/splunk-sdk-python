@@ -1,4 +1,4 @@
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -225,7 +225,7 @@ class Record(dict):
     def __getitem__(self, key):
         if key in self:
             return dict.__getitem__(self, key)
-        key = key + self.sep
+        key += self.sep
         result = record()
         for k,v in self.iteritems():
             if not k.startswith(key):

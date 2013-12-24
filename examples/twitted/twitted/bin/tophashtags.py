@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,6 +15,7 @@
 # under the License.
 
 import csv, sys, urllib, re
+
 
 # Tees output to a logfile for debugging
 class Logger:
@@ -35,6 +36,7 @@ class Logger:
         if self.buf is not None:
             self.buf.write(message)
             self.buf.flush()
+
 
 # Tees input as it is being read, also logging it to a file
 class Reader:
@@ -65,6 +67,7 @@ class Reader:
         # Return to the caller
         return line
 
+
 def output_results(results, mvdelim = '\n', output = sys.stdout):
     """Given a list of dictionaries, each representing
     a single result, and an optional list of fields,
@@ -90,6 +93,7 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     # Write out the fields, and then the actual results
     writer.writerow(dict(zip(fields, fields)))
     writer.writerows(results)
+
 
 def read_input(buf, has_header = True):
     """Read the input from the given buffer (or stdin if no buffer)
@@ -132,6 +136,7 @@ def read_input(buf, has_header = True):
 
     return buf, header
 
+
 def encode_mv(vals):
     """For multivalues, values are wrapped in '$' and separated using ';'
     Literal '$' values are represented with '$$'"""
@@ -143,6 +148,7 @@ def encode_mv(vals):
         s += '$' + val + '$'
 
     return s
+
 
 def main(argv):
     stdin_wrapper = Reader(sys.stdin)
@@ -167,12 +173,13 @@ def main(argv):
             
     num_hashtags = sum(hashtags.values())
 
+    from decimal import Decimal
     results = []
     for k, v in hashtags.iteritems():
         results.append({
             "hashtag": k, 
             "count": v, 
-            "percentage": (float(v) / float(num_hashtags))
+            "percentage": (Decimal(v) / Decimal(num_hashtags))
         })
 
     # And output it to the next stage of the pipeline

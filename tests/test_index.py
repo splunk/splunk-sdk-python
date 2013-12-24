@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,17 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from os import path
-import time
 import testlib
+import logging
+
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
 
-import splunklib.client as client
-
-import logging
 
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):
@@ -66,7 +63,6 @@ class IndexTest(testlib.SDKTestCase):
 
     def test_disable_enable(self):
         self.index.disable()
-        self.restartSplunk()
         self.index.refresh()
         self.assertEqual(self.index['disabled'], '1')
         self.index.enable()

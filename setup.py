@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2012 Splunk, Inc.
+# Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,9 +15,13 @@
 # under the License.
 
 from distutils.core import setup, Command
-import os, shutil, tarfile
-import splunklib
 from contextlib import closing
+from fnmatch import fnmatch
+
+import os
+import splunklib
+import tarfile
+
 
 def run_test_suite():
     try:
@@ -29,6 +33,7 @@ def run_test_suite():
     suite = unittest.defaultTestLoader.discover('.')
     unittest.TextTestRunner().run(suite)
     os.chdir(original_cwd)
+
 
 class CoverageCommand(Command):
     """setup.py command to run code coverage of the test suite."""
@@ -53,6 +58,7 @@ class CoverageCommand(Command):
         cov.stop()
         cov.html_report(directory='coverage_report')
 
+
 class TestCommand(Command):
     """setup.py command to run the whole test suite."""
     description = "Run test full test suite."
@@ -67,9 +73,11 @@ class TestCommand(Command):
     def run(self):
         run_test_suite()
 
+
 class DistCommand(Command):
-    """setup.py command to create .spl files for modular input examples"""
-    description = "Build modular input example .spl files."
+    """setup.py command to create .spl files for modular input and search
+    command examples"""
+    description = "Build modular input and search command example .spl files."
     user_options = []
 
     def initialize_options(self):
@@ -89,10 +97,14 @@ class DistCommand(Command):
         return python_files
 
     def run(self):
-        app_names = ["random_numbers", "github_forks"]
+        # Create random_numbers.spl and github_forks.spl
 
-        splunklib_dir = "splunklib"
-        modinput_dir = os.path.join(splunklib_dir, "modularinput")
+        app_names = ['random_numbers', 'github_forks']
+        splunklib_arcname = "splunklib"
+        modinput_dir = os.path.join(splunklib_arcname, "modularinput")
+
+        if not os.path.exists("build"):
+            os.makedirs("build")
 
         for app in app_names:
             with closing(tarfile.open(os.path.join("build", app + ".spl"), "w")) as spl:
@@ -110,11 +122,11 @@ class DistCommand(Command):
                     arcname=os.path.join(app, "README", "inputs.conf.spec")
                 )
 
-                splunklib_files = self.get_python_files(os.listdir(splunklib_dir))
+                splunklib_files = self.get_python_files(os.listdir(splunklib_arcname))
                 for file_name in splunklib_files:
                     spl.add(
-                        os.path.join(splunklib_dir, file_name),
-                        arcname=os.path.join(app, "bin", splunklib_dir, file_name)
+                        os.path.join(splunklib_arcname, file_name),
+                        arcname=os.path.join(app, "bin", splunklib_arcname, file_name)
                     )
 
                 modinput_files = self.get_python_files(os.listdir(modinput_dir))
@@ -125,6 +137,38 @@ class DistCommand(Command):
                     )
 
                 spl.close()
+
+        # Create searchcommands_app.spl
+
+        sdk_dir = os.path.abspath('.')
+
+        def exclude(path):
+            # TODO: Replace with filter function because exclude is deprecated
+            basename = os.path.basename(path)
+            for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
+                if fnmatch(basename, pattern):
+                    return True
+            return False
+
+        tarball = os.path.join(sdk_dir, 'build', 'searchcommands_app.spl')
+
+        splunklib_arcname = os.path.join(
+            'searchcommands_app', 'bin', 'splunklib')
+
+        manifest = [
+            (os.path.join(sdk_dir, 'examples', 'searchcommands_app'),
+             'searchcommands_app'),
+            (os.path.join(sdk_dir, 'splunklib', '__init__.py'),
+             os.path.join(splunklib_arcname, '__init__.py')),
+            (os.path.join(sdk_dir, 'splunklib', 'searchcommands'),
+             os.path.join(splunklib_arcname, 'searchcommands'))
+        ]
+
+        with closing(tarfile.open(tarball, 'w')) as spl:
+            for source, target in manifest:
+                spl.add(source, arcname=target, exclude=exclude)
+
+        return
 
 setup(
     author="Splunk, Inc.",

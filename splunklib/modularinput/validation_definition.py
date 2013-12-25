@@ -20,6 +20,7 @@ except ImportError as ie:
 
 from utils import parse_xml_data
 
+
 class ValidationDefinition(object):
     """This class represents the XML sent by Splunk for external validation of a
     new modular input.

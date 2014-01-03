@@ -5,25 +5,17 @@ splunklib.searchcommands
 
 .. autofunction:: dispatch
 
-.. automodule:: splunklib.searchcommands.generating_command
-
 .. autoclass:: GeneratingCommand
     :members:
     :inherited-members:
-
-.. automodule:: splunklib.searchcommands.reporting_command
 
 .. autoclass:: ReportingCommand
     :members:
     :inherited-members:
 
-.. automodule:: splunklib.searchcommands.streaming_command
-
 .. autoclass:: StreamingCommand
     :members:
     :inherited-members:
-
-.. automodule:: splunklib.searchcommands.decorators
 
 .. autoclass:: Configuration
     :members:
@@ -33,36 +25,34 @@ splunklib.searchcommands
     :members:
     :inherited-members:
 
-.. automodule:: splunklib.searchcommands.validators
-
-.. autoclass:: splunklib.searchcommands.validators.Boolean
+.. autoclass:: Boolean
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Duration
+.. autoclass:: Duration
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Fieldname
+.. autoclass:: Fieldname
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.File
+.. autoclass:: File
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Integer
+.. autoclass:: Integer
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.RegularExpression
+.. autoclass:: RegularExpression
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Set
+.. autoclass:: Set
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Validator
+.. autoclass:: Validator
     :members:
     :inherited-members:

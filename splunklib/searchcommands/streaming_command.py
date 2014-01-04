@@ -33,32 +33,36 @@ class StreamingCommand(SearchCommand):
     times during the course of pipeline processing.
 
     You can tell Splunk to run your streaming command locally on a search head,
-    never remotely on indexers:
+    never remotely on indexers.
 
-    ``@Configuration(local=False)``
-    ``class CountMatchesCommand(StreamingCommand):``
-    ``    ...``
+    .. code-block:: python
+
+        @Configuration(local=False)
+        class SomeStreamingCommand(StreamingCommand):
+            ...
 
     If your streaming command modifies the time order of event records you must
-    tell Splunk to ensure correct behavior:
+    tell Splunk to ensure correct behavior.
 
-    ``@Configuration(overrides_timeorder=True)``
-    ``class CountMatchesCommand(StreamingCommand):``
-    ``    ...``
+    .. code-block:: python
+
+        @Configuration(overrides_timeorder=True)
+        class SomeStreamingCommand(StreamingCommand):
+            ...
 
     """
     #region Methods
 
     def stream(self, records):
-        """ TODO: Documentation
+        """ Generator function that processes and yields event records to the
+        Splunk processing pipeline
+
+        You must override this method.
 
         """
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
     def _prepare(self, argv, input_file):
-        """ TODO: Documentation
-
-        """
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
         if input_file is None:
@@ -68,9 +72,6 @@ class StreamingCommand(SearchCommand):
         return ConfigurationSettings, self.stream, argv, reader
 
     def _execute(self, operation, reader, writer):
-        """ TODO: Documentation
-
-        """
         try:
             for record in operation(SearchCommand.records(reader)):
                 writer.writerow(record)
@@ -81,7 +82,7 @@ class StreamingCommand(SearchCommand):
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ Represents the configuration settings that apply to a
-        StreamingCommand
+        :code:`StreamingCommand`
 
         """
         #region Properties
@@ -91,7 +92,7 @@ class StreamingCommand(SearchCommand):
             """ Specifies whether this command should only be run on the search
             head
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._local
@@ -103,7 +104,7 @@ class StreamingCommand(SearchCommand):
             """ Specifies whether this command changes the time ordering of
             event records
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._overrides_timeorder
@@ -115,7 +116,7 @@ class StreamingCommand(SearchCommand):
             """ Specifies whether this command retains _raw events or transforms
             them
 
-            Default: True
+            Default: :const:`True`
 
             """
             return type(self)._retainsevents
@@ -129,7 +130,7 @@ class StreamingCommand(SearchCommand):
             By default streamable commands may be run on the search head or one
             or more indexers, depending on performance scheduling
             considerations. This behavior may be overridden by setting
-            `local=True`. This forces a streamable command to be run on the
+            :code:`local=True`. This forces a streamable command to be run on the
             search head.
 
             Fixed: True.
@@ -143,7 +144,7 @@ class StreamingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ TODO: Documentation
+            """ Verifies :code:`command` class structure
 
             """
             if command.stream == StreamingCommand.stream:

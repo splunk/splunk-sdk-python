@@ -12,134 +12,131 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-""" Splunk search command library
+"""Design Notes
+---------------
 
-#Design Notes
+1. Commands are constrained to this ABNF grammar::
 
-1. Command lines are constrained to this ABNF grammar::
+      command       = command-name *[wsp option] *[wsp [dquote] field-name [dquote]]
+      command-name  = alpha *( alpha / digit )
+      option        = option-name [wsp] "=" [wsp] option-value
+      option-name   = alpha *( alpha / digit / "_" )
+      option-value  = word / quoted-string
+      word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
+      quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
+      field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
-       command       = command-name *[wsp option] *[wsp [dquote] field-name [dquote]]
-       command-name  = alpha *( alpha / digit )
-       option        = option-name [wsp] "=" [wsp] option-value
-       option-name   = alpha *( alpha / digit / "_" )
-       option-value  = word / quoted-string
-       word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
-       quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
-       field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
+   It is Constrained to an 8-bit character set. It does not show that
+   :code:`field-name` values may be comma-separated. This is because Splunk strips
+   commas from the command line. A search command will never see them.
 
-   **Note:**
+3. Commands must be statically configured as follows:
 
-   This grammar is constrained to an 8-bit character set.
+   .. code-block:: text
+      :linenos:
 
-   **Note:**
+      [commandname]
+      filename = commandname.py
+      supports_getinfo = true
+      supports_rawargs = true
 
-   This grammar does not show that `field-name` values may be comma-separated
-   when in fact they may be. This is because Splunk strips commas from the
-   command line. A custom search command will never see them.
+   No other static configuration is required or expected and may interfere with
+   command execution.
 
 2. Commands support dynamic probing for settings.
 
-   Splunk probes for settings dynamically when `supports_getinfo=true`.
-
-3. Commands do not support static probing for settings.
-
-   This module expects that commands are statically configured as follows::
-
-       [<command-name>]
-       filename = <command-name>.py
-       supports_getinfo = true
-
-   No other static configuration is required or expected and may interfere
-   with command execution.
+   Splunk probes for settings dynamically when :code:`supports_getinfo=true`.
+   You must add this line to the commands.conf stanza for each of your search
+   commands.
 
 4. Commands do not support parsed arguments on the command line.
 
-   Splunk parses arguments when `supports_rawargs=false`. This ``SearchCommand``
-   class sets this value unconditionally. You cannot override it.
+   Splunk parses arguments when :code:`supports_rawargs=false`. The
+   :code:`SearchCommand` class sets this value unconditionally. You cannot
+   override it.
 
-   **Rationale:**
+   **Rationale**
 
    Splunk parses arguments by stripping quotes, nothing more. This may be useful
    in some cases, but doesn't work well with our chosen grammar.
 
 5. Commands consume input headers.
 
-   An input header is provided by Splunk when `enableheader=true`. The
-   ``SearchCommand`` class sets this value unconditionally. You cannot override
-   it.
+   An input header is provided by Splunk when :code:`enableheader=true`. The
+   :class:`SearchCommand` class sets this value unconditionally. You cannot
+   override it.
 
 6. Commands produce an output messages header.
 
    Splunk expects a command to produce an output messages header when
-   `outputheader=true`. The ``SearchCommand`` class sets this value
+   :code:`outputheader=true`. The :class:`SearchCommand` class sets this value
    unconditionally. You cannot override it.
 
 7. Commands support multi-value fields.
 
    Multi-value fields are provided and consumed by Splunk when
-   `supports_multivalue=true`. The ``SearchCommand`` class sets this value
-   unconditionally. You cannot override it.
+   :code:`supports_multivalue=true`. This value is fixed. You cannot override
+   it.
 
 8. Commands represent all fields on the output stream as multi-value fields.
 
    Splunk represents multi-value fields with a pair of fields:
 
-   + `<field-name>`
+   ======================== ====================================================
+   field-name               Contains the text from which the multi-value field
+                            was derived.
 
-     Contains the text from which the multi-value field was derived.
+   :code:`__mv_field-name`  Contains an encoded list. Values in the list are
+                            wrapped in dollar signs ($) and separated by
+                            semi-colons (;). Dollar signs ($) within a value are
+                            represented by a pair of dollar signs ($$). Empty
+                            lists are represented by the empty string.
+                            Single-value lists are represented by the single
+                            value.
+   ======================== ====================================================
 
-   + `__mv_<field-name>`
+   On input this class processes and hides all :code:`__mv_` fields. On output
+   backing :code:`__mv_` fields are produced for all fields, thereby enabling a
+   command to reduce its memory footprint by using streaming I/O. This is done
+   at the cost of one extra byte of data per field per record on the output
+   stream and some extra processing time by the next processor in the pipeline.
 
-     Contains an encoded list. Values in the list are wrapped in dollar
-     signs ('$') and separated by semi-colons (';). Dollar signs ('$')
-     within a value are represented by a pair of dollar signs ('$$').
-     Empty lists are represented by the empty string. Single-value lists
-     are represented by the single value.
+9. A :class:`ReportingCommand` must override :meth:`~ReportingCommand.reduce`
+   and may override :meth:`~ReportingCommand.map`. Map/reduce commands on the
+   Splunk processing pipeline are distinguished as this example illustrates.
 
-   On input this class processes and hides all **__mv_** fields. On output
-   this class produces backing **__mv_** fields for all fields, thereby
-   enabling a command to reduce its memory footprint by using streaming
-   I/O. This is done at the cost of one extra byte of data per field per
-   record on the output stream and extra processing time by the next
-   processor in the pipeline.
+   **Splunk command**
 
-9. A ReportingCommand may implement a `map` method (a.k.a, a streaming preop)
-   and must implement a `reduce` operation (a.k.a., a reporting operation).
+   .. code-block:: text
 
-   Map/reduce command lines are distinguished by this module as exemplified
-   here:
+       sum total=total_date_hour date_hour
 
-   **Command**::
+   **Map command line**
 
-       ...| sum total=total_date_hour date_hour
+   .. code-block:: text
 
-   **Reduce command line**::
+      sum __GETINFO__ __map__ total=total_date_hour date_hour
+      sum __EXECUTE__ __map__ total=total_date_hour date_hour
 
-       sum __GETINFO__ total=total_date_hour date_hour
-       sum __EXECUTE__ total=total_date_hour date_hour
+   **Reduce command line**
 
-   **Map command line**::
+   .. code-block:: text
 
-       sum __GETINFO__ __map__ total=total_date_hour date_hour
-       sum __EXECUTE__ __map__ total=total_date_hour date_hour
+      sum __GETINFO__ total=total_date_hour date_hour
+      sum __EXECUTE__ total=total_date_hour date_hour
 
-   The `__map__` argument is introduced by the `ReportingCommand._execute`
-   method. ReportingCommand authors cannot influence the contents of the
-   command line in this release.
+   The :code:`__map__` argument is introduced by
+   :meth:`ReportingCommand._execute`. Search command authors cannot influence
+   the contents of the command line in this release.
 
-#References
+References
+----------
 
-1. [Commands.conf.spec](http://docs.splunk.com/Documentation/Splunk/5.0.5/Admin/Commandsconf)
-2. [Search command style guide](http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide)
+1. `Search command style guide <http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide>`_
+
+2. `Commands.conf.spec <http://docs.splunk.com/Documentation/Splunk/5.0.5/Admin/Commandsconf>`_
 
 """
-
-# TODO: Do not use [defaults] stanza in commands.conf
-# It doesn't work as advertised. Make sure the ERD/PRD/User documentation is
-# updated. The source code already is.
-
-# TODO: Multi-line message headers are incorrectly formatted in Splunk Web UI
-# What should we be using as a newline terminator? Try url encoding.
 
 from __future__ import absolute_import
 
@@ -158,46 +155,66 @@ if sys.platform == 'win32':
     import os
     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 
-
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
              sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
 
-    This function implements a [conditional script stanza](http://goo.gl/OFaox6)
-    based on the value of `module_name`::
+    This function implements a `conditional script stanza <http://goo.gl/OFaox6>`_
+    based on the value of :code:`module_name`::
 
         if module_name is None or module_name == '__main__':
             # execute command
 
-    If you would like this function's caller to act as either a reusable module
-    or a standalone program, call it at module scope with `__name__` as the
-    value of `module_name`. Otherwise, if you wish this function to
-    unconditionally instantiate and execute `command_class`, pass `None` as the
-    value of `module_name`.
+    Call this function at module scope with :code:`module_name=__name__`, if you
+    would like your module to act as either a reusable module or a standalone
+    program. Otherwise, if you wish this function to unconditionally instantiate
+    and execute :code:`command_class`, pass :const:`None` as the value of
+    :code:`module_name`.
 
     :param command_class: Class to instantiate and execute.
-    :type command_class: ``.search_command.SearchCommand``
+    :type command_class: :code:`SearchCommand`
     :param argv: List of arguments to the command.
-    :type argv: ``list``
+    :type argv: :code:`list`
     :param input_file: File from which the command will read data.
-    :type input_file: ``file``
+    :type input_file: :code:`file`
     :param output_file: File to which the command will write data.
-    :type output_file: ``file``
-    :param module_name: Name of the module calling dispatch or `None`.
-    :type module_name: ``str``
-    :returns: ``None``
+    :type output_file: :code:`file`
+    :param module_name: Name of the module calling :code:`dispatch` or :const:`None`.
+    :type module_name: :code:`str`
+    :returns: :const:`None`
 
-    **Example**::
+    **Example**
+
+    .. code-block:: python
+        :linenos:
 
         #!/usr/bin/env python
-        ...
-        class CountMatchesCommand(StreamingCommand):
+        from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
+        @Configuration()
+        class SomeStreamingCommand(StreamingCommand):
             ...
+            def stream(records):
+                ...
+        dispatch(SomeStreamingCommand, module_name=__name__)
 
-        dispatch(CountMatchesCommand, module_name=__name__)
+    Dispatches the :code:`SomeStreamingCommand`, if and only if
+    :code:`__name__` is equal to :code:`'__main__'`.
 
-    Dispatches the `CountMatchesCommand`, if and only if `__name__` is equal to
-    `__main__`.
+
+    **Example**
+
+    .. code-block:: python
+        :linenos:
+
+        from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
+        @Configuration()
+        class SomeStreamingCommand(StreamingCommand):
+            ...
+            def stream(records):
+                ...
+        dispatch(SomeStreamingCommand)
+
+    Unconditionally dispatches :code:`SomeStreamingCommand`.
 
     """
     if module_name is not None and module_name != '__main__':

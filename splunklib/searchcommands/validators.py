@@ -20,13 +20,13 @@ import sys
 class Validator(object):
     """ Base class for validators that check and format search command options
 
-    You must inherit from this class and override `Validator.__call__` and
-    `Validator.format`. `Validator.__call__` should convert the value it
-    receives as argument and then return it or raise a ValueError, if the value
-    will not convert.
+    You must inherit from this class and override :code:`Validator.__call__` and
+    :code:`Validator.format`. :code:`Validator.__call__` should convert the
+    value it receives as argument and then return it or raise a
+    :code:`ValueError`, if the value will not convert.
 
-    `Validator.format` should return a human readable version of the value it
-    receives as argument the same way `str` does.
+    :code:`Validator.format` should return a human readable version of the value
+    it receives as argument the same way :code:`str` does.
 
     """
     def __call__(self, value):
@@ -75,7 +75,6 @@ class Fieldname(Validator):
     """ Validates field name option values
 
     """
-    import re
     pattern = re.compile(r'''[_.a-zA-Z-][_.a-zA-Z0-9-]*$''')
 
     def __call__(self, value):
@@ -129,7 +128,6 @@ class OptionName(Validator):
     """ Validates option names
 
     """
-    import re
     pattern = re.compile(r'''[a-zA-Z][_a-zA-Z0-9]*$''')
 
     def __call__(self, value):

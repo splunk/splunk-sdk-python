@@ -138,7 +138,7 @@ class SearchCommand(object):
     #region Methods
 
     def process(self, args=argv, input_file=stdin, output_file=stdout):
-        """ Process search result records as specified by command arguments
+        """ Processes search results as specified by command arguments
 
         :param args: Sequence of command arguments
         :param input_file: Pipeline input file
@@ -214,7 +214,8 @@ class SearchCommand(object):
     #region Types
 
     class ConfigurationSettings(object):
-        """ TODO: Documentation
+        """ Represents the configuration settings common to all
+        :class:`SearchCommand` classes.
 
         """
         def __init__(self, command):
@@ -224,7 +225,7 @@ class SearchCommand(object):
             """ Converts the value of this instance to its string representation
 
             The value of this ConfigurationSettings instance is represented as a
-            string of newline-separated `name = value` pairs
+            string of newline-separated :code:`name=value` pairs
 
             :return: String representation of this instance
 
@@ -242,7 +243,7 @@ class SearchCommand(object):
             """ Specifies whether output should be used to change the column
             ordering of fields
 
-            Default: True.
+            Default: :const:`True`
 
             """
             return type(self)._changes_colorder
@@ -254,13 +255,14 @@ class SearchCommand(object):
             """ Specifies whether `required_fields` are the only fields required
             by subsequent commands
 
-            If `True`, `required_fields` are the *only* fields required by
-            subsequent commands. If `False`, required_fields are additive to any
-            fields that may be required by subsequent commands. In most cases
-            `False` is appropriate for streaming commands and `True` is
-            appropriate for reporting commands.
+            If :const:`True`, :attr:`required_fields` are the *only* fields
+            required by subsequent commands. If :const:`False`,
+            :attr:`required_fields` are additive to any fields that may be
+            required by subsequent commands. In most cases :const:`False` is
+            appropriate for streaming commands and :const:`True` is appropriate
+            for reporting commands.
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._clear_required_fields
@@ -271,7 +273,7 @@ class SearchCommand(object):
         def enableheader(self):
             """ Signals that this command expects header information
 
-            Fixed: True
+            Fixed: :const:`True`
 
             """
             return True
@@ -280,7 +282,7 @@ class SearchCommand(object):
         def generating(self):
             """ Signals that this command does not generate new events
 
-            Fixed: False
+            Fixed: :const:`False`
 
             """
             return False
@@ -294,7 +296,7 @@ class SearchCommand(object):
             limits.conf (default: 50,000). Use a value  of zero (0) to select a
             limit of `maxresultrows`.
 
-            Default: 0
+            Default: :code:`0`
 
             """
             return type(self)._maxinputs
@@ -306,7 +308,7 @@ class SearchCommand(object):
             """ Specifies whether or not this search command must be called with
             intermediate empty search results
 
-            Default: True
+            Default: :const:`True`
 
             """
             return type(self)._needs_empty_results
@@ -319,7 +321,7 @@ class SearchCommand(object):
             """ Signals that the output of this command is a messages header
             followed by a blank line and csv search results
 
-            Fixed: True
+            Fixed: :const:`True`
 
             """
             return True
@@ -329,7 +331,7 @@ class SearchCommand(object):
             """ Specifies whether or not this search command requires an
             authentication token on the start of input
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._passauth
@@ -344,7 +346,7 @@ class SearchCommand(object):
 
             A value of zero (0) disables performance warning messages.
 
-            Default: 0
+            Default: :code:`0`
 
             """
             return type(self)._perf_warn_limit
@@ -356,10 +358,10 @@ class SearchCommand(object):
             """ Specifies whether or not this command requires search results
             information
 
-            If `True` the full path to a search results information file is
-            provided by `self.input_headers['infoPath']`.
+            If :const:`True` the full path to a search results information file
+            is provided by :attr:`SearchCommand.input_headers['infoPath']`.
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._requires_srinfo
@@ -371,7 +373,7 @@ class SearchCommand(object):
             """ Tells Splunk whether to run this command when generating results
             for preview rather than final output
 
-            Default: True
+            Default: :const:`True`
 
             """
             return type(self)._run_in_preview
@@ -384,13 +386,15 @@ class SearchCommand(object):
 
             Specify one of these string values:
 
-            Value     | Meaning
-            ----------+---------------------------------------------------------
-            `log`     | Write messages to the job's search.log file
-            `message` | Write each line of each message as a search info message
-            `none`    | Discard all messages logged to stderr
+            ================== ========================================================
+            Value              Meaning
+            ================== ========================================================
+            :code:`'log'`      Write messages to the job's search.log file
+            :code:`'message'`  Write each line of each message as a search info message
+            :code:`'none'`     Discard all messages logged to stderr
+            ================== ========================================================
 
-            Default: `log`
+            Default: :code:`'log'`
 
             """
             return type(self)._stderr_dest
@@ -401,7 +405,7 @@ class SearchCommand(object):
         def supports_multivalues(self):
             """ Signals that this search command supports multivalues
 
-            Fixed: True
+            Fixed: :const:`True`
 
             """
             return True
@@ -410,7 +414,7 @@ class SearchCommand(object):
         def supports_rawargs(self):
             """ Signals that this search command parses raw arguments
 
-            Fixed: True
+            Fixed: :const:`True`
 
             """
             return True
@@ -440,13 +444,15 @@ class SearchCommand(object):
 
         @classmethod
         def configuration_settings(cls):
-            """ Represents this class as a dictionary of `property` instances
-            and `backing_field` names keyed by configuration setting name
+            """ Represents this class as a dictionary of :class:`property`
+            instances and :code:`backing_field` names keyed by configuration
+            setting name
 
-            This method is used by the `ConfigurationSettingsType` meta-class to
-            construct new `ConfigurationSettings` classes. It is also used by
-            instances of this class to retrieve configuration setting names and
-            their values. See `SearchCommand.keys` and `SearchCommand.items`.
+            This method is used by the :class:`ConfigurationSettingsType`
+            meta-class to construct new :class:`ConfigurationSettings` classes.
+            It is also used by instances of this class to retrieve configuration
+            setting names and their values. See :meth:`SearchCommand.keys` and
+            :meth:`SearchCommand.items`.
 
             """
             if cls._settings is None:
@@ -464,10 +470,11 @@ class SearchCommand(object):
             """ Adjusts and checks this class and its search command class
 
             Derived classes must override this method. It is used by the
-            `Configuration` decorator to fix up the `SearchCommand` classes
-            that it adorns. This method is overridden by `GeneratingCommand`,
-            `ReportingCommand`, and `SearchCommand`, the built-in base types
-            for all other search commands.
+            :decorator:`Configuration` decorator to fix up the
+            :class:`SearchCommand` classes it adorns. This method is overridden
+            by :class:`GeneratingCommand`, :class:`ReportingCommand`, and
+            :class:`StreamingCommand`, the base types for all other search
+            commands.
 
             :param command_class: Command class targeted by this class
 
@@ -476,13 +483,14 @@ class SearchCommand(object):
                 'SearchCommand.fix_up method must be overridden')
 
         def items(self):
-            """ Represents this instance as an `OrderedDict`
+            """ Represents this instance as an :class:`OrderedDict`
 
             This method is used by the SearchCommand.process method to report
-            configuration settings to Splunk during the `__GETINFO__` phase of
-            a request to process a chunk of search results.
+            configuration settings to Splunk during the :code:`__GETINFO__`
+            phase of a request to process a chunk of search results.
 
-            :return: OrderedDict containing setting values keyed by name
+            :return: :class:`OrderedDict` containing setting values keyed by
+            name
 
             """
             return OrderedDict([(k, getattr(self, k)) for k in self.keys()])

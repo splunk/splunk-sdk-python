@@ -21,12 +21,19 @@ class GeneratingCommand(SearchCommand):
     Generating commands receive no input and must be the first command on a
     pipeline. By default Splunk will run your command locally on a search head:
 
-    :<source lang=python>@Configuration()</source>
+    .. code-block:: python
+
+        @Configuration()
+        class SomeGeneratingCommand(GeneratingCommand)
 
     You can change the default behavior by configuring your generating command
     for event streaming:
 
-    :<source lang=python>@Configuration(streaming=True)</source>
+    .. code-block:: python
+
+        @Configuration(streaming=True)
+        class SomeGeneratingCommand(GeneratingCommand)
+            ...
 
     Splunk will then run your command locally on a search head and/or remotely
     on one or more indexers.
@@ -34,46 +41,51 @@ class GeneratingCommand(SearchCommand):
     You can tell Splunk to run your streaming-enabled generating command locally
     on a search head, never remotely on indexers:
 
-    :<source lang=python>@Configuration(local=True, streaming=True)</source>
+    .. code-block:: python
+
+        @Configuration(local=True, streaming=True)
+        class SomeGeneratingCommand(GeneratingCommand)
+            ...
 
     If your generating command produces event records in time order, you must
     tell Splunk to ensure correct behavior:
 
-    :<source lang=python>@Configuration(generates_timeorder=True)</source>
+    .. code-block:: python
+
+        @Configuration(generates_timeorder=True)
+        class SomeGeneratingCommand(GeneratingCommand)
+            ...
 
     """
     #region Methods
 
     def generate(self):
-        """ TODO: Documentation
+        """ A generator that yields records to the Splunk processing pipeline
+
+        You must override this method.
 
         """
-        raise NotImplementedError('GeneratingCommand.generate(self, records)')
-
-    def _prepare(self, argv, input_file):
-        """ TODO: Documentation
-
-        """
-        ConfigurationSettings = type(self).ConfigurationSettings
-        argv = argv[2:]
-        return ConfigurationSettings, self.generate, argv, 'ANY'
+        raise NotImplementedError('GeneratingCommand.generate(self)')
 
     def _execute(self, operation, reader, writer):
-        """ TODO: Documentation
-
-        """
         try:
             for record in operation():
                 writer.writerow(record)
         except Exception as e:
             self.logger.error(e)
 
+    def _prepare(self, argv, input_file):
+        ConfigurationSettings = type(self).ConfigurationSettings
+        argv = argv[2:]
+        return ConfigurationSettings, self.generate, argv, 'ANY'
+
     #endregion
 
     #region Types
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ TODO: Documentation
+        """ Represents the configuration settings for a
+        :code:`GeneratingCommand` class
 
         """
         #region Properties
@@ -82,7 +94,7 @@ class GeneratingCommand(SearchCommand):
         def generating(self):
             """ Signals that this command generates new events
 
-            Fixed: True
+            Fixed: :const:`True`
 
             """
             return True
@@ -92,7 +104,7 @@ class GeneratingCommand(SearchCommand):
             """ Specifies whether this command generates events in descending
             time order
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._generates_timeorder
@@ -108,7 +120,7 @@ class GeneratingCommand(SearchCommand):
             streamable search commands. See the `streaming` configuration
             setting.
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._local
@@ -120,7 +132,7 @@ class GeneratingCommand(SearchCommand):
             """ Specifies whether this command retains _raw events or transforms
             them
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._retainsevents
@@ -134,10 +146,10 @@ class GeneratingCommand(SearchCommand):
             By default streamable search commands may be run on the search head
             or one or more indexers, depending on performance and scheduling
             considerations. This behavior may be overridden by setting
-            `local=True`. This forces a streamable command to be run on the
+            :code:`local=True`. This forces a streamable command to be run on the
             search head.
 
-            Fixed: True.
+            Fixed: :const:`True`
 
             """
             return True
@@ -148,7 +160,7 @@ class GeneratingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ TODO: Documentation
+            """ Verifies :code:`command` class structure
 
             """
             if command.generate == GeneratingCommand.generate:

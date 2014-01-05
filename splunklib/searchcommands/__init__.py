@@ -12,129 +12,131 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Design Notes
----------------
+"""
 
-1. Commands are constrained to this ABNF grammar::
+.. topic:: Design Notes
 
-      command       = command-name *[wsp option] *[wsp [dquote] field-name [dquote]]
-      command-name  = alpha *( alpha / digit )
-      option        = option-name [wsp] "=" [wsp] option-value
-      option-name   = alpha *( alpha / digit / "_" )
-      option-value  = word / quoted-string
-      word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
-      quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
-      field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
+  1. Commands are constrained to this ABNF grammar::
 
-   It is Constrained to an 8-bit character set. It does not show that
-   :code:`field-name` values may be comma-separated. This is because Splunk strips
-   commas from the command line. A search command will never see them.
+        command       = command-name *[wsp option] *[wsp [dquote] field-name [dquote]]
+        command-name  = alpha *( alpha / digit )
+        option        = option-name [wsp] "=" [wsp] option-value
+        option-name   = alpha *( alpha / digit / "_" )
+        option-value  = word / quoted-string
+        word          = 1*( %01-%08 / %0B / %0C / %0E-1F / %21 / %23-%FF ) ; Any character but DQUOTE and WSP
+        quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
+        field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
-3. Commands must be statically configured as follows:
+     It is Constrained to an 8-bit character set. It does not show that
+     :code:`field-name` values may be comma-separated. This is because Splunk strips
+     commas from the command line. A search command will never see them.
 
-   .. code-block:: text
-      :linenos:
+  3. Commands must be statically configured as follows:
 
-      [commandname]
-      filename = commandname.py
-      supports_getinfo = true
-      supports_rawargs = true
+     .. code-block:: text
+        :linenos:
 
-   No other static configuration is required or expected and may interfere with
-   command execution.
+        [commandname]
+        filename = commandname.py
+        supports_getinfo = true
+        supports_rawargs = true
 
-2. Commands support dynamic probing for settings.
+     No other static configuration is required or expected and may interfere with
+     command execution.
 
-   Splunk probes for settings dynamically when :code:`supports_getinfo=true`.
-   You must add this line to the commands.conf stanza for each of your search
-   commands.
+  2. Commands support dynamic probing for settings.
 
-4. Commands do not support parsed arguments on the command line.
+     Splunk probes for settings dynamically when :code:`supports_getinfo=true`.
+     You must add this line to the commands.conf stanza for each of your search
+     commands.
 
-   Splunk parses arguments when :code:`supports_rawargs=false`. The
-   :code:`SearchCommand` class sets this value unconditionally. You cannot
-   override it.
+  4. Commands do not support parsed arguments on the command line.
 
-   **Rationale**
+     Splunk parses arguments when :code:`supports_rawargs=false`. The
+     :code:`SearchCommand` class sets this value unconditionally. You cannot
+     override it.
 
-   Splunk parses arguments by stripping quotes, nothing more. This may be useful
-   in some cases, but doesn't work well with our chosen grammar.
+     **Rationale**
 
-5. Commands consume input headers.
+     Splunk parses arguments by stripping quotes, nothing more. This may be useful
+     in some cases, but doesn't work well with our chosen grammar.
 
-   An input header is provided by Splunk when :code:`enableheader=true`. The
-   :class:`SearchCommand` class sets this value unconditionally. You cannot
-   override it.
+  5. Commands consume input headers.
 
-6. Commands produce an output messages header.
+     An input header is provided by Splunk when :code:`enableheader=true`. The
+     :class:`SearchCommand` class sets this value unconditionally. You cannot
+     override it.
 
-   Splunk expects a command to produce an output messages header when
-   :code:`outputheader=true`. The :class:`SearchCommand` class sets this value
-   unconditionally. You cannot override it.
+  6. Commands produce an output messages header.
 
-7. Commands support multi-value fields.
+     Splunk expects a command to produce an output messages header when
+     :code:`outputheader=true`. The :class:`SearchCommand` class sets this value
+     unconditionally. You cannot override it.
 
-   Multi-value fields are provided and consumed by Splunk when
-   :code:`supports_multivalue=true`. This value is fixed. You cannot override
-   it.
+  7. Commands support multi-value fields.
 
-8. Commands represent all fields on the output stream as multi-value fields.
+     Multi-value fields are provided and consumed by Splunk when
+     :code:`supports_multivalue=true`. This value is fixed. You cannot override
+     it.
 
-   Splunk represents multi-value fields with a pair of fields:
+  8. This module represents all fields on the output stream in multi-value
+     format.
 
-   ======================== ====================================================
-   field-name               Contains the text from which the multi-value field
-                            was derived.
+     Splunk recognizes two kinds of data: :code:`value` and :code:`list(value)`.
+     The multi-value format represents these data in field pairs. Given field
+     :code:`name` the multi-value format calls for the creation of this pair of
+     fields.
 
-   :code:`__mv_field-name`  Contains an encoded list. Values in the list are
-                            wrapped in dollar signs ($) and separated by
-                            semi-colons (;). Dollar signs ($) within a value are
-                            represented by a pair of dollar signs ($$). Empty
-                            lists are represented by the empty string.
-                            Single-value lists are represented by the single
-                            value.
-   ======================== ====================================================
+     ================= =========================================================
+     Field name         Field data
+     ================= =========================================================
+     :code:`name`      Value or text from which a list of values was derived.
 
-   On input this class processes and hides all :code:`__mv_` fields. On output
-   backing :code:`__mv_` fields are produced for all fields, thereby enabling a
-   command to reduce its memory footprint by using streaming I/O. This is done
-   at the cost of one extra byte of data per field per record on the output
-   stream and some extra processing time by the next processor in the pipeline.
+     :code:`__mv_name` Empty, if :code:`field` represents a :code:`value`;
+                       otherwise, an encoded :code:`list(value)`. Values in the
+                       list are wrapped in dollar signs ($) and separated by
+                       semi-colons (;). Dollar signs ($) within a value are
+                       represented by a pair of dollar signs ($$).
+     ================= =========================================================
 
-9. A :class:`ReportingCommand` must override :meth:`~ReportingCommand.reduce`
-   and may override :meth:`~ReportingCommand.map`. Map/reduce commands on the
-   Splunk processing pipeline are distinguished as this example illustrates.
+     Serializing data in this format enables streaming and reduces a command's
+     memory footprint at the cost of one extra byte of data per field per record
+     and a small amount of extra processing time by the next command in the
+     pipeline.
 
-   **Splunk command**
+  9. A :class:`ReportingCommand` must override :meth:`~ReportingCommand.reduce`
+     and may override :meth:`~ReportingCommand.map`. Map/reduce commands on the
+     Splunk processing pipeline are distinguished as this example illustrates.
 
-   .. code-block:: text
+     **Splunk command**
 
-       sum total=total_date_hour date_hour
+     .. code-block:: text
 
-   **Map command line**
+         sum total=total_date_hour date_hour
 
-   .. code-block:: text
+     **Map command line**
 
-      sum __GETINFO__ __map__ total=total_date_hour date_hour
-      sum __EXECUTE__ __map__ total=total_date_hour date_hour
+     .. code-block:: text
 
-   **Reduce command line**
+        sum __GETINFO__ __map__ total=total_date_hour date_hour
+        sum __EXECUTE__ __map__ total=total_date_hour date_hour
 
-   .. code-block:: text
+     **Reduce command line**
 
-      sum __GETINFO__ total=total_date_hour date_hour
-      sum __EXECUTE__ total=total_date_hour date_hour
+     .. code-block:: text
 
-   The :code:`__map__` argument is introduced by
-   :meth:`ReportingCommand._execute`. Search command authors cannot influence
-   the contents of the command line in this release.
+        sum __GETINFO__ total=total_date_hour date_hour
+        sum __EXECUTE__ total=total_date_hour date_hour
 
-References
-----------
+     The :code:`__map__` argument is introduced by
+     :meth:`ReportingCommand._execute`. Search command authors cannot influence
+     the contents of the command line in this release.
 
-1. `Search command style guide <http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide>`_
+.. topic:: References
 
-2. `Commands.conf.spec <http://docs.splunk.com/Documentation/Splunk/5.0.5/Admin/Commandsconf>`_
+  1. `Search command style guide <http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide>`_
+
+  2. `Commands.conf.spec <http://docs.splunk.com/Documentation/Splunk/5.0.5/Admin/Commandsconf>`_
 
 """
 

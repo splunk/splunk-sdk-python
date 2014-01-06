@@ -18,7 +18,7 @@ from . import csv
 
 class StreamingCommand(SearchCommand):
     """ Applies a transformation to search results as they travel through the
-    processing pipeline
+    processing pipeline.
 
     Streaming commands typically filter, sort, modify, or combine search
     results. Splunk will send search results in batches of up to 50,000 records.
@@ -55,7 +55,7 @@ class StreamingCommand(SearchCommand):
 
     def stream(self, records):
         """ Generator function that processes and yields event records to the
-        Splunk processing pipeline
+        Splunk processing pipeline.
 
         You must override this method.
 
@@ -82,7 +82,7 @@ class StreamingCommand(SearchCommand):
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ Represents the configuration settings that apply to a
-        :code:`StreamingCommand`
+        :code:`StreamingCommand`.
 
         """
         #region Properties
@@ -90,7 +90,7 @@ class StreamingCommand(SearchCommand):
         @property
         def local(self):
             """ Specifies whether this command should only be run on the search
-            head
+            head.
 
             Default: :const:`False`
 
@@ -102,7 +102,7 @@ class StreamingCommand(SearchCommand):
         @property
         def overrides_timeorder(self):
             """ Specifies whether this command changes the time ordering of
-            event records
+            event records.
 
             Default: :const:`False`
 
@@ -114,7 +114,7 @@ class StreamingCommand(SearchCommand):
         @property
         def retainsevents(self):
             """ Specifies whether this command retains _raw events or transforms
-            them
+            them.
 
             Default: :const:`True`
 
@@ -125,7 +125,7 @@ class StreamingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ Signals that this command is streamable
+            """ Signals that this command is streamable.
 
             By default streamable commands may be run on the search head or one
             or more indexers, depending on performance scheduling
@@ -144,7 +144,7 @@ class StreamingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies :code:`command` class structure
+            """ Verifies :code:`command` class structure.
 
             """
             if command.stream == StreamingCommand.stream:

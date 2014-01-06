@@ -18,7 +18,7 @@ import sys
 
 
 class Validator(object):
-    """ Base class for validators that check and format search command options
+    """ Base class for validators that check and format search command options.
 
     You must inherit from this class and override :code:`Validator.__call__` and
     :code:`Validator.format`. :code:`Validator.__call__` should convert the
@@ -58,7 +58,7 @@ class Boolean(Validator):
 
 
 class Duration(Validator):
-    """ Validates duration option values
+    """ Validates duration option values.
 
     """
     def __call__(self, value):
@@ -72,7 +72,7 @@ class Duration(Validator):
 
 
 class Fieldname(Validator):
-    """ Validates field name option values
+    """ Validates field name option values.
 
     """
     pattern = re.compile(r'''[_.a-zA-Z-][_.a-zA-Z0-9-]*$''')
@@ -85,7 +85,7 @@ class Fieldname(Validator):
 
 
 class File(Validator):
-    """ Validates file option values
+    """ Validates file option values.
 
     """
     def __init__(self, mode='r', buffering=-1):
@@ -107,7 +107,7 @@ class File(Validator):
 
 
 class Integer(Validator):
-    """ Validates integer option values
+    """ Validates integer option values.
 
     """
     def __init__(self, minimum=-sys.maxint-1, maximum=sys.maxint):
@@ -125,7 +125,7 @@ class Integer(Validator):
 
 
 class OptionName(Validator):
-    """ Validates option names
+    """ Validates option names.
 
     """
     pattern = re.compile(r'''[a-zA-Z][_a-zA-Z0-9]*$''')
@@ -138,7 +138,7 @@ class OptionName(Validator):
 
 
 class RegularExpression(Validator):
-    """ Validates regular expression option values
+    """ Validates regular expression option values.
 
     """
     def __call__(self, value):
@@ -154,7 +154,7 @@ class RegularExpression(Validator):
 
 
 class Set(Validator):
-    """ Validates set option values
+    """ Validates set option values.
 
     """
     def __init__(self, *args):

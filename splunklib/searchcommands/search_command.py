@@ -138,7 +138,7 @@ class SearchCommand(object):
     #region Methods
 
     def process(self, args=argv, input_file=stdin, output_file=stdout):
-        """ Processes search results as specified by command arguments
+        """ Processes search results as specified by command arguments.
 
         :param args: Sequence of command arguments
         :param input_file: Pipeline input file
@@ -222,10 +222,10 @@ class SearchCommand(object):
             self.command = command
 
         def __str__(self):
-            """ Converts the value of this instance to its string representation
+            """ Converts the value of this instance to its string representation.
 
             The value of this ConfigurationSettings instance is represented as a
-            string of newline-separated :code:`name=value` pairs
+            string of newline-separated :code:`name=value` pairs.
 
             :return: String representation of this instance
 
@@ -241,7 +241,7 @@ class SearchCommand(object):
         @property
         def changes_colorder(self):
             """ Specifies whether output should be used to change the column
-            ordering of fields
+            ordering of fields.
 
             Default: :const:`True`
 
@@ -253,7 +253,7 @@ class SearchCommand(object):
         @property
         def clear_required_fields(self):
             """ Specifies whether `required_fields` are the only fields required
-            by subsequent commands
+            by subsequent commands.
 
             If :const:`True`, :attr:`required_fields` are the *only* fields
             required by subsequent commands. If :const:`False`,
@@ -271,7 +271,7 @@ class SearchCommand(object):
 
         @property
         def enableheader(self):
-            """ Signals that this command expects header information
+            """ Signals that this command expects header information.
 
             Fixed: :const:`True`
 
@@ -280,7 +280,7 @@ class SearchCommand(object):
 
         @property
         def generating(self):
-            """ Signals that this command does not generate new events
+            """ Signals that this command does not generate new events.
 
             Fixed: :const:`False`
 
@@ -290,7 +290,7 @@ class SearchCommand(object):
         @property
         def maxinputs(self):
             """ Specifies the maximum number of events that may be passed to an
-            invocation of this command
+            invocation of this command.
 
             This limit may not exceed the value of `maxresultrows` as defined in
             limits.conf (default: 50,000). Use a value  of zero (0) to select a
@@ -306,7 +306,7 @@ class SearchCommand(object):
         @property
         def needs_empty_results(self):
             """ Specifies whether or not this search command must be called with
-            intermediate empty search results
+            intermediate empty search results.
 
             Default: :const:`True`
 
@@ -319,7 +319,7 @@ class SearchCommand(object):
         @property
         def outputheader(self):
             """ Signals that the output of this command is a messages header
-            followed by a blank line and csv search results
+            followed by a blank line and csv search results.
 
             Fixed: :const:`True`
 
@@ -329,7 +329,7 @@ class SearchCommand(object):
         @property
         def passauth(self):
             """ Specifies whether or not this search command requires an
-            authentication token on the start of input
+            authentication token on the start of input.
 
             Default: :const:`False`
 
@@ -342,7 +342,7 @@ class SearchCommand(object):
         @property
         def perf_warn_limit(self):
             """ Tells Splunk to issue a performance warning message if more
-            than this many input events are passed to this search command
+            than this many input events are passed to this search command.
 
             A value of zero (0) disables performance warning messages.
 
@@ -356,7 +356,7 @@ class SearchCommand(object):
         @property
         def requires_srinfo(self):
             """ Specifies whether or not this command requires search results
-            information
+            information.
 
             If :const:`True` the full path to a search results information file
             is provided by :attr:`SearchCommand.input_headers['infoPath']`.
@@ -371,7 +371,7 @@ class SearchCommand(object):
         @property
         def run_in_preview(self):
             """ Tells Splunk whether to run this command when generating results
-            for preview rather than final output
+            for preview rather than final output.
 
             Default: :const:`True`
 
@@ -382,7 +382,7 @@ class SearchCommand(object):
 
         @property
         def stderr_dest(self):
-            """ Tells Splunk what to do with messages logged to `stderr`
+            """ Tells Splunk what to do with messages logged to `stderr`.
 
             Specify one of these string values:
 
@@ -403,7 +403,7 @@ class SearchCommand(object):
 
         @property
         def supports_multivalues(self):
-            """ Signals that this search command supports multivalues
+            """ Signals that this search command supports multivalues.
 
             Fixed: :const:`True`
 
@@ -412,7 +412,7 @@ class SearchCommand(object):
 
         @property
         def supports_rawargs(self):
-            """ Signals that this search command parses raw arguments
+            """ Signals that this search command parses raw arguments.
 
             Fixed: :const:`True`
 
@@ -423,7 +423,7 @@ class SearchCommand(object):
 
         @property
         def required_fields(self):
-            """ Specifies a comma-separated list of required field names
+            """ Specifies a comma-separated list of required field names.
 
             This list is computed as the union of the set of fieldnames and
             fieldname-valued options given as argument to this command.
@@ -446,7 +446,7 @@ class SearchCommand(object):
         def configuration_settings(cls):
             """ Represents this class as a dictionary of :class:`property`
             instances and :code:`backing_field` names keyed by configuration
-            setting name
+            setting name.
 
             This method is used by the :class:`ConfigurationSettingsType`
             meta-class to construct new :class:`ConfigurationSettings` classes.
@@ -467,7 +467,7 @@ class SearchCommand(object):
 
         @classmethod
         def fix_up(cls, command_class):
-            """ Adjusts and checks this class and its search command class
+            """ Adjusts and checks this class and its search command class.
 
             Derived classes must override this method. It is used by the
             :decorator:`Configuration` decorator to fix up the
@@ -483,7 +483,7 @@ class SearchCommand(object):
                 'SearchCommand.fix_up method must be overridden')
 
         def items(self):
-            """ Represents this instance as an :class:`OrderedDict`
+            """ Represents this instance as an :class:`OrderedDict`.
 
             This method is used by the SearchCommand.process method to report
             configuration settings to Splunk during the :code:`__GETINFO__`
@@ -496,7 +496,7 @@ class SearchCommand(object):
             return OrderedDict([(k, getattr(self, k)) for k in self.keys()])
 
         def keys(self):
-            """ Gets the names of the settings represented by this instance
+            """ Gets the names of the settings represented by this instance.
 
             :return: Sorted list of setting names.
 

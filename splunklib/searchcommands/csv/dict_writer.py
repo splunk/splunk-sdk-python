@@ -17,7 +17,7 @@ import csv
 
 
 class DictWriter(csv.DictWriter, object):
-    """ Splunk multi-value-aware CSV dictionary writer """
+    """ Splunk multi-value-aware CSV dictionary writer. """
 
     def __init__(self, f, command, fieldnames=None, mv_delimiter='\n'):
         super(DictWriter, self).__init__(

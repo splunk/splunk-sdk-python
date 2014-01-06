@@ -68,7 +68,7 @@ class Configuration(object):
 
 
 class Option(property):
-    """ Represents a search command option
+    """ Represents a search command option.
 
     Required options must be specified on the search command line.
 
@@ -212,7 +212,7 @@ class Option(property):
             return validator.format(o)
 
     class Item(object):
-        """ Presents an instance/class view over a search command `Option`
+        """ Presents an instance/class view over a search command `Option`.
 
         """
         def __init__(self, command, option):
@@ -236,7 +236,7 @@ class Option(property):
 
         @property
         def is_set(self):
-            """ Indicates whether an option value was provided as argument
+            """ Indicates whether an option value was provided as argument.
 
             """
             return self._is_set
@@ -265,7 +265,7 @@ class Option(property):
         #endif
 
     class View(object):
-        """ Presents a view of the set of `Option` arguments to a search command
+        """ Presents a view of the set of `Option` arguments to a search command.
 
         """
         def __init__(self, command):

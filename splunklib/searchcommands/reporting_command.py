@@ -48,9 +48,9 @@ class ReportingCommand(SearchCommand):
     #region Methods
 
     def map(self, records):
-        """ Override this method to compute partial results
+        """ Override this method to compute partial results.
 
-        You must override this method, if :code:`requires_preop=True`
+        You must override this method, if :code:`requires_preop=True`.
 
         """
         self  # Turns off ide guidance that method may be static
@@ -91,14 +91,14 @@ class ReportingCommand(SearchCommand):
     #region Types
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ Represents the configuration settings for a :code:`ReportingCommand`
+        """ Represents the configuration settings for a :code:`ReportingCommand`.
 
         """
         #region Properties
         @property
         def clear_required_fields(self):
             """ Specifies whether `required_fields` are the only fields required
-            by subsequent commands
+            by subsequent commands.
 
             If :const:`True`, :attr:`required_fields` are the *only* fields
             required by subsequent commands. If :const:`False`,
@@ -117,7 +117,7 @@ class ReportingCommand(SearchCommand):
         @property
         def requires_preop(self):
             """ Indicates whether :meth:`ReportingCommand.map` is required for
-            proper command execution
+            proper command execution.
 
             If :const:`True`, :meth:`ReportingCommand.map` is guaranteed to be
             called. If :const:`False`, Splunk considers it to be an optimization
@@ -133,7 +133,7 @@ class ReportingCommand(SearchCommand):
         @property
         def retainsevents(self):
             """ Signals that :meth:`ReportingCommand.reduce` transforms _raw
-            events to produce a reporting data structure
+            events to produce a reporting data structure.
 
             Fixed: :const:`False`
 
@@ -152,7 +152,7 @@ class ReportingCommand(SearchCommand):
 
         @property
         def streaming_preop(self):
-            """ Denotes the requested streaming preop search string
+            """ Denotes the requested streaming preop search string.
 
             Computed.
 
@@ -170,7 +170,7 @@ class ReportingCommand(SearchCommand):
         @classmethod
         def fix_up(cls, command):
             """ Verifies :code:`command` class structure and configures the
-            :code:`command.map` method
+            :code:`command.map` method.
 
             Verifies that :code:`command` derives from :code:`ReportingCommand`
             and overrides :code:`ReportingCommand.reduce`. It then configures

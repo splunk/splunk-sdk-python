@@ -22,7 +22,7 @@ import urllib2 as urllib
 
 
 class ConfigurationSettingsType(type):
-    """ Metaclass for constructing ConfigurationSettings classes
+    """ Metaclass for constructing ConfigurationSettings classes.
 
     Instances of the ConfigurationSettingsType construct ConfigurationSettings
     classes from a base ConfigurationSettings class and a dictionary of
@@ -70,7 +70,7 @@ class ConfigurationSettingsType(type):
 
 
 class InputHeader(object):
-    """ Represents a Splunk input header as a collection of name/value pairs
+    """ Represents a Splunk input header as a collection of name/value pairs.
 
     TODO: Description
 
@@ -90,7 +90,7 @@ class InputHeader(object):
             [InputHeader.__name__, '(', repr(self._settings.items()), ')'])
 
     def read(self, input_file):
-        """ Reads an InputHeader from `input_file`
+        """ Reads an InputHeader from `input_file`.
 
         The input header is read as a sequence of *<name>***:***<value>* pairs
         separated by a newline. The end of the input header is signalled by an
@@ -118,7 +118,7 @@ class InputHeader(object):
 
 
 class MessagesHeader(object):
-    """ Represents an output messages header
+    """ Represents an output messages header.
 
     Messages in the header are of the form
 
@@ -162,7 +162,7 @@ class MessagesHeader(object):
         self._messages[level].append(text)
 
     def write(self, output_file):
-        """ Writes this MessageHeader to an output stream
+        """ Writes this MessageHeader to an output stream.
 
         Messages are written as a sequence of *<message-level>***=**
         *<message-text>* pairs separated by '\r\n'. The sequence is terminated
@@ -177,7 +177,7 @@ class MessagesHeader(object):
 
 
 class SearchCommandParser(object):
-    """ Parses the arguments to a search command
+    """ Parses the arguments to a search command.
 
     A search command line is described by the following syntax.
 
@@ -213,7 +213,7 @@ class SearchCommandParser(object):
     """
     def parse(self, argv, command, fieldnames='ANY'):
         """ Splits an argument list into an options dictionary and a fieldname
-        list
+        list.
 
         The argument list, `argv`, must be of the form::
 
@@ -299,7 +299,7 @@ class SearchCommandParser(object):
 
     @classmethod
     def unquote(cls, string):
-        """ Removes quotes from a quoted string
+        """ Removes quotes from a quoted string.
 
         Splunk search command quote rules are applied. The enclosing
         double-quotes, if present, are removed. Escaped double-quotes ('\"' or

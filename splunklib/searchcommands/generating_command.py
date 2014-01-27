@@ -102,8 +102,8 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def generates_timeorder(self):
-            """ Specifies whether this command generates events in descending.
-            time order
+            """ Specifies whether this command generates events in descending
+            time order.
 
             Default: :const:`False`
 
@@ -131,7 +131,7 @@ class GeneratingCommand(SearchCommand):
         @property
         def retainsevents(self):
             """ Specifies whether this command retains _raw events or transforms
-            them
+            them.
 
             Default: :const:`False`
 

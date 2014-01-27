@@ -13,6 +13,7 @@
 # under the License.
 
 from time import strptime
+import os
 import re
 import sys
 
@@ -95,7 +96,10 @@ class File(Validator):
     def __call__(self, value):
         if value is not None:
             try:
-                value = open(str(value), self.mode, self.buffering)
+                path = str(value)
+                if not os.path.isabs(path):
+                    path = os.path.join(File._var_run_splunk, path)
+                value = open(path, self.mode, self.buffering)
             except IOError as e:
                 raise ValueError(
                     'Cannot open %s with mode=%s and buffering=%s: %s'
@@ -104,6 +108,9 @@ class File(Validator):
 
     def format(self, value):
         return value.name
+
+    _var_run_splunk = os.path.join(
+        os.environ['SPLUNK_HOME'], "var", "run", "splunk")
 
 
 class Integer(Validator):

@@ -72,7 +72,8 @@ class GeneratingCommand(SearchCommand):
             for record in operation():
                 writer.writerow(record)
         except Exception as e:
-            self.logger.error(e)
+            import traceback
+            self.logger.error(traceback.format_exc())
 
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings

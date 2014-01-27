@@ -62,6 +62,14 @@ class StreamingCommand(SearchCommand):
         """
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
+    def _execute(self, operation, reader, writer):
+        try:
+            for record in operation(SearchCommand.records(reader)):
+                writer.writerow(record)
+        except Exception as e:
+            import traceback
+            self.logger.error(traceback.format_exc())
+
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
@@ -70,13 +78,6 @@ class StreamingCommand(SearchCommand):
         else:
             reader = csv.DictReader(input_file)
         return ConfigurationSettings, self.stream, argv, reader
-
-    def _execute(self, operation, reader, writer):
-        try:
-            for record in operation(SearchCommand.records(reader)):
-                writer.writerow(record)
-        except Exception as e:
-            self.logger.error(e)
 
     #endregion
 

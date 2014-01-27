@@ -69,7 +69,8 @@ class ReportingCommand(SearchCommand):
             for record in operation(SearchCommand.records(reader)):
                 writer.writerow(record)
         except Exception as e:
-            self.logger.error(e)
+            import traceback
+            self.logger.error(traceback.format_exc())
 
     def _prepare(self, argv, input_file):
         if len(argv) >= 3 and argv[2] == '__map__':

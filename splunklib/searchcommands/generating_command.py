@@ -93,7 +93,7 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def generating(self):
-            """ Signals that this command generates new events
+            """ Signals that this command generates new events.
 
             Fixed: :const:`True`
 
@@ -102,7 +102,7 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def generates_timeorder(self):
-            """ Specifies whether this command generates events in descending
+            """ Specifies whether this command generates events in descending.
             time order
 
             Default: :const:`False`
@@ -115,7 +115,7 @@ class GeneratingCommand(SearchCommand):
         @property
         def local(self):
             """ Specifies whether this command should only be run on the search
-            head
+            head.
 
             This setting is used to override Splunk's default policy for running
             streamable search commands. See the `streaming` configuration
@@ -142,7 +142,7 @@ class GeneratingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ Specifies that this command is streamable
+            """ Specifies that this command is streamable.
 
             By default streamable search commands may be run on the search head
             or one or more indexers, depending on performance and scheduling
@@ -161,7 +161,7 @@ class GeneratingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies :code:`command` class structure
+            """ Verifies :code:`command` class structure.
 
             """
             if command.generate == GeneratingCommand.generate:

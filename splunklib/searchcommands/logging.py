@@ -22,7 +22,7 @@ import os
 
 def configure(name, path=None):
     """ Configure logging and return a logger and the location of its logging
-    configuration file
+    configuration file.
 
     This function expects:
 

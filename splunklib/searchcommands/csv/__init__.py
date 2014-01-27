@@ -20,7 +20,7 @@ from .dict_writer import DictWriter
 
 import csv
 
-# Set the maximum allowable CSV field size
+# Sets the maximum allowable CSV field size.
 #
 # The default of the csv module is 128KB; upping to 10MB. See SPL-12117 for
 # the background on issues surrounding field sizes.

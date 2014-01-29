@@ -154,7 +154,7 @@ class SearchCommand(object):
             ConfigurationSettings, operation, args, reader = self._prepare(
                 args, input_file=None)
             try:
-                self.parser.parse(args, self, 'ANY')
+                self.parser.parse(args, self)
             except (SyntaxError, ValueError) as e:
                 writer = csv.DictWriter(output_file, self, fieldnames=['ERROR'])
                 writer.writerow({'ERROR': e})
@@ -174,7 +174,7 @@ class SearchCommand(object):
                 args, input_file)
 
             try:
-                self.parser.parse(args, self, 'ANY')
+                self.parser.parse(args, self)
             except (SyntaxError, ValueError) as e:
                 self.messages.append("error_message", e)
                 self.messages.write(output_file)

@@ -224,7 +224,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             'integer=10',
             'optionname=foo_bar',
             'regularexpression="\\\\w+"',
-            'set=foo']
+            'set=foo',
+            'show_configuration=true']
         fields = ['field_1', 'field_2', 'field_3']
 
         command = StubbedStreamingCommand()  # All options are required
@@ -232,7 +233,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         command_line = str(command)
 
         self.assertEqual(
-            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
+            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" show_configuration=true field_1 field_2 field_3' % encoder.encode(file_path),
             command_line)
 
         for option in options:

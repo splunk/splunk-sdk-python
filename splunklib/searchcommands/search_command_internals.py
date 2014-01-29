@@ -209,7 +209,7 @@ class SearchCommandParser(object):
     setting the built-in `log_level` immediately changes the `log_level`.
 
     """
-    def parse(self, argv, command, fieldnames='ANY'):
+    def parse(self, argv, command):
         """ Splits an argument list into an options dictionary and a fieldname
         list.
 
@@ -266,33 +266,8 @@ class SearchCommandParser(object):
 
         # Parse field names
 
-        selected_fields = command_args.group('fieldnames').split()
-
-        if isinstance(fieldnames, str):
-            if fieldnames != 'ANY':
-                raise ValueError(
-                    'Illegal argument to %s.parse method: fieldnames=%s' %
-                    (type(self).__name__, fieldnames))
-            command.fieldnames = selected_fields
-
-        elif fieldnames:
-            undefined_fields = []
-            for name in selected_fields:
-                if not name in fieldnames:
-                    undefined_fields += [name]
-            if len(undefined_fields) > 0:
-                raise ValueError(
-                    'Unrecognized field(s): %s' % ', '.join(undefined_fields))
-            command.fieldnames = selected_fields
-
-        elif len(selected_fields) > 0:
-            raise ValueError(
-                'Command does not accept field names, but %s found: %s' % (
-                    'one was' if len(selected_fields) == 1 else 'some were',
-                    ', '.join(selected_fields)))
-
-        command.logger.debug(
-            'Parsed %s: %s' % (type(command).__name__, command))
+        command.fieldnames = command_args.group('fieldnames').split()
+        command.logger.debug('%s: %s' % (type(command).__name__, command))
         return
 
     @classmethod

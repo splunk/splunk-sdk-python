@@ -298,7 +298,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 os.path.join('log', 'test_option_logging_level.log')))
         return
 
-    def disable_test_option_show_configuration(self):
+    def test_option_show_configuration(self):
         self._run(
             'simulate', [
                 'csv=population.csv',
@@ -307,7 +307,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'show_configuration=true'],
-            __GETINFO__=(
+            __EXECUTE__=(
                 os.path.join('input', '_empty.csv'),
                 os.path.join('output', 'test_option_show_configuration.csv'),
                 os.path.join('log', 'test_option_show_configuration.log')))
@@ -327,7 +327,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'csv=population.csv',
                 'duration=00:00:02',
                 'interval=00:00:01',
-                'rate=200',
+                'rate=50',
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 os.path.join('input', '_empty.csv'),

@@ -169,10 +169,8 @@ class MessagesHeader(object):
         by a pair of '\r\n' sequences.
 
         """
-        # Disabled in splunk-sdk-python-1.2.0 due to known issues
-        # for level, message in self:
-        #     output_file.write('%s=%s\r\n' % (level, message))
-        self
+        for level, message in self:
+            output_file.write('%s=%s\r\n' % (level, message))
         output_file.write('\r\n')
 
 

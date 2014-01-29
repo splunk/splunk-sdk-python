@@ -28,9 +28,9 @@ from sys import argv, stdin, stdout
 # Relative imports
 
 from . import csv, logging
-from . decorators import Option
-from . validators import Boolean, Fieldname
-from . search_command_internals import InputHeader, MessagesHeader, \
+from .decorators import Option
+from .validators import Boolean, Fieldname
+from .search_command_internals import InputHeader, MessagesHeader, \
     SearchCommandParser
 
 
@@ -38,6 +38,7 @@ class SearchCommand(object):
     """ Represents a custom search command
 
     """
+
     def __init__(self):
 
         # Variables that may be used, but not altered by derived classes
@@ -102,14 +103,14 @@ class SearchCommand(object):
     #         value = self._default_logging_level
     #     self.logger.setLevel(value)
     #     return
-    #
-    # show_configuration = Option(doc='''
-    #     **Syntax:** show_configuration=<bool>
-    #
-    #     **Description:** When `true`, reports command configuration in the
-    #     messages header for this command invocation. Defaults to `false`.
-    #
-    #     ''', default=False, validate=Boolean())
+
+    show_configuration = Option(doc='''
+        **Syntax:** show_configuration=<bool>
+
+        **Description:** When `true`, reports command configuration in the
+        messages header for this command invocation. Defaults to `false`.
+
+        ''', default=False, validate=Boolean())
     #
     # #endregion
 
@@ -159,10 +160,9 @@ class SearchCommand(object):
                 writer.writerow({'ERROR': e})
                 self.logger.error(e)
                 return
+
             self._configuration = ConfigurationSettings(self)
-            # Disabled in splunk-sdk-python-1.2.0 due to known issues
-            # if self.show_configuration:
-            #     self.messages.append('info_message', str(self._configuration))
+
             writer = csv.DictWriter(
                 output_file, self, self.configuration.keys(), mv_delimiter=',')
             writer.writerow(self.configuration.items())
@@ -182,6 +182,12 @@ class SearchCommand(object):
                 return
 
             self._configuration = ConfigurationSettings(self)
+
+            if self.show_configuration:
+                self.messages.append('info_message',
+                                     '%s command configuration settings: %s' %
+                                     (self.name, self._configuration))
+
             writer = csv.DictWriter(output_file, self)
             self._execute(operation, reader, writer)
 
@@ -218,6 +224,7 @@ class SearchCommand(object):
         :class:`SearchCommand` classes.
 
         """
+
         def __init__(self, command):
             self.command = command
 
@@ -230,8 +237,8 @@ class SearchCommand(object):
             :return: String representation of this instance
 
             """
-            text = '\n'.join(
-                ['%s = %s' % (k, getattr(self, k)) for k in self.keys()])
+            text = ', '.join(
+                ['%s=%s' % (k, getattr(self, k)) for k in self.keys()])
             return text
 
         #region Properties
@@ -511,4 +518,4 @@ class SearchCommand(object):
 
         #endregion
 
-    #endregion
+        #endregion

@@ -22,6 +22,7 @@ except ImportError:
     from ordereddict import OrderedDict # python 2.6
 
 from inspect import getmembers
+from logging import getLevelName
 from os import path
 from sys import argv, stdin, stdout
 
@@ -85,24 +86,24 @@ class SearchCommand(object):
     #     self.logger, self._logging_configuration = logging.configure(
     #         type(self).__name__, value)
     #     return
-    #
-    # @Option
-    # def logging_level(self):
-    #     """ **Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
-    #
-    #     **Description:** Sets the threshold for the logger of this command
-    #     invocation. Logging messages less severe than `logging_level` will be
-    #     ignored.
-    #
-    #     """
-    #     return self.logger.getEffectiveLevel()
-    #
-    # @logging_level.setter
-    # def logging_level(self, value):
-    #     if value is None:
-    #         value = self._default_logging_level
-    #     self.logger.setLevel(value)
-    #     return
+
+    @Option
+    def logging_level(self):
+        """ **Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
+
+        **Description:** Sets the threshold for the logger of this command
+        invocation. Logging messages less severe than `logging_level` will be
+        ignored.
+
+        """
+        return getLevelName(self.logger.getEffectiveLevel())
+
+    @logging_level.setter
+    def logging_level(self, value):
+        if value is None:
+            value = self._default_logging_level
+        self.logger.setLevel(value if type(value) is not str else value.upper())
+        return
 
     show_configuration = Option(doc='''
         **Syntax:** show_configuration=<bool>

@@ -16,7 +16,6 @@ from __future__ import absolute_import
 
 from logging.config import fileConfig
 from logging import getLogger
-import inspect
 import os
 
 

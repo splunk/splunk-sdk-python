@@ -209,66 +209,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         self.maxDiff = 2 * 65535
         return
 
-    def test_command_parser(self):
-        from splunklib.searchcommands.search_command_internals import \
-            SearchCommandParser
-        parser = SearchCommandParser()
-        encoder = JSONEncoder()
-        file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
-
-        options = [
-            'boolean=true',
-            'duration=00:00:10',
-            'fieldname=word_count',
-            'file=%s' % encoder.encode(file_path),
-            'integer=10',
-            'optionname=foo_bar',
-            'regularexpression="\\\\w+"',
-            'set=foo',
-            'show_configuration=true']
-        fields = ['field_1', 'field_2', 'field_3']
-
-        command = StubbedStreamingCommand()  # All options are required
-        parser.parse(options + fields, command)
-        command_line = str(command)
-
-        self.assertEqual(
-            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" show_configuration=true field_1 field_2 field_3' % encoder.encode(file_path),
-            command_line)
-
-        for option in options:
-            self.assertRaises(ValueError, parser.parse, [x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
-
-        command = StubbedReportingCommand()  # No options are required
-        parser.parse(options + fields, command)
-
-        for option in options:
-            try:
-                parser.parse([x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
-            except Exception as e:
-                self.assertFalse("Unexpected exception: %s" % e)
-
-        try:
-            parser.parse(options, command)
-        except Exception as e:
-            self.assertFalse("Unexpected exception: %s" % e)
-
-        for option in command.options.itervalues():
-            self.assertTrue(option.is_set)
-
-        self.assertEqual(len(command.fieldnames), 0)
-
-        try:
-            parser.parse(fields, command)
-        except Exception as e:
-            self.assertFalse("Unexpected exception: %s" % e)
-
-        for option in command.options.itervalues():
-            self.assertFalse(option.is_set)
-
-        self.assertListEqual(fields, command.fieldnames)
-        return
-
     def disable_test_option_logging_configuration(self):
         self._run(
             'simulate', [

@@ -23,7 +23,7 @@ from splunklib.searchcommands import \
     dispatch, GeneratingCommand, Configuration, Option, validators
 
 
-@Configuration()
+@Configuration(requires_srinfo=True)
 class SimulateCommand(GeneratingCommand):
     """ Generates a sequence of events drawn from a CSV file using repeated
     random sampling
@@ -44,7 +44,7 @@ class SimulateCommand(GeneratingCommand):
     ##Example
 
     ```
-    | simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:30 |
+    | simulate csv=population.csv rate=50 interval=00:00:01 duration=00:00:01 |
     countmatches fieldname=word_count pattern="\\w+" text |
     stats mean(word_count) stdev(word_count)
     ```

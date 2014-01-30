@@ -72,8 +72,6 @@ class ConfigurationSettingsType(type):
 class InputHeader(object):
     """ Represents a Splunk input header as a collection of name/value pairs.
 
-    TODO: Description
-
     """
     def __init__(self):
         self._settings = OrderedDict()
@@ -82,39 +80,66 @@ class InputHeader(object):
         return self._settings[name]
 
     def __iter__(self):
-        for item in self._settings.items():
-            yield item
+        return self.iterkeys()
+
+    def __len__(self):
+        return len(self._settings)
 
     def __repr__(self):
         return ''.join(
             [InputHeader.__name__, '(', repr(self._settings.items()), ')'])
 
+    def items(self):
+        return self._settings.items()
+
+    def iteritems(self):
+        return self._settings.iteritems()
+
+    def iterkeys(self):
+        return self._settings.iterkeys()
+
+    def itervalues(self):
+        return self._settings.itervalues()
+
+    def keys(self):
+        return self._settings.keys()
+
+    def values(self):
+        return self._settings.values()
+
     def read(self, input_file):
         """ Reads an InputHeader from `input_file`.
 
-        The input header is read as a sequence of *<name>***:***<value>* pairs
+        The input header is read as a sequence of *<key>***:***<value>* pairs
         separated by a newline. The end of the input header is signalled by an
         empty line or an end-of-file.
 
         :param input_file: File-like object that supports iteration over lines
 
         """
-        name = None
+        key, value = None, None
+        import sys
         for line in input_file:
             if line == '\n':
                 break
-            if line[-1] == '\n':
+            if line[-1:] == '\n':
                 line = line[:-1]
-            value = line.split(':', 1)
-            if len(value) == 2:
-                name, value = value
-                self._settings[name] = urllib.unquote(value)
-            elif name is not None:
-                # add new line to multi-line value
-                self._settings[name] = '\n'.join(
-                    [self._settings[name], urllib.unquote(line)])
-            else:
-                pass  # on unnamed multi-line value
+            item = line.split(':', 1)
+            if len(item) == 2:
+                # start of a new item
+                self._update(key, value)
+                key, value = item[0], urllib.unquote(item[1])
+            elif key is not None:
+                # continuation of the current item
+                value = '\n'.join([value, urllib.unquote(line)])
+
+        self._update(key, value)
+        return
+
+    def _update(self, k, v):
+        if k is not None:
+            self._settings[k] = v if k != 'infoPath' else open(v, 'r')
+        return
 
 
 class MessagesHeader(object):
@@ -126,10 +151,10 @@ class MessagesHeader(object):
 
     Message levels include:
 
+        + debug_message
         + info_message
         + warn_message
         + error_messages
-        + TODO: ... (?)
 
     The end of the messages header is signalled by the occurrence of a single
     blank line (`\r\n').
@@ -140,38 +165,41 @@ class MessagesHeader(object):
     """
 
     def __init__(self):
-        self._messages = OrderedDict(
-            [('warn_message', []), ('info_message', []), ('error_message', [])])
+        self._messages = []
 
-    def __iadd__(self, level, text):
-        self.append(level, text)
+    def __iadd__(self, (message_level, message_text)):
+        self._messages.append((message_level, message_text))
+        return self
 
     def __iter__(self):
-        for message_level in self._messages:
-            for message_text in self._messages[message_level]:
-                yield (message_level, message_text)
+        return self._messages.__iter__()
+
+    def __len__(self):
+        return len(self._messages)
 
     def __repr__(self):
-        messages = [message for message in self]
-        return ''.join([MessagesHeader.__name__, '(', repr(messages), ')'])
+        return ''.join([MessagesHeader.__name__, '(', repr(self._messages), ')'])
 
-    def append(self, level, text):
+    def append(self, message_level, message_text):
         """ Adds a message level/text pair to this MessagesHeader """
-        if not level in self._messages.keys():
-            raise ValueError('level="%s"' % level)
-        self._messages[level].append(text)
+        if not message_level in MessagesHeader._message_levels:
+            raise ValueError('message_level="%s"' % message_level)
+        self._messages.append((message_level, message_text))
 
     def write(self, output_file):
         """ Writes this MessageHeader to an output stream.
 
-        Messages are written as a sequence of *<message-level>***=**
-        *<message-text>* pairs separated by '\r\n'. The sequence is terminated
-        by a pair of '\r\n' sequences.
+        Messages are written as a sequence of *<message_text-message_level>***=**
+        *<message_text-text>* pairs separated by '\r\n'. The sequence is
+        terminated by a pair of '\r\n' sequences.
 
         """
-        for level, message in self:
-            output_file.write('%s=%s\r\n' % (level, message))
+        for message_level, message_text in self:
+            output_file.write('%s=%s\r\n' % (message_level, message_text))
         output_file.write('\r\n')
+
+    _message_levels = [
+        'debug_message', 'warn_message', 'info_message', 'error_message']
 
 
 class SearchCommandParser(object):

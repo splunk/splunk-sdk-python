@@ -133,9 +133,7 @@ class Option(property):
 
     @classmethod
     def fix_up(cls, command):
-        """ TODO: Documentation
 
-        """
         is_option = lambda attribute: isinstance(attribute, Option)
         command.option_definitions = getmembers(command, is_option)
         member_number = 0

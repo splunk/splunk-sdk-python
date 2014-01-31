@@ -32,7 +32,7 @@ class %(command.title())Command(GeneratingCommand):
 
    """
    @Configuration()
-   def generate(self, events):
+   def generate(self):
        # Put your event  code here
        pass
 

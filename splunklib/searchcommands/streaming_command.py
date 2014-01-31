@@ -67,8 +67,10 @@ class StreamingCommand(SearchCommand):
             for record in operation(SearchCommand.records(reader)):
                 writer.writerow(record)
         except Exception as e:
-            import traceback
-            self.logger.error(traceback.format_exc())
+            from traceback import format_exc
+            from sys import exit
+            self.logger.error(format_exc())
+            exit(1)
 
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings

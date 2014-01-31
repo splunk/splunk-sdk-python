@@ -23,6 +23,7 @@ from splunklib.searchcommands.search_command_internals import SearchCommandParse
 from splunklib.searchcommands import Configuration, StreamingCommand
 
 import logging
+import os
 
 @Configuration()
 class SearchCommand(StreamingCommand):
@@ -59,6 +60,18 @@ class TestSearchCommandsDecorators(unittest.TestCase):
                     command.logging_level = variant
                     self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
 
+        # logging_configuration loads a new logging configuration file relative
+        # to the app root
+
+        command = SearchCommand()
+        directory = os.getcwd()
+        os.chdir(os.path.join('searchcommands_data', 'app', 'bin'))
+        command.logging_configuration = 'logging.conf'
+        os.chdir(directory)
+
+        # logging_configuration loads a new logging configuration file on an
+        # absolute path
+
         # show_configuration accepts Splunk boolean values
 
         boolean_values = {
@@ -78,8 +91,8 @@ class TestSearchCommandsDecorators(unittest.TestCase):
                 command.show_configuration = value
             except ValueError:
                 pass
-            except Exception as e:
-                self.fail('Expected ValueError, but a %s was raised' % type(e))
+            except BaseException as e:
+                self.fail('Expected ValueError, but %s was raised' % type(e))
             else:
                 self.fail('Expected ValueError, but show_configuration=%s' % command.show_configuration)
 

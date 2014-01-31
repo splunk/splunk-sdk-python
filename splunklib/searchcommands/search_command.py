@@ -66,26 +66,24 @@ class SearchCommand(object):
         text = ' '.join([value for value in values if len(value) > 0])
         return text
 
-    # Disabled in splunk-sdk-python-1.2.0 due to known issues
-    #
-    # #region Options
-    #
-    # @Option
-    # def logging_configuration(self):
-    #     """ **Syntax:** logging_configuration=<path>
-    #
-    #     **Description:** Loads an alternative logging configuration file for
-    #     a command invocation. The logging configuration file must be in Python
-    #     ConfigParser-format. Path names are relative to the app root directory.
-    #
-    #     """
-    #     return self._logging_configuration
-    #
-    # @logging_configuration.setter
-    # def logging_configuration(self, value):
-    #     self.logger, self._logging_configuration = logging.configure(
-    #         type(self).__name__, value)
-    #     return
+    #region Options
+
+    @Option
+    def logging_configuration(self):
+        """ **Syntax:** logging_configuration=<path>
+
+        **Description:** Loads an alternative logging configuration file for
+        a command invocation. The logging configuration file must be in Python
+        ConfigParser-format. Path names are relative to the app root directory.
+
+        """
+        return self._logging_configuration
+
+    @logging_configuration.setter
+    def logging_configuration(self, value):
+        self.logger, self._logging_configuration = logging.configure(
+            type(self).__name__, value)
+        return
 
     @Option
     def logging_level(self):
@@ -112,7 +110,7 @@ class SearchCommand(object):
         messages header for this command invocation. Defaults to `false`.
 
         ''', default=False, validate=Boolean())
-    #
+
     # #endregion
 
     #region Properties
@@ -177,10 +175,11 @@ class SearchCommand(object):
             try:
                 self.parser.parse(args, self)
             except (SyntaxError, ValueError) as e:
+                from sys import exit
                 self.messages.append("error_message", e)
                 self.messages.write(output_file)
                 self.logger.error(e)
-                return
+                exit(1)
 
             self._configuration = ConfigurationSettings(self)
 
@@ -193,13 +192,17 @@ class SearchCommand(object):
             self._execute(operation, reader, writer)
 
         else:
+            file_name = path.basename(args[0])
             message = (
-                'Static configuration is unsupported. Please configure this '
-                'command as follows in default/commands.conf:\n\n'
-                '[%s]\n'
-                'filename = %s\n'
-                'supports_getinfo = true' %
-                (type(self).__name__, path.basename(argv[0])))
+                'Command {0} appears to be statically configured and static '
+                'configuration is unsupported by splunklib.searchcommands. '
+                'Please ensure that default/commands.conf contains this '
+                'stanza: '
+                '[{0}] | '
+                'filename = {1} | '
+                'supports_getinfo = true | '
+                'supports_rawargs = true | '
+                'outputheader = true'.format(type(self).name, file_name))
             self.messages.append('error_message', message)
             self.messages.write(output_file)
             self.logger.error(message)

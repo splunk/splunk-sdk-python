@@ -71,6 +71,7 @@ def configure(name, path=None):
 
     """
     app_directory = os.path.dirname(os.getcwd())
+
     if path is None:
         probing_path = [
             'local/%s.logging.conf' % name,
@@ -82,6 +83,21 @@ def configure(name, path=None):
             if os.path.exists(configuration_file):
                 path = configuration_file
                 break
+    elif not os.path.isabs(path):
+        found = False
+        for conf in 'local', 'default':
+            configuration_file = os.path.join(app_directory, conf, path)
+            if os.path.exists(configuration_file):
+                path = configuration_file
+                found = True
+                break
+        if not found:
+            raise ValueError(
+                'Logging configuration file "%s" not found in local or default '
+                'directory' % path)
+    elif not os.path.exists(path):
+            raise ValueError('Logging configuration file "%s" not found')
+
     if path is not None:
         working_directory = os.getcwd()
         os.chdir(app_directory)
@@ -90,5 +106,6 @@ def configure(name, path=None):
             fileConfig(path)
         finally:
             os.chdir(working_directory)
+
     logger = getLogger(name)
     return logger, path

@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from time import strptime
 import os
 import re
 import sys
@@ -55,20 +54,6 @@ class Boolean(Validator):
             if value not in Boolean.truth_values:
                 raise ValueError('Unrecognized truth value: %s' % value)
             value = Boolean.truth_values[value]
-        return value
-
-
-class Duration(Validator):
-    """ Validates duration option values.
-
-    """
-    def __call__(self, value):
-        if value is not None:
-            try:
-                value = strptime(value, '%H:%M:%S')
-            except ValueError as e:
-                raise ValueError(str(e).capitalize())
-            value = 3600 * value.tm_hour + 60 * value.tm_min + value.tm_sec
         return value
 
 
@@ -129,6 +114,44 @@ class Integer(Validator):
                     'Expected integer in the range [%d,%d]: %d'
                     % (self.minimum, self.maximum, value))
         return value
+
+
+class Duration(Validator):
+    """ Validates duration option values.
+
+    """
+    def __call__(self, value):
+
+        if value is None:
+            return None
+
+        try:
+            p = value.split(':', 2)
+            _60 = Duration._60
+            _unsigned = Duration._unsigned
+            if len(p) == 1:
+                result = _unsigned(p[0])
+            if len(p) == 2:
+                result = 60 * _unsigned(p[0]) + _60(p[1])
+            if len(p) == 3:
+                result = 3600 * _unsigned(p[0]) + 60 * _60(p[1]) + _60(p[2])
+        except ValueError:
+            raise ValueError("Invalid duration value: %s", value)
+
+        return result
+
+    def format(self, value):
+
+        value = int(value)
+
+        s = value % 60
+        m = value / 60 % 60
+        h = value / (60 * 60)
+
+        return '%02d:%02d:%02d' % (h, m, s)
+
+    _60 = Integer(0, 59)
+    _unsigned = Integer(0)
 
 
 class OptionName(Validator):

@@ -20,6 +20,7 @@ except ImportError:
     import unittest
 
 from splunklib.searchcommands import validators
+from time import gmtime, strftime, strptime
 import os
 
 
@@ -27,6 +28,37 @@ class TestSearchCommandsValidators(unittest.TestCase):
 
     def setUp(self):
         super(TestSearchCommandsValidators, self).setUp()
+        return
+
+    def test_duration(self):
+
+        # Duration validator should parse and format time intervals of the form
+        # HH:MM:SS
+
+        validator = validators.Duration()
+
+        for seconds in range(0, 25 * 60 * 60, 17):
+            value = str(seconds)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d' % (seconds / 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+
+        self.assertEqual(validator('23:00:00'), 23 * 60 * 60)
+        self.assertEqual(validator('00:59:00'), 59 * 60)
+        self.assertEqual(validator('00:00:59'), 59)
+
+        self.assertEqual(validator.format(23 * 60 * 60), '23:00:00')
+        self.assertEqual(validator.format(59 * 60), '00:59:00')
+        self.assertEqual(validator.format(59), '00:00:59')
+
+        self.assertRaises(ValueError, validator, '00:60:00')
+        self.assertRaises(ValueError, validator, '00:00:60')
+
         return
 
     def test_file(self):

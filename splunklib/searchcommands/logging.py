@@ -96,7 +96,7 @@ def configure(name, path=None):
                 'Logging configuration file "%s" not found in local or default '
                 'directory' % path)
     elif not os.path.exists(path):
-            raise ValueError('Logging configuration file "%s" not found')
+        raise ValueError('Logging configuration file "%s" not found')
 
     if path is not None:
         working_directory = os.getcwd()

@@ -20,7 +20,6 @@ except ImportError:
     import unittest
 
 from splunklib.searchcommands import validators
-from time import gmtime, strftime, strptime
 import os
 
 
@@ -37,7 +36,7 @@ class TestSearchCommandsValidators(unittest.TestCase):
 
         validator = validators.Duration()
 
-        for seconds in range(0, 25 * 60 * 60, 17):
+        for seconds in range(0, 25 * 60 * 60, 59):
             value = str(seconds)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
@@ -48,16 +47,24 @@ class TestSearchCommandsValidators(unittest.TestCase):
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
 
+        self.assertEqual(validator('230:00:00'), 230 * 60 * 60)
         self.assertEqual(validator('23:00:00'), 23 * 60 * 60)
         self.assertEqual(validator('00:59:00'), 59 * 60)
         self.assertEqual(validator('00:00:59'), 59)
 
+        self.assertEqual(validator.format(230 * 60 * 60), '230:00:00')
         self.assertEqual(validator.format(23 * 60 * 60), '23:00:00')
         self.assertEqual(validator.format(59 * 60), '00:59:00')
         self.assertEqual(validator.format(59), '00:00:59')
 
-        self.assertRaises(ValueError, validator, '00:60:00')
+        self.assertRaises(ValueError, validator, '-1')
+        self.assertRaises(ValueError, validator, '00:-1')
+        self.assertRaises(ValueError, validator, '-1:00')
+        self.assertRaises(ValueError, validator, '00:00:-1')
+        self.assertRaises(ValueError, validator, '00:-1:00')
+        self.assertRaises(ValueError, validator, '-1:00:00')
         self.assertRaises(ValueError, validator, '00:00:60')
+        self.assertRaises(ValueError, validator, '00:60:00')
 
         return
 

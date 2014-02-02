@@ -38,7 +38,6 @@ class %(command.title())Command(ReportingCommand):
         # if you have no need for a streaming preop
         pass
 
-    @Configuration()
     def reduce(self, events):
         # Put your reporting implementation
         pass

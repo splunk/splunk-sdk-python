@@ -23,7 +23,7 @@ from splunklib.searchcommands import \
     dispatch, GeneratingCommand, Configuration, Option, validators
 
 
-@Configuration(requires_srinfo=True)
+@Configuration()
 class SimulateCommand(GeneratingCommand):
     """ Generates a sequence of events drawn from a CSV file using repeated
     random sampling

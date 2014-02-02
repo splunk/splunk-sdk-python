@@ -32,7 +32,6 @@ class %(command.title())Command(StreamingCommand):
    %(description)
 
    """
-   @Configuration()
    def stream(self, events):
        # Put your event transformation code here
        pass

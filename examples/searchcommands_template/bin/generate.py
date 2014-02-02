@@ -31,7 +31,6 @@ class %(command.title())Command(GeneratingCommand):
    %(description)
 
    """
-   @Configuration()
    def generate(self):
        # Put your event  code here
        pass

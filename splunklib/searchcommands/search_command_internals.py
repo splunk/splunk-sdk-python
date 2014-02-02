@@ -138,7 +138,7 @@ class InputHeader(object):
 
     def _update(self, k, v):
         if k is not None:
-            self._settings[k] = v if k != 'infoPath' else open(v, 'r')
+            self._settings[k] = v
         return
 
 

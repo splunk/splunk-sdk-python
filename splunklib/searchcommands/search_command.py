@@ -25,6 +25,7 @@ from inspect import getmembers
 from logging import getLevelName
 from os import path
 from sys import argv, stdin, stdout
+from xml.etree import ElementTree
 
 # Relative imports
 
@@ -53,8 +54,9 @@ class SearchCommand(object):
 
         self._default_logging_level = self.logger.level
         self._configuration = None
-        self._option_view = None
         self._fieldnames = None
+        self._option_view = None
+        self._search_results_info = None
 
         self.parser = SearchCommandParser()
 
@@ -117,10 +119,16 @@ class SearchCommand(object):
 
     @property
     def configuration(self):
+        """ Returns the configuration settings for this command
+
+        """
         return self._configuration
 
     @property
     def fieldnames(self):
+        """ Returns the fieldnames specified as argument to this command
+
+        """
         return self._fieldnames
 
     @fieldnames.setter
@@ -129,9 +137,72 @@ class SearchCommand(object):
 
     @property
     def options(self):
+        """ Returns the options specified as argument to this command
+
+        """
         if self._option_view is None:
             self._option_view = Option.View(self)
         return self._option_view
+
+    @property
+    def search_results_info(self):
+        """ Returns the search results info for this command invocation or None
+
+        Splunk does not pass search results information by default. You must
+        request it by specifying these configuration settings in commands.conf:
+
+        .. code-block:: python
+            enableheader=true
+            requires_srinfo=true
+
+        Splunk will then pass the location of a search information file for
+        each command command invocation in :code:`SearchCommand.input_headers[
+        'infoPath']`. This property represents the contents of that file as a
+        :code:`SearchResultsInfo` object.
+
+        """
+        if self._search_results_info is None:
+
+            try:
+                info_path = self.input_header['infoPath']
+            except KeyError:
+                return None
+
+            self.logger.debug('infoPath = %s' % info_path)
+
+            def convert_field(field):
+                return (field[1:] if field[0] == '_' else field).replace('.', '_')
+
+            def convert_value(field, value):
+
+                if field == 'countMap':
+                    split = value.split(';')
+                    value = {k: int(v) for k, v in zip(split[0::2], split[1::2])}
+                elif field == 'vix_families':
+                    value = ElementTree.fromstring(value)
+                elif value == '':
+                    value = None
+                else:
+                    try:
+                        value = float(value)
+                        if value.is_integer():
+                            value = int(value)
+                    except ValueError:
+                        pass
+
+                return value
+
+            with open(info_path, 'rb') as f:
+                from collections import namedtuple
+                import csv
+                reader = csv.reader(f, dialect='splunklib.searchcommands')
+                fields = [convert_field(x) for x in reader.next()]
+                values = [convert_value(f, v) for f, v in zip(fields,reader.next())]
+
+            search_results_info_type = namedtuple("SearchResultsInfo", fields)
+            self._search_results_info = search_results_info_type._make(values)
+
+        return self._search_results_info
 
     #endregion
 

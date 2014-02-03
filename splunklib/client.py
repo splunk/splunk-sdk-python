@@ -288,6 +288,7 @@ def connect(**kwargs):
     """
     return Service(**kwargs).login()
 
+
 # In preparation for adding Storm support, we added an
 # intermediary class between Service and Context. Storm's
 # API is not going to be the same as enterprise Splunk's
@@ -296,6 +297,7 @@ def connect(**kwargs):
 # put any shared behavior on it.
 class _BaseService(Context):
     pass
+
 
 class Service(_BaseService):
     """A Pythonic binding to Splunk instances.
@@ -609,6 +611,7 @@ class Service(_BaseService):
         """
         return Users(self)
 
+
 class Endpoint(object):
     """This class represents individual Splunk resources in the Splunk REST API.
 
@@ -741,6 +744,7 @@ class Endpoint(object):
         return self.service.post(path,
                                  owner=owner, app=app, sharing=sharing,
                                  **query)
+
 
 # kwargs: path, app, owner, sharing, state
 class Entity(Endpoint):
@@ -1074,6 +1078,7 @@ class Entity(Endpoint):
         self.post(**kwargs)
         return self
 
+
 class ReadOnlyCollection(Endpoint):
     """This class represents a read-only collection of entities in the Splunk
     instance.
@@ -1394,6 +1399,7 @@ class ReadOnlyCollection(Endpoint):
         # return self._load_list(response)
         return list(self.iter(count=count, **kwargs))
 
+
 class Collection(ReadOnlyCollection):
     """A collection of entities.
 
@@ -1530,6 +1536,7 @@ class Collection(ReadOnlyCollection):
                 raise
         return self
 
+
 class ConfigurationFile(Collection):
     """This class contains all of the stanzas from one configuration file.
     """
@@ -1539,6 +1546,7 @@ class ConfigurationFile(Collection):
     def __init__(self, service, path, **kwargs):
         Collection.__init__(self, service, path, item=Stanza)
         self.name = kwargs['state']['title']
+
 
 class Configurations(Collection):
     """This class provides access to the configuration files from this Splunk
@@ -1639,6 +1647,7 @@ class Stanza(Entity):
         return len([x for x in self._state.content.keys()
                     if not x.startswith('eai') and x != 'disabled'])
 
+
 class AlertGroup(Entity):
     """This class represents a group of fired alerts for a saved search. Access
     it using the :meth:`alerts` property."""
@@ -1664,6 +1673,7 @@ class AlertGroup(Entity):
         :rtype: ``integer``
         """
         return int(self.content.get('triggered_alert_count', 0))
+
 
 class Indexes(Collection):
     """This class contains the collection of indexes in this Splunk instance.
@@ -2814,6 +2824,7 @@ class Loggers(Collection):
         """
         raise NotSupportedError()
 
+
 class Message(Entity):
     def __init__(self, service, path, **kwargs):
         Entity.__init__(self, service, path, **kwargs)
@@ -2825,6 +2836,7 @@ class Message(Entity):
         :return: The :class:`Loggers` collection.
         """
         return self[self.name]
+
 
 class ModularInputKind(Entity):
     """This class contains the different types of modular inputs. Retrieve this
@@ -3040,6 +3052,7 @@ class SavedSearches(Collection):
         """
         return Collection.create(self, name, search=search, **kwargs)
 
+
 class Settings(Entity):
     """This class represents configuration settings for a Splunk service.
     Retrieve this collection using :meth:`Service.settings`."""
@@ -3060,6 +3073,7 @@ class Settings(Entity):
         self.service.post("server/settings/settings", **kwargs)
         return self
 
+
 class User(Entity):
     """This class represents a Splunk user.
     """
@@ -3071,6 +3085,7 @@ class User(Entity):
         :rtype: ``list``
         """
         return [self.service.roles[name] for name in self.content.roles]
+
 
 # Splunk automatically lowercases new user names so we need to match that
 # behavior here to ensure that the subsequent member lookup works correctly.
@@ -3203,7 +3218,6 @@ class Role(Entity):
         return self
 
 
-
 class Roles(Collection):
     """This class represents the collection of roles in the Splunk instance.
     Retrieve this collection using :meth:`Service.roles`."""
@@ -3284,7 +3298,3 @@ class Application(Entity):
     def updateInfo(self):
         """Returns any update information that is available for the app."""
         return self._run_action("update")
-
-
-
-

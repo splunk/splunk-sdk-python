@@ -16,6 +16,8 @@ from __future__ import absolute_import
 
 # Absolute imports
 
+from splunklib.client import Service
+
 try:
     from collections import OrderedDict # python 2.7
 except ImportError:
@@ -25,6 +27,7 @@ from inspect import getmembers
 from logging import getLevelName
 from os import path
 from sys import argv, stdin, stdout
+from urlparse import urlsplit
 from xml.etree import ElementTree
 
 # Relative imports
@@ -57,6 +60,7 @@ class SearchCommand(object):
         self._fieldnames = None
         self._option_view = None
         self._search_results_info = None
+        self._service = None
 
         self.parser = SearchCommandParser()
 
@@ -146,63 +150,112 @@ class SearchCommand(object):
 
     @property
     def search_results_info(self):
-        """ Returns the search results info for this command invocation or None
+        """ Returns the search results info for this command invocation or None.
 
-        Splunk does not pass search results information by default. You must
-        request it by specifying these configuration settings in commands.conf:
+        The search results info object is created from the search results info
+        file associated with the command invocation. Splunk does not pass the
+        location of this file by default. You must request it by specifying
+        these configuration settings in commands.conf:
 
         .. code-block:: python
             enableheader=true
             requires_srinfo=true
 
-        Splunk will then pass the location of a search information file for
-        each command command invocation in :code:`SearchCommand.input_headers[
-        'infoPath']`. This property represents the contents of that file as a
-        :code:`SearchResultsInfo` object.
+        The :code:`enableheader` setting is :code:`true` by default. Hence, you
+        need not set it. The :code:`requires_srinfo` setting is false by
+        default. Hence, you must set it.
+
+        :return: :class:SearchResultsInfo, if :code:`enableheader` and
+        :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
+        :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
+        a value of :code:`None` is returned.
 
         """
-        if self._search_results_info is None:
+        if self._search_results_info is not None:
+            return self._search_results_info
 
-            try:
-                info_path = self.input_header['infoPath']
-            except KeyError:
-                return None
+        try:
+            info_path = self.input_header['infoPath']
+        except KeyError:
+            return None
 
-            self.logger.debug('infoPath = %s' % info_path)
+        def convert_field(field):
+            return (field[1:] if field[0] == '_' else field).replace('.', '_')
 
-            def convert_field(field):
-                return (field[1:] if field[0] == '_' else field).replace('.', '_')
+        def convert_value(field, value):
 
-            def convert_value(field, value):
+            if field == 'countMap':
+                split = value.split(';')
+                value = {k: int(v) for k, v in zip(split[0::2], split[1::2])}
+            elif field == 'vix_families':
+                value = ElementTree.fromstring(value)
+            elif value == '':
+                value = None
+            else:
+                try:
+                    value = float(value)
+                    if value.is_integer():
+                        value = int(value)
+                except ValueError:
+                    pass
 
-                if field == 'countMap':
-                    split = value.split(';')
-                    value = {k: int(v) for k, v in zip(split[0::2], split[1::2])}
-                elif field == 'vix_families':
-                    value = ElementTree.fromstring(value)
-                elif value == '':
-                    value = None
-                else:
-                    try:
-                        value = float(value)
-                        if value.is_integer():
-                            value = int(value)
-                    except ValueError:
-                        pass
+            return value
 
-                return value
+        with open(info_path, 'rb') as f:
+            from collections import namedtuple
+            import csv
+            reader = csv.reader(f, dialect='splunklib.searchcommands')
+            fields = [convert_field(x) for x in reader.next()]
+            values = [convert_value(f, v) for f, v in zip(fields, reader.next())]
 
-            with open(info_path, 'rb') as f:
-                from collections import namedtuple
-                import csv
-                reader = csv.reader(f, dialect='splunklib.searchcommands')
-                fields = [convert_field(x) for x in reader.next()]
-                values = [convert_value(f, v) for f, v in zip(fields,reader.next())]
-
-            search_results_info_type = namedtuple("SearchResultsInfo", fields)
-            self._search_results_info = search_results_info_type._make(values)
+        search_results_info_type = namedtuple("SearchResultsInfo", fields)
+        self._search_results_info = search_results_info_type._make(values)
 
         return self._search_results_info
+
+    @property
+    def service(self):
+        """ Returns a Splunk service object for this command invocation or None.
+
+        The service object is created from the Splunkd URI and authentication
+        token passed to the command invocation in the search results info file.
+        This data is not passed to a command invocation by default. You must
+        request it by specifying this pair of configuration settings in
+        commands.conf:
+
+           .. code-block:: python
+               enableheader=true
+               requires_srinfo=true
+
+        The :code:`enableheader` setting is :code:`true` by default. Hence, you
+        need not set it. The :code:`requires_srinfo` setting is false by
+        default. Hence, you must set it.
+
+        :return: :class:splunklib.client.Service, if :code:`enableheader` and
+        :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
+        :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
+        a value of :code:`None` is returned.
+
+        """
+        if self._service is not None:
+            return self._service
+
+        info = self.search_results_info
+
+        if info is None:
+            return None
+
+        _, netloc, _, _, _ = urlsplit(
+            info.splunkd_uri, info.splunkd_protocol, allow_fragments=False)
+
+        splunkd_host, _ = netloc.split(':')
+
+        self._service = Service(
+            scheme=info.splunkd_protocol, host=splunkd_host,
+            port=info.splunkd_port, token=info.auth_token,
+            app=info.ppc_app)
+
+        return self._service
 
     #endregion
 
@@ -255,14 +308,15 @@ class SearchCommand(object):
             self._configuration = ConfigurationSettings(self)
 
             if self.show_configuration:
-                self.messages.append('info_message',
-                                     '%s command configuration settings: %s' %
-                                     (self.name, self._configuration))
+                self.messages.append(
+                    'info_message', '%s command configuration settings: %s'
+                    % (self.name, self._configuration))
 
             writer = csv.DictWriter(output_file, self)
             self._execute(operation, reader, writer)
 
         else:
+
             file_name = path.basename(args[0])
             message = (
                 'Command {0} appears to be statically configured and static '

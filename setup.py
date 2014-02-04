@@ -158,10 +158,8 @@ class DistCommand(Command):
         manifest = [
             (os.path.join(sdk_dir, 'examples', 'searchcommands_app'),
              'searchcommands_app'),
-            (os.path.join(sdk_dir, 'splunklib', '__init__.py'),
-             os.path.join(splunklib_arcname, '__init__.py')),
-            (os.path.join(sdk_dir, 'splunklib', 'searchcommands'),
-             os.path.join(splunklib_arcname, 'searchcommands'))
+            (os.path.join(sdk_dir, 'splunklib'),
+             splunklib_arcname)
         ]
 
         with closing(tarfile.open(tarball, 'w')) as spl:

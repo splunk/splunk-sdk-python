@@ -24,7 +24,7 @@ from splunklib.searchcommands import Configuration, StreamingCommand
 
 import logging
 import os
-
+import sys
 
 @Configuration()
 class SearchCommand(StreamingCommand):
@@ -48,6 +48,9 @@ class TestDecorators(unittest.TestCase):
         notset = logging.getLevelName(logging.NOTSET)
         logging.root.setLevel(logging.WARNING)
 
+        while len(logging.root.handlers) > 0:
+            logging.root.removeHandler(logging.root.handlers[0])
+
         command = SearchCommand()
 
         self.assertEquals(warning, command.logging_level)
@@ -64,21 +67,65 @@ class TestDecorators(unittest.TestCase):
                     self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
 
         app_root = os.path.join(TestDecorators._package_directory, 'data', 'app')
-
-        command = SearchCommand()
+        command = SearchCommand()  # guarantee: no logging.conf
         directory = os.getcwd()
         os.chdir(os.path.join(app_root, 'bin'))
 
         try:
+            # In the absence of a logging.conf file, messages are written to
+            # stderr
+
+            self.assertEqual(len(logging.root.handlers), 1)
+
+            root_handler = logging.root.handlers[0]
+            self.assertIsInstance(root_handler, logging.StreamHandler)
+            self.assertEqual(root_handler.stream, sys.stderr)
+
+            self.assertEqual(len(command.logger.handlers), 0)
+
+            # TODO: capture this output and verify it
+            command.logger.warning('Test that output is directed to stderr without formatting')
+
+            default_logging_configuration = os.path.join(app_root, 'default', 'logging.conf')
+
+            # A search command loads {local,default}/logging.conf when it is
+            # available
+
+            command = SearchCommand()  # guarantee: default/logging.conf
+            self.assertEqual(command.logging_configuration, default_logging_configuration)
+
             # logging_configuration loads a new logging configuration file
             # relative to the app root
 
             command.logging_configuration = 'logging.conf'
+            self.assertEqual(command.logging_configuration, default_logging_configuration)
 
             # logging_configuration loads a new logging configuration file on an
             # absolute path
 
-            command.logging_configuration = os.path.join(app_root, 'default', 'logging.conf')
+            command.logging_configuration = default_logging_configuration
+            self.assertEqual(command.logging_configuration, default_logging_configuration)
+
+            # logging_configuration raises a value error, if a non-existent
+            # logging configuration file is provided
+
+            try:
+                command.logging_configuration = 'foo'
+            except ValueError:
+                pass
+            except BaseException as e:
+                self.fail('Expected ValueError, but %s was raised' % type(e))
+            else:
+                self.fail('Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
+
+            try:
+                command.logging_configuration = os.path.join(TestDecorators._package_directory, 'non-existent.logging.conf')
+            except ValueError:
+                pass
+            except BaseException as e:
+                self.fail('Expected ValueError, but %s was raised' % type(e))
+            else:
+                self.fail('Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
 
         finally:
             os.chdir(directory)

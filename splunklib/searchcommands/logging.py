@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 
 from logging.config import fileConfig
-from logging import getLogger
+from logging import getLogger, root, StreamHandler
 import os
 
 
@@ -106,6 +106,9 @@ def configure(name, path=None):
             fileConfig(path)
         finally:
             os.chdir(working_directory)
+
+    if len(root.handlers) == 0:
+        root.addHandler(StreamHandler())  # shared by loggers without handlers
 
     logger = getLogger(name)
     return logger, path

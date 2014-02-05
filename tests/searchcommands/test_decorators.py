@@ -25,6 +25,7 @@ from splunklib.searchcommands import Configuration, StreamingCommand
 import logging
 import os
 
+
 @Configuration()
 class SearchCommand(StreamingCommand):
 
@@ -32,10 +33,10 @@ class SearchCommand(StreamingCommand):
         pass
 
 
-class TestSearchCommandsDecorators(unittest.TestCase):
+class TestDecorators(unittest.TestCase):
 
     def setUp(self):
-        super(TestSearchCommandsDecorators, self).setUp()
+        super(TestDecorators, self).setUp()
         return
 
     def test_builtin_options(self):
@@ -45,9 +46,11 @@ class TestSearchCommandsDecorators(unittest.TestCase):
 
         warning = logging.getLevelName(logging.WARNING)
         notset = logging.getLevelName(logging.NOTSET)
+        logging.root.setLevel(logging.WARNING)
+
         command = SearchCommand()
 
-        self.assertEquals(command.logging_level, warning)
+        self.assertEquals(warning, command.logging_level)
 
         for level in logging._levelNames:
             if type(level) is int:
@@ -60,17 +63,25 @@ class TestSearchCommandsDecorators(unittest.TestCase):
                     command.logging_level = variant
                     self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
 
-        # logging_configuration loads a new logging configuration file relative
-        # to the app root
+        app_root = os.path.join(TestDecorators._package_directory, 'data', 'app')
 
         command = SearchCommand()
         directory = os.getcwd()
-        os.chdir(os.path.join('searchcommands_data', 'app', 'bin'))
-        command.logging_configuration = 'logging.conf'
-        os.chdir(directory)
+        os.chdir(os.path.join(app_root, 'bin'))
 
-        # logging_configuration loads a new logging configuration file on an
-        # absolute path
+        try:
+            # logging_configuration loads a new logging configuration file
+            # relative to the app root
+
+            command.logging_configuration = 'logging.conf'
+
+            # logging_configuration loads a new logging configuration file on an
+            # absolute path
+
+            command.logging_configuration = os.path.join(app_root, 'default', 'logging.conf')
+
+        finally:
+            os.chdir(directory)
 
         # show_configuration accepts Splunk boolean values
 
@@ -103,3 +114,5 @@ class TestSearchCommandsDecorators(unittest.TestCase):
             parser.parse(argv, command)
 
         return
+
+    _package_directory = os.path.dirname(__file__)

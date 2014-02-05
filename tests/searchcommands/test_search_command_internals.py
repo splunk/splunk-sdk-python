@@ -141,17 +141,17 @@ class StubbedStreamingCommand(StreamingCommand):
         pass
 
 
-class TestSearchCommandsInternals(unittest.TestCase):
+class TestSearchCommandInternals(unittest.TestCase):
 
     def setUp(self):
-        super(TestSearchCommandsInternals, self).setUp()
+        super(TestSearchCommandInternals, self).setUp()
         return
 
     def test_command_parser(self):
 
         parser = search_command_internals.SearchCommandParser()
         encoder = JSONEncoder()
-        file_path = os.path.abspath('searchcommands_data/input/_empty.csv')
+        file_path = os.path.abspath(os.path.join(TestSearchCommandInternals._package_path, 'data', 'input', '_empty.csv'))
 
         options = [
             'boolean=true',
@@ -257,11 +257,11 @@ class TestSearchCommandsInternals(unittest.TestCase):
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('infoPath:searchcommands_data/input/_empty.csv\n\n')) as input_file:
+        with closing(StringIO('infoPath:data/input/_empty.csv\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 1)
-        self.assertEqual(input_header['infoPath'], 'searchcommands_data/input/_empty.csv')
+        self.assertEqual(input_header['infoPath'], 'data/input/_empty.csv')
 
         # Set of named items
 
@@ -331,3 +331,5 @@ class TestSearchCommandsInternals(unittest.TestCase):
         self.assertRaises(ValueError, messages_header.append, "not_a_debug_info_warn_or_error_message", "foo bar")
 
         return
+
+    _package_path = os.path.dirname(__file__)

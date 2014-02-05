@@ -23,10 +23,10 @@ from splunklib.searchcommands import validators
 import os
 
 
-class TestSearchCommandsValidators(unittest.TestCase):
+class TestValidators(unittest.TestCase):
 
     def setUp(self):
-        super(TestSearchCommandsValidators, self).setUp()
+        super(TestValidators, self).setUp()
         return
 
     def test_duration(self):

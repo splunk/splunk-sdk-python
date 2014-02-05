@@ -23,7 +23,7 @@ from json import JSONEncoder
 from subprocess import Popen
 import os
 import shutil
-import testlib
+from tests import testlib
 
 from splunklib.results import \
     Message, ResultsReader
@@ -438,9 +438,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)
-    data_directory = os.path.join(package_directory, 'searchcommands_data')
-    app_bin = os.path.join(
-        os.path.dirname(package_directory), "examples/searchcommands_app/bin")
+    data_directory = os.path.join(package_directory, 'data')
+    app_bin = os.path.abspath(os.path.join(package_directory, "../../examples/searchcommands_app/bin"))
 
     _seed = '5708bef4-6782-11e3-97ed-10ddb1b57bc3'
 

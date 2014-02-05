@@ -261,8 +261,7 @@ class TestSearchCommandsInternals(unittest.TestCase):
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 1)
-        self.assertIsInstance(input_header['infoPath'], file)
-        self.assertEqual(input_header['infoPath'].name, 'searchcommands_data/input/_empty.csv')
+        self.assertEqual(input_header['infoPath'], 'searchcommands_data/input/_empty.csv')
 
         # Set of named items
 

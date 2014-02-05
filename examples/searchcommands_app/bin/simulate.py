@@ -30,31 +30,32 @@ class SimulateCommand(GeneratingCommand):
 
     ##Syntax
 
-    simulate csv=<path> rate=<expected-event-count> interval=<sampling-period>
-        duration=<execution-period> [seed=<string>]
+    .. code-block::
+        simulate csv=<path> rate=<expected_event_count>
+        interval=<sampling_period> duration=<execution_period> [seed=<string>]
 
     ##Description
 
-    The `simulate` command uses repeated random samples of the event records
-    in `csv` for the execution period of `duration`. Samples sizes are
-    determined for each time `interval` in `duration` using a Poisson
-    distribution with an average `rate` specifying the expected event count
-    during `interval`.
+    The :code:`simulate` command uses repeated random samples of the event
+    records in :code:`csv` for the execution period of :code:`duration`. Sample
+    sizes are determined for each time :code:`interval` in :code:`duration`
+    using a Poisson distribution with an average :code:`rate` specifying the
+    expected event count during :code:`interval`.
 
     ##Example
 
-    ```
-    | simulate csv=population.csv rate=50 interval=00:00:01 duration=00:00:01 |
-    countmatches fieldname=word_count pattern="\\w+" text |
-    stats mean(word_count) stdev(word_count)
-    ```
+    .. code-block::
+        | simulate csv=population.csv rate=50 interval=00:00:01
+            duration=00:00:05 | countmatches fieldname=word_count
+            pattern="\\w+" text | stats mean(word_count) stdev(word_count)
 
     This example generates events drawn from repeated random sampling of events
-    from `tweets.csv`. Events are drawn at an average rate of 200 events per
-    second for a duration of 30 seconds. Events are piped to the example
-    `countmatches` command which adds a `word_count` field containing the number
-    of words in the `text` field of each event. The mean and standard deviation
-    of the `word_count` are then computed by the builtin `stats` command.
+    from :code:`tweets.csv`. Events are drawn at an average rate of 50 per
+    second for a duration of 5 seconds. Events are piped to the example
+    :code:`countmatches` command which adds a :code:`word_count` field
+    containing the number of words in the :code:`text` field of each event. The
+    mean and standard deviation of the :code:`word_count` are then computed by
+    the builtin :code:`stats` command.
 
 
     """

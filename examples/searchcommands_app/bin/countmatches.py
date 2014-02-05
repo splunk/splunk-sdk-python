@@ -27,8 +27,8 @@ class CountMatchesCommand(StreamingCommand):
 
     ##Syntax
 
-    countmatches fieldname=**<field-name>** pattern=**<regular-expression>**
-    **<field-name>**...
+    .. code-block::
+        countmatches fieldname=<field> pattern=<regular_expression> <field-list>
 
     ##Description
 
@@ -39,14 +39,14 @@ class CountMatchesCommand(StreamingCommand):
     Event records are otherwise passed through to the next pipeline processor
     unmodified.
 
-    ## Example
+    ##Example
 
-    ```
-    | inputcsv tweets.csv | countmatches fieldname=word_count pattern="\\w+" text
-    ```
+    Count the number of words in the `text` of each tweet in tweets.csv and
+    store the result in `word_count`.
 
-    Counts the number of words in `some_text_field` and stores the result in
-    `word_count`.
+    .. code-block::
+        | inputcsv tweets.csv | countmatches fieldname=word_count
+        pattern="\\w+" text
 
     """
     fieldname = Option(

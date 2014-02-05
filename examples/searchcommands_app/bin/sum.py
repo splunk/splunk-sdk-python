@@ -22,11 +22,12 @@ from splunklib.searchcommands import \
 
 @Configuration(clear_required_fields=True, requires_preop=True)
 class SumCommand(ReportingCommand):
-    """ Computes the sum of a set of fields
+    """ Computes the sum of a set of fields.
 
     ##Syntax
 
-    sum total=*<fieldname>* [*<fieldname>*]...
+    .. code-block::
+        sum total=<field> <field-list>
 
     ##Description:
 
@@ -35,12 +36,11 @@ class SumCommand(ReportingCommand):
 
     ##Example
 
-    ```
-    index = _internal | head 200 | sum total=lines linecount
-    ```
+    ..code-block::
+        index = _internal | head 200 | sum total=lines linecount
 
     This example computes the total linecount in the first 200 records in the
-    _internal index.
+    :code:`_internal index`.
 
     """
     total = Option(

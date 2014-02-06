@@ -186,7 +186,8 @@ class SearchCommand(object):
 
             if field == 'countMap':
                 split = value.split(';')
-                value = {k: int(v) for k, v in zip(split[0::2], split[1::2])}
+                value = dict((key, int(value))
+                             for key, value in zip(split[0::2], split[1::2]))
             elif field == 'vix_families':
                 value = ElementTree.fromstring(value)
             elif value == '':

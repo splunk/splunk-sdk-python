@@ -108,7 +108,7 @@ def configure(name, path=None):
             os.chdir(working_directory)
 
     if len(root.handlers) == 0:
-        root.addHandler(StreamHandler())  # shared by loggers without handlers
+        root.addHandler(StreamHandler())
 
     logger = getLogger(name)
     return logger, path

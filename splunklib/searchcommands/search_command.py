@@ -175,10 +175,10 @@ class SearchCommand(object):
         need not set it. The :code:`requires_srinfo` setting is false by
         default. Hence, you must set it.
 
-        :return: :class:SearchResultsInfo, if :code:`enableheader` and
-        :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
-        :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
-        a value of :code:`None` is returned.
+        :return: :class:`SearchResultsInfo`, if :code:`enableheader` and
+            :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
+            :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
+            a value of :code:`None` is returned.
 
         """
         if self._search_results_info is not None:
@@ -242,10 +242,10 @@ class SearchCommand(object):
         need not set it. The :code:`requires_srinfo` setting is false by
         default. Hence, you must set it.
 
-        :return: :class:splunklib.client.Service, if :code:`enableheader` and
-        :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
-        :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
-        a value of :code:`None` is returned.
+        :return: :class:`splunklib.client.Service`, if :code:`enableheader` and
+            :code:`requires_srinfo` are both :code:`true`. Otherwise, if either
+            :code:`enableheader` or :code:`requires_srinfo` are :code:`false`,
+            a value of :code:`None` is returned.
 
         """
         if self._service is not None:

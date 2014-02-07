@@ -40,7 +40,7 @@ from .search_command_internals import InputHeader, MessagesHeader, \
 
 
 class SearchCommand(object):
-    """ Represents a custom search command
+    """ Represents a custom search command.
 
     """
 
@@ -133,14 +133,14 @@ class SearchCommand(object):
 
     @property
     def configuration(self):
-        """ Returns the configuration settings for this command
+        """ Returns the configuration settings for this command.
 
         """
         return self._configuration
 
     @property
     def fieldnames(self):
-        """ Returns the fieldnames specified as argument to this command
+        """ Returns the fieldnames specified as argument to this command.
 
         """
         return self._fieldnames
@@ -151,7 +151,7 @@ class SearchCommand(object):
 
     @property
     def options(self):
-        """ Returns the options specified as argument to this command
+        """ Returns the options specified as argument to this command.
 
         """
         if self._option_view is None:

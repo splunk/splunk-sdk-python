@@ -66,6 +66,27 @@ class TestDecorators(unittest.TestCase):
                     command.logging_level = variant
                     self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
 
+        # logging_level accepts any numeric value
+
+        for level in 999, 999.999:
+            command.logging_level = level
+            self.assertEqual(command.logging_level, 'Level 999')
+
+        # logging_level raises a value error for unknown logging level names
+
+        current_value = command.logging_level
+
+        try:
+            command.logging_level = 'foo'
+        except ValueError:
+            pass
+        except BaseException as e:
+            self.fail('Expected ValueError, but %s was raised' % type(e))
+        else:
+            self.fail('Expected ValueError, but logging_level=%s' % command.logging_level)
+
+        self.assertEqual(command.logging_level, current_value)
+
         app_root = os.path.join(TestDecorators._package_directory, 'data', 'app')
         command = SearchCommand()  # guarantee: no logging.conf
         directory = os.getcwd()

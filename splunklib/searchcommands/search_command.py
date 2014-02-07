@@ -24,7 +24,7 @@ except ImportError:
     from ordereddict import OrderedDict # python 2.6
 
 from inspect import getmembers
-from logging import getLevelName
+from logging import _levelNames, getLevelName
 from os import path
 from sys import argv, stdin, stdout
 from urlparse import urlsplit
@@ -106,7 +106,17 @@ class SearchCommand(object):
     def logging_level(self, value):
         if value is None:
             value = self._default_logging_level
-        self.logger.setLevel(value if type(value) is not str else value.upper())
+        if type(value) is str:
+            try:
+                level = _levelNames[value.upper()]
+            except KeyError:
+                raise ValueError('Unrecognized logging level: %s' % value)
+        else:
+            try:
+                level = int(value)
+            except ValueError:
+                raise ValueError('Unrecognized logging level: %s' % value)
+        self.logger.setLevel(level)
         return
 
     show_configuration = Option(doc='''

@@ -32,18 +32,18 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
     └── local.meta ............... Permits the search assistant to use searchbnf.conf[6]
 ```
 **References**  
-[1] [app.conf](http://docs.splunk.com/Documentation/Splunk/6.0.1/Admin/Appconf app.conf)  
-[2] [commands.conf](http://docs.splunk.com/Documentation/Splunk/6.0.1/Admin/Commandsconf)  
+[1] [app.conf](http://docs.splunk.com/Documentation/Splunk/latest/Admin/Appconf app.conf)  
+[2] [commands.conf](http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf)  
 [3] [Python Logging HOWTO](http://docs.python.org/2/howto/logging.html)  
 [4] [ConfigParser—Configuration file parser](http://docs.python.org/2/library/configparser.html)
-[5] [searchbnf.conf](http://docs.splunk.com/Documentation/Splunk/6.0.1/admin/Searchbnfconf)
+[5] [searchbnf.conf](http://docs.splunk.com/Documentation/Splunk/latest/admin/Searchbnfconf)
 [6] [Set permissions in the file system](http://goo.gl/1oDT7r)
 
 ## Installation
 
 + Install the app by copying the `searchcommands_app` directory to `$SPLUNK_HOME/etc/apps/searchcommands_app`.
 
-+ Recursively copy `splunklib` to `$SPLUNK_HOME/etc/apps/searchcommands_app/bin`
++ Recursively copy `splunklib` to `$SPLUNK_HOME/etc/apps/searchcommands_app/bin`.
 
 + (Re)start Splunk so that the app is recognized.
 

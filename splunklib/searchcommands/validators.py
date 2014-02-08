@@ -37,7 +37,7 @@ class Validator(object):
 
 
 class Boolean(Validator):
-    """ Validates boolean option values
+    """ Validates Boolean option values.
 
     """
     truth_values = {

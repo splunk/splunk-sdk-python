@@ -1,6 +1,6 @@
 # The Splunk Software Development Kit for Python
 
-#### Version 1.2
+#### Version 1.2.1
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.
@@ -72,7 +72,7 @@ examples and unit tests from the SDK.
 
 To run the examples and unit tests, you must put the root of
 the SDK on your PYTHONPATH. For example, if you have downloaded the SDK to your
-home folder and are running Mac OS X or Linux, add the following line to your
+home folder and are running OS X or Linux, add the following line to your
 **.bash_profile**:
 
     export PYTHONPATH=~/splunk-sdk-python
@@ -108,7 +108,7 @@ To use this convenience file, create a text file with the following format:
 
 Save the file as **.splunkrc** in the current user's home directory.
 
-*   For example on Mac OS X, save the file as: 
+*   For example on OS X, save the file as: 
 
         ~/.splunkrc
 

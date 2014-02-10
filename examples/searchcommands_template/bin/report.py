@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -38,7 +38,6 @@ class %(command.title())Command(ReportingCommand):
         # if you have no need for a streaming preop
         pass
 
-    @Configuration()
     def reduce(self, events):
         # Put your reporting implementation
         pass

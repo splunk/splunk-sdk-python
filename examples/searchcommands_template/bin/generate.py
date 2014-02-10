@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -31,8 +31,7 @@ class %(command.title())Command(GeneratingCommand):
    %(description)
 
    """
-   @Configuration()
-   def generate(self, events):
+   def generate(self):
        # Put your event  code here
        pass
 

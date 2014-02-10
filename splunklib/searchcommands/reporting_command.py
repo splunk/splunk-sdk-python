@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -30,33 +30,36 @@ class ReportingCommand(SearchCommand):
     partial results and by default runs on the search head and/or one or more
     indexers.
 
-    You must implement a `reduce` method as a generator function that iterates
-    over a set of event records and yields a reporting data structure. You may
-    implement a `map` method as a generator function that iterates over a set of
-    event records and yields `dict` or `list(dict)` instances.
+    You must implement a :meth:`reduce` method as a generator function that
+    iterates over a set of event records and yields a reporting data structure.
+    You may implement a :meth:`map` method as a generator function that iterates
+    over a set of event records and yields :class:`dict` or :class:`list(dict)`
+    instances.
 
-    ##ReportingCommand configuration
+    **ReportingCommand configuration**
 
-    Configure the `map` operation using a Configuration decorator on your
-    ReportingCommand.map method. Configure it like you would a StreamingCommand.
+    Configure the :meth:`map` operation using a Configuration decorator on your
+    :meth:`map` method. Configure it like you would a :class:`StreamingCommand`.
 
-    Configure the `reduce` operation using a Configuration decorator on your
-    ReportingCommand class.
-
-    [TODO: ReportingCommand configuration highlights]
+    Configure the :meth:`reduce` operation using a Configuration decorator on
+    your :meth:`ReportingCommand` class.
 
     """
     #region Methods
 
     def map(self, records):
-        """ TODO: Documentation
+        """ Override this method to compute partial results.
+
+        You must override this method, if :code:`requires_preop=True`.
 
         """
         self  # Turns off ide guidance that method may be static
         return NotImplemented
 
     def reduce(self, records):
-        """ TODO: Documentation
+        """ Override this method to produce a reporting data structure.
+
+        You must override this method.
 
         """
         raise NotImplementedError('reduce(self, records)')
@@ -66,7 +69,10 @@ class ReportingCommand(SearchCommand):
             for record in operation(SearchCommand.records(reader)):
                 writer.writerow(record)
         except Exception as e:
-            self.logger.error(e)
+            from traceback import format_exc
+            from sys import exit
+            self.logger.error(format_exc())
+            exit(1)
 
     def _prepare(self, argv, input_file):
         if len(argv) >= 3 and argv[2] == '__map__':
@@ -88,22 +94,23 @@ class ReportingCommand(SearchCommand):
     #region Types
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ TODO: Documentation
+        """ Represents the configuration settings for a :code:`ReportingCommand`.
 
         """
         #region Properties
         @property
         def clear_required_fields(self):
             """ Specifies whether `required_fields` are the only fields required
-            by subsequent commands
+            by subsequent commands.
 
-            If `True`, `required_fields` are the *only* fields required by
-            subsequent commands. If `False`, required_fields are additive to any
-            fields that may be required by subsequent commands. In most cases
-            `False` is appropriate for streaming commands and `True` is
-            appropriate for reporting commands.
+            If :const:`True`, :attr:`required_fields` are the *only* fields
+            required by subsequent commands. If :const:`False`,
+            :attr:`required_fields` are additive to any fields that may be
+            required by subsequent commands. In most cases :const:`False` is
+            appropriate for streaming commands and :const:`True` is appropriate
+            for reporting commands.
 
-            Default: True
+            Default: :const:`True`
 
             """
             return type(self)._clear_required_fields
@@ -112,7 +119,14 @@ class ReportingCommand(SearchCommand):
 
         @property
         def requires_preop(self):
-            """ TODO: Documentation
+            """ Indicates whether :meth:`ReportingCommand.map` is required for
+            proper command execution.
+
+            If :const:`True`, :meth:`ReportingCommand.map` is guaranteed to be
+            called. If :const:`False`, Splunk considers it to be an optimization
+            that may be skipped.
+
+            Default: :const:`False`
 
             """
             return type(self)._requires_preop
@@ -121,20 +135,29 @@ class ReportingCommand(SearchCommand):
 
         @property
         def retainsevents(self):
-            """ TODO: Documentation
+            """ Signals that :meth:`ReportingCommand.reduce` transforms _raw
+            events to produce a reporting data structure.
+
+            Fixed: :const:`False`
+
             """
             return False
 
         @property
         def streaming(self):
-            """ TODO: Documentation
+            """ Signals that :meth:`ReportingCommand.reduce` runs on the search
+            head.
+
+            Fixed: :const:`False`
 
             """
             return False
 
         @property
         def streaming_preop(self):
-            """ TODO: Documentation
+            """ Denotes the requested streaming preop search string.
+
+            Computed.
 
             """
             command_line = str(self.command)
@@ -149,18 +172,20 @@ class ReportingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies `command` class structure and configures `map` method
+            """ Verifies :code:`command` class structure and configures the
+            :code:`command.map` method.
 
-            Verifies that `command` derives from `ReportingCommand` and
-            overrides `ReportingCommand.reduce`. It then configures
-            `command.reduce`, if an overriding implementation of
-            `ReportingCommand.reduce` has been provided.
+            Verifies that :code:`command` derives from :code:`ReportingCommand`
+            and overrides :code:`ReportingCommand.reduce`. It then configures
+            :code:`command.reduce`, if an overriding implementation of
+            :code:`ReportingCommand.reduce` has been provided.
 
-            :param command: `ReportingCommand` class
+            :param command: :code:`ReportingCommand` class
 
             Exceptions:
-            `TypeError` `command` class is not derived from `ReportingCommand`
-            `AttributeError` No `ReportingCommand.reduce` override
+
+            :code:`TypeError` :code:`command` class is not derived from :code:`ReportingCommand`
+            :code:`AttributeError` No :code:`ReportingCommand.reduce` override
 
             """
             if not issubclass(command, ReportingCommand):

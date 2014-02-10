@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,8 +13,10 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
+from urlparse import urlsplit
 import sys
 
+from splunklib.client import Service
 from splunklib.modularinput.event_writer import EventWriter
 from splunklib.modularinput.input_definition import InputDefinition
 from splunklib.modularinput.validation_definition import ValidationDefinition
@@ -36,6 +38,10 @@ class Script(object):
     not be overridden.
     """
     __metaclass__ = ABCMeta
+
+    def __init__(self):
+        self._input_definition = None
+        self._service = None
 
     def run(self, args):
         """Runs this modular input
@@ -59,19 +65,22 @@ class Script(object):
 
         try:
             if len(args) == 1:
-                # This script is running as an input. Input definitions will be passed on stdin
-                # as XML, and the script will write events on stdout and log entries on stderr.
-                input_definition = InputDefinition.parse(input_stream)
-                self.stream_events(input_definition, event_writer)
+                # This script is running as an input. Input definitions will be
+                # passed on stdin as XML, and the script will write events on
+                # stdout and log entries on stderr.
+                self._input_definition = InputDefinition.parse(input_stream)
+                self.stream_events(self._input_definition, event_writer)
                 event_writer.close()
                 return 0
 
             elif str(args[1]).lower() == "--scheme":
-                # Splunk has requested XML specifying the scheme for this modular input.
-                # Return it and exit.
+                # Splunk has requested XML specifying the scheme for this
+                # modular input Return it and exit.
                 scheme = self.get_scheme()
                 if scheme is None:
-                    event_writer.log(EventWriter.FATAL, "Modular input script returned a null scheme.")
+                    event_writer.log(
+                        EventWriter.FATAL,
+                        "Modular input script returned a null scheme.")
                     return 1
                 else:
                     event_writer.write_xml_document(scheme.to_xml())
@@ -97,6 +106,39 @@ class Script(object):
             event_writer._err.write(err_string)
             return 1
 
+    @property
+    def service(self):
+        """ Returns a Splunk service object for this script invocation.
+
+        The service object is created from the Splunkd URI and session key
+        passed to the command invocation on the modular input stream. It is
+        available as soon as the :code:`Script.stream_events` method is
+        called.
+
+        :return: :class:splunklib.client.Service. A value of None is returned,
+        if you call this method before the :code:`Script.stream_events` method
+        is called.
+
+        """
+        if self._service is not None:
+            return self._service
+
+        if self._input_definition is None:
+            return None
+
+        splunkd_uri = self._input_definition.metadata["server_uri"]
+        session_key = self._input_definition.metadata["session_key"]
+
+        scheme, netloc, _, _, _ = urlsplit(splunkd_uri, allow_fragments=False)
+
+        splunkd_host, splunkd_port = netloc.split(':')
+
+        self._service = Service(
+            scheme=scheme, host=splunkd_host, port=splunkd_port,
+            token=session_key)
+
+        return self._service
+
     @abstractmethod
     def get_scheme(self):
         """The scheme defines the parameters understood by this modular input.
@@ -105,13 +147,16 @@ class Script(object):
         """
 
     def validate_input(self, definition):
-        """Handles external validation for modular input kinds. When Splunk
-        calls a modular input script in validation mode, it will pass in an XML document
-        giving information about the Splunk instance (so you can call back into it if needed)
-        and the name and parameters of the proposed input.
+        """Handles external validation for modular input kinds.
 
-        If this function does not throw an exception, the validation is assumed to succeed.
-        Otherwise any errors thrown will be turned into a string and logged back to Splunk.
+        When Splunk calls a modular input script in validation mode, it will
+        pass in an XML document giving information about the Splunk instance (so
+        you can call back into it if needed) and the name and parameters of the
+        proposed input.
+
+        If this function does not throw an exception, the validation is assumed
+        to succeed. Otherwise any errors thrown will be turned into a string and
+        logged back to Splunk.
 
         The default implementation always passes.
 

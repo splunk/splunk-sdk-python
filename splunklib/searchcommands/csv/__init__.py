@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,7 +20,7 @@ from .dict_writer import DictWriter
 
 import csv
 
-# Set the maximum allowable CSV field size
+# Sets the maximum allowable CSV field size.
 #
 # The default of the csv module is 128KB; upping to 10MB. See SPL-12117 for
 # the background on issues surrounding field sizes.

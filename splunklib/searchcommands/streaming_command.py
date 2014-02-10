@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,7 @@ from . import csv
 
 class StreamingCommand(SearchCommand):
     """ Applies a transformation to search results as they travel through the
-    processing pipeline
+    processing pipeline.
 
     Streaming commands typically filter, sort, modify, or combine search
     results. Splunk will send search results in batches of up to 50,000 records.
@@ -33,32 +33,46 @@ class StreamingCommand(SearchCommand):
     times during the course of pipeline processing.
 
     You can tell Splunk to run your streaming command locally on a search head,
-    never remotely on indexers:
+    never remotely on indexers.
 
-    ``@Configuration(local=False)``
-    ``class CountMatchesCommand(StreamingCommand):``
-    ``    ...``
+    .. code-block:: python
+
+        @Configuration(local=False)
+        class SomeStreamingCommand(StreamingCommand):
+            ...
 
     If your streaming command modifies the time order of event records you must
-    tell Splunk to ensure correct behavior:
+    tell Splunk to ensure correct behavior.
 
-    ``@Configuration(overrides_timeorder=True)``
-    ``class CountMatchesCommand(StreamingCommand):``
-    ``    ...``
+    .. code-block:: python
+
+        @Configuration(overrides_timeorder=True)
+        class SomeStreamingCommand(StreamingCommand):
+            ...
 
     """
     #region Methods
 
     def stream(self, records):
-        """ TODO: Documentation
+        """ Generator function that processes and yields event records to the
+        Splunk processing pipeline.
+
+        You must override this method.
 
         """
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
-    def _prepare(self, argv, input_file):
-        """ TODO: Documentation
+    def _execute(self, operation, reader, writer):
+        try:
+            for record in operation(SearchCommand.records(reader)):
+                writer.writerow(record)
+        except Exception as e:
+            from traceback import format_exc
+            from sys import exit
+            self.logger.error(format_exc())
+            exit(1)
 
-        """
+    def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings
         argv = argv[2:]
         if input_file is None:
@@ -67,21 +81,11 @@ class StreamingCommand(SearchCommand):
             reader = csv.DictReader(input_file)
         return ConfigurationSettings, self.stream, argv, reader
 
-    def _execute(self, operation, reader, writer):
-        """ TODO: Documentation
-
-        """
-        try:
-            for record in operation(SearchCommand.records(reader)):
-                writer.writerow(record)
-        except Exception as e:
-            self.logger.error(e)
-
     #endregion
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ Represents the configuration settings that apply to a
-        StreamingCommand
+        :code:`StreamingCommand`.
 
         """
         #region Properties
@@ -89,9 +93,9 @@ class StreamingCommand(SearchCommand):
         @property
         def local(self):
             """ Specifies whether this command should only be run on the search
-            head
+            head.
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._local
@@ -101,9 +105,9 @@ class StreamingCommand(SearchCommand):
         @property
         def overrides_timeorder(self):
             """ Specifies whether this command changes the time ordering of
-            event records
+            event records.
 
-            Default: False
+            Default: :const:`False`
 
             """
             return type(self)._overrides_timeorder
@@ -113,9 +117,9 @@ class StreamingCommand(SearchCommand):
         @property
         def retainsevents(self):
             """ Specifies whether this command retains _raw events or transforms
-            them
+            them.
 
-            Default: True
+            Default: :const:`True`
 
             """
             return type(self)._retainsevents
@@ -124,12 +128,12 @@ class StreamingCommand(SearchCommand):
 
         @property
         def streaming(self):
-            """ Signals that this command is streamable
+            """ Signals that this command is streamable.
 
             By default streamable commands may be run on the search head or one
             or more indexers, depending on performance scheduling
             considerations. This behavior may be overridden by setting
-            `local=True`. This forces a streamable command to be run on the
+            :code:`local=True`. This forces a streamable command to be run on the
             search head.
 
             Fixed: True.
@@ -143,7 +147,7 @@ class StreamingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ TODO: Documentation
+            """ Verifies :code:`command` class structure.
 
             """
             if command.stream == StreamingCommand.stream:

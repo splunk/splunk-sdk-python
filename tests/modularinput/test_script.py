@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,6 +13,7 @@
 # under the License.
 
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
+from splunklib.client import Service
 from splunklib.modularinput.argument import Argument
 from splunklib.modularinput.event import Event
 from splunklib.modularinput.event_writer import EventWriter
@@ -209,6 +210,43 @@ class ScriptTest(unittest.TestCase):
         found = ET.fromstring(out.getvalue())
 
         self.assertTrue(xml_compare(expected, found))
+
+    def test_service_property(self):
+        """ Check that Script.service returns a valid Service instance as soon
+        as the stream_events method is called, but not before.
+
+        """
+
+        # Override abstract methods
+        class NewScript(Script):
+            def __init__(self, test):
+                super(NewScript, self).__init__()
+                self.test = test
+
+            def get_scheme(self):
+                return None
+
+            def stream_events(self, inputs, ew):
+                service = self.service
+                self.test.assertIsInstance(service, Service)
+                self.test.assertEqual(str(service.authority), inputs.metadata['server_uri'])
+
+        script = NewScript(self)
+        input_configuration = data_open("data/conf_with_2_inputs.xml")
+
+        out = StringIO()
+        err = StringIO()
+        ew = EventWriter(out, err)
+
+        self.assertEqual(script.service, None)
+
+        return_value = script.run_script(
+            [TEST_SCRIPT_PATH], ew, input_configuration)
+
+        self.assertEqual(0, return_value)
+        self.assertEqual("", err.getvalue())
+
+        return
 
 if __name__ == "__main__":
     unittest.main()

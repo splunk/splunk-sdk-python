@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,7 +23,7 @@ from json import JSONEncoder
 from subprocess import Popen
 import os
 import shutil
-import testlib
+from tests import testlib
 
 from splunklib.results import \
     Message, ResultsReader
@@ -209,65 +209,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         self.maxDiff = 2 * 65535
         return
 
-    def test_command_parser(self):
-        from splunklib.searchcommands.search_command_internals import \
-            SearchCommandParser
-        parser = SearchCommandParser()
-        encoder = JSONEncoder()
-        file_path = TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv'))
-
-        options = [
-            'boolean=true',
-            'duration=00:00:10',
-            'fieldname=word_count',
-            'file=%s' % encoder.encode(file_path),
-            'integer=10',
-            'optionname=foo_bar',
-            'regularexpression="\\\\w+"',
-            'set=foo']
-        fields = ['field_1', 'field_2', 'field_3']
-
-        command = StubbedStreamingCommand()  # All options are required
-        parser.parse(options + fields, command)
-        command_line = str(command)
-
-        self.assertEqual(
-            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
-            command_line)
-
-        for option in options:
-            self.assertRaises(ValueError, parser.parse, [x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
-
-        command = StubbedReportingCommand()  # No options are required
-        parser.parse(options + fields, command)
-
-        for option in options:
-            try:
-                parser.parse([x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
-            except Exception as e:
-                self.assertFalse("Unexpected exception: %s" % e)
-
-        try:
-            parser.parse(options, command)
-        except Exception as e:
-            self.assertFalse("Unexpected exception: %s" % e)
-
-        for option in command.options.itervalues():
-            self.assertTrue(option.is_set)
-
-        self.assertEqual(len(command.fieldnames), 0)
-
-        try:
-            parser.parse(fields, command)
-        except Exception as e:
-            self.assertFalse("Unexpected exception: %s" % e)
-
-        for option in command.options.itervalues():
-            self.assertFalse(option.is_set)
-
-        self.assertListEqual(fields, command.fieldnames)
-        return
-
     def disable_test_option_logging_configuration(self):
         self._run(
             'simulate', [
@@ -298,7 +239,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 os.path.join('log', 'test_option_logging_level.log')))
         return
 
-    def disable_test_option_show_configuration(self):
+    def test_option_show_configuration(self):
         self._run(
             'simulate', [
                 'csv=population.csv',
@@ -307,7 +248,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'rate=200',
                 'seed=%s' % TestSearchCommandsApp._seed,
                 'show_configuration=true'],
-            __GETINFO__=(
+            __EXECUTE__=(
                 os.path.join('input', '_empty.csv'),
                 os.path.join('output', 'test_option_show_configuration.csv'),
                 os.path.join('log', 'test_option_show_configuration.log')))
@@ -327,7 +268,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'csv=population.csv',
                 'duration=00:00:02',
                 'interval=00:00:01',
-                'rate=200',
+                'rate=50',
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 os.path.join('input', '_empty.csv'),
@@ -497,9 +438,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)
-    data_directory = os.path.join(package_directory, 'searchcommands_data')
-    app_bin = os.path.join(
-        os.path.dirname(package_directory), "examples/searchcommands_app/bin")
+    data_directory = os.path.join(package_directory, 'data')
+    app_bin = os.path.abspath(os.path.join(package_directory, "../../examples/searchcommands_app/bin"))
 
     _seed = '5708bef4-6782-11e3-97ed-10ddb1b57bc3'
 

@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -29,13 +29,12 @@ class Configuration(object):
     """ Defines the configuration settings for a search command.
 
     Documents, validates, and ensures that only relevant configuration settings
-    are applied. Adds `name` to search command types not already named. By
-    convention command type names end with the word "Command". To derive `name`,
-    the word 'Command' is removed from the end of the type name and then
-    converted to lower case for conformance with the
-    [Search command style guide][1].
-
-    [1]: http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide "Search command style guide"
+    are applied. Adds a :code:`name` class variable to search command classes
+    that don't have one. The :code:`name` is derived from the name of the class.
+    By convention command class names end with the word "Command". To derive
+    :code:`name` the word "Command" is removed from the end of the class name
+    and then converted to lower case for conformance with the `Search command
+    style guide <http://docs.splunk.com/Documentation/Splunk/6.0/Search/Searchcommandstyleguide>`_
 
     """
     def __init__(self, **kwargs):
@@ -69,7 +68,7 @@ class Configuration(object):
 
 
 class Option(property):
-    """ Represents a search command option as a required/optional `property`
+    """ Represents a search command option.
 
     Required options must be specified on the search command line.
 
@@ -78,49 +77,49 @@ class Option(property):
     Short form (recommended). When you are satisfied with built-in or custom
     validation behaviors.
 
-    ``total = splunklib.Option(``
-    ``    doc=''' **Syntax:** **total=***<fieldname>*``
-    ``    **Description:** Name of the field that will hold the computed``
-    ``    sum''',``
-    ``    require=True, validate=splunklib.Fieldname())``
+    .. code-block:: python
+        :linenos:
+
+        total = Option(
+            doc=''' **Syntax:** **total=***<fieldname>*
+            **Description:** Name of the field that will hold the computed
+            sum''',
+            require=True, validate=validator.Fieldname())
 
     **Example:**
 
     Long form. Useful when you wish to manage the option value and its deleter/
-    getter/setter side-effects yourself. You must provide both a getter and a
-    setter. You should provide a deleter, if your `Option` requires
-    [destruction][1]. You must be prepared to accept a value of None which
-    represents the unset state.
+    getter/setter side-effects yourself. You must provide a getter and a
+    setter. If your :code:`Option` requires `destruction <http://docs.python.org/reference/datamodel.html#object.__del__>`_
+    you must also provide a deleter. You must be prepared to accept a value of
+    :const:`None` which indicates that your :code:`Option` is unset.
 
-    ``@Option``
-    ``def logging_configuration(self):``
-    ``    \""" **Syntax:** logging_configuration=<path>``
-    ``    **Description:** Loads an alternative logging configuration file for``
-    ``    a command invocation. The logging configuration file must be in``
-    ``    Python ConfigParser-format. The *<path>* name and all path names``
-    ``    specified in configuration are relative to the app root directory.``
-    `` ``
-    ``    \"""``
-    ``    return self._logging_configuration``
+    .. code-block:: python
+        :linenos:
 
-    ``@logging_configuration.setter``
-    ``def logging_configuration(self, value):``
-    ``    if value is not None``
-    ``        logging.configure(value)``
-    ``        self._logging_configuration = value``
-    `` ``
-    ``def __init__(self)``
-    ``    self._logging_configuration = None``
-    `` ``
+        @Option()
+        def logging_configuration(self):
+            \""" **Syntax:** logging_configuration=<path>
+            **Description:** Loads an alternative logging configuration file for
+            a command invocation. The logging configuration file must be in
+            Python ConfigParser-format. The *<path>* name and all path names
+            specified in configuration are relative to the app root directory.
 
-    [1]: http://docs.python.org/reference/datamodel.html#object.__del__ "Python data model: Objects, values and types"
+            \"""
+            return self._logging_configuration
+
+        @logging_configuration.setter
+        def logging_configuration(self, value):
+            if value is not None
+                logging.configure(value)
+                self._logging_configuration = value
+
+        def __init__(self)
+            self._logging_configuration = None
 
     """
     def __init__(self, fget=None, fset=None, fdel=None, doc=None, name=None,
                  default=None, require=None, validate=None):
-        """ TODO: Documentation
-
-        """
         super(Option, self).__init__(fget, fset, fdel, doc)
         self.name = None if name is None else OptionName()(name)
         self.default = default
@@ -134,9 +133,7 @@ class Option(property):
 
     @classmethod
     def fix_up(cls, command):
-        """ TODO: Documentation
 
-        """
         is_option = lambda attribute: isinstance(attribute, Option)
         command.option_definitions = getmembers(command, is_option)
         member_number = 0
@@ -213,9 +210,7 @@ class Option(property):
             return validator.format(o)
 
     class Item(object):
-        """ Presents an instance/class view over a search command `Option`
-
-        TODO: Description
+        """ Presents an instance/class view over a search command `Option`.
 
         """
         def __init__(self, command, option):
@@ -239,9 +234,7 @@ class Option(property):
 
         @property
         def is_set(self):
-            """ Indicates whether an option value was provided as argument
-
-            TODO: Description
+            """ Indicates whether an option value was provided as argument.
 
             """
             return self._is_set
@@ -270,9 +263,7 @@ class Option(property):
         #endif
 
     class View(object):
-        """ Presents a view of the set of `Option` arguments to a search command
-
-        TODO: Description
+        """ Presents a view of the set of `Option` arguments to a search command.
 
         """
         def __init__(self, command):

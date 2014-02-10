@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,21 +12,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from time import strptime
+import os
 import re
 import sys
 
 
 class Validator(object):
-    """ Base class for validators that check and format search command options
+    """ Base class for validators that check and format search command options.
 
-    You must inherit from this class and override `Validator.__call__` and
-    `Validator.format`. `Validator.__call__` should convert the value it
-    receives as argument and then return it or raise a ValueError, if the value
-    will not convert.
+    You must inherit from this class and override :code:`Validator.__call__` and
+    :code:`Validator.format`. :code:`Validator.__call__` should convert the
+    value it receives as argument and then return it or raise a
+    :code:`ValueError`, if the value will not convert.
 
-    `Validator.format` should return a human readable version of the value it
-    receives as argument the same way `str` does.
+    :code:`Validator.format` should return a human readable version of the value
+    it receives as argument the same way :code:`str` does.
 
     """
     def __call__(self, value):
@@ -37,7 +37,7 @@ class Validator(object):
 
 
 class Boolean(Validator):
-    """ Validates boolean option values
+    """ Validates Boolean option values.
 
     """
     truth_values = {
@@ -57,25 +57,10 @@ class Boolean(Validator):
         return value
 
 
-class Duration(Validator):
-    """ Validates duration option values
-
-    """
-    def __call__(self, value):
-        if value is not None:
-            try:
-                value = strptime(value, '%H:%M:%S')
-            except ValueError as e:
-                raise ValueError(str(e).capitalize())
-            value = 3600 * value.tm_hour + 60 * value.tm_min + value.tm_sec
-        return value
-
-
 class Fieldname(Validator):
-    """ Validates field name option values
+    """ Validates field name option values.
 
     """
-    import re
     pattern = re.compile(r'''[_.a-zA-Z-][_.a-zA-Z0-9-]*$''')
 
     def __call__(self, value):
@@ -86,7 +71,7 @@ class Fieldname(Validator):
 
 
 class File(Validator):
-    """ Validates file option values
+    """ Validates file option values.
 
     """
     def __init__(self, mode='r', buffering=-1):
@@ -96,7 +81,10 @@ class File(Validator):
     def __call__(self, value):
         if value is not None:
             try:
-                value = open(str(value), self.mode, self.buffering)
+                path = str(value)
+                if not os.path.isabs(path):
+                    path = os.path.join(File._var_run_splunk, path)
+                value = open(path, self.mode, self.buffering)
             except IOError as e:
                 raise ValueError(
                     'Cannot open %s with mode=%s and buffering=%s: %s'
@@ -106,9 +94,12 @@ class File(Validator):
     def format(self, value):
         return value.name
 
+    _var_run_splunk = os.path.join(
+        os.environ['SPLUNK_HOME'], "var", "run", "splunk")
+
 
 class Integer(Validator):
-    """ Validates integer option values
+    """ Validates integer option values.
 
     """
     def __init__(self, minimum=-sys.maxint-1, maximum=sys.maxint):
@@ -125,11 +116,48 @@ class Integer(Validator):
         return value
 
 
-class OptionName(Validator):
-    """ Validates option names
+class Duration(Validator):
+    """ Validates duration option values.
 
     """
-    import re
+    def __call__(self, value):
+
+        if value is None:
+            return None
+
+        try:
+            p = value.split(':', 2)
+            _60 = Duration._60
+            _unsigned = Duration._unsigned
+            if len(p) == 1:
+                result = _unsigned(p[0])
+            if len(p) == 2:
+                result = 60 * _unsigned(p[0]) + _60(p[1])
+            if len(p) == 3:
+                result = 3600 * _unsigned(p[0]) + 60 * _60(p[1]) + _60(p[2])
+        except ValueError:
+            raise ValueError("Invalid duration value: %s", value)
+
+        return result
+
+    def format(self, value):
+
+        value = int(value)
+
+        s = value % 60
+        m = value / 60 % 60
+        h = value / (60 * 60)
+
+        return '%02d:%02d:%02d' % (h, m, s)
+
+    _60 = Integer(0, 59)
+    _unsigned = Integer(0)
+
+
+class OptionName(Validator):
+    """ Validates option names.
+
+    """
     pattern = re.compile(r'''[a-zA-Z][_a-zA-Z0-9]*$''')
 
     def __call__(self, value):
@@ -140,7 +168,7 @@ class OptionName(Validator):
 
 
 class RegularExpression(Validator):
-    """ Validates regular expression option values
+    """ Validates regular expression option values.
 
     """
     def __call__(self, value):
@@ -156,7 +184,7 @@ class RegularExpression(Validator):
 
 
 class Set(Validator):
-    """ Validates set option values
+    """ Validates set option values.
 
     """
     def __init__(self, *args):

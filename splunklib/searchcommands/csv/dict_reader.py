@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,7 +17,7 @@ import csv
 
 
 class DictReader(csv.DictReader, object):
-    """ Splunk multi-value-aware CSV dictionary reader """
+    """ Splunk multi-value-aware CSV dictionary reader. """
 
     def __init__(self, input_file):
         super(DictReader, self).__init__(

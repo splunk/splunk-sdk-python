@@ -3,27 +3,51 @@ splunklib.searchcommands
 
 .. automodule:: splunklib.searchcommands
 
-.. autofunction:: dispatch
-
-.. automodule:: splunklib.searchcommands.generating_command
+.. autofunction:: dispatch(command_class[, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None])
 
 .. autoclass:: GeneratingCommand
     :members:
     :inherited-members:
+    :exclude-members: ConfigurationSettings, generate, process
 
-.. automodule:: splunklib.searchcommands.reporting_command
+    .. autoclass:: splunklib.searchcommands::GeneratingCommand.ConfigurationSettings
+        :members:
+        :inherited-members:
+        :exclude-members: configuration_settings, fix_up, items, keys
+
+    .. automethod:: splunklib.searchcommands::GeneratingCommand.generate
+
+    .. automethod:: splunklib.searchcommands::GeneratingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
 
 .. autoclass:: ReportingCommand
     :members:
     :inherited-members:
+    :exclude-members: ConfigurationSettings, map, process, reduce
 
-.. automodule:: splunklib.searchcommands.streaming_command
+    .. autoclass:: splunklib.searchcommands::ReportingCommand.ConfigurationSettings
+        :members:
+        :inherited-members:
+        :exclude-members: configuration_settings, fix_up, items, keys
+
+    .. automethod:: splunklib.searchcommands::ReportingCommand.map
+
+    .. automethod:: splunklib.searchcommands::ReportingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
+
+    .. automethod:: splunklib.searchcommands::ReportingCommand.reduce
 
 .. autoclass:: StreamingCommand
     :members:
     :inherited-members:
+    :exclude-members: ConfigurationSettings, process, stream
 
-.. automodule:: splunklib.searchcommands.decorators
+    .. autoclass:: splunklib.searchcommands::StreamingCommand.ConfigurationSettings
+        :members:
+        :inherited-members:
+        :exclude-members: configuration_settings, fix_up, items, keys
+
+    .. automethod:: splunklib.searchcommands::StreamingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
+
+    .. automethod:: splunklib.searchcommands::StreamingCommand.stream
 
 .. autoclass:: Configuration
     :members:
@@ -32,37 +56,36 @@ splunklib.searchcommands
 .. autoclass:: Option
     :members:
     :inherited-members:
+    :exclude-members: Item, View, fix_up
 
-.. automodule:: splunklib.searchcommands.validators
-
-.. autoclass:: splunklib.searchcommands.validators.Boolean
+.. autoclass:: Boolean
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Duration
+.. autoclass:: Duration
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Fieldname
+.. autoclass:: Fieldname
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.File
+.. autoclass:: File
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Integer
+.. autoclass:: Integer
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.RegularExpression
+.. autoclass:: RegularExpression
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Set
+.. autoclass:: Set
     :members:
     :inherited-members:
 
-.. autoclass:: splunklib.searchcommands.validators.Validator
+.. autoclass:: Validator
     :members:
     :inherited-members:

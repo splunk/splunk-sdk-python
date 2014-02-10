@@ -1,5 +1,64 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.2.1
+
+### New features and APIs
+
+* Added features for building custom search commands in Python
+
+  1. Access Splunk Search Results Info.
+
+     See the `SearchCommand.search_results_info` property.
+
+  2. Communicate with Splunk.
+
+     See the `SearchCommand.service` property.
+
+  3. Control logging and view command configuration settings from the Splunk
+     command line
+
+     + The `logging_configuration` option lets you pick an alternative logging
+       configuration file for a command invocation.
+
+     + The `logging_level` option lets you set the logging level for a command
+       invocation.
+
+     + The `show_configuration` option writes command configuration settings
+       to the Splunk Job Inspector.
+
+  4. Get a more complete picture of what's happening when an error occurs
+
+     Command error messages now include a full stack trace.
+
+  5. Enable the Splunk Search Assistant to display command help.
+
+     See `examples/searchcommands_app/default/searchbnf.conf`
+
+  6. Write messages for display by the job inspector.
+
+     See `SearchCommand.messages_header`.
+
+* Added a feature for building modular inputs.
+
+  1. Communicate with Splunk.
+
+     See the `Script.service` property.
+
+### Bug fixes
+
+* When running `setup.py dist` without running `setup.py build`, there is no
+  longer an `No such file or directory` error on the command line, and the
+  command behaves as expected.
+
+* When setting the sourcetype of a modular input event, events are indexed
+  properly.
+
+  Previously Splunk would encounter an error and skip them.
+
+### Quality improvements
+
+* Better code documentation and unit test coverage.
+
 ## Version 1.2
 
 ### New features and APIs

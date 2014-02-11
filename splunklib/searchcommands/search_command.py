@@ -506,7 +506,7 @@ class SearchCommand(object):
             information.
 
             If :const:`True` the full path to a search results information file
-            is provided by :attr:`SearchCommand.input_headers['infoPath']`.
+            is provided by :attr:`SearchCommand.input_header['infoPath']`.
 
             Default: :const:`False`
 

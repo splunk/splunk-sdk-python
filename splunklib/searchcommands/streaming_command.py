@@ -50,6 +50,12 @@ class StreamingCommand(SearchCommand):
         class SomeStreamingCommand(StreamingCommand):
             ...
 
+    :ivar input_header: :class:`InputHeader`:  Collection representing the input
+        header associated with this command invocation.
+
+    :ivar messages: :class:`MessagesHeader`: Collection representing the output
+        messages header associated with this command invocation.
+
     """
     #region Methods
 

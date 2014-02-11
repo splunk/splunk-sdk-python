@@ -44,6 +44,13 @@ class ReportingCommand(SearchCommand):
     Configure the :meth:`reduce` operation using a Configuration decorator on
     your :meth:`ReportingCommand` class.
 
+
+    :ivar input_header: :class:`InputHeader`:  Collection representing the input
+        header associated with this command invocation.
+
+    :ivar messages: :class:`MessagesHeader`: Collection representing the output
+        messages header associated with this command invocation.
+
     """
     #region Methods
 

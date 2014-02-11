@@ -36,7 +36,7 @@
 
   6. Write messages for display by the job inspector.
 
-     See `SearchCommand.messages_header`.
+     See `SearchCommand.messages`.
 
 * Added a feature for building modular inputs.
 

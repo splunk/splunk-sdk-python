@@ -245,7 +245,7 @@ def _authentication(request_fun):
                 with _handle_auth_error(
                         "Autologin succeeded, but there was an auth error on "
                         "next request. Something is very wrong."):
-                    return request_fun()
+                    return request_fun(self, *args, **kwargs)
             elif he.status == 401 and not self.autologin:
                 raise AuthenticationError(
                     "Request failed: Session is not logged in.", he)

@@ -377,6 +377,7 @@ class TestAbspath(BindingTestCase):
         context = binding.connect(owner="me@me.com", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me%40me.com/system/foo")
         self.assertEqual(path, UrlEncoded("/servicesNS/me@me.com/system/foo"))
 
 # An urllib2 based HTTP request handler, used to test the binding layers

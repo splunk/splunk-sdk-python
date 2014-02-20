@@ -1,5 +1,13 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.2.2
+
+### Bug fixes
+
+1. Addressed a problem with autologin and added test coverage for the use case.
+
+   See `ServiceTestCase.test_autologin` in tests/test_service.py.
+
 ## Version 1.2.1
 
 ### New features and APIs

@@ -248,7 +248,8 @@ def _parse_atom_metadata(content):
     return record({'access': access, 'fields': fields})
 
 # kwargs: scheme, host, port, app, owner, username, password
-def connect(**kwargs):
+
+def i_want_to_use_splunk(**kwargs):
     """This function connects and logs in to a Splunk instance.
 
     This function is a shorthand for :meth:`Service.login`.

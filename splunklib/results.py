@@ -12,15 +12,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""The **splunklib.results** module provides a streaming XML reader for Splunk 
+"""The **splunklib.results** module provides a streaming XML reader for Splunk
 search results.
 
-Splunk search results can be returned in a variety of formats including XML, 
-JSON, and CSV. To make it easier to stream search results in XML format, they 
-are returned as a stream of XML *fragments*, not as a single XML document. This 
-module supports incrementally reading one result record at a time from such a 
+Splunk search results can be returned in a variety of formats including XML,
+JSON, and CSV. To make it easier to stream search results in XML format, they
+are returned as a stream of XML *fragments*, not as a single XML document. This
+module supports incrementally reading one result record at a time from such a
 result stream. This module also provides a friendly iterator-based interface for
-accessing search results while avoiding buffering the result set, which can be 
+accessing search results while avoiding buffering the result set, which can be
 very large.
 
 To use the reader, instantiate :class:`ResultsReader` on a search result stream
@@ -65,13 +65,13 @@ class Message(object):
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
-    
+
     def __repr__(self):
         return "%s: %s" % (self.type, self.message)
-    
+
     def __eq__(self, other):
         return (self.type, self.message) == (other.type, other.message)
-    
+
     def __hash__(self):
         return hash((self.type, self.message))
 
@@ -149,18 +149,18 @@ class _XMLDTDFilter(object):
         return response
 
 class ResultsReader(object):
-    """This class returns dictionaries and Splunk messages from an XML results 
+    """This class returns dictionaries and Splunk messages from an XML results
     stream.
 
-    ``ResultsReader`` is iterable, and returns a ``dict`` for results, or a 
-    :class:`Message` object for Splunk messages. This class has one field, 
-    ``is_preview``, which is ``True`` when the results are a preview from a 
+    ``ResultsReader`` is iterable, and returns a ``dict`` for results, or a
+    :class:`Message` object for Splunk messages. This class has one field,
+    ``is_preview``, which is ``True`` when the results are a preview from a
     running search, or ``False`` when the results are from a completed search.
 
-    This function has no network activity other than what is implicit in the 
+    This function has no network activity other than what is implicit in the
     stream it operates on.
 
-    :param `stream`: The stream to read from (any object that supports 
+    :param `stream`: The stream to read from (any object that supports
         ``.read()``).
 
     **Example**::
@@ -224,7 +224,7 @@ class ResultsReader(object):
                         yield result
                         result = None
                         elem.clear()
-    
+
                 elif elem.tag == 'field' and result is not None:
                     # We need the 'result is not None' check because
                     # 'field' is also the element name in the <meta>
@@ -244,11 +244,11 @@ class ResultsReader(object):
                         # arbitrarily large memory intead of
                         # streaming.
                         elem.clear()
-    
+
                 elif elem.tag in ('text', 'v') and event == 'end':
                     values.append(elem.text.encode('utf8'))
                     elem.clear()
-    
+
                 elif elem.tag == 'msg':
                     if event == 'start':
                         msg_type = elem.attrib['type']

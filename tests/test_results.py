@@ -18,6 +18,7 @@ from StringIO import StringIO
 import testlib
 from time import sleep
 import splunklib.results as results
+import io
 
 
 class ResultsTestCase(testlib.SDKTestCase):
@@ -25,7 +26,7 @@ class ResultsTestCase(testlib.SDKTestCase):
         job = self.service.jobs.create("search index=_internal_does_not_exist | head 2")
         while not job.is_done():
             sleep(0.5)
-        self.assertEquals(0, len(list(results.ResultsReader(job.results()))))
+        self.assertEquals(0, len(list(results.ResultsReader(io.BufferedReader(job.results())))))
 
     def test_read_normal_results(self):
         xml_text = """
@@ -107,9 +108,9 @@ class ResultsTestCase(testlib.SDKTestCase):
                 'sum(kb)': '5838.935649',
             },
         ]
-        
+
         self.assert_parsed_results_equals(xml_text, expected_results)
-    
+
     def test_read_raw_field(self):
         xml_text = """
 <?xml version='1.0' encoding='UTF-8'?>
@@ -129,9 +130,9 @@ class ResultsTestCase(testlib.SDKTestCase):
                 '_raw': '07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0',
             },
         ]
-        
+
         self.assert_parsed_results_equals(xml_text, expected_results)
-    
+
     def assert_parsed_results_equals(self, xml_text, expected_results):
         results_reader = results.ResultsReader(StringIO(xml_text))
         actual_results = [x for x in results_reader]

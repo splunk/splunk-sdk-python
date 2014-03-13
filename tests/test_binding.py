@@ -66,6 +66,10 @@ class TestResponseReader(BindingTestCase):
         self.assertTrue(response.empty)
         self.assertEqual(response.peek(10), "")
         self.assertEqual(response.read(10), "")
+
+        arr = bytearray(10)
+        self.assertEqual(response.readinto(arr), 0)
+        self.assertEqual(arr, bytearray(10))
         self.assertTrue(response.empty)
 
     def test_read_past_end(self):
@@ -87,6 +91,42 @@ class TestResponseReader(BindingTestCase):
         self.assertTrue(response.empty)
         self.assertEqual(response.read(), '')
 
+    def test_readable(self):
+        txt = "abcd"
+        response = binding.ResponseReader(StringIO(txt))
+        self.assertTrue(response.readable())
+
+    def test_readinto_bytearray(self):
+        txt = "Checking readinto works as expected"
+        response = binding.ResponseReader(StringIO(txt))
+        arr = bytearray(10)
+        self.assertEqual(response.readinto(arr), 10)
+        self.assertEqual(arr[:10], "Checking r")
+        self.assertEqual(response.readinto(arr), 10)
+        self.assertEqual(arr[:10], "eadinto wo")
+        self.assertEqual(response.readinto(arr), 10)
+        self.assertEqual(arr[:10], "rks as exp")
+        self.assertEqual(response.readinto(arr), 5)
+        self.assertEqual(arr[:5], "ected")
+        self.assertTrue(response.empty)
+
+    def test_readinto_memoryview(self):
+        txt = "Checking readinto works as expected"
+        response = binding.ResponseReader(StringIO(txt))
+        arr = bytearray(10)
+        mv = memoryview(arr)
+        self.assertEqual(response.readinto(mv), 10)
+        self.assertEqual(arr[:10], "Checking r")
+        self.assertEqual(response.readinto(mv), 10)
+        self.assertEqual(arr[:10], "eadinto wo")
+        self.assertEqual(response.readinto(mv), 10)
+        self.assertEqual(arr[:10], "rks as exp")
+        self.assertEqual(response.readinto(mv), 5)
+        self.assertEqual(arr[:5], "ected")
+        self.assertTrue(response.empty)
+
+
+
 class TestUrlEncoded(BindingTestCase):
     def test_idempotent(self):
         a = UrlEncoded('abc')
@@ -95,7 +135,7 @@ class TestUrlEncoded(BindingTestCase):
     def test_append(self):
         self.assertEqual(UrlEncoded('a') + UrlEncoded('b'),
                          UrlEncoded('ab'))
-    
+
     def test_append_string(self):
         self.assertEqual(UrlEncoded('a') + '%',
                          UrlEncoded('a%'))
@@ -111,7 +151,7 @@ class TestUrlEncoded(BindingTestCase):
         for char, code in [(' ', '%20'),
                            ('"', '%22'),
                            ('%', '%25')]:
-            self.assertEqual(UrlEncoded(char), 
+            self.assertEqual(UrlEncoded(char),
                              UrlEncoded(code, skip_encode=True))
 
     def test_repr(self):
@@ -119,7 +159,7 @@ class TestUrlEncoded(BindingTestCase):
 
 class TestAuthority(unittest.TestCase):
     def test_authority_default(self):
-        self.assertEqual(binding._authority(), 
+        self.assertEqual(binding._authority(),
                          "https://localhost:8089")
 
     def test_ipv4_host(self):
@@ -137,7 +177,7 @@ class TestAuthority(unittest.TestCase):
     def test_all_fields(self):
         self.assertEqual(
             binding._authority(
-                scheme="http", 
+                scheme="http",
                 host="splunk.utopia.net",
                 port="471"),
             "http://splunk.utopia.net:471")
@@ -172,7 +212,7 @@ class TestUserManipulation(BindingTestCase):
 
     def test_create_user(self):
         response = self.context.post(
-            PATH_USERS, name=self.username, 
+            PATH_USERS, name=self.username,
             password=self.password, roles=self.roles)
         self.assertEqual(response.status, 201)
 
@@ -265,7 +305,7 @@ class TestAutologin(BindingTestCase):
         self.context.autologin = False
         self.assertEqual(self.context.get("/services").status, 200)
         self.context.logout()
-        self.assertRaises(AuthenticationError, 
+        self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
 
 class TestAbspath(BindingTestCase):
@@ -403,7 +443,7 @@ def isatom(body):
 class TestPluggableHTTP(testlib.SDKTestCase):
     # Verify pluggable HTTP reqeust handlers.
     def test_handlers(self):
-        paths = ["/services", "authentication/users", 
+        paths = ["/services", "authentication/users",
                  "search/jobs"]
         handlers = [binding.handler(),  # default handler
                     urllib2_handler]
@@ -421,7 +461,7 @@ class TestLogout(BindingTestCase):
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)
         self.context.logout()
-        self.assertRaises(AuthenticationError, 
+        self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
         self.assertRaises(AuthenticationError,
                           self.context.post, "/services")
@@ -512,11 +552,11 @@ class TestTokenAuthentication(BindingTestCase):
         opts["token"] = token
         opts["username"] = "boris the mad baboon"
         opts["password"] = "nothing real"
-        
+
         newContext = binding.Context(**opts)
         response = newContext.get("/services")
         self.assertEqual(response.status, 200)
-        
+
         socket = newContext.connect()
         socket.write("POST %s HTTP/1.1\r\n" % \
                          self.context._abspath("some/path/to/post/to"))

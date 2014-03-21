@@ -1,5 +1,29 @@
 # Splunk SDK for Python Changelog
 
+
+## Version 1.2.3
+
+### New features and APIs
+
+* Improved error handling in custom search commands
+
+  SearchCommand.process now catches all exceptions and
+
+  1. Writes an error message for display in the Splunk UI.
+
+     The error message is the text of the exception. This is new behavior.
+
+  2. Logs a traceback to SearchCommand.logger. This is old behavior.
+
+### Bug fixes
+
+1. Addressed a problem in the results reader running under Python 2.6.
+
+   The results reader now catches SyntaxError exceptions instead of
+   `xml.etree.ElementTree.ParseError` exceptions. `ParseError` wasn't
+   introduced until Python 2.7. This masked the root cause of certain issues
+   with result elements.
+
 ## Version 1.2.2
 
 ### Bug fixes

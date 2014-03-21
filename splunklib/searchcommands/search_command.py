@@ -26,7 +26,7 @@ except ImportError:
 from inspect import getmembers
 from logging import _levelNames, getLevelName
 from os import path
-from sys import argv, stdin, stdout
+from sys import argv, exit, stdin, stdout
 from urlparse import urlsplit
 from xml.etree import ElementTree
 
@@ -59,6 +59,7 @@ class SearchCommand(object):
         self._configuration = None
         self._fieldnames = None
         self._option_view = None
+        self._output_file = None
         self._search_results_info = None
         self._service = None
 
@@ -281,6 +282,7 @@ class SearchCommand(object):
 
         """
         self.logger.debug('%s arguments: %s' % (type(self).__name__, args))
+        self._outputfile = output_file
         self._configuration = None
 
         if len(args) >= 2 and args[1] == '__GETINFO__':
@@ -290,10 +292,8 @@ class SearchCommand(object):
             try:
                 self.parser.parse(args, self)
             except (SyntaxError, ValueError) as e:
-                writer = csv.DictWriter(output_file, self, fieldnames=['ERROR'])
-                writer.writerow({'ERROR': e})
-                self.logger.error(e)
-                return
+                from traceback import format_exc
+                self._exit(format_exc(), e, 1)
 
             self._configuration = ConfigurationSettings(self)
 
@@ -310,11 +310,8 @@ class SearchCommand(object):
             try:
                 self.parser.parse(args, self)
             except (SyntaxError, ValueError) as e:
-                from sys import exit
-                self.messages.append("error_message", e)
-                self.messages.write(output_file)
-                self.logger.error(e)
-                exit(1)
+                from traceback import format_exc
+                self._exit(format_exc(), e, 1)
 
             self._configuration = ConfigurationSettings(self)
 
@@ -339,9 +336,7 @@ class SearchCommand(object):
                 'supports_getinfo = true | '
                 'supports_rawargs = true | '
                 'outputheader = true'.format(type(self).name, file_name))
-            self.messages.append('error_message', message)
-            self.messages.write(output_file)
-            self.logger.error(message)
+            self._exit(message, message, 1)
 
     @staticmethod
     def records(reader):
@@ -354,6 +349,12 @@ class SearchCommand(object):
 
     def _execute(self, operation, reader, writer):
         raise NotImplementedError('SearchCommand._configure(self, argv)')
+
+    def _exit(self, log, error, status_code):
+        writer = csv.DictWriter(self.output_file, self, fieldnames=['ERROR'])
+        writer.writerow({'ERROR': error})
+        self.logger.error(log)
+        exit(status_code)
 
     #endregion
 

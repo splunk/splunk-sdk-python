@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
+
 from . search_command import SearchCommand
 from . import csv
 
@@ -74,9 +76,7 @@ class StreamingCommand(SearchCommand):
                 writer.writerow(record)
         except Exception as e:
             from traceback import format_exc
-            from sys import exit
-            self.logger.error(format_exc())
-            exit(1)
+            self._exit(format_exc(), e, 1)
 
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings

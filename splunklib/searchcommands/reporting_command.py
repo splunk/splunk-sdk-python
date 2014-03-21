@@ -77,9 +77,7 @@ class ReportingCommand(SearchCommand):
                 writer.writerow(record)
         except Exception as e:
             from traceback import format_exc
-            from sys import exit
-            self.logger.error(format_exc())
-            exit(1)
+            self._exit(format_exc(), e, 1)
 
     def _prepare(self, argv, input_file):
         if len(argv) >= 3 and argv[2] == '__map__':

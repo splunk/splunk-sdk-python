@@ -246,16 +246,18 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    values.append(elem.text.encode('utf8'))
+                    text = elem.text if elem.text is not None else ""
+                    values.append(text.encode('utf8'))
                     elem.clear()
 
                 elif elem.tag == 'msg':
                     if event == 'start':
                         msg_type = elem.attrib['type']
                     elif event == 'end':
-                        yield Message(msg_type, elem.text.encode('utf8'))
+                        text = elem.text if elem.text is not None else ""
+                        yield Message(msg_type, text.encode('utf8'))
                         elem.clear()
-        except et.ParseError as pe:
+        except SyntaxError as pe:
             # This is here to handle the same incorrect return from
             # splunk that is described in __init__.
             if 'no element found' in pe.msg:

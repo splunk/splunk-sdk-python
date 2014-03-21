@@ -59,7 +59,6 @@ class SearchCommand(object):
         self._configuration = None
         self._fieldnames = None
         self._option_view = None
-        self._output_file = None
         self._search_results_info = None
         self._service = None
 
@@ -282,61 +281,66 @@ class SearchCommand(object):
 
         """
         self.logger.debug('%s arguments: %s' % (type(self).__name__, args))
-        self._outputfile = output_file
         self._configuration = None
 
-        if len(args) >= 2 and args[1] == '__GETINFO__':
+        try:
+            if len(args) >= 2 and args[1] == '__GETINFO__':
 
-            ConfigurationSettings, operation, args, reader = self._prepare(
-                args, input_file=None)
-            try:
+                ConfigurationSettings, operation, args, reader = self._prepare(
+                    args, input_file=None)
+
                 self.parser.parse(args, self)
-            except (SyntaxError, ValueError) as e:
-                from traceback import format_exc
-                self._exit(format_exc(), e, 1)
 
-            self._configuration = ConfigurationSettings(self)
+                self._configuration = ConfigurationSettings(self)
 
-            writer = csv.DictWriter(
-                output_file, self, self.configuration.keys(), mv_delimiter=',')
-            writer.writerow(self.configuration.items())
+                writer = csv.DictWriter(
+                    output_file, self, self.configuration.keys(), mv_delimiter=',')
+                writer.writerow(self.configuration.items())
 
-        elif len(args) >= 2 and args[1] == '__EXECUTE__':
+            elif len(args) >= 2 and args[1] == '__EXECUTE__':
 
-            self.input_header.read(input_file)
-            ConfigurationSettings, operation, args, reader = self._prepare(
-                args, input_file)
+                self.input_header.read(input_file)
 
-            try:
+                ConfigurationSettings, operation, args, reader = self._prepare(
+                    args, input_file)
+
                 self.parser.parse(args, self)
-            except (SyntaxError, ValueError) as e:
-                from traceback import format_exc
-                self._exit(format_exc(), e, 1)
 
-            self._configuration = ConfigurationSettings(self)
+                self._configuration = ConfigurationSettings(self)
 
-            if self.show_configuration:
-                self.messages.append(
-                    'info_message', '%s command configuration settings: %s'
-                    % (self.name, self._configuration))
+                if self.show_configuration:
+                    self.messages.append(
+                        'info_message', '%s command configuration settings: %s'
+                        % (self.name, self._configuration))
 
-            writer = csv.DictWriter(output_file, self)
-            self._execute(operation, reader, writer)
+                writer = csv.DictWriter(output_file, self)
+                self._execute(operation, reader, writer)
 
-        else:
+            else:
 
-            file_name = path.basename(args[0])
-            message = (
-                'Command {0} appears to be statically configured and static '
-                'configuration is unsupported by splunklib.searchcommands. '
-                'Please ensure that default/commands.conf contains this '
-                'stanza: '
-                '[{0}] | '
-                'filename = {1} | '
-                'supports_getinfo = true | '
-                'supports_rawargs = true | '
-                'outputheader = true'.format(type(self).name, file_name))
-            self._exit(message, message, 1)
+                file_name = path.basename(args[0])
+                message = (
+                    'Command {0} appears to be statically configured and static '
+                    'configuration is unsupported by splunklib.searchcommands. '
+                    'Please ensure that default/commands.conf contains this '
+                    'stanza: '
+                    '[{0}] | '
+                    'filename = {1} | '
+                    'supports_getinfo = true | '
+                    'supports_rawargs = true | '
+                    'outputheader = true'.format(type(self).name, file_name))
+                raise NotImplementedError(message)
+
+        except Exception as error:
+
+            from traceback import format_exc
+
+            writer = csv.DictWriter(output_file, self, fieldnames=['ERROR'])
+            writer.writerow({'ERROR': error})
+            self.logger.error(format_exc())
+            exit(1)
+
+        return
 
     @staticmethod
     def records(reader):
@@ -349,12 +353,6 @@ class SearchCommand(object):
 
     def _execute(self, operation, reader, writer):
         raise NotImplementedError('SearchCommand._configure(self, argv)')
-
-    def _exit(self, log, error, status_code):
-        writer = csv.DictWriter(self.output_file, self, fieldnames=['ERROR'])
-        writer.writerow({'ERROR': error})
-        self.logger.error(log)
-        exit(status_code)
 
     #endregion
 

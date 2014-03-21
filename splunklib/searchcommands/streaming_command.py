@@ -71,12 +71,8 @@ class StreamingCommand(SearchCommand):
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
     def _execute(self, operation, reader, writer):
-        try:
-            for record in operation(SearchCommand.records(reader)):
-                writer.writerow(record)
-        except Exception as e:
-            from traceback import format_exc
-            self._exit(format_exc(), e, 1)
+        for record in operation(SearchCommand.records(reader)):
+            writer.writerow(record)
 
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings

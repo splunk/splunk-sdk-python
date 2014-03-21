@@ -76,12 +76,9 @@ class GeneratingCommand(SearchCommand):
         raise NotImplementedError('GeneratingCommand.generate(self)')
 
     def _execute(self, operation, reader, writer):
-        try:
-            for record in operation():
-                writer.writerow(record)
-        except Exception as e:
-            from traceback import format_exc
-            self._exit(format_exc(), e, 1)
+        for record in operation():
+            writer.writerow(record)
+        return
 
     def _prepare(self, argv, input_file):
         ConfigurationSettings = type(self).ConfigurationSettings

@@ -19,12 +19,12 @@ from splunklib.searchcommands import \
   dispatch, GeneratingCommand, Configuration, Option, validators
  
 @Configuration()
-class HelloWorldCommand(GeneratingCommand):
+class GenerateHelloCommand(GeneratingCommand):
   count = Option(require=True, validate=validators.Integer())
  
   def generate(self):
-    for i in range(0, self.count):
+    for i in range(1, self.count + 1):
       text = 'Hello World %d' % i
-      yield {'_time': time.time(), 'text': text, '_raw': text } 
+      yield {'_time': time.time(), 'event_no': i, '_raw': text } 
  
-dispatch(HelloWorldCommand, sys.argv, sys.stdin, sys.stdout, __name__)
+dispatch(GenerateHelloCommand, sys.argv, sys.stdin, sys.stdout, __name__)

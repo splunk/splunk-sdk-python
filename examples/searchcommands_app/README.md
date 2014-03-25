@@ -5,7 +5,7 @@ This app provides several examples of custom search commands which illustrate ea
 
  Command      | Type       | Description
 :------------ |:-----------|:----------------------------------------------------
- helloworld   | Generating | Generates a specified number of 'Hello World' events
+ generatehello| Generating | Generates a specified number of 'Hello World' events
  simulate     | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement
  sum          | Reporting  | Adds all the numbers in a set of fields.
  countmatches | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
@@ -19,7 +19,7 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 │   ├── simulate.py .............. SimulateCommand implementation
 │   ├── sum.py ................... SumCommand implementation
 │   ├── countmatches.py .......... CountMatchesCommand implementation
-│   └── hellowowrld.py ........... HelloWorldCommand implementation
+│   └── generatehello.py ........... HelloWorldCommand implementation
 ├── default
 │   ├── data
 │   │   └── ui

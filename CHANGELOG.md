@@ -15,6 +15,18 @@
 
   2. Logs a traceback to SearchCommand.logger. This is old behavior.
 
+* Made ResponseReader more streamlike, so that it can be wrapped in an 
+  io.BufferedReader to realize a significant performance gain.
+
+  *Example usage*
+
+  ```
+  import io
+  ...
+  response = job.results(count=maxRecords, offset=self._offset)
+  resultsList = results.ResultsReader(io.BufferedReader(response)) 
+  ```
+
 ### Bug fixes
 
 1. Addressed a problem in the results reader running under Python 2.6.

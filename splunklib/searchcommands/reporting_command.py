@@ -162,10 +162,16 @@ class ReportingCommand(SearchCommand):
             Computed.
 
             """
+            command = type(self.command)
+
+            if command.map == ReportingCommand.map:
+                return ""
+
             command_line = str(self.command)
             command_name = type(self.command).name
             text = ' '.join([
                 command_name, '__map__', command_line[len(command_name) + 1:]])
+
             return text
 
         #endregion
@@ -196,14 +202,14 @@ class ReportingCommand(SearchCommand):
             if command.reduce == ReportingCommand.reduce:
                 raise AttributeError('No ReportingCommand.reduce override')
 
+            if command.map == ReportingCommand.map:
+                cls._requires_preop = False
+                return
+
             f = vars(command)['map']   # Function backing the map method
                 # There is no way to add custom attributes to methods. See
                 # [Why does setattr fail on a method](http://goo.gl/aiOsqh)
                 # for an explanation.
-
-            if f == vars(ReportingCommand)['map']:
-                cls._requires_preop = False
-                return
 
             try:
                 settings = f._settings

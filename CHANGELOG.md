@@ -29,13 +29,13 @@
 
 ### Bug fixes
 
-1. Addressed a problem in the results reader running under Python 2.6.
-
-   The results reader now catches SyntaxError exceptions instead of
+1. The results reader now catches SyntaxError exceptions instead of
    `xml.etree.ElementTree.ParseError` exceptions. `ParseError` wasn't
-   introduced until Python 2.7. This masked the root cause of certain issues
-   with result elements.
+   introduced until Python 2.7. This masked the root cause of errors
+   data errors in result elements.
 
+2. When writing a ReportingCommand you no longer need to include a map method.
+ 
 ## Version 1.2.2
 
 ### Bug fixes

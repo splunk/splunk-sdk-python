@@ -54,12 +54,18 @@ class TestSearchCommand(unittest.TestCase):
         # We support dynamic configuration, not static
 
         expected = \
-            'error_message=Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza: [search] | filename = foo.py | supports_getinfo = true | supports_rawargs = true | outputheader = true\r\n' \
+            '\r\n' \
+            'ERROR,__mv_ERROR' \
+            '\r\n' \
+            'Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza: [search] | filename = foo.py | supports_getinfo = true | supports_rawargs = true | outputheader = true,' \
             '\r\n'
 
         command = SearchCommand()
         result = StringIO()
-        command.process(['foo.py'], output_file=result)
+
+        self.assertRaises(
+            SystemExit, command.process, ['foo.py'], output_file=result)
+
         result.reset()
         observed = result.read()
         self.assertEqual(expected, observed)
@@ -88,7 +94,8 @@ class TestSearchCommand(unittest.TestCase):
 
         command = SearchCommand()
         result = StringIO()
-        command.process(['foo.py', '__GETINFO__', 'undefined_option=value'], output_file=result)
+
+        self.assertRaises(SystemExit, command.process, ['foo.py', '__GETINFO__', 'undefined_option=value'], output_file=result)
         result.reset()
         observed = result.read()
         self.assertEqual(expected, observed)
@@ -97,8 +104,9 @@ class TestSearchCommand(unittest.TestCase):
         # errors, if invoked to execute
 
         expected = \
-            'error_message=Unrecognized option: undefined_option = value\r\n' \
-            '\r\n'
+            '\r\n' \
+            'ERROR,__mv_ERROR\r\n' \
+            'Unrecognized option: undefined_option = value,\r\n'
 
         command = SearchCommand()
         result = StringIO()
@@ -118,7 +126,9 @@ class TestSearchCommand(unittest.TestCase):
         # Command.process should exit on processing exceptions
 
         expected = \
-            ''
+            '\r\n' \
+            'ERROR,__mv_ERROR\r\n' \
+            '\'NoneType\' object is not iterable,\r\n'
 
         command = SearchCommand()
         result = StringIO()
@@ -176,3 +186,6 @@ class TestSearchCommand(unittest.TestCase):
         return
 
     _package_directory = os.path.dirname(__file__)
+
+if __name__ == "__main__":
+    unittest.main()

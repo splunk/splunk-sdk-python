@@ -111,6 +111,9 @@ class TestResponseReader(BindingTestCase):
         self.assertTrue(response.empty)
 
     def test_readinto_memoryview(self):
+        import sys
+        if sys.version_info < (2, 7, 0):
+            return  # memoryview is new to Python 2.7
         txt = "Checking readinto works as expected"
         response = binding.ResponseReader(StringIO(txt))
         arr = bytearray(10)

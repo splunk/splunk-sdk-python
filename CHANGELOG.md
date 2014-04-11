@@ -1,5 +1,41 @@
 # Splunk SDK for Python Changelog
 
+
+## Version 1.2.3
+
+### New features and APIs
+
+* Improved error handling in custom search commands
+
+  SearchCommand.process now catches all exceptions and
+
+  1. Writes an error message for display in the Splunk UI.
+
+     The error message is the text of the exception. This is new behavior.
+
+  2. Logs a traceback to SearchCommand.logger. This is old behavior.
+
+* Made ResponseReader more streamlike, so that it can be wrapped in an 
+  io.BufferedReader to realize a significant performance gain.
+
+  *Example usage*
+
+  ```
+  import io
+  ...
+  response = job.results(count=maxRecords, offset=self._offset)
+  resultsList = results.ResultsReader(io.BufferedReader(response)) 
+  ```
+
+### Bug fixes
+
+1. The results reader now catches SyntaxError exceptions instead of
+   `xml.etree.ElementTree.ParseError` exceptions. `ParseError` wasn't
+   introduced until Python 2.7. This masked the root cause of errors
+   data errors in result elements.
+
+2. When writing a ReportingCommand you no longer need to include a map method.
+ 
 ## Version 1.2.2
 
 ### Bug fixes

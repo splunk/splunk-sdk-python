@@ -29,6 +29,7 @@ import logging
 import socket
 import ssl
 import urllib
+import io
 
 from datetime import datetime
 from functools import wraps
@@ -1110,7 +1111,7 @@ class HttpLib(object):
 
 
 # Converts an httplib response into a file-like object.
-class ResponseReader(object):
+class ResponseReader(io.RawIOBase):
     """This class provides a file-like interface for :class:`httplib` responses.
 
     The ``ResponseReader`` class is intended to be a layer to unify the different
@@ -1163,6 +1164,23 @@ class ResponseReader(object):
             size -= len(r)
         r = r + self._response.read(size)
         return r
+
+    def readable(self):
+        """ Indicates that the response reader is readable."""
+        return True
+
+    def readinto(self, byte_array):
+        """ Read data into a byte array, upto the size of the byte array.
+
+        :param byte_array: A byte array/memory view to pour bytes into.
+        :type byte_array: ``bytearray`` or ``memoryview``
+
+        """
+        max_size = len(byte_array)
+        data = self.read(max_size)
+        bytes_read = len(data)
+        byte_array[:bytes_read] = data
+        return bytes_read
 
 
 def handler(key_file=None, cert_file=None, timeout=None):

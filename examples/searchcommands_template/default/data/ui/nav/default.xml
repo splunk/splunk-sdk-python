@@ -1,4 +1,3 @@
-<!-- TODO: Templatize this content -->
 <nav>
     <view name="flashtimeline" default='true' />
     <collection label="Dashboards">

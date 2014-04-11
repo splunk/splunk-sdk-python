@@ -1,11 +1,11 @@
 splunk-sdk-python search_commands_app example
 =============================================
 
-This app provides three examples of custom search commands; one of each of the
-base types:
+This app provides several examples of custom search commands which illustrate each of the base types:
 
  Command      | Type       | Description
 :------------ |:-----------|:----------------------------------------------------
+ generatehello| Generating | Generates a specified number of 'Hello World' events
  simulate     | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement
  sum          | Reporting  | Adds all the numbers in a set of fields.
  countmatches | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
@@ -18,7 +18,8 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 │   │   └── searchcommands ....... splunklib.searchcommands module
 │   ├── simulate.py .............. SimulateCommand implementation
 │   ├── sum.py ................... SumCommand implementation
-│   └── countmatches.py .......... CountMatchesCommand implementation
+│   ├── countmatches.py .......... CountMatchesCommand implementation
+│   └── generatehello.py ........... HelloWorldCommand implementation
 ├── default
 │   ├── data
 │   │   └── ui

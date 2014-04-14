@@ -96,3 +96,6 @@ class TestValidators(unittest.TestCase):
             self.assertRaises(ValueError, validator, path)
 
         return
+
+if __name__ == "__main__":
+    unittest.main()

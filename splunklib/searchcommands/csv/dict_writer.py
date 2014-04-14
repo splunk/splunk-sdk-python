@@ -13,6 +13,8 @@
 # under the License.
 
 from __future__ import absolute_import
+
+from numbers import Number
 import csv
 
 
@@ -59,12 +61,23 @@ class DictWriter(csv.DictWriter, object):
         if len(value) == 1:
             return value[0], None
         multi_value = ';'.join(
-            ['$' + repr(item).replace('$', '$$') + '$' for item in value])
+            ['$' + DictWriter._to_string(item).replace('$', '$$') + '$' for item
+             in value])
         value = self._mv_delimiter.join([repr(item) for item in value])
         return value, multi_value
 
     def _header_written(self):
         return self._fieldnames is not None
+
+    @staticmethod
+    def _to_string(item):
+        if isinstance(item, bool):
+            return 't' if item else 'f'
+        if isinstance(item, str):
+            return item
+        if isinstance(item, Number):
+            return str(item)
+        return repr(item)
 
     def _writeheader(self, record):
         if self.fieldnames is None:

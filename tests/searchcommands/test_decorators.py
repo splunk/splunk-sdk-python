@@ -184,3 +184,6 @@ class TestDecorators(unittest.TestCase):
         return
 
     _package_directory = os.path.dirname(__file__)
+
+if __name__ == "__main__":
+    unittest.main()

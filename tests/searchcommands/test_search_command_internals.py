@@ -333,3 +333,6 @@ class TestSearchCommandInternals(unittest.TestCase):
         return
 
     _package_path = os.path.dirname(__file__)
+
+if __name__ == "__main__":
+    unittest.main()

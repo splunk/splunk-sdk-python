@@ -2718,10 +2718,11 @@ class Jobs(Collection):
                     # Normal events are returned as dicts
                     print result
             assert rr.is_preview == False
-        
-        Running an export search is more efficient than running a similar
-        preview search because no post-processing is done on the retrieved
-        events. The raw events are simply returned.
+
+        Running an export search is more efficient as it streams the results
+        directly to you, rather than having to write them out to disk and make
+        them available later. As soon as results are ready, you will receive
+        them.
 
         The ``export`` method makes a single roundtrip to the server (as opposed
         to two for :meth:`create` followed by :meth:`preview`), plus at most two

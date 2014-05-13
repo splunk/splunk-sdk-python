@@ -63,7 +63,7 @@ class EventWriter(object):
         """Logs messages about the state of this modular input to Splunk.
         These messages will show up in Splunk's internal logs.
 
-        :param severity: ``string``, severity of message, see severites defined as class constants.
+        :param severity: ``string``, severity of message, see severities defined as class constants.
         :param message: ``string``, message to log.
         """
 

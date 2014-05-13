@@ -18,11 +18,6 @@ import random, sys
 
 from splunklib.modularinput import *
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
-
 class MyScript(Script):
     """All modular inputs should inherit from the abstract base class Script
     from splunklib.modularinput.script.

@@ -1995,7 +1995,7 @@ class Inputs(Collection):
                     else:
                         raise
             if candidate is None:
-                raise KeyError(key) # Never found a match
+                raise KeyError(key) # Never found a match. Refer to name matching <http://docs.splunk.com/Documentation/Splunk/6.1.1/RESTAPI/RESTinput#data.2Finputs.2Fmonitor.2F.7Bname.7D>
             else:
                 return candidate
 
@@ -2070,8 +2070,8 @@ class Inputs(Collection):
         # and we have to adjust accordingly.
         path = _path(
             self.path + kindpath,
-            '%s:%s' % (kwargs['restrictToHost'], name) \
-                if kwargs.has_key('restrictToHost') else name
+            '%s:%s' % urllib.quote((kwargs['restrictToHost'], name), '') \
+                if kwargs.has_key('restrictToHost') else urllib.quote(name, '') # Need to change path to URL encoded name
         )
         return Input(self.service, path, kind)
 

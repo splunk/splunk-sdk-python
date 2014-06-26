@@ -1956,9 +1956,18 @@ class Inputs(Collection):
         Collection.__init__(self, service, PATH_INPUTS, item=Input)
 
     def __getitem__(self, key):
+        # The key needed to retrieve the input needs it's parenthesis to be URL encoded
+        # based on the REST API for input
+        # <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>
+        def checkKey(url):
+            while True:
+                if url is urllib.unquote(url): break
+                else: url = urllib.unquote(url)
+            return urllib.quote(url,'')
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
+            key = checkKey(key)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -1975,6 +1984,7 @@ class Inputs(Collection):
                     raise
         else:
             # Iterate over all the kinds looking for matches.
+            key = checkKey(key)
             kind = None
             candidate = None
             for kind in self.kinds:

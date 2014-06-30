@@ -676,6 +676,7 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
+        if not isinstance(path_segment, UrlEncoded): path_segment=UrlEncoded(path_segment, encode_slash=True)
         if path_segment.startswith('/'):
             path = path_segment
         else:
@@ -1519,6 +1520,7 @@ class Collection(ReadOnlyCollection):
             saved_searches.delete('my_saved_search')
             assert 'my_saved_search' not in saved_searches
         """
+        if not isinstance(name, UrlEncoded): name = UrlEncoded(name, encode_slash=True)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1959,15 +1961,10 @@ class Inputs(Collection):
         # The key needed to retrieve the input needs it's parenthesis to be URL encoded
         # based on the REST API for input
         # <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>
-        def checkKey(url):
-            while True:
-                if url is urllib.unquote(url): break
-                else: url = urllib.unquote(url)
-            return urllib.quote(url,'')
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
-            key = checkKey(key)
+            if not isinstance(key, UrlEncoded): key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -1984,7 +1981,7 @@ class Inputs(Collection):
                     raise
         else:
             # Iterate over all the kinds looking for matches.
-            key = checkKey(key)
+            if not isinstance(key, UrlEncoded): key = UrlEncoded(key, encode_slash=True)
             kind = None
             candidate = None
             for kind in self.kinds:
@@ -2078,11 +2075,15 @@ class Inputs(Collection):
         # If we created an input with restrictToHost set, then
         # its path will be <restrictToHost>:<name>, not just <name>,
         # and we have to adjust accordingly.
+
+        # Must check if the name passed in is UrlEncoded and change it accordingly.
+        if not isinstance(name, UrlEncoded): name = UrlEncoded(name, encode_slash=True)
+        
         path = _path(
             self.path + kindpath,
-            '%s:%s' % urllib.quote((kwargs['restrictToHost'], name), '') \
-                if kwargs.has_key('restrictToHost') else urllib.quote(name, '') # Need to change path to URL encoded name
-        )
+            '%s:%s' % (kwargs['restrictToHost'], name) \
+                if kwargs.has_key('restrictToHost') else name
+                )
         return Input(self.service, path, kind)
 
     def delete(self, name, kind=None):

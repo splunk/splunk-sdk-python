@@ -115,12 +115,14 @@ class UrlEncoded(str):
         UrlEncoded('ab c') + 'de f' == UrlEncoded('ab cde f')
         'ab c' + UrlEncoded('de f') == UrlEncoded('ab cde f')
     """
-    def __new__(self, val='', skip_encode=False):
+    def __new__(self, val='', skip_encode=False, encode_slash=False):
         if isinstance(val, UrlEncoded):
             # Don't urllib.quote something already URL encoded.
             return val
         elif skip_encode:
             return str.__new__(self, val)
+        elif encode_slash:
+            return str.__new__(self,urllib.quote(val, ''))
         else:
             # When subclassing str, just call str's __new__ method
             # with your class and the value you want to have in the

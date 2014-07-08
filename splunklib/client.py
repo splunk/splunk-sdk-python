@@ -676,7 +676,7 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        if not isinstance(path_segment, UrlEncoded): path_segment=UrlEncoded(path_segment, encode_slash=True)
+        path_segment = UrlEncoded(path_segment, encode_slash=True)
         if path_segment.startswith('/'):
             path = path_segment
         else:
@@ -1161,7 +1161,6 @@ class ReadOnlyCollection(Endpoint):
                 response = self.get(key, owner=ns.owner, app=ns.app)
             else:
                 response = self.get(key)
-
             entries = self._load_list(response)
             if len(entries) > 1:
                 raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
@@ -1520,7 +1519,8 @@ class Collection(ReadOnlyCollection):
             saved_searches.delete('my_saved_search')
             assert 'my_saved_search' not in saved_searches
         """
-        if not isinstance(name, UrlEncoded): name = UrlEncoded(name, encode_slash=True)
+
+        name = UrlEncoded(name, encode_slash=True)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1964,7 +1964,7 @@ class Inputs(Collection):
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
-            if not isinstance(key, UrlEncoded): key = UrlEncoded(key, encode_slash=True)
+            key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -1981,7 +1981,7 @@ class Inputs(Collection):
                     raise
         else:
             # Iterate over all the kinds looking for matches.
-            if not isinstance(key, UrlEncoded): key = UrlEncoded(key, encode_slash=True)
+            key = UrlEncoded(key, encode_slash=True)
             kind = None
             candidate = None
             for kind in self.kinds:
@@ -2002,7 +2002,7 @@ class Inputs(Collection):
                     else:
                         raise
             if candidate is None:
-                raise KeyError(key) # Never found a match. Refer to name matching <http://docs.splunk.com/Documentation/Splunk/6.1.1/RESTAPI/RESTinput#data.2Finputs.2Fmonitor.2F.7Bname.7D>
+                raise KeyError(key) # Never found a match.
             else:
                 return candidate
 
@@ -2015,6 +2015,7 @@ class Inputs(Collection):
             except KeyError:
                 return False
         else:
+            key = UrlEncoded(key, encode_slash=True)
             # Without a kind, we want to minimize the number of round trips to the server, so we
             # reimplement some of the behavior of __getitem__ in order to be able to stop searching
             # on the first hit.
@@ -2077,8 +2078,7 @@ class Inputs(Collection):
         # and we have to adjust accordingly.
 
         # Must check if the name passed in is UrlEncoded and change it accordingly.
-        if not isinstance(name, UrlEncoded): name = UrlEncoded(name, encode_slash=True)
-        
+        name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,
             '%s:%s' % (kwargs['restrictToHost'], name) \

@@ -122,7 +122,7 @@ class UrlEncoded(str):
         elif skip_encode:
             return str.__new__(self, val)
         elif encode_slash:
-            return str.__new__(self,urllib.quote(val, ''))
+            return str.__new__(self, urllib.quote(val, ''))
         else:
             # When subclassing str, just call str's __new__ method
             # with your class and the value you want to have in the

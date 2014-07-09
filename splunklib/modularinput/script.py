@@ -97,6 +97,17 @@ class Script(object):
                     event_writer.write_xml_document(root)
 
                     return 1
+            elif str(args[1]).lower() == "--input":
+                # For testing purposes, read from a file instead of stdin
+                event_writer.log(EventWriter.WARN,"Reading input from %s for testing purposes.", args[2])
+
+                input_stream = FileIO(args[2], 'r')
+                self._input_definition = InputDefinition.parse(input_stream)
+                input_stream.close()
+
+                self.stream_events(self._input_definition, event_writer)
+                event_writer.close()
+                return 0
             else:
                 err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(args)
                 event_writer._err.write(err_string)

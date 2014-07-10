@@ -676,7 +676,6 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        path_segment = UrlEncoded(path_segment, encode_slash=True)
         if path_segment.startswith('/'):
             path = path_segment
         else:
@@ -1520,7 +1519,6 @@ class Collection(ReadOnlyCollection):
             assert 'my_saved_search' not in saved_searches
         """
 
-        name = UrlEncoded(name, encode_slash=True)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1964,7 +1962,6 @@ class Inputs(Collection):
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
-            key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -1981,7 +1978,6 @@ class Inputs(Collection):
                     raise
         else:
             # Iterate over all the kinds looking for matches.
-            key = UrlEncoded(key, encode_slash=True)
             kind = None
             candidate = None
             for kind in self.kinds:
@@ -2015,7 +2011,6 @@ class Inputs(Collection):
             except KeyError:
                 return False
         else:
-            key = UrlEncoded(key, encode_slash=True)
             # Without a kind, we want to minimize the number of round trips to the server, so we
             # reimplement some of the behavior of __getitem__ in order to be able to stop searching
             # on the first hit.
@@ -2077,7 +2072,7 @@ class Inputs(Collection):
         # its path will be <restrictToHost>:<name>, not just <name>,
         # and we have to adjust accordingly.
 
-        # Must check if the name passed in is UrlEncoded and change it accordingly.
+        # Url encodes the name of the entity.
         name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,

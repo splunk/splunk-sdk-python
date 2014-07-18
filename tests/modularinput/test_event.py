@@ -117,10 +117,11 @@ class EventTestCase(unittest.TestCase):
 
         ew = EventWriter(out, err)
         e = Event()
-
-        with self.assertRaises(ValueError):
+        try:
             ew.write_event(e)
-            self.assertTrue(err.getvalue().startswith(EventWriter.WARN))
+            self.assertTrue(False)
+        except ValueError as e:
+            self.assertEqual("Events must have at least the data field set to be written to XML.", str(e))
 
     def test_logging_errors_with_event_writer(self):
         """Check that the log method on EventWriter produces the

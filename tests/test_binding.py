@@ -601,7 +601,7 @@ class TestTokenAuthentication(BindingTestCase):
         socket.close()
 
 
-def test_connect_with_preexisting_token_sans_user_and_pass(self):
+    def test_connect_with_preexisting_token_sans_user_and_pass(self):
         token = self.context.token
         opts = self.opts.kwargs.copy()
         del opts['username']

@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from logging.config import fileConfig
 from logging import getLogger, root, StreamHandler
 import os
+import sys
 
 
 def configure(name, path=None):
@@ -70,7 +71,7 @@ def configure(name, path=None):
     .. _ConfigParser format: http://goo.gl/K6edZ8
 
     """
-    app_directory = os.path.dirname(os.getcwd())
+    app_directory = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
 
     if path is None:
         probing_path = [
@@ -102,8 +103,12 @@ def configure(name, path=None):
         working_directory = os.getcwd()
         os.chdir(app_directory)
         try:
+            splunk_home = os.path.normpath(os.path.join(working_directory, os.environ['SPLUNK_HOME']))
+        except KeyError:
+            splunk_home = working_directory  # reasonable in debug scenarios
+        try:
             path = os.path.abspath(path)
-            fileConfig(path)
+            fileConfig(path, {'SPLUNK_HOME': splunk_home})
         finally:
             os.chdir(working_directory)
 

@@ -157,6 +157,7 @@ if sys.platform == 'win32':
     import os
     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 
+
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
              sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
@@ -219,14 +220,6 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
     Unconditionally dispatches :code:`SomeStreamingCommand`.
 
     """
-    if module_name is not None and module_name != '__main__':
-        return
-
-    try:
+    if module_name is None or module_name == '__main__':
         command_class().process(argv, input_file, output_file)
-    except:
-        import logging
-        import traceback
-        logging.fatal(traceback.format_exc())
-
     return

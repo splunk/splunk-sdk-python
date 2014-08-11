@@ -23,8 +23,8 @@ try:
 except ImportError:
     from ordereddict import OrderedDict # python 2.6
 
-from inspect import getmembers
 from logging import _levelNames, getLevelName
+from inspect import getmembers
 from os import path
 from sys import argv, exit, stdin, stdout
 from urlparse import urlsplit
@@ -32,11 +32,10 @@ from xml.etree import ElementTree
 
 # Relative imports
 
-from . import csv, logging
+from . import logging, splunk_csv
 from .decorators import Option
 from .validators import Boolean, Fieldname
-from .search_command_internals import InputHeader, MessagesHeader, \
-    SearchCommandParser
+from .search_command_internals import InputHeader, MessagesHeader, SearchCommandParser
 
 
 class SearchCommand(object):
@@ -48,8 +47,7 @@ class SearchCommand(object):
 
         # Variables that may be used, but not altered by derived classes
 
-        self.logger, self._logging_configuration = logging.configure(
-            type(self).__name__)
+        self.logger, self._logging_configuration = logging.configure(type(self).__name__)
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
 
@@ -59,6 +57,7 @@ class SearchCommand(object):
         self._configuration = None
         self._fieldnames = None
         self._option_view = None
+        self._output_file = None
         self._search_results_info = None
         self._service = None
 
@@ -219,7 +218,7 @@ class SearchCommand(object):
             fields = [convert_field(x) for x in reader.next()]
             values = [convert_value(f, v) for f, v in zip(fields, reader.next())]
 
-        search_results_info_type = namedtuple("SearchResultsInfo", fields)
+        search_results_info_type = namedtuple('SearchResultsInfo', fields)
         self._search_results_info = search_results_info_type._make(values)
 
         return self._search_results_info
@@ -256,21 +255,21 @@ class SearchCommand(object):
         if info is None:
             return None
 
-        _, netloc, _, _, _ = urlsplit(
-            info.splunkd_uri, info.splunkd_protocol, allow_fragments=False)
-
-        splunkd_host, _ = netloc.split(':')
+        splunkd = urlsplit(info.splunkd_uri, info.splunkd_protocol, allow_fragments=False)
 
         self._service = Service(
-            scheme=info.splunkd_protocol, host=splunkd_host,
-            port=info.splunkd_port, token=info.auth_token,
-            app=info.ppc_app)
+            scheme=splunkd.scheme, host=splunkd.hostname, port=splunkd.port, token=info.auth_token, app=info.ppc_app)
 
         return self._service
 
     #endregion
 
     #region Methods
+
+    def error_exit(self, error):
+        self.logger.error('Abnormal exit: ' + error)
+        self.write_error(error)
+        exit(1)
 
     def process(self, args=argv, input_file=stdin, output_file=stdout):
         """ Processes search results as specified by command arguments.
@@ -280,32 +279,24 @@ class SearchCommand(object):
         :param output_file: Pipeline output file
 
         """
-        self.logger.debug('%s arguments: %s' % (type(self).__name__, args))
+        self.logger.debug(u'%s arguments: %s', type(self).__name__, args)
         self._configuration = None
+        self._output_file = output_file
 
         try:
             if len(args) >= 2 and args[1] == '__GETINFO__':
 
-                ConfigurationSettings, operation, args, reader = self._prepare(
-                    args, input_file=None)
-
+                ConfigurationSettings, operation, args, reader = self._prepare(args, input_file=None)
                 self.parser.parse(args, self)
-
                 self._configuration = ConfigurationSettings(self)
-
-                writer = csv.DictWriter(
-                    output_file, self, self.configuration.keys(), mv_delimiter=',')
+                writer = splunk_csv.DictWriter(output_file, self, self.configuration.keys(), mv_delimiter=',')
                 writer.writerow(self.configuration.items())
 
             elif len(args) >= 2 and args[1] == '__EXECUTE__':
 
                 self.input_header.read(input_file)
-
-                ConfigurationSettings, operation, args, reader = self._prepare(
-                    args, input_file)
-
+                ConfigurationSettings, operation, args, reader = self._prepare(args, input_file)
                 self.parser.parse(args, self)
-
                 self._configuration = ConfigurationSettings(self)
 
                 if self.show_configuration:
@@ -313,31 +304,45 @@ class SearchCommand(object):
                         'info_message', '%s command configuration settings: %s'
                         % (self.name, self._configuration))
 
-                writer = csv.DictWriter(output_file, self)
+                writer = splunk_csv.DictWriter(output_file, self)
                 self._execute(operation, reader, writer)
 
             else:
 
                 file_name = path.basename(args[0])
                 message = (
-                    'Command {0} appears to be statically configured and static '
-                    'configuration is unsupported by splunklib.searchcommands. '
-                    'Please ensure that default/commands.conf contains this '
-                    'stanza: '
-                    '[{0}] | '
-                    'filename = {1} | '
-                    'supports_getinfo = true | '
-                    'supports_rawargs = true | '
-                    'outputheader = true'.format(type(self).name, file_name))
+                    u'Command {0} appears to be statically configured and static '
+                    u'configuration is unsupported by splunklib.searchcommands. '
+                    u'Please ensure that default/commands.conf contains this '
+                    u'stanza:\n'
+                    u'[{0}]\n'
+                    u'filename = {1}\n'
+                    u'supports_getinfo = true\n'
+                    u'supports_rawargs = true\n'
+                    u'outputheader = true'.format(type(self).name, file_name))
                 raise NotImplementedError(message)
 
-        except Exception as error:
+        except SystemExit:
+            raise
 
-            from traceback import format_exc
+        except:
 
-            writer = csv.DictWriter(output_file, self, fieldnames=['ERROR'])
-            writer.writerow({'ERROR': error})
-            self.logger.error(format_exc())
+            import traceback
+            import sys
+
+            error_type, error_message, error_traceback = sys.exc_info()
+            self.logger.error(traceback.format_exc(error_traceback))
+
+            origin = error_traceback
+
+            while origin.tb_next is not None:
+                origin = origin.tb_next
+
+            filename = origin.tb_frame.f_code.co_filename
+            lineno = origin.tb_lineno
+
+            self.write_error('%s at "%s", line %d : %s', error_type.__name__, filename, lineno, error_message)
+
             exit(1)
 
         return
@@ -348,11 +353,35 @@ class SearchCommand(object):
             yield record
         return
 
-    def _prepare(self, argv, input_file):
-        raise NotImplementedError('SearchCommand._configure(self, argv)')
+    # TODO: Is it possible to support anything other than write_error? It does not seem so.
+
+    def write_debug(self, message, *args):
+        self._write_message(u'DEBUG', message, *args)
+        return
+
+    def write_error(self, message, *args):
+        self._write_message(u'ERROR', message, *args)
+        return
+
+    def write_info(self, message, *args):
+        self._write_message(u'INFO', message, *args)
+        return
+
+    def write_warning(self, message, *args):
+        self._write_message(u'WARN', message, *args)
 
     def _execute(self, operation, reader, writer):
-        raise NotImplementedError('SearchCommand._configure(self, argv)')
+        raise NotImplementedError(u'SearchCommand._configure(self, argv)')
+
+    def _prepare(self, argv, input_file):
+        raise NotImplementedError(u'SearchCommand._configure(self, argv)')
+
+    def _write_message(self, message_type, message_text, *args):
+        import csv
+        if len(args) > 0:
+            message_text = message_text % args
+        writer = csv.writer(self._output_file)
+        writer.writerows([[], [message_type], [message_text]])
 
     #endregion
 
@@ -465,7 +494,7 @@ class SearchCommand(object):
         @property
         def outputheader(self):
             """ Signals that the output of this command is a messages header
-            followed by a blank line and csv search results.
+            followed by a blank line and splunk_csv search results.
 
             Fixed: :const:`True`
 

@@ -295,7 +295,7 @@ class SearchCommandParser(object):
         # Parse field names
 
         command.fieldnames = command_args.group('fieldnames').split()
-        command.logger.debug('%s: %s' % (type(command).__name__, command))
+        command.logger.debug('%s: %s', type(command).__name__, command)
         return
 
     @classmethod

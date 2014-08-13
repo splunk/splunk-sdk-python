@@ -81,7 +81,7 @@ class DictWriter(csv.DictWriter, object):
 
     def _writeheader(self, record):
         if self.fieldnames is None:
-            self.fieldnames = sorted(record.keys())
+            self.fieldnames = record.keys()
         self.writeheader()
 
     def _writerow(self, record):
@@ -93,7 +93,8 @@ class DictWriter(csv.DictWriter, object):
                 if isinstance(value, list):
                     value, multi_value = self._encode_list(value)
                     row[fieldname] = value
-                    row['__mv_' + fieldname] = multi_value
+                    if multi_value is not None:
+                        row['__mv_' + fieldname] = multi_value
                 elif isinstance(value, bool):
                     row[fieldname] = int(value)
                 else:

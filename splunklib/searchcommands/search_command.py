@@ -19,13 +19,13 @@ from __future__ import absolute_import
 from splunklib.client import Service
 
 try:
-    from collections import OrderedDict # python 2.7
+    from collections import OrderedDict  # python 2.7
 except ImportError:
-    from ordereddict import OrderedDict # python 2.6
+    from ordereddict import OrderedDict  # python 2.6
 
 from logging import _levelNames, getLevelName
 from inspect import getmembers
-from os import path
+from os import environ, path
 from sys import argv, exit, stdin, stdout
 from urlparse import urlsplit
 from xml.etree import ElementTree
@@ -50,6 +50,14 @@ class SearchCommand(object):
         self.logger, self._logging_configuration = logging.configure(type(self).__name__)
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
+
+        if u'SPLUNK_HOME' not in environ:
+            self.logger.warning(
+                u'SPLUNK_HOME environment variable is undefined.\n'
+                u'If you are testing outside of Splunk, consider running under control of the Splunk CLI:\n'
+                u'    splunk cmd %s\n'
+                u'If you are running inside of Splunk, SPLUNK_HOME should be defined. Consider troubleshooting your '
+                u'installation.', self)
 
         # Variables backing option/property values
 

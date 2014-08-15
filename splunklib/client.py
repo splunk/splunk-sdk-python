@@ -102,6 +102,7 @@ PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
 PATH_RECEIVERS_STREAM = "receivers/stream"
 PATH_RECEIVERS_SIMPLE = "receivers/simple"
+PATH_STORAGE_PASSWORDS = "storage/passwords"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"
 XNAME_ENTRY = XNAMEF_ATOM % "entry"
@@ -109,36 +110,44 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+
 class IllegalOperationException(Exception):
     """Thrown when an operation is not possible on the Splunk instance that a
     :class:`Service` object is connected to."""
     pass
+
 
 class IncomparableException(Exception):
     """Thrown when trying to compare objects (using ``==``, ``<``, ``>``, and
     so on) of a type that doesn't support it."""
     pass
 
+
 class AmbiguousReferenceException(ValueError):
     """Thrown when the name used to fetch an entity matches more than one entity."""
     pass
+
 
 class InvalidNameException(Exception):
     """Thrown when the specified name contains characters that are not allowed
     in Splunk entity names."""
     pass
 
+
 class NoSuchCapability(Exception):
     """Thrown when the capability that has been referred to doesn't exist."""
     pass
+
 
 class OperationError(Exception):
     """Raised for a failed operation, such as a time out."""
     pass
 
+
 class NotSupportedError(Exception):
     """Raised for operations that are not supported on a given object."""
     pass
+
 
 def _trailing(template, *targets):
     """Substring of *template* following all *targets*.
@@ -168,6 +177,7 @@ def _trailing(template, *targets):
         s = s[n + len(t):]
     return s
 
+
 # Filter the given state content record according to the given arg list.
 def _filter_content(content, *args):
     if len(args) > 0:
@@ -180,9 +190,11 @@ def _path(base, name):
     if not base.endswith('/'): base = base + '/'
     return base + name
 
+
 # Load an atom record from the body of the given response
 def _load_atom(response, match=None):
     return data.load(response.body.read(), match)
+
 
 # Load an array of atom entries from the body of the given response
 def _load_atom_entries(response):
@@ -203,9 +215,11 @@ def _load_atom_entries(response):
         if entries is None: return None
         return entries if isinstance(entries, list) else [entries]
 
+
 # Load the sid from the body of the given response
 def _load_sid(response):
     return _load_atom(response).response.sid
+
 
 # Parse the given atom entry record into a generic entity state record
 def _parse_atom_entry(entry):
@@ -233,6 +247,7 @@ def _parse_atom_entry(entry):
         'content': content
     })
 
+
 # Parse the metadata fields out of the given atom entry content record
 def _parse_atom_metadata(content):
     # Hoist access metadata
@@ -246,6 +261,7 @@ def _parse_atom_metadata(content):
         'wildcard': attributes.get('wildcardFields', [])})
 
     return record({'access': access, 'fields': fields})
+
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
@@ -454,6 +470,14 @@ class Service(_BaseService):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
         else:
             raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
+
+    @property
+    def storage_passwords(self):
+        """Returns the collection of the modular input kinds on this Splunk instance.
+
+        :return: A :class:`ReadOnlyCollection` of :class:`ModularInputKind` entities.
+        """
+        return StoragePasswords(self)
 
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
@@ -739,11 +763,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.service._abspath(self.path + path_segment, owner=owner,
-                                         app=app, sharing=sharing)
-        return self.service.post(path,
-                                 owner=owner, app=app, sharing=sharing,
-                                 **query)
+            path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
+        return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 
 # kwargs: path, app, owner, sharing, state
@@ -822,7 +843,8 @@ class Entity(Endpoint):
         Endpoint.__init__(self, service, path)
         self._state = None
         if not kwargs.get('skip_refresh', False):
-            self.refresh(kwargs.get('state', None)) # "Prefresh"
+            self.refresh(kwargs.get('state', None))  # "Prefresh"
+        return
 
     def __contains__(self, item):
         try:
@@ -1473,7 +1495,7 @@ class Collection(ReadOnlyCollection):
             new_app = applications.create("my_fake_app")
         """
         if not isinstance(name, basestring):
-           raise InvalidNameException("%s is not a valid name for an entity." % name)
+            raise InvalidNameException("%s is not a valid name for an entity." % name)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1646,6 +1668,70 @@ class Stanza(Entity):
         # the stanza keys.
         return len([x for x in self._state.content.keys()
                     if not x.startswith('eai') and x != 'disabled'])
+
+
+class StoragePassword(Entity):
+    """This class contains a storage password.
+
+    """
+    def __init__(self, service, path, **kwargs):
+        state = kwargs.get('state', None)
+        kwargs['skip_refresh'] = kwargs.get('skip_refresh', state is not None)
+        super(StoragePassword, self).__init__(service, path, **kwargs)
+        self._state = state
+
+    @property
+    def clear_password(self):
+        return self.content.get('clear_password')
+
+    @property
+    def encrypted_password(self):
+        return self.content.get('encr_password')
+
+    @property
+    def realm(self):
+        return self.content.get('realm')
+
+    @property
+    def username(self):
+        return self.content.get('username')
+
+
+class StoragePasswords(Collection):
+    """This class provides access to the storage passwords from this Splunk
+    instance. Retrieve this collection using :meth:`Service.storage_passwords`.
+
+    """
+    def __init__(self, service):
+        if service.namespace.owner == '-' or service.namespace.app == '-':
+            raise ValueError("StoragePasswords cannot have wildcards in namespace.")
+        super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
+
+    def create(self, name, password):
+        """ Creates or edits a storage password by *name*.
+
+        :param name: A name of the form "username" or "realm:username".
+        :type name: ``string``
+
+        :return: The :class:`StoragePassword` object created.
+
+        """
+        if not isinstance(name, basestring):
+            raise ValueError('Invalid name: %s' % repr(name))
+
+        identity = name.split(':', 1)
+        realm, name = identity if len(identity) == 2 else ('', identity)
+
+        response = self.post(password=password, realm=realm, name=name)
+
+        if response.status != 201:
+            raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
+
+        entries = _load_atom_entries(response)
+        state = _parse_atom_entry(entries[0])
+        storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
+
+        return storage_password
 
 
 class AlertGroup(Entity):

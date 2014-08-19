@@ -529,7 +529,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
+    def get(self, path_segment, owner=None, app=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 

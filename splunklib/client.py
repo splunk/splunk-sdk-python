@@ -494,24 +494,21 @@ class Service(_BaseService):
         :type timeout: ``integer``
         """
         result = self.post("server/control/restart")
-        if timeout is None: return result
-        start = datetime.now()
-        diff = timedelta(seconds=10)
-        while datetime.now() - start < diff:
-            try:
-                self.login() # Has the server gone down yet?
-                sleep(0.3)
-            except Exception:
-                break # Server is down. Move on.
+        if timeout is None: 
+            return result
+        
+        # This message will be deleted once the server actually restarts.
+        self.messages.create(name="restart_required", **{"value":"Python SDK"})
         start = datetime.now()
         diff = timedelta(seconds=timeout)
         while datetime.now() - start < diff:
             try:
-                self.login() # Awake yet?
-                return result
+                self.login()
+                if not self.restart_required:
+                    return result
             except Exception, e:
-                sleep(2)
-        raise Exception, "Operation timed out."
+                sleep(1)
+        raise Exception, "Operation time out."
 
     @property
     def restart_required(self):

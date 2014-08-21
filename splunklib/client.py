@@ -493,12 +493,12 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
+
+        # This message will be deleted once the server actually restarts.
+        self.messages.create(name="restart_required", **{"value":self.username})
         result = self.post("server/control/restart")
         if timeout is None: 
             return result
-        
-        # This message will be deleted once the server actually restarts.
-        self.messages.create(name="restart_required", **{"value":"Python SDK"})
         start = datetime.now()
         diff = timedelta(seconds=timeout)
         while datetime.now() - start < diff:
@@ -1962,12 +1962,12 @@ class Inputs(Collection):
                 if len(entries) > 1:
                     raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
                 elif len(entries) == 0:
-                    raise KeyError((kind,key))
+                    raise KeyError((key,kind))
                 else:
                     return entries[0]
             except HTTPError as he:
                 if he.status == 404: # No entity matching kind and key
-                    raise KeyError((kind,key))
+                    raise KeyError((key,kind))
                 else:
                     raise
         else:

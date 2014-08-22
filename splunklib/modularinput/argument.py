@@ -66,6 +66,7 @@ class Argument(object):
         self.data_type = data_type
         self.required_on_edit = required_on_edit
         self.required_on_create = required_on_create
+        self.title = title
 
     def add_to_document(self, parent):
         """Adds an ``Argument`` object to this ElementTree document.

@@ -493,9 +493,9 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-
+        msg = {"value":"Restart requested by " + self.username + "via the Splunk SDK for Python"}
         # This message will be deleted once the server actually restarts.
-        self.messages.create(name="restart_required", **{"value":self.username})
+        self.messages.create(name="restart_required", **msg)
         result = self.post("server/control/restart")
         if timeout is None: 
             return result

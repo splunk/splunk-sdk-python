@@ -2018,6 +2018,13 @@ class Inputs(Collection):
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
+            if kind == "script":
+                keylist = key.split('/')
+                applist = [app.name for app in self.service.apps]
+                for i in range(len(keylist)):
+                    if keylist[i] == "apps" and keylist[i+1] in applist:
+                        newkey = [keylist[x] for x in range(i + 2, len(keylist))]
+                        key = "./" + ('/').join(newkey)
             key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
@@ -2037,6 +2044,12 @@ class Inputs(Collection):
             # Iterate over all the kinds looking for matches.
             kind = None
             candidate = None
+            keylist = key.split('/')
+            applist = [app.name for app in self.service.apps]
+            for i in range(len(keylist)):
+                if keylist[i] == "apps" and keylist[i+1] in applist:
+                    newkey = [keylist[x] for x in range(i + 2, len(keylist))]
+                    key = "./" + ('/').join(newkey)
             key = UrlEncoded(key, encode_slash=True)
             for kind in self.kinds:
                 try:
@@ -2213,7 +2226,7 @@ class Inputs(Collection):
     def _get_kind_list(self, subpath=None):
         if subpath is None:
             subpath = []
-        
+            
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)

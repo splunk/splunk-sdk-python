@@ -246,9 +246,7 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    text = ""
-                    for text_chunk in elem.itertext():
-                        text += text_chunk
+                    text = "".join(elem.itertext())
                     values.append(text.encode('utf8'))
                     elem.clear()
 

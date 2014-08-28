@@ -493,7 +493,7 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-        msg = {"value":"Restart requested by " + self.username + "via the Splunk SDK for Python"}
+        msg = { "value": "Restart requested by " + self.username + "via the Splunk SDK for Python"}
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
         result = self.post("server/control/restart")
@@ -1962,12 +1962,12 @@ class Inputs(Collection):
                 if len(entries) > 1:
                     raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
                 elif len(entries) == 0:
-                    raise KeyError((key,kind))
+                    raise KeyError((key, kind))
                 else:
                     return entries[0]
             except HTTPError as he:
                 if he.status == 404: # No entity matching kind and key
-                    raise KeyError((key,kind))
+                    raise KeyError((key, kind))
                 else:
                     raise
         else:

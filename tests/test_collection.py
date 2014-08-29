@@ -250,7 +250,9 @@ class CollectionTestCase(testlib.SDKTestCase):
             self.assertEqual(200, self.service.saved_searches.get(search.name).status)
 
     def test_collection_inputs_getitem(self):
-        for inp in self.service.inputs:
+        valid_kinds = self.service.inputs._get_kind_list()
+        valid_kinds.remove("script")
+        for inp in self.service.inputs.list(*valid_kinds):
             self.assertTrue(self.service.inputs[inp.name])
 
 

@@ -1154,10 +1154,11 @@ class ReadOnlyCollection(Endpoint):
                 # x[a,b] is translated to x.__getitem__( (a,b) ), so we
                 # have to extract values out.
                 key, ns = key
+                key = UrlEncoded(key, encode_slash=True)
                 response = self.get(key, owner=ns.owner, app=ns.app)
             else:
+                key = UrlEncoded(key, encode_slash=True)
                 response = self.get(key)
-
             entries = self._load_list(response)
             if len(entries) > 1:
                 raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
@@ -1191,6 +1192,7 @@ class ReadOnlyCollection(Endpoint):
             for entity in saved_searches:
                 print "Saved search named %s" % entity.name
         """
+
         for item in self.iter(**kwargs):
             yield item
 
@@ -1397,6 +1399,8 @@ class ReadOnlyCollection(Endpoint):
         return list(self.iter(count=count, **kwargs))
 
 
+
+
 class Collection(ReadOnlyCollection):
     """A collection of entities.
 
@@ -1442,6 +1446,7 @@ class Collection(ReadOnlyCollection):
     :class:`Collection` does no caching. Each call makes at least one
     round trip to the server to fetch data.
     """
+
     def create(self, name, **params):
         """Creates a new entity in this collection.
 
@@ -1516,6 +1521,7 @@ class Collection(ReadOnlyCollection):
             saved_searches.delete('my_saved_search')
             assert 'my_saved_search' not in saved_searches
         """
+        name = UrlEncoded(name, encode_slash=True)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1532,6 +1538,56 @@ class Collection(ReadOnlyCollection):
             else:
                 raise
         return self
+
+    def get(self, name="", owner=None, app=None, sharing=None, **query):
+        """Performs a GET request to the server on the collection.
+
+        If *owner*, *app*, and *sharing* are omitted, this method takes a
+        default namespace from the :class:`Service` object for this :class:`Endpoint`.
+        All other keyword arguments are included in the URL as query parameters.
+
+        :raises AuthenticationError: Raised when the ``Service`` is not logged in.
+        :raises HTTPError: Raised when an error in the request occurs.
+        :param path_segment: A path segment relative to this endpoint.
+        :type path_segment: ``string``
+        :param owner: The owner context of the namespace (optional).
+        :type owner: ``string``
+        :param app: The app context of the namespace (optional).
+        :type app: ``string``
+        :param sharing: The sharing mode for the namespace (optional).
+        :type sharing: "global", "system", "app", or "user"
+        :param query: All other keyword arguments, which are used as query
+            parameters.
+        :type query: ``string``
+        :return: The response from the server.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
+                and ``status``
+
+        Example:
+        
+        import splunklib.client
+            s = client.service(...)
+            saved_searches = s.saved_searches
+            saved_searches.get("my/saved/search") == \\
+                {'body': ...a response reader object...,
+                 'headers': [('content-length', '26208'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:30:35 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            saved_searches.get('nonexistant/search') # raises HTTPError
+            s.logout()
+            saved_searches.get() # raises AuthenticationError
+
+        """
+        name = UrlEncoded(name, encode_slash=True)
+        return super(Collection, self).get(name, owner, app, sharing, **query)
+
+    
 
 
 class ConfigurationFile(Collection):
@@ -1953,9 +2009,13 @@ class Inputs(Collection):
         Collection.__init__(self, service, PATH_INPUTS, item=Input)
 
     def __getitem__(self, key):
+        # The key needed to retrieve the input needs it's parenthesis to be URL encoded
+        # based on the REST API for input
+        # <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
+            key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
@@ -1974,6 +2034,7 @@ class Inputs(Collection):
             # Iterate over all the kinds looking for matches.
             kind = None
             candidate = None
+            key = UrlEncoded(key, encode_slash=True)
             for kind in self.kinds:
                 try:
                     response = self.get(kind + "/" + key)
@@ -1992,7 +2053,7 @@ class Inputs(Collection):
                     else:
                         raise
             if candidate is None:
-                raise KeyError(key) # Never found a match
+                raise KeyError(key) # Never found a match.
             else:
                 return candidate
 
@@ -2065,11 +2126,14 @@ class Inputs(Collection):
         # If we created an input with restrictToHost set, then
         # its path will be <restrictToHost>:<name>, not just <name>,
         # and we have to adjust accordingly.
+
+        # Url encodes the name of the entity.
+        name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,
             '%s:%s' % (kwargs['restrictToHost'], name) \
                 if kwargs.has_key('restrictToHost') else name
-        )
+                )
         return Input(self.service, path, kind)
 
     def delete(self, name, kind=None):
@@ -2146,7 +2210,7 @@ class Inputs(Collection):
     def _get_kind_list(self, subpath=None):
         if subpath is None:
             subpath = []
-        
+
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)
@@ -2204,12 +2268,12 @@ class Inputs(Collection):
         :rtype: ``string``
         """
         if kind in self.kinds:
-            return kind
+            return UrlEncoded(kind, skip_encode=True)
         # Special cases
         elif kind == 'tcp':
-            return 'tcp/raw'
+            return UrlEncoded('tcp/raw', skip_encode=True)
         elif kind == 'splunktcp':
-            return 'tcp/cooked'
+            return UrlEncoded('tcp/cooked', skip_encode=True)
         else:
             raise ValueError("No such kind on server: %s" % kind)
 
@@ -2276,6 +2340,7 @@ class Inputs(Collection):
             path = self.kindpath(kind)
             logging.debug("Path for inputs: %s", path)
             try:
+                path = UrlEncoded(path, skip_encode=True)
                 response = self.get(path, **kwargs)
             except HTTPError, he:
                 if he.status == 404: # No inputs of this kind
@@ -2300,6 +2365,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
+                kind = UrlEncoded(kind, skip_encode=True)
                 response = self.get(self.kindpath(kind), search=search)
             except HTTPError as e:
                 if e.status == 404:

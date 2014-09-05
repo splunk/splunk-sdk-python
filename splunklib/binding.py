@@ -466,7 +466,7 @@ class Context(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.scheme == "https":
             sock = ssl.wrap_socket(sock)
-        sock.connect((self.host, self.port))
+        sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
 
     @_authentication

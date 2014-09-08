@@ -6,18 +6,18 @@ from splunklib.searchcommands import \
 
 @Configuration()
 class %(command.title())Command(GeneratingCommand):
-   """ %(synopsis)
+    """ %(synopsis)
 
-   ##Syntax
+    ##Syntax
 
-   %(syntax)
+    %(syntax)
 
-   ##Description
+    ##Description
 
-   %(description)
+    %(description)
 
-   """
-   def generate(self):
+    """
+    def generate(self):
        # Put your event  code here
        pass
 

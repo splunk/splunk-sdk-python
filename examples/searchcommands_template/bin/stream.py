@@ -7,18 +7,18 @@ from splunklib.searchcommands import \
 
 @Configuration()
 class %(command.title())Command(StreamingCommand):
-   """ %(synopsis)
+    """ %(synopsis)
 
-   ##Syntax
+    ##Syntax
 
-   %(syntax)
+    %(syntax)
 
-   ##Description
+    ##Description
 
-   %(description)
+    %(description)
 
-   """
-   def stream(self, events):
+    """
+    def stream(self, events):
        # Put your event transformation code here
        pass
 

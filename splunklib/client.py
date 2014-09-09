@@ -1708,16 +1708,18 @@ class StoragePasswords(Collection):
             raise ValueError("StoragePasswords cannot have wildcards in namespace.")
         super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
 
-    def create(self, realm, username, password):
+    def create(self, password, username, realm=None):
         """ Creates a storage password.
 
-        # TODO: add some notes about processing that happens before hitting the REST API
+        The identifier can be passed in through the username parameter as
+        <username> or <realm>:<username>, but the preferred way is by
+        passing in the username and realm parameters.
 
-        :param realm: The credential realm.
+        :param password: The password for the credentials - this is the only part of the credentials that will be stored securely.
         :type name: ``string``
-        :param name: The username for the credentials.
+        :param username: The username for the credentials, or <realm>:<username> if the realm parameter is omitted.
         :type name: ``string``
-        :param username: The password for the credentials - this is the only part of the credentials that will be stored securely.
+        :param realm: The credential realm. (optional)
         :type name: ``string``
 
         :return: The :class:`StoragePassword` object created.
@@ -1736,19 +1738,26 @@ class StoragePasswords(Collection):
 
         return storage_password
 
-    """# TODO: docs
-        * realm defaults to empty string
-        * username is optional... if realm is the full name
+    """Delete a storage password by username and/or realm.
+
+        The identifier can be passed in through the username parameter as
+        <username> or <realm>:<username>, but the preferred way is by
+        passing in the username and realm parameters.
+
+        :param username: The username for the credentials, or <realm>:<username> if the realm parameter is omitted.
+        :type name: ``string``
+        :param realm: The credential realm. (optional)
+        :type name: ``string``
 
     """
-    def delete(self, realm, username=None):
-        # TODO: encode each component separately
-
-        if username is None:
+    def delete(self, username, realm=None):
+        if realm is None:
             # This case makes the username optional, so
-            # the full name can be passed in as realm
-            name = realm
+            # the full name can be passed in as realm.
+            # Assume it's already encoded.
+            name = username
         else:
+            # Encode each component separately
             name = urllib.quote(realm) + ":" + urllib.quote(username)
 
         # Append the : expected at the end of the name

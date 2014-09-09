@@ -19,7 +19,7 @@ import logging
 
 import splunklib.client as client
 
-class TestCreate(testlib.SDKTestCase):
+class Tests(testlib.SDKTestCase):
     def setUp(self):
         self.service = client.connect(**self.opts.kwargs)
         self.storage_passwords = self.service.storage_passwords
@@ -35,7 +35,7 @@ class TestCreate(testlib.SDKTestCase):
         realm = testlib.tmpname()
         username = testlib.tmpname()
 
-        p = self.storage_passwords.create(realm, username, "changeme")
+        p = self.storage_passwords.create("changeme", username, realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, realm)
         self.assertEqual(p.username, username)
@@ -49,7 +49,7 @@ class TestCreate(testlib.SDKTestCase):
         start_count = len(self.storage_passwords)
         username = testlib.tmpname()
 
-        p = self.storage_passwords.create("", username, "changeme")
+        p = self.storage_passwords.create("changeme", username, "")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, None)
         self.assertEqual(p.username, username)
@@ -64,7 +64,7 @@ class TestCreate(testlib.SDKTestCase):
         username = testlib.tmpname()
         realm = testlib.tmpname()
 
-        p = self.storage_passwords.create(":start" + realm, username + ":end", "changeme")
+        p = self.storage_passwords.create("changeme", username + ":end", ":start" + realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, ":start" + realm)
         self.assertEqual(p.username, username + ":end")
@@ -74,25 +74,56 @@ class TestCreate(testlib.SDKTestCase):
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
 
-        realm = ":r:e:a:l:m:"
+        prefix = testlib.tmpname()
+        realm = prefix + ":r:e:a:l:m:"
         user = ":u:s:e:r:"
-        p = self.storage_passwords.create(realm, user, "changeme")
+        p = self.storage_passwords.create("changeme", user, realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, realm)
         self.assertEqual(p.username, user)
         self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(p.name, "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::")
-        
+        self.assertEqual(p.name, prefix + "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::")
+
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
 
+    def test_create_crazy(self):
+        start_count = len(self.storage_passwords)
+        username = testlib.tmpname()
+        realm = testlib.tmpname()
+
+        p = self.storage_passwords.create("changeme", username + ":end!@#$%^&*()_+{}:|<>?", ":start::!@#$%^&*()_+{}:|<>?" + realm)
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+        self.assertEqual(p.realm, ":start::!@#$%^&*()_+{}:|<>?" + realm)
+        self.assertEqual(p.username, username + ":end!@#$%^&*()_+{}:|<>?")
+        self.assertEqual(p.clear_password, "changeme")
+        self.assertEqual(p.name, "\\:start\\:\\:!@#$%^&*()_+{}\\:|<>?" + realm + ":" + username + "\\:end!@#$%^&*()_+{}\\:|<>?:")
+
+        p.delete()
+        self.assertEqual(start_count, len(self.storage_passwords))
+
+    def test_read(self):
+        start_count = len(self.storage_passwords)
+        username = testlib.tmpname()
+
+        p = self.storage_passwords.create("changeme", username, "")
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+
+        for sp in self.storage_passwords:
+            self.assertTrue(p.name in self.storage_passwords)
+            # Name works with or without a trailing colon
+            self.assertTrue((":" + username + ":") in self.storage_passwords)
+            self.assertTrue((":" + username) in self.storage_passwords)
+
+        p.delete()
+        self.assertEqual(start_count, len(self.storage_passwords))
 
     def test_update(self):
         start_count = len(self.storage_passwords)
         realm = testlib.tmpname()
         username = testlib.tmpname()
 
-        p = self.storage_passwords.create(realm, username, "changeme")
+        p = self.storage_passwords.create("changeme", username, realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, realm)
         self.assertEqual(p.username, username)
@@ -113,29 +144,30 @@ class TestCreate(testlib.SDKTestCase):
         self.assertEqual(start_count, len(self.storage_passwords))
 
     def test_delete(self):
-        # TODO: make a bunch of tests for different ways of deleting
         start_count = len(self.storage_passwords)
+        username = testlib.tmpname()
 
-        p = self.storage_passwords.create("myfoo", "yourbar2", "changeme")
+        # Testing named parameters
+        p = self.storage_passwords.create("changeme", username, "myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
-        self.assertEqual(p.realm, "myfoo")
-        self.assertEqual(p.username, "yourbar2")
+        self.assertEqual(p.realm, "myrealm")
+        self.assertEqual(p.username, username)
         self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(p.name, "myfoo:yourbar2:")
+        self.assertEqual(p.name, "myrealm:" + username + ":")
 
-        # TODO: move these tests out
-        for sp in self.storage_passwords:
-            self.assertTrue("myfoo:yourbar2" in self.storage_passwords)
-            # Name works with or without a trailing colon
-            self.assertTrue("myfoo:yourbar2:" in self.storage_passwords)
-
-        self.storage_passwords.delete("myfoo:yourbar2")
+        self.storage_passwords.delete(username, "myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 
-        self.storage_passwords.create("myfoo", "yourbar2", "changeme")
+        self.storage_passwords.create("changeme", username, "myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
-        self.storage_passwords.delete("myfoo:yourbar2:")
+        self.storage_passwords.delete("myrealm:" + username + ":")
+        self.assertEqual(start_count, len(self.storage_passwords))
+
+        self.storage_passwords.create("changeme", username, realm="myrealm")
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+
+        self.storage_passwords.delete(username, "myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 
 if __name__ == "__main__":

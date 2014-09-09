@@ -294,7 +294,6 @@ class TestSocket(BindingTestCase):
         self.context.host = socket.gethostbyname(self.context.host)
         self.assertTrue(self.context.connect())
 
-
 class TestUnicodeConnect(BindingTestCase):
     def test_unicode_connect(self):
         opts = self.opts.kwargs.copy()

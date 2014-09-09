@@ -1758,7 +1758,7 @@ class StoragePasswords(Collection):
             name = username
         else:
             # Encode each component separately
-            name = urllib.quote(realm) + ":" + urllib.quote(username)
+            name = UrlEncoded(realm) + ":" + UrlEncoded(username)
 
         # Append the : expected at the end of the name
         if name[-1] is not ":":

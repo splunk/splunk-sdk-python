@@ -1296,6 +1296,7 @@ class ReadOnlyCollection(Endpoint):
                 self._entity_path(state),
                 state=state)
             entities.append(entity)
+
         return entities
 
     def itemmeta(self):
@@ -1707,22 +1708,24 @@ class StoragePasswords(Collection):
             raise ValueError("StoragePasswords cannot have wildcards in namespace.")
         super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
 
-    def create(self, name, password):
-        """ Creates or edits a storage password by *name*.
+    def create(self, realm, username, password):
+        """ Creates a storage password.
 
-        :param name: A name of the form "username" or "realm:username".
+        # TODO: add some notes about processing that happens before hitting the REST API
+
+        :param realm: The credential realm.
+        :type name: ``string``
+        :param name: The username for the credentials.
+        :type name: ``string``
+        :param username: The password for the credentials - this is the only part of the credentials that will be stored securely.
         :type name: ``string``
 
         :return: The :class:`StoragePassword` object created.
-
         """
-        if not isinstance(name, basestring):
-            raise ValueError('Invalid name: %s' % repr(name))
+        if not isinstance(username, basestring):
+            raise ValueError("Invalid name: %s" % repr(username))
 
-        identity = name.split(':', 1)
-        realm, name = identity if len(identity) == 2 else ('', identity)
-
-        response = self.post(password=password, realm=realm, name=name)
+        response = self.post(password=password, realm=realm, name=username)
 
         if response.status != 201:
             raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
@@ -1732,6 +1735,26 @@ class StoragePasswords(Collection):
         storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
 
         return storage_password
+
+    """# TODO: docs
+        * realm defaults to empty string
+        * username is optional... if realm is the full name
+
+    """
+    def delete(self, realm, username=None):
+        # TODO: encode each component separately
+
+        if username is None:
+            # This case makes the username optional, so
+            # the full name can be passed in as realm
+            name = realm
+        else:
+            name = urllib.quote(realm) + ":" + urllib.quote(username)
+
+        # Append the : expected at the end of the name
+        if name[-1] is not ":":
+            name = name + ":"
+        return Collection.delete(self, name)
 
 
 class AlertGroup(Entity):

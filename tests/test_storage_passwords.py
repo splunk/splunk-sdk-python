@@ -50,13 +50,15 @@ class Tests(testlib.SDKTestCase):
         realm = testlib.tmpname()
         username = testlib.tmpname()
 
+        # Prepends one escaped slash
         p = self.storage_passwords.create("changeme", "\\" + username, realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, realm)
+        # Prepends one escaped slash
         self.assertEqual(p.username, "\\" + username)
         self.assertEqual(p.clear_password, "changeme")
+        # Checks for 2 escaped slashes (Splunk encodes the single slash)
         self.assertEqual(p.name, realm + ":\\\\" + username + ":")
-        print p.name
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))

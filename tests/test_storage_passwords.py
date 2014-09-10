@@ -49,7 +49,7 @@ class Tests(testlib.SDKTestCase):
         start_count = len(self.storage_passwords)
         username = testlib.tmpname()
 
-        p = self.storage_passwords.create("changeme", username, "")
+        p = self.storage_passwords.create("changeme", username)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, None)
         self.assertEqual(p.username, username)
@@ -106,7 +106,7 @@ class Tests(testlib.SDKTestCase):
         start_count = len(self.storage_passwords)
         username = testlib.tmpname()
 
-        p = self.storage_passwords.create("changeme", username, "")
+        p = self.storage_passwords.create("changeme", username)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
         for sp in self.storage_passwords:

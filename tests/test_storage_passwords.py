@@ -45,6 +45,22 @@ class Tests(testlib.SDKTestCase):
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
 
+    def test_create_with_slashes(self):
+        start_count = len(self.storage_passwords)
+        realm = testlib.tmpname()
+        username = testlib.tmpname()
+
+        p = self.storage_passwords.create("changeme", "\\" + username, realm)
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+        self.assertEqual(p.realm, realm)
+        self.assertEqual(p.username, "\\" + username)
+        self.assertEqual(p.clear_password, "changeme")
+        self.assertEqual(p.name, realm + ":\\\\" + username + ":")
+        print p.name
+
+        p.delete()
+        self.assertEqual(start_count, len(self.storage_passwords))
+
     def test_create_norealm(self):
         start_count = len(self.storage_passwords)
         username = testlib.tmpname()

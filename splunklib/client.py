@@ -517,25 +517,22 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
+        msg = { "value": "Restart requested by " + self.username + "via the Splunk SDK for Python"}
+        # This message will be deleted once the server actually restarts.
+        self.messages.create(name="restart_required", **msg)
         result = self.post("server/control/restart")
-        if timeout is None: return result
-        start = datetime.now()
-        diff = timedelta(seconds=10)
-        while datetime.now() - start < diff:
-            try:
-                self.login() # Has the server gone down yet?
-                sleep(0.3)
-            except Exception:
-                break # Server is down. Move on.
+        if timeout is None: 
+            return result
         start = datetime.now()
         diff = timedelta(seconds=timeout)
         while datetime.now() - start < diff:
             try:
-                self.login() # Awake yet?
-                return result
+                self.login()
+                if not self.restart_required:
+                    return result
             except Exception, e:
-                sleep(2)
-        raise Exception, "Operation timed out."
+                sleep(1)
+        raise Exception, "Operation time out."
 
     @property
     def restart_required(self):
@@ -2051,12 +2048,12 @@ class Inputs(Collection):
                 if len(entries) > 1:
                     raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
                 elif len(entries) == 0:
-                    raise KeyError((kind,key))
+                    raise KeyError((key, kind))
                 else:
                     return entries[0]
             except HTTPError as he:
                 if he.status == 404: # No entity matching kind and key
-                    raise KeyError((kind,key))
+                    raise KeyError((key, kind))
                 else:
                     raise
         else:

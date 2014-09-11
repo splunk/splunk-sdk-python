@@ -133,6 +133,28 @@ class ResultsTestCase(testlib.SDKTestCase):
 
         self.assert_parsed_results_equals(xml_text, expected_results)
 
+    def test_read_raw_field_with_segmentation(self):
+        xml_text = """
+<?xml version='1.0' encoding='UTF-8'?>
+<results preview='0'>
+<meta>
+<fieldOrder>
+<field>_raw</field>
+</fieldOrder>
+</meta>
+	<result offset='0'>
+		<field k='_raw'><v xml:space='preserve' trunc='0'>07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, <sg h="1">system total</sg>, <sg h="2">active_hist_searches=0</sg>, active_realtime_searches=0</v></field>
+	</result>
+</results>
+""".strip()
+        expected_results = [
+            {
+                '_raw': '07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0',
+            },
+        ]
+
+        self.assert_parsed_results_equals(xml_text, expected_results)
+
     def assert_parsed_results_equals(self, xml_text, expected_results):
         results_reader = results.ResultsReader(StringIO(xml_text))
         actual_results = [x for x in results_reader]

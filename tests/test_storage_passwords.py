@@ -214,10 +214,10 @@ class Tests(testlib.SDKTestCase):
         self.storage_passwords.delete(username, "myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 
-        p = self.storage_passwords.create(password="changeme", username=username + "/foo",
+        self.storage_passwords.create(password="changeme", username=username + "/foo",
                                       realm="/myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
-        print p.name
+
         self.storage_passwords.delete(username + "/foo", "/myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 

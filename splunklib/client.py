@@ -1812,7 +1812,7 @@ class StoragePasswords(Collection):
             name = username
         else:
             # Encode each component separately
-            name = UrlEncoded(realm) + ":" + UrlEncoded(username)
+            name = UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
 
         # Append the : expected at the end of the name
         if name[-1] is not ":":

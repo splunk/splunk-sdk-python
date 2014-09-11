@@ -53,12 +53,15 @@ class SchemeTest(unittest.TestCase):
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_number,
             required_on_edit=True,
-            required_on_create=True
+            required_on_create=True,
+            title="Argument for ``test_scheme``"
         )
         scheme.add_argument(arg2)
 
         constructed = scheme.to_xml()
+
         expected = ET.parse(data_open("data/scheme_without_defaults.xml")).getroot()
+        self.assertEqual("Argument for ``test_scheme``", arg2.title)
 
         self.assertTrue(xml_compare(expected, constructed))
 

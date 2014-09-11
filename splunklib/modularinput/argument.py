@@ -48,7 +48,7 @@ class Argument(object):
     data_type_string = "STRING"
 
     def __init__(self, name, description=None, validation=None,
-                 data_type=data_type_string, required_on_edit=False, required_on_create=False):
+                 data_type=data_type_string, required_on_edit=False, required_on_create=False, title=None):
         """
         :param name: ``string``, identifier for this argument in Splunk.
         :param description: ``string``, human-readable description of the argument.
@@ -58,6 +58,7 @@ class Argument(object):
         "data_type_boolean", "data_type_number", or "data_type_string".
         :param required_on_edit: ``Boolean``, whether this arg is required when editing an existing modular input of this kind.
         :param required_on_create: ``Boolean``, whether this arg is required when creating a modular input of this kind.
+        :param title: ``String``, a human-readable title for the argument.
         """
         self.name = name
         self.description = description
@@ -65,6 +66,7 @@ class Argument(object):
         self.data_type = data_type
         self.required_on_edit = required_on_edit
         self.required_on_create = required_on_create
+        self.title = title
 
     def add_to_document(self, parent):
         """Adds an ``Argument`` object to this ElementTree document.

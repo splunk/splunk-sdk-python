@@ -19,6 +19,7 @@ import logging
 
 import splunklib.client as client
 
+
 class Tests(testlib.SDKTestCase):
     def setUp(self):
         self.service = client.connect(**self.opts.kwargs)
@@ -47,18 +48,18 @@ class Tests(testlib.SDKTestCase):
 
     def test_create_with_slashes(self):
         start_count = len(self.storage_passwords)
-        realm = testlib.tmpname()
-        username = testlib.tmpname()
+        realm = "\\" + testlib.tmpname()
+        username = "\\" + testlib.tmpname()
 
         # Prepends one escaped slash
-        p = self.storage_passwords.create("changeme", "\\" + username, realm)
+        p = self.storage_passwords.create("changeme", username, realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, realm)
         # Prepends one escaped slash
-        self.assertEqual(p.username, "\\" + username)
+        self.assertEqual(p.username, username)
         self.assertEqual(p.clear_password, "changeme")
         # Checks for 2 escaped slashes (Splunk encodes the single slash)
-        self.assertEqual(p.name, realm + ":\\\\" + username + ":")
+        self.assertEqual(p.name, "\\" + realm + ":\\" + username + ":")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -82,12 +83,14 @@ class Tests(testlib.SDKTestCase):
         username = testlib.tmpname()
         realm = testlib.tmpname()
 
-        p = self.storage_passwords.create("changeme", username + ":end", ":start" + realm)
+        p = self.storage_passwords.create("changeme", username + ":end",
+                                          ":start" + realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, ":start" + realm)
         self.assertEqual(p.username, username + ":end")
         self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(p.name, "\\:start" + realm + ":" + username + "\\:end:")
+        self.assertEqual(p.name,
+                         "\\:start" + realm + ":" + username + "\\:end:")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -100,7 +103,8 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(p.realm, realm)
         self.assertEqual(p.username, user)
         self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(p.name, prefix + "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::")
+        self.assertEqual(p.name,
+                         prefix + "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -110,12 +114,15 @@ class Tests(testlib.SDKTestCase):
         username = testlib.tmpname()
         realm = testlib.tmpname()
 
-        p = self.storage_passwords.create("changeme", username + ":end!@#$%^&*()_+{}:|<>?", ":start::!@#$%^&*()_+{}:|<>?" + realm)
+        p = self.storage_passwords.create("changeme",
+                                          username + ":end!@#$%^&*()_+{}:|<>?",
+                                          ":start::!@#$%^&*()_+{}:|<>?" + realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, ":start::!@#$%^&*()_+{}:|<>?" + realm)
         self.assertEqual(p.username, username + ":end!@#$%^&*()_+{}:|<>?")
         self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(p.name, "\\:start\\:\\:!@#$%^&*()_+{}\\:|<>?" + realm + ":" + username + "\\:end!@#$%^&*()_+{}\\:|<>?:")
+        self.assertEqual(p.name,
+                         "\\:start\\:\\:!@#$%^&*()_+{}\\:|<>?" + realm + ":" + username + "\\:end!@#$%^&*()_+{}\\:|<>?:")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -165,7 +172,6 @@ class Tests(testlib.SDKTestCase):
         start_count = len(self.storage_passwords)
         username = testlib.tmpname()
 
-        # Testing named parameters
         p = self.storage_passwords.create("changeme", username, "myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, "myrealm")
@@ -182,11 +188,14 @@ class Tests(testlib.SDKTestCase):
         self.storage_passwords.delete("myrealm:" + username + ":")
         self.assertEqual(start_count, len(self.storage_passwords))
 
-        self.storage_passwords.create("changeme", username, realm="myrealm")
+        # Test named parameters
+        self.storage_passwords.create(password="changeme", username=username,
+                                      realm="myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
         self.storage_passwords.delete(username, "myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
+
 
 if __name__ == "__main__":
     try:

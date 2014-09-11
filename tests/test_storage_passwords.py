@@ -46,7 +46,7 @@ class Tests(testlib.SDKTestCase):
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
 
-    def test_create_with_slashes(self):
+    def test_create_with_backslashes(self):
         start_count = len(self.storage_passwords)
         realm = "\\" + testlib.tmpname()
         username = "\\" + testlib.tmpname()
@@ -60,6 +60,24 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(p.clear_password, "changeme")
         # Checks for 2 escaped slashes (Splunk encodes the single slash)
         self.assertEqual(p.name, "\\" + realm + ":\\" + username + ":")
+
+        p.delete()
+        self.assertEqual(start_count, len(self.storage_passwords))
+
+    def test_create_with_slashes(self):
+        start_count = len(self.storage_passwords)
+        realm = "/" + testlib.tmpname()
+        username = "/" + testlib.tmpname()
+
+        # Prepends one escaped slash
+        p = self.storage_passwords.create("changeme", username, realm)
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+        self.assertEqual(p.realm, realm)
+        # Prepends one escaped slash
+        self.assertEqual(p.username, username)
+        self.assertEqual(p.clear_password, "changeme")
+        # Checks for 2 escaped slashes (Splunk encodes the single slash)
+        self.assertEqual(p.name, realm + ":" + username + ":")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -194,6 +212,13 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
         self.storage_passwords.delete(username, "myrealm")
+        self.assertEqual(start_count, len(self.storage_passwords))
+
+        p = self.storage_passwords.create(password="changeme", username=username + "/foo",
+                                      realm="/myrealm")
+        self.assertEqual(start_count + 1, len(self.storage_passwords))
+        print p.name
+        self.storage_passwords.delete(username + "/foo", "/myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 
 

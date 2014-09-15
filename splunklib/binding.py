@@ -652,8 +652,7 @@ class Context(object):
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(path_segment, owner=owner,
-                                              app=app, sharing=sharing)
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)

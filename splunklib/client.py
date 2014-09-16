@@ -410,7 +410,7 @@ class Service(_BaseService):
         """
         return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
 
-    @xla
+    @property
     def indexes(self):
         """Returns the collection of indexes for this Splunk instance.
 

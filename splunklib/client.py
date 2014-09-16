@@ -410,7 +410,7 @@ class Service(_BaseService):
         """
         return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
 
-    @property
+    @xla
     def indexes(self):
         """Returns the collection of indexes for this Splunk instance.
 
@@ -473,9 +473,9 @@ class Service(_BaseService):
 
     @property
     def storage_passwords(self):
-        """Returns the collection of the modular input kinds on this Splunk instance.
+        """Returns the collection of the storage passwords on this Splunk instance.
 
-        :return: A :class:`ReadOnlyCollection` of :class:`ModularInputKind` entities.
+        :return: A :class:`ReadOnlyCollection` of :class:`StoragePasswords` entities.
         """
         return StoragePasswords(self)
 

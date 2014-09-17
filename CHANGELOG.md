@@ -5,22 +5,21 @@
 
 ### New features and APIs
 
-1.  Added the ability to interact with Storage Passwords. Both the `Entity`
-    and the `ReadOnlyCollection` functionalities have been added.
+1. Added support for Storage Passwords. 
 
-2. Added a `GenerateHelloCommand` script to the searchcommand_app.
+2. Added a script (GenerateHelloCommand) to the searchcommand_app to generate a custom search command.
 
 3. Added a human readable title parameter to `modularinput.argument`.
 
+4. Renamed the searchcommand `csv` module to `splunk_csv`.
+
 ### Bug fixes
 
-1. Now entities that contain slashes in their name can be created, deleted and accessed correctly.
+1. Now entities that contain slashes in their name can be created, accessed and deleted correctly.
 
-2. Fixed a perfomance issue with connecting to Splunk in Windows.
+2. Fixed a perfomance issue with connecting to Splunk on Windows.
 
 3. Improved the `service.restart()` function.
-
-4. Renamed the searchcommand `csv` module to `splunk_csv`.
 
 ## Version 1.2.3
 

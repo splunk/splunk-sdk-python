@@ -85,6 +85,10 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     :class:`~splunklib.client.Settings` class
 
+    :class:`~splunklib.client.StoragePassword` class
+
+    :class:`~splunklib.client.StoragePasswords` class
+
     :class:`~splunklib.client.User` class
 
     :class:`~splunklib.client.Users` class

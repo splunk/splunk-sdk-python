@@ -39,7 +39,11 @@ from StringIO import StringIO
 
 from contextlib import contextmanager
 
-from xml.etree.ElementTree import XML, ParseError
+from xml.etree.ElementTree import XML
+try:
+    from xml.etree.ElementTree import ParseError
+except ImportError, e:
+    from xml.parsers.expat import ExpatError as ParseError
 
 from data import record
 

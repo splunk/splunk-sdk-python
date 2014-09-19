@@ -1,4 +1,4 @@
-splunk-sdk-python search_commands_app example
+splunk-sdk-python searchcommands_app example
 =============================================
 
 This app provides several examples of custom search commands which illustrate each of the base types:

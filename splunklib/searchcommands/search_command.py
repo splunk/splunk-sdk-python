@@ -57,7 +57,7 @@ class SearchCommand(object):
                 u'If you are testing outside of Splunk, consider running under control of the Splunk CLI:\n'
                 u'    splunk cmd %s\n'
                 u'If you are running inside of Splunk, SPLUNK_HOME should be defined. Consider troubleshooting your '
-                u'installation.', self)
+                u'installation.')
 
         # Variables backing option/property values
 

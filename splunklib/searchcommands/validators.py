@@ -22,7 +22,6 @@ import os
 import re
 import sys
 
-
 class Validator(object):
     """ Base class for validators that check and format search command options.
 
@@ -63,7 +62,7 @@ class Boolean(Validator):
         return value
 
     def format(self, value):
-        return 't' if value else 'f'
+        return self.__call__(value)
 
 
 class Fieldname(Validator):
@@ -123,12 +122,12 @@ class Integer(Validator):
         elif minimum is not None:
             def check_range(value):
                 if value < minimum:
-                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
+                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
                 return
         elif maximum is not None:
             def check_range(value):
                 if value > maximum:
-                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
+                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
                 return
         else:
             def check_range(value):
@@ -144,7 +143,7 @@ class Integer(Validator):
         return value
 
     def format(self, value):
-        return str(value)
+        return int(value)
 
 
 class Duration(Validator):
@@ -226,6 +225,9 @@ class OptionName(Validator):
             raise ValueError('Illegal characters in option name: %s' % value)
         return value
 
+    def format(self, value):
+        return self.__call__(value)
+
 
 class RegularExpression(Validator):
     """ Validates regular expression option values.
@@ -256,3 +258,6 @@ class Set(Validator):
             if value not in self.membership:
                 raise ValueError('Unrecognized value: %s' % value)
         return value
+
+    def format(self, value):
+        return self.__call__(value)

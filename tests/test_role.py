@@ -91,7 +91,7 @@ class RoleTestCase(testlib.SDKTestCase):
         self.role.revoke('change_own_password')
 
 
-def test_update(self):
+    def test_update(self):
         kwargs = {}
         if 'user' in self.role['imported_roles']:
             kwargs['imported_roles'] = ''

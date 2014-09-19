@@ -107,7 +107,7 @@ class TestDecorators(unittest.TestCase):
             # TODO: capture this output and verify it
             command.logger.warning('Test that output is directed to stderr without formatting')
 
-            default_logging_configuration = os.path.join(app_root, 'default', 'logging.conf')
+            default_logging_configuration = os.path.join(directory, app_root, 'default', 'logging.conf')
 
             # A search command loads {local,default}/logging.conf when it is
             # available

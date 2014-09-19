@@ -17,7 +17,7 @@ from __future__ import absolute_import
 from . search_command_internals import ConfigurationSettingsType
 from . streaming_command import StreamingCommand
 from . search_command import SearchCommand
-from . import csv
+from . import splunk_csv
 
 
 class ReportingCommand(SearchCommand):
@@ -88,7 +88,7 @@ class ReportingCommand(SearchCommand):
         if input_file is None:
             reader = None
         else:
-            reader = csv.DictReader(input_file)
+            reader = splunk_csv.DictReader(input_file)
         return ConfigurationSettings, operation, argv, reader
 
     #endregion

@@ -102,6 +102,7 @@ PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
 PATH_RECEIVERS_STREAM = "receivers/stream"
 PATH_RECEIVERS_SIMPLE = "receivers/simple"
+PATH_STORAGE_PASSWORDS = "storage/passwords"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"
 XNAME_ENTRY = XNAMEF_ATOM % "entry"
@@ -109,36 +110,44 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+
 class IllegalOperationException(Exception):
     """Thrown when an operation is not possible on the Splunk instance that a
     :class:`Service` object is connected to."""
     pass
+
 
 class IncomparableException(Exception):
     """Thrown when trying to compare objects (using ``==``, ``<``, ``>``, and
     so on) of a type that doesn't support it."""
     pass
 
+
 class AmbiguousReferenceException(ValueError):
     """Thrown when the name used to fetch an entity matches more than one entity."""
     pass
+
 
 class InvalidNameException(Exception):
     """Thrown when the specified name contains characters that are not allowed
     in Splunk entity names."""
     pass
 
+
 class NoSuchCapability(Exception):
     """Thrown when the capability that has been referred to doesn't exist."""
     pass
+
 
 class OperationError(Exception):
     """Raised for a failed operation, such as a time out."""
     pass
 
+
 class NotSupportedError(Exception):
     """Raised for operations that are not supported on a given object."""
     pass
+
 
 def _trailing(template, *targets):
     """Substring of *template* following all *targets*.
@@ -168,6 +177,7 @@ def _trailing(template, *targets):
         s = s[n + len(t):]
     return s
 
+
 # Filter the given state content record according to the given arg list.
 def _filter_content(content, *args):
     if len(args) > 0:
@@ -180,9 +190,11 @@ def _path(base, name):
     if not base.endswith('/'): base = base + '/'
     return base + name
 
+
 # Load an atom record from the body of the given response
 def _load_atom(response, match=None):
     return data.load(response.body.read(), match)
+
 
 # Load an array of atom entries from the body of the given response
 def _load_atom_entries(response):
@@ -203,9 +215,11 @@ def _load_atom_entries(response):
         if entries is None: return None
         return entries if isinstance(entries, list) else [entries]
 
+
 # Load the sid from the body of the given response
 def _load_sid(response):
     return _load_atom(response).response.sid
+
 
 # Parse the given atom entry record into a generic entity state record
 def _parse_atom_entry(entry):
@@ -233,6 +247,7 @@ def _parse_atom_entry(entry):
         'content': content
     })
 
+
 # Parse the metadata fields out of the given atom entry content record
 def _parse_atom_metadata(content):
     # Hoist access metadata
@@ -246,6 +261,7 @@ def _parse_atom_metadata(content):
         'wildcard': attributes.get('wildcardFields', [])})
 
     return record({'access': access, 'fields': fields})
+
 
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
@@ -455,6 +471,14 @@ class Service(_BaseService):
         else:
             raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
 
+    @property
+    def storage_passwords(self):
+        """Returns the collection of the storage passwords on this Splunk instance.
+
+        :return: A :class:`ReadOnlyCollection` of :class:`StoragePasswords` entities.
+        """
+        return StoragePasswords(self)
+
     # kwargs: enable_lookups, reload_macros, parse_only, output_mode
     def parse(self, query, **kwargs):
         """Parses a search query and returns a semantic map of the search.
@@ -493,25 +517,22 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
+        msg = { "value": "Restart requested by " + self.username + "via the Splunk SDK for Python"}
+        # This message will be deleted once the server actually restarts.
+        self.messages.create(name="restart_required", **msg)
         result = self.post("server/control/restart")
-        if timeout is None: return result
-        start = datetime.now()
-        diff = timedelta(seconds=10)
-        while datetime.now() - start < diff:
-            try:
-                self.login() # Has the server gone down yet?
-                sleep(0.3)
-            except Exception:
-                break # Server is down. Move on.
+        if timeout is None: 
+            return result
         start = datetime.now()
         diff = timedelta(seconds=timeout)
         while datetime.now() - start < diff:
             try:
-                self.login() # Awake yet?
-                return result
+                self.login()
+                if not self.restart_required:
+                    return result
             except Exception, e:
-                sleep(2)
-        raise Exception, "Operation timed out."
+                sleep(1)
+        raise Exception, "Operation time out."
 
     @property
     def restart_required(self):
@@ -739,11 +760,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
-            path = self.service._abspath(self.path + path_segment, owner=owner,
-                                         app=app, sharing=sharing)
-        return self.service.post(path,
-                                 owner=owner, app=app, sharing=sharing,
-                                 **query)
+            path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
+        return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 
 # kwargs: path, app, owner, sharing, state
@@ -822,7 +840,8 @@ class Entity(Endpoint):
         Endpoint.__init__(self, service, path)
         self._state = None
         if not kwargs.get('skip_refresh', False):
-            self.refresh(kwargs.get('state', None)) # "Prefresh"
+            self.refresh(kwargs.get('state', None))  # "Prefresh"
+        return
 
     def __contains__(self, item):
         try:
@@ -1157,10 +1176,11 @@ class ReadOnlyCollection(Endpoint):
                 # x[a,b] is translated to x.__getitem__( (a,b) ), so we
                 # have to extract values out.
                 key, ns = key
+                key = UrlEncoded(key, encode_slash=True)
                 response = self.get(key, owner=ns.owner, app=ns.app)
             else:
+                key = UrlEncoded(key, encode_slash=True)
                 response = self.get(key)
-
             entries = self._load_list(response)
             if len(entries) > 1:
                 raise AmbiguousReferenceException("Found multiple entities named '%s'; please specify a namespace." % key)
@@ -1194,6 +1214,7 @@ class ReadOnlyCollection(Endpoint):
             for entity in saved_searches:
                 print "Saved search named %s" % entity.name
         """
+
         for item in self.iter(**kwargs):
             yield item
 
@@ -1274,6 +1295,7 @@ class ReadOnlyCollection(Endpoint):
                 self._entity_path(state),
                 state=state)
             entities.append(entity)
+
         return entities
 
     def itemmeta(self):
@@ -1400,6 +1422,8 @@ class ReadOnlyCollection(Endpoint):
         return list(self.iter(count=count, **kwargs))
 
 
+
+
 class Collection(ReadOnlyCollection):
     """A collection of entities.
 
@@ -1445,6 +1469,7 @@ class Collection(ReadOnlyCollection):
     :class:`Collection` does no caching. Each call makes at least one
     round trip to the server to fetch data.
     """
+
     def create(self, name, **params):
         """Creates a new entity in this collection.
 
@@ -1473,7 +1498,7 @@ class Collection(ReadOnlyCollection):
             new_app = applications.create("my_fake_app")
         """
         if not isinstance(name, basestring):
-           raise InvalidNameException("%s is not a valid name for an entity." % name)
+            raise InvalidNameException("%s is not a valid name for an entity." % name)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1519,6 +1544,7 @@ class Collection(ReadOnlyCollection):
             saved_searches.delete('my_saved_search')
             assert 'my_saved_search' not in saved_searches
         """
+        name = UrlEncoded(name, encode_slash=True)
         if 'namespace' in params:
             namespace = params.pop('namespace')
             params['owner'] = namespace.owner
@@ -1535,6 +1561,56 @@ class Collection(ReadOnlyCollection):
             else:
                 raise
         return self
+
+    def get(self, name="", owner=None, app=None, sharing=None, **query):
+        """Performs a GET request to the server on the collection.
+
+        If *owner*, *app*, and *sharing* are omitted, this method takes a
+        default namespace from the :class:`Service` object for this :class:`Endpoint`.
+        All other keyword arguments are included in the URL as query parameters.
+
+        :raises AuthenticationError: Raised when the ``Service`` is not logged in.
+        :raises HTTPError: Raised when an error in the request occurs.
+        :param path_segment: A path segment relative to this endpoint.
+        :type path_segment: ``string``
+        :param owner: The owner context of the namespace (optional).
+        :type owner: ``string``
+        :param app: The app context of the namespace (optional).
+        :type app: ``string``
+        :param sharing: The sharing mode for the namespace (optional).
+        :type sharing: "global", "system", "app", or "user"
+        :param query: All other keyword arguments, which are used as query
+            parameters.
+        :type query: ``string``
+        :return: The response from the server.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
+                and ``status``
+
+        Example:
+        
+        import splunklib.client
+            s = client.service(...)
+            saved_searches = s.saved_searches
+            saved_searches.get("my/saved/search") == \\
+                {'body': ...a response reader object...,
+                 'headers': [('content-length', '26208'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:30:35 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'OK',
+                 'status': 200}
+            saved_searches.get('nonexistant/search') # raises HTTPError
+            s.logout()
+            saved_searches.get() # raises AuthenticationError
+
+        """
+        name = UrlEncoded(name, encode_slash=True)
+        return super(Collection, self).get(name, owner, app, sharing, **query)
+
+    
 
 
 class ConfigurationFile(Collection):
@@ -1646,6 +1722,102 @@ class Stanza(Entity):
         # the stanza keys.
         return len([x for x in self._state.content.keys()
                     if not x.startswith('eai') and x != 'disabled'])
+
+
+class StoragePassword(Entity):
+    """This class contains a storage password.
+    """
+    def __init__(self, service, path, **kwargs):
+        state = kwargs.get('state', None)
+        kwargs['skip_refresh'] = kwargs.get('skip_refresh', state is not None)
+        super(StoragePassword, self).__init__(service, path, **kwargs)
+        self._state = state
+
+    @property
+    def clear_password(self):
+        return self.content.get('clear_password')
+
+    @property
+    def encrypted_password(self):
+        return self.content.get('encr_password')
+
+    @property
+    def realm(self):
+        return self.content.get('realm')
+
+    @property
+    def username(self):
+        return self.content.get('username')
+
+
+class StoragePasswords(Collection):
+    """This class provides access to the storage passwords from this Splunk
+    instance. Retrieve this collection using :meth:`Service.storage_passwords`.
+    """
+    def __init__(self, service):
+        if service.namespace.owner == '-' or service.namespace.app == '-':
+            raise ValueError("StoragePasswords cannot have wildcards in namespace.")
+        super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
+
+    def create(self, password, username, realm=None):
+        """ Creates a storage password.
+
+        A `StoragePassword` can be identified by <username>, or by <realm>:<username> if the
+        optional realm parameter is also provided.
+
+        :param password: The password for the credentials - this is the only part of the credentials that will be stored securely.
+        :type name: ``string``
+        :param username: The username for the credentials.
+        :type name: ``string``
+        :param realm: The credential realm. (optional)
+        :type name: ``string``
+
+        :return: The :class:`StoragePassword` object created.
+        """
+        if not isinstance(username, basestring):
+            raise ValueError("Invalid name: %s" % repr(username))
+
+        if realm is None:
+            response = self.post(password=password, name=username)
+        else:
+            response = self.post(password=password, realm=realm, name=username)
+
+        if response.status != 201:
+            raise ValueError("Unexpected status code %s returned from creating a stanza" % response.status)
+
+        entries = _load_atom_entries(response)
+        state = _parse_atom_entry(entries[0])
+        storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
+
+        return storage_password
+    
+    def delete(self, username, realm=None):
+        """Delete a storage password by username and/or realm.
+
+        The identifier can be passed in through the username parameter as
+        <username> or <realm>:<username>, but the preferred way is by
+        passing in the username and realm parameters.
+
+        :param username: The username for the credentials, or <realm>:<username> if the realm parameter is omitted.
+        :type name: ``string``
+        :param realm: The credential realm. (optional)
+        :type name: ``string``
+        :return: The `StoragePassword` collection.
+        :rtype: ``self``
+        """
+        if realm is None:
+            # This case makes the username optional, so
+            # the full name can be passed in as realm.
+            # Assume it's already encoded.
+            name = username
+        else:
+            # Encode each component separately
+            name = UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
+
+        # Append the : expected at the end of the name
+        if name[-1] is not ":":
+            name = name + ":"
+        return Collection.delete(self, name)
 
 
 class AlertGroup(Entity):
@@ -1956,27 +2128,32 @@ class Inputs(Collection):
         Collection.__init__(self, service, PATH_INPUTS, item=Input)
 
     def __getitem__(self, key):
+        # The key needed to retrieve the input needs it's parenthesis to be URL encoded
+        # based on the REST API for input
+        # <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTinput>
         if isinstance(key, tuple) and len(key) == 2:
             # Fetch a single kind
             key, kind = key
+            key = UrlEncoded(key, encode_slash=True)
             try:
                 response = self.get(self.kindpath(kind) + "/" + key)
                 entries = self._load_list(response)
                 if len(entries) > 1:
                     raise AmbiguousReferenceException("Found multiple inputs of kind %s named %s." % (kind, key))
                 elif len(entries) == 0:
-                    raise KeyError((kind,key))
+                    raise KeyError((key, kind))
                 else:
                     return entries[0]
             except HTTPError as he:
                 if he.status == 404: # No entity matching kind and key
-                    raise KeyError((kind,key))
+                    raise KeyError((key, kind))
                 else:
                     raise
         else:
             # Iterate over all the kinds looking for matches.
             kind = None
             candidate = None
+            key = UrlEncoded(key, encode_slash=True)
             for kind in self.kinds:
                 try:
                     response = self.get(kind + "/" + key)
@@ -1995,7 +2172,7 @@ class Inputs(Collection):
                     else:
                         raise
             if candidate is None:
-                raise KeyError(key) # Never found a match
+                raise KeyError(key) # Never found a match.
             else:
                 return candidate
 
@@ -2068,11 +2245,14 @@ class Inputs(Collection):
         # If we created an input with restrictToHost set, then
         # its path will be <restrictToHost>:<name>, not just <name>,
         # and we have to adjust accordingly.
+
+        # Url encodes the name of the entity.
+        name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,
             '%s:%s' % (kwargs['restrictToHost'], name) \
                 if kwargs.has_key('restrictToHost') else name
-        )
+                )
         return Input(self.service, path, kind)
 
     def delete(self, name, kind=None):
@@ -2149,7 +2329,7 @@ class Inputs(Collection):
     def _get_kind_list(self, subpath=None):
         if subpath is None:
             subpath = []
-        
+
         kinds = []
         response = self.get('/'.join(subpath))
         content = _load_atom_entries(response)
@@ -2207,12 +2387,12 @@ class Inputs(Collection):
         :rtype: ``string``
         """
         if kind in self.kinds:
-            return kind
+            return UrlEncoded(kind, skip_encode=True)
         # Special cases
         elif kind == 'tcp':
-            return 'tcp/raw'
+            return UrlEncoded('tcp/raw', skip_encode=True)
         elif kind == 'splunktcp':
-            return 'tcp/cooked'
+            return UrlEncoded('tcp/cooked', skip_encode=True)
         else:
             raise ValueError("No such kind on server: %s" % kind)
 
@@ -2279,6 +2459,7 @@ class Inputs(Collection):
             path = self.kindpath(kind)
             logging.debug("Path for inputs: %s", path)
             try:
+                path = UrlEncoded(path, skip_encode=True)
                 response = self.get(path, **kwargs)
             except HTTPError, he:
                 if he.status == 404: # No inputs of this kind
@@ -2303,6 +2484,7 @@ class Inputs(Collection):
         for kind in kinds:
             response = None
             try:
+                kind = UrlEncoded(kind, skip_encode=True)
                 response = self.get(self.kindpath(kind), search=search)
             except HTTPError as e:
                 if e.status == 404:

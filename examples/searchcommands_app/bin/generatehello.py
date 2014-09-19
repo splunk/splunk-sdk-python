@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -12,8 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Python library for Splunk."""
-
-__version_info__ = (1, 3, 0)
-__version__ = ".".join(map(str, __version_info__))
-
+import sys, time
+from splunklib.searchcommands import \
+    dispatch, GeneratingCommand, Configuration, Option, validators
+ 
+@Configuration()
+class GenerateHelloCommand(GeneratingCommand):
+    count = Option(require=True, validate=validators.Integer())
+ 
+    def generate(self):
+        for i in range(1, self.count + 1):
+            text = 'Hello World %d' % i
+            yield {'_time': time.time(), 'event_no': i, '_raw': text } 
+ 
+dispatch(GenerateHelloCommand, sys.argv, sys.stdin, sys.stdout, __name__)

@@ -246,7 +246,7 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    text = elem.text if elem.text is not None else ""
+                    text = "".join(elem.itertext())
                     values.append(text.encode('utf8'))
                     elem.clear()
 

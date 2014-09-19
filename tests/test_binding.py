@@ -23,6 +23,7 @@ from xml.etree.ElementTree import XML
 import logging
 import testlib
 import unittest
+import socket
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
@@ -287,6 +288,11 @@ class TestSocket(BindingTestCase):
         socket.write(u"X-Splunk-Input-Mode: Streaming\r\n")
         socket.write("\r\n")
         socket.close()
+
+    def test_socket_gethostbyname(self):
+        self.assertTrue(self.context.connect())
+        self.context.host = socket.gethostbyname(self.context.host)
+        self.assertTrue(self.context.connect())
 
 class TestUnicodeConnect(BindingTestCase):
     def test_unicode_connect(self):
@@ -601,7 +607,7 @@ class TestTokenAuthentication(BindingTestCase):
         socket.close()
 
 
-def test_connect_with_preexisting_token_sans_user_and_pass(self):
+    def test_connect_with_preexisting_token_sans_user_and_pass(self):
         token = self.context.token
         opts = self.opts.kwargs.copy()
         del opts['username']

@@ -222,8 +222,9 @@ class Option(property):
             return str(self)
 
         def __str__(self):
+            value = self.validator.format(self.value) if self.validator is not None else str(self.value)
             encoder = Option.Encoder(self)
-            text = '='.join([self.name, encoder.encode(self.value)])
+            text = '='.join([self.name, encoder.encode(value)])
             return text
 
         #region Properties

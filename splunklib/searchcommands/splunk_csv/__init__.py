@@ -22,6 +22,6 @@ import csv
 
 # Sets the maximum allowable CSV field size.
 #
-# The default of the csv module is 128KB; upping to 10MB. See SPL-12117 for
+# The default of the splunk_csv module is 128KB; upping to 10MB. See SPL-12117 for
 # the background on issues surrounding field sizes.
 csv.field_size_limit(10485760)

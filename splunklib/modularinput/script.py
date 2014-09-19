@@ -98,7 +98,8 @@ class Script(object):
 
                     return 1
             else:
-                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(args)
+                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
+                    args)
                 event_writer._err.write(err_string)
 
         except Exception as e:
@@ -129,13 +130,14 @@ class Script(object):
         splunkd_uri = self._input_definition.metadata["server_uri"]
         session_key = self._input_definition.metadata["session_key"]
 
-        scheme, netloc, _, _, _ = urlsplit(splunkd_uri, allow_fragments=False)
-
-        splunkd_host, splunkd_port = netloc.split(':')
+        splunkd = urlsplit(splunkd_uri, allow_fragments=False)
 
         self._service = Service(
-            scheme=scheme, host=splunkd_host, port=splunkd_port,
-            token=session_key)
+            scheme=splunkd.scheme,
+            host=splunkd.hostname,
+            port=splunkd.port,
+            token=session_key,
+        )
 
         return self._service
 

@@ -1,6 +1,26 @@
 # Splunk SDK for Python Changelog
 
 
+## Version 1.3.0
+
+### New features and APIs
+
+* Added support for Storage Passwords. 
+
+* Added a script (GenerateHelloCommand) to the searchcommand_app to generate a custom search command.
+
+* Added a human readable title parameter to `modularinput.argument`.
+
+* Renamed the searchcommand `csv` module to `splunk_csv`.
+
+### Bug fixes
+
+* Now entities that contain slashes in their name can be created, accessed and deleted correctly.
+
+* Fixed a perfomance issue with connecting to Splunk on Windows.
+
+* Improved the `service.restart()` function.
+
 ## Version 1.2.3
 
 ### New features and APIs

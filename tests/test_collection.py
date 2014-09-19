@@ -244,6 +244,19 @@ class CollectionTestCase(testlib.SDKTestCase):
         ns = client.namespace(owner='nobody', app='search')
         result = self.service.saved_searches['Top five sourcetypes', ns]
 
+    def test_collection_search_get(self):
+        for search in self.service.saved_searches:
+            self.assertEqual(self.service.saved_searches[search.name].path, search.path)
+            self.assertEqual(200, self.service.saved_searches.get(search.name).status)
+
+    def test_collection_inputs_getitem(self):
+        valid_kinds = self.service.inputs._get_kind_list()
+        valid_kinds.remove("script")
+        for inp in self.service.inputs.list(*valid_kinds):
+            self.assertTrue(self.service.inputs[inp.name])
+
+
+
 if __name__ == "__main__":
     try:
         import unittest2 as unittest

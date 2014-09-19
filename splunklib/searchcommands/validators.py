@@ -1,3 +1,5 @@
+# coding=utf-8
+#
 # Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -12,6 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
+
+from cStringIO import StringIO
+import csv
 import os
 import re
 import sys
@@ -56,6 +62,9 @@ class Boolean(Validator):
             value = Boolean.truth_values[value]
         return value
 
+    def format(self, value):
+        return 't' if value else 'f'
+
 
 class Fieldname(Validator):
     """ Validates field name option values.
@@ -67,6 +76,9 @@ class Fieldname(Validator):
         value = str(value)
         if Fieldname.pattern.match(value) is None:
             raise ValueError('Illegal characters in fieldname: %s' % value)
+        return value
+
+    def format(self, value):
         return value
 
 
@@ -95,25 +107,44 @@ class File(Validator):
         return value.name
 
     _var_run_splunk = os.path.join(
-        os.environ['SPLUNK_HOME'], "var", "run", "splunk")
+        os.environ['SPLUNK_HOME'] if 'SPLUNK_HOME' in os.environ else os.getcwd(), 'var', 'run', 'splunk')
 
 
 class Integer(Validator):
     """ Validates integer option values.
 
     """
-    def __init__(self, minimum=-sys.maxint-1, maximum=sys.maxint):
-        self.minimum = minimum
-        self.maximum = maximum
+    def __init__(self, minimum=None, maximum=None):
+        if minimum is not None and maximum is not None:
+            def check_range(value):
+                if not (minimum <= value <= maximum):
+                    raise ValueError('Expected integer in the range [%d,%d]: %d' % (minimum, maximum, value))
+                return
+        elif minimum is not None:
+            def check_range(value):
+                if value < minimum:
+                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
+                return
+        elif maximum is not None:
+            def check_range(value):
+                if value > maximum:
+                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
+                return
+        else:
+            def check_range(value):
+                return
+
+        self.check_range = check_range
+        return
 
     def __call__(self, value):
         if value is not None:
-            value = int(value)
-            if not (self.minimum <= value <= self.maximum):
-                raise ValueError(
-                    'Expected integer in the range [%d,%d]: %d'
-                    % (self.minimum, self.maximum, value))
+            value = long(value)
+            self.check_range(value)
         return value
+
+    def format(self, value):
+        return str(value)
 
 
 class Duration(Validator):
@@ -136,7 +167,7 @@ class Duration(Validator):
             if len(p) == 3:
                 result = 3600 * _unsigned(p[0]) + 60 * _60(p[1]) + _60(p[2])
         except ValueError:
-            raise ValueError("Invalid duration value: %s", value)
+            raise ValueError('Invalid duration value: %s', value)
 
         return result
 
@@ -152,6 +183,35 @@ class Duration(Validator):
 
     _60 = Integer(0, 59)
     _unsigned = Integer(0)
+
+
+class List(Validator):
+    """ Validates a list of strings
+
+    """
+    class Dialect(csv.Dialect):
+        """ Describes the properties of list option values. """
+        delimiter = ','
+        quotechar = '"'
+        doublequote = True
+        lineterminator = '\n'
+        skipinitialspace = True
+        quoting = csv.QUOTE_MINIMAL
+
+    def __call__(self, value):
+        if not (value is None or isinstance(value, list)):
+            try:
+                value = csv.reader([value], List.Dialect).next()
+            except BaseException as e:
+                raise ValueError(e)
+        return value
+
+    def format(self, value):
+        output = StringIO()
+        writer = csv.writer(output, List.Dialect)
+        writer.writerow(value)
+        value = output.getvalue()
+        return value[:-1]
 
 
 class OptionName(Validator):

@@ -115,12 +115,14 @@ class UrlEncoded(str):
         UrlEncoded('ab c') + 'de f' == UrlEncoded('ab cde f')
         'ab c' + UrlEncoded('de f') == UrlEncoded('ab cde f')
     """
-    def __new__(self, val='', skip_encode=False):
+    def __new__(self, val='', skip_encode=False, encode_slash=False):
         if isinstance(val, UrlEncoded):
             # Don't urllib.quote something already URL encoded.
             return val
         elif skip_encode:
             return str.__new__(self, val)
+        elif encode_slash:
+            return str.__new__(self, urllib.quote_plus(val))
         else:
             # When subclassing str, just call str's __new__ method
             # with your class and the value you want to have in the
@@ -464,7 +466,7 @@ class Context(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.scheme == "https":
             sock = ssl.wrap_socket(sock)
-        sock.connect((self.host, self.port))
+        sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
 
     @_authentication
@@ -650,8 +652,7 @@ class Context(object):
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(path_segment, owner=owner,
-                                              app=app, sharing=sharing)
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)

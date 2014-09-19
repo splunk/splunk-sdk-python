@@ -81,22 +81,26 @@ class DictWriter(csv.DictWriter, object):
 
     def _writeheader(self, record):
         if self.fieldnames is None:
-            self.fieldnames = sorted(record.keys())
+            self.fieldnames = record.keys()
         self.writeheader()
 
     def _writerow(self, record):
         row = {}
 
         for fieldname in self.fieldnames:
-            value = record[fieldname]
-            if isinstance(value, list):
-                value, multi_value = self._encode_list(value)
-                row[fieldname] = value
-                row['__mv_' + fieldname] = multi_value
-            elif isinstance(value, bool):
-                row[fieldname] = int(value)
-            else:
-                row[fieldname] = value
+            try:
+                value = record[fieldname]
+                if isinstance(value, list):
+                    value, multi_value = self._encode_list(value)
+                    row[fieldname] = value
+                    if multi_value is not None:
+                        row['__mv_' + fieldname] = multi_value
+                elif isinstance(value, bool):
+                    row[fieldname] = int(value)
+                else:
+                    row[fieldname] = value
+            except KeyError:
+                row[fieldname] = ''
 
         save_fieldnames = self.fieldnames
         self.fieldnames = self._fieldnames

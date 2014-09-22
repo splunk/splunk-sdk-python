@@ -422,6 +422,13 @@ class TestAbspath(BindingTestCase):
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo")
 
+    def test_context_with_owner_as_email(self):
+        context = binding.connect(owner="me@me.com", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me%40me.com/system/foo")
+        self.assertEqual(path, UrlEncoded("/servicesNS/me@me.com/system/foo"))
+
 # An urllib2 based HTTP request handler, used to test the binding layers
 # support for pluggable request handlers.
 def urllib2_handler(url, message, **kwargs):
@@ -494,6 +501,9 @@ class TestNamespace(unittest.TestCase):
 
             ({ 'owner': "Bob", 'app': "search" },
              { 'sharing': None, 'owner': "Bob", 'app': "search" }),
+
+            ({ 'sharing': "user", 'owner': "Bob@bob.com" },
+             { 'sharing': "user", 'owner': "Bob@bob.com", 'app': None }),
 
             ({ 'sharing': "user" },
              { 'sharing': "user", 'owner': None, 'app': None }),

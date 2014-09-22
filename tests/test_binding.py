@@ -190,7 +190,7 @@ class TestUserManipulation(BindingTestCase):
     def setUp(self):
         BindingTestCase.setUp(self)
         self.username = testlib.tmpname()
-        self.password = "changeme"
+        self.password = "changeme!"
         self.roles = "power"
 
         # Delete user if it exists already

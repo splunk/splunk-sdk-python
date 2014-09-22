@@ -30,7 +30,7 @@ class UserTestCase(testlib.SDKTestCase):
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
             self.username,
-            password='changeme',
+            password='changeme!',
             roles=['power', 'user'])
 
     def tearDown(self):
@@ -73,7 +73,7 @@ class UserTestCase(testlib.SDKTestCase):
     def test_username_in_create_is_case_insensitive(self):
         name = testlib.tmpname().lower()
         users = self.service.users
-        user = users.create(name.upper(), password="changeme", roles="power")
+        user = users.create(name.upper(), password="changeme!", roles="power")
         self.assertTrue(user.name == name)
         self.assertTrue(name in users)
 

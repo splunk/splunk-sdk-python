@@ -62,7 +62,7 @@ class Boolean(Validator):
         return value
 
     def format(self, value):
-        return self.__call__(value)
+        return 't' if value else 'f'
 
 
 class Fieldname(Validator):
@@ -143,7 +143,7 @@ class Integer(Validator):
         return value
 
     def format(self, value):
-        return int(value)
+        return str(int(value))
 
 
 class Duration(Validator):

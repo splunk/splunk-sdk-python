@@ -263,6 +263,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             StubbedGeneratingCommand(), 'test_generating_command_configuration')
 
     def test_generating_command_in_isolation(self):
+        # TODO: need to make sure all csv files exist at some point before running tests
+        # TODO: this one test passes when using shell=True to Popen in _start_process
         self._run(
             'simulate', [
                 'csv=population.csv',
@@ -286,7 +288,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         expected, actual = self._getOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
             'test_generating_command_on_server')
-        # self.assertMultilLineEqual(expected, actual)
+        self.assertMultiLineEqual(expected, actual)
         return
 
     def test_reporting_command_configuration(self):
@@ -353,6 +355,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_streaming_command_on_server(self):
+        #TODO: add integration test to updload tweets.csv relative to $SPLUNK_HOME/var/run
+        #http://docs.splunk.com/Documentation/Splunk/6.1.3/SearchReference/Inputcsv
+
         expected, actual = self._getOneshotResults(
             '| inputcsv tweets.csv | countmatches fieldname=word_count pattern="\\\\w+" text',
             'test_streaming_command_on_server')
@@ -407,7 +412,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         actual = u'\n'.join(actual)
         with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected_file:
             expected = u''.join(expected_file.readlines())
-        return actual, expected
+        return expected, actual
 
     def _run(self, command, args, **kwargs):
         for operation in ['__GETINFO__', '__EXECUTE__']:
@@ -435,6 +440,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     @classmethod
     def _start_process(cls, args, stdin, stdout, stderr):
+        # TODO: make doc note about this?
+        # TODO: make a shell script to run some of these seperately, check results there
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)

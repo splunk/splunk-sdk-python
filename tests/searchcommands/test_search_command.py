@@ -61,7 +61,7 @@ class TestSearchCommand(unittest.TestCase):
             '\"\"' + \
             os.path.abspath(os.path.join(os.path.dirname(__file__), "../../splunklib/searchcommands/search_command.py")) + \
             '\"\"' \
-            ', line 332 : ' \
+            ', line 331 : ' \
             'Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza:\n[search]\nfilename = foo.py\nsupports_getinfo = true\nsupports_rawargs = true\noutputheader = true"' \
             '\r\n'
 

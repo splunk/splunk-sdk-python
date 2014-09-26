@@ -55,9 +55,14 @@ class TestSearchCommand(unittest.TestCase):
 
         expected = \
             '\r\n' \
-            'ERROR,__mv_ERROR' \
+            'ERROR' \
             '\r\n' \
-            'Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza: [search] | filename = foo.py | supports_getinfo = true | supports_rawargs = true | outputheader = true,' \
+            '"NotImplementedError at ' \
+            '\"\"' + \
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "../../splunklib/searchcommands/search_command.py")) + \
+            '\"\"' \
+            ', line 332 : ' \
+            'Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza:\n[search]\nfilename = foo.py\nsupports_getinfo = true\nsupports_rawargs = true\noutputheader = true"' \
             '\r\n'
 
         command = SearchCommand()
@@ -89,8 +94,9 @@ class TestSearchCommand(unittest.TestCase):
 
         expected = \
             '\r\n' \
-            'ERROR,__mv_ERROR\r\n' \
-            'Unrecognized option: undefined_option = value,\r\n'
+            'ERROR\r\n' \
+            '"ValueError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/search_command_internals.py"", line 282 : ' \
+            'Unrecognized option: undefined_option = value"\r\n'
 
         command = SearchCommand()
         result = StringIO()
@@ -105,8 +111,9 @@ class TestSearchCommand(unittest.TestCase):
 
         expected = \
             '\r\n' \
-            'ERROR,__mv_ERROR\r\n' \
-            'Unrecognized option: undefined_option = value,\r\n'
+            'ERROR\r\n' \
+            '"ValueError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/search_command_internals.py"", line 282 : ' \
+            'Unrecognized option: undefined_option = value"\r\n'
 
         command = SearchCommand()
         result = StringIO()
@@ -127,8 +134,8 @@ class TestSearchCommand(unittest.TestCase):
 
         expected = \
             '\r\n' \
-            'ERROR,__mv_ERROR\r\n' \
-            '\'NoneType\' object is not iterable,\r\n'
+            'ERROR\r\n' \
+            '"TypeError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/splunk_csv/dict_reader.py"", line 38 : \'NoneType\' object is not iterable"\r\n'
 
         command = SearchCommand()
         result = StringIO()

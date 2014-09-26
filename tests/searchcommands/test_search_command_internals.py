@@ -170,7 +170,7 @@ class TestSearchCommandInternals(unittest.TestCase):
         command_line = str(command)
 
         self.assertEqual(
-            'stubbedstreaming boolean=true duration="00:00:10" fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
+            'stubbedstreaming boolean="t" duration="00:00:10" fieldname="word_count" file=%s integer="10" optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
             command_line)
 
         for option in options:

@@ -71,7 +71,8 @@ def configure(name, path=None):
     .. _ConfigParser format: http://goo.gl/K6edZ8
 
     """
-    app_directory = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
+    # TODO: verify that reverting to this, instead of using sys.argv[0] works
+    app_directory = os.path.dirname(os.getcwd())
 
     if path is None:
         probing_path = [

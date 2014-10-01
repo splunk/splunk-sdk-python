@@ -19,18 +19,25 @@ try:
 except ImportError:
     import unittest
 
+import imp
 from json import JSONEncoder
 from subprocess import Popen
 import os
 import shutil
 from tests import testlib
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+
+
 from splunklib.results import \
     Message, ResultsReader
 
 from splunklib.searchcommands import \
-    GeneratingCommand, ReportingCommand, StreamingCommand, Configuration, Option, validators
-
+    GeneratingCommand, ReportingCommand, StreamingCommand, Configuration, Option, validators, dispatch
 
 @Configuration()
 class StubbedGeneratingCommand(GeneratingCommand):
@@ -198,8 +205,13 @@ class StubbedStreamingCommand(StreamingCommand):
         pass
 
 
+def get_searchcommand_example(filename):
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "examples", "searchcommands_app", "bin", filename)
+
+
 class TestSearchCommandsApp(testlib.SDKTestCase):
     def setUp(self):
+
         super(TestSearchCommandsApp, self).setUp()
         for directory in 'log', 'output':
             path = TestSearchCommandsApp._data_file(directory)
@@ -284,6 +296,92 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         # self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
 
+    def test_generating_command_as_unit(self):
+        simulate_path = get_searchcommand_example("simulate.py")
+        self.assertTrue(os.path.isfile(simulate_path))
+
+        # Copy population.csv to the $SPLUNK_HOME/var/run/splunk/ directory
+        population_file = os.path.join(os.path.dirname(simulate_path), "population.csv")
+        shutil.copy(population_file, validators.File._var_run_splunk)
+
+        # load the SimulateCommand class from simulate.py
+        simulate = imp.load_source('searchcommands_app', simulate_path)
+
+        instream = StringIO()
+        outstream = StringIO()
+        cli_args = [
+            "simulate.py",
+            "__EXECUTE__",
+            "duration=00:00:10",
+            "csv=population.csv",
+            "rate=1",
+            "interval=00:00:01"]
+        # Run the process
+        dispatch(simulate.SimulateCommand, cli_args, instream, outstream, "__main__")
+
+        rows = outstream.getvalue().split("\r\n")[1:]
+
+        found_fields = rows[0].split(",")
+        expected_fields = [
+            '_time',
+            '_serial',
+            'text',
+            '__mv__time',
+            '__mv__serial',
+            '__mv_text',
+        ]
+        self.assertEqual(len(expected_fields), len(found_fields))
+        self.assertEqual(expected_fields, found_fields)
+
+        # did we get at least one event?
+        self.assertTrue(2 < len(rows))
+
+        return
+
+    def test_helloworld_generating_command_as_unit(self):
+        # TODO: revise this test to use dispatch instead
+        helloworld_path = get_searchcommand_example("generatehello.py")
+
+        self.assertTrue(os.path.isfile(helloworld_path))
+
+        helloworld = imp.load_source('searchcommands_app', helloworld_path)
+        instance = helloworld.GenerateHelloCommand()
+
+        instream = StringIO()
+        outstream = StringIO()
+        cli_args = [
+            "generatehello.py",
+            "__EXECUTE__",
+            "count=5",
+            ]
+        # Run the process
+        dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream, "__main__")
+
+        rows = outstream.getvalue().split("\r\n")[1:]
+
+        found_fields = rows[0].split(",")
+        expected_fields = [
+            '_time',
+            'event_no',
+            '_raw',
+            '__mv__time',
+            '__mv_event_no',
+            '__mv__raw',
+        ]
+
+        self.assertEqual(len(expected_fields), len(found_fields))
+        self.assertEqual(expected_fields, found_fields)
+
+        events = rows[1:-1]
+        self.assertEqual(5, len(events))
+
+        for i in range(0, len(events)):
+            event = events[i].split(",")
+            self.assertEqual(i + 1, int(event[1]))
+            self.assertEqual(i + 1, int(event[2][-1]))
+
+        return
+
     def test_generating_command_on_server(self):
         expected, actual = self._getOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
@@ -355,7 +453,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_streaming_command_on_server(self):
-        #TODO: add integration test to updload tweets.csv relative to $SPLUNK_HOME/var/run
+        #TODO: add integration test to upload tweets.csv relative to $SPLUNK_HOME/var/run
         #http://docs.splunk.com/Documentation/Splunk/6.1.3/SearchReference/Inputcsv
 
         expected, actual = self._getOneshotResults(

@@ -86,7 +86,8 @@ class SimulateCommand(GeneratingCommand):
 
     def generate(self):
         """ Yields one random record at a time for the duration of `duration` """
-        self.logger.debug('SimulateCommand: %s' % self)  # log command line
+        # TODO: fix this, __str__ function is getting an error on self.options
+        self.logger.debug('SimulateCommand: %s', self)  # log command line
         if not self.records:
             if self.seed is not None:
                 random.seed(self.seed)

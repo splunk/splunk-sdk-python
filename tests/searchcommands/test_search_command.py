@@ -94,16 +94,13 @@ class TestSearchCommand(unittest.TestCase):
         # Command.process should produce an error record on parser errors, if
         # invoked to get configuration settings
 
-        expected = \
+        expected_pattern = re.compile(
             '\r\n' \
             'ERROR\r\n' \
-            '"ValueError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/search_command_internals.py"", line 282 : ' \
-            'Unrecognized option: undefined_option = value"\r\n'
-
-        expected_pattern = re.compile(
-            '\r\n' +
-            'ERROR\r\n' +
-            '"ValueError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/search_command_internals.py"", line \d\d\d : ' +
+            '"ValueError at ""' + \
+            os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         "../../splunklib/searchcommands/search_command_internals.py")) + \
+            '"", line \d\d\d : ' \
             'Unrecognized option: undefined_option = value"\r\n'
         )
 
@@ -118,13 +115,8 @@ class TestSearchCommand(unittest.TestCase):
         self.assertTrue(expected_pattern.match(observed))
 
         # Command.process should produce an error message and exit on parser
-        # errors, if invoked to execute
-
-        expected = \
-            '\r\n' \
-            'ERROR\r\n' \
-            '"ValueError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/search_command_internals.py"", line 282 : ' \
-            'Unrecognized option: undefined_option = value"\r\n'
+        # errors, if invoked to execute. Same error message as expected_pattern
+        # defined above
 
         command = SearchCommand()
         result = StringIO()
@@ -137,7 +129,7 @@ class TestSearchCommand(unittest.TestCase):
             result.reset()
             observed = result.read()
             self.assertNotEqual(e.code, 0)
-            self.assertEqual(expected, observed)
+            self.assertTrue(expected_pattern.match(observed))
         except BaseException as e:
             self.fail("Expected SystemExit, but caught %s" % type(e))
         else:
@@ -145,10 +137,13 @@ class TestSearchCommand(unittest.TestCase):
 
         # Command.process should exit on processing exceptions
 
-        expected = \
+        expected_pattern = re.compile(
             '\r\n' \
             'ERROR\r\n' \
-            '"TypeError at ""/Users/smohamed/git/splunk-sdk-python/splunklib/searchcommands/splunk_csv/dict_reader.py"", line 38 : \'NoneType\' object is not iterable"\r\n'
+            '"TypeError at ""' + \
+            os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         "../../splunklib/searchcommands/splunk_csv/dict_reader.py")) + \
+            '"", line \d\d : \'NoneType\' object is not iterable"\r\n')
 
         command = SearchCommand()
         result = StringIO()
@@ -161,7 +156,7 @@ class TestSearchCommand(unittest.TestCase):
             result.reset()
             observed = result.read()
             self.assertNotEqual(e.code, 0)
-            self.assertEqual(expected, observed)
+            self.assertTrue(expected_pattern.match(observed))
         except BaseException as e:
             self.fail("Expected SystemExit, but caught %s" % type(e))
         else:

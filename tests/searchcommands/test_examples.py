@@ -31,13 +31,17 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
 
 from splunklib.results import \
     Message, ResultsReader
 
 from splunklib.searchcommands import \
     GeneratingCommand, ReportingCommand, StreamingCommand, Configuration, Option, validators, dispatch
+
 
 @Configuration()
 class StubbedGeneratingCommand(GeneratingCommand):
@@ -206,7 +210,9 @@ class StubbedStreamingCommand(StreamingCommand):
 
 
 def get_searchcommand_example(filename):
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "examples", "searchcommands_app", "bin", filename)
+    return os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "examples",
+        "searchcommands_app", "bin", filename)
 
 
 class TestSearchCommandsApp(testlib.SDKTestCase):
@@ -275,7 +281,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             StubbedGeneratingCommand(), 'test_generating_command_configuration')
 
     def test_generating_command_in_isolation(self):
-        # TODO: need to make sure all csv files exist at some point before running tests
         # TODO: this one test passes when using shell=True to Popen in _start_process
         self._run(
             'simulate', [
@@ -286,13 +291,18 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'seed=%s' % TestSearchCommandsApp._seed],
             __GETINFO__=(
                 os.path.join('input', '_empty.csv'),
-                os.path.join('output', 'test_generating_command_in_isolation.getinfo.csv'),
-                os.path.join('log', 'test_generating_command_in_isolation.log')),
+                os.path.join('output',
+                             'test_generating_command_in_isolation.getinfo.csv'),
+                os.path.join('log',
+                             'test_generating_command_in_isolation.log')),
             __EXECUTE__=(
                 os.path.join('input', '_empty.csv'),
-                os.path.join('output', 'test_generating_command_in_isolation.execute.csv'),
-                os.path.join('log', 'test_generating_command_in_isolation.log')))
-        self._assertCorrectOutputFile('test_generating_command_in_isolation.getinfo.csv')
+                os.path.join('output',
+                             'test_generating_command_in_isolation.execute.csv'),
+                os.path.join('log',
+                             'test_generating_command_in_isolation.log')))
+        self._assertCorrectOutputFile(
+            'test_generating_command_in_isolation.getinfo.csv')
         # self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
 
@@ -301,11 +311,27 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         self.assertTrue(os.path.isfile(simulate_path))
 
         # Copy population.csv to the $SPLUNK_HOME/var/run/splunk/ directory
-        population_file = os.path.join(os.path.dirname(simulate_path), "population.csv")
+        population_file = os.path.join(os.path.dirname(simulate_path),
+                                       "population.csv")
         shutil.copy(population_file, validators.File._var_run_splunk)
 
         # load the SimulateCommand class from simulate.py
         simulate = imp.load_source('searchcommands_app', simulate_path)
+
+        instream = StringIO()
+        outstream = StringIO()
+        cli_args = [
+            "simulate.py",
+            "__GETINFO__",
+            "duration=00:00:10",
+            "csv=population.csv",
+            "rate=1",
+            "interval=00:00:01"]
+        # Run the process
+        dispatch(simulate.SimulateCommand, cli_args, instream, outstream,
+                 "__main__")
+        expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_generating_command_in_isolation.getinfo.csv')
+        self.assertEqual(open(os.path.abspath(expected_info_path)).read(), outstream.getvalue())
 
         instream = StringIO()
         outstream = StringIO()
@@ -317,7 +343,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             "rate=1",
             "interval=00:00:01"]
         # Run the process
-        dispatch(simulate.SimulateCommand, cli_args, instream, outstream, "__main__")
+        dispatch(simulate.SimulateCommand, cli_args, instream, outstream,
+                 "__main__")
 
         rows = outstream.getvalue().split("\r\n")[1:-1]
 
@@ -352,10 +379,12 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             "generatehello.py",
             "__GETINFO__",
             "count=5",
-            ]
+        ]
         # Run the process
-        dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream, "__main__")
-
+        dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream,
+                 "__main__")
+        expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_generating_command_in_isolation.getinfo.csv')
+        self.assertEqual(open(os.path.abspath(expected_info_path)).read(), outstream.getvalue())
 
         # Overwrite the existing StringIO objects
         instream = StringIO()
@@ -364,9 +393,10 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             "generatehello.py",
             "__EXECUTE__",
             "count=5",
-            ]
+        ]
         # Run the process
-        dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream, "__main__")
+        dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream,
+                 "__main__")
 
         # Trim the blank lines at either end of the list
         rows = outstream.getvalue().split("\r\n")[1:-1]
@@ -399,7 +429,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         expected, actual = self._getOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
             'test_generating_command_on_server')
-        print actual
         return
 
     def test_reporting_command_configuration(self):
@@ -413,31 +442,40 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 '__map__', 'total=subtotal', 'count'],
             __GETINFO__=(
                 os.path.join('input', 'counts.csv'),
-                os.path.join('output', 'test_reporting_command_in_isolation.map.getinfo.csv'),
+                os.path.join('output',
+                             'test_reporting_command_in_isolation.map.getinfo.csv'),
                 os.path.join('log', 'test_reporting_command_in_isolation.log')),
             __EXECUTE__=(
                 os.path.join('input', 'counts.csv'),
-                os.path.join('output', 'test_reporting_command_in_isolation.map.execute.csv'),
+                os.path.join('output',
+                             'test_reporting_command_in_isolation.map.execute.csv'),
                 os.path.join('log', 'test_reporting_command_in_isolation.log')))
-        self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.getinfo.csv')
-        self._assertCorrectOutputFile('test_reporting_command_in_isolation.map.execute.csv')
+        self._assertCorrectOutputFile(
+            'test_reporting_command_in_isolation.map.getinfo.csv')
+        self._assertCorrectOutputFile(
+            'test_reporting_command_in_isolation.map.execute.csv')
         self._run(
             'sum', [
                 'total=total', 'count'],
             __GETINFO__=(
                 os.path.join('input', 'subtotals.csv'),
-                os.path.join('output', 'test_reporting_command_in_isolation.reduce.getinfo.csv'),
+                os.path.join('output',
+                             'test_reporting_command_in_isolation.reduce.getinfo.csv'),
                 os.path.join('log', 'test_reporting_command_in_isolation.log')),
             __EXECUTE__=(
                 os.path.join('input', 'subtotals.csv'),
-                os.path.join('output', 'test_reporting_command_in_isolation.reduce.execute.csv'),
+                os.path.join('output',
+                             'test_reporting_command_in_isolation.reduce.execute.csv'),
                 os.path.join('log', 'test_reporting_command_in_isolation.log')))
         # TODO: the following test fails because there is a missing \r at the beginning of the output file
         # self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.getinfo.csv')
-        self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.execute.csv')
+        self._assertCorrectOutputFile(
+            'test_reporting_command_in_isolation.reduce.execute.csv')
         return
 
     def test_reporting_command_on_server(self):
+        tweets_file = os.path.join(os.path.dirname(__file__), "data", "input", "tweets_with_word_counts.csv")
+        shutil.copy(tweets_file, validators.File._var_run_splunk)
         expected, actual = self._getOneshotResults(
             '| inputcsv tweets_with_word_counts.csv | sum total=total word_count',
             'test_reporting_command_on_server')
@@ -453,23 +491,26 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         sum_module = imp.load_source('searchcommands_app', sum_path)
 
         # TODO: actually test this __GETINFO__ code path on all "as_unit" tests
-        # instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input", "subtotals.csv")).read())
-        # instream = StringIO()
-        # outstream = StringIO()
-        # cli_args = [
-        #     "sum.py",
-        #     "__GETINFO__",
-        #     "total=total",
-        #     "count"
-        #     ]
-        # # Run the process
-        # dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
-        # print outstream.readlines()
+
+        # Map tests
+
+        instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input", "counts.csv")).read())
+        outstream = StringIO()
+        cli_args = [
+            "sum.py",
+            "__GETINFO__",
+            "__map__",
+            "total=subtotal",
+            "count"
+            ]
+        # Run the process
+        dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
+        expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.map.getinfo.csv')
+        self.assertEqual(open(expected_info_path).read(), outstream.getvalue())
 
         # Overwrite the existing StringIO objects
-        # instream = StringIO()
-        # instream.writelines(open(os.path.join(os.path.dirname(__file__), "data", "input", "counts.csv")).read())
-        instream = open(os.path.join(os.path.dirname(__file__), "data", "input", "counts.csv"))
+        instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input",
+                                     "counts.csv")).read())
         outstream = StringIO()
         cli_args = [
             "sum.py",
@@ -477,9 +518,13 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             "__map__",
             "total=subtotal",
             "count"
-            ]
+        ]
         # Run the process
-        dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
+        dispatch(sum_module.SumCommand, cli_args, instream, outstream,
+                 "__main__")
+
+        expected_exec_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.map.execute.csv')
+        self.assertEqual(open(expected_exec_path).read(), outstream.getvalue())
 
         # Trim the blank lines at either end of the list
         rows = outstream.getvalue().split("\r\n")[1:-1]
@@ -488,6 +533,53 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         expected_fields = [
             'subtotal',
             '__mv_subtotal',
+        ]
+
+        self.assertEqual(len(expected_fields), len(found_fields))
+        self.assertEqual(expected_fields, found_fields)
+
+        self.assertEqual(['6.0', ''], rows[1:][0].split(","))
+
+        # Reduce tests
+
+        instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input", "subtotals.csv")).read())
+        outstream = StringIO()
+        cli_args = [
+            "sum.py",
+            "__GETINFO__",
+            "total=total",
+            "count"
+            ]
+        # Run the process
+        dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
+        expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.reduce.getinfo.csv')
+
+        self.assertEqual(open(expected_info_path).read(), outstream.getvalue())
+
+        # Overwrite the existing StringIO objects
+        instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input",
+                                     "subtotals.csv")).read())
+
+        outstream = StringIO()
+        cli_args = [
+            "sum.py",
+            "__EXECUTE__",
+            "total=total",
+            "count"
+        ]
+        # Run the process
+        dispatch(sum_module.SumCommand, cli_args, instream, outstream,
+                 "__main__")
+        expected_exec_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.reduce.execute.csv')
+        self.assertEqual(open(expected_exec_path).read(), outstream.getvalue())
+
+        # Trim the blank lines at either end of the list
+        rows = outstream.getvalue().split("\r\n")[1:-1]
+
+        found_fields = rows[0].split(",")
+        expected_fields = [
+            'total',
+            '__mv_total',
         ]
 
         self.assertEqual(len(expected_fields), len(found_fields))
@@ -508,33 +600,41 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 'text'],
             __GETINFO__=(
                 os.path.join('input', 'tweets.csv'),
-                os.path.join('output', 'test_streaming_command_in_isolation.getinfo.csv'),
+                os.path.join('output',
+                             'test_streaming_command_in_isolation.getinfo.csv'),
                 os.path.join('log', 'test_streaming_command.log')),
             __EXECUTE__=(
                 os.path.join('input', 'tweets.csv'),
-                os.path.join('output', 'test_streaming_command_in_isolation.execute.csv'),
-                os.path.join('log', 'test_generating_command_in_isolation.log')))
-        self._assertCorrectOutputFile('test_streaming_command_in_isolation.getinfo.csv')
-        # TODO: the following test fails because there is a missing \r at the beginning of the output file
+                os.path.join('output',
+                             'test_streaming_command_in_isolation.execute.csv'),
+                os.path.join('log',
+                             'test_generating_command_in_isolation.log')))
+        self._assertCorrectOutputFile(
+            'test_streaming_command_in_isolation.getinfo.csv')
+        # TODO: fix this failing test due to keys being out of order
         # self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
         return
 
     def test_streaming_command_on_server(self):
-        #TODO: add integration test to upload tweets.csv relative to $SPLUNK_HOME/var/run
-        #http://docs.splunk.com/Documentation/Splunk/6.1.3/SearchReference/Inputcsv
-
+        tweets_file = os.path.join(os.path.dirname(__file__), "data", "input", "tweets.csv")
+        shutil.copy(tweets_file, validators.File._var_run_splunk)
         expected, actual = self._getOneshotResults(
             '| inputcsv tweets.csv | countmatches fieldname=word_count pattern="\\\\w+" text',
             'test_streaming_command_on_server')
+
         self.assertMultiLineEqual(expected, actual)
         return
 
     def _assertCorrectConfiguration(self, command, test_name):
-        expected_file_location = os.path.join('_expected_results', test_name + '.txt')
+        expected_file_location = os.path.join('_expected_results',
+                                              test_name + '.txt')
         output_file_location = os.path.join('output', test_name + '.csv')
-        file_path = JSONEncoder().encode(TestSearchCommandsApp._data_file(os.path.join('input', 'counts.csv')))
-        with TestSearchCommandsApp._open_data_file(os.path.join('input', '_empty.csv'), 'r') as input_file:
-            with TestSearchCommandsApp._open_data_file(output_file_location, 'w') as output_file:
+        file_path = JSONEncoder().encode(TestSearchCommandsApp._data_file(
+            os.path.join('input', 'counts.csv')))
+        with TestSearchCommandsApp._open_data_file(
+                os.path.join('input', '_empty.csv'), 'r') as input_file:
+            with TestSearchCommandsApp._open_data_file(output_file_location,
+                                                       'w') as output_file:
                 command.process(
                     [
                         command.name,
@@ -551,8 +651,10 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                     input_file,
                     output_file)
         actual = str(command.configuration)
-        with TestSearchCommandsApp._open_data_file(expected_file_location, 'r') as input_file:
-            expected = ''.join(input_file.readlines()).replace("{file}", file_path)
+        with TestSearchCommandsApp._open_data_file(expected_file_location,
+                                                   'r') as input_file:
+            expected = ''.join(input_file.readlines()).replace("{file}",
+                                                               file_path)
         self.assertMultiLineEqual(expected, actual)
 
     def _assertCorrectOutputFile(self, name):
@@ -570,12 +672,14 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         actual = []
         for result in reader:
             if isinstance(result, dict):
-                actual += [u'Results: %s' % result]
+                actual += [u'Results: %s' % OrderedDict(sorted(result.iteritems()))]
             elif isinstance(result, Message):
                 actual += [u'Message: %s' % result]
-        actual = actual + [u'is_preview = %s' % reader.is_preview]
+        actual += [u'is_preview = %s' % reader.is_preview]
         actual = u'\n'.join(actual)
-        with TestSearchCommandsApp._open_data_file('_expected_results/%s.txt' % test_name, 'r') as expected_file:
+        with TestSearchCommandsApp._open_data_file(
+                        '_expected_results/%s.txt' % test_name,
+                        'r') as expected_file:
             expected = u''.join(expected_file.readlines())
         return expected, actual
 
@@ -601,19 +705,24 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
     @classmethod
     def _open_data_file(cls, relative_path, mode):
         import codecs
-        return codecs.open(cls._data_file(relative_path), mode, encoding='utf-8')
+
+        return codecs.open(cls._data_file(relative_path), mode,
+                           encoding='utf-8')
 
     @classmethod
     def _start_process(cls, args, stdin, stdout, stderr):
         # TODO: make doc note about this?
         # TODO: make a shell script to run some of these seperately, check results there
-        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cls.app_bin)
+        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
+                     cwd=cls.app_bin)
 
     package_directory = os.path.dirname(__file__)
     data_directory = os.path.join(package_directory, 'data')
-    app_bin = os.path.abspath(os.path.join(package_directory, "../../examples/searchcommands_app/bin"))
+    app_bin = os.path.abspath(os.path.join(package_directory,
+                                           "../../examples/searchcommands_app/bin"))
 
     _seed = '5708bef4-6782-11e3-97ed-10ddb1b57bc3'
+
 
 if __name__ == "__main__":
     unittest.main()

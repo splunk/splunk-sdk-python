@@ -270,6 +270,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 os.path.join('input', '_empty.csv'),
                 os.path.join('output', 'test_option_show_configuration.csv'),
                 os.path.join('log', 'test_option_show_configuration.log')))
+        # TODO: is this testing anything?
         return
 
     # TODO, use a generating command that doesn't do random sampling because
@@ -303,6 +304,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                              'test_generating_command_in_isolation.log')))
         self._assertCorrectOutputFile(
             'test_generating_command_in_isolation.getinfo.csv')
+        # TODO: another test failing w/ keys out of order
         # self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
 
@@ -367,12 +369,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     def test_helloworld_generating_command_as_unit(self):
         helloworld_path = get_searchcommand_example("generatehello.py")
-
         self.assertTrue(os.path.isfile(helloworld_path))
-
         helloworld = imp.load_source('searchcommands_app', helloworld_path)
 
-        # TODO: actually test this __GETINFO__ code path on all "as_unit" tests
         instream = StringIO()
         outstream = StringIO()
         cli_args = [
@@ -485,12 +484,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     def test_reporting_command_as_unit(self):
         sum_path = get_searchcommand_example("sum.py")
-
         self.assertTrue(os.path.isfile(sum_path))
-
         sum_module = imp.load_source('searchcommands_app', sum_path)
-
-        # TODO: actually test this __GETINFO__ code path on all "as_unit" tests
 
         # Map tests
 
@@ -611,7 +606,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                              'test_generating_command_in_isolation.log')))
         self._assertCorrectOutputFile(
             'test_streaming_command_in_isolation.getinfo.csv')
-        # TODO: fix this failing test due to keys being out of order
+        # TODO: fix this failing test due to keys out of order
         # self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
         return
 
@@ -711,7 +706,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
     @classmethod
     def _start_process(cls, args, stdin, stdout, stderr):
-        # TODO: make doc note about this?
         # TODO: make a shell script to run some of these seperately, check results there
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
                      cwd=cls.app_bin)

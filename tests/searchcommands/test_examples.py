@@ -282,7 +282,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             StubbedGeneratingCommand(), 'test_generating_command_configuration')
 
     def test_generating_command_in_isolation(self):
-        # TODO: this one test passes when using shell=True to Popen in _start_process
         self._run(
             'simulate', [
                 'csv=population.csv',
@@ -302,10 +301,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                              'test_generating_command_in_isolation.execute.csv'),
                 os.path.join('log',
                              'test_generating_command_in_isolation.log')))
-        self._assertCorrectOutputFile(
-            'test_generating_command_in_isolation.getinfo.csv')
-        # TODO: another test failing w/ keys out of order
-        # self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
+        self._assertCorrectOutputFile('test_generating_command_in_isolation.getinfo.csv')
+        self._assertCorrectOutputFile('test_generating_command_in_isolation.execute.csv')
         return
 
     def test_generating_command_as_unit(self):
@@ -424,7 +421,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         return
 
     def test_generating_command_on_server(self):
-        # TODO: this test never has consistent results due to random sampling
+        # TODO: this test never has inconsistent results due to random sampling
         expected, actual = self._getOneshotResults(
             '| simulate csv=population.csv rate=200 interval=00:00:01 duration=00:00:02 seed=%s' % TestSearchCommandsApp._seed,
             'test_generating_command_on_server')
@@ -466,10 +463,9 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 os.path.join('output',
                              'test_reporting_command_in_isolation.reduce.execute.csv'),
                 os.path.join('log', 'test_reporting_command_in_isolation.log')))
-        # TODO: the following test fails because there is a missing \r at the beginning of the output file
-        # self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.getinfo.csv')
-        self._assertCorrectOutputFile(
-            'test_reporting_command_in_isolation.reduce.execute.csv')
+
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.getinfo.csv')
+        self._assertCorrectOutputFile('test_reporting_command_in_isolation.reduce.execute.csv')
         return
 
     def test_reporting_command_on_server(self):
@@ -604,10 +600,8 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                              'test_streaming_command_in_isolation.execute.csv'),
                 os.path.join('log',
                              'test_generating_command_in_isolation.log')))
-        self._assertCorrectOutputFile(
-            'test_streaming_command_in_isolation.getinfo.csv')
-        # TODO: fix this failing test due to keys out of order
-        # self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
+        self._assertCorrectOutputFile('test_streaming_command_in_isolation.getinfo.csv')
+        self._assertCorrectOutputFile('test_streaming_command_in_isolation.execute.csv')
         return
 
     def test_streaming_command_on_server(self):

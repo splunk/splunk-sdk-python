@@ -23,6 +23,7 @@ import imp
 from json import JSONEncoder
 from subprocess import Popen
 import os
+import io
 import shutil
 from tests import testlib
 
@@ -330,7 +331,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         dispatch(simulate.SimulateCommand, cli_args, instream, outstream,
                  "__main__")
         expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_generating_command_in_isolation.getinfo.csv')
-        self.assertEqual(open(os.path.abspath(expected_info_path)).read(), outstream.getvalue())
+        self.assertEqual(io.open(os.path.abspath(expected_info_path), newline='').read(), outstream.getvalue())
 
         instream = StringIO()
         outstream = StringIO()
@@ -380,7 +381,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         dispatch(helloworld.GenerateHelloCommand, cli_args, instream, outstream,
                  "__main__")
         expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_generating_command_in_isolation.getinfo.csv')
-        self.assertEqual(open(os.path.abspath(expected_info_path)).read(), outstream.getvalue())
+        self.assertEqual(io.open(os.path.abspath(expected_info_path), newline='').read(), outstream.getvalue())
 
         # Overwrite the existing StringIO objects
         instream = StringIO()
@@ -485,7 +486,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
 
         # Map tests
 
-        instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input", "counts.csv")).read())
+        instream = StringIO(io.open(os.path.join(os.path.dirname(__file__), "data", "input", "counts.csv"), newline='').read())
         outstream = StringIO()
         cli_args = [
             "sum.py",
@@ -497,7 +498,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         # Run the process
         dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
         expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.map.getinfo.csv')
-        self.assertEqual(open(expected_info_path).read(), outstream.getvalue())
+        self.assertEqual(io.open(expected_info_path, newline='').read(), outstream.getvalue())
 
         # Overwrite the existing StringIO objects
         instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input",
@@ -515,7 +516,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                  "__main__")
 
         expected_exec_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.map.execute.csv')
-        self.assertEqual(open(expected_exec_path).read(), outstream.getvalue())
+        self.assertEqual(io.open(expected_exec_path, newline='').read(), outstream.getvalue())
 
         # Trim the blank lines at either end of the list
         rows = outstream.getvalue().split("\r\n")[1:-1]
@@ -545,7 +546,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         dispatch(sum_module.SumCommand, cli_args, instream, outstream, "__main__")
         expected_info_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.reduce.getinfo.csv')
 
-        self.assertEqual(open(expected_info_path).read(), outstream.getvalue())
+        self.assertEqual(io.open(expected_info_path, newline='').read(), outstream.getvalue())
 
         # Overwrite the existing StringIO objects
         instream = StringIO(open(os.path.join(os.path.dirname(__file__), "data", "input",
@@ -562,7 +563,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
         dispatch(sum_module.SumCommand, cli_args, instream, outstream,
                  "__main__")
         expected_exec_path = os.path.join(os.path.dirname(__file__), 'data/_expected_results/test_reporting_command_in_isolation.reduce.execute.csv')
-        self.assertEqual(open(expected_exec_path).read(), outstream.getvalue())
+        self.assertEqual(io.open(expected_exec_path, newline='').read(), outstream.getvalue())
 
         # Trim the blank lines at either end of the list
         rows = outstream.getvalue().split("\r\n")[1:-1]
@@ -665,7 +666,7 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
             elif isinstance(result, Message):
                 actual += [u'Message: %s' % result]
         actual += [u'is_preview = %s' % reader.is_preview]
-        actual = u'\n'.join(actual)
+        actual = (os.linesep).join(actual)
         with TestSearchCommandsApp._open_data_file(
                         '_expected_results/%s.txt' % test_name,
                         'r') as expected_file:

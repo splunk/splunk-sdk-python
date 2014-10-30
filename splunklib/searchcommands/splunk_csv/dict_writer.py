@@ -63,7 +63,7 @@ class DictWriter(csv.DictWriter, object):
         multi_value = ';'.join(
             ['$' + DictWriter._to_string(item).replace('$', '$$') + '$' for item
              in value])
-        value = self._mv_delimiter.join([repr(item) for item in value])
+        value = self._mv_delimiter.join([DictWriter._to_string(item) for item in value])
         return value, multi_value
 
     def _header_written(self):
@@ -73,8 +73,8 @@ class DictWriter(csv.DictWriter, object):
     def _to_string(item):
         if isinstance(item, bool):
             return 't' if item else 'f'
-        if isinstance(item, str):
-            return item
+        if isinstance(item, basestring):
+            return item.decode('utf-8')
         if isinstance(item, Number):
             return str(item)
         return repr(item)

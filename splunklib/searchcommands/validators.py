@@ -214,6 +214,24 @@ class List(Validator):
         return value[:-1]
 
 
+class Map(Validator):
+    """ Validates map option values.
+
+    """
+    def __init__(self, **kwargs):
+        self.membership = kwargs
+
+    def __call__(self, value):
+        if value is not None:
+            value = str(value)
+            if value not in self.membership:
+                raise ValueError('Unrecognized value: %s' % value)
+        return self.membership[value]
+
+    def format(self, value):
+        return self.membership.keys()[self.membership.values().index(value)]
+
+
 class OptionName(Validator):
     """ Validates option names.
 

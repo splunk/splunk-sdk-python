@@ -275,7 +275,7 @@ class SearchCommand(object):
     #region Methods
 
     def error_exit(self, error):
-        self.logger.error('Abnormal exit: ' + error)
+        self.logger.error('Abnormal exit: %s', error)
         self.write_error(error)
         exit(1)
 

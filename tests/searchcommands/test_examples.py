@@ -271,7 +271,6 @@ class TestSearchCommandsApp(testlib.SDKTestCase):
                 os.path.join('input', '_empty.csv'),
                 os.path.join('output', 'test_option_show_configuration.csv'),
                 os.path.join('log', 'test_option_show_configuration.log')))
-        # TODO: is this testing anything?
         return
 
     # TODO, use a generating command that doesn't do random sampling because

@@ -117,17 +117,17 @@ class Integer(Validator):
         if minimum is not None and maximum is not None:
             def check_range(value):
                 if not (minimum <= value <= maximum):
-                    raise ValueError('Expected integer in the range [%d,%d]: %d' % (minimum, maximum, value))
+                    raise ValueError(u'Expected integer in the range [%d,%d]: %d' % (minimum, maximum, value))
                 return
         elif minimum is not None:
             def check_range(value):
                 if value < minimum:
-                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
+                    raise ValueError(u'Expected integer in the range [%d,+∞]: %d' % (minimum, value))
                 return
         elif maximum is not None:
             def check_range(value):
                 if value > maximum:
-                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
+                    raise ValueError(u'Expected integer in the range [-∞,%d]: %d' % (maximum, value))
                 return
         else:
             def check_range(value):

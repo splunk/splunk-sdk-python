@@ -43,11 +43,15 @@ class SearchCommand(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, app_root=None):
+        """
+        :param app_root: The root of the application directory, used primarily by tests.
+        :type app_root: str or NoneType
+        """
 
         # Variables that may be used, but not altered by derived classes
 
-        self.logger, self._logging_configuration = logging.configure(type(self).__name__)
+        self.logger, self._logging_configuration = logging.configure(type(self).__name__, app_root=app_root)
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
 
@@ -61,6 +65,7 @@ class SearchCommand(object):
 
         # Variables backing option/property values
 
+        self._app_root = app_root
         self._default_logging_level = self.logger.level
         self._configuration = None
         self._fieldnames = None
@@ -95,7 +100,7 @@ class SearchCommand(object):
     @logging_configuration.setter
     def logging_configuration(self, value):
         self.logger, self._logging_configuration = logging.configure(
-            type(self).__name__, value)
+            type(self).__name__, value, app_root=self._app_root)
         return
 
     @Option

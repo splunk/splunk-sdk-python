@@ -117,8 +117,8 @@ class TestDecorators(unittest.TestCase):
 
             # A search command loads {local,default}/logging.conf when it is
             # available
-
-            command = SearchCommand()  # guarantee: default/logging.conf
+            command = SearchCommand(
+                app_root=app_root)  # guarantee: default/logging.conf
             self.assertEqual(command.logging_configuration,
                              default_logging_configuration)
 

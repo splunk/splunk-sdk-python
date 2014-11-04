@@ -274,9 +274,9 @@ class SearchCommand(object):
 
     #region Methods
 
-    def error_exit(self, error):
+    def error_exit(self, error, message=None):
         self.logger.error('Abnormal exit: %s', error)
-        self.write_error(error)
+        self.write_error(error.message.capitalize() if message is None else message)
         exit(1)
 
     def process(self, args=argv, input_file=stdin, output_file=stdout):

@@ -75,8 +75,7 @@ def configure(name, probing_path=None, app_root=None):
     .. _ConfigParser format: http://goo.gl/K6edZ8
 
     """
-    if app_root:
-        print "app_root is " + app_root
+
     app_directory = get_app_directory(sys.argv[0]) if app_root is None else app_root
 
     if probing_path is None:

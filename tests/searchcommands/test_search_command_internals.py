@@ -217,6 +217,41 @@ class TestSearchCommandInternals(unittest.TestCase):
         self.assertListEqual(fields, command.fieldnames)
         return
 
+    def test_command_parser_unquote(self):
+        parser = search_command_internals.SearchCommandParser()
+
+        options = [
+            'foo',
+            '\"foobar\"',
+            '"""foobar1"""',
+            '"\"foobar2\""',
+            '"foo ""x"" bar"',
+            '"foo \"x\" bar"',
+            '"\\\\foobar"',
+            '"foo \\\\ bar"',
+            '"foobar\\\\"',
+            'foo\\\\\\bar'
+        ]
+
+        expected = [
+            'foo',
+            'foobar',
+            '"foobar1"',
+            '"foobar2"',
+            'foo "x" bar',
+            'foo "x" bar',
+            '\\foobar',
+            'foo \\ bar',
+            'foobar\\',
+            'foo\\bar'
+        ]
+
+        for i in range(0, len(options)):
+            print parser.unquote(options[i]), " ", options[i]
+            print expected[i]
+            self.assertEqual(expected[i], parser.unquote(options[i]))
+
+
     def test_input_header(self):
 
         # No items

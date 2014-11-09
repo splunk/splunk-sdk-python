@@ -110,6 +110,8 @@ XNAME_CONTENT = XNAMEF_ATOM % "content"
 
 MATCH_ENTRY_CONTENT = "%s/%s/*" % (XNAME_ENTRY, XNAME_CONTENT)
 
+log = logging.getLogger(__name__)
+
 
 class IllegalOperationException(Exception):
     """Thrown when an operation is not possible on the Splunk instance that a
@@ -1387,7 +1389,7 @@ class ReadOnlyCollection(Endpoint):
             if pagesize is None or N < pagesize:
                 break
             offset += N
-            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d, kwargs=%s", pagesize, fetched, offset, N, kwargs)
+            log.debug("pagesize=%d, fetched=%d, offset=%d, N=%d, kwargs=%s", pagesize, fetched, offset, N, kwargs)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=None, **kwargs):
@@ -2455,9 +2457,9 @@ class Inputs(Collection):
             kinds = self.kinds
         if len(kinds) == 1:
             kind = kinds[0]
-            logging.debug("Inputs.list taking short circuit branch for single kind.")
+            log.debug("Inputs.list taking short circuit branch for single kind.")
             path = self.kindpath(kind)
-            logging.debug("Path for inputs: %s", path)
+            log.debug("Path for inputs: %s", path)
             try:
                 path = UrlEncoded(path, skip_encode=True)
                 response = self.get(path, **kwargs)

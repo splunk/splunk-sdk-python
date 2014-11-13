@@ -143,7 +143,7 @@ class DistCommand(Command):
         sdk_dir = os.path.abspath('.')
 
         def exclude(path):
-            # TODO: Replace with filter function because exclude is deprecated
+            # TODO: DVPL-5866 - Replace with filter function because exclude is deprecated
             basename = os.path.basename(path)
             for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
                 if fnmatch(basename, pattern):

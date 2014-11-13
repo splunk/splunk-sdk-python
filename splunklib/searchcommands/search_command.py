@@ -366,7 +366,7 @@ class SearchCommand(object):
             yield record
         return
 
-    # TODO: Is it possible to support anything other than write_error? It does not seem so.
+    # TODO: DVPL-5865 - Is it possible to support anything other than write_error? It does not seem so.
 
     def write_debug(self, message, *args):
         self._write_message(u'DEBUG', message, *args)

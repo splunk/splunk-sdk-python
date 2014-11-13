@@ -115,7 +115,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             expected = [ent.name for ent in coll.list()]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            # TODO: This should use a real search instead of *. Otherwise the test passes trivially.
+            # TODO: DVPL-5868 - This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \

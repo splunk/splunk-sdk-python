@@ -107,7 +107,7 @@ class TestDecorators(unittest.TestCase):
 
             self.assertEqual(len(command.logger.handlers), 0)
 
-            # TODO: capture this output and verify it
+            # TODO: DVPL-5867 - capture this output and verify it
             command.logger.warning(
                 'Test that output is directed to stderr without formatting')
 

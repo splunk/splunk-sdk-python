@@ -1,13 +1,4 @@
-import os
-from subprocess import PIPE, Popen
-from os.path import expanduser
-import time
-import sys
-
-import testlib 
-
-import splunklib.client as client
-from splunklib.binding import UrlEncoded
+import testlib
 
 try:
     from utils import *

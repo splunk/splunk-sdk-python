@@ -103,6 +103,20 @@ class ServiceTestCase(testlib.SDKTestCase):
         self.service.restart(timeout=120)
         service.login() # Make sure we are awake
 
+    def test_read_outputs_with_type(self):
+        name = testlib.tmpname()
+        service = client.connect(**self.opts.kwargs)
+        service.post('data/outputs/tcp/syslog', name=name, type='tcp')
+        entity = client.Entity(service, 'data/outputs/tcp/syslog/' + name)
+        self.assertTrue('tcp', entity.content.type)
+
+        if service.restart_required:
+            self.restartSplunk()
+        service = client.connect(**self.opts.kwargs)
+        client.Entity(service, 'data/outputs/tcp/syslog/' + name).delete()
+        if service.restart_required:
+            self.restartSplunk()
+
     def test_splunk_version(self):
         service = client.connect(**self.opts.kwargs)
         v = service.splunk_version

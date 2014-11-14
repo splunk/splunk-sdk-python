@@ -237,7 +237,16 @@ def _parse_atom_entry(entry):
 
     # Filter some of the noise out of the content record
     content = record((k, v) for k, v in content.iteritems()
-        if k not in ['eai:acl', 'eai:attributes', 'type'])
+        if k not in ['eai:acl', 'eai:attributes'])
+
+    if type(content['type']) is type([]):
+        content['type'] = [t for t in content['type'] if t != 'text/xml']
+        if len(content['type']) == 0: # Unset type if it was only 'text/xml'
+            content.pop('type', None)
+        if len(content['type']) == 1: # Flatten 1 element list
+            content['type'] = content['type'][0]
+    else:
+        content.pop('type', None)
 
     return record({
         'title': title,

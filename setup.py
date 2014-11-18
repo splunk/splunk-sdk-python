@@ -34,6 +34,17 @@ def run_test_suite():
     unittest.TextTestRunner().run(suite)
     os.chdir(original_cwd)
 
+def run_test_suite_with_junit_output():
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+    import xmlrunner
+    original_cwd = os.path.abspath(os.getcwd())
+    os.chdir('tests')
+    suite = unittest.defaultTestLoader.discover('.')
+    xmlrunner.XMLTestRunner(output='../test-reports').run(suite)
+    os.chdir(original_cwd)
 
 class CoverageCommand(Command):
     """setup.py command to run code coverage of the test suite."""
@@ -72,6 +83,20 @@ class TestCommand(Command):
 
     def run(self):
         run_test_suite()
+
+class JunitXmlTestCommand(Command):
+    """setup.py command to run the whole test suite."""
+    description = "Run test full test suite with JUnit-formatted output."
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        run_test_suite_with_junit_output()
 
 
 class DistCommand(Command):
@@ -175,6 +200,7 @@ setup(
 
     cmdclass={'coverage': CoverageCommand,
               'test': TestCommand,
+              'testjunit': JunitXmlTestCommand,
               'dist': DistCommand},
 
     description="The Splunk Software Development Kit for Python.",

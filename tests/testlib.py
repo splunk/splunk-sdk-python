@@ -230,8 +230,6 @@ class SDKTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.opts = parse([], {}, ".splunkrc")
 
-        import pprint; pprint.pprint(cls.opts)
-
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:

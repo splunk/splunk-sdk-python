@@ -5,6 +5,7 @@
 *coverage_html_report*
 .coverage
 .coverage.*
+.python-version
 __stdout__
 docs/_build
 build/

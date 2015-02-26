@@ -24,6 +24,8 @@ import logging
 import testlib
 import unittest
 import socket
+import sys
+import ssl
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
@@ -430,7 +432,11 @@ def urllib2_handler(url, message, **kwargs):
     headers = dict(message.get('headers', []))
     req = urllib2.Request(url, data, headers)
     try:
-        response = urllib2.urlopen(req)
+        # If running Python 2.7.9+, disable SSL certificate validation
+        if sys.version_info >= (2, 7, 9):
+            response = urllib2.urlopen(req, context=ssl._create_unverified_context())
+        else:
+            response = urllib2.urlopen(req)
     except urllib2.HTTPError, response:
         pass # Propagate HTTP errors via the returned response message
     return {

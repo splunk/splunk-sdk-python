@@ -191,7 +191,6 @@ def request(url, message, **kwargs):
         response = opener.open(request)
     except Exception as e:
         response = e
-        print e
 
     # Normalize the response to something the SDK expects, and 
     # return it.

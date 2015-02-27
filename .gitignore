@@ -20,3 +20,4 @@ tests/searchcommands_data/log/
 tests/searchcommands_data/output/
 examples/searchcommands_app/searchcommand_app.log
 Test Results*.html
+tests/searchcommands/data/app/app.log

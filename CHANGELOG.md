@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.3.1
+
+### Bug fixes
+
+* Hot fix to `binding.py` to work with Python 2.7.9, which introduced SSL certificate validation by default as outlined in [PEP 476](https://www.python.org/dev/peps/pep-0476).
+* Update `async`, `handler_proxy`, and `handler_urllib2` examples to work with Python version 2.7.9 by disabling SSL certificate validation by default.
 
 ## Version 1.3.0
 

@@ -22,6 +22,7 @@
 
 import sys, os, datetime
 import urllib
+import ssl
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import splunklib.binding as binding
@@ -171,7 +172,12 @@ def request(url, message, **kwargs):
     method = message.get("method", "GET")
     
     # Note that we do not support proxies in this example
-    opener = urllib2.build_opener()
+    # If running Python 2.7.9+, disable SSL certificate validation
+    if sys.version_info >= (2, 7, 9):
+        unverified_ssl_handler = urllib2.HTTPSHandler(context=ssl._create_unverified_context())
+        opener = urllib2.build_opener(unverified_ssl_handler)
+    else:
+        opener = urllib2.build_opener()
 
     # Unfortunately, we need to use the hack of 
     # "overriding" `request.get_method` to specify
@@ -185,6 +191,7 @@ def request(url, message, **kwargs):
         response = opener.open(request)
     except Exception as e:
         response = e
+        print e
 
     # Normalize the response to something the SDK expects, and 
     # return it.

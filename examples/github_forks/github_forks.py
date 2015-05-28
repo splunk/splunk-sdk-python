@@ -50,6 +50,7 @@ class MyScript(Script):
         scheme.use_single_instance = True
 
         owner_argument = Argument("owner")
+        owner_argument.title = "Owner"
         owner_argument.data_type = Argument.data_type_string
         owner_argument.description = "Github user or organization that created the repository."
         owner_argument.required_on_create = True
@@ -59,6 +60,7 @@ class MyScript(Script):
         scheme.add_argument(owner_argument)
 
         repo_name_argument = Argument("repo_name")
+        repo_name_argument.title = "Repo Name"
         repo_name_argument.data_type = Argument.data_type_string
         repo_name_argument.description = "Name of the Github repository."
         repo_name_argument.required_on_create = True

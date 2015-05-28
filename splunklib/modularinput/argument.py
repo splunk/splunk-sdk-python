@@ -80,6 +80,9 @@ class Argument(object):
         arg = ET.SubElement(parent, "arg")
         arg.set("name", self.name)
 
+        if self.title is not None:
+            ET.SubElement(arg, "title").text = self.title
+
         if self.description is not None:
             ET.SubElement(arg, "description").text = self.description
 

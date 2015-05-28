@@ -21,6 +21,7 @@ from StringIO import StringIO
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import urllib2
+import ssl
 
 import splunklib.client as client
 
@@ -34,9 +35,13 @@ def request(url, message, **kwargs):
     method = message['method'].lower()
     data = message.get('body', "") if method == 'post' else None
     headers = dict(message.get('headers', []))
-    context = urllib2.Request(url, data, headers)
+    # If running Python 2.7.9+, disable SSL certificate validation
+    req = urllib2.Request(url, data, headers)
     try:
-        response = urllib2.urlopen(context)
+        if sys.version_info >= (2, 7, 9):
+            response = urllib2.urlopen(req, context=ssl._create_unverified_context())
+        else:
+            response = urllib2.urlopen(req)
     except urllib2.HTTPError, response:
         pass # Propagate HTTP errors via the returned response message
     return {

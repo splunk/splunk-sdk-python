@@ -237,13 +237,15 @@ def _parse_atom_entry(entry):
 
     # Filter some of the noise out of the content record
     content = record((k, v) for k, v in content.iteritems()
-        if k not in ['eai:acl', 'eai:attributes'])
+                     if k not in ['eai:acl', 'eai:attributes'])
 
-    if type(content['type']) is type([]):
+    if isinstance(content['type'], list):
         content['type'] = [t for t in content['type'] if t != 'text/xml']
-        if len(content['type']) == 0: # Unset type if it was only 'text/xml'
+        # Unset type if it was only 'text/xml'
+        if len(content['type']) == 0:
             content.pop('type', None)
-        if len(content['type']) == 1: # Flatten 1 element list
+        # Flatten 1 element list
+        if len(content['type']) == 1:
             content['type'] = content['type'][0]
     else:
         content.pop('type', None)
@@ -530,7 +532,7 @@ class Service(_BaseService):
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
         result = self.post("server/control/restart")
-        if timeout is None: 
+        if timeout is None:
             return result
         start = datetime.now()
         diff = timedelta(seconds=timeout)
@@ -1619,7 +1621,7 @@ class Collection(ReadOnlyCollection):
         name = UrlEncoded(name, encode_slash=True)
         return super(Collection, self).get(name, owner, app, sharing, **query)
 
-    
+
 
 
 class ConfigurationFile(Collection):
@@ -1799,7 +1801,7 @@ class StoragePasswords(Collection):
         storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
 
         return storage_password
-    
+
     def delete(self, username, realm=None):
         """Delete a storage password by username and/or realm.
 
@@ -1970,7 +1972,7 @@ class Index(Entity):
         :return: The :class:`Index`.
         """
         self.refresh()
-        
+
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         was_disabled_initially = self.disabled
@@ -1989,7 +1991,7 @@ class Index(Entity):
             while self.content.totalEventCount != '0' and datetime.now() < start+diff:
                 sleep(1)
                 self.refresh()
-            
+
             if self.content.totalEventCount != '0':
                 raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
                                       (self.name, timeout)
@@ -2934,7 +2936,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify an exec_mode to export.")
         params['segmentation'] = params.get('segmentation', 'none')
         return self.post(path_segment="export",
-                         search=query, 
+                         search=query,
                          **params).body
 
     def itemmeta(self):
@@ -2997,7 +2999,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify an exec_mode to oneshot.")
         params['segmentation'] = params.get('segmentation', 'none')
         return self.post(search=query,
-                         exec_mode="oneshot", 
+                         exec_mode="oneshot",
                          **params).body
 
 

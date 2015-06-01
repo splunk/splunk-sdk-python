@@ -3027,7 +3027,8 @@ class Message(Entity):
     def value(self):
         """Returns the message value.
 
-        :return: The :class:`Loggers` collection.
+        :return: The message value.
+        :rtype: ``string``
         """
         return self[self.name]
 

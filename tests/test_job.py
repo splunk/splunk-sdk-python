@@ -25,7 +25,9 @@ except ImportError:
 import splunklib.client as client
 import splunklib.results as results
 
-from splunklib.binding import _log_duration
+from splunklib.binding import _log_duration, HTTPError
+
+from xml.etree.ElementTree import ParseError
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -342,6 +344,20 @@ class TestJob(testlib.SDKTestCase):
         if new_ttl == old_ttl:
             self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
         self.assertGreater(int(self.job['ttl']), old_ttl)
+
+    def test_search_invalid_query_as_json(self):
+        args = {
+            'output_mode': 'json',
+            'exec_mode': 'normal'
+        }
+        try:
+            self.service.jobs.create('invalid query', **args)
+        except ParseError as pe:
+            self.fail("Something went wrong with parsing the REST API response. %s" % pe.message)
+        except HTTPError as he:
+            self.assertEqual(he.status, 400)
+        except Exception as e:
+            self.fail("Got some unexpected error. %s" % e.message)
 
 
 class TestResultsReader(unittest.TestCase):

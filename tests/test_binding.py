@@ -200,14 +200,14 @@ class TestUserManipulation(BindingTestCase):
             response = self.context.delete(PATH_USERS + self.username)
             self.assertEqual(response.status, 200)
         except HTTPError, e:
-            self.assertEqual(e.status, 400)
+            self.assertTrue(e.status in [400, 500])
 
     def tearDown(self):
         BindingTestCase.tearDown(self)
         try:
             self.context.delete(PATH_USERS + self.username)
         except HTTPError, e:
-            if e.status != 400:
+            if e.status not in [400, 500]:
                 raise
 
     def test_user_without_role_fails(self):

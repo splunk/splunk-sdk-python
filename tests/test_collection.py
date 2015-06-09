@@ -133,8 +133,9 @@ class CollectionTestCase(testlib.SDKTestCase):
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             found = [ent.name for ent in coll.list(**found_kwargs)]
-            self.assertEqual(expected, found,
-                             msg='on %s (expected: %s, found: %s)' % \
+
+            self.assertEqual(sorted(expected), sorted(found),
+                             msg='on %s (expected: %s, found: %s)' %
                                  (coll_name, expected, found))
 
     def test_list_with_sort_mode_auto(self):

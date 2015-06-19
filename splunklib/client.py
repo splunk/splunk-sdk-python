@@ -1900,6 +1900,9 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
+        # FIXME: BUG, can't seem to use receivers/stream by writing Cookie: xyz
+        # but it works fine with with the Authorization: xyz header
+
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note
         # the input mode

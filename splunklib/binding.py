@@ -422,6 +422,11 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
 
+        # FIXME: update the docstrings for this
+        self.cookie = kwargs.get("cookie", _NoAuthenticationToken)
+        if self.cookie is None: # In case someone explicitly passes cookie=None
+            self.cookie = _NoAuthenticationToken
+
     # Shared per-context request headers
     @property
     def _auth_headers(self):
@@ -433,7 +438,9 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        if self.token is _NoAuthenticationToken:
+        if self.cookie is not _NoAuthenticationToken:
+            return [("cookie", self.cookie)]
+        elif self.token is _NoAuthenticationToken:
             return []
         else:
             # Ensure the token is properly formatted
@@ -756,10 +763,20 @@ class Context(object):
             # logged in.
             return
         try:
+            #TODO: if self.cookie is set, should we even bother with trying to get a token?
+            
             response = self.http.post(
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
-                password=self.password)
+                password=self.password,
+                cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
+
+            # TODO: Should we return at this point, or also parse the token if we get a cookie?
+            for key, value in response.headers:
+                if key == "set-cookie":
+                    self.cookie = value
+                    return self
+
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")
             self.token = "Splunk %s" % session

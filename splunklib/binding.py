@@ -439,6 +439,7 @@ class Context(object):
         :returns: A list of 2-tuples containing key and value
         """
         if self.cookie is not _NoAuthenticationToken:
+            #TODO: update docs!
             return [("cookie", self.cookie)]
         elif self.token is _NoAuthenticationToken:
             return []
@@ -533,6 +534,8 @@ class Context(object):
                                               app=app, sharing=sharing)
         logging.debug("DELETE request to %s (body: %s)", path, repr(query))
         response = self.http.delete(path, self._auth_headers, **query)
+        if response.has_key("Set-Cookie"):
+            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -591,6 +594,8 @@ class Context(object):
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
         response = self.http.get(path, self._auth_headers, **query)
+        if response.has_key("Set-Cookie"):
+            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -664,6 +669,8 @@ class Context(object):
         logging.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
+        if response.has_key("Set-Cookie"):
+            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -735,6 +742,8 @@ class Context(object):
                                      {'method': method,
                                      'headers': all_headers,
                                      'body': body})
+        if response.has_key("Set-Cookie"):
+            self.cookie = response["Set-Cookie"]
         return response
 
     def login(self):
@@ -756,26 +765,34 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
+        # If self.cookie and self.token only, use the cookie
+        if self.cookie is not _NoAuthenticationToken and \
+                (not self.username and not self.password):
+            # If we were passed a session cookie, but no username or
+            # password, then login is a nop, since we're automatically
+            # logged in.
+            return
+
         if self.token is not _NoAuthenticationToken and \
                 (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
             return
+
+        # Only try to get a token and updated cookie if username & password are specified
         try:
-            #TODO: if self.cookie is set, should we even bother with trying to get a token?
-            
             response = self.http.post(
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
                 password=self.password,
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
-            # TODO: Should we return at this point, or also parse the token if we get a cookie?
+            # Store the cookie
             for key, value in response.headers:
-                if key == "set-cookie":
+                if key.lower() == "set-cookie":
                     self.cookie = value
-                    return self
+                    break
 
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")

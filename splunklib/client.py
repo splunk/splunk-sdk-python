@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _NoAuthenticationToken
 from data import record
 import data
 
@@ -1900,9 +1900,6 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
-        # FIXME: BUG, can't seem to use receivers/stream by writing Cookie: xyz
-        # but it works fine with with the Authorization: xyz header
-
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note
         # the input mode
@@ -1913,6 +1910,10 @@ class Index(Entity):
                    "Authorization: %s\r\n" % self.service.token,
                    "X-Splunk-Input-Mode: Streaming\r\n",
                    "\r\n"]
+        # If we have a cookie, use it instead of "Authorization: ..."
+        if self.service.cookie is not _NoAuthenticationToken:
+            headers[3] = "Cookie: %s\r\n" % self.service.cookie
+        
         for h in headers:
             sock.write(h)
         return sock

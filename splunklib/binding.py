@@ -224,7 +224,9 @@ def _authentication(request_fun):
     """
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is _NoAuthenticationToken:
+        # TODO: verify this logic is correct with tests
+        if self.token is _NoAuthenticationToken and \
+                        self.cookie is _NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught

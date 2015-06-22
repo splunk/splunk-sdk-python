@@ -1145,6 +1145,8 @@ class HttpLib(object):
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)
+        if response.has_key("Set-Cookie"):
+            self.cookie = response["Set-Cookie"]
         return response
 
 

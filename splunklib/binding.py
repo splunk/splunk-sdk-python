@@ -536,8 +536,6 @@ class Context(object):
                                               app=app, sharing=sharing)
         logging.debug("DELETE request to %s (body: %s)", path, repr(query))
         response = self.http.delete(path, self._auth_headers, **query)
-        if response.has_key("Set-Cookie"):
-            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -596,8 +594,6 @@ class Context(object):
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
         response = self.http.get(path, self._auth_headers, **query)
-        if response.has_key("Set-Cookie"):
-            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -671,8 +667,6 @@ class Context(object):
         logging.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
-        if response.has_key("Set-Cookie"):
-            self.cookie = response["Set-Cookie"]
         return response
 
     @_authentication
@@ -744,8 +738,6 @@ class Context(object):
                                      {'method': method,
                                      'headers': all_headers,
                                      'body': body})
-        if response.has_key("Set-Cookie"):
-            self.cookie = response["Set-Cookie"]
         return response
 
     def login(self):

@@ -1900,6 +1900,12 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
+        cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
+
+        # If we have a cookie, use it instead of "Authorization: ..."
+        if self.service.cookie is not _NoAuthenticationToken:
+            cookie_or_auth_header = "Cookie: %s\r\n" % self.service.cookie
+
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note
         # the input mode
@@ -1907,12 +1913,9 @@ class Index(Entity):
         headers = ["POST %s HTTP/1.1\r\n" % self.service._abspath(path),
                    "Host: %s:%s\r\n" % (self.service.host, int(self.service.port)),
                    "Accept-Encoding: identity\r\n",
-                   "Authorization: %s\r\n" % self.service.token,
+                   cookie_or_auth_header,
                    "X-Splunk-Input-Mode: Streaming\r\n",
                    "\r\n"]
-        # If we have a cookie, use it instead of "Authorization: ..."
-        if self.service.cookie is not _NoAuthenticationToken:
-            headers[3] = "Cookie: %s\r\n" % self.service.cookie
         
         for h in headers:
             sock.write(h)

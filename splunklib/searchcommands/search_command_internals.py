@@ -367,7 +367,7 @@ class SearchCommandParser(object):
         # Captures a set of name/value pairs when used with re.finditer
         ([_a-zA-Z][_a-zA-Z0-9]+)       # name
         \s*=\s*                        # =
-        ([^\s"]+|"(?:[^"]+|""|\\")*")  # value
+        ([^\s"]+|"(?:""|\\"|[^"])*")  # value
         """, re.VERBOSE)
 
     #endregion

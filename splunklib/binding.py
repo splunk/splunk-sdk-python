@@ -224,9 +224,8 @@ def _authentication(request_fun):
     """
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        # TODO: verify this logic is correct with tests
         if self.token is _NoAuthenticationToken and \
-                        self.cookie is _NoAuthenticationToken:
+                self.cookie is _NoAuthenticationToken:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -392,6 +391,10 @@ class Context(object):
     :param app: The app context of the namespace (optional, the default is "None").
     :type app: ``string``
     :param token: A session token. When provided, you don't need to call :meth:`login`.
+    :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param username: The Splunk account username, which is used to
         authenticate the Splunk instance.
     :type username: ``string``
@@ -407,8 +410,10 @@ class Context(object):
         c.login()
         # Or equivalently
         c = binding.connect(username="boris", password="natasha")
-        # Of if you already have a session token
+        # Or if you already have a session token
         c = binding.Context(token="atg232342aa34324a")
+        # Or if you already have a valid cookie
+        c = binding.Context(cookie="splunkd_8089=...")
     """
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler)
@@ -423,8 +428,6 @@ class Context(object):
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
-
-        # FIXME: update the docstrings for this
         self.cookie = kwargs.get("cookie", _NoAuthenticationToken)
         if self.cookie is None: # In case someone explicitly passes cookie=None
             self.cookie = _NoAuthenticationToken
@@ -434,14 +437,13 @@ class Context(object):
     def _auth_headers(self):
         """Headers required to authenticate a request.
 
-        Assumes your ``Context`` already has a authentication token,
-        either provided explicitly or obtained by logging into the
-        Splunk instance.
+        Assumes your ``Context`` already has a authentication token or
+        cookie, either provided explicitly or obtained by logging
+        into the Splunk instance.
 
         :returns: A list of 2-tuples containing key and value
         """
         if self.cookie is not _NoAuthenticationToken:
-            #TODO: update docs!
             return [("cookie", self.cookie)]
         elif self.token is _NoAuthenticationToken:
             return []
@@ -1137,8 +1139,12 @@ class HttpLib(object):
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)
-        if response.has_key("Set-Cookie"):
-            self.cookie = response["Set-Cookie"]
+
+        # Update the cookie with any HTTP request
+        for key, value in response.headers:
+            if key.lower() == "set-cookie":
+                self.cookie = value
+                break
         return response
 
 
@@ -1250,6 +1256,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             "Host": host,
             "User-Agent": "splunk-sdk-python/0.1",
             "Accept": "*/*",
+            "Cookie": "1"
         } # defaults
         for key, value in message["headers"]:
             head[key] = value

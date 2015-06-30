@@ -15,16 +15,12 @@
 # under the License.
 
 import testlib
-import logging
-
 import unittest
-
-import splunklib.data as data
 
 import splunklib.client as client
 from splunklib.client import AuthenticationError
 from splunklib.client import Service
-from splunklib.binding import HTTPError
+from splunklib.binding import HTTPError, _NoAuthenticationToken
 
 
 class ServiceTestCase(testlib.SDKTestCase):
@@ -144,6 +140,34 @@ class ServiceTestCase(testlib.SDKTestCase):
             'port': self.opts.kwargs['port'],
             'scheme': self.opts.kwargs['scheme']
         })
+
+class TestCookieAuthentication(unittest.TestCase):
+    def setUp(self):
+        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.service = client.Service(**self.opts.kwargs)
+
+        # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
+        splver = self.service.splunk_version
+        if splver[:2] < (6, 2):
+            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+
+    def test_login_and_store_cookie(self):
+        self.assertIsNotNone(self.service.cookie)
+        self.assertEquals(self.service.cookie, _NoAuthenticationToken)
+        self.service.login()
+        self.assertIsNotNone(self.service.cookie)
+        self.assertNotEquals(self.service.cookie, _NoAuthenticationToken)
+
+    def test_login_with_cookie(self):
+        self.service.login()
+        self.assertIsNotNone(self.service.cookie)
+        self.assertNotEqual(self.service.cookie, _NoAuthenticationToken)
+        # Use the cookie from the other service as the only auth param (don't need user/password)
+        service2 = client.Service(**{"cookie": self.service.cookie})
+        service2.login()
+        self.assertEqual(service2.cookie, self.service.cookie)
+        self.assertEqual(service2.cookie[:8], "splunkd_")
+
 
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):

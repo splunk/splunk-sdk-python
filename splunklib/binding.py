@@ -1255,8 +1255,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             "Content-Length": str(len(body)),
             "Host": host,
             "User-Agent": "splunk-sdk-python/0.1",
-            "Accept": "*/*",
-            "Cookie": "1"
+            "Accept": "*/*"
         } # defaults
         for key, value in message["headers"]:
             head[key] = value

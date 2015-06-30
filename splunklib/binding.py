@@ -857,7 +857,7 @@ class Context(object):
         # endpoint. Otherwise, use /servicesNS with the specified
         # namespace. If only one of app and owner is specified, use
         # '-' for the other.
-        if ns.app is None and ns.owner is None:
+        if ns.app is None and ns.owner is None or path_segment.startswith("server"):
             return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
 
         oname = "nobody" if ns.owner is None else ns.owner

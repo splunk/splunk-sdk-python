@@ -1902,9 +1902,13 @@ class Index(Entity):
 
         cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
 
-        # If we have a cookie, use it instead of "Authorization: ..."
-        if self.service.cookie is not _NoAuthenticationToken:
-            cookie_or_auth_header = "Cookie: %s\r\n" % self.service.cookie
+        # If we have cookie(s), use them instead of "Authorization: ..."
+        if len(self.service.cookies) > 0:
+            cookies = []
+            for cookie in self.service.cookies.items():
+                cookies.append("Cookie: %s=%s\r\n" % cookie)
+            if len(cookies) > 0:
+                cookie_or_auth_header = "".join(cookies)
 
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note

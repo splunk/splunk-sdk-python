@@ -31,6 +31,7 @@ import ssl
 import urllib
 import io
 import sys
+import Cookie
 
 from datetime import datetime
 from functools import wraps
@@ -225,7 +226,7 @@ def _authentication(request_fun):
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
         if self.token is _NoAuthenticationToken and \
-                self.cookie is _NoAuthenticationToken:
+                len(self.cookies) < 1:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -428,9 +429,13 @@ class Context(object):
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
-        self.cookie = kwargs.get("cookie", _NoAuthenticationToken)
-        if self.cookie is None: # In case someone explicitly passes cookie=None
-            self.cookie = _NoAuthenticationToken
+
+        # By default, there are no cookies
+        self.cookies = {}
+        if kwargs.has_key("cookie") and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
+            parsed_cookie = Cookie.SimpleCookie(kwargs.get(("cookie")))
+            for cookie in parsed_cookie.values():
+                self.cookies[cookie.key] = cookie.coded_value
 
     # Shared per-context request headers
     @property
@@ -443,8 +448,8 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        if self.cookie is not _NoAuthenticationToken:
-            return [("cookie", self.cookie)]
+        if len(self.cookies) > 0:
+            return [("cookie", "%s=%s" % cookie) for cookie in self.cookies.items()]
         elif self.token is _NoAuthenticationToken:
             return []
         else:
@@ -761,10 +766,10 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
-        # If self.cookie and self.token only, use the cookie
-        if self.cookie is not _NoAuthenticationToken and \
+        # If self.cookies and self.token only, use the cookie
+        if len(self.cookies) > 0 and \
                 (not self.username and not self.password):
-            # If we were passed a session cookie, but no username or
+            # If we were passed session cookie(s), but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
             return
@@ -785,10 +790,12 @@ class Context(object):
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
             # Store the cookie
+
             for key, value in response.headers:
                 if key.lower() == "set-cookie":
-                    self.cookie = value
-                    break
+                    parsed_cookies = Cookie.SimpleCookie(value)
+                    for cookie in parsed_cookies.values():
+                        self.cookies[cookie.key] = cookie.coded_value
 
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")
@@ -801,8 +808,9 @@ class Context(object):
                 raise
 
     def logout(self):
-        """Forgets the current session token."""
+        """Forgets the current session token, and cookies."""
         self.token = _NoAuthenticationToken
+        self.cookies = {}
         return self
 
     def _abspath(self, path_segment,
@@ -1030,6 +1038,8 @@ class HttpLib(object):
     """
     def __init__(self, custom_handler=None):
         self.handler = handler() if custom_handler is None else custom_handler
+        if not hasattr(self, 'cookies'):
+            self.cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
         """Sends a DELETE request to a URL.
@@ -1143,8 +1153,9 @@ class HttpLib(object):
         # Update the cookie with any HTTP request
         for key, value in response.headers:
             if key.lower() == "set-cookie":
-                self.cookie = value
-                break
+                parsed_cookie = Cookie.SimpleCookie(value)
+                for cookie in parsed_cookie.values():
+                    self.cookies[cookie.key] = cookie.coded_value
         return response
 
 

@@ -26,6 +26,7 @@ import unittest
 import socket
 import sys
 import ssl
+import Cookie
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
@@ -476,6 +477,8 @@ class TestLogout(BindingTestCase):
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)
         self.context.logout()
+        self.assertEqual(self.context.token, binding._NoAuthenticationToken)
+        self.assertEqual(self.context.cookies, {})
         self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
         self.assertRaises(AuthenticationError,
@@ -507,21 +510,60 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][1][:8], "splunkd_")
 
     def test_got_cookie_on_connect(self):
-        self.assertIsNotNone(self.context.cookie)
-        self.assertNotEqual(self.context.cookie, binding._NoAuthenticationToken)
-        self.assertEqual(self.context.cookie[:8], "splunkd_")
+        self.assertIsNotNone(self.context.cookies)
+        self.assertNotEqual(self.context.cookies, {})
+        self.assertEqual(len(self.context.cookies), 1)
+        self.assertEqual(self.context.cookies.keys()[0][:8], "splunkd_")
 
     def test_got_updated_cookie_with_get(self):
-        old_cookie = self.context.cookie
+        old_cookies = self.context.cookies
         resp = self.context.get("apps/local")
         found = False
         for key, value in resp.headers:
             if key.lower() == "set-cookie":
                 found = True
                 self.assertEqual(value[:8], "splunkd_")
-                # It's unlikely that the cookie will change during this short test
-                self.assertEqual(value, old_cookie)
+
+                parsed_cookies = Cookie.SimpleCookie(value)
+                # We're only expecting 1 in this scenario
+                self.assertEqual(len(old_cookies), 1)
+                self.assertTrue(len(parsed_cookies.values()), 1)
+                parsed_cookie = parsed_cookies.values()[0]
+
+                self.assertEqual(parsed_cookie.key, old_cookies.keys()[0])
+                self.assertEqual(parsed_cookie.coded_value, old_cookies.values()[0])
         self.assertTrue(found)
+
+    def test_login_fails_with_bad_cookie(self):
+        new_context = binding.connect(**{"cookie": "bad=cookie"})
+        # We should get an error if using a bad cookie
+        try:
+            new_context.get("apps/local")
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+
+    def test_login_with_multiple_cookies(self):
+        bad_cookie = 'bad=cookie'
+        new_context = binding.connect(**{"cookie": bad_cookie})
+        # We should get an error if using a bad cookie
+        try:
+            new_context.get("apps/local")
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            # Bring in a valid cookie now
+            for key, value in self.context.cookies.items():
+                new_context.cookies[key] = value
+
+            self.assertEqual(len(new_context.cookies), 2)
+            self.assertTrue('bad' in new_context.cookies.keys())
+            self.assertTrue('cookie' in new_context.cookies.values())
+
+            for k, v in self.context.cookies.items():
+                self.assertEqual(new_context.cookies[k], v)
+
+            self.assertEqual(new_context.get("apps/local").status, 200)
 
     def test_login_fails_without_cookie_or_token(self):
         opts = {

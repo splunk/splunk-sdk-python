@@ -152,22 +152,79 @@ class TestCookieAuthentication(unittest.TestCase):
             self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
 
     def test_login_and_store_cookie(self):
-        self.assertIsNotNone(self.service.cookie)
-        self.assertEquals(self.service.cookie, _NoAuthenticationToken)
+        self.assertIsNotNone(self.service.cookies)
+        self.assertEquals(len(self.service.cookies), 0)
         self.service.login()
-        self.assertIsNotNone(self.service.cookie)
-        self.assertNotEquals(self.service.cookie, _NoAuthenticationToken)
+        self.assertIsNotNone(self.service.cookies)
+        self.assertNotEquals(self.service.cookies, {})
+        self.assertEquals(len(self.service.cookies), 1)
 
     def test_login_with_cookie(self):
         self.service.login()
-        self.assertIsNotNone(self.service.cookie)
-        self.assertNotEqual(self.service.cookie, _NoAuthenticationToken)
+        self.assertIsNotNone(self.service.cookies)
         # Use the cookie from the other service as the only auth param (don't need user/password)
-        service2 = client.Service(**{"cookie": self.service.cookie})
+        service2 = client.Service(**{"cookie": "%s=%s" % self.service.cookies.items()[0]})
         service2.login()
-        self.assertEqual(service2.cookie, self.service.cookie)
-        self.assertEqual(service2.cookie[:8], "splunkd_")
+        self.assertEqual(len(service2.cookies), 1)
+        self.assertEqual(service2.cookies, self.service.cookies)
+        self.assertEqual(len(service2.cookies), len(self.service.cookies))
+        self.assertEqual(service2.cookies.keys()[0][:8], "splunkd_")
+        self.assertEqual(service2.apps.get().status, 200)
 
+    def test_login_fails_with_bad_cookie(self):
+        bad_cookie = {'bad': 'cookie'}
+        service2 = client.Service()
+        self.assertEquals(len(service2.cookies), 0)
+        service2.cookies.update(bad_cookie)
+        service2.login()
+        self.assertEquals(service2.cookies, {'bad': 'cookie'})
+
+        # Should get an error with a bad cookie
+        try:
+            service2.apps.get()
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+
+    def test_login_fails_with_no_cookie(self):
+        service2 = client.Service()
+        self.assertEquals(len(service2.cookies), 0)
+
+        # Should get an error when no authentication method
+        try:
+            service2.login()
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Login failed.")
+
+    def test_login_with_multiple_cookies(self):
+        bad_cookie = 'bad=cookie'
+        self.service.login()
+        self.assertIsNotNone(self.service.cookies)
+
+        service2 = client.Service(**{"cookie": bad_cookie})
+        service2.login()
+
+        # Should get an error with a bad cookie
+        try:
+            service2.apps.get()
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+
+            # Add on valid cookies, and try to use all of them
+            service2.cookies.update(self.service.cookies)
+
+            self.assertEqual(len(service2.cookies), 2)
+            self.service.cookies.update({'bad': 'cookie'})
+            self.assertEqual(service2.cookies, self.service.cookies)
+            self.assertEqual(len(service2.cookies), 2)
+            self.assertEqual(service2.cookies.keys()[1][:8], "splunkd_")
+            self.assertTrue('bad' in service2.cookies.keys())
+            self.assertEqual(service2.cookies['bad'], 'cookie')
+            self.assertEqual(self.service.cookies.items(), service2.cookies.items())
+            service2.login()
+            self.assertEqual(service2.apps.get().status, 200)
 
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):

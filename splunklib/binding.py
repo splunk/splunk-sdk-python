@@ -265,7 +265,7 @@ def _authentication(request_fun):
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
         if self.token is _NoAuthenticationToken and \
-                len(self.get_cookies()) < 1:
+                not self.has_cookies():
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught

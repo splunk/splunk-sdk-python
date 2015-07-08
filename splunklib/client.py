@@ -345,6 +345,9 @@ class Service(_BaseService):
     :param `token`: The current session token (optional). Session tokens can be
                     shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param `username`: The Splunk account username, which is used to
                        authenticate the Splunk instance.
     :type username: ``string``
@@ -362,6 +365,8 @@ class Service(_BaseService):
         s = client.connect(username="boris", password="natasha")
         # Or if you already have a session token
         s = client.Service(token="atg232342aa34324a")
+        # Or if you already have a valid cookie
+        s = client.Service(cookie="splunkd_8089=...")
     """
     def __init__(self, **kwargs):
         super(Service, self).__init__(**kwargs)

@@ -68,6 +68,47 @@ def _log_duration(f):
     return new_f
 
 
+def parse_cookies(cookie_str, dictionary):
+    """Tries to parse any key-value pairs of cookies in a string,
+    then updates the the dictionary with any key-value pairs found.
+
+    **Example**::
+
+        parse_cookies('my=value', {})
+        # Now the following is True
+        dictionary['my'] == 'value'
+
+    :param cookie_str: A string containing "key=value" pairs from an HTTP "Set-Cookie" header
+    :type msg: ``str``
+    :param dictionary: A dictionary to update with any found key-value pairs
+    :type msg: ``dict``
+    """
+    parsed_cookie = Cookie.SimpleCookie(cookie_str)
+    for cookie in parsed_cookie.values():
+        dictionary[cookie.key] = cookie.coded_value
+
+def make_cookie_header(cookies):
+    # TODO: verify
+    """
+    Takes a list of 2-tuples of key-value pairs of
+    cookies, and returns a valid HTTP ``Cookie``
+    header.
+
+    **Example**::
+
+        header = make_cookie_header([("key", "value"), ("key_2", "value_2")])
+        # Now the following is True
+        header == "key=value; key_2=value_2"
+
+    :param cookies:
+    :return: ``str` An HTTP header cookie string.
+    :rtype: ``str``
+    """
+    header = ""
+    for key, value in cookies:
+        header += "%s=%s; " % (key, value)
+    return header
+
 # Singleton values to eschew None
 class _NoAuthenticationToken(object):
     """The value stored in a :class:`Context` or :class:`splunklib.client.Service`
@@ -226,7 +267,7 @@ def _authentication(request_fun):
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
         if self.token is _NoAuthenticationToken and \
-                len(self.cookies) < 1:
+                len(self.http.cookies) < 1:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -430,12 +471,9 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
 
-        # By default, there are no cookies
-        self.cookies = {}
+        # Store any cookies in the self.http.cookies dict
         if kwargs.has_key("cookie") and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
-            parsed_cookie = Cookie.SimpleCookie(kwargs.get(("cookie")))
-            for cookie in parsed_cookie.values():
-                self.cookies[cookie.key] = cookie.coded_value
+            parse_cookies(kwargs["cookie"], self.http.cookies)
 
     # Shared per-context request headers
     @property
@@ -448,8 +486,8 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        if len(self.cookies) > 0:
-            return [("cookie", "%s=%s" % cookie) for cookie in self.cookies.items()]
+        if len(self.http.cookies) > 0:
+            return [("Cookie", make_cookie_header(self.http.cookies.items()))]
         elif self.token is _NoAuthenticationToken:
             return []
         else:
@@ -766,8 +804,8 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
-        # If self.cookies and self.token only, use the cookie
-        if len(self.cookies) > 0 and \
+
+        if len(self.http.cookies) > 0 and \
                 (not self.username and not self.password):
             # If we were passed session cookie(s), but no username or
             # password, then login is a nop, since we're automatically
@@ -789,14 +827,6 @@ class Context(object):
                 password=self.password,
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
-            # Store the cookie
-
-            for key, value in response.headers:
-                if key.lower() == "set-cookie":
-                    parsed_cookies = Cookie.SimpleCookie(value)
-                    for cookie in parsed_cookies.values():
-                        self.cookies[cookie.key] = cookie.coded_value
-
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")
             self.token = "Splunk %s" % session
@@ -810,7 +840,7 @@ class Context(object):
     def logout(self):
         """Forgets the current session token, and cookies."""
         self.token = _NoAuthenticationToken
-        self.cookies = {}
+        self.http.cookies = {}
         return self
 
     def _abspath(self, path_segment,
@@ -1151,11 +1181,16 @@ class HttpLib(object):
             raise HTTPError(response)
 
         # Update the cookie with any HTTP request
-        for key, value in response.headers:
+        # Initially, assume list of 2-tuples
+        key_value_tuples = response.headers
+        # If response.headers is a dict, get the key-value pairs as 2-tuples
+        # this is the case when using urllib2
+        if isinstance(response.headers, dict):
+            key_value_tuples = response.headers.items()
+        for key, value in key_value_tuples:
             if key.lower() == "set-cookie":
-                parsed_cookie = Cookie.SimpleCookie(value)
-                for cookie in parsed_cookie.values():
-                    self.cookies[cookie.key] = cookie.coded_value
+                parse_cookies(value, self.cookies)
+
         return response
 
 

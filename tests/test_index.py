@@ -110,7 +110,7 @@ class IndexTest(testlib.SDKTestCase):
     def test_submit_via_attach_with_cookie_header(self):
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
 
-        cookie = "%s=%s" % (self.service.cookies.items()[0])
+        cookie = "%s=%s" % (self.service.http.cookies.items()[0])
         service = client.Service(**{"cookie": cookie})
         service.login()
         cn = service.indexes[self.index_name].attach()
@@ -121,24 +121,9 @@ class IndexTest(testlib.SDKTestCase):
     def test_submit_via_attach_with_multiple_cookie_headers(self):
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
         service = client.Service(**{"cookie": 'a bad cookie'})
-        service.cookies.update(self.service.cookies)
+        service.http.cookies.update(self.service.http.cookies)
         service.login()
         cn = service.indexes[self.index_name].attach()
-        cn.send("Hello Boris!\r\n")
-        cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
-
-    def test_login_with_multiple_cookie_headers(self):
-        event_count = int(self.index['totalEventCount'])
-
-        cookies = {}
-        cookies['bad'] = 'cookie'
-        cookies['something_else'] = 'bad'
-        self.service.logout()
-        self.service.cookies.update(cookies)
-
-        self.service.login()
-        cn = self.service.indexes[self.index_name].attach()
         cn.send("Hello Boris!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)

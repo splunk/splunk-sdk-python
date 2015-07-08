@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _NoAuthenticationToken
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, make_cookie_header
 from data import record
 import data
 
@@ -1903,12 +1903,8 @@ class Index(Entity):
         cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
 
         # If we have cookie(s), use them instead of "Authorization: ..."
-        if len(self.service.cookies) > 0:
-            cookies = []
-            for cookie in self.service.cookies.items():
-                cookies.append("Cookie: %s=%s\r\n" % cookie)
-            if len(cookies) > 0:
-                cookie_or_auth_header = "".join(cookies)
+        if len(self.service.http.cookies) > 0:
+            cookie_or_auth_header = "Cookie: %s\r\n" % make_cookie_header(self.service.http.cookies.items())
 
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note

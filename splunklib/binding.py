@@ -88,7 +88,6 @@ def parse_cookies(cookie_str, dictionary):
         dictionary[cookie.key] = cookie.coded_value
 
 def make_cookie_header(cookies):
-    # TODO: verify
     """
     Takes a list of 2-tuples of key-value pairs of
     cookies, and returns a valid HTTP ``Cookie``

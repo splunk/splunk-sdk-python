@@ -68,13 +68,13 @@ def _log_duration(f):
     return new_f
 
 
-def parse_cookies(cookie_str, dictionary):
+def _parse_cookies(cookie_str, dictionary):
     """Tries to parse any key-value pairs of cookies in a string,
     then updates the the dictionary with any key-value pairs found.
 
     **Example**::
-
-        parse_cookies('my=value', {})
+        dictionary = {}
+        _parse_cookies('my=value', dictionary)
         # Now the following is True
         dictionary['my'] == 'value'
 
@@ -87,7 +87,8 @@ def parse_cookies(cookie_str, dictionary):
     for cookie in parsed_cookie.values():
         dictionary[cookie.key] = cookie.coded_value
 
-def make_cookie_header(cookies):
+
+def _make_cookie_header(cookies):
     """
     Takes a list of 2-tuples of key-value pairs of
     cookies, and returns a valid HTTP ``Cookie``
@@ -95,7 +96,7 @@ def make_cookie_header(cookies):
 
     **Example**::
 
-        header = make_cookie_header([("key", "value"), ("key_2", "value_2")])
+        header = _make_cookie_header([("key", "value"), ("key_2", "value_2")])
         # Now the following is True
         header == "key=value; key_2=value_2"
 
@@ -104,10 +105,7 @@ def make_cookie_header(cookies):
     :return: ``str` An HTTP header cookie string.
     :rtype: ``str``
     """
-    header = ""
-    for key, value in cookies:
-        header += "%s=%s; " % (key, value)
-    return header
+    return "; ".join("%s=%s" % (key, value) for key, value in cookies)
 
 # Singleton values to eschew None
 class _NoAuthenticationToken(object):
@@ -267,7 +265,7 @@ def _authentication(request_fun):
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
         if self.token is _NoAuthenticationToken and \
-                len(self.http.cookies) < 1:
+                len(self.get_cookies()) < 1:
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -471,9 +469,26 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
 
-        # Store any cookies in the self.http.cookies dict
+        # Store any cookies in the self.http._cookies dict
         if kwargs.has_key("cookie") and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
-            parse_cookies(kwargs["cookie"], self.http.cookies)
+            _parse_cookies(kwargs["cookie"], self.http._cookies)
+
+    def get_cookies(self):
+        """Gets the dictionary of cookies from the ``HttpLib`` member of this instance.
+
+        :return: Dictionary of cookies stored on the ``self.http``.
+        :rtype: ``dict``
+        """
+        return self.http._cookies
+
+    def has_cookies(self):
+        """Returns true if the ``HttpLib` member of this instance has at least
+        one cookie stored.
+
+        :return: ``True`` if there is at least one cookie, else ``False``
+        :rtype: ``bool``
+        """
+        return len(self.get_cookies()) > 0
 
     # Shared per-context request headers
     @property
@@ -486,8 +501,8 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        if len(self.http.cookies) > 0:
-            return [("Cookie", make_cookie_header(self.http.cookies.items()))]
+        if self.has_cookies():
+            return [("Cookie", _make_cookie_header(self.get_cookies().items()))]
         elif self.token is _NoAuthenticationToken:
             return []
         else:
@@ -805,7 +820,7 @@ class Context(object):
             # Then issue requests...
         """
 
-        if len(self.http.cookies) > 0 and \
+        if self.has_cookies() and \
                 (not self.username and not self.password):
             # If we were passed session cookie(s), but no username or
             # password, then login is a nop, since we're automatically
@@ -840,7 +855,7 @@ class Context(object):
     def logout(self):
         """Forgets the current session token, and cookies."""
         self.token = _NoAuthenticationToken
-        self.http.cookies = {}
+        self.http._cookies = {}
         return self
 
     def _abspath(self, path_segment,
@@ -1068,8 +1083,7 @@ class HttpLib(object):
     """
     def __init__(self, custom_handler=None):
         self.handler = handler() if custom_handler is None else custom_handler
-        if not hasattr(self, 'cookies'):
-            self.cookies = {}
+        self._cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
         """Sends a DELETE request to a URL.
@@ -1189,7 +1203,7 @@ class HttpLib(object):
             key_value_tuples = response.headers.items()
         for key, value in key_value_tuples:
             if key.lower() == "set-cookie":
-                parse_cookies(value, self.cookies)
+                _parse_cookies(value, self._cookies)
 
         return response
 
@@ -1301,7 +1315,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             "Content-Length": str(len(body)),
             "Host": host,
             "User-Agent": "splunk-sdk-python/0.1",
-            "Accept": "*/*"
+            "Accept": "*/*",
         } # defaults
         for key, value in message["headers"]:
             head[key] = value

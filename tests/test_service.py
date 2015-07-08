@@ -20,7 +20,7 @@ import unittest
 import splunklib.client as client
 from splunklib.client import AuthenticationError
 from splunklib.client import Service
-from splunklib.binding import HTTPError, _NoAuthenticationToken
+from splunklib.binding import HTTPError
 
 
 class ServiceTestCase(testlib.SDKTestCase):
@@ -152,32 +152,32 @@ class TestCookieAuthentication(unittest.TestCase):
             self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
 
     def test_login_and_store_cookie(self):
-        self.assertIsNotNone(self.service.http.cookies)
-        self.assertEquals(len(self.service.http.cookies), 0)
+        self.assertIsNotNone(self.service.get_cookies())
+        self.assertEquals(len(self.service.get_cookies()), 0)
         self.service.login()
-        self.assertIsNotNone(self.service.http.cookies)
-        self.assertNotEquals(self.service.http.cookies, {})
-        self.assertEquals(len(self.service.http.cookies), 1)
+        self.assertIsNotNone(self.service.get_cookies())
+        self.assertNotEquals(self.service.get_cookies(), {})
+        self.assertEquals(len(self.service.get_cookies()), 1)
 
     def test_login_with_cookie(self):
         self.service.login()
-        self.assertIsNotNone(self.service.http.cookies)
+        self.assertIsNotNone(self.service.get_cookies())
         # Use the cookie from the other service as the only auth param (don't need user/password)
-        service2 = client.Service(**{"cookie": "%s=%s" % self.service.http.cookies.items()[0]})
+        service2 = client.Service(**{"cookie": "%s=%s" % self.service.get_cookies().items()[0]})
         service2.login()
-        self.assertEqual(len(service2.http.cookies), 1)
-        self.assertEqual(service2.http.cookies, self.service.http.cookies)
-        self.assertEqual(len(service2.http.cookies), len(self.service.http.cookies))
-        self.assertEqual(service2.http.cookies.keys()[0][:8], "splunkd_")
+        self.assertEqual(len(service2.get_cookies()), 1)
+        self.assertEqual(service2.get_cookies(), self.service.get_cookies())
+        self.assertEqual(len(service2.get_cookies()), len(self.service.get_cookies()))
+        self.assertEqual(service2.get_cookies().keys()[0][:8], "splunkd_")
         self.assertEqual(service2.apps.get().status, 200)
 
     def test_login_fails_with_bad_cookie(self):
         bad_cookie = {'bad': 'cookie'}
         service2 = client.Service()
-        self.assertEquals(len(service2.http.cookies), 0)
-        service2.http.cookies.update(bad_cookie)
+        self.assertEquals(len(service2.get_cookies()), 0)
+        service2.get_cookies().update(bad_cookie)
         service2.login()
-        self.assertEquals(service2.http.cookies, {'bad': 'cookie'})
+        self.assertEquals(service2.get_cookies(), {'bad': 'cookie'})
 
         # Should get an error with a bad cookie
         try:
@@ -186,9 +186,21 @@ class TestCookieAuthentication(unittest.TestCase):
         except AuthenticationError as ae:
             self.assertEqual(ae.message, "Request failed: Session is not logged in.")
 
+    def test_autologin_with_cookie(self):
+        self.service.login()
+        self.assertTrue(self.service.has_cookies())
+        service = client.connect(
+            autologin=True,
+            cookie="%s=%s" % self.service.get_cookies().items()[0],
+            **self.opts.kwargs)
+        self.assertTrue(service.has_cookies())
+        self.service.restart(timeout=120)
+        reader = service.jobs.oneshot("search index=internal | head 1")
+        self.assertIsNotNone(reader)
+
     def test_login_fails_with_no_cookie(self):
         service2 = client.Service()
-        self.assertEquals(len(service2.http.cookies), 0)
+        self.assertEquals(len(service2.get_cookies()), 0)
 
         # Should get an error when no authentication method
         try:
@@ -203,7 +215,7 @@ class TestCookieAuthentication(unittest.TestCase):
             'something_else': 'bad'
         }
         self.service.logout()
-        self.service.http.cookies.update(cookies)
+        self.service.get_cookies().update(cookies)
 
         self.service.login()
         self.assertEqual(self.service.apps.get().status, 200)
@@ -211,7 +223,7 @@ class TestCookieAuthentication(unittest.TestCase):
     def test_login_with_multiple_cookies(self):
         bad_cookie = 'bad=cookie'
         self.service.login()
-        self.assertIsNotNone(self.service.http.cookies)
+        self.assertIsNotNone(self.service.get_cookies())
 
         service2 = client.Service(**{"cookie": bad_cookie})
         service2.login()
@@ -224,16 +236,16 @@ class TestCookieAuthentication(unittest.TestCase):
             self.assertEqual(ae.message, "Request failed: Session is not logged in.")
 
             # Add on valid cookies, and try to use all of them
-            service2.http.cookies.update(self.service.http.cookies)
+            service2.get_cookies().update(self.service.get_cookies())
 
-            self.assertEqual(len(service2.http.cookies), 2)
-            self.service.http.cookies.update({'bad': 'cookie'})
-            self.assertEqual(service2.http.cookies, self.service.http.cookies)
-            self.assertEqual(len(service2.http.cookies), 2)
-            self.assertEqual(service2.http.cookies.keys()[1][:8], "splunkd_")
-            self.assertTrue('bad' in service2.http.cookies.keys())
-            self.assertEqual(service2.http.cookies['bad'], 'cookie')
-            self.assertEqual(self.service.http.cookies.items(), service2.http.cookies.items())
+            self.assertEqual(len(service2.get_cookies()), 2)
+            self.service.get_cookies().update({'bad': 'cookie'})
+            self.assertEqual(service2.get_cookies(), self.service.get_cookies())
+            self.assertEqual(len(service2.get_cookies()), 2)
+            self.assertEqual(service2.get_cookies().keys()[1][:8], "splunkd_")
+            self.assertTrue('bad' in service2.get_cookies().keys())
+            self.assertEqual(service2.get_cookies()['bad'], 'cookie')
+            self.assertEqual(self.service.get_cookies().items(), service2.get_cookies().items())
             service2.login()
             self.assertEqual(service2.apps.get().status, 200)
 

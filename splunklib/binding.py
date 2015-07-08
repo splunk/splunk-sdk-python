@@ -78,10 +78,10 @@ def parse_cookies(cookie_str, dictionary):
         # Now the following is True
         dictionary['my'] == 'value'
 
-    :param cookie_str: A string containing "key=value" pairs from an HTTP "Set-Cookie" header
-    :type msg: ``str``
-    :param dictionary: A dictionary to update with any found key-value pairs
-    :type msg: ``dict``
+    :param cookie_str: A string containing "key=value" pairs from an HTTP "Set-Cookie" header.
+    :type cookie_str: ``str``
+    :param dictionary: A dictionary to update with any found key-value pairs.
+    :type dictionary: ``dict``
     """
     parsed_cookie = Cookie.SimpleCookie(cookie_str)
     for cookie in parsed_cookie.values():
@@ -99,7 +99,8 @@ def make_cookie_header(cookies):
         # Now the following is True
         header == "key=value; key_2=value_2"
 
-    :param cookies:
+    :param cookies: A list of 2-tuples of cookie key-value pairs.
+    :type cookies: ``list`` of 2-tuples
     :return: ``str` An HTTP header cookie string.
     :rtype: ``str``
     """

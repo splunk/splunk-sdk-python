@@ -262,7 +262,6 @@ def _parse_atom_metadata(content):
 
     return record({'access': access, 'fields': fields})
 
-
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
     """This function connects and logs in to a Splunk instance.
@@ -285,6 +284,9 @@ def connect(**kwargs):
     :param `token`: The current session token (optional). Session tokens can be
                     shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param autologin: When ``True``, automatically tries to log in again if the
         session terminates.
     :type autologin: ``boolean``
@@ -302,7 +304,9 @@ def connect(**kwargs):
         a = s.apps["my_app"]
         ...
     """
-    return Service(**kwargs).login()
+    s = Service(**kwargs)
+    s.login()
+    return s
 
 
 # In preparation for adding Storm support, we added an

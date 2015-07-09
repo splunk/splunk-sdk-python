@@ -942,6 +942,9 @@ def connect(**kwargs):
     :param token: The current session token (optional). Session tokens can be
         shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param username: The Splunk account username, which is used to
         authenticate the Splunk instance.
     :type username: ``string``

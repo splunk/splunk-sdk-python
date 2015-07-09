@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 from contextlib import closing
 from fnmatch import fnmatch
 

@@ -31,6 +31,7 @@ import ssl
 import urllib
 import io
 import sys
+import Cookie
 
 from datetime import datetime
 from functools import wraps
@@ -66,6 +67,45 @@ def _log_duration(f):
         return val
     return new_f
 
+
+def _parse_cookies(cookie_str, dictionary):
+    """Tries to parse any key-value pairs of cookies in a string,
+    then updates the the dictionary with any key-value pairs found.
+
+    **Example**::
+        dictionary = {}
+        _parse_cookies('my=value', dictionary)
+        # Now the following is True
+        dictionary['my'] == 'value'
+
+    :param cookie_str: A string containing "key=value" pairs from an HTTP "Set-Cookie" header.
+    :type cookie_str: ``str``
+    :param dictionary: A dictionary to update with any found key-value pairs.
+    :type dictionary: ``dict``
+    """
+    parsed_cookie = Cookie.SimpleCookie(cookie_str)
+    for cookie in parsed_cookie.values():
+        dictionary[cookie.key] = cookie.coded_value
+
+
+def _make_cookie_header(cookies):
+    """
+    Takes a list of 2-tuples of key-value pairs of
+    cookies, and returns a valid HTTP ``Cookie``
+    header.
+
+    **Example**::
+
+        header = _make_cookie_header([("key", "value"), ("key_2", "value_2")])
+        # Now the following is True
+        header == "key=value; key_2=value_2"
+
+    :param cookies: A list of 2-tuples of cookie key-value pairs.
+    :type cookies: ``list`` of 2-tuples
+    :return: ``str` An HTTP header cookie string.
+    :rtype: ``str``
+    """
+    return "; ".join("%s=%s" % (key, value) for key, value in cookies)
 
 # Singleton values to eschew None
 class _NoAuthenticationToken(object):
@@ -224,7 +264,8 @@ def _authentication(request_fun):
     """
     @wraps(request_fun)
     def wrapper(self, *args, **kwargs):
-        if self.token is _NoAuthenticationToken:
+        if self.token is _NoAuthenticationToken and \
+                not self.has_cookies():
             # Not yet logged in.
             if self.autologin and self.username and self.password:
                 # This will throw an uncaught
@@ -390,6 +431,10 @@ class Context(object):
     :param app: The app context of the namespace (optional, the default is "None").
     :type app: ``string``
     :param token: A session token. When provided, you don't need to call :meth:`login`.
+    :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param username: The Splunk account username, which is used to
         authenticate the Splunk instance.
     :type username: ``string``
@@ -405,8 +450,10 @@ class Context(object):
         c.login()
         # Or equivalently
         c = binding.connect(username="boris", password="natasha")
-        # Of if you already have a session token
+        # Or if you already have a session token
         c = binding.Context(token="atg232342aa34324a")
+        # Or if you already have a valid cookie
+        c = binding.Context(cookie="splunkd_8089=...")
     """
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler)
@@ -422,18 +469,41 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.autologin = kwargs.get("autologin", False)
 
+        # Store any cookies in the self.http._cookies dict
+        if kwargs.has_key("cookie") and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
+            _parse_cookies(kwargs["cookie"], self.http._cookies)
+
+    def get_cookies(self):
+        """Gets the dictionary of cookies from the ``HttpLib`` member of this instance.
+
+        :return: Dictionary of cookies stored on the ``self.http``.
+        :rtype: ``dict``
+        """
+        return self.http._cookies
+
+    def has_cookies(self):
+        """Returns true if the ``HttpLib` member of this instance has at least
+        one cookie stored.
+
+        :return: ``True`` if there is at least one cookie, else ``False``
+        :rtype: ``bool``
+        """
+        return len(self.get_cookies()) > 0
+
     # Shared per-context request headers
     @property
     def _auth_headers(self):
         """Headers required to authenticate a request.
 
-        Assumes your ``Context`` already has a authentication token,
-        either provided explicitly or obtained by logging into the
-        Splunk instance.
+        Assumes your ``Context`` already has a authentication token or
+        cookie, either provided explicitly or obtained by logging
+        into the Splunk instance.
 
         :returns: A list of 2-tuples containing key and value
         """
-        if self.token is _NoAuthenticationToken:
+        if self.has_cookies():
+            return [("Cookie", _make_cookie_header(self.get_cookies().items()))]
+        elif self.token is _NoAuthenticationToken:
             return []
         else:
             # Ensure the token is properly formatted
@@ -749,17 +819,29 @@ class Context(object):
             c = binding.Context(...).login()
             # Then issue requests...
         """
+
+        if self.has_cookies() and \
+                (not self.username and not self.password):
+            # If we were passed session cookie(s), but no username or
+            # password, then login is a nop, since we're automatically
+            # logged in.
+            return
+
         if self.token is not _NoAuthenticationToken and \
                 (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
             return
+
+        # Only try to get a token and updated cookie if username & password are specified
         try:
             response = self.http.post(
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
-                password=self.password)
+                password=self.password,
+                cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
+
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")
             self.token = "Splunk %s" % session
@@ -771,8 +853,9 @@ class Context(object):
                 raise
 
     def logout(self):
-        """Forgets the current session token."""
+        """Forgets the current session token, and cookies."""
         self.token = _NoAuthenticationToken
+        self.http._cookies = {}
         return self
 
     def _abspath(self, path_segment,
@@ -859,6 +942,9 @@ def connect(**kwargs):
     :param token: The current session token (optional). Session tokens can be
         shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param username: The Splunk account username, which is used to
         authenticate the Splunk instance.
     :type username: ``string``
@@ -1003,6 +1089,7 @@ class HttpLib(object):
     """
     def __init__(self, custom_handler=None):
         self.handler = handler() if custom_handler is None else custom_handler
+        self._cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
         """Sends a DELETE request to a URL.
@@ -1112,6 +1199,18 @@ class HttpLib(object):
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)
+
+        # Update the cookie with any HTTP request
+        # Initially, assume list of 2-tuples
+        key_value_tuples = response.headers
+        # If response.headers is a dict, get the key-value pairs as 2-tuples
+        # this is the case when using urllib2
+        if isinstance(response.headers, dict):
+            key_value_tuples = response.headers.items()
+        for key, value in key_value_tuples:
+            if key.lower() == "set-cookie":
+                _parse_cookies(value, self._cookies)
+
         return response
 
 

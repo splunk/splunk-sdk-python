@@ -15,7 +15,7 @@
 # under the License.
 
 
-import uuid
+import time
 import urllib2
 from StringIO import StringIO
 from xml.etree.ElementTree import XML
@@ -26,6 +26,7 @@ import unittest
 import socket
 import sys
 import ssl
+import Cookie
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
@@ -483,6 +484,8 @@ class TestLogout(BindingTestCase):
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)
         self.context.logout()
+        self.assertEqual(self.context.token, binding._NoAuthenticationToken)
+        self.assertEqual(self.context.get_cookies(), {})
         self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
         self.assertRaises(AuthenticationError,
@@ -492,6 +495,110 @@ class TestLogout(BindingTestCase):
         self.context.login()
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)
+
+class TestCookieAuthentication(unittest.TestCase):
+    def setUp(self):
+        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.context = binding.connect(**self.opts.kwargs)
+
+        # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
+        import splunklib.client as client
+        service = client.Service(**self.opts.kwargs)
+        splver = service.splunk_version
+        if splver[:2] < (6, 2):
+            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+
+    def test_cookie_in_auth_headers(self):
+        self.assertIsNotNone(self.context._auth_headers)
+        self.assertNotEqual(self.context._auth_headers, [])
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(self.context._auth_headers[0][0], "Cookie")
+        self.assertEqual(self.context._auth_headers[0][1][:8], "splunkd_")
+
+    def test_got_cookie_on_connect(self):
+        self.assertIsNotNone(self.context.get_cookies())
+        self.assertNotEqual(self.context.get_cookies(), {})
+        self.assertEqual(len(self.context.get_cookies()), 1)
+        self.assertEqual(self.context.get_cookies().keys()[0][:8], "splunkd_")
+
+    def test_cookie_with_autologin(self):
+        self.context.autologin = True
+        self.assertEqual(self.context.get("/services").status, 200)
+        self.assertTrue(self.context.has_cookies())
+        self.context.logout()
+        self.assertFalse(self.context.has_cookies())
+        self.assertEqual(self.context.get("/services").status, 200)
+        self.assertTrue(self.context.has_cookies())
+
+    def test_cookie_without_autologin(self):
+        self.context.autologin = False
+        self.assertEqual(self.context.get("/services").status, 200)
+        self.assertTrue(self.context.has_cookies())
+        self.context.logout()
+        self.assertFalse(self.context.has_cookies())
+        self.assertRaises(AuthenticationError,
+                          self.context.get, "/services")
+
+    def test_got_updated_cookie_with_get(self):
+        old_cookies = self.context.get_cookies()
+        resp = self.context.get("apps/local")
+        found = False
+        for key, value in resp.headers:
+            if key.lower() == "set-cookie":
+                found = True
+                self.assertEqual(value[:8], "splunkd_")
+
+                new_cookies = {}
+                binding._parse_cookies(value, new_cookies)
+                # We're only expecting 1 in this scenario
+                self.assertEqual(len(old_cookies), 1)
+                self.assertTrue(len(new_cookies.values()), 1)
+                self.assertEqual(old_cookies, new_cookies)
+                self.assertEqual(new_cookies.values()[0], old_cookies.values()[0])
+        self.assertTrue(found)
+
+    def test_login_fails_with_bad_cookie(self):
+        new_context = binding.connect(**{"cookie": "bad=cookie"})
+        # We should get an error if using a bad cookie
+        try:
+            new_context.get("apps/local")
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+
+    def test_login_with_multiple_cookies(self):
+        bad_cookie = 'bad=cookie'
+        new_context = binding.connect(**{"cookie": bad_cookie})
+        # We should get an error if using a bad cookie
+        try:
+            new_context.get("apps/local")
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            # Bring in a valid cookie now
+            for key, value in self.context.get_cookies().items():
+                new_context.get_cookies()[key] = value
+
+            self.assertEqual(len(new_context.get_cookies()), 2)
+            self.assertTrue('bad' in new_context.get_cookies().keys())
+            self.assertTrue('cookie' in new_context.get_cookies().values())
+
+            for k, v in self.context.get_cookies().items():
+                self.assertEqual(new_context.get_cookies()[k], v)
+
+            self.assertEqual(new_context.get("apps/local").status, 200)
+
+    def test_login_fails_without_cookie_or_token(self):
+        opts = {
+            'host': self.opts.kwargs['host'],
+            'port': self.opts.kwargs['port']
+        }
+        try:
+            binding.connect(**opts)
+            self.fail()
+        except AuthenticationError as ae:
+            self.assertEqual(ae.message, "Login failed.")
 
 class TestNamespace(unittest.TestCase):
     def test_namespace(self):

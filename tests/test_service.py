@@ -54,9 +54,9 @@ class ServiceTestCase(testlib.SDKTestCase):
         self.service.namespace["owner"] = self.service.username
         self.service.namespace["app"] = "search"
         try:
-            self.service.info
-        except Exception as e:
-            self.fail("Couldn't get the server info, probably got a 403! %s" % e.message)
+            self.assertEqual(self.service.info.licenseState, 'OK')
+        except HTTPError as he:
+            self.fail("Couldn't get the server info, probably got a 403! %s" % he.message)
 
         self.service.namespace["owner"] = owner
         self.service.namespace["app"] = app

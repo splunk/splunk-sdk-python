@@ -1231,7 +1231,10 @@ def handler(key_file=None, cert_file=None, timeout=None):
             if timeout is not None:
                 connection.sock.settimeout(timeout)
             response = connection.getresponse()
-        finally:
+        ### fix for Splunk Support Case: 204977
+        ### this removes the "finally" keyword, which automatically closed the connection, making
+        ### it impossible to use the reader object on line 763 above (because the connection had been closed here.
+        except:
             connection.close()
 
         return {

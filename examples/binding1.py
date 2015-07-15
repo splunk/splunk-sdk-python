@@ -42,10 +42,10 @@ class Service:
         return self.context.get("data/indexes")
 
     def info(self):
-        return self.context.get("server/info")
+        return self.context.get("/services/server/info")
 
     def settings(self):
-        return self.context.get("server/settings")
+        return self.context.get("/services/server/settings")
 
     def search(self, query, **kwargs):
         return self.context.post("search/jobs/export", search=query, **kwargs)

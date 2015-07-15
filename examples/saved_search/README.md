@@ -8,7 +8,7 @@ saved search actions.
 `list` and `delete` requires the `--name` argument to either list the contents 
 of a specific saved search or delete a specific saved search.
 
-`create` requires the `--name` argument, as well as a littany of other arguments 
+`create` requires the `--name` argument, as well as a list of any other arguments 
 to establish a saved search. The help output is seen below.
 
 Of special note is the events that can perform actions (`--actions` and 

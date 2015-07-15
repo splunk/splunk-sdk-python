@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _NoAuthenticationToken
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header
 from data import record
 import data
 
@@ -262,7 +262,6 @@ def _parse_atom_metadata(content):
 
     return record({'access': access, 'fields': fields})
 
-
 # kwargs: scheme, host, port, app, owner, username, password
 def connect(**kwargs):
     """This function connects and logs in to a Splunk instance.
@@ -285,6 +284,9 @@ def connect(**kwargs):
     :param `token`: The current session token (optional). Session tokens can be
                     shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param autologin: When ``True``, automatically tries to log in again if the
         session terminates.
     :type autologin: ``boolean``
@@ -302,7 +304,9 @@ def connect(**kwargs):
         a = s.apps["my_app"]
         ...
     """
-    return Service(**kwargs).login()
+    s = Service(**kwargs)
+    s.login()
+    return s
 
 
 # In preparation for adding Storm support, we added an
@@ -345,6 +349,9 @@ class Service(_BaseService):
     :param `token`: The current session token (optional). Session tokens can be
                     shared across multiple service instances.
     :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
     :param `username`: The Splunk account username, which is used to
                        authenticate the Splunk instance.
     :type username: ``string``
@@ -362,6 +369,8 @@ class Service(_BaseService):
         s = client.connect(username="boris", password="natasha")
         # Or if you already have a session token
         s = client.Service(token="atg232342aa34324a")
+        # Or if you already have a valid cookie
+        s = client.Service(cookie="splunkd_8089=...")
     """
     def __init__(self, **kwargs):
         super(Service, self).__init__(**kwargs)
@@ -1902,9 +1911,9 @@ class Index(Entity):
 
         cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
 
-        # If we have a cookie, use it instead of "Authorization: ..."
-        if self.service.cookie is not _NoAuthenticationToken:
-            cookie_or_auth_header = "Cookie: %s\r\n" % self.service.cookie
+        # If we have cookie(s), use them instead of "Authorization: ..."
+        if self.service.has_cookies():
+            cookie_or_auth_header = "Cookie: %s\r\n" % _make_cookie_header(self.service.get_cookies().items())
 
         # Since we need to stream to the index connection, we have to keep
         # the connection open and use the Splunk extension headers to note

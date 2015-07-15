@@ -93,7 +93,7 @@ PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
-PATH_LOGGER = "server/logger/"
+PATH_LOGGER = "/services/server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
 PATH_ROLES = "authorization/roles/"
@@ -445,7 +445,7 @@ class Service(_BaseService):
         :return: The system information, as key-value pairs.
         :rtype: ``dict``
         """
-        response = self.get("server/info")
+        response = self.get("/services/server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
 
     @property
@@ -540,8 +540,8 @@ class Service(_BaseService):
         msg = { "value": "Restart requested by " + self.username + "via the Splunk SDK for Python"}
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
-        result = self.post("server/control/restart")
-        if timeout is None:
+        result = self.post("/services/server/control/restart")
+        if timeout is None: 
             return result
         start = datetime.now()
         diff = timedelta(seconds=timeout)
@@ -3268,7 +3268,7 @@ class Settings(Entity):
     """This class represents configuration settings for a Splunk service.
     Retrieve this collection using :meth:`Service.settings`."""
     def __init__(self, service, **kwargs):
-        Entity.__init__(self, service, "server/settings", **kwargs)
+        Entity.__init__(self, service, "/services/server/settings", **kwargs)
 
     # Updates on the settings endpoint are POSTed to server/settings/settings.
     def update(self, **kwargs):
@@ -3281,7 +3281,7 @@ class Settings(Entity):
         :type kwargs: ``dict``
         :return: The :class:`Settings` collection.
         """
-        self.service.post("server/settings/settings", **kwargs)
+        self.service.post("/services/server/settings/settings", **kwargs)
         return self
 
 

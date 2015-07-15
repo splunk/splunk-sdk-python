@@ -45,6 +45,22 @@ class ServiceTestCase(testlib.SDKTestCase):
         for key in keys: 
             self.assertTrue(key in info.keys())
 
+    def test_info_with_namespace(self):
+        # Make sure we're not accessing /servicesNS/admin/search/server/info
+        # instead of /services/server/info
+        # Backup the values, which are probably set to None
+        owner, app = self.service.namespace["owner"], self.service.namespace["app"]
+
+        self.service.namespace["owner"] = self.service.username
+        self.service.namespace["app"] = "search"
+        try:
+            self.assertEqual(self.service.info.licenseState, 'OK')
+        except HTTPError as he:
+            self.fail("Couldn't get the server info, probably got a 403! %s" % he.message)
+
+        self.service.namespace["owner"] = owner
+        self.service.namespace["app"] = app
+
     def test_without_namespace(self):
         service = client.connect(**self.opts.kwargs)
         service.apps.list()

@@ -142,7 +142,6 @@ class StubbedStreamingCommand(StreamingCommand):
 
 
 class TestSearchCommandInternals(unittest.TestCase):
-
     def setUp(self):
         super(TestSearchCommandInternals, self).setUp()
         return
@@ -151,7 +150,9 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         parser = search_command_internals.SearchCommandParser()
         encoder = JSONEncoder()
-        file_path = os.path.abspath(os.path.join(TestSearchCommandInternals._package_path, 'data', 'input', '_empty.csv'))
+        file_path = os.path.abspath(
+            os.path.join(TestSearchCommandInternals._package_path, 'data',
+                         'input', '_empty.csv'))
 
         options = [
             'boolean=true',
@@ -170,18 +171,25 @@ class TestSearchCommandInternals(unittest.TestCase):
         command_line = str(command)
 
         self.assertEqual(
-            'stubbedstreaming boolean=true duration=10 fieldname="word_count" file=%s integer=10 optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(file_path),
+            'stubbedstreaming boolean="t" duration="00:00:10" fieldname="word_count" file=%s integer="10" optionname="foo_bar" regularexpression="\\\\w+" set="foo" field_1 field_2 field_3' % encoder.encode(
+                file_path),
             command_line)
 
         for option in options:
-            self.assertRaises(ValueError, parser.parse, [x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
+            self.assertRaises(ValueError, parser.parse,
+                              [x for x in options if x != option] + ['field_1',
+                                                                     'field_2',
+                                                                     'field_3'],
+                              command)
 
         command = StubbedReportingCommand()  # No options are required
         parser.parse(options + fields, command)
 
         for option in options:
             try:
-                parser.parse([x for x in options if x != option] + ['field_1', 'field_2', 'field_3'], command)
+                parser.parse(
+                    [x for x in options if x != option] + ['field_1', 'field_2',
+                                                           'field_3'], command)
             except Exception as e:
                 self.assertFalse("Unexpected exception: %s" % e)
 
@@ -191,7 +199,8 @@ class TestSearchCommandInternals(unittest.TestCase):
             self.assertFalse("Unexpected exception: %s" % e)
 
         for option in command.options.itervalues():
-            if option.name in ['show_configuration', 'logging_configuration', 'logging_level']:
+            if option.name in ['show_configuration', 'logging_configuration',
+                               'logging_level']:
                 continue
             self.assertTrue(option.is_set)
 
@@ -208,6 +217,41 @@ class TestSearchCommandInternals(unittest.TestCase):
         self.assertListEqual(fields, command.fieldnames)
         return
 
+    def test_command_parser_unquote(self):
+        parser = search_command_internals.SearchCommandParser()
+
+        options = [
+            'foo',
+            '\"foobar\"',
+            '"""foobar1"""',
+            '"\"foobar2\""',
+            '"foo ""x"" bar"',
+            '"foo \"x\" bar"',
+            '"\\\\foobar"',
+            '"foo \\\\ bar"',
+            '"foobar\\\\"',
+            'foo\\\\\\bar'
+        ]
+
+        expected = [
+            'foo',
+            'foobar',
+            '"foobar1"',
+            '"foobar2"',
+            'foo "x" bar',
+            'foo "x" bar',
+            '\\foobar',
+            'foo \\ bar',
+            'foobar\\',
+            'foo\\bar'
+        ]
+
+        for i in range(0, len(options)):
+            print parser.unquote(options[i]), " ", options[i]
+            print expected[i]
+            self.assertEqual(expected[i], parser.unquote(options[i]))
+
+
     def test_input_header(self):
 
         # No items
@@ -223,14 +267,16 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n')) as input_file:
+        with closing(StringIO(
+                'this%20is%20an%20unnamed%20single-line%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 0)
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n')) as input_file:
+        with closing(StringIO(
+                'this%20is%20an%20unnamed\nmulti-\nline%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 0)
@@ -239,7 +285,8 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n')) as input_file:
+        with closing(StringIO(
+                'Foo:this%20is%20a%20single-line%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 1)
@@ -247,7 +294,8 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n')) as input_file:
+        with closing(
+                StringIO('Bar:this is a\nmulti-\nline item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 1)
@@ -257,7 +305,8 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         input_header = search_command_internals.InputHeader()
 
-        with closing(StringIO('infoPath:data/input/_empty.csv\n\n')) as input_file:
+        with closing(
+                StringIO('infoPath:data/input/_empty.csv\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEquals(len(input_header), 1)
@@ -273,7 +322,9 @@ class TestSearchCommandInternals(unittest.TestCase):
             'sentence': 'hello world!'}
 
         input_header = search_command_internals.InputHeader()
-        text = reduce(lambda value, item: value + '%s:%s\n' % (item[0], item[1]), collection.iteritems(), '') + '\n'
+        text = reduce(
+            lambda value, item: value + '%s:%s\n' % (item[0], item[1]),
+            collection.iteritems(), '') + '\n'
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)
@@ -293,9 +344,11 @@ class TestSearchCommandInternals(unittest.TestCase):
 
         # Test iterators, indirectly through items, keys, and values
 
-        self.assertEqual(sorted(input_header.items()), sorted(collection.items()))
+        self.assertEqual(sorted(input_header.items()),
+                         sorted(collection.items()))
         self.assertEqual(sorted(input_header.keys()), sorted(collection.keys()))
-        self.assertEqual(sorted(input_header.values()), sorted(collection.values()))
+        self.assertEqual(sorted(input_header.values()),
+                         sorted(collection.values()))
 
         return
 
@@ -326,13 +379,16 @@ class TestSearchCommandInternals(unittest.TestCase):
         for message in izip(messages_header, messages + messages):
             self.assertEqual(message[0], message[1])
 
-        self.assertEqual(repr(messages_header), "MessagesHeader(%s)" % repr(messages + messages))
+        self.assertEqual(repr(messages_header),
+                         "MessagesHeader(%s)" % repr(messages + messages))
 
-        self.assertRaises(ValueError, messages_header.append, "not_a_debug_info_warn_or_error_message", "foo bar")
+        self.assertRaises(ValueError, messages_header.append,
+                          "not_a_debug_info_warn_or_error_message", "foo bar")
 
         return
 
     _package_path = os.path.dirname(__file__)
+
 
 if __name__ == "__main__":
     unittest.main()

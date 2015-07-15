@@ -115,7 +115,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             expected = [ent.name for ent in coll.list()]
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
-            # TODO: This should use a real search instead of *. Otherwise the test passes trivially.
+            # TODO: DVPL-5868 - This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
             self.assertEqual(expected, found,
                              msg='on %s (expected: %s, found: %s)' % \
@@ -133,8 +133,9 @@ class CollectionTestCase(testlib.SDKTestCase):
             if len(expected) == 0:
                 logging.debug("No entities in collection %s; skipping test.", coll_name)
             found = [ent.name for ent in coll.list(**found_kwargs)]
-            self.assertEqual(expected, found,
-                             msg='on %s (expected: %s, found: %s)' % \
+
+            self.assertEqual(sorted(expected), sorted(found),
+                             msg='on %s (expected: %s, found: %s)' %
                                  (coll_name, expected, found))
 
     def test_list_with_sort_mode_auto(self):

@@ -39,7 +39,7 @@ from StringIO import StringIO
 
 from contextlib import contextmanager
 
-from xml.etree.ElementTree import XML
+from xml.etree.ElementTree import XML, ParseError
 
 from data import record
 
@@ -974,7 +974,10 @@ class HTTPError(Exception):
         status = response.status
         reason = response.reason
         body = response.body.read()
-        detail = XML(body).findtext("./messages/msg")
+        try:
+            detail = XML(body).findtext("./messages/msg")
+        except ParseError as err:
+            detail = body
         message = "HTTP %d %s%s" % (
             status, reason, "" if detail is None else " -- %s" % detail)
         Exception.__init__(self, _message or message)

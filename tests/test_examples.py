@@ -81,6 +81,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
         except:
             pass
 
+    def test_build_dir_exists(self):
+        self.assertTrue(os.path.exists("../build"), 'Run setup.py build, then setup.py dist')
+
     def test_binding1(self):
         result = run("binding1.py")
         self.assertEquals(result, 0)

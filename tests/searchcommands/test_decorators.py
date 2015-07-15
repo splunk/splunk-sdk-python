@@ -26,15 +26,14 @@ import logging
 import os
 import sys
 
+
 @Configuration()
 class SearchCommand(StreamingCommand):
-
     def stream(self, records):
         pass
 
 
 class TestDecorators(unittest.TestCase):
-
     def setUp(self):
         super(TestDecorators, self).setUp()
         return
@@ -59,12 +58,14 @@ class TestDecorators(unittest.TestCase):
             if type(level) is int:
                 command.logging_level = level
                 level_name = logging.getLevelName(level)
-                self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                self.assertEquals(command.logging_level,
+                                  warning if level_name == notset else level_name)
             else:
                 level_name = logging.getLevelName(logging.getLevelName(level))
                 for variant in level, level.lower(), level.capitalize():
                     command.logging_level = variant
-                    self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                    self.assertEquals(command.logging_level,
+                                      warning if level_name == notset else level_name)
 
         # logging_level accepts any numeric value
 
@@ -83,11 +84,13 @@ class TestDecorators(unittest.TestCase):
         except BaseException as e:
             self.fail('Expected ValueError, but %s was raised' % type(e))
         else:
-            self.fail('Expected ValueError, but logging_level=%s' % command.logging_level)
+            self.fail(
+                'Expected ValueError, but logging_level=%s' % command.logging_level)
 
         self.assertEqual(command.logging_level, current_value)
 
-        app_root = os.path.join(TestDecorators._package_directory, 'data', 'app')
+        app_root = os.path.join(TestDecorators._package_directory, 'data',
+                                'app')
         command = SearchCommand()  # guarantee: no logging.conf
         directory = os.getcwd()
         os.chdir(os.path.join(app_root, 'bin'))
@@ -104,28 +107,34 @@ class TestDecorators(unittest.TestCase):
 
             self.assertEqual(len(command.logger.handlers), 0)
 
-            # TODO: capture this output and verify it
-            command.logger.warning('Test that output is directed to stderr without formatting')
+            # TODO: DVPL-5867 - capture this output and verify it
+            command.logger.warning(
+                'Test that output is directed to stderr without formatting')
 
-            default_logging_configuration = os.path.join(directory, app_root, 'default', 'logging.conf')
+            default_logging_configuration = os.path.join(directory, app_root,
+                                                         'default',
+                                                         'logging.conf')
 
             # A search command loads {local,default}/logging.conf when it is
             # available
-
-            command = SearchCommand()  # guarantee: default/logging.conf
-            self.assertEqual(command.logging_configuration, default_logging_configuration)
+            command = SearchCommand(
+                app_root=app_root)  # guarantee: default/logging.conf
+            self.assertEqual(command.logging_configuration,
+                             default_logging_configuration)
 
             # logging_configuration loads a new logging configuration file
             # relative to the app root
 
             command.logging_configuration = 'logging.conf'
-            self.assertEqual(command.logging_configuration, default_logging_configuration)
+            self.assertEqual(command.logging_configuration,
+                             default_logging_configuration)
 
             # logging_configuration loads a new logging configuration file on an
             # absolute path
 
             command.logging_configuration = default_logging_configuration
-            self.assertEqual(command.logging_configuration, default_logging_configuration)
+            self.assertEqual(command.logging_configuration,
+                             default_logging_configuration)
 
             # logging_configuration raises a value error, if a non-existent
             # logging configuration file is provided
@@ -137,16 +146,20 @@ class TestDecorators(unittest.TestCase):
             except BaseException as e:
                 self.fail('Expected ValueError, but %s was raised' % type(e))
             else:
-                self.fail('Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
+                self.fail(
+                    'Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
 
             try:
-                command.logging_configuration = os.path.join(TestDecorators._package_directory, 'non-existent.logging.conf')
+                command.logging_configuration = os.path.join(
+                    TestDecorators._package_directory,
+                    'non-existent.logging.conf')
             except ValueError:
                 pass
             except BaseException as e:
                 self.fail('Expected ValueError, but %s was raised' % type(e))
             else:
-                self.fail('Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
+                self.fail(
+                    'Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
 
         finally:
             os.chdir(directory)
@@ -163,7 +176,8 @@ class TestDecorators(unittest.TestCase):
         for value in boolean_values:
             for variant in [value, value.capitalize(), value.upper()]:
                 command.show_configuration = variant
-                self.assertEquals(command.show_configuration, boolean_values[value])
+                self.assertEquals(command.show_configuration,
+                                  boolean_values[value])
 
         for value in 'any-other-string', 13:
             try:
@@ -173,7 +187,8 @@ class TestDecorators(unittest.TestCase):
             except BaseException as e:
                 self.fail('Expected ValueError, but %s was raised' % type(e))
             else:
-                self.fail('Expected ValueError, but show_configuration=%s' % command.show_configuration)
+                self.fail(
+                    'Expected ValueError, but show_configuration=%s' % command.show_configuration)
 
         # SearchCommandParser recognizes each built-in option
 
@@ -184,6 +199,7 @@ class TestDecorators(unittest.TestCase):
         return
 
     _package_directory = os.path.dirname(__file__)
+
 
 if __name__ == "__main__":
     unittest.main()

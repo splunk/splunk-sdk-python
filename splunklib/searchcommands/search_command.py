@@ -43,11 +43,15 @@ class SearchCommand(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, app_root=None):
+        """
+        :param app_root: The root of the application directory, used primarily by tests.
+        :type app_root: str or NoneType
+        """
 
         # Variables that may be used, but not altered by derived classes
 
-        self.logger, self._logging_configuration = logging.configure(type(self).__name__)
+        self.logger, self._logging_configuration = logging.configure(type(self).__name__, app_root=app_root)
         self.input_header = InputHeader()
         self.messages = MessagesHeader()
 
@@ -61,6 +65,7 @@ class SearchCommand(object):
 
         # Variables backing option/property values
 
+        self._app_root = app_root
         self._default_logging_level = self.logger.level
         self._configuration = None
         self._fieldnames = None
@@ -95,7 +100,7 @@ class SearchCommand(object):
     @logging_configuration.setter
     def logging_configuration(self, value):
         self.logger, self._logging_configuration = logging.configure(
-            type(self).__name__, value)
+            type(self).__name__, value, app_root=self._app_root)
         return
 
     @Option
@@ -274,9 +279,9 @@ class SearchCommand(object):
 
     #region Methods
 
-    def error_exit(self, error):
-        self.logger.error('Abnormal exit: ' + error)
-        self.write_error(error)
+    def error_exit(self, error, message=None):
+        self.logger.error('Abnormal exit: %s', error)
+        self.write_error(error.message.capitalize() if message is None else message)
         exit(1)
 
     def process(self, args=argv, input_file=stdin, output_file=stdout):
@@ -361,7 +366,7 @@ class SearchCommand(object):
             yield record
         return
 
-    # TODO: Is it possible to support anything other than write_error? It does not seem so.
+    # TODO: DVPL-5865 - Is it possible to support anything other than write_error? It does not seem so.
 
     def write_debug(self, message, *args):
         self._write_message(u'DEBUG', message, *args)

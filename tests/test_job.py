@@ -180,6 +180,18 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
+    def test_get_job(self):
+        sid = self.service.search("search index=_internal | head 10").sid
+        self.assertTrue(len(sid) > 0)
+
+        job = self.service.job(sid)
+        self.assertIsNotNone(job)
+
+        while not job.is_done():
+            sleep(1)
+
+        self.assertEqual(10, int(job["eventCount"]))
+        self.assertEqual(10, int(job["resultCount"]))
 
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):

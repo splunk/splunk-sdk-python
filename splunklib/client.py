@@ -457,6 +457,13 @@ class Service(_BaseService):
         """
         return Inputs(self)
 
+    def job(self, sid):
+        """Retrieves a search job by sid.
+
+        :return: A :class:`Job` object.
+        """
+        return Job(self, sid).refresh()
+
     @property
     def jobs(self):
         """Returns the collection of current search jobs.

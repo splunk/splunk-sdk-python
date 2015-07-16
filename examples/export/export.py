@@ -328,7 +328,7 @@ def main():
     service = connect(**options.kwargs)
 
     if path.exists(options.kwargs['output']):
-        if options.kwargs['recover'] == False:
+        if not options.kwargs['recover']:
             print "Export file %s exists, and recover option nor specified" % \
                   options.kwargs['output']
             sys.exit(1)

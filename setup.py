@@ -168,7 +168,6 @@ class DistCommand(Command):
         sdk_dir = os.path.abspath('.')
 
         def exclude(path):
-            # TODO: DVPL-5866 - Replace with filter function because exclude is deprecated
             basename = os.path.basename(path)
             for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
                 if fnmatch(basename, pattern):
@@ -189,7 +188,8 @@ class DistCommand(Command):
 
         with closing(tarfile.open(tarball, 'w')) as spl:
             for source, target in manifest:
-                spl.add(source, arcname=target, exclude=exclude)
+                # Args here are: name, arcname, recursive, and [exclude|filter]
+                spl.add(source, target, True, exclude)
 
         return
 

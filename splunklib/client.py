@@ -239,16 +239,17 @@ def _parse_atom_entry(entry):
     content = record((k, v) for k, v in content.iteritems()
                      if k not in ['eai:acl', 'eai:attributes'])
 
-    if isinstance(content['type'], list):
-        content['type'] = [t for t in content['type'] if t != 'text/xml']
-        # Unset type if it was only 'text/xml'
-        if len(content['type']) == 0:
+    if 'type' in content:
+        if isinstance(content['type'], list):
+            content['type'] = [t for t in content['type'] if t != 'text/xml']
+            # Unset type if it was only 'text/xml'
+            if len(content['type']) == 0:
+                content.pop('type', None)
+            # Flatten 1 element list
+            if len(content['type']) == 1:
+                content['type'] = content['type'][0]
+        else:
             content.pop('type', None)
-        # Flatten 1 element list
-        if len(content['type']) == 1:
-            content['type'] = content['type'][0]
-    else:
-        content.pop('type', None)
 
     return record({
         'title': title,

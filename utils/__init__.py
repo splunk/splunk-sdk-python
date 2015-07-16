@@ -90,7 +90,8 @@ def dslice(value, *args):
                 if value.has_key(k): 
                     result[k] = value[k]
         else:
-            if value.has_key(arg): result[arg]
+            if value.has_key(arg): 
+                result[arg] = value[arg]
     return result
 
 def parse(argv, rules=None, config=None, **kwargs):

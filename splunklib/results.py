@@ -246,7 +246,25 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    text = "".join(elem.itertext())
+                    try:
+                        text = "".join(elem.itertext())
+                    except AttributeError:
+                        # Assume we're running in Python < 2.7, before itertext() was added
+                        # So we'll define it here
+
+                        def __itertext(self):
+                          tag = self.tag
+                          if not isinstance(tag, basestring) and tag is not None:
+                              return
+                          if self.text:
+                              yield self.text
+                          for e in self:
+                              for s in __itertext(e):
+                                  yield s
+                              if e.tail:
+                                  yield e.tail
+
+                        text = "".join(__itertext(elem))
                     values.append(text.encode('utf8'))
                     elem.clear()
 

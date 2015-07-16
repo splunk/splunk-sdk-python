@@ -114,7 +114,7 @@ class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             response_file = StringIO.StringIO(response_text)
 
             # On errors, we also log the response text
-            self.log_message("Response: %s", response_text);
+            self.log_message("Response: %s", response_text)
 
             # Send the error response code
             self.send_response(e.code, message=e.msg)

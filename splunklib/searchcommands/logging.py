@@ -19,8 +19,10 @@ from logging import getLogger, root, StreamHandler
 import os
 import sys
 
+def get_app_directory(probing_path):
+    return os.path.dirname(os.path.abspath(os.path.dirname(probing_path)))
 
-def configure(name, path=None):
+def configure(name, probing_path=None, app_root=None):
     """ Configure logging and return a logger and the location of its logging
     configuration file.
 
@@ -57,49 +59,52 @@ def configure(name, path=None):
     return.
 
     You may short circuit the search for a logging configuration file by
-    providing an alternative file location in `path`. Logging configuration
+    providing an alternative file location in `probing_path`. Logging configuration
     files must be in `ConfigParser format`_.
 
     #Arguments:
 
     :param name: Logger name
     :type name: str
-    :param path: Location of an alternative logging configuration file or `None`
-    :type path: str or NoneType
+    :param probing_path: Location of an alternative logging configuration file or `None`
+    :type probing_path: str or NoneType
     :returns: A logger and the location of its logging configuration file
+    :param app_root: The root of the application directory, used primarily by tests.
+    :type app_root: str or NoneType
 
     .. _ConfigParser format: http://goo.gl/K6edZ8
 
     """
-    app_directory = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
 
-    if path is None:
-        probing_path = [
+    app_directory = get_app_directory(sys.argv[0]) if app_root is None else app_root
+
+    if probing_path is None:
+        probing_paths = [
             'local/%s.logging.conf' % name,
             'default/%s.logging.conf' % name,
             'local/logging.conf',
             'default/logging.conf']
-        for relative_path in probing_path:
+        for relative_path in probing_paths:
             configuration_file = os.path.join(app_directory, relative_path)
             if os.path.exists(configuration_file):
-                path = configuration_file
+                probing_path = configuration_file
                 break
-    elif not os.path.isabs(path):
+    elif not os.path.isabs(probing_path):
         found = False
         for conf in 'local', 'default':
-            configuration_file = os.path.join(app_directory, conf, path)
+            configuration_file = os.path.join(app_directory, conf, probing_path)
             if os.path.exists(configuration_file):
-                path = configuration_file
+                probing_path = configuration_file
                 found = True
                 break
         if not found:
             raise ValueError(
                 'Logging configuration file "%s" not found in local or default '
-                'directory' % path)
-    elif not os.path.exists(path):
+                'directory' % probing_path)
+    elif not os.path.exists(probing_path):
         raise ValueError('Logging configuration file "%s" not found')
 
-    if path is not None:
+    if probing_path is not None:
         working_directory = os.getcwd()
         os.chdir(app_directory)
         try:
@@ -107,8 +112,8 @@ def configure(name, path=None):
         except KeyError:
             splunk_home = working_directory  # reasonable in debug scenarios
         try:
-            path = os.path.abspath(path)
-            fileConfig(path, {'SPLUNK_HOME': splunk_home})
+            probing_path = os.path.abspath(probing_path)
+            fileConfig(probing_path, {'SPLUNK_HOME': splunk_home})
         finally:
             os.chdir(working_directory)
 
@@ -116,4 +121,4 @@ def configure(name, path=None):
         root.addHandler(StreamHandler())
 
     logger = getLogger(name)
-    return logger, path
+    return logger, probing_path

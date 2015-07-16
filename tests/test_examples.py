@@ -81,6 +81,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
         except:
             pass
 
+    def test_build_dir_exists(self):
+        self.assertTrue(os.path.exists("../build"), 'Run setup.py build, then setup.py dist')
+
     def test_binding1(self):
         result = run("binding1.py")
         self.assertEquals(result, 0)
@@ -192,7 +195,19 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "saved_searches.py --help",
             "saved_searches.py")
-        
+    
+    def test_saved_search(self):
+        temp_name = testlib.tmpname()
+        self.check_commands(
+            "saved_search/saved_search.py",
+            ["saved_search/saved_search.py", "--help"],
+            ["saved_search/saved_search.py", "list-all"],
+            ["saved_search/saved_search.py", "--operation", "create", "--name", temp_name, "--search", "search * | head 5"],
+            ["saved_search/saved_search.py", "list", "--name", temp_name],
+            ["saved_search/saved_search.py", "list", "--operation", "delete", "--name", temp_name],
+            ["saved_search/saved_search.py", "list", "--name",  "Top five sourcetypes"]
+        )
+
     def test_search(self):
         self.check_commands(
             "search.py --help",

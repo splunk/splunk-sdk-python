@@ -193,7 +193,7 @@ class TestUserManipulation(BindingTestCase):
     def setUp(self):
         BindingTestCase.setUp(self)
         self.username = testlib.tmpname()
-        self.password = "changeme"
+        self.password = "changeme!"
         self.roles = "power"
 
         # Delete user if it exists already
@@ -201,14 +201,14 @@ class TestUserManipulation(BindingTestCase):
             response = self.context.delete(PATH_USERS + self.username)
             self.assertEqual(response.status, 200)
         except HTTPError, e:
-            self.assertEqual(e.status, 400)
+            self.assertTrue(e.status in [400, 500])
 
     def tearDown(self):
         BindingTestCase.tearDown(self)
         try:
             self.context.delete(PATH_USERS + self.username)
         except HTTPError, e:
-            if e.status != 400:
+            if e.status not in [400, 500]:
                 raise
 
     def test_user_without_role_fails(self):
@@ -425,6 +425,13 @@ class TestAbspath(BindingTestCase):
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo")
 
+    def test_context_with_owner_as_email(self):
+        context = binding.connect(owner="me@me.com", **self.kwargs)
+        path = context._abspath("foo")
+        self.assertTrue(isinstance(path, UrlEncoded))
+        self.assertEqual(path, "/servicesNS/me%40me.com/system/foo")
+        self.assertEqual(path, UrlEncoded("/servicesNS/me@me.com/system/foo"))
+
 # An urllib2 based HTTP request handler, used to test the binding layers
 # support for pluggable request handlers.
 def urllib2_handler(url, message, **kwargs):
@@ -607,6 +614,9 @@ class TestNamespace(unittest.TestCase):
 
             ({ 'owner': "Bob", 'app': "search" },
              { 'sharing': None, 'owner': "Bob", 'app': "search" }),
+
+            ({ 'sharing': "user", 'owner': "Bob@bob.com" },
+             { 'sharing': "user", 'owner': "Bob@bob.com", 'app': None }),
 
             ({ 'sharing': "user" },
              { 'sharing': "user", 'owner': None, 'app': None }),

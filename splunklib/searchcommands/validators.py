@@ -22,7 +22,6 @@ import os
 import re
 import sys
 
-
 class Validator(object):
     """ Base class for validators that check and format search command options.
 
@@ -123,12 +122,12 @@ class Integer(Validator):
         elif minimum is not None:
             def check_range(value):
                 if value < minimum:
-                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
+                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
                 return
         elif maximum is not None:
             def check_range(value):
                 if value > maximum:
-                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
+                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
                 return
         else:
             def check_range(value):
@@ -144,7 +143,7 @@ class Integer(Validator):
         return value
 
     def format(self, value):
-        return str(value)
+        return str(int(value))
 
 
 class Duration(Validator):
@@ -214,6 +213,24 @@ class List(Validator):
         return value[:-1]
 
 
+class Map(Validator):
+    """ Validates map option values.
+
+    """
+    def __init__(self, **kwargs):
+        self.membership = kwargs
+
+    def __call__(self, value):
+        if value is not None:
+            value = str(value)
+            if value not in self.membership:
+                raise ValueError('Unrecognized value: %s' % value)
+        return self.membership[value]
+
+    def format(self, value):
+        return self.membership.keys()[self.membership.values().index(value)]
+
+
 class OptionName(Validator):
     """ Validates option names.
 
@@ -225,6 +242,9 @@ class OptionName(Validator):
         if OptionName.pattern.match(value) is None:
             raise ValueError('Illegal characters in option name: %s' % value)
         return value
+
+    def format(self, value):
+        return self.__call__(value)
 
 
 class RegularExpression(Validator):
@@ -256,3 +276,6 @@ class Set(Validator):
             if value not in self.membership:
                 raise ValueError('Unrecognized value: %s' % value)
         return value
+
+    def format(self, value):
+        return self.__call__(value)

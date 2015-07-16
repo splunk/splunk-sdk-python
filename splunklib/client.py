@@ -237,7 +237,19 @@ def _parse_atom_entry(entry):
 
     # Filter some of the noise out of the content record
     content = record((k, v) for k, v in content.iteritems()
-        if k not in ['eai:acl', 'eai:attributes', 'type'])
+                     if k not in ['eai:acl', 'eai:attributes'])
+
+    if 'type' in content:
+        if isinstance(content['type'], list):
+            content['type'] = [t for t in content['type'] if t != 'text/xml']
+            # Unset type if it was only 'text/xml'
+            if len(content['type']) == 0:
+                content.pop('type', None)
+            # Flatten 1 element list
+            if len(content['type']) == 1:
+                content['type'] = content['type'][0]
+        else:
+            content.pop('type', None)
 
     return record({
         'title': title,
@@ -1619,7 +1631,7 @@ class Collection(ReadOnlyCollection):
         name = UrlEncoded(name, encode_slash=True)
         return super(Collection, self).get(name, owner, app, sharing, **query)
 
-    
+
 
 
 class ConfigurationFile(Collection):
@@ -1799,7 +1811,7 @@ class StoragePasswords(Collection):
         storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
 
         return storage_password
-    
+
     def delete(self, username, realm=None):
         """Delete a storage password by username and/or realm.
 
@@ -1977,7 +1989,7 @@ class Index(Entity):
         :return: The :class:`Index`.
         """
         self.refresh()
-        
+
         tds = self['maxTotalDataSizeMB']
         ftp = self['frozenTimePeriodInSecs']
         was_disabled_initially = self.disabled
@@ -1996,7 +2008,7 @@ class Index(Entity):
             while self.content.totalEventCount != '0' and datetime.now() < start+diff:
                 sleep(1)
                 self.refresh()
-            
+
             if self.content.totalEventCount != '0':
                 raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
                                       (self.name, timeout)
@@ -2941,7 +2953,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify an exec_mode to export.")
         params['segmentation'] = params.get('segmentation', 'none')
         return self.post(path_segment="export",
-                         search=query, 
+                         search=query,
                          **params).body
 
     def itemmeta(self):
@@ -3004,7 +3016,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify an exec_mode to oneshot.")
         params['segmentation'] = params.get('segmentation', 'none')
         return self.post(search=query,
-                         exec_mode="oneshot", 
+                         exec_mode="oneshot",
                          **params).body
 
 
@@ -3032,7 +3044,8 @@ class Message(Entity):
     def value(self):
         """Returns the message value.
 
-        :return: The :class:`Loggers` collection.
+        :return: The message value.
+        :rtype: ``string``
         """
         return self[self.name]
 

@@ -19,7 +19,7 @@ meant to manage input and output of data into Splunk.
 ### AnalyticsTracker
 
 The `input.py` file defines the "input" side of the Analytics service. If you 
-wanted to log some analytics data in your app, you would the `AnalyticsTracker`
+wanted to log some analytics data in your app, you would have the `AnalyticsTracker`
 class defined in this file in order to do so.
 
 The `AnalyticsTracker` class encapsulates all the information required to log
@@ -73,7 +73,7 @@ Similarly to `AnalyticsTracker`, the `output.py` file defines the "output" side
 of the Analytics service. If you want to extract the events you logged in using
 `AnalyticsTracker`, you'd use the `AnalyticsRetriever` class.
 
-Creating an `AnalyticsTracker` instance is identical to the `AnalyticsTracker`:
+Creating an `AnalyticsRetriever` instance is identical to the `AnalyticsTracker`:
 
 ```python
 from analytics.output import AnalyticsRetriever
@@ -138,7 +138,7 @@ you can see a graph of events over time, properties, etc.
 
 We make use of the excellent open source
 [flot](http://code.google.com/p/flot/) graphing library to render
-our Javascript graphs. We also use the [`bottle.py`](bottlepy.org)
+our Javascript graphs. We also use the [`bottle.py`](http://bottlepy.org)
 micro-web framework.
 
 ## Running the Sample

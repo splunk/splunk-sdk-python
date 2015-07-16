@@ -50,6 +50,7 @@ class MyScript(Script):
         scheme.use_single_instance = True
 
         min_argument = Argument("min")
+        min_argument.title = "Minimum"
         min_argument.data_type = Argument.data_type_number
         min_argument.description = "Minimum random number to be produced by this input."
         min_argument.required_on_create = True
@@ -59,6 +60,7 @@ class MyScript(Script):
         scheme.add_argument(min_argument)
 
         max_argument = Argument("max")
+        max_argument.title = "Maximum"
         max_argument.data_type = Argument.data_type_number
         max_argument.description = "Maximum random number to be produced by this input."
         max_argument.required_on_create = True

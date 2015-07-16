@@ -31,6 +31,7 @@ class DictReader(csv.DictReader, object):
             try:
                 self._fieldnames = self.reader.next()
             except StopIteration:
+                self._fieldnames = []
                 pass
             self.line_num = self.reader.line_num
             self.__mv_fieldnames = []

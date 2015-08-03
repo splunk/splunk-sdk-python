@@ -230,7 +230,7 @@ class TestSearchCommandInternals(unittest.TestCase):
             '"\\\\foobar"',
             '"foo \\\\ bar"',
             '"foobar\\\\"',
-            'foo\\\\\\bar'
+            'foo\\bar'
         ]
 
         expected = [
@@ -247,8 +247,6 @@ class TestSearchCommandInternals(unittest.TestCase):
         ]
 
         for i in range(0, len(options)):
-            print parser.unquote(options[i]), " ", options[i]
-            print expected[i]
             self.assertEqual(expected[i], parser.unquote(options[i]))
 
 

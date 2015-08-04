@@ -1,6 +1,6 @@
 # The Splunk Software Development Kit for Python
 
-#### Version 1.3.1
+#### Version 1.4.0
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.
@@ -59,6 +59,10 @@ You can install the Splunk SDK for Python libraries by using `easy_install` or `
 Or
 
     [sudo] pip install splunk-sdk
+
+Or to install the Python egg
+
+    [sudo] pip install --egg splunk-sdk
 
 Alternatively, you can use **setup.py** on the sources you cloned from GitHub:
 

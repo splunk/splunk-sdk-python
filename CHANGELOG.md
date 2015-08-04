@@ -1,5 +1,45 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.4.0
+
+### New features and APIs
+
+* Added support for cookie-based authentication, for Splunk 6.2+.
+
+* Added support for installing as a Python egg.
+
+* Added a convenience `Service.job()` method to get a `Job` by its sid.
+
+### Bug fixes
+
+* Restored support for Python 2.6 (GitHub issues #96 & #114).
+
+* Fix `SearchCommands` decorators and `Validator` classes (Github issue #113).
+
+* Fix `SearchCommands` bug iterating over `None` in `dict_reader.fieldnames` (Github issue #110).
+
+* Fixed JSON parsing errors (GitHub issue #100).
+
+* Retain the `type` property when parsing Atom feeds (GitHub issue #92).
+
+* Update non-namespaced server paths with a `/services/` prefix. Fixes a bug where setting the `owner` and/or `app` on a `Service` could produce 403 errors on some REST API endpoints.
+
+* Modular input `Scheme.title` is now written correctly.
+
+* `Client.connect` will now always return a `Service` instance, even if user credentials are invalid.
+
+* Update the `saved_search/saved_search.py` example to handle saved searches with names containing characters that must be URL encoded (ex: `"Top 5 sourcetypes"`).
+
+### Minor Changes
+
+* Update modular input examples with readable titles.
+
+* Improvements to `splunklib.searchcommands` tests.
+
+* Various docstring and code style corrections.
+
+* Updated some tests to pass on Splunk 6.2+.
+
 ## Version 1.3.1
 
 ### Bug fixes

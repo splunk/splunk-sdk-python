@@ -108,6 +108,11 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
     def test_submit_via_attach_with_cookie_header(self):
+        # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
+        splver = self.service.splunk_version
+        if splver[:2] < (6, 2):
+            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
 
         cookie = "%s=%s" % (self.service.http._cookies.items()[0])
@@ -119,6 +124,11 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
     def test_submit_via_attach_with_multiple_cookie_headers(self):
+        # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
+        splver = self.service.splunk_version
+        if splver[:2] < (6, 2):
+            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
         service = client.Service(**{"cookie": 'a bad cookie'})
         service.http._cookies.update(self.service.http._cookies)

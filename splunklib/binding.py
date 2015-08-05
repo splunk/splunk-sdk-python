@@ -486,7 +486,7 @@ class Context(object):
         return self.http._cookies
 
     def has_cookies(self):
-        """Returns true if the ``HttpLib` member of this instance has at least
+        """Returns true if the ``HttpLib`` member of this instance has at least
         one cookie stored.
 
         :return: ``True`` if there is at least one cookie, else ``False``

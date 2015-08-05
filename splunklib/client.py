@@ -256,7 +256,8 @@ def _parse_atom_entry(entry):
         'links': links,
         'access': metadata.access,
         'fields': metadata.fields,
-        'content': content
+        'content': content,
+        'updated': entry.get("updated")
     })
 
 

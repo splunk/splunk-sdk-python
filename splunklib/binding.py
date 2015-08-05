@@ -486,7 +486,7 @@ class Context(object):
         return self.http._cookies
 
     def has_cookies(self):
-        """Returns true if the ``HttpLib` member of this instance has at least
+        """Returns true if the ``HttpLib`` member of this instance has at least
         one cookie stored.
 
         :return: ``True`` if there is at least one cookie, else ``False``
@@ -1324,7 +1324,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/0.1",
+            "User-Agent": "splunk-sdk-python/1.4",
             "Accept": "*/*",
         } # defaults
         for key, value in message["headers"]:

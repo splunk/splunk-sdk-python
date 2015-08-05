@@ -13,7 +13,7 @@ splunklib.binding
     :members:
 
 .. autoclass:: Context
-    :members: connect, delete, get, login, logout, post, request
+    :members: connect, delete, get, get_cookies, has_cookies, login, logout, post, request
 
 .. autoclass:: HTTPError
     :members:

@@ -110,7 +110,7 @@ splunklib.client
     :inherited-members:
 
 .. autoclass:: Service
-    :members: apps, confs, capabilities, event_types, fired_alerts, indexes, info, inputs, jobs, loggers, messages, modular_input_kinds, parse, restart, restart_required, roles, search, saved_searches, settings, splunk_version, storage_passwords, users
+    :members: apps, confs, capabilities, event_types, fired_alerts, indexes, info, inputs, job, jobs, loggers, messages, modular_input_kinds, parse, restart, restart_required, roles, search, saved_searches, settings, splunk_version, storage_passwords, users
     :inherited-members:
 
 .. autoclass:: Settings

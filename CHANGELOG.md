@@ -24,7 +24,7 @@
 
 * Update non-namespaced server paths with a `/services/` prefix. Fixes a bug where setting the `owner` and/or `app` on a `Service` could produce 403 errors on some REST API endpoints.
 
-* Modular input `Scheme.title` is now written correctly.
+* Modular input `Argument.title` is now written correctly.
 
 * `Client.connect` will now always return a `Service` instance, even if user credentials are invalid.
 
@@ -55,7 +55,7 @@
 
 * Added a script (GenerateHelloCommand) to the searchcommand_app to generate a custom search command.
 
-* Added a human readable title parameter to `modularinput.argument`.
+* Added a human readable argument titles to modular input examples.
 
 * Renamed the searchcommand `csv` module to `splunk_csv`.
 

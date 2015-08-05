@@ -68,7 +68,7 @@ class TestValidators(unittest.TestCase):
 
         return
 
-    def test_file(self):
+    def test_file_permissions_in_splunk(self):
 
         # Create a file on $SPLUNK_HOME/var/run/splunk
 

@@ -25,7 +25,9 @@ except ImportError:
 import splunklib.client as client
 import splunklib.results as results
 
-from splunklib.binding import _log_duration
+from splunklib.binding import _log_duration, HTTPError
+
+from xml.etree.ElementTree import ParseError
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -178,6 +180,18 @@ class TestUtilities(testlib.SDKTestCase):
             job.refresh()
             self.check_job(job)
 
+    def test_get_job(self):
+        sid = self.service.search("search index=_internal | head 10").sid
+        self.assertTrue(len(sid) > 0)
+
+        job = self.service.job(sid)
+        self.assertIsNotNone(job)
+
+        while not job.is_done():
+            sleep(1)
+
+        self.assertEqual(10, int(job["eventCount"]))
+        self.assertEqual(10, int(job["resultCount"]))
 
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
@@ -327,21 +341,33 @@ class TestJob(testlib.SDKTestCase):
         self.assertGreater(ttl, old_ttl)
 
     def test_touch(self):
-        # This cannot be tested very fast. touch will reset the ttl to the
-        # original value for the job, so first we have to wait just long enough
-        # for the ttl to tick down. Its granularity is 1s, so we'll wait a
-        # couple of seconds before we start.
         while not self.job.is_done():
             pass
         sleep(2)
         self.job.refresh()
-        old_ttl = int(self.job['ttl'])
+        old_updated = self.job.state.updated
         self.job.touch()
+        sleep(2)
         self.job.refresh()
-        new_ttl = int(self.job['ttl'])
-        if new_ttl == old_ttl:
-            self.fail("Didn't wait long enough for TTL to change and make touch meaningful.")
-        self.assertGreater(int(self.job['ttl']), old_ttl)
+        new_updated = self.job.state.updated
+
+        # Touch will increase the updated time
+        self.assertLess(old_updated, new_updated)
+
+
+    def test_search_invalid_query_as_json(self):
+        args = {
+            'output_mode': 'json',
+            'exec_mode': 'normal'
+        }
+        try:
+            self.service.jobs.create('invalid query', **args)
+        except ParseError as pe:
+            self.fail("Something went wrong with parsing the REST API response. %s" % pe.message)
+        except HTTPError as he:
+            self.assertEqual(he.status, 400)
+        except Exception as e:
+            self.fail("Got some unexpected error. %s" % e.message)
 
 
 class TestResultsReader(unittest.TestCase):

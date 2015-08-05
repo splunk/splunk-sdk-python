@@ -43,7 +43,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
 
     def tearDown(self):
         super(FiredAlertTestCase, self).tearDown()
-        if (self.service.splunk_version >= (5,)):
+        if self.service.splunk_version >= (5,):
             self.service.indexes.delete(self.index_name)
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):

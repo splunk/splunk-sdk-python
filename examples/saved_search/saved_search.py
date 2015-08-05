@@ -174,7 +174,7 @@ def main(argv):
             if key == "operation":
                 operation = opts.kwargs[key]
             else:
-                kwargs[key] = urllib.quote(opts.kwargs[key])
+                kwargs[key] = opts.kwargs[key]
 
     # no operation? if name present, default to list, otherwise list-all
     if not operation:
@@ -182,7 +182,7 @@ def main(argv):
             operation = 'list'
         else:
             operation = 'list-all'
-
+    
     # pre-sanitize
     if (operation != "list" and operation != "create" 
                             and operation != "delete"

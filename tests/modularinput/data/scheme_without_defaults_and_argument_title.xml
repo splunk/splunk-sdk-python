@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scheme>
+    <title>abcd</title>
+    <description>쎼 and 쎶 and &lt;&amp;&gt; für</description>
+    <use_external_validation>false</use_external_validation>
+    <use_single_instance>true</use_single_instance>
+    <streaming_mode>simple</streaming_mode>
+    <endpoint>
+        <args>
+            <arg name="arg1">
+                <data_type>string</data_type>
+                <required_on_edit>false</required_on_edit>
+                <required_on_create>false</required_on_create>
+            </arg>
+            <arg name="arg2">
+                <title>Argument for ``test_scheme``</title>
+                <description>쎼 and 쎶 and &lt;&amp;&gt; für</description>
+                <validation>is_pos_int('some_name')</validation>
+                <data_type>number</data_type>
+                <required_on_edit>true</required_on_edit>
+                <required_on_create>true</required_on_create>
+            </arg>
+        </args>
+    </endpoint>
+</scheme>

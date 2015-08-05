@@ -275,8 +275,7 @@ class SearchCommandParser(object):
 
         # Parse options
 
-        for option in SearchCommandParser._options_re.finditer(
-                command_args.group('options')):
+        for option in SearchCommandParser._options_re.finditer(command_args.group('options')):
             name, value = option.group(1), option.group(2)
             if not name in command.options:
                 raise ValueError('Unrecognized option: %s = %s' % (name, value))
@@ -288,9 +287,7 @@ class SearchCommandParser(object):
             if len(missing) == 1:
                 raise ValueError('A value for "%s" is required' % missing[0])
             else:
-                raise ValueError(
-                    'Values for these options are required: %s' %
-                    ', '.join(missing))
+                raise ValueError('Values for these options are required: %s' % ', '.join(missing))
 
         # Parse field names
 
@@ -365,9 +362,9 @@ class SearchCommandParser(object):
 
     _options_re = re.compile(r"""
         # Captures a set of name/value pairs when used with re.finditer
-        ([_a-zA-Z][_a-zA-Z0-9]+)       # name
-        \s*=\s*                        # =
-        ([^\s"]+|"(?:[^"]+|""|\\")*")  # value
+        ([_a-zA-Z][_a-zA-Z0-9]+)         # name
+        \s*=\s*                          # =
+        ([^\s"]+|"(?:[^\\"]+|\\.|"")*")  # value
         """, re.VERBOSE)
 
     #endregion

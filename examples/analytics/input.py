@@ -59,7 +59,7 @@ class AnalyticsTracker:
 
     @staticmethod
     def encode(props):
-        encoded = " ";
+        encoded = " "
         for k,v in props.iteritems():
             # We disallow dictionaries - it doesn't quite make sense.
             assert(not isinstance(v, dict))

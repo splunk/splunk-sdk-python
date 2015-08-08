@@ -13,6 +13,8 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
+from io import FileIO
+import traceback
 from urlparse import urlsplit
 import sys
 
@@ -81,7 +83,7 @@ class Script(object):
                     event_writer.log(
                         EventWriter.FATAL,
                         "Modular input script returned a null scheme.")
-                    return 1
+                    return 2
                 else:
                     event_writer.write_xml_document(scheme.to_xml())
                     return 0
@@ -93,18 +95,33 @@ class Script(object):
                     return 0
                 except Exception as e:
                     root = ET.Element("error")
-                    ET.SubElement(root, "message").text = e.message
+                    ET.SubElement(root, "message").text = "{}: {}: {}".format(type(e).__name__, e, traceback.format_exc())
                     event_writer.write_xml_document(root)
 
-                    return 1
+                    return 3
+
+            elif str(args[1]).lower() == "--input":
+                # For testing purposes, read from a file instead of stdin
+                event_writer.log(EventWriter.WARN,"Reading input from %s for testing purposes.", args[2])
+
+                input_stream = FileIO(args[2], 'r')
+                self._input_definition = InputDefinition.parse(input_stream)
+                input_stream.close()
+
+                self.stream_events(self._input_definition, event_writer)
+                event_writer.close()
+                return 0
             else:
                 err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
                     args)
                 event_writer._err.write(err_string)
 
         except Exception as e:
-            err_string = EventWriter.ERROR + e.message
-            event_writer._err.write(err_string)
+            t, v, tb = sys.exc_info()
+            # l for i in list for l in i.split("\n") if l != '']
+            message = " || ".join( [line for item in traceback.format_exception(t, v, tb)
+                                         for line in item.split("\n") if line != ''] )
+            event_writer.log(EventWriter.FATAL, message)
             return 1
 
     @property

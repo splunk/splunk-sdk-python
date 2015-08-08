@@ -11,8 +11,9 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
-import sys
+import logging
+from sys import stdout
+import splunklib.common.logging
 
 from splunklib.modularinput.event import ET
 
@@ -20,6 +21,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+
 
 class EventWriter(object):
     """``EventWriter`` writes events and error messages to Splunk from a modular input.
@@ -29,23 +31,65 @@ class EventWriter(object):
     """
 
     # Severities that Splunk understands for log messages from modular inputs.
-    # Do not change these
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARN = "WARN"
-    ERROR = "ERROR"
-    FATAL = "FATAL"
+    # DEBUG = "DEBUG"
+    # INFO = "INFO"
+    # WARN = "WARN"
+    # ERROR = "ERROR"
+    # FATAL = "FATAL"
 
-    def __init__(self, output = sys.stdout, error = sys.stderr):
+    # CHANGED TO NUMERIC to make them more compatible with the builtin python logging module
+    # Do not change these
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARN = logging.WARN
+    ERROR = logging.ERROR
+    FATAL = logging.FATAL
+
+    _levelNames = {
+        'FATAL': logging.CRITICAL,
+        'CRITICAL': logging.CRITICAL,
+        'ERROR': logging.ERROR,
+        'WARN': logging.WARNING,
+        'WARNING': logging.WARNING,
+        'INFO': logging.INFO,
+        'DEBUG': logging.DEBUG,
+    }
+
+    # This provides compatibility with python logging AND the former EventWriter...
+    @staticmethod
+    def get_logging_level(level, message):
+        """Takes a (string or int) level and a message and converts the level.
+
+        If the level is one of the valid EventWriter strings, it will be converted to the corresponding logging level,
+        and the message will be returned unmodified.
+
+        If the level is an integer level, both the level and message will be returned unmodified.
+
+        If the level is another string, it will be prepended to the message, and logging.ERROR will be returned.
+
+        This means that if you use EventWriter.log() as though it were logging.log ... it will work correctly, and you
+        can still use logging.addLevelName etc. We also preserves compatibility with previous EventWriter.log and string
+        messages.
         """
-        :param output: Where to write the output; defaults to sys.stdout.
-        :param error: Where to write any errors; defaults to sys.stderr.
+        level = EventWriter._levelNames.get(level, level)
+        if not isinstance(level, int):
+            message = str(level) + " " + message
+            level = logging.ERROR
+        return level, message
+
+    def __init__(self, output=stdout, logger=None):
+        """Initialize the EventWriter and a logger instance for it
+        :param output:``stream``, Where output will go. Defaults to sys.stdout
+        :param logger: ``logger``, Where .log messages will go. By default, calls splunklib.common.logging getLogger.
         """
+        splunklib.common.logging.configureLogging()
         self._out = output
-        self._err = error
+        self._logger = logger or splunklib.common.logging.getLogger()
 
         # has the opening <stream> tag been written yet?
         self.header_written = False
+
+        # self._out.write("<stream>")
 
     def write_event(self, event):
         """Writes an ``Event`` object to Splunk.
@@ -59,16 +103,23 @@ class EventWriter(object):
 
         event.write_to(self._out)
 
-    def log(self, severity, message):
-        """Logs messages about the state of this modular input to Splunk.
-        These messages will show up in Splunk's internal logs.
+    def log(self, severity, message, *args, **kwargs):
+        """Logs 'message % args' information about the state of this modular input to Splunk.
+        These messages will show up in Splunk's _internal index.
+
+        To pass exception information, use the keyword argument exc_info with a true value, e.g.
+
+        event_writer.log(level, "We have a %s", "mysterious problem", exc_info=1)
 
         :param severity: ``string``, severity of message, see severities defined as class constants.
-        :param message: ``string``, message to log.
+        :param message: ``string``, message template to log.
+        :param args: ``object array``, objects which will be inserted to the message string
+        :param kwargs: ``object dictionary``, objects which will be inserted to the message string
         """
+        level, message = EventWriter.get_logging_level(severity, message)
+        self._logger.log(level, message, *args, **kwargs)
 
-        self._err.write("%s %s\n" % (severity, message))
-        self._err.flush()
+        #self._logger.log(level, message, args, **kwargs)
 
     def write_xml_document(self, document):
         """Writes a string representation of an
@@ -82,3 +133,4 @@ class EventWriter(object):
     def close(self):
         """Write the closing </stream> tag to make this XML well formed."""
         self._out.write("</stream>")
+        self._out.flush()

@@ -511,7 +511,7 @@ class Context(object):
             return []
         else:
             # Ensure the token is properly formatted
-            if self.token.startswith('Splunk '):
+            if self.token.startswith('Splunk ') or self.token.startswith('Basic '):
                 token = self.token
             else:
                 token = 'Splunk %s' % self.token

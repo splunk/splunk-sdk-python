@@ -1,0 +1,1 @@
+splunk cmd python sum.py __GETINFO__ record="f" total="total" value1

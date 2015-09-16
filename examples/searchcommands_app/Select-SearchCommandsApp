@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+source "$(dirname "$0")/bash-prologue" ${BASH_SOURCE[0]} 'help,clean,debug-client:' 'hcd:' $* || exit $?
+
+if [[ $1 == scpv1-1.3 ]]; then
+    rm -f "${SPLUNK_HOME}/etc/apps/searchcommands_app"
+    cd "${SPLUNK_HOME}/etc/apps"
+    ln -s ~/Workspace/splunk-sdks/splunk-sdk-python.master/examples/searchcommands_app
+elif [[ $1 == scpv1-1.5 ]]; then
+    "${scriptRoot}/setup.py" link --scp-version 1
+elif [[ $1 == scpv2-1.5 ]]; then
+    "${scriptRoot}/setup.py" link --scp-version 2
+else
+    error 1 "Unrecognized argument: $1"
+fi
+
+splunk restart -f

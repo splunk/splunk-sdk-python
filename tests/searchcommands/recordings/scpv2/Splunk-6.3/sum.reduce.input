@@ -1,0 +1,4 @@
+chunked 1.0,765,0
+{"preview": false, "searchinfo": {"sid": "1433261392.159", "owner": "admin", "args": ["total=total", "value1"], "search": "%7C%20inputlookup%20random_data%20max%3D50000%20%7C%20sum%20total%3Dtotal%20value1%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw", "raw_args": ["total=total", "value1"], "latest_time": "0", "app": "chunked_searchcommands", "username": "admin", "splunk_version": "20150522", "session_key": "UQZSgWwE2f9oIKrj1QG^kVhW^T_cR4H5Z65bPtMhwlHytS5jFrFYyH^dGzjTusDjVTgoBNeR7bvIzctHF7DrLJ1ANevgDOWEWRvABNj6d_k0koqxw9Io", "earliest_time": "0", "splunkd_uri": "https://127.0.0.1:8089", "dispatch_dir": "/Users/david-noble/Workspace/Splunk/var/run/splunk/dispatch/1433261392.159"}, "action": "getinfo"}chunked 1.0,36,36
+{"action":"execute","finished":true}total,"__mv_total"
+"2147943.07811",

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+source "$(dirname "$0")/bash-prologue" ${BASH_SOURCE[0]} 'help,clean,debug-client:' 'hcd:' $* || exit $?
+
+###########
+# Arguments
+###########
+
+eval set -- $args
+
+while [[ $1 != '--' ]]
+do
+    case $1 in
+    -h|--help)
+        usage; # does not return
+        shift 1
+        ;;
+    -c|--clean)
+        declare -r clean="clean"
+        shift 1
+        ;;
+    -d|--debug-client)
+        [[ -f "$d" ]] || error 1 "Debug client '$2' does not exist."
+        declare -r debugClient="--debug-client '$2'"
+        shift 2
+        ;;
+    esac
+done
+
+[[ -z ${clean:- } ]] || rm -rf "${scriptRoot}/build"
+"${scriptRoot}/setup.py" build --build-number="$(git log -1 --pretty=format:%ct)" ${debugClient:-}

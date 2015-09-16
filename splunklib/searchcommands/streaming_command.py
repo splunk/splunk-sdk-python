@@ -1,4 +1,6 @@
-# Copyright 2011-2014 Splunk, Inc.
+# coding=utf-8
+#
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,140 +14,154 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . search_command import SearchCommand
-from . import splunk_csv
+from itertools import ifilter, imap
+
+from .decorators import ConfigurationSetting
+from .search_command import SearchCommand
 
 
 class StreamingCommand(SearchCommand):
-    """ Applies a transformation to search results as they travel through the
-    processing pipeline.
+    """ Applies a transformation to search results as they travel through the streams pipeline.
 
-    Streaming commands typically filter, sort, modify, or combine search
-    results. Splunk will send search results in batches of up to 50,000 records.
-    Hence, a search command must be prepared to be invoked many times during the
-    course of pipeline processing. Each invocation should produce a set of
-    results independently usable by downstream processors.
+    Streaming commands typically filter, augment, or update, search result records. Splunk will send them in batches of
+    up to 50,000 records. Hence, a search command must be prepared to be invoked many times during the course of
+    pipeline processing. Each invocation should produce a set of results independently usable by downstream processors.
 
-    By default Splunk may choose to run a streaming command locally on a search
-    head and/or remotely on one or more indexers concurrently. The size and
-    frequency of the search result batches sent to the command will vary based
-    on scheduling considerations. Streaming commands are typically invoked many
-    times during the course of pipeline processing.
+    By default Splunk may choose to run a streaming command locally on a search head and/or remotely on one or more
+    indexers concurrently. The size and frequency of the search result batches sent to the command will vary based
+    on scheduling considerations.
 
-    You can tell Splunk to run your streaming command locally on a search head,
-    never remotely on indexers.
+    StreamingCommand configuration
+    ==============================
 
-    .. code-block:: python
-
-        @Configuration(local=False)
-        class SomeStreamingCommand(StreamingCommand):
-            ...
-
-    If your streaming command modifies the time order of event records you must
-    tell Splunk to ensure correct behavior.
-
-    .. code-block:: python
-
-        @Configuration(overrides_timeorder=True)
-        class SomeStreamingCommand(StreamingCommand):
-            ...
-
-    :ivar input_header: :class:`InputHeader`:  Collection representing the input
-        header associated with this command invocation.
-
-    :ivar messages: :class:`MessagesHeader`: Collection representing the output
-        messages header associated with this command invocation.
+    You can configure your command for operation under Search Command Protocol (SCP) version 1 or 2. SCP 2 requires
+    Splunk 6.3 or later.
 
     """
-    #region Methods
+    # region Methods
 
     def stream(self, records):
-        """ Generator function that processes and yields event records to the
-        Splunk processing pipeline.
+        """ Generator function that processes and yields event records to the Splunk stream pipeline.
 
         You must override this method.
 
         """
         raise NotImplementedError('StreamingCommand.stream(self, records)')
 
-    def _execute(self, operation, reader, writer):
-        for record in operation(SearchCommand.records(reader)):
-            writer.writerow(record)
+    def _execute(self, ifile, process):
+        SearchCommand._execute(self, ifile, self.stream)
 
-    def _prepare(self, argv, input_file):
-        ConfigurationSettings = type(self).ConfigurationSettings
-        argv = argv[2:]
-        if input_file is None:
-            reader = None
-        else:
-            reader = splunk_csv.DictReader(input_file)
-        return ConfigurationSettings, self.stream, argv, reader
-
-    #endregion
+    # endregion
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ Represents the configuration settings that apply to a
-        :code:`StreamingCommand`.
+        """ Represents the configuration settings that apply to a :class:`StreamingCommand`.
 
         """
-        #region Properties
+        # region SCP v1/v2 properties
 
-        @property
-        def local(self):
-            """ Specifies whether this command should only be run on the search
-            head.
+        required_fields = ConfigurationSetting(doc='''
+            List of required fields for this search which back-propagates to the generating search.
+
+            Setting this value enables selected fields mode under SCP 2. Under SCP 1 you must also specify
+            :code:`clear_required_fields=True` to enable selected fields mode. To explicitly select all fields,
+            specify a value of :const:`['*']`. No error is generated if a specified field is missing.
+
+            Default: :const:`None`, which implicitly selects all fields.
+
+            Supported by: SCP 1, SCP 2
+
+            ''')
+
+        # endregion
+
+        # region SCP v1 properties
+
+        clear_required_fields = ConfigurationSetting(value=False, doc='''
+            :const:`True`, if required_fields represent the *only* fields required.
+
+            If :const:`False`, required_fields are additive to any fields that may be required by subsequent commands.
+            In most cases, :const:`False` is appropriate for streaming commands.
 
             Default: :const:`False`
 
-            """
-            return type(self)._local
+            Supported by: SCP 1
 
-        _local = False
+            ''')
 
-        @property
-        def overrides_timeorder(self):
-            """ Specifies whether this command changes the time ordering of
-            event records.
+        local = ConfigurationSetting(value=False, doc='''
+            :const:`True`, if the command should run locally on the search head.
 
             Default: :const:`False`
 
-            """
-            return type(self)._overrides_timeorder
+            Supported by: SCP 1
 
-        _overrides_timeorder = False
+            ''')
 
-        @property
-        def retainsevents(self):
-            """ Specifies whether this command retains _raw events or transforms
-            them.
+        overrides_timeorder = ConfigurationSetting(doc='''
+            :const:`True`, if the command changes the order of events with respect to time.
+
+            Default: :const:`False`
+
+            Supported by: SCP 1
+
+            ''')
+
+        streaming = ConfigurationSetting(readonly=True, value=True, doc='''
+            Specifies that the command is streamable.
+
+            Fixed: :const:`True`
+
+            Supported by: SCP 1
+
+            ''')
+
+        # endregion
+
+        # region SCP v2 Properties
+
+        distributed = ConfigurationSetting(value=True, doc='''
+            :const:`True`, if this command should be distributed to indexers.
+
+            Under SCP 1 you must either specify `local = False` or include this line in commands.conf_, if this command
+            should be distributed to indexers.
+
+            ..code:
+                local = true
 
             Default: :const:`True`
 
-            """
-            return type(self)._retainsevents
+            Supported by: SCP 2
 
-        _retainsevents = True
+            .. commands.conf_: http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf
 
-        @property
-        def streaming(self):
-            """ Signals that this command is streamable.
+            ''')
 
-            By default streamable commands may be run on the search head or one
-            or more indexers, depending on performance scheduling
-            considerations. This behavior may be overridden by setting
-            :code:`local=True`. This forces a streamable command to be run on the
-            search head.
+        maxinputs = ConfigurationSetting(doc='''
+            Specifies the maximum number of events that can be passed to the command for each invocation.
 
-            Fixed: True.
+            This limit cannot exceed the value of `maxresultrows` in limits.conf. Under SCP 1 you must specify this
+            value in commands.conf_.
 
-            """
-            return True
+            Default: The value of `maxresultrows`.
 
-        #endregion
+            Supported by: SCP 2
 
-        #region Methods
+            ''')
+
+        type = ConfigurationSetting(readonly=True, value='streaming', doc='''
+            Command type name.
+
+            Fixed: :const:`'streaming'`
+
+            Supported by: SCP 2
+
+            ''')
+
+        # endregion
+
+        # region Methods
 
         @classmethod
         def fix_up(cls, command):
@@ -156,4 +172,17 @@ class StreamingCommand(SearchCommand):
                 raise AttributeError('No StreamingCommand.stream override')
             return
 
-        #endregion
+        def iteritems(self):
+            iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
+            version = self.command.protocol_version
+            if version == 1:
+                if self.required_fields is None:
+                    iteritems = ifilter(lambda (name, value): name != 'clear_required_fields', iteritems)
+            else:
+                iteritems = ifilter(lambda (name, value): name != 'distributed', iteritems)
+                if self.distributed:
+                    iteritems = imap(
+                        lambda (name, value): (name, 'stateful') if name == 'type' else (name, value), iteritems)
+            return iteritems
+
+        # endregion

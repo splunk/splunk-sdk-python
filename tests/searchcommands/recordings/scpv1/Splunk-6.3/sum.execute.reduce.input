@@ -1,0 +1,12 @@
+infoPath:/Users/david-noble/Workspace/Splunk/var/run/splunk/dispatch/1434913637.10/externSearchResultsInfo.csv
+search:| inputlookup random_data max=50000 | sum record=t total=total value1
+splunkVersion:20150522
+sid:1434913637.10
+realtime:0
+allowStream:1
+preview:0
+truncated:0
+keywords:""
+
+total,"__mv_total"
+"2147943.07811",

@@ -1,0 +1,9 @@
+sid:1434913637.10
+search:| inputlookup random_data max=50000 | sum record=t total=total value1
+realtime:0
+preview:0
+allowStream:1
+truncated:0
+keywords:""
+splunkVersion:20150522
+

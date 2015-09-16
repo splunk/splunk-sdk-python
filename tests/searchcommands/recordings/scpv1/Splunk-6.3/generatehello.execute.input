@@ -1,0 +1,10 @@
+preview:0
+infoPath:/Users/david-noble/Workspace/Splunk/var/run/splunk/dispatch/1434737211.12/externSearchResultsInfo.csv
+search:| generatehello count=10 record=t
+splunkVersion:20150522
+sid:1434737211.12
+allowStream:1
+truncated:0
+keywords:""
+realtime:0
+

@@ -1,0 +1,10 @@
+infoPath:recordings/scpv1/Splunk-6.3/pypygeneratetext.execute.dispatch_dir/externSearchResultsInfo.csv
+splunkVersion:20150522
+allowStream:1
+keywords:""
+search:| pypygeneratetext count="10" text="Hello World!"
+sid:1434910861.5
+realtime:0
+preview:0
+truncated:0
+

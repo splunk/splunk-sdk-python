@@ -1,0 +1,43 @@
+###########
+# Variables
+###########
+
+declare -r scriptRoot="$(cd "$(dirname "$1")" && pwd)"
+declare -r scriptName="$(basename "$1")"
+declare -r scriptLongOptions="$2"
+declare -r scriptOptions="$3"
+
+shift 3
+
+###########
+# Functions
+###########
+
+function usage {
+
+    man "${scriptName}"
+    exit 0
+}
+
+function error {
+    echo "${scriptName} error: $2" 1>&2
+    exit $1
+}
+
+###########
+# Constants
+###########
+
+# useful for printing text to console...
+
+declare -r b="$(tput bold)"  ; # bold
+declare -r n="$(tput sgr0)"  ; # normal
+declare -r u="$(tput smul)"  ; # underline
+declare -r u_="$(tput rmul)" ; # underline off (neither $n nor $b defeat $u)
+
+###########
+# Arguments
+###########
+
+declare args=$(getopt --name "$scriptName" --options "$scriptOptions" --longoptions "$scriptLongOptions" -- $* || exit 1)
+set -o errexit -o nounset

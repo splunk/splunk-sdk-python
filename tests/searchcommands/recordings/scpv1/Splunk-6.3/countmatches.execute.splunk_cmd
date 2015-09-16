@@ -1,0 +1,1 @@
+splunk cmd python countmatches.py __EXECUTE__ fieldname="word_count" pattern="\\w+" record="f" text

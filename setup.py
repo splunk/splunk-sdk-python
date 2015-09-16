@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -211,8 +211,7 @@ setup(
 
     packages = ["splunklib",
                 "splunklib.modularinput",
-                "splunklib.searchcommands",
-                "splunklib.searchcommands.splunk_csv"],
+                "splunklib.searchcommands"],
 
     url="http://github.com/splunk/splunk-sdk-python",
 

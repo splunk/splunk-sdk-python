@@ -3,23 +3,26 @@ splunk-sdk-python searchcommands_app example
 
 This app provides several examples of custom search commands which illustrate each of the base types:
 
- Command      | Type       | Description
-:------------ |:-----------|:----------------------------------------------------
- generatehello| Generating | Generates a specified number of 'Hello World' events
- simulate     | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement
- sum          | Reporting  | Adds all the numbers in a set of fields.
- countmatches | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
-
+ Command          | Type       | Description
+:---------------- |:-----------|:-------------------------------------------------------------------------------------------
+ countmatches     | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
+ generatetext     | Generating | Generates a specified number of events containing a specified text string.
+ pypygeneratetext |            | Executes generatetext with PyPy 
+ simulate         | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement
+ sum              | Reporting  | Adds all the numbers in a set of fields.
+ 
 The app is tested on Splunk 5 and 6. Here is its manifest:
 
 ```
 ├── bin
 │   ├── splunklib
 │   │   └── searchcommands ....... splunklib.searchcommands module
+│   ├── countmatches.py .......... CountMatchesCommand implementation
+│   ├── generatetext.py .......... GenerateTextCommand implementation
+│   ├── pypygeneratetext.py ...... Executes generatetext.py with PyPy
 │   ├── simulate.py .............. SimulateCommand implementation
 │   ├── sum.py ................... SumCommand implementation
-│   ├── countmatches.py .......... CountMatchesCommand implementation
-│   └── generatehello.py ........... HelloWorldCommand implementation
+│   └── 
 ├── default
 │   ├── data
 │   │   └── ui

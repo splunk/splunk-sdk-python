@@ -1,0 +1,9 @@
+realtime:0
+search:| generatehello count=10 record=t
+allowStream:1
+sid:1434737211.12
+splunkVersion:20150522
+preview:0
+keywords:""
+truncated:0
+

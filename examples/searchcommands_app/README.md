@@ -45,11 +45,21 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 
 ## Installation
 
-+ Install the app by copying the `searchcommands_app` directory to `$SPLUNK_HOME/etc/apps/searchcommands_app`.
++ Link the app to $SPLUNK_HOME/etc/apps/searchcommands_app by running this command:
 
-+ Recursively copy `splunklib` to `$SPLUNK_HOME/etc/apps/searchcommands_app/bin`.
+  ```
+  ./setup.py link --scp-version {1|2}
+  ```
+  
++ Or build a tarball to install on any Splunk instance by running this command:
 
-+ (Re)start Splunk so that the app is recognized.
+  ```
+  ./setup.py build --scp-version {1|2}
+  ```
+
+  The tarball is build as build/searchcommands_app-1.5.0-private.tar.gz.
+  
++ And then (re)start Splunk so that the app is recognized.
 
 ## Dashboards and Searches
 

@@ -67,7 +67,6 @@ from setuptools import setup, Command
 from subprocess import CalledProcessError, check_call, STDOUT
 
 import pip
-import requests
 import shutil
 import sys
 
@@ -166,7 +165,7 @@ class BuildCommand(Command):
         self.build_number = 'private'
         self.debug_client = None
         self.force = None
-        self.scp_version = 2
+        self.scp_version = 1
 
         return
 
@@ -206,9 +205,9 @@ class BuildCommand(Command):
         # Link to the selected commands.conf as determined by self.scp_version (TODO: make this an install step)
 
         commands_conf = os.path.join(self.build_dir, 'default', 'commands.conf')
-        source = commands_conf + '.scpv' + unicode(self.scp_version)
+        source = os.path.join(self.build_dir, 'default', 'commands-scpv{}.conf'.format(self.scp_version))
 
-        if os.path.exists(commands_conf):
+        if os.path.exists(commands_conf) or os.path.islink(commands_conf):
             os.remove(commands_conf)
 
         os.symlink(source, commands_conf)
@@ -316,13 +315,12 @@ class LinkCommand(Command):
             raise SystemError(message)
 
         self._link_debug_client()
-        self._copy_lookups()
         install_packages(self.app_source, self.distribution)
 
         commands_conf = os.path.join(self.app_source, 'default', 'commands.conf')
-        source = commands_conf + '.scpv' + unicode(self.scp_version)
+        source = os.path.join(self.app_source, 'default', 'commands-scpv{}.conf'.format(self.scp_version))
 
-        if os.path.exists(commands_conf):
+        if os.path.exists(commands_conf) or os.path.islink(commands_conf):
             os.remove(commands_conf)
 
         os.symlink(source, commands_conf)
@@ -341,24 +339,6 @@ class LinkCommand(Command):
             os.remove(pydebug_egg)
 
         os.symlink(self.debug_client, pydebug_egg)
-
-    def _copy_lookups(self):
-
-        lookups_dir = os.path.join(self.app_source, 'lookups')
-
-        if not os.path.isdir(lookups_dir):
-            os.mkdir(lookups_dir)
-
-        random_data = os.path.join(lookups_dir, 'random_data.csv.gz')
-
-        if not os.path.isfile(random_data):
-            download = 'http://splk-newtest-data.s3.amazonaws.com/chunked_external_commands/lookups/random_data.csv.gz'
-            response = requests.get(download)
-            with open(random_data, 'wb') as output:
-                output.write(response.content)
-            pass
-
-        return
 
 
 class TestCommand(Command):
@@ -470,7 +450,7 @@ setup(
         (b'lookups', [os.path.join('package', 'lookups', '*.csv.gz')]),
         (b'metadata', [os.path.join('package', 'metadata', 'default.meta')])
     ],
-    requires=['requests'],
+    requires=[],
 
     cmdclass=OrderedDict((
         ('analyze', AnalyzeCommand), 

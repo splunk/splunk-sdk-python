@@ -4,6 +4,8 @@
 
 * Added support for Search Command Protocol V2, for Splunk 6.3+.
 
+* Added `splunklib.searchcommands.validators.Match` class for verifying that an option value matches a regular expression pattern.
+
 ### Bug fixes
 
 * Various bug fixes/improvements for Search Command Protocol V1. 

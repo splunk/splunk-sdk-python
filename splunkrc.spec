@@ -8,5 +8,5 @@ username=admin
 password=changeme
 # Access scheme (default: https)
 scheme=https
-# Your version of Splunk (default: 5.0)
-version=5.0
+# Your version of Splunk (default: 6.3)
+version=6.3

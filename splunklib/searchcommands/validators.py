@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
 from cStringIO import StringIO
 from io import open
@@ -183,7 +184,7 @@ class Integer(Validator):
         try:
             value = long(value)
         except ValueError:
-            raise ValueError('Expected integer value, not {}'.format(repr(value)))
+            raise ValueError('Expected integer value, not {}'.format(json_encode_string(value)))
 
         self.check_range(value)
         return value
@@ -304,6 +305,26 @@ class Map(Validator):
 
     def format(self, value):
         return None if value is None else self.membership.keys()[self.membership.values().index(value)]
+
+
+class Match(Validator):
+    """ Validates that a value matches a regular expression pattern.
+
+    """
+    def __init__(self, name, pattern, flags=0):
+        self.name = unicode(name)
+        self.pattern = re.compile(pattern, flags)
+
+    def __call__(self, value):
+        if value is None:
+            return None
+        value = unicode(value)
+        if self.pattern.match(value) is None:
+            raise ValueError('Expected {}, not {}'.format(self.name, json_encode_string(value)))
+        return value
+
+    def format(self, value):
+        return None if value is None else unicode(value)
 
 
 class OptionName(Validator):

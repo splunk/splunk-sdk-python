@@ -1,5 +1,15 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.5.0
+
+* Added support for Search Command Protocol V2, for Splunk 6.3+.
+
+### Bug fixes
+
+* Various bug fixes/improvements for Search Command Protocol V1. 
+
+### New features and APIs
+
 ## Version 1.4.0
 
 ### New features and APIs

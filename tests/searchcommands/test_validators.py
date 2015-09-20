@@ -220,6 +220,16 @@ class TestValidators(TestCase):
 
         self.assertEqual(validator.__call__(None), None)
 
+    def test_match(self):
+
+        validator = validators.Match('social security number', r'\d{3}-\d{2}-\d{4}')
+        self.assertEqual(validator.__call__('123-45-6789'), '123-45-6789')
+        self.assertRaises(ValueError, validator.__call__, 'foo')
+
+        self.assertEqual(validator.__call__(None), None)
+        self.assertEqual(validator.format(None), None)
+        self.assertEqual(validator.format('123-45-6789'), '123-45-6789')
+
     def test_option_name(self):
         pass
 

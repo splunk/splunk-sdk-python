@@ -121,6 +121,18 @@ class TestSearchCommand(SearchCommand):
         **Description:** A mapping from one value to another''',
         require=True, validate=validators.Map(foo=1, bar=2, test=3))
 
+    match = Option(
+        doc='''
+        **Syntax:** **match=***<value>*
+        **Description:** A value that matches a regular expression pattern''',
+        validate=validators.Match('social security number', r'\d{3}-\d{2}-\d{4}'))
+
+    required_match = Option(
+        doc='''
+        **Syntax:** **required_match=***<value>*
+        **Description:** A value that matches a regular expression pattern''',
+        require=True, validate=validators.Match('social security number', r'\d{3}-\d{2}-\d{4}'))
+
     optionname = Option(
         doc='''
         **Syntax:** **optionname=***<value>*
@@ -343,6 +355,7 @@ class TestDecorators(TestCase):
             validators.Integer: ('100', 'non-integer value'),
             validators.List: ('a,b,c', '"non-list value'),
             validators.Map: ('foo', 'non-existent map entry'),
+            validators.Match: ('123-45-6789', 'not a social security number'),
             validators.OptionName: ('some_option_name', 'non-option name value'),
             validators.RegularExpression: ('\\s+', '(poorly formed regular expression'),
             validators.Set: ('bar', 'non-existent set entry')}
@@ -383,6 +396,7 @@ class TestDecorators(TestCase):
             "('logging_configuration', " + repr(environment.logging_configuration) + "),"
             "('logging_level', u'WARNING'),"
             "('map', 'foo'),"
+            "('match', u'123-45-6789'),"
             "('optionname', u'some_option_name'),"
             "('record', u'f'),"
             "('regularexpression', u'\\\\s+'),"
@@ -393,6 +407,7 @@ class TestDecorators(TestCase):
             "('required_file', u'" + __file__ + "'),"
             "('required_integer', u'100'),"
             "('required_map', 'foo'),"
+            "('required_match', u'123-45-6789'),"
             "('required_optionname', u'some_option_name'),"
             "('required_regularexpression', u'\\\\s+'),"
             "('required_set', u'bar'),"
@@ -404,11 +419,12 @@ class TestDecorators(TestCase):
 
         expected = (
             'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
-            'file="' + __file__ + '" integer="100" map="foo" optionname="some_option_name" record="f" '
-            'regularexpression="\\\\s+" required_boolean="f" required_code="foo == \\"bar\\"" '
-            'required_duration="24:59:59" required_fieldname="some.field_name" required_file="' + __file__ + '"'
-            ' required_integer="100" required_map="foo" required_optionname="some_option_name" '
-            'required_regularexpression="\\\\s+" required_set="bar" set="bar" show_configuration="f"')
+            'file="' + __file__ + '" integer="100" map="foo" match="123-45-6789" optionname="some_option_name" '
+            'record="f" regularexpression="\\\\s+" required_boolean="f" required_code="foo == \\"bar\\"" '
+            'required_duration="24:59:59" required_fieldname="some.field_name" required_file="' + __file__ + '" '
+            'required_integer="100" required_map="foo" required_match="123-45-6789" '
+            'required_optionname="some_option_name" required_regularexpression="\\\\s+" required_set="bar" set="bar" '
+            'show_configuration="f"')
 
         observed = str(command.options)
 

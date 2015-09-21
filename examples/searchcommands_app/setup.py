@@ -314,6 +314,19 @@ class LinkCommand(Command):
             message = 'Cannot create a link at "{}" because a file by that name already exists.'.format(target)
             raise SystemError(message)
 
+        packages = os.path.join(self.app_source, 'bin', 'packages')
+
+        if not os.path.isdir(packages):
+            os.mkdir(packages)
+
+        splunklib = os.path.join(packages, 'splunklib')
+        source = os.path.join(project_dir, '..', '..', 'splunklib')
+
+        if os.path.islink(splunklib):
+            os.remove(splunklib)
+
+        os.symlink(source, splunklib)
+
         self._link_debug_client()
         install_packages(self.app_source, self.distribution)
 

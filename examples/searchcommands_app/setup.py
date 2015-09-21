@@ -320,7 +320,7 @@ class LinkCommand(Command):
             os.mkdir(packages)
 
         splunklib = os.path.join(packages, 'splunklib')
-        source = os.path.join(project_dir, '..', '..', 'splunklib')
+        source = os.path.normpath(os.path.join(project_dir, '..', '..', 'splunklib'))
 
         if os.path.islink(splunklib):
             os.remove(splunklib)

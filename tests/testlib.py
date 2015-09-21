@@ -246,11 +246,19 @@ class SDKTestCase(unittest.TestCase):
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
 
     def tearDown(self):
+        from urllib2 import HTTPError
+
         if self.service.restart_required:
             self.fail("Test left Splunk in a state requiring a restart.")
+
         for appName in self.installedApps:
             if appName in self.service.apps:
-                self.service.apps.delete(appName)
+                try:
+                    self.service.apps.delete(appName)
+                except HTTPError as error:
+                    print error
+                    pass
                 wait(lambda: appName not in self.service.apps)
+
         if self.service.restart_required:
             self.clear_restart_message()

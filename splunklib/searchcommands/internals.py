@@ -290,7 +290,7 @@ class ConfigurationSettingsType(type):
             supporting_protocols=[1]),
         'maxinputs': specification(
             type=int,
-            constraint=lambda value: 0 <= value <= sys.maxsize,
+            constraint=lambda value: 0 <= value <= sys.maxint,
             supporting_protocols=[2]),
         'overrides_timeorder': specification(
             type=bool,

@@ -122,9 +122,10 @@ class File(Validator):
     """ Validates file option values.
 
     """
-    def __init__(self, mode='rt', buffering=None):
+    def __init__(self, mode='rt', buffering=None, directory=None):
         self.mode = mode
         self.buffering = buffering
+        self.directory = File._var_run_splunk if directory is None else directory
 
     def __call__(self, value):
 
@@ -134,7 +135,7 @@ class File(Validator):
         path = unicode(value)
 
         if not os.path.isabs(path):
-            path = os.path.join(File._var_run_splunk, path)
+            path = os.path.join(self.directory, path)
 
         try:
             value = open(path, self.mode) if self.buffering is None else open(path, self.mode, self.buffering)

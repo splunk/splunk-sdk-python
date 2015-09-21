@@ -24,7 +24,7 @@ from cStringIO import StringIO
 from functools import wraps
 from glob import iglob
 from itertools import chain, ifilter, imap, izip
-from sys import float_info, maxsize, maxunicode
+from sys import float_info, maxint as maxsize, maxunicode
 from tempfile import mktemp
 from time import time
 from types import MethodType

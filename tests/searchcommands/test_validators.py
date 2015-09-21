@@ -24,6 +24,7 @@ from unittest import main, TestCase
 import os
 import re
 import sys
+import tempfile
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
@@ -102,22 +103,23 @@ class TestValidators(TestCase):
         # Create a file on $SPLUNK_HOME/var/run/splunk
 
         file_name = 'TestValidators.test_file'
-        full_path = os.path.join(validators.File._var_run_splunk, file_name)
+        tempdir = tempfile.gettempdir()
+        full_path = os.path.join(tempdir, file_name)
 
         try:
-            validator = validators.File(mode='w', buffering=4096)
+            validator = validators.File(mode='w', buffering=4096, directory=tempdir)
 
             with validator(file_name) as f:
                 f.write('some text')
 
-            validator = validators.File(mode='a')
+            validator = validators.File(mode='a', directory=tempdir)
 
             with validator(full_path) as f:
                 f.write('\nmore text')
 
-            # Verify that you can read the file from $SPLUNK_HOME/var/run/splunk using an absolute or relative path
+            # Verify that you can read the file from a file using an absolute or relative path
 
-            validator = validators.File()
+            validator = validators.File(directory=tempdir)
 
             for path in file_name, full_path:
                 with validator(path) as f:
@@ -138,8 +140,8 @@ class TestValidators(TestCase):
 
     def test_integer(self):
 
-        maxsize = sys.maxsize
-        minsize = -(sys.maxsize - 1)
+        maxint = sys.maxint
+        minint = -(sys.maxint - 1)
 
         # The Integer validator should convert values in the range of a Python long which has unlimited precision
         # Anecdotal evidence: This portion of the test checks 5-10 K integer values and runs for less than 2-3 seconds
@@ -153,18 +155,18 @@ class TestValidators(TestCase):
                 self.assertIsInstance(value, long)
             self.assertEqual(validator.format(integer), unicode(integer))
 
-        test(2L * minsize)
-        test(minsize)
+        test(2L * minint)
+        test(minint)
         test(-1)
         test(0)
         test(1)
-        test(2L * maxsize)
+        test(2L * maxint)
 
         count = 3
 
-        start = -randint(0, maxsize - 1)
-        stop = sys.maxsize
-        step = randint(1000000000000000, 2000000000000000)
+        start = -randint(0, maxint - 1)
+        stop = maxint
+        step = randint(1000000, 2000000)
 
         for i in xrange(start, stop, step):
             test(i)
@@ -174,21 +176,21 @@ class TestValidators(TestCase):
 
         validator = validators.Integer(minimum=0)
         self.assertEqual(validator.__call__(0), 0)
-        self.assertEqual(validator.__call__(2L * maxsize), 2L * maxsize)
+        self.assertEqual(validator.__call__(2L * maxint), 2L * maxint)
         self.assertRaises(ValueError, validator.__call__, -1)
 
-        validator = validators.Integer(minimum=1, maximum=maxsize)
+        validator = validators.Integer(minimum=1, maximum=maxint)
         self.assertEqual(validator.__call__(1), 1)
-        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertEqual(validator.__call__(maxint), maxint)
         self.assertRaises(ValueError, validator.__call__, 0)
-        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
+        self.assertRaises(ValueError, validator.__call__, maxint + 1)
 
-        validator = validators.Integer(minimum=minsize, maximum=maxsize)
-        self.assertEqual(validator.__call__(minsize), minsize)
+        validator = validators.Integer(minimum=minint, maximum=maxint)
+        self.assertEqual(validator.__call__(minint), minint)
         self.assertEqual(validator.__call__(0), 0)
-        self.assertEqual(validator.__call__(maxsize), maxsize)
-        self.assertRaises(ValueError, validator.__call__, minsize - 1L)
-        self.assertRaises(ValueError, validator.__call__, maxsize + 1L)
+        self.assertEqual(validator.__call__(maxint), maxint)
+        self.assertRaises(ValueError, validator.__call__, minint - 1L)
+        self.assertRaises(ValueError, validator.__call__, maxint + 1L)
 
         return
 

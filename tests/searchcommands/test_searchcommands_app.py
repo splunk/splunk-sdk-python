@@ -39,9 +39,13 @@ from tests.searchcommands import project_root
 
 
 def pypy():
-    process = Popen(['pypy', '--version'], stderr=PIPE, stdout=PIPE)
-    output, errors = process.communicate()
-    return process.returncode == 0
+    try:
+        process = Popen(['pypy', '--version'], stderr=PIPE, stdout=PIPE)
+    except OSError:
+        return False
+    else:
+        process.communicate()
+        return process.returncode == 0
 
 
 class Recording(object):
@@ -123,23 +127,28 @@ class Recordings(object):
 
 class TestSearchCommandsApp(TestCase):
 
+    app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')
+
     def setUp(self):
+        if not os.path.isdir(TestSearchCommandsApp.app_root):
+            build_command = os.path.join(project_root, 'examples', 'searchcommands_app', 'setup.py build')
+            self.skipTest("You must build the searchcommands_app by running " + build_command)
         TestCase.setUp(self)
 
     def test_countmatches_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='execute', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches')
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
@@ -148,17 +157,17 @@ class TestSearchCommandsApp(TestCase):
     def test_generatehello_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         # self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='execute', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         # self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello')
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         # self.assertEqual(expected, output)
 
@@ -171,17 +180,17 @@ class TestSearchCommandsApp(TestCase):
     def test_pypygeneratetext_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='execute', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         # self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext')
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         # self.assertEqual(expected, output)
 
@@ -190,32 +199,32 @@ class TestSearchCommandsApp(TestCase):
     def test_sum_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertInfoEqual(output, expected)
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertInfoEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
-        self.assertEqual(0, exit_status)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
         # self.assertEqual('', errors)
         self.assertEqual(expected, output)
 
@@ -239,7 +248,8 @@ class TestSearchCommandsApp(TestCase):
         self.assertDictEqual(expected, output)
 
     def _get_search_command_path(self, name):
-        path = os.path.join(project_root, 'examples', 'searchcommands_app', 'package', 'bin', name + '.py')
+        path = os.path.join(
+            project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app', 'bin', name + '.py')
         self.assertTrue(path)
         return path
 

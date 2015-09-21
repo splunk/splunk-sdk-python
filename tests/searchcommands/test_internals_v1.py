@@ -206,13 +206,9 @@ class TestInternals(TestCase):
 
         # Command line with an assortment of string values
 
-        print('Observed:', options[-4], '=>', parser.unquote(options[-4]))
-        print('Expected:', expected[-4])
         self.assertEqual(expected[-4], parser.unquote(options[-4]))
 
         for i in range(0, len(options)):
-            print(i, 'Observed:', options[i], '=>', parser.unquote(options[i]))
-            print(i, 'Expected:', expected[i])
             self.assertEqual(expected[i], parser.unquote(options[i]))
 
         self.assertRaises(SyntaxError, parser.unquote, '"')

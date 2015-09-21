@@ -4,6 +4,10 @@
 
 * Added support for Search Command Protocol V2, for Splunk 6.3+.
 
+* Added `splunklib` logger so that command loggers can be configured independently of the `splunklib.searchcommands` module.
+
+  See `examples/searchcommands_app/package/default/logger.conf` for guidance on logging configuration.
+
 * Added `splunklib.searchcommands.validators.Match` class for verifying that an option value matches a regular expression pattern.
 
 ### Bug fixes

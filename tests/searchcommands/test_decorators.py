@@ -221,8 +221,8 @@ class TestDecorators(TestCase):
              (True, False),
              (None, 'anything other than a bool')),
             ('maxinputs',
-             (0, 50000, sys.maxsize),
-             (None, -1, sys.maxsize + 1, 'anything other than an int')),
+             (0, 50000, sys.maxint),
+             (None, -1, sys.maxint + 1, 'anything other than an int')),
             ('overrides_timeorder',
              (True, False),
              (None, 'anything other than a bool')),
@@ -391,7 +391,7 @@ class TestDecorators(TestCase):
             "('code', u'foo == \"bar\"'),"
             "('duration', u'24:59:59'),"
             "('fieldname', u'some.field_name'),"
-            "('file', u'" + __file__ + "'),"
+            "('file', u" + unicode(repr(__file__)) + "),"
             "('integer', u'100'),"
             "('logging_configuration', " + repr(environment.logging_configuration) + "),"
             "('logging_level', u'WARNING'),"
@@ -404,7 +404,7 @@ class TestDecorators(TestCase):
             "('required_code', u'foo == \"bar\"'),"
             "('required_duration', u'24:59:59'),"
             "('required_fieldname', u'some.field_name'),"
-            "('required_file', u'" + __file__ + "'),"
+            "('required_file', u" + unicode(repr(__file__)) + "),"
             "('required_integer', u'100'),"
             "('required_map', 'foo'),"
             "('required_match', u'123-45-6789'),"
@@ -414,7 +414,7 @@ class TestDecorators(TestCase):
             "('set', u'bar'),"
             "('show_configuration', u'f')])")
 
-        observed = repr(command.options)
+        observed = unicode(repr(command.options))
         self.assertEqual(observed, expected)
 
         expected = (

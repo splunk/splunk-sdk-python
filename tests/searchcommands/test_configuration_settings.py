@@ -68,7 +68,8 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generates_timeorder', True), ('generating', True), ('retainsevents', True), ('streaming', True)])
+            [('generates_timeorder', True), ('generating', True), ('local', False), ('retainsevents', True),
+             ('streaming', True)])
 
         command = TestCommand()
         command._protocol_version = 2
@@ -113,14 +114,16 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('streaming', True)])
+            [('local', False), ('streaming', True)])
 
         self.assertIs(command.configuration.clear_required_fields, False)
+        self.assertIs(command.configuration.local, False)
         self.assertIs(command.configuration.overrides_timeorder, None)
         self.assertIs(command.configuration.required_fields, None)
         self.assertIs(command.configuration.streaming, True)
 
         command.configuration.clear_required_fields = True
+        command.configuration.local = True
         command.configuration.overrides_timeorder = True
         command.configuration.required_fields = ['field_1', 'field_2', 'field_3']
 
@@ -135,7 +138,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('clear_required_fields', True), ('overrides_timeorder', True), ('required_fields', ['field_1', 'field_2', 'field_3']), ('streaming', True)])
+            [('clear_required_fields', True), ('local', True), ('overrides_timeorder', True), ('required_fields', ['field_1', 'field_2', 'field_3']), ('streaming', True)])
 
         command = TestCommand()
         command._protocol_version = 2

@@ -1,2 +1,0 @@
-Results: OrderedDict([('total', '3803.0')])
-is_preview = False

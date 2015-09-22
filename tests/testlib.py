@@ -246,7 +246,7 @@ class SDKTestCase(unittest.TestCase):
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
 
     def tearDown(self):
-        from urllib2 import HTTPError
+        from splunklib.binding import HTTPError
 
         if self.service.restart_required:
             self.fail("Test left Splunk in a state requiring a restart.")
@@ -255,10 +255,10 @@ class SDKTestCase(unittest.TestCase):
             if appName in self.service.apps:
                 try:
                     self.service.apps.delete(appName)
+                    wait(lambda: appName not in self.service.apps)
                 except HTTPError as error:
-                    print error
-                    pass
-                wait(lambda: appName not in self.service.apps)
-
+                    if error.status != 500:
+                        raise
+                    print 'Ignoring teardown error because it is likely spurious: {}'.format(error)
         if self.service.restart_required:
             self.clear_restart_message()

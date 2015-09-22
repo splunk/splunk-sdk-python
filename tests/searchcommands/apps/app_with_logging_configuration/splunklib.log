@@ -1,0 +1,33 @@
+2015-09-21 17:55:28,246, Level=ERROR, Pid=1768, File=search_command.py, Line=962, RuntimeError at "../splunklib\searchcommands\search_command.py", line 601 : Command test appears to be statically configured for search command protocol version 1 and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza:
+[test]
+filename = test.py
+enableheader = true
+outputheader = true
+requires_srinfo = true
+supports_getinfo = true
+supports_multivalues = true
+supports_rawargs = true
+Traceback:
+  File "../splunklib\searchcommands\search_command.py", line 601, in _process_protocol_v1
+    raise RuntimeError(message)
+
+2015-09-21 17:55:28,253, Level=ERROR, Pid=1768, File=search_command.py, Line=962, RuntimeError at "C:\Users\Administrator\Workspace.private\splunk-sdks\splunk-sdk-python\tests\searchcommands\test_search_command.py", line 87 : Testing
+Traceback:
+  File "../splunklib\searchcommands\search_command.py", line 586, in _process_protocol_v1
+    self._execute(ifile, None)
+  File "../splunklib\searchcommands\streaming_command.py", line 54, in _execute
+    SearchCommand._execute(self, ifile, self.stream)
+  File "../splunklib\searchcommands\search_command.py", line 830, in _execute
+    self._record_writer.write_records(process(self._records(ifile)))
+  File "../splunklib\searchcommands\internals.py", line 515, in write_records
+    for record in records:
+  File "C:\Users\Administrator\Workspace.private\splunk-sdks\splunk-sdk-python\tests\searchcommands\test_search_command.py", line 87, in stream
+    raise RuntimeError('Testing')
+
+2015-09-21 17:55:28,256, Level=ERROR, Pid=1768, File=search_command.py, Line=962, RuntimeError at "../splunklib\searchcommands\search_command.py", line 864 : Failed to parse metadata of length 1382: Invalid \escape: line 1 column 186 (char 185)
+Traceback:
+  File "../splunklib\searchcommands\search_command.py", line 641, in _process_protocol_v2
+    metadata, body = self._read_chunk(ifile)
+  File "../splunklib\searchcommands\search_command.py", line 864, in _read_chunk
+    raise RuntimeError('Failed to parse metadata of length {}: {}'.format(metadata_length, error))
+

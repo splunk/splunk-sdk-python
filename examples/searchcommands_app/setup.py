@@ -207,11 +207,17 @@ class BuildCommand(Command):
         commands_conf = os.path.join(self.build_dir, 'default', 'commands.conf')
         source = os.path.join(self.build_dir, 'default', 'commands-scpv{}.conf'.format(self.scp_version))
 
-        if os.path.exists(commands_conf) or os.path.islink(commands_conf):
+        if os.path.exists(commands_conf) and os.path.islink(commands_conf):
             os.remove(commands_conf)
+        else:
+            try:
+                os.path.islink(commands_conf)
+            except OSError:
+                pass
+            else:
+                os.remove(commands_conf)
 
         os.symlink(source, commands_conf)
-
         self._make_archive()
         return
 

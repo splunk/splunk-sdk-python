@@ -393,7 +393,7 @@ class TestSearchCommand(TestCase):
 
         getinfo_metadata = metadata.format(
             dispatch_dir=encode_string(dispatch_dir),
-            logging_configuration=logging_configuration,
+            logging_configuration=encode_string(logging_configuration)[1:-1],
             logging_level=logging_level,
             record=('true' if record is True else 'false'),
             show_configuration=('true' if show_configuration is True else 'false'))
@@ -407,7 +407,7 @@ class TestSearchCommand(TestCase):
 
         command = TestCommand()
         result = StringIO()
-        argv = ['test.py']
+        argv = ['some-external-search-command.py']
 
         self.assertEqual(command.logging_configuration, default_logging_configuration)
         self.assertEqual(command.logging_level, 'WARNING')
@@ -584,7 +584,7 @@ class TestSearchCommand(TestCase):
 
         getinfo_metadata = metadata.format(
             dispatch_dir=encode_string(dispatch_dir),
-            logging_configuration=logging_configuration,
+            logging_configuration=encode_string(logging_configuration)[1:-1],
             logging_level=logging_level,
             record=record,
             show_configuration=show_configuration)
@@ -631,7 +631,7 @@ class TestSearchCommand(TestCase):
 
         getinfo_metadata = metadata.format(
             dispatch_dir=encode_string(dispatch_dir),
-            logging_configuration=logging_configuration,
+            logging_configuration=encode_string(logging_configuration)[1:-1],
             logging_level=logging_level,
             record=('true' if record is True else 'false'),
             show_configuration=('true' if show_configuration is True else 'false'))

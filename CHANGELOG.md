@@ -4,11 +4,22 @@
 
 * Added support for Search Command Protocol V2, for Splunk 6.3+.
 
-* Added `splunklib` logger so that command loggers can be configured independently of the `splunklib.searchcommands` module.
+* Added support for invoking external search command processes.
+
+  See `examples/searchcommands_app/package/bin/pypygeneratext.py`.
+
+* Added a new search command type: EventingCommand is the base class for commands that filter events arriving at a
+  search head from one or more search peers.
+
+  See `examples/searchcommands_app/package/bin/filter.py`.
+
+* Added `splunklib` logger so that command loggers can be configured independently of the `splunklib.searchcommands`
+  module.
 
   See `examples/searchcommands_app/package/default/logger.conf` for guidance on logging configuration.
 
-* Added `splunklib.searchcommands.validators.Match` class for verifying that an option value matches a regular expression pattern.
+* Added `splunklib.searchcommands.validators.Match` class for verifying that an option value matches a regular
+  expression pattern.
 
 ### Bug fixes
 

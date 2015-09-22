@@ -140,8 +140,20 @@ class TestValidators(TestCase):
 
     def test_integer(self):
 
-        maxint = sys.maxint
-        minint = -(sys.maxint - 1)
+        # Point of interest:
+        #
+        # On all *nix operating systems an int is 32-bits long on 32-bit systems and 64-bits long on 64-bit systems so
+        # that you can count on this equality:
+        #
+        #   sys.maxint == sys.maxsize
+        #
+        # On Windows an int is always 32-bits long and you cannot count on the same equality. Specifically, on 64-bit
+        # systems:
+        #
+        #   sys.maxint != sys.maxsize
+
+        maxsize = sys.maxsize
+        minsize = -(sys.maxsize - 1)
 
         # The Integer validator should convert values in the range of a Python long which has unlimited precision
         # Anecdotal evidence: This portion of the test checks 5-10 K integer values and runs for less than 2-3 seconds
@@ -155,42 +167,35 @@ class TestValidators(TestCase):
                 self.assertIsInstance(value, long)
             self.assertEqual(validator.format(integer), unicode(integer))
 
-        test(2L * minint)
-        test(minint)
+        test(2L * minsize)
+        test(minsize)
         test(-1)
         test(0)
         test(1)
-        test(2L * maxint)
+        test(2L * maxsize)
 
-        count = 3
-
-        start = -randint(0, maxint - 1)
-        stop = maxint
-        step = randint(1000000, 2000000)
-
-        for i in xrange(start, stop, step):
-            test(i)
-            count += 1
+        for i in xrange(0, 10000):
+            test(randint(minsize, maxsize))
 
         # The Integer validator can impose a range restriction
 
         validator = validators.Integer(minimum=0)
         self.assertEqual(validator.__call__(0), 0)
-        self.assertEqual(validator.__call__(2L * maxint), 2L * maxint)
+        self.assertEqual(validator.__call__(2L * maxsize), 2L * maxsize)
         self.assertRaises(ValueError, validator.__call__, -1)
 
-        validator = validators.Integer(minimum=1, maximum=maxint)
+        validator = validators.Integer(minimum=1, maximum=maxsize)
         self.assertEqual(validator.__call__(1), 1)
-        self.assertEqual(validator.__call__(maxint), maxint)
+        self.assertEqual(validator.__call__(maxsize), maxsize)
         self.assertRaises(ValueError, validator.__call__, 0)
-        self.assertRaises(ValueError, validator.__call__, maxint + 1)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
-        validator = validators.Integer(minimum=minint, maximum=maxint)
-        self.assertEqual(validator.__call__(minint), minint)
+        validator = validators.Integer(minimum=minsize, maximum=maxsize)
+        self.assertEqual(validator.__call__(minsize), minsize)
         self.assertEqual(validator.__call__(0), 0)
-        self.assertEqual(validator.__call__(maxint), maxint)
-        self.assertRaises(ValueError, validator.__call__, minint - 1L)
-        self.assertRaises(ValueError, validator.__call__, maxint + 1L)
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, minsize - 1L)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1L)
 
         return
 

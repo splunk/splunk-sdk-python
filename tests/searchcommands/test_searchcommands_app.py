@@ -250,7 +250,7 @@ class TestSearchCommandsApp(TestCase):
     def _get_search_command_path(self, name):
         path = os.path.join(
             project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app', 'bin', name + '.py')
-        self.assertTrue(path)
+        self.assertTrue(os.path.isfile(path))
         return path
 
     def _run_command(self, name, action=None, phase=None, protocol=2):

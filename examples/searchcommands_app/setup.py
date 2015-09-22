@@ -455,6 +455,7 @@ setup(
             os.path.join('package', 'bin', 'countmatches.py'),
             os.path.join('package', 'bin', 'filter.py'),
             os.path.join('package', 'bin', 'generatehello.py'),
+            os.path.join('package', 'bin', 'generatetext.py'),
             os.path.join('package', 'bin', 'pypygeneratetext.py'),
             os.path.join('package', 'bin', 'simulate.py'),
             os.path.join('package', 'bin', 'sum.py')

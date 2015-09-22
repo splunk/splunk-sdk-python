@@ -15,6 +15,6 @@
 # under the License.
 
 host = 'localhost'
-port = 52001
+port = 5678
 suspend = False
 is_enabled = {}

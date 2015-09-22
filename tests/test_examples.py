@@ -264,7 +264,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
             output_file = open(output_path, 'r')
             output = output_file.read()
 
-            message = "%s != %s" % (output_file.name, baseline_file.name)
+            # TODO: DVPL-6700: Rewrite this test so that it is insensitive to ties in score
+
+            message = "%s: %s != %s" % (script, output_file.name, baseline_file.name)
             check_multiline(self, baseline, output, message)
 
             # Cleanup

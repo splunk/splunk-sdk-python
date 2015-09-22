@@ -1,2 +1,1 @@
-tests/searchcommands_data/_expected_results/* binary
-tests/searchcommands_data/input/* binary
+tests/searchcommands/recordings/** binary

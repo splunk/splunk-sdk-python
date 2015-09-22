@@ -22,9 +22,7 @@ if os.name == 'nt':
 
         def islink(path):
             attributes = get_file_attributes(path)
-            if attributes == -1:
-                raise OSError(format_error())
-            return (attributes & 0x400) != 0  # 0x400 == FILE_ATTRIBUTE_REPARSE_POINT
+            return attributes != -1 and (attributes & 0x400) != 0  # 0x400 == FILE_ATTRIBUTE_REPARSE_POINT
 
         os.path.islink = islink
 
@@ -207,17 +205,13 @@ class BuildCommand(Command):
         commands_conf = os.path.join(self.build_dir, 'default', 'commands.conf')
         source = os.path.join(self.build_dir, 'default', 'commands-scpv{}.conf'.format(self.scp_version))
 
-        if os.path.exists(commands_conf) and os.path.islink(commands_conf):
+        if os.path.isfile(commands_conf) or os.path.islink(commands_conf):
             os.remove(commands_conf)
-        else:
-            try:
-                os.path.islink(commands_conf)
-            except OSError:
-                pass
-            else:
-                os.remove(commands_conf)
+        elif os.path.exists(commands_conf):
+            message = 'Cannot create a link at "{}" because a file by that name already exists.'.format(commands_conf)
+            raise SystemError(message)
 
-        os.symlink(source, commands_conf)
+        shutil.copy(source, commands_conf)
         self._make_archive()
         return
 
@@ -339,8 +333,11 @@ class LinkCommand(Command):
         commands_conf = os.path.join(self.app_source, 'default', 'commands.conf')
         source = os.path.join(self.app_source, 'default', 'commands-scpv{}.conf'.format(self.scp_version))
 
-        if os.path.exists(commands_conf) or os.path.islink(commands_conf):
+        if os.path.islink(commands_conf):
             os.remove(commands_conf)
+        elif os.path.exists(commands_conf):
+            message = 'Cannot create a link at "{}" because a file by that name already exists.'.format(commands_conf)
+            raise SystemError(message)
 
         os.symlink(source, commands_conf)
         os.symlink(self.app_source, target)

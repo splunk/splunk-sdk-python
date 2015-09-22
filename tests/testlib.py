@@ -257,8 +257,8 @@ class SDKTestCase(unittest.TestCase):
                     self.service.apps.delete(appName)
                     wait(lambda: appName not in self.service.apps)
                 except HTTPError as error:
-                    if error.status != 500:
+                    if not (os.name == 'nt' and error.status == 500):
                         raise
-                    print 'Ignoring teardown error because it is likely spurious: {}'.format(error)
+                    print 'Ignoring failure to delete {} during tear down: {}'.format(appName, error)
         if self.service.restart_required:
             self.clear_restart_message()

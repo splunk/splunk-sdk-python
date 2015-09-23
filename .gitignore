@@ -15,7 +15,7 @@ MANIFEST
 coverage_report
 test.log
 examples/*/local
-examples/*/metadata
+examples/*/metadata/local.meta
 tests/searchcommands_data/log/
 tests/searchcommands_data/output/
 examples/searchcommands_app/searchcommand_app.log

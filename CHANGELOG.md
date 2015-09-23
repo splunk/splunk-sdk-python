@@ -2,7 +2,11 @@
 
 ## Version 1.5.0
 
-* Added support for Search Command Protocol V2, for Splunk 6.3+.
+### New features and APIs
+
+* Added support for the new experimental Search Command Protocol V2, for Splunk 6.3+.
+
+  Opt-in by setting `chunked = true` in commands.conf. See `examples/searchcommands_app/package/default/commands-scpv2.conf`.
 
 * Added support for invoking external search command processes.
 
@@ -24,8 +28,7 @@
 ### Bug fixes
 
 * Various bug fixes/improvements for Search Command Protocol V1. 
-
-### New features and APIs
+* Various bug fixes/improvements to the splunklib test suite.
 
 ## Version 1.4.0
 

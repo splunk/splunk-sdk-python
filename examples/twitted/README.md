@@ -27,5 +27,5 @@ stdout. Note that the verbosity level does not change what the script feeds
 to Splunk for indexing.
 
 Once the input script is up and running, you can start exploring the data using
-Splunk or or the splunk CLI or any of the SDK command line tools.
+Splunk or the splunk CLI or any of the SDK command line tools.
 

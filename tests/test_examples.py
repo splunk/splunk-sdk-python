@@ -59,7 +59,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEquals(result, 0)
+            self.assertEquals(result, 0, '"{}" run failed with result code {}'.format(arg, result))
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):

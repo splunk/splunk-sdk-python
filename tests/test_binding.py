@@ -565,7 +565,7 @@ class TestCookieAuthentication(unittest.TestCase):
             new_context.get("apps/local")
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
 
     def test_login_with_multiple_cookies(self):
         bad_cookie = 'bad=cookie'
@@ -575,7 +575,7 @@ class TestCookieAuthentication(unittest.TestCase):
             new_context.get("apps/local")
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
             # Bring in a valid cookie now
             for key, value in self.context.get_cookies().items():
                 new_context.get_cookies()[key] = value
@@ -598,7 +598,8 @@ class TestCookieAuthentication(unittest.TestCase):
             binding.connect(**opts)
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Login failed.")
+            self.assertEqual(str(ae), "Login failed.")
+
 
 class TestNamespace(unittest.TestCase):
     def test_namespace(self):

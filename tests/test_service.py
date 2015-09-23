@@ -214,7 +214,7 @@ class TestCookieAuthentication(unittest.TestCase):
             service2.apps.get()
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
 
     def test_autologin_with_cookie(self):
         self.service.login()
@@ -237,7 +237,7 @@ class TestCookieAuthentication(unittest.TestCase):
             service2.login()
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Login failed.")
+            self.assertEqual(str(ae), "Login failed.")
 
     def test_login_with_multiple_cookie_headers(self):
         cookies = {

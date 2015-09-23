@@ -93,7 +93,7 @@ class Script(object):
                     return 0
                 except Exception as e:
                     root = ET.Element("error")
-                    ET.SubElement(root, "message").text = e.message
+                    ET.SubElement(root, "message").text = str(e)
                     event_writer.write_xml_document(root)
 
                     return 1

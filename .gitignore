@@ -23,3 +23,5 @@ Test Results*.html
 tests/searchcommands/data/app/app.log
 splunk_sdk.egg-info/
 dist/
+examples/searchcommands_app/package/default/commands.conf
+examples/searchcommands_app/package/bin/packages

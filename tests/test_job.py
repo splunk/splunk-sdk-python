@@ -27,7 +27,10 @@ import splunklib.results as results
 
 from splunklib.binding import _log_duration, HTTPError
 
-from xml.etree.ElementTree import ParseError
+# TODO: Determine if we should be importing ExpatError if ParseError is not avaialble (e.g., on Python 2.6)
+# There's code below that now catches SyntaxError instead of ParseError. Should we be catching ExpathError instead?
+
+# from xml.etree.ElementTree import ParseError
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -65,7 +68,7 @@ class TestUtilities(testlib.SDKTestCase):
                             isinstance(ds[0], results.Message))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 3)
-    
+
     def test_export_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
@@ -79,7 +82,7 @@ class TestUtilities(testlib.SDKTestCase):
                 # Normal events are returned as dicts
                 pass #print result
         assert rr.is_preview == False
-    
+
     def test_results_docstring_sample(self):
         import splunklib.results as results
         service = self.service  # cheat
@@ -95,7 +98,7 @@ class TestUtilities(testlib.SDKTestCase):
                 # Normal events are returned as dicts
                 pass #print result
         assert rr.is_preview == False
-    
+
     def test_preview_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
@@ -113,7 +116,7 @@ class TestUtilities(testlib.SDKTestCase):
             pass #print "Preview of a running search job."
         else:
             pass #print "Job is finished. Results are final."
-    
+
     def test_oneshot_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
@@ -274,8 +277,8 @@ class TestJob(testlib.SDKTestCase):
         super(TestJob, self).setUp()
         self.query = "search index=_internal | head 3"
         self.job = self.service.jobs.create(
-            query=self.query, 
-            earliest_time="-1m", 
+            query=self.query,
+            earliest_time="-1m",
             latest_time="now")
 
     def tearDown(self):
@@ -324,7 +327,7 @@ class TestJob(testlib.SDKTestCase):
     def test_setttl(self):
         old_ttl = int(self.job['ttl'])
         new_ttl = old_ttl + 1000
-        
+
         from datetime import datetime
         start_time = datetime.now()
         self.job.set_ttl(new_ttl)
@@ -362,7 +365,7 @@ class TestJob(testlib.SDKTestCase):
         }
         try:
             self.service.jobs.create('invalid query', **args)
-        except ParseError as pe:
+        except SyntaxError as pe:
             self.fail("Something went wrong with parsing the REST API response. %s" % pe.message)
         except HTTPError as he:
             self.assertEqual(he.status, 400)
@@ -385,7 +388,7 @@ class TestResultsReader(unittest.TestCase):
                     from collections import OrderedDict
                 except:
                     from splunklib.ordereddict import OrderedDict
-                self.assertTrue(isinstance(r, OrderedDict) 
+                self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):
                     N_results += 1
@@ -407,7 +410,7 @@ class TestResultsReader(unittest.TestCase):
                     from collections import OrderedDict
                 except:
                     from splunklib.ordereddict import OrderedDict
-                self.assertTrue(isinstance(r, OrderedDict) 
+                self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):
                     N_results += 1

@@ -16,11 +16,14 @@
 
 from setuptools import setup, Command
 from contextlib import closing
-from fnmatch import fnmatch
+from subprocess import check_call, STDOUT
 
 import os
-import splunklib
+import sys
+import shutil
 import tarfile
+
+import splunklib
 
 
 def run_test_suite():
@@ -102,7 +105,7 @@ class JunitXmlTestCommand(Command):
 class DistCommand(Command):
     """setup.py command to create .spl files for modular input and search
     command examples"""
-    description = "Build modular input and search command example .spl files."
+    description = "Build modular input and search command example tarballs."
     user_options = []
 
     def initialize_options(self):
@@ -163,35 +166,16 @@ class DistCommand(Command):
 
                 spl.close()
 
-        # Create searchcommands_app.spl
+        # Create searchcommands_app-<three-part-version-number>-private.tar.gz
 
-        sdk_dir = os.path.abspath('.')
+        setup_py = os.path.join('examples', 'searchcommands_app', 'setup.py')
 
-        def exclude(path):
-            # TODO: DVPL-5866 - Replace with filter function because exclude is deprecated
-            basename = os.path.basename(path)
-            for pattern in ['.DS_Store', '.idea', '*.log', '*.py[co]']:
-                if fnmatch(basename, pattern):
-                    return True
-            return False
+        check_call((setup_py, 'build', '--force'), stderr=STDOUT, stdout=sys.stdout)
+        tarball = 'searchcommands_app-{0}-private.tar.gz'.format(self.distribution.metadata.version)
+        source = os.path.join('examples', 'searchcommands_app', 'build', tarball)
+        target = os.path.join('build', tarball)
 
-        tarball = os.path.join(sdk_dir, 'build', 'searchcommands_app.spl')
-
-        splunklib_arcname = os.path.join(
-            'searchcommands_app', 'bin', 'splunklib')
-
-        manifest = [
-            (os.path.join(sdk_dir, 'examples', 'searchcommands_app'),
-             'searchcommands_app'),
-            (os.path.join(sdk_dir, 'splunklib'),
-             splunklib_arcname)
-        ]
-
-        with closing(tarfile.open(tarball, 'w')) as spl:
-            for source, target in manifest:
-                # Args here are: name, arcname, recursive, and [exclude|filter]
-                spl.add(source, target, True, exclude)
-
+        shutil.copyfile(source, target)
         return
 
 setup(

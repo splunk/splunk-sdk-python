@@ -57,7 +57,6 @@ if os.name == 'nt':
     patch_os()
     del locals()['patch_os']  # since this function has done its job
 
-
 from collections import OrderedDict
 from glob import glob
 from itertools import chain
@@ -423,54 +422,60 @@ class TestCommand(Command):
 
 # endregion
 
-setup(
-    description='Custom Search Command examples',
-    name=os.path.basename(project_dir),
-    version='1.5.0',
-    author='Splunk, Inc.',
-    author_email='devinfo@splunk.com',
-    url='http://github.com/splunk/splunk-sdk-python',
-    license='http://www.apache.org/licenses/LICENSE-2.0',
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Other Environment',
-        'Intended Audience :: Information Technology',
-        'License :: Other/Proprietary License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: System :: Logging',
-        'Topic :: System :: Monitoring'],
-    packages=[
-        b'bin.packages.splunklib', b'bin.packages.splunklib.searchcommands'
-    ],
-    package_dir={
-        b'bin': os.path.join('package', 'bin'),
-        b'bin.packages': os.path.join('package', 'bin', 'packages'),
-        b'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
-        b'bin.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
-    },
-    package_data={
-        b'bin': [
-            os.path.join('package', 'bin', 'app.py'),
-            os.path.join('package', 'bin', 'countmatches.py'),
-            os.path.join('package', 'bin', 'filter.py'),
-            os.path.join('package', 'bin', 'generatehello.py'),
-            os.path.join('package', 'bin', 'generatetext.py'),
-            os.path.join('package', 'bin', 'pypygeneratetext.py'),
-            os.path.join('package', 'bin', 'simulate.py'),
-            os.path.join('package', 'bin', 'sum.py')
-        ]
-    },
-    data_files=[
-        (b'README', [os.path.join('package', 'README', '*.conf.spec')]),
-        (b'default', [os.path.join('package', 'default', '*.conf')]),
-        (b'lookups', [os.path.join('package', 'lookups', '*.csv.gz')]),
-        (b'metadata', [os.path.join('package', 'metadata', 'default.meta')])
-    ],
-    requires=[],
+current_directory = os.getcwdu()
+os.chdir(project_dir)
 
-    cmdclass=OrderedDict((
-        ('analyze', AnalyzeCommand), 
-        ('build', BuildCommand),
-        ('link', LinkCommand),
-        ('test', TestCommand))))
+try:
+    setup(
+        description='Custom Search Command examples',
+        name=os.path.basename(project_dir),
+        version='1.5.0',
+        author='Splunk, Inc.',
+        author_email='devinfo@splunk.com',
+        url='http://github.com/splunk/splunk-sdk-python',
+        license='http://www.apache.org/licenses/LICENSE-2.0',
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Environment :: Other Environment',
+            'Intended Audience :: Information Technology',
+            'License :: Other/Proprietary License',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python',
+            'Topic :: System :: Logging',
+            'Topic :: System :: Monitoring'],
+        packages=[
+            b'bin.packages.splunklib', b'bin.packages.splunklib.searchcommands'
+        ],
+        package_dir={
+            b'bin': os.path.join('package', 'bin'),
+            b'bin.packages': os.path.join('package', 'bin', 'packages'),
+            b'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
+            b'bin.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
+        },
+        package_data={
+            b'bin': [
+                os.path.join('package', 'bin', 'app.py'),
+                os.path.join('package', 'bin', 'countmatches.py'),
+                os.path.join('package', 'bin', 'filter.py'),
+                os.path.join('package', 'bin', 'generatehello.py'),
+                os.path.join('package', 'bin', 'generatetext.py'),
+                os.path.join('package', 'bin', 'pypygeneratetext.py'),
+                os.path.join('package', 'bin', 'simulate.py'),
+                os.path.join('package', 'bin', 'sum.py')
+            ]
+        },
+        data_files=[
+            (b'README', [os.path.join('package', 'README', '*.conf.spec')]),
+            (b'default', [os.path.join('package', 'default', '*.conf')]),
+            (b'lookups', [os.path.join('package', 'lookups', '*.csv.gz')]),
+            (b'metadata', [os.path.join('package', 'metadata', 'default.meta')])
+        ],
+        requires=[],
+
+        cmdclass=OrderedDict((
+            ('analyze', AnalyzeCommand),
+            ('build', BuildCommand),
+            ('link', LinkCommand),
+            ('test', TestCommand))))
+finally:
+    os.chdir(current_directory)

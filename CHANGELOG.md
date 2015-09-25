@@ -27,7 +27,7 @@
 
 ### Bug fixes
 
-* GitHub issue 88: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`
+* GitHub issue 88: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
 
 * Various other bug fixes/improvements for Search Command Protocol V1.
 

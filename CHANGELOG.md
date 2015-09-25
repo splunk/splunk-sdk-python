@@ -27,8 +27,10 @@
 
 ### Bug fixes
 
-* GitHub issue 88: dict_reader.py throws KeyError when supports_multivalues=True for custom commands #115.
+* GitHub issue 88: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`
+
 * Various other bug fixes/improvements for Search Command Protocol V1.
+
 * Various bug fixes/improvements to the full splunklib test suite.
 
 ## Version 1.4.0

@@ -31,6 +31,8 @@ from types import MethodType
 from unittest import main, TestCase
 
 import cPickle as pickle
+import gzip
+import io
 import json
 import os
 import random
@@ -108,7 +110,7 @@ class TestInternals(TestCase):
 
         recording = os.path.join(self._package_path, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.')
 
-        with open(recording + 'input', 'rb') as file_1, open(recording + 'output', 'rb') as file_2:
+        with gzip.open(recording + 'input.gz', 'rb') as file_1, io.open(recording + 'output', 'rb') as file_2:
             ifile = StringIO(file_1.read())
             result = StringIO(file_2.read())
 
@@ -133,7 +135,10 @@ class TestInternals(TestCase):
                 self.assertEqual(ofile.getvalue(), result.getvalue())
 
                 # Verify that we faithfully recorded the input and output files
-                with open(ifile._recording.name, 'rb') as file_1, open(ofile._recording.name, 'rb') as file_2:
+                ifile._recording.close()
+                ofile._recording.close()
+
+                with gzip.open(ifile._recording.name, 'rb') as file_1, gzip.open(ofile._recording.name, 'rb') as file_2:
                     self.assertEqual(file_1.read(), ifile._file.getvalue())
                     self.assertEqual(file_2.read(), ofile._file.getvalue())
 
@@ -147,7 +152,7 @@ class TestInternals(TestCase):
 
         return
 
-    def test_record_writer_with_random_data(self, record=False):
+    def test_record_writer_with_random_data(self, save_recording=False):
 
         # Confirmed: [minint, maxint) covers the full range of values that xrange allows
 
@@ -233,13 +238,13 @@ class TestInternals(TestCase):
         # P2 [ ] TODO: Verify that RecordWriter gives consumers the ability to finish early by calling
         # RecordWriter.flush(finish=True).
 
-        if record:
+        if save_recording:
 
             cls = self.__class__
             method = cls.test_record_writer_with_recordings
             base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, unicode(time()))))
 
-            with open(base_path + '.input', 'wb') as f:
+            with gzip.open(base_path + '.input.gz', 'wb') as f:
                 pickle.dump(test_data, f)
 
             with open(base_path + '.output', 'wb') as f:
@@ -253,9 +258,9 @@ class TestInternals(TestCase):
         method = cls.test_record_writer_with_recordings
         base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__)))
 
-        for input_file in iglob(base_path + '*.input'):
+        for input_file in iglob(base_path + '*.input.gz'):
 
-            with open(input_file, 'rb') as f:
+            with gzip.open(input_file, 'rb') as f:
                 test_data = pickle.load(f)
 
             writer = RecordWriterV2(StringIO(), maxresultrows=10)  # small for the purposes of this unit test
@@ -277,12 +282,10 @@ class TestInternals(TestCase):
 
             writer.flush(finished=True)
 
-            with open(os.path.splitext(input_file)[0] + '.output', 'rb') as f:
+            with io.open(os.path.splitext(os.path.splitext(input_file)[0])[0] + '.output', 'rb') as f:
                 expected = f.read()
 
             self.assertMultiLineEqual(writer._ofile.getvalue(), expected)
-            os.remove(input_file)
-            os.remove(f.name)
 
         return
 
@@ -382,7 +385,7 @@ class TestRecorder(object):
         self.next_part = MethodType(next_part, self, self.__class__)
 
         def stop(self):
-            with open(path, 'wb') as f:
+            with io.open(path, 'wb') as f:
                 test = OrderedDict((('inputs', self._recording), ('results', self._output.getvalue())))
                 pickle.dump(test, f)
 

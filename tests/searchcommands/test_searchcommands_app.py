@@ -31,6 +31,7 @@ from itertools import ifilter, imap, izip
 from subprocess import PIPE, Popen
 from unittest import main, skipUnless, TestCase
 
+import gzip
 import csv
 import io
 import os
@@ -74,7 +75,7 @@ class Recording(object):
                 raise
             self._args = ['splunk', 'cmd', 'python', None]
 
-        self._input_file = path + '.input'
+        self._input_file = path + '.input.gz'
         self._output_file = path + '.output'
 
     def get_args(self, command_path):
@@ -266,13 +267,33 @@ class TestSearchCommandsApp(TestCase):
         expected, output, errors, process = None, None, None, None
 
         for recording in Recordings(name, action, phase, protocol):
-            with io.open(recording.input_file, 'rb') as ifile:
-                process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE)
-                output, errors = process.communicate()
-            with io.open(recording.output_file, 'rb') as ifile:
-                expected = ifile.read()
+            compressed_file = recording.input_file
+            uncompressed_file = os.path.splitext(recording.input_file)[0]
+            try:
+                with gzip.open(compressed_file, 'rb') as ifile, io.open(uncompressed_file, 'wb') as ofile:
+                    b = bytearray(io.DEFAULT_BUFFER_SIZE)
+                    n = len(b)
+                    while True:
+                        count = ifile.readinto(b)
+                        if count == 0:
+                            break
+                        if count < n:
+                            ofile.write(b[:count])
+                            break
+                        ofile.write(b)
+                with io.open(uncompressed_file, 'rb') as ifile:
+                    process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE)
+                    output, errors = process.communicate()
+                with io.open(recording.output_file, 'rb') as ifile:
+                    expected = ifile.read()
+            finally:
+                os.remove(uncompressed_file)
 
         return expected, output, errors, process.returncode
+
+    import codecs
+    _Utf8Reader = codecs.getreader('utf-8')
+
 
 if __name__ == "__main__":
     main()

@@ -24,7 +24,7 @@ from json.encoder import encode_basestring_ascii as json_encode_string
 from urllib import unquote
 
 import csv
-import io
+import gzip
 import os
 import re
 import sys
@@ -424,7 +424,7 @@ class ObjectView(object):
 class Recorder(object):
 
     def __init__(self, path, f):
-        self._recording = io.open(path, 'wb')
+        self._recording = gzip.open(path + '.gz', 'wb')
         self._file = f
 
     def __getattr__(self, name):

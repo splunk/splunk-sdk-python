@@ -100,7 +100,7 @@ class Event(object):
             if value is not None:
                 ET.SubElement(event, node).text = value
 
-        if self.done is not None:
+        if self.done:
             ET.SubElement(event, "done")
 
         stream.write(ET.tostring(event))

@@ -27,8 +27,11 @@
 
 ### Bug fixes
 
-* Various bug fixes/improvements for Search Command Protocol V1. 
-* Various bug fixes/improvements to the splunklib test suite.
+* GitHub issue 88: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
+
+* Various other bug fixes/improvements for Search Command Protocol V1.
+
+* Various bug fixes/improvements to the full splunklib test suite.
 
 ## Version 1.4.0
 

@@ -1,5 +1,5 @@
 
-_time,__mv__time,event_no,__mv_event_no,_raw,__mv__raw
+_time,__mv__time,_serial,__mv__serial,_raw,__mv__raw
 1434910895.01,,1,,1. Hello World!,
 1434910895.01,,2,,2. Hello World!,
 1434910895.01,,3,,3. Hello World!,

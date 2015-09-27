@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
-from collections import deque, OrderedDict
+from collections import deque, namedtuple, OrderedDict
 from cStringIO import StringIO
 from functools import wraps
 from glob import iglob
@@ -31,6 +31,8 @@ from types import MethodType
 from unittest import main, TestCase
 
 import cPickle as pickle
+import gzip
+import io
 import json
 import os
 import random
@@ -61,7 +63,7 @@ def random_dict():
     # contain utf-8 encoded byte strings or--better still--unicode strings. This is because the json package
     # converts all bytes strings to unicode strings before serializing them.
 
-    return {'a': random_float(), 'b': random_unicode(), '福 酒吧': {'fu': random_float(), 'bar': random_float()}}
+    return OrderedDict((('a', random_float()), ('b', random_unicode()), ('福 酒吧', OrderedDict((('fu', random_float()), ('bar', random_float()))))))
 
 
 def random_float():
@@ -108,7 +110,7 @@ class TestInternals(TestCase):
 
         recording = os.path.join(self._package_path, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.')
 
-        with open(recording + 'input', 'rb') as file_1, open(recording + 'output', 'rb') as file_2:
+        with gzip.open(recording + 'input.gz', 'rb') as file_1, io.open(recording + 'output', 'rb') as file_2:
             ifile = StringIO(file_1.read())
             result = StringIO(file_2.read())
 
@@ -133,7 +135,10 @@ class TestInternals(TestCase):
                 self.assertEqual(ofile.getvalue(), result.getvalue())
 
                 # Verify that we faithfully recorded the input and output files
-                with open(ifile._recording.name, 'rb') as file_1, open(ofile._recording.name, 'rb') as file_2:
+                ifile._recording.close()
+                ofile._recording.close()
+
+                with gzip.open(ifile._recording.name, 'rb') as file_1, gzip.open(ofile._recording.name, 'rb') as file_2:
                     self.assertEqual(file_1.read(), ifile._file.getvalue())
                     self.assertEqual(file_2.read(), ofile._file.getvalue())
 
@@ -147,7 +152,7 @@ class TestInternals(TestCase):
 
         return
 
-    def test_record_writer_with_random_data(self, record=False):
+    def test_record_writer_with_random_data(self, save_recording=False):
 
         # Confirmed: [minint, maxint) covers the full range of values that xrange allows
 
@@ -233,13 +238,13 @@ class TestInternals(TestCase):
         # P2 [ ] TODO: Verify that RecordWriter gives consumers the ability to finish early by calling
         # RecordWriter.flush(finish=True).
 
-        if record:
+        if save_recording:
 
             cls = self.__class__
             method = cls.test_record_writer_with_recordings
             base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, unicode(time()))))
 
-            with open(base_path + '.input', 'wb') as f:
+            with gzip.open(base_path + '.input.gz', 'wb') as f:
                 pickle.dump(test_data, f)
 
             with open(base_path + '.output', 'wb') as f:
@@ -253,10 +258,10 @@ class TestInternals(TestCase):
         method = cls.test_record_writer_with_recordings
         base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__)))
 
-        for input_file in iglob(base_path + '*.input'):
+        for input_file in iglob(base_path + '*.input.gz'):
 
-            with open(input_file, 'rb') as f:
-                test_data = pickle.load(f)
+            with gzip.open(input_file, 'rb') as ifile:
+                test_data = pickle.load(ifile)
 
             writer = RecordWriterV2(StringIO(), maxresultrows=10)  # small for the purposes of this unit test
             write_record = writer.write_record
@@ -277,14 +282,75 @@ class TestInternals(TestCase):
 
             writer.flush(finished=True)
 
-            with open(os.path.splitext(input_file)[0] + '.output', 'rb') as f:
-                expected = f.read()
+            # Read expected data
 
-            self.assertMultiLineEqual(writer._ofile.getvalue(), expected)
-            os.remove(input_file)
-            os.remove(f.name)
+            expected_path = os.path.splitext(os.path.splitext(input_file)[0])[0] + '.output'
+
+            with io.open(expected_path, 'rb') as ifile:
+                expected = ifile.read()
+
+            expected = self._load_chunks(StringIO(expected))
+
+            # Read observed data
+
+            ifile = writer._ofile
+            ifile.seek(0)
+
+            observed = self._load_chunks(ifile)
+
+            # Write observed data (as an aid to diagnostics)
+
+            observed_path = expected_path + '.observed'
+            observed_value = ifile.getvalue()
+
+            with io.open(observed_path, 'wb') as ifile:
+                ifile.write(observed_value)
+
+            self._compare_chunks(observed, expected)
 
         return
+
+    def _compare_chunks(self, chunks_1, chunks_2):
+        self.assertEqual(len(chunks_1), len(chunks_2))
+        n = 0
+        for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
+            self.assertDictEqual(
+                chunk_1.metadata, chunk_2.metadata,
+                'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
+            self.assertMultiLineEqual(chunk_1.body, chunk_2.body, 'Chunk {0}: data error'.format(n))
+            n += 1
+        return
+
+    def _load_chunks(self, ifile):
+        import re
+
+        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)\n')
+        decoder = json.JSONDecoder()
+
+        chunks = []
+
+        while True:
+
+            line = ifile.readline()
+
+            if len(line) == 0:
+                break
+
+            match = pattern.match(line)
+            self.assertIsNotNone(match)
+
+            metadata_length = int(match.group('metadata_length'))
+            metadata = ifile.read(metadata_length)
+            metadata = decoder.decode(metadata)
+
+            body_length = int(match.group('body_length'))
+            body = ifile.read(body_length) if body_length > 0 else ''
+
+            chunks.append(TestInternals._Chunk(metadata, body))
+
+        return chunks
+
+    _Chunk = namedtuple('Chunk', (b'metadata', b'body'))
 
     _dictionary = {
         'a': 1,
@@ -382,7 +448,7 @@ class TestRecorder(object):
         self.next_part = MethodType(next_part, self, self.__class__)
 
         def stop(self):
-            with open(path, 'wb') as f:
+            with io.open(path, 'wb') as f:
                 test = OrderedDict((('inputs', self._recording), ('results', self._output.getvalue())))
                 pickle.dump(test, f)
 

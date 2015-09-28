@@ -29,7 +29,7 @@ else:
     from splunklib.searchcommands import environment
     from splunklib import searchcommands
 
-    package_directory = path.dirname(path.abspath(__file__))
+    package_directory = path.dirname(path.realpath(__file__))
     project_root = path.dirname(path.dirname(package_directory))
 
 

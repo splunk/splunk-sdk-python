@@ -160,6 +160,7 @@ def request(url, message, **kwargs):
         "Content-Length": str(len(body)),
         "Host": host,
         "User-Agent": "http.py/1.0",
+        "Connection": "close",
         "Accept": "*/*",
     }
 

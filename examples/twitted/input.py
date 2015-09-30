@@ -54,6 +54,7 @@ class Twitter:
             'Authorization': token,
             'Host': "stream.twitter.com",
             'User-Agent': "twitted.py/0.1",
+            'Connection': "close",
             'Accept': "*/*",
         }
         connection = httplib.HTTPSConnection(TWITTER_STREAM_HOST)

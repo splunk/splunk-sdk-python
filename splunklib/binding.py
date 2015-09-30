@@ -511,7 +511,7 @@ class Context(object):
             return []
         else:
             # Ensure the token is properly formatted
-            if self.token.startswith('Splunk '):
+            if self.token.startswith('Splunk ') or self.token.startswith('Basic '):
                 token = self.token
             else:
                 token = 'Splunk %s' % self.token
@@ -1325,6 +1325,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             "Content-Length": str(len(body)),
             "Host": host,
             "User-Agent": "splunk-sdk-python/1.4",
+            "Connection": "close",
             "Accept": "*/*",
         } # defaults
         for key, value in message["headers"]:

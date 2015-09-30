@@ -32,6 +32,7 @@ headers = {
     'Content-Length': str(len(body)),
     'Host': HOST,
     'User-Agent': "a.py/1.0",
+    'Connection': "close",
     'Accept': "*/*"
 }
 try:
@@ -50,6 +51,7 @@ headers = {
     'Content-Length': "0",
     'Host': HOST,
     'User-Agent': "a.py/1.0",
+    'Connection': "close",
     'Accept': "*/*",
     'Authorization': "Splunk %s" % sessionKey,
 }

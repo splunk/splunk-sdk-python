@@ -31,6 +31,8 @@
 
 * GitHub issue 115: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
 
+* GitHub issue 119: `None` returned in `_load_atom_entries`.
+
 * Various other bug fixes/improvements for Search Command Protocol V1.
 
 * Various bug fixes/improvements to the full splunklib test suite.

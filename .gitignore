@@ -25,3 +25,5 @@ splunk_sdk.egg-info/
 dist/
 examples/searchcommands_app/package/default/commands.conf
 examples/searchcommands_app/package/bin/packages
+tests/searchcommands/apps/app_with_logging_configuration/*.log
+*.observed

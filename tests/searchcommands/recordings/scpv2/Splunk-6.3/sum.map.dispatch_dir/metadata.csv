@@ -1,0 +1,2 @@
+access,owner,app,ttl
+"read : [ admin ], write : [ admin ]",admin,"chunked_searchcommands",60

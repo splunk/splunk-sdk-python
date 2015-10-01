@@ -1,5 +1,42 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.5.0
+
+### New features and APIs
+
+* Added support for the new experimental Search Command Protocol v2, for Splunk 6.3+.
+
+  Opt-in by setting `chunked = true` in commands.conf. See `examples/searchcommands_app/package/default/commands-scpv2.conf`.
+
+* Added support for invoking external search command processes.
+
+  See `examples/searchcommands_app/package/bin/pypygeneratext.py`.
+
+* Added a new search command type: EventingCommand is the base class for commands that filter events arriving at a
+  search head from one or more search peers.
+
+  See `examples/searchcommands_app/package/bin/filter.py`.
+
+* Added `splunklib` logger so that command loggers can be configured independently of the `splunklib.searchcommands`
+  module.
+
+  See `examples/searchcommands_app/package/default/logger.conf` for guidance on logging configuration.
+
+* Added `splunklib.searchcommands.validators.Match` class for verifying that an option value matches a regular
+  expression pattern.
+
+### Bug fixes
+
+* GitHub issue 88: `splunklib.modularinput`, `<done/>` written even when `done=False`.
+
+* GitHub issue 115: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
+
+* GitHub issue 119: `None` returned in `_load_atom_entries`.
+
+* Various other bug fixes/improvements for Search Command Protocol v1.
+
+* Various bug fixes/improvements to the full splunklib test suite.
+
 ## Version 1.4.0
 
 ### New features and APIs

@@ -1,4 +1,6 @@
-# Copyright 2011-2014 Splunk, Inc.
+# coding=utf-8
+#
+# Copyright © 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -27,24 +29,22 @@
         quoted-string = dquote *( word / wsp / "\" dquote / dquote dquote ) dquote
         field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
-     It is Constrained to an 8-bit character set. It does not show that
-     :code:`field-name` values may be comma-separated. This is because Splunk strips
-     commas from the command line. A search command will never see them.
+     It does not show that :code:`field-name` values may be comma-separated. This is because Splunk strips commas from
+    the command line. A search command will never see them.
 
-  3. Commands must be statically configured as follows:
+  2. Search commands targeting versions of Splunk prior to 6.3 must be statically configured as follows:
 
      .. code-block:: text
         :linenos:
 
-        [commandname]
-        filename = commandname.py
+        [command_name]
+        filename = command_name.py
         supports_getinfo = true
         supports_rawargs = true
 
-     No other static configuration is required or expected and may interfere with
-     command execution.
+     No other static configuration is required or expected and may interfere with command execution.
 
-  2. Commands support dynamic probing for settings.
+  3. Commands support dynamic probing for settings.
 
      Splunk probes for settings dynamically when :code:`supports_getinfo=true`.
      You must add this line to the commands.conf stanza for each of your search
@@ -140,86 +140,16 @@
 
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+from .environment import *
 from .decorators import *
 from .validators import *
 
 from .generating_command import GeneratingCommand
-from .reporting_command import ReportingCommand
 from .streaming_command import StreamingCommand
+from .eventing_command import EventingCommand
+from .reporting_command import ReportingCommand
 
-if sys.platform == 'win32':
-    # Work around the fact that on Windows '\n' is mapped to '\r\n'
-    # The typical solution is to simply open files in binary mode, but stdout
-    # is already open, thus this hack
-    import msvcrt
-    import os
-    msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-
-
-def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=
-             sys.stdout, module_name=None):
-    """ Instantiates and executes a search command class
-
-    This function implements a `conditional script stanza <http://goo.gl/OFaox6>`_
-    based on the value of :code:`module_name`::
-
-        if module_name is None or module_name == '__main__':
-            # execute command
-
-    Call this function at module scope with :code:`module_name=__name__`, if you
-    would like your module to act as either a reusable module or a standalone
-    program. Otherwise, if you wish this function to unconditionally instantiate
-    and execute :code:`command_class`, pass :const:`None` as the value of
-    :code:`module_name`.
-
-    :param command_class: Class to instantiate and execute.
-    :type command_class: :code:`SearchCommand`
-    :param argv: List of arguments to the command.
-    :type argv: :code:`list`
-    :param input_file: File from which the command will read data.
-    :type input_file: :code:`file`
-    :param output_file: File to which the command will write data.
-    :type output_file: :code:`file`
-    :param module_name: Name of the module calling :code:`dispatch` or :const:`None`.
-    :type module_name: :code:`str`
-    :returns: :const:`None`
-
-    **Example**
-
-    .. code-block:: python
-        :linenos:
-
-        #!/usr/bin/env python
-        from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
-        @Configuration()
-        class SomeStreamingCommand(StreamingCommand):
-            ...
-            def stream(records):
-                ...
-        dispatch(SomeStreamingCommand, module_name=__name__)
-
-    Dispatches the :code:`SomeStreamingCommand`, if and only if
-    :code:`__name__` is equal to :code:`'__main__'`.
-
-
-    **Example**
-
-    .. code-block:: python
-        :linenos:
-
-        from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
-        @Configuration()
-        class SomeStreamingCommand(StreamingCommand):
-            ...
-            def stream(records):
-                ...
-        dispatch(SomeStreamingCommand)
-
-    Unconditionally dispatches :code:`SomeStreamingCommand`.
-
-    """
-    if module_name is None or module_name == '__main__':
-        command_class().process(argv, input_file, output_file)
-    return
+from .external_search_command import execute, ExternalSearchCommand
+from .search_command import dispatch, SearchMetric

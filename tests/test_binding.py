@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -496,6 +496,7 @@ class TestLogout(BindingTestCase):
         response = self.context.get("/services")
         self.assertEqual(response.status, 200)
 
+
 class TestCookieAuthentication(unittest.TestCase):
     def setUp(self):
         self.opts = testlib.parse([], {}, ".splunkrc")
@@ -504,9 +505,16 @@ class TestCookieAuthentication(unittest.TestCase):
         # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
         import splunklib.client as client
         service = client.Service(**self.opts.kwargs)
+        # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase
         splver = service.splunk_version
         if splver[:2] < (6, 2):
             self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+
+    if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
+
+        def assertIsNotNone(self, obj, msg=None):
+            if obj is None:
+                raise self.failureException, (msg or '%r is not None' % obj)
 
     def test_cookie_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
@@ -565,7 +573,7 @@ class TestCookieAuthentication(unittest.TestCase):
             new_context.get("apps/local")
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
 
     def test_login_with_multiple_cookies(self):
         bad_cookie = 'bad=cookie'
@@ -575,7 +583,7 @@ class TestCookieAuthentication(unittest.TestCase):
             new_context.get("apps/local")
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
             # Bring in a valid cookie now
             for key, value in self.context.get_cookies().items():
                 new_context.get_cookies()[key] = value
@@ -598,7 +606,8 @@ class TestCookieAuthentication(unittest.TestCase):
             binding.connect(**opts)
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(ae.message, "Login failed.")
+            self.assertEqual(str(ae), "Login failed.")
+
 
 class TestNamespace(unittest.TestCase):
     def test_namespace(self):

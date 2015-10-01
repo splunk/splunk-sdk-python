@@ -1,0 +1,1 @@
+splunk cmd python generatehello.py __GETINFO__ count="10" record="f" 

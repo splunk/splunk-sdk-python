@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# coding=utf-8
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright © 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,192 +15,422 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib.searchcommands.search_command_internals import SearchCommandParser
-from splunklib.searchcommands import Configuration, StreamingCommand
-
-import logging
-import os
+from unittest import main, TestCase
 import sys
+
+from splunklib.searchcommands import Configuration, Option, environment, validators
+from splunklib.searchcommands.decorators import ConfigurationSetting
+from splunklib.searchcommands.internals import json_encode_string
+from splunklib.searchcommands.search_command import SearchCommand
+
+from tests.searchcommands import rebase_environment
 
 
 @Configuration()
-class SearchCommand(StreamingCommand):
-    def stream(self, records):
-        pass
+class TestSearchCommand(SearchCommand):
 
+    boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        validate=validators.Boolean())
 
-class TestDecorators(unittest.TestCase):
-    def setUp(self):
-        super(TestDecorators, self).setUp()
-        return
+    required_boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        require=True, validate=validators.Boolean())
 
-    def test_builtin_options(self):
+    aliased_required_boolean = Option(
+        doc='''
+        **Syntax:** **boolean=***<value>*
+        **Description:** A boolean value''',
+        name='foo', require=True, validate=validators.Boolean())
 
-        # logging_level accepts all logging levels and returns their canonical
-        # string values
+    code = Option(
+        doc='''
+        **Syntax:** **code=***<value>*
+        **Description:** A Python expression, if mode == "eval", or statement, if mode == "exec"''',
+        validate=validators.Code())
 
-        warning = logging.getLevelName(logging.WARNING)
-        notset = logging.getLevelName(logging.NOTSET)
-        logging.root.setLevel(logging.WARNING)
+    required_code = Option(
+        doc='''
+        **Syntax:** **code=***<value>*
+        **Description:** A Python expression, if mode == "eval", or statement, if mode == "exec"''',
+        require=True, validate=validators.Code())
 
-        while len(logging.root.handlers) > 0:
-            logging.root.removeHandler(logging.root.handlers[0])
+    duration = Option(
+        doc='''
+        **Syntax:** **duration=***<value>*
+        **Description:** A length of time''',
+        validate=validators.Duration())
 
-        command = SearchCommand()
+    required_duration = Option(
+        doc='''
+        **Syntax:** **duration=***<value>*
+        **Description:** A length of time''',
+        require=True, validate=validators.Duration())
 
-        self.assertEquals(warning, command.logging_level)
+    fieldname = Option(
+        doc='''
+        **Syntax:** **fieldname=***<value>*
+        **Description:** Name of a field''',
+        validate=validators.Fieldname())
 
-        for level in logging._levelNames:
-            if type(level) is int:
-                command.logging_level = level
-                level_name = logging.getLevelName(level)
-                self.assertEquals(command.logging_level,
-                                  warning if level_name == notset else level_name)
-            else:
-                level_name = logging.getLevelName(logging.getLevelName(level))
-                for variant in level, level.lower(), level.capitalize():
-                    command.logging_level = variant
-                    self.assertEquals(command.logging_level,
-                                      warning if level_name == notset else level_name)
+    required_fieldname = Option(
+        doc='''
+        **Syntax:** **fieldname=***<value>*
+        **Description:** Name of a field''',
+        require=True, validate=validators.Fieldname())
 
-        # logging_level accepts any numeric value
+    file = Option(
+        doc='''
+        **Syntax:** **file=***<value>*
+        **Description:** Name of a file''',
+        validate=validators.File())
 
-        for level in 999, 999.999:
-            command.logging_level = level
-            self.assertEqual(command.logging_level, 'Level 999')
+    required_file = Option(
+        doc='''
+        **Syntax:** **file=***<value>*
+        **Description:** Name of a file''',
+        require=True, validate=validators.File())
 
-        # logging_level raises a value error for unknown logging level names
+    integer = Option(
+        doc='''
+        **Syntax:** **integer=***<value>*
+        **Description:** An integer value''',
+        validate=validators.Integer())
 
-        current_value = command.logging_level
+    required_integer = Option(
+        doc='''
+        **Syntax:** **integer=***<value>*
+        **Description:** An integer value''',
+        require=True, validate=validators.Integer())
 
-        try:
-            command.logging_level = 'foo'
-        except ValueError:
+    map = Option(
+        doc='''
+        **Syntax:** **map=***<value>*
+        **Description:** A mapping from one value to another''',
+        validate=validators.Map(foo=1, bar=2, test=3))
+
+    required_map = Option(
+        doc='''
+        **Syntax:** **map=***<value>*
+        **Description:** A mapping from one value to another''',
+        require=True, validate=validators.Map(foo=1, bar=2, test=3))
+
+    match = Option(
+        doc='''
+        **Syntax:** **match=***<value>*
+        **Description:** A value that matches a regular expression pattern''',
+        validate=validators.Match('social security number', r'\d{3}-\d{2}-\d{4}'))
+
+    required_match = Option(
+        doc='''
+        **Syntax:** **required_match=***<value>*
+        **Description:** A value that matches a regular expression pattern''',
+        require=True, validate=validators.Match('social security number', r'\d{3}-\d{2}-\d{4}'))
+
+    optionname = Option(
+        doc='''
+        **Syntax:** **optionname=***<value>*
+        **Description:** The name of an option (used internally)''',
+        validate=validators.OptionName())
+
+    required_optionname = Option(
+        doc='''
+        **Syntax:** **optionname=***<value>*
+        **Description:** The name of an option (used internally)''',
+        require=True, validate=validators.OptionName())
+
+    regularexpression = Option(
+        doc='''
+        **Syntax:** **regularexpression=***<value>*
+        **Description:** Regular expression pattern to match''',
+        validate=validators.RegularExpression())
+
+    required_regularexpression = Option(
+        doc='''
+        **Syntax:** **regularexpression=***<value>*
+        **Description:** Regular expression pattern to match''',
+        require=True, validate=validators.RegularExpression())
+
+    set = Option(
+        doc='''
+        **Syntax:** **set=***<value>*
+        **Description:** A member of a set''',
+        validate=validators.Set('foo', 'bar', 'test'))
+
+    required_set = Option(
+        doc='''
+        **Syntax:** **set=***<value>*
+        **Description:** A member of a set''',
+        require=True, validate=validators.Set('foo', 'bar', 'test'))
+
+    class ConfigurationSettings(SearchCommand.ConfigurationSettings):
+        @classmethod
+        def fix_up(cls, command_class):
             pass
-        except BaseException as e:
-            self.fail('Expected ValueError, but %s was raised' % type(e))
-        else:
-            self.fail(
-                'Expected ValueError, but logging_level=%s' % command.logging_level)
 
-        self.assertEqual(command.logging_level, current_value)
 
-        app_root = os.path.join(TestDecorators._package_directory, 'data',
-                                'app')
-        command = SearchCommand()  # guarantee: no logging.conf
-        directory = os.getcwd()
-        os.chdir(os.path.join(app_root, 'bin'))
+class TestDecorators(TestCase):
 
-        try:
-            # In the absence of a logging.conf file, messages are written to
-            # stderr
+    def setUp(self):
+        TestCase.setUp(self)
 
-            self.assertEqual(len(logging.root.handlers), 1)
+    def test_configuration(self):
 
-            root_handler = logging.root.handlers[0]
-            self.assertIsInstance(root_handler, logging.StreamHandler)
-            self.assertEqual(root_handler.stream, sys.stderr)
+        def new_configuration_settings_class(setting_name=None, setting_value=None):
 
-            self.assertEqual(len(command.logger.handlers), 0)
+            @Configuration(**{} if setting_name is None else {setting_name: setting_value})
+            class ConfiguredSearchCommand(SearchCommand):
+                class ConfigurationSettings(SearchCommand.ConfigurationSettings):
+                    clear_required_fields = ConfigurationSetting()
+                    distributed = ConfigurationSetting()
+                    generates_timeorder = ConfigurationSetting()
+                    generating = ConfigurationSetting()
+                    maxinputs = ConfigurationSetting()
+                    overrides_timeorder = ConfigurationSetting()
+                    required_fields = ConfigurationSetting()
+                    requires_preop = ConfigurationSetting()
+                    retainsevents = ConfigurationSetting()
+                    run_in_preview = ConfigurationSetting()
+                    streaming = ConfigurationSetting()
+                    streaming_preop = ConfigurationSetting()
+                    type = ConfigurationSetting()
 
-            # TODO: DVPL-5867 - capture this output and verify it
-            command.logger.warning(
-                'Test that output is directed to stderr without formatting')
+                    @classmethod
+                    def fix_up(cls, command_class):
+                        return
 
-            default_logging_configuration = os.path.join(directory, app_root,
-                                                         'default',
-                                                         'logging.conf')
+            return ConfiguredSearchCommand.ConfigurationSettings
 
-            # A search command loads {local,default}/logging.conf when it is
-            # available
-            command = SearchCommand(
-                app_root=app_root)  # guarantee: default/logging.conf
-            self.assertEqual(command.logging_configuration,
-                             default_logging_configuration)
+        for name, values, error_values in (
+            ('clear_required_fields',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('distributed',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('generates_timeorder',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('generating',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('maxinputs',
+             (0, 50000, sys.maxint),
+             (None, -1, sys.maxint + 1, 'anything other than an int')),
+            ('overrides_timeorder',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('required_fields',
+             (['field_1', 'field_2'], {'field_1', 'field_2'}, ('field_1', 'field_2')),
+             (None, 0xdead, {'foo': 1, 'bar': 2})),
+            ('requires_preop',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('retainsevents',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('run_in_preview',
+              (True, False),
+             (None, 'anything other than a bool')),
+            ('streaming',
+             (True, False),
+             (None, 'anything other than a bool')),
+            ('streaming_preop',
+             ('some unicode string', b'some byte string'),
+             (None, 0xdead)),
+            ('type',
+             ('eventing', 'reporting', 'streaming', b'eventing', b'reporting', b'streaming'),
+             ('events', 0xdead))):
 
-            # logging_configuration loads a new logging configuration file
-            # relative to the app root
+            for value in values:
 
-            command.logging_configuration = 'logging.conf'
-            self.assertEqual(command.logging_configuration,
-                             default_logging_configuration)
+                settings_class = new_configuration_settings_class(name, value)
 
-            # logging_configuration loads a new logging configuration file on an
-            # absolute path
+                # Setting property exists
+                self.assertIsInstance(getattr(settings_class, name), property)
 
-            command.logging_configuration = default_logging_configuration
-            self.assertEqual(command.logging_configuration,
-                             default_logging_configuration)
+                # Backing field exists on the settings class and it holds the correct value
+                backing_field_name = '_' + name
+                self.assertEqual(getattr(settings_class, backing_field_name), value)
 
-            # logging_configuration raises a value error, if a non-existent
-            # logging configuration file is provided
+                settings_instance = settings_class(command=None)
 
-            try:
-                command.logging_configuration = 'foo'
-            except ValueError:
+                # An instance gets its value from the settings class until a value is set on the instance
+
+                self.assertNotIn(backing_field_name, settings_instance.__dict__)
+                self.assertEqual(getattr(settings_instance, name), value)
+                self.assertEqual(getattr(settings_instance, backing_field_name), value)
+
+                setattr(settings_instance, name, value)
+
+                self.assertIn(backing_field_name, settings_instance.__dict__),
+                self.assertEqual(getattr(settings_instance, name), value)
+                self.assertEqual(settings_instance.__dict__[backing_field_name], value)
                 pass
-            except BaseException as e:
-                self.fail('Expected ValueError, but %s was raised' % type(e))
-            else:
-                self.fail(
-                    'Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
 
-            try:
-                command.logging_configuration = os.path.join(
-                    TestDecorators._package_directory,
-                    'non-existent.logging.conf')
-            except ValueError:
-                pass
-            except BaseException as e:
-                self.fail('Expected ValueError, but %s was raised' % type(e))
-            else:
-                self.fail(
-                    'Expected ValueError, but logging_configuration=%s' % command.logging_configuration)
+            for value in error_values:
+                try:
+                    new_configuration_settings_class(name, value)
+                except Exception as error:
+                    self.assertIsInstance(error, ValueError, 'Expected ValueError, not {}({}) for {}={}'.format(type(error).__name__, error, name, repr(value)))
+                else:
+                    self.fail('Expected ValueError, not success for {}={}'.format(name, repr(value)))
 
-        finally:
-            os.chdir(directory)
-
-        # show_configuration accepts Splunk boolean values
-
-        boolean_values = {
-            '0': False, '1': True,
-            'f': False, 't': True,
-            'n': False, 'y': True,
-            'no': False, 'yes': True,
-            'false': False, 'true': True}
-
-        for value in boolean_values:
-            for variant in [value, value.capitalize(), value.upper()]:
-                command.show_configuration = variant
-                self.assertEquals(command.show_configuration,
-                                  boolean_values[value])
-
-        for value in 'any-other-string', 13:
-            try:
-                command.show_configuration = value
-            except ValueError:
-                pass
-            except BaseException as e:
-                self.fail('Expected ValueError, but %s was raised' % type(e))
-            else:
-                self.fail(
-                    'Expected ValueError, but show_configuration=%s' % command.show_configuration)
-
-        # SearchCommandParser recognizes each built-in option
-
-        for argv in ['logging_level=DEBUG'], ['show_configuration=true']:
-            parser = SearchCommandParser()
-            parser.parse(argv, command)
+                settings_class = new_configuration_settings_class()
+                settings_instance = settings_class(command=None)
+                self.assertRaises(ValueError, setattr, settings_instance, name, value)
 
         return
 
-    _package_directory = os.path.dirname(__file__)
+    def test_new_configuration_setting(self):
+
+        class Test(object):
+            generating = ConfigurationSetting()
+
+            @ConfigurationSetting(name='required_fields')
+            def some_name__other_than_required_fields(self):
+                pass
+
+            @some_name__other_than_required_fields.setter
+            def some_name__other_than_required_fields(self, value):
+                pass
+
+            @ConfigurationSetting
+            def streaming_preop(self):
+                pass
+
+            @streaming_preop.setter
+            def streaming_preop(self, value):
+                pass
+
+        ConfigurationSetting.fix_up(Test, {})
+
+        test = Test()
+        self.assertFalse(hasattr(Test, '_generating'))
+        self.assertFalse(hasattr(test, '_generating'))
+        self.assertIsNone(test.generating)
+
+        Test._generating = True
+        self.assertIs(test.generating, True)
+
+        test.generating = False
+        self.assertIs(test.generating, False)
+        self.assertIs(Test._generating, True)
+        self.assertIs(test._generating, False)
+
+        self.assertRaises(ValueError, Test.generating.fset, test, 'any type other than bool')
+
+    def test_option(self):
+
+        rebase_environment('app_with_logging_configuration')
+
+        presets = [
+            'logging_configuration=' + json_encode_string(environment.logging_configuration),
+            'logging_level="WARNING"',
+            'record="f"',
+            'show_configuration="f"']
+
+        command = TestSearchCommand()
+        options = command.options
+        itervalues = options.itervalues
+
+        options.reset()
+        missing = options.get_missing()
+        self.assertListEqual(missing, [option.name for option in itervalues() if option.is_required])
+        self.assertListEqual(presets, [unicode(option) for option in itervalues() if option.value is not None])
+        self.assertListEqual(presets, [unicode(option) for option in itervalues() if unicode(option) != option.name + '=None'])
+
+        test_option_values = {
+            validators.Boolean: ('0', 'non-boolean value'),
+            validators.Code: ('foo == "bar"', 'bad code'),
+            validators.Duration: ('24:59:59', 'non-duration value'),
+            validators.Fieldname: ('some.field_name', 'non-fieldname value'),
+            validators.File: (__file__, 'non-existent file'),
+            validators.Integer: ('100', 'non-integer value'),
+            validators.List: ('a,b,c', '"non-list value'),
+            validators.Map: ('foo', 'non-existent map entry'),
+            validators.Match: ('123-45-6789', 'not a social security number'),
+            validators.OptionName: ('some_option_name', 'non-option name value'),
+            validators.RegularExpression: ('\\s+', '(poorly formed regular expression'),
+            validators.Set: ('bar', 'non-existent set entry')}
+
+        for option in itervalues():
+            validator = option.validator
+
+            if validator is None:
+                self.assertIn(option.name, ['logging_configuration', 'logging_level'])
+                continue
+
+            legal_value, illegal_value = test_option_values[type(validator)]
+            option.value = legal_value
+
+            self.assertEqual(
+                validator.format(option.value), validator.format(validator.__call__(legal_value)),
+                "{}={}".format(option.name, legal_value))
+
+            try:
+                option.value = illegal_value
+            except ValueError:
+                pass
+            except BaseException as error:
+                self.assertFalse('Expected ValueError for {}={}, not this {}: {}'.format(
+                    option.name, illegal_value, type(error).__name__, error))
+            else:
+                self.assertFalse('Expected ValueError for {}={}, not a pass.'.format(option.name, illegal_value))
+
+        expected = (
+            "Option.View(["
+            "(u'foo', u'f'),"
+            "('boolean', u'f'),"
+            "('code', u'foo == \"bar\"'),"
+            "('duration', u'24:59:59'),"
+            "('fieldname', u'some.field_name'),"
+            "('file', u" + unicode(repr(__file__)) + "),"
+            "('integer', u'100'),"
+            "('logging_configuration', " + repr(environment.logging_configuration) + "),"
+            "('logging_level', u'WARNING'),"
+            "('map', 'foo'),"
+            "('match', u'123-45-6789'),"
+            "('optionname', u'some_option_name'),"
+            "('record', u'f'),"
+            "('regularexpression', u'\\\\s+'),"
+            "('required_boolean', u'f'),"
+            "('required_code', u'foo == \"bar\"'),"
+            "('required_duration', u'24:59:59'),"
+            "('required_fieldname', u'some.field_name'),"
+            "('required_file', u" + unicode(repr(__file__)) + "),"
+            "('required_integer', u'100'),"
+            "('required_map', 'foo'),"
+            "('required_match', u'123-45-6789'),"
+            "('required_optionname', u'some_option_name'),"
+            "('required_regularexpression', u'\\\\s+'),"
+            "('required_set', u'bar'),"
+            "('set', u'bar'),"
+            "('show_configuration', u'f')])")
+
+        observed = unicode(repr(command.options))
+        self.assertEqual(observed, expected)
+
+        expected = (
+            'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
+            'file=' + json_encode_string(__file__) + ' integer="100" map="foo" match="123-45-6789" '
+            'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
+            'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
+            'required_file=' + json_encode_string(__file__) + ' required_integer="100" required_map="foo" '
+            'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
+            'required_set="bar" set="bar" show_configuration="f"')
+
+        observed = unicode(command.options)
+
+        self.assertEqual(observed, expected)
+        return
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

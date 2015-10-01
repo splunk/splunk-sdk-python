@@ -1,0 +1,2 @@
+access,owner,app,ttl
+"read : [ admin ], write : [ admin ]",admin,"searchcommands_app",600

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -59,7 +59,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEquals(result, 0)
+            self.assertEquals(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
@@ -264,7 +264,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
             output_file = open(output_path, 'r')
             output = output_file.read()
 
-            message = "%s != %s" % (output_file.name, baseline_file.name)
+            # TODO: DVPL-6700: Rewrite this test so that it is insensitive to ties in score
+
+            message = "%s: %s != %s" % (script, output_file.name, baseline_file.name)
             check_multiline(self, baseline, output, message)
 
             # Cleanup

@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -201,7 +201,7 @@ def _load_atom_entries(response):
     r = _load_atom(response)
     if 'feed' in r:
         # Need this to handle a random case in the REST API
-        if r.feed.get('totalResults') == 0:
+        if r.feed.get('totalResults') in [0, '0']:
             return []
         entries = r.feed.get('entry', None)
         if entries is None: return None

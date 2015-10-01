@@ -1,6 +1,6 @@
 # The Splunk Software Development Kit for Python
 
-#### Version 1.4.0
+#### Version 1.5.0
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.
@@ -21,7 +21,7 @@ are enabled by Splunk's unique capabilities.
 
 ## Getting started with the Splunk SDK for Python
 
-The Splunk SDK for Python contains library code and examples that show how to 
+The Splunk SDK for Python contains library code and examples that show how to
 programmatically interact with Splunk for a variety of scenarios including 
 searching, saved searches, data inputs, and many more, along with building 
 complete applications. 

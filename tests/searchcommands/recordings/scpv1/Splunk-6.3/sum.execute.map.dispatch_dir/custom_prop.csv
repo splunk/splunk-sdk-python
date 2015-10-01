@@ -1,0 +1,2 @@
+"dispatch.earliest_time","dispatch.latest_time","display.general.type","display.page.search.mode","display.page.search.tab",search,"__mv_dispatch.earliest_time","__mv_dispatch.latest_time","__mv_display.general.type","__mv_display.page.search.mode","__mv_display.page.search.tab","__mv_search"
+"","",statistics,smart,statistics,"| inputlookup random_data max=50000 | sum record=t total=total value1",,,,,,

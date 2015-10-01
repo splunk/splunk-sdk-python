@@ -1,0 +1,3 @@
+
+requires_preop,__mv_requires_preop,retainsevents,__mv_retainsevents,streaming_preop,__mv_streaming_preop,streaming,__mv_streaming
+1,,0,,"sum phase=""map"" record=""f"" total=""total"" value1",,0,

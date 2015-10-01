@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -93,7 +93,7 @@ class Script(object):
                     return 0
                 except Exception as e:
                     root = ET.Element("error")
-                    ET.SubElement(root, "message").text = e.message
+                    ET.SubElement(root, "message").text = str(e)
                     event_writer.write_xml_document(root)
 
                     return 1
@@ -103,7 +103,7 @@ class Script(object):
                 event_writer._err.write(err_string)
 
         except Exception as e:
-            err_string = EventWriter.ERROR + e.message
+            err_string = EventWriter.ERROR + str(e.message)
             event_writer._err.write(err_string)
             return 1
 

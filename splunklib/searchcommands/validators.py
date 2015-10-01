@@ -1,6 +1,6 @@
 # coding=utf-8
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,13 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+from json.encoder import encode_basestring_ascii as json_encode_string
+from collections import namedtuple
 from cStringIO import StringIO
+from io import open
 import csv
 import os
 import re
-import sys
+
 
 class Validator(object):
     """ Base class for validators that check and format search command options.
@@ -55,14 +58,47 @@ class Boolean(Validator):
 
     def __call__(self, value):
         if not (value is None or isinstance(value, bool)):
-            value = str(value).lower()
+            value = unicode(value).lower()
             if value not in Boolean.truth_values:
-                raise ValueError('Unrecognized truth value: %s' % value)
+                raise ValueError('Unrecognized truth value: {0}'.format(value))
             value = Boolean.truth_values[value]
         return value
 
     def format(self, value):
-        return 't' if value else 'f'
+        return None if value is None else 't' if value else 'f'
+
+
+class Code(Validator):
+    """ Validates code option values.
+
+    This validator compiles an option value into a Python code object that can be executed by :func:`exec` or evaluated
+    by :func:`eval`. The value returned is a :func:`namedtuple` with two members: object, the result of compilation, and
+    source, the original option value.
+
+    """
+    def __init__(self, mode='eval'):
+        """
+        :param mode: Specifies what kind of code must be compiled; it can be :const:`'exec'`, if source consists of a
+        sequence of statements, :const:`'eval'`, if it consists of a single expression, or :const:`'single'` if it
+        consists of a single interactive statement. In the latter case, expression statements that evaluate to
+        something other than :const:`None` will be printed.
+        :type mode: unicode or bytes
+
+        """
+        self._mode = mode
+
+    def __call__(self, value):
+        if value is None:
+            return None
+        try:
+            return Code.object(compile(value, 'string', self._mode), unicode(value))
+        except (SyntaxError, TypeError) as error:
+            raise ValueError(error.message)
+
+    def format(self, value):
+        return None if value is None else value.source
+
+    object = namedtuple(b'Code', (b'object', 'source'))
 
 
 class Fieldname(Validator):
@@ -72,9 +108,10 @@ class Fieldname(Validator):
     pattern = re.compile(r'''[_.a-zA-Z-][_.a-zA-Z0-9-]*$''')
 
     def __call__(self, value):
-        value = str(value)
-        if Fieldname.pattern.match(value) is None:
-            raise ValueError('Illegal characters in fieldname: %s' % value)
+        if value is not None:
+            value = unicode(value)
+            if Fieldname.pattern.match(value) is None:
+                raise ValueError('Illegal characters in fieldname: {}'.format(value))
         return value
 
     def format(self, value):
@@ -85,28 +122,34 @@ class File(Validator):
     """ Validates file option values.
 
     """
-    def __init__(self, mode='r', buffering=-1):
+    def __init__(self, mode='rt', buffering=None, directory=None):
         self.mode = mode
         self.buffering = buffering
+        self.directory = File._var_run_splunk if directory is None else directory
 
     def __call__(self, value):
-        if value is not None:
-            try:
-                path = str(value)
-                if not os.path.isabs(path):
-                    path = os.path.join(File._var_run_splunk, path)
-                value = open(path, self.mode, self.buffering)
-            except IOError as e:
-                raise ValueError(
-                    'Cannot open %s with mode=%s and buffering=%s: %s'
-                    % (value, self.mode, self.buffering, e))
+
+        if value is None:
+            return value
+
+        path = unicode(value)
+
+        if not os.path.isabs(path):
+            path = os.path.join(self.directory, path)
+
+        try:
+            value = open(path, self.mode) if self.buffering is None else open(path, self.mode, self.buffering)
+        except IOError as error:
+            raise ValueError('Cannot open {0} with mode={1} and buffering={2}: {3}'.format(
+                value, self.mode, self.buffering, error))
+
         return value
 
     def format(self, value):
-        return value.name
+        return None if value is None else value.name
 
     _var_run_splunk = os.path.join(
-        os.environ['SPLUNK_HOME'] if 'SPLUNK_HOME' in os.environ else os.getcwd(), 'var', 'run', 'splunk')
+        os.environ['SPLUNK_HOME'] if 'SPLUNK_HOME' in os.environ else os.getcwdu(), 'var', 'run', 'splunk')
 
 
 class Integer(Validator):
@@ -117,17 +160,17 @@ class Integer(Validator):
         if minimum is not None and maximum is not None:
             def check_range(value):
                 if not (minimum <= value <= maximum):
-                    raise ValueError('Expected integer in the range [%d,%d]: %d' % (minimum, maximum, value))
+                    raise ValueError('Expected integer in the range [{0},{1}], not {2}'.format(minimum, maximum, value))
                 return
         elif minimum is not None:
             def check_range(value):
                 if value < minimum:
-                    raise ValueError('Expected integer in the range [%d,+∞]: %d' % (minimum, value))
+                    raise ValueError('Expected integer in the range [{0},+∞], not {1}'.format(minimum, value))
                 return
         elif maximum is not None:
             def check_range(value):
                 if value > maximum:
-                    raise ValueError('Expected integer in the range [-∞,%d]: %d' % (maximum, value))
+                    raise ValueError('Expected integer in the range [-∞,{0}], not {1}'.format(maximum, value))
                 return
         else:
             def check_range(value):
@@ -137,13 +180,18 @@ class Integer(Validator):
         return
 
     def __call__(self, value):
-        if value is not None:
+        if value is None:
+            return None
+        try:
             value = long(value)
-            self.check_range(value)
+        except ValueError:
+            raise ValueError('Expected integer value, not {}'.format(json_encode_string(value)))
+
+        self.check_range(value)
         return value
 
     def format(self, value):
-        return str(int(value))
+        return None if value is None else unicode(long(value))
 
 
 class Duration(Validator):
@@ -155,10 +203,12 @@ class Duration(Validator):
         if value is None:
             return None
 
+        p = value.split(':', 2)
+        result = None
+        _60 = Duration._60
+        _unsigned = Duration._unsigned
+
         try:
-            p = value.split(':', 2)
-            _60 = Duration._60
-            _unsigned = Duration._unsigned
             if len(p) == 1:
                 result = _unsigned(p[0])
             if len(p) == 2:
@@ -166,19 +216,22 @@ class Duration(Validator):
             if len(p) == 3:
                 result = 3600 * _unsigned(p[0]) + 60 * _60(p[1]) + _60(p[2])
         except ValueError:
-            raise ValueError('Invalid duration value: %s', value)
+            raise ValueError('Invalid duration value: {0}'.format(value))
 
         return result
 
     def format(self, value):
 
+        if value is None:
+            return None
+
         value = int(value)
 
         s = value % 60
-        m = value / 60 % 60
-        h = value / (60 * 60)
+        m = value // 60 % 60
+        h = value // (60 * 60)
 
-        return '%02d:%02d:%02d' % (h, m, s)
+        return '{0:02d}:{1:02d}:{2:02d}'.format(h, m, s)
 
     _60 = Integer(0, 59)
     _unsigned = Integer(0)
@@ -190,19 +243,38 @@ class List(Validator):
     """
     class Dialect(csv.Dialect):
         """ Describes the properties of list option values. """
-        delimiter = ','
-        quotechar = '"'
+        strict = True
+        delimiter = b','
+        quotechar = b'"'
         doublequote = True
-        lineterminator = '\n'
+        lineterminator = b'\n'
         skipinitialspace = True
         quoting = csv.QUOTE_MINIMAL
 
+    def __init__(self, validator=None):
+        if not (validator is None or isinstance(validator, Validator)):
+            raise ValueError('Expected a Validator instance or None for validator, not {}', repr(validator))
+        self._validator = validator
+
     def __call__(self, value):
-        if not (value is None or isinstance(value, list)):
-            try:
-                value = csv.reader([value], List.Dialect).next()
-            except BaseException as e:
-                raise ValueError(e)
+
+        if value is None or isinstance(value, list):
+            return value
+
+        try:
+            value = csv.reader([value], self.Dialect).next()
+        except csv.Error as error:
+            raise ValueError(error)
+
+        if self._validator is None:
+            return value
+
+        try:
+            for index, item in enumerate(value):
+                value[index] = self._validator(item)
+        except ValueError as error:
+            raise ValueError('Could not convert item {}: {}'.format(index, error))
+
         return value
 
     def format(self, value):
@@ -221,30 +293,56 @@ class Map(Validator):
         self.membership = kwargs
 
     def __call__(self, value):
-        if value is not None:
-            value = str(value)
-            if value not in self.membership:
-                raise ValueError('Unrecognized value: %s' % value)
+
+        if value is None:
+            return None
+
+        value = unicode(value)
+
+        if value not in self.membership:
+            raise ValueError('Unrecognized value: {0}'.format(value))
+
         return self.membership[value]
 
     def format(self, value):
-        return self.membership.keys()[self.membership.values().index(value)]
+        return None if value is None else self.membership.keys()[self.membership.values().index(value)]
+
+
+class Match(Validator):
+    """ Validates that a value matches a regular expression pattern.
+
+    """
+    def __init__(self, name, pattern, flags=0):
+        self.name = unicode(name)
+        self.pattern = re.compile(pattern, flags)
+
+    def __call__(self, value):
+        if value is None:
+            return None
+        value = unicode(value)
+        if self.pattern.match(value) is None:
+            raise ValueError('Expected {}, not {}'.format(self.name, json_encode_string(value)))
+        return value
+
+    def format(self, value):
+        return None if value is None else unicode(value)
 
 
 class OptionName(Validator):
     """ Validates option names.
 
     """
-    pattern = re.compile(r'''[a-zA-Z][_a-zA-Z0-9]*$''')
+    pattern = re.compile(r'''(?=\w)[^\d]\w*$''', re.UNICODE)
 
     def __call__(self, value):
-        value = str(value)
-        if OptionName.pattern.match(value) is None:
-            raise ValueError('Illegal characters in option name: %s' % value)
+        if value is not None:
+            value = unicode(value)
+            if OptionName.pattern.match(value) is None:
+                raise ValueError('Illegal characters in option name: {}'.format(value))
         return value
 
     def format(self, value):
-        return self.__call__(value)
+        return None if value is None else unicode(value)
 
 
 class RegularExpression(Validator):
@@ -252,15 +350,16 @@ class RegularExpression(Validator):
 
     """
     def __call__(self, value):
-        value = str(value)
+        if value is None:
+            return None
         try:
-            value = re.compile(value)
-        except re.error as e:
-            raise ValueError('%s: %s' % (str(e).capitalize(), value))
+            value = re.compile(unicode(value))
+        except re.error as error:
+            raise ValueError('{}: {}'.format(unicode(error).capitalize(), value))
         return value
 
     def format(self, value):
-        return value.pattern
+        return None if value is None else value.pattern
 
 
 class Set(Validator):
@@ -268,14 +367,18 @@ class Set(Validator):
 
     """
     def __init__(self, *args):
-        self.membership = args
+        self.membership = set(args)
 
     def __call__(self, value):
-        if value is not None:
-            value = str(value)
-            if value not in self.membership:
-                raise ValueError('Unrecognized value: %s' % value)
+        if value is None:
+            return None
+        value = unicode(value)
+        if value not in self.membership:
+            raise ValueError('Unrecognized value: {}'.format(value))
         return value
 
     def format(self, value):
         return self.__call__(value)
+
+
+__all__ = ['Boolean', 'Code', 'Duration', 'File', 'Integer', 'List', 'Map', 'RegularExpression', 'Set']

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -246,11 +246,19 @@ class SDKTestCase(unittest.TestCase):
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
 
     def tearDown(self):
+        from splunklib.binding import HTTPError
+
         if self.service.restart_required:
             self.fail("Test left Splunk in a state requiring a restart.")
+
         for appName in self.installedApps:
             if appName in self.service.apps:
-                self.service.apps.delete(appName)
-                wait(lambda: appName not in self.service.apps)
+                try:
+                    self.service.apps.delete(appName)
+                    wait(lambda: appName not in self.service.apps)
+                except HTTPError as error:
+                    if not (os.name == 'nt' and error.status == 500):
+                        raise
+                    print 'Ignoring failure to delete {0} during tear down: {1}'.format(appName, error)
         if self.service.restart_required:
             self.clear_restart_message()

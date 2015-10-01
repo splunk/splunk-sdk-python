@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -100,7 +100,7 @@ class Event(object):
             if value is not None:
                 ET.SubElement(event, node).text = value
 
-        if self.done is not None:
+        if self.done:
             ET.SubElement(event, "done")
 
         stream.write(ET.tostring(event))

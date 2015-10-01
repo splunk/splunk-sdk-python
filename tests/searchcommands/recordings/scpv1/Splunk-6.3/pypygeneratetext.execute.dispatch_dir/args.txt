@@ -1,0 +1,11 @@
+--id=1434910861.5
+--maxbuckets=300
+--ttl=600
+--maxout=500000
+--maxtime=8640000
+--lookups=1
+--reduce_freq=10
+--rf=*
+--user=admin
+--pro
+--roles=admin:power:user

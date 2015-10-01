@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -1324,7 +1324,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.4",
+            "User-Agent": "splunk-sdk-python/1.5.0",
             "Accept": "*/*",
         } # defaults
         for key, value in message["headers"]:

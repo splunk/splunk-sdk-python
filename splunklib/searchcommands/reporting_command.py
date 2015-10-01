@@ -1,4 +1,6 @@
-# Copyright 2011-2014 Splunk, Inc.
+# coding=utf-8
+#
+# Copyright © 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,56 +14,86 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . search_command_internals import ConfigurationSettingsType
-from . streaming_command import StreamingCommand
-from . search_command import SearchCommand
-from . import splunk_csv
+from itertools import chain
+
+from .internals import ConfigurationSettingsType, json_encode_string
+from .decorators import ConfigurationSetting, Option
+from .streaming_command import StreamingCommand
+from .search_command import SearchCommand
+from .validators import Set
 
 
 class ReportingCommand(SearchCommand):
-    """ Processes search results and generates a reporting data structure.
+    """ Processes search result records and generates a reporting data structure.
 
-    Reporting search commands run as either reduce or map/reduce operations. The
-    reduce part runs on a search head and is responsible for processing a single
-    chunk of search results to produce the command's reporting data structure.
-    The map part is called a streaming preop. It feeds the reduce part with
-    partial results and by default runs on the search head and/or one or more
-    indexers.
+    Reporting search commands run as either reduce or map/reduce operations. The reduce part runs on a search head and
+    is responsible for processing a single chunk of search results to produce the command's reporting data structure.
+    The map part is called a streaming preop. It feeds the reduce part with partial results and by default runs on the
+    search head and/or one or more indexers.
 
-    You must implement a :meth:`reduce` method as a generator function that
-    iterates over a set of event records and yields a reporting data structure.
-    You may implement a :meth:`map` method as a generator function that iterates
-    over a set of event records and yields :class:`dict` or :class:`list(dict)`
-    instances.
+    You must implement a :meth:`reduce` method as a generator function that iterates over a set of event records and
+    yields a reporting data structure. You may implement a :meth:`map` method as a generator function that iterates
+    over a set of event records and yields :class:`dict` or :class:`list(dict)` instances.
 
-    **ReportingCommand configuration**
+    ReportingCommand configuration
+    ==============================
 
-    Configure the :meth:`map` operation using a Configuration decorator on your
-    :meth:`map` method. Configure it like you would a :class:`StreamingCommand`.
-
-    Configure the :meth:`reduce` operation using a Configuration decorator on
+    Configure the :meth:`map` operation using a Configuration decorator on your :meth:`map` method. Configure it like
+    you would a :class:`StreamingCommand`. Configure the :meth:`reduce` operation using a Configuration decorator on
     your :meth:`ReportingCommand` class.
 
-
-    :ivar input_header: :class:`InputHeader`:  Collection representing the input
-        header associated with this command invocation.
-
-    :ivar messages: :class:`MessagesHeader`: Collection representing the output
-        messages header associated with this command invocation.
+    You can configure your command for operation under Search Command Protocol (SCP) version 1 or 2. SCP 2 requires
+    Splunk 6.3 or later.
 
     """
-    #region Methods
+    # region Special methods
+
+    def __init__(self):
+        SearchCommand.__init__(self)
+
+    # endregion
+
+    # region Options
+
+    phase = Option(doc='''
+        **Syntax:** phase=[map|reduce]
+
+        **Description:** Identifies the phase of the current map-reduce operation.
+
+    ''', default='reduce', validate=Set('map', 'reduce'))
+
+    # endregion
+
+    # region Methods
 
     def map(self, records):
         """ Override this method to compute partial results.
 
+        :param records:
+        :type records:
+
         You must override this method, if :code:`requires_preop=True`.
 
         """
-        self  # Turns off ide guidance that method may be static
         return NotImplemented
+
+    def prepare(self):
+
+        phase = self.phase
+
+        if phase == 'map':
+            # noinspection PyUnresolvedReferences
+            self._configuration = self.map.ConfigurationSettings(self)
+            return
+
+        if phase == 'reduce':
+            streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
+            self._configuration.streaming_preop = ' '.join(streaming_preop)
+            return
+
+        raise RuntimeError('Unrecognized reporting command phase: {}'.format(json_encode_string(unicode(phase))))
 
     def reduce(self, records):
         """ Override this method to produce a reporting data structure.
@@ -71,122 +103,136 @@ class ReportingCommand(SearchCommand):
         """
         raise NotImplementedError('reduce(self, records)')
 
-    def _execute(self, operation, reader, writer):
-        for record in operation(SearchCommand.records(reader)):
-            writer.writerow(record)
-        return
+    def _execute(self, ifile, process):
+        SearchCommand._execute(self, ifile, getattr(self, self.phase))
 
-    def _prepare(self, argv, input_file):
-        if len(argv) >= 3 and argv[2] == '__map__':
-            ConfigurationSettings = type(self).map.ConfigurationSettings
-            operation = self.map
-            argv = argv[3:]
-        else:
-            ConfigurationSettings = type(self).ConfigurationSettings
-            operation = self.reduce
-            argv = argv[2:]
-        if input_file is None:
-            reader = None
-        else:
-            reader = splunk_csv.DictReader(input_file)
-        return ConfigurationSettings, operation, argv, reader
+    # endregion
 
-    #endregion
-
-    #region Types
+    # region Types
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
         """ Represents the configuration settings for a :code:`ReportingCommand`.
 
         """
-        #region Properties
-        @property
-        def clear_required_fields(self):
-            """ Specifies whether `required_fields` are the only fields required
-            by subsequent commands.
+        # region SCP v1/v2 Properties
 
-            If :const:`True`, :attr:`required_fields` are the *only* fields
-            required by subsequent commands. If :const:`False`,
-            :attr:`required_fields` are additive to any fields that may be
-            required by subsequent commands. In most cases :const:`False` is
-            appropriate for streaming commands and :const:`True` is appropriate
-            for reporting commands.
+        required_fields = ConfigurationSetting(doc='''
+            List of required fields for this search which back-propagates to the generating search.
 
-            Default: :const:`True`
+            Setting this value enables selected fields mode under SCP 2. Under SCP 1 you must also specify
+            :code:`clear_required_fields=True` to enable selected fields mode. To explicitly select all fields,
+            specify a value of :const:`['*']`. No error is generated if a specified field is missing.
 
-            """
-            return type(self)._clear_required_fields
+            Default: :const:`None`, which implicitly selects all fields.
 
-        _clear_required_fields = True
+            Supported by: SCP 1, SCP 2
 
-        @property
-        def requires_preop(self):
-            """ Indicates whether :meth:`ReportingCommand.map` is required for
-            proper command execution.
+            ''')
 
-            If :const:`True`, :meth:`ReportingCommand.map` is guaranteed to be
-            called. If :const:`False`, Splunk considers it to be an optimization
-            that may be skipped.
+        requires_preop = ConfigurationSetting(doc='''
+            Indicates whether :meth:`ReportingCommand.map` is required for proper command execution.
+
+            If :const:`True`, :meth:`ReportingCommand.map` is guaranteed to be called. If :const:`False`, Splunk
+            considers it to be an optimization that may be skipped.
 
             Default: :const:`False`
 
-            """
-            return type(self)._requires_preop
+            Supported by: SCP 1, SCP 2
 
-        _requires_preop = False
+            ''')
 
-        @property
-        def retainsevents(self):
-            """ Signals that :meth:`ReportingCommand.reduce` transforms _raw
-            events to produce a reporting data structure.
-
-            Fixed: :const:`False`
-
-            """
-            return False
-
-        @property
-        def streaming(self):
-            """ Signals that :meth:`ReportingCommand.reduce` runs on the search
-            head.
-
-            Fixed: :const:`False`
-
-            """
-            return False
-
-        @property
-        def streaming_preop(self):
-            """ Denotes the requested streaming preop search string.
+        streaming_preop = ConfigurationSetting(doc='''
+            Denotes the requested streaming preop search string.
 
             Computed.
 
-            """
-            command = type(self.command)
+            Supported by: SCP 1, SCP 2
 
-            if command.map == ReportingCommand.map:
-                return ""
+            ''')
 
-            command_line = str(self.command)
-            command_name = type(self.command).name
-            text = ' '.join([
-                command_name, '__map__', command_line[len(command_name) + 1:]])
+        # endregion
 
-            return text
+        # region SCP v1 Properties
 
-        #endregion
+        clear_required_fields = ConfigurationSetting(doc='''
+            :const:`True`, if required_fields represent the *only* fields required.
 
-        #region Methods
+            If :const:`False`, required_fields are additive to any fields that may be required by subsequent commands.
+            In most cases, :const:`True` is appropriate for reporting commands.
+
+            Default: :const:`True`
+
+            Supported by: SCP 1
+
+            ''')
+
+        retainsevents = ConfigurationSetting(readonly=True, value=False, doc='''
+            Signals that :meth:`ReportingCommand.reduce` transforms _raw events to produce a reporting data structure.
+
+            Fixed: :const:`False`
+
+            Supported by: SCP 1
+
+            ''')
+
+        streaming = ConfigurationSetting(readonly=True, value=False, doc='''
+            Signals that :meth:`ReportingCommand.reduce` runs on the search head.
+
+            Fixed: :const:`False`
+
+            Supported by: SCP 1
+
+            ''')
+
+        # endregion
+
+        # region SCP v2 Properties
+
+        maxinputs = ConfigurationSetting(doc='''
+            Specifies the maximum number of events that can be passed to the command for each invocation.
+
+            This limit cannot exceed the value of `maxresultrows` in limits.conf_. Under SCP 1 you must specify this
+            value in commands.conf_.
+
+            Default: The value of `maxresultrows`.
+
+            Supported by: SCP 2
+
+            .. _limits.conf: http://docs.splunk.com/Documentation/Splunk/latest/admin/Limitsconf
+
+            ''')
+
+        run_in_preview = ConfigurationSetting(doc='''
+            :const:`True`, if this command should be run to generate results for preview; not wait for final output.
+
+            This may be important for commands that have side effects (e.g., outputlookup).
+
+            Default: :const:`True`
+
+            Supported by: SCP 2
+
+            ''')
+
+        type = ConfigurationSetting(readonly=True, value='reporting', doc='''
+            Command type name.
+
+            Fixed: :const:`'reporting'`.
+
+            Supported by: SCP 2
+
+            ''')
+
+        # endregion
+
+        # region Methods
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies :code:`command` class structure and configures the
-            :code:`command.map` method.
+            """ Verifies :code:`command` class structure and configures the :code:`command.map` method.
 
-            Verifies that :code:`command` derives from :code:`ReportingCommand`
-            and overrides :code:`ReportingCommand.reduce`. It then configures
-            :code:`command.reduce`, if an overriding implementation of
-            :code:`ReportingCommand.reduce` has been provided.
+            Verifies that :code:`command` derives from :class:`ReportingCommand` and overrides
+            :code:`ReportingCommand.reduce`. It then configures :code:`command.reduce`, if an overriding implementation
+            of :code:`ReportingCommand.reduce` has been provided.
 
             :param command: :code:`ReportingCommand` class
 
@@ -197,7 +243,7 @@ class ReportingCommand(SearchCommand):
 
             """
             if not issubclass(command, ReportingCommand):
-                raise TypeError('%s is not a ReportingCommand' % command)
+                raise TypeError('{} is not a ReportingCommand'.format( command))
 
             if command.reduce == ReportingCommand.reduce:
                 raise AttributeError('No ReportingCommand.reduce override')
@@ -206,10 +252,10 @@ class ReportingCommand(SearchCommand):
                 cls._requires_preop = False
                 return
 
-            f = vars(command)['map']   # Function backing the map method
-                # There is no way to add custom attributes to methods. See
-                # [Why does setattr fail on a method](http://goo.gl/aiOsqh)
-                # for an explanation.
+            f = vars(command)[b'map']   # Function backing the map method
+
+            # EXPLANATION OF PREVIOUS STATEMENT: There is no way to add custom attributes to methods. See [Why does
+            # setattr fail on a method](http://goo.gl/aiOsqh) for a discussion of this issue.
 
             try:
                 settings = f._settings
@@ -217,17 +263,18 @@ class ReportingCommand(SearchCommand):
                 f.ConfigurationSettings = StreamingCommand.ConfigurationSettings
                 return
 
-            # Create new `StreamingCommand.ConfigurationSettings` class
+            # Create new StreamingCommand.ConfigurationSettings class
 
-            module = '.'.join([command.__module__, command.__name__, 'map'])
-            name = 'ConfigurationSettings'
+            module = command.__module__ + b'.' + command.__name__ + b'.map'
+            name = b'ConfigurationSettings'
             bases = (StreamingCommand.ConfigurationSettings,)
 
-            f.ConfigurationSettings = ConfigurationSettingsType(
-                module, name, bases, settings)
+            f.ConfigurationSettings = ConfigurationSettingsType(module, name, bases)
+            ConfigurationSetting.fix_up(f.ConfigurationSettings, settings)
             del f._settings
-            return
 
-        #endregion
+        pass
+        # endregion
 
-    #endregion
+    pass
+    # endregion

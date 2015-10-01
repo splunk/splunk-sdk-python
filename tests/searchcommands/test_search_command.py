@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -14,222 +14,674 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from splunklib.searchcommands import Configuration, StreamingCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting, Option
+from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
+
 from cStringIO import StringIO
+from itertools import izip
+from json.encoder import encode_basestring as encode_string
+from unittest import main, TestCase
+
+import csv
 import os
 import re
-import sys
 
 
 @Configuration()
-class SearchCommand(StreamingCommand):
-    def stream(self, records):
-        value = 0
+class TestCommand(SearchCommand):
+
+    required_option_1 = Option(require=True)
+    required_option_2 = Option(require=True)
+
+    def echo(self, records):
         for record in records:
-            action = record['Action']
-            if action == 'access_search_results_info':
-                search_results_info = self.search_results_info
+            if record.get('action') == 'raise_exception':
+                raise StandardError(self)
+            yield record
+
+    def _execute(self, ifile, process):
+        SearchCommand._execute(self, ifile, self.echo)
+
+    class ConfigurationSettings(SearchCommand.ConfigurationSettings):
+
+        # region SCP v1/v2 properties
+
+        generating = ConfigurationSetting()
+        required_fields = ConfigurationSetting()
+        streaming_preop = ConfigurationSetting()
+
+        # endregion
+
+        # region SCP v1 properties
+
+        clear_required_fields = ConfigurationSetting()
+        generates_timeorder = ConfigurationSetting()
+        overrides_timeorder = ConfigurationSetting()
+        requires_preop = ConfigurationSetting()
+        retainsevents = ConfigurationSetting()
+        streaming = ConfigurationSetting()
+
+        # endregion
+
+        # region SCP v2 properties
+
+        distributed = ConfigurationSetting()
+        maxinputs = ConfigurationSetting()
+        run_in_preview = ConfigurationSetting()
+        type = ConfigurationSetting()
+
+        # endregion
+
+
+@Configuration()
+class TestStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        serial_number = 0L
+        for record in records:
+            action = record['action']
             if action == 'raise_error':
                 raise RuntimeError('Testing')
-            yield {'Data': value}
-            value += 1
+            value = self.search_results_info if action == 'get_search_results_info' else None
+            yield {'_serial': serial_number, 'data': value}
+            serial_number += 1L
         return
 
 
-class TestSearchCommand(unittest.TestCase):
-    _package_directory = os.path.dirname(__file__)
-
+class TestSearchCommand(TestCase):
     def setUp(self):
-        super(TestSearchCommand, self).setUp()
-        return
+        TestCase.setUp(self)
 
-    def test_error_when_getinfo_false(self):
+    def test_process_scpv1(self):
 
-        # Command.process should complain if supports_getinfo == False
+        # TestCommand.process should complain if supports_getinfo == False
         # We support dynamic configuration, not static
 
-        # The exception line number may change, so we're using a regex match instead
-        expected_pattern = re.compile(
-            '\r\n'
-            'ERROR' \
-            '\r\n' \
-            '"NotImplementedError at ' \
-            '\"\"' + \
-            os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         "../../splunklib/searchcommands/search_command.py")) + \
-            '\"\"' \
-            ', line \d\d\d : ' \
-            'Command search appears to be statically configured and static configuration is unsupported by splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza:\n\[search\]\nfilename = foo.py\nsupports_getinfo = true\nsupports_rawargs = true\noutputheader = true"' \
-            '\r\n'
-        )
+        # The exception line number may change, so we're using a regex match instead of a string match
 
-        command = SearchCommand()
+        expected = re.compile(
+            r'error_message=RuntimeError at ".+search_command\.py", line \d\d\d : Command test appears to be '
+            r'statically configured for search command protocol version 1 and static configuration is unsupported by '
+            r'splunklib.searchcommands. Please ensure that default/commands.conf contains this stanza:\n'
+            r'\[test\]\n'
+            r'filename = test.py\n'
+            r'enableheader = true\n'
+            r'outputheader = true\n'
+            r'requires_srinfo = true\n'
+            r'supports_getinfo = true\n'
+            r'supports_multivalues = true\n'
+            r'supports_rawargs = true')
+
+        argv = ['test.py', 'not__GETINFO__or__EXECUTE__', 'option=value', 'fieldname']
+        command = TestCommand()
         result = StringIO()
 
-        self.assertRaises(
-            SystemExit, command.process, ['foo.py'], output_file=result)
+        self.assertRaises(SystemExit, command.process, argv, ofile=result)
+        self.assertRegexpMatches(result.getvalue(), expected)
 
-        result.reset()
-        observed = result.read()
-        self.assertTrue(expected_pattern.match(observed))
+        # TestCommand.process should return configuration settings on Getinfo probe
 
-    def test_conf_settings_during_getinfo(self):
-        # Command.process should return configuration settings on Getinfo probe
-
-        expected = \
-            '\r\n' \
-            'changes_colorder,clear_required_fields,enableheader,generating,local,maxinputs,needs_empty_results,outputheader,overrides_timeorder,passauth,perf_warn_limit,required_fields,requires_srinfo,retainsevents,run_in_preview,stderr_dest,streaming,supports_multivalues,supports_rawargs,__mv_changes_colorder,__mv_clear_required_fields,__mv_enableheader,__mv_generating,__mv_local,__mv_maxinputs,__mv_needs_empty_results,__mv_outputheader,__mv_overrides_timeorder,__mv_passauth,__mv_perf_warn_limit,__mv_required_fields,__mv_requires_srinfo,__mv_retainsevents,__mv_run_in_preview,__mv_stderr_dest,__mv_streaming,__mv_supports_multivalues,__mv_supports_rawargs\r\n' \
-            '1,0,1,0,0,0,1,1,0,0,0,,0,1,1,log,1,1,1,,,,,,,,,,,,,,,,,,,\r\n'
-
-        command = SearchCommand()
-        result = StringIO()
-        command.process(['foo.py', '__GETINFO__'], output_file=result)
-        result.reset()
-        observed = result.read()
-        self.assertEqual(expected, observed)
-
-    def test_error_on_conf_parser_error(self):
-        # Command.process should produce an error record on parser errors, if
-        # invoked to get configuration settings
-
-        expected_pattern = re.compile(
-            '\r\n' \
-            'ERROR\r\n' \
-            '"ValueError at ""' + \
-            os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         "../../splunklib/searchcommands/search_command_internals.py")) + \
-            '"", line \d\d\d : ' \
-            'Unrecognized option: undefined_option = value"\r\n'
-        )
-
-        command = SearchCommand()
+        argv = ['test.py', '__GETINFO__', 'required_option_1=value', 'required_option_2=value']
+        command = TestCommand()
+        ifile = StringIO('\n')
         result = StringIO()
 
-        self.assertRaises(SystemExit, command.process,
-                          ['foo.py', '__GETINFO__', 'undefined_option=value'],
-                          output_file=result)
+        self.assertEqual(str(command.configuration), '')
+
+        self.assertEqual(
+            repr(command.configuration),
+            "[(u'clear_required_fields', None, [1]), (u'distributed', None, [2]), (u'generates_timeorder', None, [1]), "
+            "(u'generating', None, [1, 2]), (u'maxinputs', None, [2]), (u'overrides_timeorder', None, [1]), "
+            "(u'required_fields', None, [1, 2]), (u'requires_preop', None, [1]), (u'retainsevents', None, [1]), "
+            "(u'run_in_preview', None, [2]), (u'streaming', None, [1]), (u'streaming_preop', None, [1, 2]), "
+            "(u'type', None, [2])]")
+
+        try:
+            # noinspection PyTypeChecker
+            command.process(argv, ifile, ofile=result)
+        except BaseException as error:
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+
+        self.assertEqual('\r\n\r\n\r\n', result.getvalue())  # No message header and no configuration settings
+
+        ifile = StringIO('\n')
+        result = StringIO()
+
+        # We might also put this sort of code into our SearchCommand.prepare override ...
+
+        configuration = command.configuration
+
+        # SCP v1/v2 configuration settings
+        configuration.generating = True
+        configuration.required_fields = ['foo', 'bar']
+        configuration.streaming_preop = 'some streaming command'
+
+        # SCP v1 configuration settings
+        configuration.clear_required_fields = True
+        configuration.generates_timeorder = True
+        configuration.overrides_timeorder = True
+        configuration.requires_preop = True
+        configuration.retainsevents = True
+        configuration.streaming = True
+
+        # SCP v2 configuration settings (SCP v1 requires that maxinputs and run_in_preview are set in commands.conf)
+        configuration.distributed = True
+        configuration.maxinputs = 50000
+        configuration.run_in_preview = True
+        configuration.type = 'streaming'
+
+        self.assertEqual(
+            str(command.configuration),
+            'clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
+            'required_fields="[u\'foo\', u\'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
+            'streaming_preop="some streaming command"')
+
+        self.assertEqual(
+            repr(command.configuration),
+            "[(u'clear_required_fields', True, [1]), (u'distributed', True, [2]), (u'generates_timeorder', True, [1]), "
+            "(u'generating', True, [1, 2]), (u'maxinputs', 50000, [2]), (u'overrides_timeorder', True, [1]), "
+            "(u'required_fields', [u'foo', u'bar'], [1, 2]), (u'requires_preop', True, [1]), "
+            "(u'retainsevents', True, [1]), (u'run_in_preview', True, [2]), (u'streaming', True, [1]), "
+            "(u'streaming_preop', u'some streaming command', [1, 2]), (u'type', u'streaming', [2])]")
+
+        try:
+            # noinspection PyTypeChecker
+            command.process(argv, ifile, ofile=result)
+        except BaseException as error:
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+
         result.reset()
-        observed = result.read()
-        self.assertTrue(expected_pattern.match(observed))
+        reader = csv.reader(result)
+        self.assertEqual([], reader.next())
+        observed = dict(izip(reader.next(), reader.next()))
+        self.assertRaises(StopIteration, reader.next)
 
-    def test_exit_error_on_parser_error(self):
-        # Command.process should produce an error message and exit on parser
-        # errors, if invoked to execute. Same error message as expected_pattern
-        # defined above
+        expected = {
+            'clear_required_fields': '1',                '__mv_clear_required_fields': '',
+            'generating': '1',                           '__mv_generating': '',
+            'generates_timeorder': '1',                  '__mv_generates_timeorder': '',
+            'overrides_timeorder': '1',                  '__mv_overrides_timeorder': '',
+            'requires_preop': '1',                       '__mv_requires_preop': '',
+            'required_fields': 'foo,bar',                '__mv_required_fields': '',
+            'retainsevents': '1',                        '__mv_retainsevents': '',
+            'streaming': '1',                            '__mv_streaming': '',
+            'streaming_preop': 'some streaming command', '__mv_streaming_preop': '',
+        }
 
-        expected_pattern = re.compile(
-            '\r\n' \
-            'ERROR\r\n' \
-            '"ValueError at ""' + \
-            os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         "../../splunklib/searchcommands/search_command_internals.py")) + \
-            '"", line \d\d\d : ' \
-            'Unrecognized option: undefined_option = value"\r\n'
-        )
+        self.assertDictEqual(expected, observed)  # No message header and no configuration settings
 
-        command = SearchCommand()
+        for action in '__GETINFO__', '__EXECUTE__':
+
+            # TestCommand.process should produce an error record on parser errors
+
+            argv = [
+                'test.py', action, 'required_option_1=value', 'required_option_2=value', 'undefined_option=value',
+                'fieldname_1', 'fieldname_2']
+
+            command = TestCommand()
+            ifile = StringIO('\n')
+            result = StringIO()
+
+            self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
+            self.assertTrue(
+                'error_message=Unrecognized test command option: undefined_option="value"\r\n\r\n',
+                result.getvalue())
+
+            # TestCommand.process should produce an error record when required options are missing
+
+            argv = ['test.py', action, 'required_option_2=value', 'fieldname_1']
+            command = TestCommand()
+            ifile = StringIO('\n')
+            result = StringIO()
+
+            self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
+
+            self.assertTrue(
+                'error_message=A value for test command option required_option_1 is required\r\n\r\n',
+                result.getvalue())
+
+            argv = ['test.py', action, 'fieldname_1']
+            command = TestCommand()
+            ifile = StringIO('\n')
+            result = StringIO()
+
+            self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
+
+            self.assertTrue(
+                'error_message=Values for these test command options are required: required_option_1, required_option_2'
+                '\r\n\r\n',
+                result.getvalue())
+
+        # TestStreamingCommand.process should exit on processing exceptions
+
+        ifile = StringIO('\naction\r\nraise_error\r\n')
+        argv = ['test.py', '__EXECUTE__']
+        command = TestStreamingCommand()
         result = StringIO()
 
         try:
-            command.process(
-                args=['foo.py', '__EXECUTE__', 'undefined_option=value'],
-                input_file=StringIO('\r\n'), output_file=result)
-        except SystemExit as e:
-            result.reset()
-            observed = result.read()
-            self.assertNotEqual(e.code, 0)
-            self.assertTrue(expected_pattern.match(observed))
-        except BaseException as e:
-            self.fail("Expected SystemExit, but caught %s" % type(e))
+            # noinspection PyTypeChecker
+            command.process(argv, ifile, ofile=result)
+        except SystemExit as error:
+            self.assertNotEqual(error.code, 0)
+            self.assertRegexpMatches(
+                result.getvalue(),
+                r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
+        except BaseException as error:
+            self.fail('Expected SystemExit, but caught {}: {}'.format(type(error).__name__, error))
         else:
-            self.fail("Expected SystemExit, but no exception was raised")
+            self.fail('Expected SystemExit, but no exception was raised')
 
-    # TODO: DVPL-6560 this test is broken, there is no exception thrown
-    # def test_exit_on_processing_exceptions(self):
-    #     # Command.process should exit on processing exceptions
-
-    #     expected_pattern = re.compile(
-    #         '\r\n' \
-    #         'ERROR\r\n' \
-    #         '"TypeError at ""' + \
-    #         os.path.abspath(os.path.join(os.path.dirname(__file__),
-    #                                      "../../splunklib/searchcommands/splunk_csv/dict_reader.py")) + \
-    #         '"", line \d\d : \'NoneType\' object is not iterable"\r\n')
-
-    #     command = SearchCommand()
-    #     result = StringIO()
-
-    #     try:
-    #         command.process(args=['foo.py', '__EXECUTE__'],
-    #                         input_file=StringIO('\r\nAction\r\nraise_error'),
-    #                         output_file=result)
-    #     except SystemExit as e:
-    #         result.reset()
-    #         observed = result.read()
-    #         self.assertNotEqual(e.code, 0)
-    #         self.assertTrue(expected_pattern.match(observed))
-    #     except BaseException as e:
-    #         self.fail("Expected SystemExit, but caught %s" % type(e))
-    #     else:
-    #         self.fail("Expected SystemExit, but no exception was raised")
-
-    def test_access_to_search_results(self):
         # Command.process should provide access to search results info
+        info_path = os.path.join(
+            self._package_directory, 'recordings', 'scpv1', 'Splunk-6.3', 'countmatches.execute.dispatch_dir',
+            'externSearchResultsInfo.csv')
 
-        python_version = 10 * sys.version_info[0] + sys.version_info[1]
-
-        expected = \
-            '''SearchResultsInfo(sid=1391366014.3, timestamp=1391366014.757223, now=1391366014, setStart=1391366007, index_et=1391366011, index_lt=1391366011, startTime=1386621222, rt_earliest=None, rt_latest=None, rtspan=None, scan_count=0, drop_count=0, maxevents=0, countMap={'in_ct.command.fields': 76, 'duration.command.search': 13, 'invocations.startup.handoff': 1, 'duration.dispatch.results_combiner': 1, 'invocations.command.search.kv': 1, 'duration.dispatch.stream.local': 14, 'out_ct.command.head': 10, 'invocations.command.search.rawdata': 1, 'invocations.dispatch.results_combiner': 1, 'invocations.command.fields': 1, 'out_ct.command.search.typer': 76, 'invocations.dispatch.writeStatus': 3, 'invocations.command.search.index': 1, 'duration.command.head': 1, 'duration.dispatch.evaluate': 130, 'duration.dispatch.evaluate.search': 41, 'in_ct.command.search.calcfields': 76, 'duration.dispatch.writeStatus': 3, 'invocations.command.search.tags': 1, 'in_ct.command.search.lookups': 76, 'duration.command.search.tags': 1, 'duration.command.search.lookups': 1, 'invocations.dispatch.evaluate': 1, 'duration.command.fields': 1, 'invocations.command.search.summary': 1, 'duration.dispatch.evaluate.countmatches': 88, 'out_ct.command.prehead': 10, 'in_ct.command.search.typer': 76, 'out_ct.command.search.calcfields': 76, 'invocations.command.head': 1, 'duration.startup.handoff': 39, 'duration.command.search.rawdata': 2, 'duration.command.search.index.usec_1_8': 0, 'invocations.command.search.fieldalias': 1, 'duration.dispatch.createProviderQueue': 27, 'duration.dispatch.fetch': 14, 'out_ct.command.search.tags': 76, 'duration.command.search.typer': 4, 'in_ct.command.head': 10, 'invocations.dispatch.createProviderQueue': 1, 'out_ct.command.fields': 76, 'invocations.dispatch.evaluate.head': 1, 'out_ct.command.search.fieldalias': 76, 'invocations.command.search.typer': 1, 'duration.dispatch.check_disk_usage': 1, 'out_ct.command.search': 76, 'in_ct.command.search': 0, 'invocations.dispatch.fetch': 1, 'duration.command.search.index': 1, 'duration.command.search.summary': 1, 'in_ct.command.search.tags': 76, 'duration.dispatch.evaluate.head': 1, 'duration.command.search.kv': 7, 'invocations.command.search.calcfields': 1, 'duration.command.search.fieldalias': 1, 'invocations.dispatch.evaluate.countmatches': 1, 'in_ct.command.search.fieldalias': 76, 'invocations.command.search': 1, 'invocations.dispatch.stream.local': 1, 'duration.command.search.calcfields': 1, 'invocations.dispatch.check_disk_usage': 1, 'prereport_events': 0, 'invocations.dispatch.evaluate.search': 1, 'invocations.command.search.index.usec_1_8': 7, 'duration.command.prehead': 1, 'invocations.command.prehead': 1, 'invocations.command.search.lookups': 1, 'out_ct.command.search.lookups': 76, 'in_ct.command.prehead': 76}, columnOrder=None, keySet='index::_internal', remoteServers=None, is_remote_sorted=1, rt_backfill=0, read_raw=1, enable_event_stream=1, rtoptions=None, field_rendering=None, query_finished=1, request_finalization=0, auth_token='9ce2897f792c52a6ecdcd2e03aa4677c', splunkd_port=8089, splunkd_protocol='https', splunkd_uri='https://127.0.0.1:8089', internal_only=0, summary_mode='none', summary_maxtimespan=None, summary_stopped=0, is_batch_mode=0, root_sid=None, shp_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534', search='search index=_internal | head 10 | countmatches fieldname=word_count pattern=\\\\\\\w+ uri', remote_search='litsearch index=_internal | fields  keepcolorder=t "*" "_bkt" "_cd" "_si" "host" "index" "linecount" "source" "sourcetype" "splunk_server" "uri,word_count" | prehead  limit=10 null=false keeplast=false', reduce_search=None, datamodel_map=None, tstats_reduce=None, normalized_search='litsearch index=_internal | fields keepcolorder=t "*" "_bkt" "_cd" "_si" "host" "index" "linecount" "source" "sourcetype" "splunk_server" "uri,word_count" | prehead limit=10 null=false keeplast=false', summary_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534_searchcommands_app_admin_013dda14f276a384', normalized_summary_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534_searchcommands_app_admin_NS91c147524d89ae5a', generation_id=0, label=None, is_saved_search=0, realtime=0, indexed_realtime=0, indexed_realtime_offset=0, ppc_app='searchcommands_app', ppc_user='admin', ppc_bs='$SPLUNK_HOME/etc', bundle_version=0, vix_families=<Element 'root' at 0x103a7e410>, tz='### SERIALIZED TIMEZONE FORMAT 1.0;Y-25200 YW 50 44 54;Y-28800 NW 50 53 54;Y-25200 YW 50 57 54;Y-25200 YG 50 50 54;@-1633269600 0;@-1615129200 1;@-1601820000 0;@-1583679600 1;@-880207200 2;@-769395600 3;@-765385200 1;@-687967200 0;@-662655600 1;@-620834400 0;@-608137200 1;@-589384800 0;@-576082800 1;@-557935200 0;@-544633200 1;@-526485600 0;@-513183600 1;@-495036000 0;@-481734000 1;@-463586400 0;@-450284400 1;@-431532000 0;@-418230000 1;@-400082400 0;@-386780400 1;@-368632800 0;@-355330800 1;@-337183200 0;@-323881200 1;@-305733600 0;@-292431600 1;@-273679200 0;@-260982000 1;@-242229600 0;@-226508400 1;@-210780000 0;@-195058800 1;@-179330400 0;@-163609200 1;@-147880800 0;@-131554800 1;@-116431200 0;@-100105200 1;@-84376800 0;@-68655600 1;@-52927200 0;@-37206000 1;@-21477600 0;@-5756400 1;@9972000 0;@25693200 1;@41421600 0;@57747600 1;@73476000 0;@89197200 1;@104925600 0;@120646800 1;@126698400 0;@152096400 1;@162381600 0;@183546000 1;@199274400 0;@215600400 1;@230724000 0;@247050000 1;@262778400 0;@278499600 1;@294228000 0;@309949200 1;@325677600 0;@341398800 1;@357127200 0;@372848400 1;@388576800 0;@404902800 1;@420026400 0;@436352400 1;@452080800 0;@467802000 1;@483530400 0;@499251600 1;@514980000 0;@530701200 1;@544615200 0;@562150800 1;@576064800 0;@594205200 1;@607514400 0;@625654800 1;@638964000 0;@657104400 1;@671018400 0;@688554000 1;@702468000 0;@720003600 1;@733917600 0;@752058000 1;@765367200 0;@783507600 1;@796816800 0;@814957200 1;@828871200 0;@846406800 1;@860320800 0;@877856400 1;@891770400 0;@909306000 1;@923220000 0;@941360400 1;@954669600 0;@972810000 1;@986119200 0;@1004259600 1;@1018173600 0;@1035709200 1;@1049623200 0;@1067158800 1;@1081072800 0;@1099213200 1;@1112522400 0;@1130662800 1;@1143972000 0;@1162112400 1;@1173607200 0;@1194166800 1;@1205056800 0;@1225616400 1;@1236506400 0;@1257066000 1;@1268560800 0;@1289120400 1;@1300010400 0;@1320570000 1;@1331460000 0;@1352019600 1;@1362909600 0;@1383469200 1;@1394359200 0;@1414918800 1;@1425808800 0;@1446368400 1;@1457863200 0;@1478422800 1;@1489312800 0;@1509872400 1;@1520762400 0;@1541322000 1;@1552212000 0;@1572771600 1;@1583661600 0;@1604221200 1;@1615716000 0;@1636275600 1;@1647165600 0;@1667725200 1;@1678615200 0;@1699174800 1;@1710064800 0;@1730624400 1;@1741514400 0;@1762074000 1;@1772964000 0;@1793523600 1;@1805018400 0;@1825578000 1;@1836468000 0;@1857027600 1;@1867917600 0;@1888477200 1;@1899367200 0;@1919926800 1;@1930816800 0;@1951376400 1;@1962871200 0;@1983430800 1;@1994320800 0;@2014880400 1;@2025770400 0;@2046330000 1;@2057220000 0;@2077779600 1;@2088669600 0;@2109229200 1;@2120119200 0;@2140678800 1;$', msgType=None, msg=None)''' \
-                if python_version > 26 else \
-                '''SearchResultsInfo(sid=1391366014.3, timestamp=1391366014.7572229, now=1391366014, setStart=1391366007, index_et=1391366011, index_lt=1391366011, startTime=1386621222, rt_earliest=None, rt_latest=None, rtspan=None, scan_count=0, drop_count=0, maxevents=0, countMap={'in_ct.command.fields': 76, 'duration.command.search': 13, 'invocations.startup.handoff': 1, 'duration.dispatch.results_combiner': 1, 'invocations.command.search.kv': 1, 'duration.dispatch.stream.local': 14, 'out_ct.command.head': 10, 'invocations.command.search.rawdata': 1, 'invocations.dispatch.results_combiner': 1, 'invocations.command.fields': 1, 'out_ct.command.search.typer': 76, 'invocations.dispatch.writeStatus': 3, 'invocations.command.search.index': 1, 'duration.command.head': 1, 'duration.dispatch.evaluate': 130, 'duration.dispatch.evaluate.search': 41, 'in_ct.command.search.calcfields': 76, 'duration.dispatch.writeStatus': 3, 'invocations.command.search.tags': 1, 'in_ct.command.search.lookups': 76, 'duration.command.search.tags': 1, 'duration.command.search.lookups': 1, 'invocations.dispatch.evaluate': 1, 'duration.command.fields': 1, 'invocations.command.search.summary': 1, 'duration.dispatch.evaluate.countmatches': 88, 'out_ct.command.prehead': 10, 'in_ct.command.search.typer': 76, 'out_ct.command.search.calcfields': 76, 'invocations.command.head': 1, 'duration.startup.handoff': 39, 'duration.command.search.rawdata': 2, 'duration.command.search.index.usec_1_8': 0, 'invocations.command.search.fieldalias': 1, 'duration.dispatch.createProviderQueue': 27, 'duration.dispatch.fetch': 14, 'out_ct.command.search.tags': 76, 'duration.command.search.typer': 4, 'in_ct.command.head': 10, 'invocations.dispatch.createProviderQueue': 1, 'out_ct.command.fields': 76, 'invocations.dispatch.evaluate.head': 1, 'out_ct.command.search.fieldalias': 76, 'invocations.command.search.typer': 1, 'duration.dispatch.check_disk_usage': 1, 'out_ct.command.search': 76, 'in_ct.command.search': 0, 'invocations.dispatch.fetch': 1, 'duration.command.search.index': 1, 'duration.command.search.summary': 1, 'in_ct.command.search.tags': 76, 'duration.dispatch.evaluate.head': 1, 'duration.command.search.kv': 7, 'invocations.command.search.calcfields': 1, 'duration.command.search.fieldalias': 1, 'invocations.dispatch.evaluate.countmatches': 1, 'in_ct.command.search.fieldalias': 76, 'invocations.command.search': 1, 'invocations.dispatch.stream.local': 1, 'duration.command.search.calcfields': 1, 'invocations.dispatch.check_disk_usage': 1, 'prereport_events': 0, 'invocations.dispatch.evaluate.search': 1, 'invocations.command.search.index.usec_1_8': 7, 'duration.command.prehead': 1, 'invocations.command.prehead': 1, 'invocations.command.search.lookups': 1, 'out_ct.command.search.lookups': 76, 'in_ct.command.prehead': 76}, columnOrder=None, keySet='index::_internal', remoteServers=None, is_remote_sorted=1, rt_backfill=0, read_raw=1, enable_event_stream=1, rtoptions=None, field_rendering=None, query_finished=1, request_finalization=0, auth_token='9ce2897f792c52a6ecdcd2e03aa4677c', splunkd_port=8089, splunkd_protocol='https', splunkd_uri='https://127.0.0.1:8089', internal_only=0, summary_mode='none', summary_maxtimespan=None, summary_stopped=0, is_batch_mode=0, root_sid=None, shp_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534', search='search index=_internal | head 10 | countmatches fieldname=word_count pattern=\\\\\\\\w+ uri', remote_search='litsearch index=_internal | fields  keepcolorder=t "*" "_bkt" "_cd" "_si" "host" "index" "linecount" "source" "sourcetype" "splunk_server" "uri,word_count" | prehead  limit=10 null=false keeplast=false', reduce_search=None, datamodel_map=None, tstats_reduce=None, normalized_search='litsearch index=_internal | fields keepcolorder=t "*" "_bkt" "_cd" "_si" "host" "index" "linecount" "source" "sourcetype" "splunk_server" "uri,word_count" | prehead limit=10 null=false keeplast=false', summary_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534_searchcommands_app_admin_013dda14f276a384', normalized_summary_id='A8797F6F-B6BF-43E9-9AFE-857D2FBC8534_searchcommands_app_admin_NS91c147524d89ae5a', generation_id=0, label=None, is_saved_search=0, realtime=0, indexed_realtime=0, indexed_realtime_offset=0, ppc_app='searchcommands_app', ppc_user='admin', ppc_bs='$SPLUNK_HOME/etc', bundle_version=0, vix_families=<Element 'root' at 0x103a7e410>, tz='### SERIALIZED TIMEZONE FORMAT 1.0;Y-25200 YW 50 44 54;Y-28800 NW 50 53 54;Y-25200 YW 50 57 54;Y-25200 YG 50 50 54;@-1633269600 0;@-1615129200 1;@-1601820000 0;@-1583679600 1;@-880207200 2;@-769395600 3;@-765385200 1;@-687967200 0;@-662655600 1;@-620834400 0;@-608137200 1;@-589384800 0;@-576082800 1;@-557935200 0;@-544633200 1;@-526485600 0;@-513183600 1;@-495036000 0;@-481734000 1;@-463586400 0;@-450284400 1;@-431532000 0;@-418230000 1;@-400082400 0;@-386780400 1;@-368632800 0;@-355330800 1;@-337183200 0;@-323881200 1;@-305733600 0;@-292431600 1;@-273679200 0;@-260982000 1;@-242229600 0;@-226508400 1;@-210780000 0;@-195058800 1;@-179330400 0;@-163609200 1;@-147880800 0;@-131554800 1;@-116431200 0;@-100105200 1;@-84376800 0;@-68655600 1;@-52927200 0;@-37206000 1;@-21477600 0;@-5756400 1;@9972000 0;@25693200 1;@41421600 0;@57747600 1;@73476000 0;@89197200 1;@104925600 0;@120646800 1;@126698400 0;@152096400 1;@162381600 0;@183546000 1;@199274400 0;@215600400 1;@230724000 0;@247050000 1;@262778400 0;@278499600 1;@294228000 0;@309949200 1;@325677600 0;@341398800 1;@357127200 0;@372848400 1;@388576800 0;@404902800 1;@420026400 0;@436352400 1;@452080800 0;@467802000 1;@483530400 0;@499251600 1;@514980000 0;@530701200 1;@544615200 0;@562150800 1;@576064800 0;@594205200 1;@607514400 0;@625654800 1;@638964000 0;@657104400 1;@671018400 0;@688554000 1;@702468000 0;@720003600 1;@733917600 0;@752058000 1;@765367200 0;@783507600 1;@796816800 0;@814957200 1;@828871200 0;@846406800 1;@860320800 0;@877856400 1;@891770400 0;@909306000 1;@923220000 0;@941360400 1;@954669600 0;@972810000 1;@986119200 0;@1004259600 1;@1018173600 0;@1035709200 1;@1049623200 0;@1067158800 1;@1081072800 0;@1099213200 1;@1112522400 0;@1130662800 1;@1143972000 0;@1162112400 1;@1173607200 0;@1194166800 1;@1205056800 0;@1225616400 1;@1236506400 0;@1257066000 1;@1268560800 0;@1289120400 1;@1300010400 0;@1320570000 1;@1331460000 0;@1352019600 1;@1362909600 0;@1383469200 1;@1394359200 0;@1414918800 1;@1425808800 0;@1446368400 1;@1457863200 0;@1478422800 1;@1489312800 0;@1509872400 1;@1520762400 0;@1541322000 1;@1552212000 0;@1572771600 1;@1583661600 0;@1604221200 1;@1615716000 0;@1636275600 1;@1647165600 0;@1667725200 1;@1678615200 0;@1699174800 1;@1710064800 0;@1730624400 1;@1741514400 0;@1762074000 1;@1772964000 0;@1793523600 1;@1805018400 0;@1825578000 1;@1836468000 0;@1857027600 1;@1867917600 0;@1888477200 1;@1899367200 0;@1919926800 1;@1930816800 0;@1951376400 1;@1962871200 0;@1983430800 1;@1994320800 0;@2014880400 1;@2025770400 0;@2046330000 1;@2057220000 0;@2077779600 1;@2088669600 0;@2109229200 1;@2120119200 0;@2140678800 1;$', msgType=None, msg=None)'''
-
-        command = SearchCommand()
+        ifile = StringIO('infoPath:' + info_path + '\n\naction\r\nget_search_results_info\r\n')
+        argv = ['test.py', '__EXECUTE__']
+        command = TestStreamingCommand()
         result = StringIO()
-        info_path = os.path.join(TestSearchCommand._package_directory, 'data',
-                                 'input', 'externSearchResultsInfo.csv')
-        input = StringIO(
-            'infoPath:%s\n\nAction\r\naccess_search_results_info' % info_path)
-        command.process(args=['foo.py', '__EXECUTE__'], input_file=input,
-                        output_file=result)
 
-        observed = re.sub('''vix_families=<Element '?root'? at [^>]+>''',
-                          '''vix_families=<Element 'root' at 0x103a7e410>''',
-                          repr(command.search_results_info))
-        self.assertEqual(expected, observed)
+        try:
+            # noinspection PyTypeChecker
+            command.process(argv, ifile, ofile=result)
+        except BaseException as error:
+            self.fail('Expected no exception, but caught {}: {}'.format(type(error).__name__, error))
+        else:
+            self.assertRegexpMatches(
+                result.getvalue(),
+                r'^\r\n'
+                r'('
+                r'data,__mv_data,_serial,__mv__serial\r\n'
+                r'"\{.*u\'is_summary_index\': 0, .+\}",,0,'
+                r'|'
+                r'_serial,__mv__serial,data,__mv_data\r\n'
+                r'0,,"\{.*u\'is_summary_index\': 0, .+\}",'
+                r')'
+                r'\r\n$'
+            )
 
-        # Command.process should provide access to a service object when search
-        # results info is available
+        # TestStreamingCommand.process should provide access to a service object when search results info is available
 
         self.assertIsInstance(command.service, Service)
+
         self.assertEqual(command.service.authority,
                          command.search_results_info.splunkd_uri)
+
         self.assertEqual(command.service.scheme,
                          command.search_results_info.splunkd_protocol)
+
         self.assertEqual(command.service.port,
                          command.search_results_info.splunkd_port)
+
         self.assertEqual(command.service.token,
                          command.search_results_info.auth_token)
+
         self.assertEqual(command.service.namespace.app,
                          command.search_results_info.ppc_app)
-        self.assertEqual(command.service.namespace.owner, None)
-        self.assertEqual(command.service.namespace.sharing, None)
 
-    def test_no_access_to_search_results_without_infopath(self):
-        # Command.process should not provide access to search results info or
-        # a service object when the 'infoPath' input header is unavailable
+        self.assertEqual(command.service.namespace.owner,
+                         None)
+        self.assertEqual(command.service.namespace.sharing,
+                         None)
 
-        command = SearchCommand()
+        # Command.process should not provide access to search results info or a service object when the 'infoPath'
+        # input header is unavailable
+
+        ifile = StringIO('\naction\r\nget_search_results_info')
+        argv = ['teststreaming.py', '__EXECUTE__']
+        command = TestStreamingCommand()
+
+        # noinspection PyTypeChecker
+        command.process(argv, ifile, ofile=result)
+
+        self.assertIsNone(command.search_results_info)
+        self.assertIsNone(command.service)
+
+        return
+
+    def test_process_scpv2(self):
+
+        # SearchCommand.process should
+
+        # 1. Recognize all standard options:
+
+        metadata = (
+            '{{'
+                '"action": "getinfo", "preview": false, "searchinfo": {{'
+                    '"latest_time": "0",'
+                    '"splunk_version": "20150522",'
+                    '"username": "admin",'
+                    '"app": "searchcommands_app",'
+                    '"args": ['
+                        '"logging_configuration={logging_configuration}",'
+                        '"logging_level={logging_level}",'
+                        '"record={record}",'
+                        '"show_configuration={show_configuration}",'
+                        '"required_option_1=value_1",'
+                        '"required_option_2=value_2"'
+                    '],'
+                    '"search": "%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
+                    '"earliest_time": "0",'
+                    '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
+                    '"owner": "admin",'
+                    '"sid": "1433261372.158",'
+                    '"splunkd_uri": "https://127.0.0.1:8089",'
+                    '"dispatch_dir": {dispatch_dir},'
+                    '"raw_args": ['
+                        '"logging_configuration={logging_configuration}",'
+                        '"logging_level={logging_level}",'
+                        '"record={record}",'
+                        '"show_configuration={show_configuration}",'
+                        '"required_option_1=value_1",'
+                        '"required_option_2=value_2"'
+                    ']'
+                '}}'
+            '}}')
+
+        basedir = self._package_directory
+
+        default_logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'default', 'logging.conf')
+        dispatch_dir = os.path.join(basedir, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.dispatch_dir')
+        logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'logging.conf')
+        logging_level = 'ERROR'
+        record = False
+        show_configuration = True
+
+        getinfo_metadata = metadata.format(
+            dispatch_dir=encode_string(dispatch_dir),
+            logging_configuration=encode_string(logging_configuration)[1:-1],
+            logging_level=logging_level,
+            record=('true' if record is True else 'false'),
+            show_configuration=('true' if show_configuration is True else 'false'))
+
+        execute_metadata = '{"action":"execute","finished":true}'
+        execute_body = 'test\r\ndata\r\n'
+
+        ifile = StringIO(
+            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+
+        command = TestCommand()
         result = StringIO()
-        command.process(args=['foo.py', '__EXECUTE__'], input_file=StringIO(
-            '\nAction\r\naccess_search_results_info'), output_file=result)
-        self.assertEqual(command.search_results_info, None)
-        self.assertEqual(command.service, None)
+        argv = ['some-external-search-command.py']
+
+        self.assertEqual(command.logging_configuration, default_logging_configuration)
+        self.assertEqual(command.logging_level, 'WARNING')
+        self.assertIs(command.record, None)
+        self.assertIs(command.show_configuration, None)
+
+        try:
+            # noinspection PyTypeChecker
+            command.process(argv, ifile, ofile=result)
+        except SystemExit as error:
+            self.fail('Unexpected exception: {}: {}'.format(type(error).__name__, error))
+
+        self.assertEqual(command.logging_configuration, logging_configuration)
+        self.assertEqual(command.logging_level, 'ERROR')
+        self.assertEqual(command.record, record)
+        self.assertEqual(command.show_configuration, show_configuration)
+        self.assertEqual(command.required_option_1, 'value_1')
+        self.assertEqual(command.required_option_2, 'value_2')
+
+        self.assertEqual(
+            'chunked 1.0,68,0\n'
+            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
+            'chunked 1.0,17,23\n'
+            '{"finished":true}test,__mv_test\r\n'
+            'data,\r\n',
+            result.getvalue())
+
+        self.assertEqual(command.protocol_version, 2)
+
+        # 2. Provide access to these properties:
+        #   fieldnames
+        #   input_header
+        #   metadata
+        #   search_results_info
+        #   service
+
+        self.assertEqual([], command.fieldnames)
+
+        command_metadata = command.metadata
+        input_header = command.input_header
+
+        self.assertIsNone(input_header['allowStream'])
+        self.assertEqual(input_header['infoPath'], os.path.join(command_metadata.searchinfo.dispatch_dir, 'info.csv'))
+        self.assertIsNone(input_header['keywords'])
+        self.assertEqual(input_header['preview'], command_metadata.preview)
+        self.assertIs(input_header['realtime'], False)
+        self.assertEqual(input_header['search'], command_metadata.searchinfo.search)
+        self.assertEqual(input_header['sid'], command_metadata.searchinfo.sid)
+        self.assertEqual(input_header['splunkVersion'], command_metadata.searchinfo.splunk_version)
+        self.assertIsNone(input_header['truncated'])
+
+        self.assertEqual(command_metadata.preview, input_header['preview'])
+        self.assertEqual(command_metadata.searchinfo.app, 'searchcommands_app')
+        self.assertEqual(command_metadata.searchinfo.args, ['logging_configuration=' + logging_configuration, 'logging_level=ERROR', 'record=false', 'show_configuration=true', 'required_option_1=value_1', 'required_option_2=value_2'])
+        self.assertEqual(command_metadata.searchinfo.dispatch_dir, os.path.dirname(input_header['infoPath']))
+        self.assertEqual(command_metadata.searchinfo.earliest_time, 0.0)
+        self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
+        self.assertEqual(command_metadata.searchinfo.owner, 'admin')
+        self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
+        self.assertEqual(command_metadata.searchinfo.search, '| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
+        self.assertEqual(command_metadata.searchinfo.session_key, '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
+        self.assertEqual(command_metadata.searchinfo.sid, '1433261372.158')
+        self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')
+        self.assertEqual(command_metadata.searchinfo.splunkd_uri, 'https://127.0.0.1:8089')
+        self.assertEqual(command_metadata.searchinfo.username, 'admin')
+
+        command.search_results_info.search_metrics = command.search_results_info.search_metrics.__dict__
+        command.search_results_info.optional_fields_json = command.search_results_info.optional_fields_json.__dict__
+
+        self.maxDiff = None
+
+        self.assertDictEqual(command.search_results_info.__dict__, {
+            u'is_summary_index': 0,
+            u'bs_thread_count': 1,
+            u'rt_backfill': 0,
+            u'rtspan': '',
+            u'search_StartTime': 1433261392.934936,
+            u'read_raw': 1,
+            u'root_sid': '',
+            u'field_rendering': '',
+            u'query_finished': 1,
+            u'optional_fields_json': {},
+            u'group_list': '',
+            u'remoteServers': '',
+            u'rt_latest': '',
+            u'remote_log_download_mode': 'disabled',
+            u'reduce_search': '',
+            u'request_finalization': 0,
+            u'auth_token': 'UQZSgWwE2f9oIKrj1QG^kVhW^T_cR4H5Z65bPtMhwlHytS5jFrFYyH^dGzjTusDjVTgoBNeR7bvIzctHF7DrLJ1ANevgDOWEWRvABNj6d_k0koqxw9Io',
+            u'indexed_realtime': 0,
+            u'ppc_bs': '$SPLUNK_HOME/etc',
+            u'drop_count': 0,
+            u'datamodel_map': '',
+            u'search_can_be_event_type': 0,
+            u'search_StartUp_Spent': 0,
+            u'realtime': 0,
+            u'splunkd_uri': 'https://127.0.0.1:8089',
+            u'columnOrder': '',
+            u'kv_store_settings': 'hosts;127.0.0.1:8191\\;;local;127.0.0.1:8191;read_preference;958513E3-8716-4ABF-9559-DA0C9678437F;replica_set_name;958513E3-8716-4ABF-9559-DA0C9678437F;status;ready;',
+            u'label': '',
+            u'summary_maxtimespan': '',
+            u'indexed_realtime_offset': 0,
+            u'sid': 1433261392.159,
+            u'msg': [],
+            u'internal_only': 0,
+            u'summary_id': '',
+            u'orig_search_head': '',
+            u'ppc_app': 'chunked_searchcommands',
+            u'countMap': {
+                u'invocations.dispatch.writeStatus': u'1',
+                u'duration.dispatch.writeStatus': u'2',
+                u'duration.startup.handoff': u'79',
+                u'duration.startup.configuration': u'34',
+                u'invocations.startup.handoff': u'1',
+                u'invocations.startup.configuration': u'1'},
+            u'is_shc_mode': 0,
+            u'shp_id': '958513E3-8716-4ABF-9559-DA0C9678437F',
+            u'timestamp': 1433261392.936374, u'is_remote_sorted': 0,
+            u'remote_search': '',
+            u'splunkd_protocol': 'https',
+            u'site': '',
+            u'maxevents': 0,
+            u'keySet': '',
+            u'summary_stopped': 0,
+            u'search_metrics': {
+                u'ConsideredEvents': 0,
+                u'ConsideredBuckets': 0,
+                u'TotalSlicesInBuckets': 0,
+                u'EliminatedBuckets': 0,
+                u'DecompressedSlices': 0},
+            u'summary_mode': 'all', u'now': 1433261392.0,
+            u'splunkd_port': 8089, u'is_saved_search': 0,
+            u'rtoptions': '',
+            u'search': '| inputlookup random_data max=50000 | sum total=total value1 record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw',
+            u'bundle_version': 0,
+            u'generation_id': 0,
+            u'bs_thread_id': 0,
+            u'is_batch_mode': 0,
+            u'scan_count': 0,
+            u'rt_earliest': '',
+            u'default_group': '*',
+            u'tstats_reduce': '',
+            u'kv_store_additional_settings': 'hosts_guids;958513E3-8716-4ABF-9559-DA0C9678437F\\;;',
+            u'enable_event_stream': 0,
+            u'is_remote': 0,
+            u'is_scheduled': 0,
+            u'sample_ratio': 1,
+            u'ppc_user': 'admin',
+            u'sample_seed': 0})
+
+        self.assertIsInstance(command.service, Service)
+
+        self.assertEqual(command.service.authority, command_metadata.searchinfo.splunkd_uri)
+        self.assertEqual(command.service.scheme, command.search_results_info.splunkd_protocol)
+        self.assertEqual(command.service.port, command.search_results_info.splunkd_port)
+        self.assertEqual(command.service.token, command_metadata.searchinfo.session_key)
+        self.assertEqual(command.service.namespace.app, command.metadata.searchinfo.app)
+        self.assertIsNone(command.service.namespace.owner)
+        self.assertIsNone(command.service.namespace.sharing)
+
+        self.assertEqual(command.protocol_version, 2)
+
+        # 3. Produce an error message, log a debug message, and exit when invalid standard option values are encountered
+
+        # Note on loggers
+        # Loggers are global and can't be removed once they're created. We create loggers that are keyed by class name
+        # Each instance of a class thus created gets access to the same logger. We created one in the prior test and
+        # set it's level to ERROR. That level is retained in this test.
+
+        logging_configuration = 'non-existent-logging.conf'
+        logging_level = 'NON-EXISTENT-LOGGING-LEVEL'
+        record = 'Non-boolean value'
+        show_configuration = 'Non-boolean value'
+
+        getinfo_metadata = metadata.format(
+            dispatch_dir=encode_string(dispatch_dir),
+            logging_configuration=encode_string(logging_configuration)[1:-1],
+            logging_level=logging_level,
+            record=record,
+            show_configuration=show_configuration)
+
+        execute_metadata = '{"action":"execute","finished":true}'
+        execute_body = 'test\r\ndata\r\n'
+
+        ifile = StringIO(
+            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+
+        command = TestCommand()
+        result = StringIO()
+        argv = ['test.py']
+
+        # noinspection PyTypeChecker
+        self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
+        self.assertEqual(command.logging_configuration, default_logging_configuration)
+        self.assertEqual(command.logging_level, 'ERROR')
+        self.assertEqual(command.record, False)
+        self.assertEqual(command.show_configuration, False)
+        self.assertEqual(command.required_option_1, 'value_1')
+        self.assertEqual(command.required_option_2, 'value_2')
+
+        self.assertEqual(
+            'chunked 1.0,287,0\n'
+            '{"inspector":{"messages":[["ERROR","Illegal value: logging_configuration=non-existent-logging.conf"],'
+            '["ERROR","Illegal value: logging_level=NON-EXISTENT-LOGGING-LEVEL"],'
+            '["ERROR","Illegal value: record=Non-boolean value"],'
+            '["ERROR","Illegal value: show_configuration=Non-boolean value"]]}}\n'
+            'chunked 1.0,17,0\n'
+            '{"finished":true}',
+            result.getvalue())
+
+        self.assertEqual(command.protocol_version, 2)
+
+        # 4. Produce an error message, log an error message that includes a traceback, and exit when an exception is
+        #    raised during command execution.
+
+        logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'logging.conf')
+        logging_level = 'WARNING'
+        record = False
+        show_configuration = False
+
+        getinfo_metadata = metadata.format(
+            dispatch_dir=encode_string(dispatch_dir),
+            logging_configuration=encode_string(logging_configuration)[1:-1],
+            logging_level=logging_level,
+            record=('true' if record is True else 'false'),
+            show_configuration=('true' if show_configuration is True else 'false'))
+
+        execute_metadata = '{"action":"execute","finished":true}'
+        execute_body = 'action\r\nraise_exception\r\n'
+
+        ifile = StringIO(
+            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+
+        command = TestCommand()
+        result = StringIO()
+        argv = ['test.py']
+
+        try:
+            command.process(argv, ifile, ofile=result)
+        except SystemExit as error:
+            self.assertNotEqual(0, error.code)
+        except BaseException as error:
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+        else:
+            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(result.getvalue()))
+
+        self.assertEqual(command.logging_configuration, logging_configuration)
+        self.assertEqual(command.logging_level, logging_level)
+        self.assertEqual(command.record, record)
+        self.assertEqual(command.show_configuration, show_configuration)
+        self.assertEqual(command.required_option_1, 'value_1')
+        self.assertEqual(command.required_option_2, 'value_2')
+
+        finished = r'"finished":true'
+
+        inspector = \
+            r'"inspector":\{"messages":\[\["ERROR","StandardError at \\".+\\", line \d+ : test ' \
+            r'logging_configuration=\\".+\\" logging_level=\\"WARNING\\" record=\\"f\\" ' \
+            r'required_option_1=\\"value_1\\" required_option_2=\\"value_2\\" show_configuration=\\"f\\""\]\]\}'
+
+        self.assertRegexpMatches(
+            result.getvalue(),
+            r'^chunked 1.0,2,0\n'
+            r'\{\}\n'
+            r'chunked 1.0,\d+,0\n'
+            r'\{(' + inspector + r',' + finished + r'|' + finished + r',' + inspector + r')\}')
+
+        self.assertEqual(command.protocol_version, 2)
+        return
+
+    _package_directory = os.path.dirname(os.path.abspath(__file__))
+
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

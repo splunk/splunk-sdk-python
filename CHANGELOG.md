@@ -4,7 +4,7 @@
 
 ### New features and APIs
 
-* Added support for the new experimental Search Command Protocol V2, for Splunk 6.3+.
+* Added support for the new experimental Search Command Protocol v2, for Splunk 6.3+.
 
   Opt-in by setting `chunked = true` in commands.conf. See `examples/searchcommands_app/package/default/commands-scpv2.conf`.
 
@@ -27,9 +27,13 @@
 
 ### Bug fixes
 
-* GitHub issue 88: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
+* GitHub issue 88: `splunklib.modularinput`, `<done/>` written even when `done=False`.
 
-* Various other bug fixes/improvements for Search Command Protocol V1.
+* GitHub issue 115: `splunklib.searchcommands.splunk_csv.dict_reader` raises `KeyError` when `supports_multivalues = True`.
+
+* GitHub issue 119: `None` returned in `_load_atom_entries`.
+
+* Various other bug fixes/improvements for Search Command Protocol v1.
 
 * Various bug fixes/improvements to the full splunklib test suite.
 

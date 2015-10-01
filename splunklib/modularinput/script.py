@@ -103,7 +103,7 @@ class Script(object):
                 event_writer._err.write(err_string)
 
         except Exception as e:
-            err_string = EventWriter.ERROR + e.message
+            err_string = EventWriter.ERROR + str(e.message)
             event_writer._err.write(err_string)
             return 1
 

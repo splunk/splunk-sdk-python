@@ -5,6 +5,20 @@ splunklib.searchcommands
 
 .. autofunction:: dispatch(command_class[, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None])
 
+.. autoclass:: EventingCommand
+    :members:
+    :inherited-members:
+    :exclude-members: ConfigurationSettings, process, transform
+
+    .. autoclass:: splunklib.searchcommands::EventingCommand.ConfigurationSettings
+        :members:
+        :inherited-members:
+        :exclude-members: configuration_settings, fix_up, items, keys
+
+    .. automethod:: splunklib.searchcommands::EventingCommand.transform
+
+    .. automethod:: splunklib.searchcommands::EventingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
+
 .. autoclass:: GeneratingCommand
     :members:
     :inherited-members:

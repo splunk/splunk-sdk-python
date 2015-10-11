@@ -78,7 +78,7 @@ class StreamingCommand(SearchCommand):
 
         # region SCP v1 properties
 
-        clear_required_fields = ConfigurationSetting(value=False, doc='''
+        clear_required_fields = ConfigurationSetting(doc='''
             :const:`True`, if required_fields represent the *only* fields required.
 
             If :const:`False`, required_fields are additive to any fields that may be required by subsequent commands.
@@ -90,7 +90,7 @@ class StreamingCommand(SearchCommand):
 
             ''')
 
-        local = ConfigurationSetting(value=False, doc='''
+        local = ConfigurationSetting(doc='''
             :const:`True`, if the command should run locally on the search head.
 
             Default: :const:`False`

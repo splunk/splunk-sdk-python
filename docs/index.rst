@@ -147,6 +147,8 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 :doc:`searchcommands`
 ---------------------
 
+    :class:`~splunklib.searchcommands.EventingCommand` class
+
     :class:`~splunklib.searchcommands.GeneratingCommand` class
 
     :class:`~splunklib.searchcommands.ReportingCommand` class

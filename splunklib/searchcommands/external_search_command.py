@@ -142,7 +142,9 @@ class ExternalSearchCommand(object):
             p.wait()
 
             logger.debug('finished command="%s", arguments=%s, pid=%d, returncode=%d', path, argv, p.pid, p.returncode)
-            sys.exit(p.returncode)
+
+            if p.returncode != 0:
+                sys.exit(p.returncode)
 
         @staticmethod
         def _search_path(executable, paths):

@@ -1270,7 +1270,8 @@ class ResponseReader(io.RawIOBase):
         self._buffer = ''
         if size is not None:
             size -= len(r)
-        r = r + self._response.read(size)
+        if size != 0:
+            r = r + self._response.read(size)
         return r
 
     def readable(self):

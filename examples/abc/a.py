@@ -37,11 +37,11 @@ headers = {
 try:
     connection.request("POST", "/services/auth/login", body, headers)
     response = connection.getresponse()
+    body = response.read()
 finally:
     connection.close()
 if response.status != 200:
     raise Exception, "%d (%s)" % (response.status, response.reason)
-body = response.read()
 sessionKey = ElementTree.XML(body).findtext("./sessionKey")
 
 # Now make the request to Splunk for list of installed apps
@@ -56,12 +56,12 @@ headers = {
 try:
     connection.request("GET", "/services/apps/local", "", headers)
     response = connection.getresponse()
+    body = response.read()
 finally:
     connection.close()
 if response.status != 200:
     raise Exception, "%d (%s)" % (response.status, response.reason)
 
-body = response.read()
 data = ElementTree.XML(body)
 apps = data.findall("{http://www.w3.org/2005/Atom}entry/{http://www.w3.org/2005/Atom}title")
 for app in apps: 

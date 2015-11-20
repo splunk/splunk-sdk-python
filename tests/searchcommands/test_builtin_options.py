@@ -71,7 +71,7 @@ class TestBuiltinOptions(TestCase):
         self.assertIsInstance(root_handler, logging.StreamHandler)
         self.assertEqual(root_handler.stream, sys.stderr)
 
-        self.assertEqual(command.logging_level, logging.getLevelName(logging.WARNING))
+        self.assertEqual(command.logging_level, logging.getLevelName(logging.root.level))
         root_handler.stream = StringIO()
         message = 'Test that output is directed to stderr without formatting'
         command.logger.warning(message)

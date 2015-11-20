@@ -72,9 +72,9 @@ def main(argv):
         'host_segment', 'rename-source', 'sourcetype')
 
     for arg in opts.args: 
+        # Note that it's possible the file may not exist (if you had a typo),
+        # but it only needs to exist on the Splunk server, which we can't verify.
         fullpath = path.abspath(arg)
-        if not path.exists(fullpath):
-            error("File '%s' does not exist" % arg, 2)
         index.upload(fullpath, **kwargs_submit)
 
 if __name__ == "__main__":

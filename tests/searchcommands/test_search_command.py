@@ -409,7 +409,6 @@ class TestSearchCommand(TestCase):
         result = StringIO()
         argv = ['some-external-search-command.py']
 
-        self.assertEqual(command.logging_configuration, default_logging_configuration)
         self.assertEqual(command.logging_level, 'WARNING')
         self.assertIs(command.record, None)
         self.assertIs(command.show_configuration, None)
@@ -602,7 +601,6 @@ class TestSearchCommand(TestCase):
 
         # noinspection PyTypeChecker
         self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
-        self.assertEqual(command.logging_configuration, default_logging_configuration)
         self.assertEqual(command.logging_level, 'ERROR')
         self.assertEqual(command.record, False)
         self.assertEqual(command.show_configuration, False)

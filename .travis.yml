@@ -1,0 +1,46 @@
+notifications:
+    email: false
+sudo: required
+
+services:
+    - docker
+
+before_install:
+    # Create .splunkrc file with default credentials
+    - echo host=127.0.0.1 >> $HOME/.splunkrc
+    - echo username=admin >> $HOME/.splunkrc
+    - echo password=changeme >> $HOME/.splunkrc
+    # Set SPLUNK_HOME
+    - export SPLUNK_HOME="/opt/splunk"
+    # Pull docker image
+    - docker pull splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
+    # Add DOCKER to iptables, 1/10 times this is needed, force 0 exit status
+    - sudo iptables -N DOCKER || true
+    # Start Docker container
+    - docker run -p 127.0.0.1:8089:8089 -d splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
+    # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
+    - for i in `seq 0 20`; do if curl --fail -k https://localhost:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
+    # The upload test needs to refer to a file that Splunk has in the docker
+    # container
+    - export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
+    # After initial setup, we do not want to give the SDK any notion that it has
+    # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
+    # for it, and make a placeholder for log files (which some tests generate)
+    - export SPLUNK_HOME=`pwd`/splunk_home
+    - mkdir -p $SPLUNK_HOME/var/log/splunk
+
+env:
+    - SPLUNK_VERSION=6.2.6-sdk
+    - SPLUNK_VERSION=6.3.1-sdk
+
+language: python
+
+python:
+  - "2.7"
+  - "2.6"
+
+install: "pip install unittest2"
+
+before_script: python setup.py build dist
+
+script: python setup.py test

@@ -64,7 +64,7 @@ class CountMatchesCommand(StreamingCommand):
         for record in records:
             count = 0L
             for fieldname in self.fieldnames:
-                matches = pattern.findall(unicode(record[fieldname]))
+                matches = pattern.findall(unicode(record[fieldname].decode("utf-8")))
                 count += len(matches)
             record[self.fieldname] = count
             yield record

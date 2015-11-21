@@ -25,17 +25,40 @@ import tarfile
 
 import splunklib
 
+failed = False
 
 def run_test_suite():
     try:
         import unittest2 as unittest
     except ImportError:
         import unittest
+
+    def mark_failed():
+        global failed
+        failed = True
+    
+    class _TrackingTextTestResult(unittest._TextTestResult):
+        def addError(self, test, err):
+            unittest._TextTestResult.addError(self, test, err)
+            mark_failed()
+
+        def addFailure(self, test, err):
+            unittest._TextTestResult.addFailure(self, test, err)
+            mark_failed()
+
+    class TrackingTextTestRunner(unittest.TextTestRunner):
+        def _makeResult(self):
+            return _TrackingTextTestResult(
+                self.stream, self.descriptions, self.verbosity)
+        
     original_cwd = os.path.abspath(os.getcwd())
     os.chdir('tests')
     suite = unittest.defaultTestLoader.discover('.')
-    unittest.TextTestRunner().run(suite)
+    runner = TrackingTextTestRunner(verbosity=2)
+    runner.run(suite)
     os.chdir(original_cwd)
+    
+    return failed
 
 
 def run_test_suite_with_junit_output():
@@ -87,7 +110,9 @@ class TestCommand(Command):
         pass
 
     def run(self):
-        run_test_suite()
+        failed = run_test_suite()
+        if failed:
+            sys.exit(1)
 
 
 class JunitXmlTestCommand(Command):
@@ -170,15 +195,17 @@ class DistCommand(Command):
                 spl.close()
 
         # Create searchcommands_app-<three-part-version-number>-private.tar.gz
+        # but only if we are on 2.7 or later
+        if sys.version_info >= (2,7):
+            setup_py = os.path.join('examples', 'searchcommands_app', 'setup.py')
 
-        setup_py = os.path.join('examples', 'searchcommands_app', 'setup.py')
+            check_call(('python', setup_py, 'build', '--force'), stderr=STDOUT, stdout=sys.stdout)
+            tarball = 'searchcommands_app-{0}-private.tar.gz'.format(self.distribution.metadata.version)
+            source = os.path.join('examples', 'searchcommands_app', 'build', tarball)
+            target = os.path.join('build', tarball)
 
-        check_call(('python', setup_py, 'build', '--force'), stderr=STDOUT, stdout=sys.stdout)
-        tarball = 'searchcommands_app-{0}-private.tar.gz'.format(self.distribution.metadata.version)
-        source = os.path.join('examples', 'searchcommands_app', 'build', tarball)
-        target = os.path.join('build', tarball)
-
-        shutil.copyfile(source, target)
+            shutil.copyfile(source, target)
+            
         return
 
 setup(

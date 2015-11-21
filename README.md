@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/splunk/splunk-sdk-python.svg?branch=master)](https://travis-ci.org/splunk/splunk-sdk-python)
 # The Splunk Software Development Kit for Python
 
 #### Version 1.5.0

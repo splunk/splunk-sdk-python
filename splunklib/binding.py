@@ -1168,10 +1168,16 @@ class HttpLib(object):
         :rtype: ``dict``
         """
         if headers is None: headers = []
-        headers.append(("Content-Type", "application/x-www-form-urlencoded")),
+
         # We handle GET-style arguments and an unstructured body. This is here
         # to support the receivers/stream endpoint.
         if 'body' in kwargs:
+            # We only use application/x-www-form-urlencoded if there is no other
+            # Content-Type header present. This can happen in cases where we 
+            # send requests as application/json, e.g. for KV Store.
+            if len(filter(lambda x: x[0].lower() == "content-type", headers)) == 0:
+                headers.append(("Content-Type", "application/x-www-form-urlencoded"))
+
             body = kwargs.pop('body')
             if len(kwargs) > 0:
                 url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)

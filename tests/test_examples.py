@@ -182,6 +182,11 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "job.py",
             "job.py list",
             "job.py list @0")
+
+    def test_kvstore(self):
+        self.check_commands(
+            "kvstore.py --help",
+            "kvstore.py")
         
     def test_loggers(self):
         self.check_commands(

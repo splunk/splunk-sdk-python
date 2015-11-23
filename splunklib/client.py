@@ -2152,7 +2152,7 @@ class Input(Entity):
 
             if 'restrictToHost' in kwargs:
                 raise IllegalOperationException("Cannot set restrictToHost on an existing input with the SDK.")
-            elif 'restrictToHost' in self._state.content:
+            elif 'restrictToHost' in self._state.content and self.kind != 'udp':
                 to_update['restrictToHost'] = self._state.content['restrictToHost']
 
             # Do the actual update operation.

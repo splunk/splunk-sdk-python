@@ -698,11 +698,12 @@ class TestBasicAuthentication(unittest.TestCase):
         import splunklib.client as client
         service = client.Service(**opts)
 
-     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
-         def assertIsNotNone(self, obj, msg=None):
-            if obj is None:
-                raise self.failureException, (msg or '%r is not None' % obj)
-     def test_basic_in_auth_headers(self):
+    if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
+        def assertIsNotNone(self, obj, msg=None):
+           if obj is None:
+               raise self.failureException, (msg or '%r is not None' % obj)
+
+    def test_basic_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
         self.assertNotEqual(self.context._auth_headers, [])
         self.assertEqual(len(self.context._auth_headers), 1)

@@ -46,14 +46,15 @@ class TestConfigurationSettings(TestCase):
 
         self.assertTrue(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generates_timeorder', False), ('generating', True), ('retainsevents', False), ('streaming', True)])
+            [('generating', True)])
 
-        self.assertIs(command.configuration.generates_timeorder, False)
+        self.assertIs(command.configuration.generates_timeorder, None)
         self.assertIs(command.configuration.generating, True)
-        self.assertIs(command.configuration.retainsevents, False)
-        self.assertIs(command.configuration.streaming, True)
+        self.assertIs(command.configuration.retainsevents, None)
+        self.assertIs(command.configuration.streaming, None)
 
         command.configuration.generates_timeorder = True
+        command.configuration.local = True
         command.configuration.retainsevents = True
         command.configuration.streaming = True
 
@@ -68,7 +69,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generates_timeorder', True), ('generating', True), ('local', False), ('retainsevents', True),
+            [('generates_timeorder', True), ('generating', True), ('local', True), ('retainsevents', True),
              ('streaming', True)])
 
         command = TestCommand()
@@ -114,10 +115,10 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('local', False), ('streaming', True)])
+            [('streaming', True)])
 
-        self.assertIs(command.configuration.clear_required_fields, False)
-        self.assertIs(command.configuration.local, False)
+        self.assertIs(command.configuration.clear_required_fields, None)
+        self.assertIs(command.configuration.local, None)
         self.assertIs(command.configuration.overrides_timeorder, None)
         self.assertIs(command.configuration.required_fields, None)
         self.assertIs(command.configuration.streaming, True)

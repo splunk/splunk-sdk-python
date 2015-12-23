@@ -81,8 +81,11 @@ class Recording(object):
         self._input_file = path + '.input.gz'
         self._output_file = path + '.output'
 
+        # Remove the "splunk cmd" portion
+        self._args = self._args[2:]
+
     def get_args(self, command_path):
-        self._args[3] = command_path
+        self._args[1] = command_path
         return self._args
 
     @property

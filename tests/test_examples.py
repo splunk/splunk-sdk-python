@@ -182,6 +182,11 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "job.py",
             "job.py list",
             "job.py list @0")
+
+    def test_kvstore(self):
+        self.check_commands(
+            "kvstore.py --help",
+            "kvstore.py")
         
     def test_loggers(self):
         self.check_commands(
@@ -233,9 +238,10 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def test_upload(self):
         # Note: test must run on machine where splunkd runs,
         # or a failure is expected
+        file_to_upload = os.path.expandvars(os.environ.get("INPUT_EXAMPLE_UPLOAD", "./upload.py"))
         self.check_commands(
             "upload.py --help",
-            "upload.py --index=sdk-tests ./upload.py")
+            "upload.py --index=sdk-tests %s" % file_to_upload)
 
     # The following tests are for the custom_search examples. The way
     # the tests work mirrors how Splunk would invoke them: they pipe in

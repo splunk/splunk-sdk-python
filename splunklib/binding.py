@@ -1235,8 +1235,9 @@ class ResponseReader(io.RawIOBase):
     # For testing, you can use a StringIO as the argument to
     # ``ResponseReader`` instead of an ``httplib.HTTPResponse``. It
     # will work equally well.
-    def __init__(self, response):
+    def __init__(self, response, connection=None):
         self._response = response
+        self._connection = connection
         self._buffer = ''
 
     def __str__(self):
@@ -1262,6 +1263,8 @@ class ResponseReader(io.RawIOBase):
 
     def close(self):
         """Closes this response."""
+        if _connection:
+            _connection.close()
         self._response.close()
 
     def read(self, size = None):
@@ -1332,25 +1335,29 @@ def handler(key_file=None, cert_file=None, timeout=None):
             "Host": host,
             "User-Agent": "splunk-sdk-python/1.5.0",
             "Accept": "*/*",
+            "Connection": "Close",
         } # defaults
         for key, value in message["headers"]:
             head[key] = value
         method = message.get("method", "GET")
 
         connection = connect(scheme, host, port)
+        is_keepalive = False
         try:
             connection.request(method, path, body, head)
             if timeout is not None:
                 connection.sock.settimeout(timeout)
             response = connection.getresponse()
+            is_keepalive = "keep-alive" in response.getheader("connection", default="close").lower()
         finally:
-            connection.close()
+            if not is_keepalive:
+                connection.close()
 
         return {
             "status": response.status,
             "reason": response.reason,
             "headers": response.getheaders(),
-            "body": ResponseReader(response),
+            "body": ResponseReader(response, connection if is_keepalive else None),
         }
 
     return request

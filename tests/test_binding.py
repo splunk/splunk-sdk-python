@@ -686,28 +686,30 @@ class TestNamespace(unittest.TestCase):
     def test_namespace_fails(self):
         self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
-class TestBasicAuthentication(BindingTestCase):
-    def test_user_provided_credentials(self):
+class TestBasicAuthentication(unittest.TestCase):
+    def setUp(self):
+        self.opts = testlib.parse([], {}, ".splunkrc")
         opts = self.opts.kwargs.copy()
         opts["basic"] = True
         opts["username"] = "boris the mad baboon"
         opts["password"] = "nothing real"
 
-        newContext = binding.Context(**opts)
-        response = newContext.get("/services")
-        self.assertEqual(response.status, 200)
+        self.context = binding.connect(**opts)
+        import splunklib.client as client
+        service = client.Service(**opts)
 
-        socket = newContext.connect()
-        socket.write("POST %s HTTP/1.1\r\n" % \
-                         self.context._abspath("some/path/to/post/to"))
-        socket.write("Host: %s:%s\r\n" % \
-                         (self.context.host, self.context.port))
-        socket.write("Accept-Encoding: identity\r\n")
-        socket.write("Authorization: %s\r\n" % \
-                         self.context.token)
-        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
-        socket.write("\r\n")
-        socket.close()
+     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
+         def assertIsNotNone(self, obj, msg=None):
+            if obj is None:
+                raise self.failureException, (msg or '%r is not None' % obj)
+     def test_basic_in_auth_headers(self):
+        self.assertIsNotNone(self.context._auth_headers)
+        self.assertNotEqual(self.context._auth_headers, [])
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(self.context._auth_headers[0][0], "Authorization")
+        self.assertEqual(self.context._auth_headers[0][1][:6], "Basic ")
+        self.assertEqual(self.context.get("/services").status, 200)
 
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):

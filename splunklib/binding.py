@@ -33,6 +33,7 @@ import io
 import sys
 import Cookie
 
+from base64 import b64encode
 from datetime import datetime
 from functools import wraps
 from StringIO import StringIO
@@ -471,6 +472,7 @@ class Context(object):
         self.namespace = namespace(**kwargs)
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
+        self.basic = kwargs.get("basic", False)
         self.autologin = kwargs.get("autologin", False)
 
         # Store any cookies in the self.http._cookies dict
@@ -507,6 +509,9 @@ class Context(object):
         """
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(self.get_cookies().items()))]
+        elif self.basic and (self.username and self.password):
+            token = 'Basic %s' % b64encode("%s:%s" % (self.username, self.password))
+            return [("Authorization", token)]
         elif self.token is _NoAuthenticationToken:
             return []
         else:
@@ -836,6 +841,11 @@ class Context(object):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
+            return
+
+        if self.basic and (self.username and self.password):
+            # Basic auth mode requested, so this method is a nop as long
+            # as credentials were passed in.
             return
 
         # Only try to get a token and updated cookie if username & password are specified

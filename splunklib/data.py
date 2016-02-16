@@ -153,9 +153,6 @@ def load_value(element, nametable=None):
         text = element.text
         if text is None: 
             return None
-        text = text.strip()
-        if len(text) == 0: 
-            return None
         return text
 
     # Look for the special case of a single well-known structure

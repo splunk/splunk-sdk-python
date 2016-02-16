@@ -150,10 +150,7 @@ def load_value(element, nametable=None):
 
     # No children, assume a simple text value
     if count == 0:
-        text = element.text
-        if text is None: 
-            return None
-        return text
+        return element.text
 
     # Look for the special case of a single well-known structure
     if count == 1:

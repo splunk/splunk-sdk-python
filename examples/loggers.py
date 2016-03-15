@@ -34,7 +34,7 @@ def main(argv):
     service = client.connect(**opts.kwargs)
 
     for logger in service.loggers:
-        print "%s (%s)" % (logger.name, logger['level'])
+        print("%s (%s)" % (logger.name, logger['level']))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

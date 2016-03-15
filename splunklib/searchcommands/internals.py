@@ -14,14 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from collections import deque, namedtuple, OrderedDict
-from cStringIO import StringIO
-from itertools import chain, imap
+from io import StringIO
+from itertools import chain
 from json import JSONDecoder, JSONEncoder
 from json.encoder import encode_basestring_ascii as json_encode_string
-from urllib import unquote
+from urllib.parse import unquote
 
 import csv
 import gzip
@@ -253,7 +253,7 @@ class ConfigurationSettingsType(type):
             if isinstance(specification.type, type):
                 type_names = specification.type.__name__
             else:
-                type_names = ', '.join(imap(lambda t: t.__name__, specification.type))
+                type_names = ', '.join(map(lambda t: t.__name__, specification.type))
             raise ValueError('Expected {} value, not {}={}'.format(type_names, name, repr(value)))
         if specification.constraint and not specification.constraint(value):
             raise ValueError('Illegal value: {}={}'.format(name, repr(value)))
@@ -290,7 +290,7 @@ class ConfigurationSettingsType(type):
             supporting_protocols=[1]),
         'maxinputs': specification(
             type=int,
-            constraint=lambda value: 0 <= value <= sys.maxint,
+            constraint=lambda value: 0 <= value <= sys.maxsize,
             supporting_protocols=[2]),
         'overrides_timeorder': specification(
             type=bool,
@@ -317,11 +317,11 @@ class ConfigurationSettingsType(type):
             constraint=None,
             supporting_protocols=[1]),
         'streaming_preop': specification(
-            type=(bytes, unicode),
+            type=(bytes, str),
             constraint=None,
             supporting_protocols=[1, 2]),
         'type': specification(
-            type=(bytes, unicode),
+            type=(bytes, str),
             constraint=lambda value: value in ('eventing', 'reporting', 'streaming'),
             supporting_protocols=[2])}
 
@@ -341,7 +341,7 @@ class InputHeader(dict):
 
     """
     def __str__(self):
-        return '\n'.join([name + ':' + value for name, value in self.iteritems()])
+        return '\n'.join([name + ':' + value for name, value in self.items()])
 
     def read(self, ifile):
         """ Reads an input header from an input file.
@@ -388,7 +388,7 @@ class MetadataDecoder(JSONDecoder):
         while len(stack):
             instance, member_name, dictionary = stack.popleft()
 
-            for name, value in dictionary.iteritems():
+            for name, value in dictionary.items():
                 if isinstance(value, dict):
                     stack.append((dictionary, name, value))
 
@@ -476,7 +476,7 @@ class RecordWriter(object):
         self._inspector = OrderedDict()
         self._chunk_count = 0
         self._record_count = 0
-        self._total_record_count = 0L
+        self._total_record_count = 0
 
     @property
     def is_flushed(self):
@@ -532,9 +532,9 @@ class RecordWriter(object):
         fieldnames = self._fieldnames
 
         if fieldnames is None:
-            self._fieldnames = fieldnames = record.keys()
-            value_list = imap(lambda fn: unicode(fn).encode('utf-8'), fieldnames)
-            value_list = imap(lambda fn: (fn, b'__mv_' + fn), value_list)
+            self._fieldnames = fieldnames = list(record.keys())
+            value_list = map(lambda fn: str(fn).encode('utf-8'), fieldnames)
+            value_list = map(lambda fn: (fn, b'__mv_' + fn), value_list)
             self._writerow(list(chain.from_iterable(value_list)))
 
         get_value = record.get
@@ -573,9 +573,9 @@ class RecordWriter(object):
 
                             if value_t is bool:
                                 value = str(value.real)
-                            elif value_t is unicode:
+                            elif value_t is str:
                                 value = value.encode('utf-8', errors='backslashreplace')
-                            elif value_t is int or value_t is long or value_t is float or value_t is complex:
+                            elif value_t is int or value_t is int or value_t is float or value_t is complex:
                                 value = str(value)
                             elif issubclass(value_t, (dict, list, tuple)):
                                 value = str(''.join(RecordWriter._iterencode_json(value, 0)))
@@ -599,11 +599,11 @@ class RecordWriter(object):
                 values += (value, None)
                 continue
 
-            if value_t is unicode:
+            if value_t is str:
                 values += (value.encode('utf-8', errors='backslashreplace'), None)
                 continue
 
-            if value_t is int or value_t is long or value_t is float or value_t is complex:
+            if value_t is int or value_t is int or value_t is float or value_t is complex:
                 values += (str(value), None)
                 continue
 
@@ -735,7 +735,7 @@ class RecordWriterV2(RecordWriter):
             if partial is True:
                 finished = False
 
-            metadata = [item for item in ('inspector', inspector), ('finished', finished)]
+            metadata = [item for item in (('inspector', inspector), ('finished', finished))]
             self._write_chunk(metadata, self._buffer.getvalue())
             self._clear()
 
@@ -747,7 +747,7 @@ class RecordWriterV2(RecordWriter):
     def write_metadata(self, configuration):
         self._ensure_validity()
 
-        metadata = chain(configuration.iteritems(), (('inspector', self._inspector if self._inspector else None),))
+        metadata = chain(iter(configuration.items()), (('inspector', self._inspector if self._inspector else None),))
         self._write_chunk(metadata, '')
         self._ofile.write('\n')
         self._clear()

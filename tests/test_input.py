@@ -15,7 +15,7 @@
 # under the License.
 from splunklib.binding import HTTPError
 
-import testlib
+from . import testlib
 import logging
 try:
     import unittest
@@ -151,7 +151,7 @@ class TestRead(testlib.SDKTestCase):
 
     def test_oneshot(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection('file_to_upload')
 
@@ -194,7 +194,7 @@ class TestInput(testlib.SDKTestCase):
 
     def tearDown(self):
         super(TestInput, self).tearDown()
-        for entity in self._test_entities.itervalues():
+        for entity in self._test_entities.values():
             try:
                 self.service.inputs.delete(
                     kind=entity.kind,
@@ -211,10 +211,10 @@ class TestInput(testlib.SDKTestCase):
 
     def test_lists_modular_inputs(self):
         if self.service.splunk_version[0] < 5:
-            print "Modular inputs don't exist prior to Splunk 5.0. Skipping."
+            print("Modular inputs don't exist prior to Splunk 5.0. Skipping.")
             return
         elif not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         else:
             # Install modular inputs to list, and restart
@@ -232,7 +232,7 @@ class TestInput(testlib.SDKTestCase):
 
     def test_create(self):
         inputs = self.service.inputs
-        for entity in self._test_entities.itervalues():
+        for entity in self._test_entities.values():
             self.check_entity(entity)
             self.assertTrue(isinstance(entity, client.Input))
 
@@ -243,7 +243,7 @@ class TestInput(testlib.SDKTestCase):
 
     def test_read(self):
         inputs = self.service.inputs
-        for this_entity in self._test_entities.itervalues():
+        for this_entity in self._test_entities.values():
             kind, name = this_entity.kind, this_entity.name
             read_entity = inputs[name, kind]
             self.assertEqual(this_entity.kind, read_entity.kind)
@@ -252,7 +252,7 @@ class TestInput(testlib.SDKTestCase):
 
     def test_update(self):
         inputs = self.service.inputs
-        for entity in self._test_entities.itervalues():
+        for entity in self._test_entities.values():
             kind, name = entity.kind, entity.name
             kwargs = {'host': 'foo'}
             entity.update(**kwargs)
@@ -262,7 +262,7 @@ class TestInput(testlib.SDKTestCase):
     def test_delete(self):
         inputs = self.service.inputs
         remaining = len(self._test_entities)-1
-        for input_entity in self._test_entities.itervalues():
+        for input_entity in self._test_entities.values():
             name = input_entity.name
             kind = input_entity.kind
             self.assertTrue(name in inputs)

@@ -22,7 +22,7 @@ debug egg which must be copied to your application's bin directory and renamed a
 
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 settrace = stoptrace = lambda: NotImplemented
 remote_debugging = None
@@ -65,7 +65,7 @@ def initialize():
         'patch_multiprocessing': False,
         'trace_only_current_thread': False}
 
-    execfile(configuration_file, {'__builtins__': __builtins__}, _remote_debugging)
+    exec(compile(open(configuration_file).read(), configuration_file, 'exec'), {'__builtins__': __builtins__}, _remote_debugging)
     python_path.insert(1, debug_client)
 
     from splunklib.searchcommands import splunklib_logger as logger

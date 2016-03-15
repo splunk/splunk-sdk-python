@@ -19,9 +19,9 @@ from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 class EventTestCase(unittest.TestCase):
     def test_event_without_enough_fields_fails(self):

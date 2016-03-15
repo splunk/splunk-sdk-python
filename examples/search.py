@@ -100,7 +100,7 @@ def main(argv):
             break
         sleep(2)
 
-    if not kwargs_results.has_key('count'): kwargs_results['count'] = 0
+    if 'count' not in kwargs_results: kwargs_results['count'] = 0
     results = job.results(**kwargs_results)
     while True:
         content = results.read(1024)

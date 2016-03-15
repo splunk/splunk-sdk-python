@@ -17,10 +17,10 @@
 """Example of a urllib2 based HTTP request handler."""
 
 from pprint import pprint
-from StringIO import StringIO
+from io import StringIO
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import ssl
 
 import splunklib.client as client
@@ -36,13 +36,13 @@ def request(url, message, **kwargs):
     data = message.get('body', "") if method == 'post' else None
     headers = dict(message.get('headers', []))
     # If running Python 2.7.9+, disable SSL certificate validation
-    req = urllib2.Request(url, data, headers)
+    req = urllib.request.Request(url, data, headers)
     try:
         if sys.version_info >= (2, 7, 9):
-            response = urllib2.urlopen(req, context=ssl._create_unverified_context())
+            response = urllib.request.urlopen(req, context=ssl._create_unverified_context())
         else:
-            response = urllib2.urlopen(req)
-    except urllib2.HTTPError, response:
+            response = urllib.request.urlopen(req)
+    except urllib.error.HTTPError as response:
         pass # Propagate HTTP errors via the returned response message
     return {
         'status': response.code,

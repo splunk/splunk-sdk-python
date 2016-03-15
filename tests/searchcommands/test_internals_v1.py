@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from splunklib.searchcommands.internals import CommandLineParser, InputHeader, RecordWriterV1
 from splunklib.searchcommands.decorators import Configuration, Option
@@ -23,8 +23,9 @@ from splunklib.searchcommands.validators import Boolean
 from splunklib.searchcommands.search_command import SearchCommand
 
 from contextlib import closing
-from cStringIO import StringIO
-from itertools import izip
+from io import StringIO
+from functools import reduce
+
 from unittest import main, TestCase
 
 import os
@@ -54,7 +55,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
-        for option in command.options.itervalues():
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -71,7 +72,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
-        for option in command.options.itervalues():
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -79,14 +80,14 @@ class TestInternals(TestCase):
 
         expected = 'testcommandlineparser required_option="t" unnecessary_option="f" field_1 field_2 field_3'
         self.assertEqual(expected, str(command))
-        self.assertEquals(command.fieldnames, fieldnames)
+        self.assertEqual(command.fieldnames, fieldnames)
 
         # Command line without any unnecessary options
 
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
-        for option in command.options.itervalues():
+        for option in command.options.values():
             if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -94,7 +95,7 @@ class TestInternals(TestCase):
 
         expected = 'testcommandlineparser required_option="t" field_1 field_2 field_3'
         self.assertEqual(expected, str(command))
-        self.assertEquals(command.fieldnames, fieldnames)
+        self.assertEqual(command.fieldnames, fieldnames)
 
         # Command line with missing required options, with or without fieldnames or unnecessary options
 
@@ -138,19 +139,19 @@ class TestInternals(TestCase):
             r'"Hello World!"'
         ]
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.text, expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = [string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.fieldnames[0], expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string] + strings
             CommandLineParser.parse(command, argv)
@@ -225,7 +226,7 @@ class TestInternals(TestCase):
         with closing(StringIO('\r\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         # One unnamed single-line item (same as no items)
 
@@ -234,14 +235,14 @@ class TestInternals(TestCase):
         with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
         with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         # One named single-line item
 
@@ -250,16 +251,16 @@ class TestInternals(TestCase):
         with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
-        self.assertEquals(input_header['Foo'], 'this is a single-line item')
+        self.assertEqual(len(input_header), 1)
+        self.assertEqual(input_header['Foo'], 'this is a single-line item')
 
         input_header = InputHeader()
 
         with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
-        self.assertEquals(input_header['Bar'], 'this is a\nmulti-\nline item')
+        self.assertEqual(len(input_header), 1)
+        self.assertEqual(input_header['Bar'], 'this is a\nmulti-\nline item')
 
         # The infoPath item (which is the path to a file that we open for reads)
 
@@ -268,7 +269,7 @@ class TestInternals(TestCase):
         with closing(StringIO('infoPath:non-existent.csv\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
+        self.assertEqual(len(input_header), 1)
         self.assertEqual(input_header['infoPath'], 'non-existent.csv')
 
         # Set of named items
@@ -281,7 +282,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), collection.iteritems(), '') + '\n'
+        text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), iter(collection.items()), '') + '\n'
 
         with closing(StringIO(text.encode())) as input_file:
             input_header.read(input_file)
@@ -338,7 +339,7 @@ class TestInternals(TestCase):
             'warn_message=warning_message\r\n'
             '\r\n')
 
-        self.assertEquals(output_buffer.getvalue(), expected)
+        self.assertEqual(output_buffer.getvalue(), expected)
         return
 
     _package_path = os.path.dirname(__file__)

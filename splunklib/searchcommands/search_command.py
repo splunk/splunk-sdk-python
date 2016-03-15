@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 # Absolute imports
 
@@ -22,13 +22,13 @@ from splunklib.client import Service
 
 from collections import namedtuple, OrderedDict
 from copy import deepcopy
-from cStringIO import StringIO
-from itertools import chain, ifilter, imap, islice, izip
+from io import StringIO
+from itertools import chain, islice
 from logging import _levelNames, getLevelName, getLogger
 from shutil import make_archive
 from time import time
-from urllib import unquote
-from urlparse import urlsplit
+from urllib.parse import unquote
+from urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
 
@@ -143,7 +143,7 @@ class SearchCommand(object):
     def logging_level(self, value):
         if value is None:
             value = self._default_logging_level
-        if isinstance(value, (bytes, unicode)):
+        if isinstance(value, (bytes, str)):
             try:
                 level = _levelNames[value.upper()]
             except KeyError:
@@ -264,8 +264,8 @@ class SearchCommand(object):
         try:
             with open(path, 'rb') as f:
                 reader = csv.reader(f, dialect=CsvDialect)
-                fields = reader.next()
-                values = reader.next()
+                fields = next(reader)
+                values = next(reader)
         except IOError as error:
             if error.errno == 2:
                 self.logger.error('Search results info file {} does not exist.'.format(json_encode_string(path)))
@@ -283,7 +283,7 @@ class SearchCommand(object):
             except ValueError:
                 return value
 
-        info = ObjectView(dict(imap(lambda (f, v): (convert_field(f), convert_value(v)), izip(fields, values))))
+        info = ObjectView(dict(map(lambda f_v: (convert_field(f_v[0]), convert_value(f_v[1])), zip(fields, values))))
 
         try:
             count_map = info.countMap
@@ -292,7 +292,7 @@ class SearchCommand(object):
         else:
             count_map = count_map.split(';')
             n = len(count_map)
-            info.countMap = dict(izip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2)))
+            info.countMap = dict(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2)))
 
         try:
             msg_type = info.msgType
@@ -300,7 +300,7 @@ class SearchCommand(object):
         except AttributeError:
             pass
         else:
-            messages = ifilter(lambda (t, m): t or m, izip(msg_type.split('\n'), msg_text.split('\n')))
+            messages = filter(lambda t_m: t_m[0] or t_m[1], zip(msg_type.split('\n'), msg_text.split('\n')))
             info.msg = [Message(message) for message in messages]
             del info.msgType
 
@@ -436,7 +436,7 @@ class SearchCommand(object):
         def _map(metadata_map):
             metadata = {}
 
-            for name, value in metadata_map.iteritems():
+            for name, value in metadata_map.items():
                 if isinstance(value, dict):
                     value = _map(value)
                 else:
@@ -573,7 +573,7 @@ class SearchCommand(object):
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
                 self._record_writer.write_record({
-                    n: ','.join(v) if isinstance(v, (list, tuple)) else v for n, v in self._configuration.iteritems()})
+                    n: ','.join(v) if isinstance(v, (list, tuple)) else v for n, v in self._configuration.items()})
                 self.finish()
 
             elif argv[1] == '__EXECUTE__':
@@ -601,7 +601,7 @@ class SearchCommand(object):
                 raise RuntimeError(message)
 
         except (SyntaxError, ValueError) as error:
-            self.write_error(unicode(error))
+            self.write_error(str(error))
             self.flush()
             exit(0)
 
@@ -716,7 +716,7 @@ class SearchCommand(object):
             if error_count > 0:
                 exit(1)
 
-            debug('  command: %s', unicode(self))
+            debug('  command: %s', str(self))
 
             debug('Preparing for execution')
             self.prepare()
@@ -734,7 +734,7 @@ class SearchCommand(object):
                     setattr(info, attr, [arg for arg in getattr(info, attr) if not arg.startswith('record=')])
 
                 metadata = MetadataEncoder().encode(self._metadata)
-                ifile.record('chunked 1.0,', unicode(len(metadata)), ',0\n', metadata)
+                ifile.record('chunked 1.0,', str(len(metadata)), ',0\n', metadata)
 
             if self.show_configuration:
                 self.write_info(self.name + ' command configuration: ' + str(self._configuration))
@@ -880,7 +880,7 @@ class SearchCommand(object):
         reader = csv.reader(ifile, dialect=CsvDialect)
 
         try:
-            fieldnames = reader.next()
+            fieldnames = next(reader)
         except StopIteration:
             return
 
@@ -888,12 +888,12 @@ class SearchCommand(object):
 
         if len(mv_fieldnames) == 0:
             for values in reader:
-                yield OrderedDict(izip(fieldnames, values))
+                yield OrderedDict(zip(fieldnames, values))
             return
 
         for values in reader:
             record = OrderedDict()
-            for fieldname, value in izip(fieldnames, values):
+            for fieldname, value in zip(fieldnames, values):
                 if fieldname.startswith('__mv_'):
                     if len(value) > 0:
                         record[mv_fieldnames[fieldname]] = self._decode_list(value)
@@ -922,7 +922,7 @@ class SearchCommand(object):
                 reader = csv.reader(StringIO(body), dialect=CsvDialect)
 
                 try:
-                    fieldnames = reader.next()
+                    fieldnames = next(reader)
                 except StopIteration:
                     return
 
@@ -930,11 +930,11 @@ class SearchCommand(object):
 
                 if len(mv_fieldnames) == 0:
                     for values in reader:
-                        yield OrderedDict(izip(fieldnames, values))
+                        yield OrderedDict(zip(fieldnames, values))
                 else:
                     for values in reader:
                         record = OrderedDict()
-                        for fieldname, value in izip(fieldnames, values):
+                        for fieldname, value in zip(fieldnames, values):
                             if fieldname.startswith('__mv_'):
                                 if len(value) > 0:
                                     record[mv_fieldnames[fieldname]] = self._decode_list(value)
@@ -983,7 +983,7 @@ class SearchCommand(object):
 
             """
             definitions = type(self).configuration_setting_definitions
-            settings = imap(
+            settings = map(
                 lambda setting: repr((setting.name, setting.__get__(self), setting.supporting_protocols)), definitions)
             return '[' + ', '.join(settings) + ']'
 
@@ -996,7 +996,7 @@ class SearchCommand(object):
             :return: String representation of this instance
 
             """
-            text = ', '.join(imap(lambda (name, value): name + '=' + json_encode_string(unicode(value)), self.iteritems()))
+            text = ', '.join(map(lambda name_value: name_value[0] + '=' + json_encode_string(str(name_value[1])), iter(self.items())))
             return text
 
         # region Methods
@@ -1018,9 +1018,9 @@ class SearchCommand(object):
         def iteritems(self):
             definitions = type(self).configuration_setting_definitions
             version = self.command.protocol_version
-            return ifilter(
-                lambda (name, value): value is not None, imap(
-                    lambda setting: (setting.name, setting.__get__(self)), ifilter(
+            return filter(
+                lambda name_value1: name_value1[1] is not None, map(
+                    lambda setting: (setting.name, setting.__get__(self)), filter(
                         lambda setting: setting.is_supported_by_protocol(version), definitions)))
 
         pass  # endregion

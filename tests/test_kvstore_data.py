@@ -15,7 +15,7 @@
 # under the License.
 
 import json
-import testlib
+from . import testlib
 try:
     import unittest
 except ImportError:

@@ -31,15 +31,15 @@
 # invoke Splunk without anycert validation.
 # 
 
-import httplib
+import http.client
 from pprint import pprint
-from StringIO import StringIO
+from io import StringIO
 import ssl
 import socket
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import splunklib.client as client
 
@@ -59,9 +59,9 @@ RULES = {
 
 # Extend httplib's implementation of HTTPSConnection with support server
 # certificate validation.
-class HTTPSConnection(httplib.HTTPSConnection):
+class HTTPSConnection(http.client.HTTPSConnection):
     def __init__(self, host, port=None, ca_file=None):
-        httplib.HTTPSConnection.__init__(self, host, port)
+        http.client.HTTPSConnection.__init__(self, host, port)
         self.ca_file = ca_file
 
     def connect(self):
@@ -77,9 +77,9 @@ class HTTPSConnection(httplib.HTTPSConnection):
 
 # Crack the given url into (scheme, host, port, path)
 def spliturl(url):
-    scheme, opaque = urllib.splittype(url)
-    netloc, path = urllib.splithost(opaque)
-    host, port = urllib.splitport(netloc)
+    scheme, opaque = urllib.parse.splittype(url)
+    netloc, path = urllib.parse.splithost(opaque)
+    host, port = urllib.parse.splitport(netloc)
     # Strip brackets if its an IPv6 address
     if host.startswith('[') and host.endswith(']'): host = host[1:-1]
     if port is None: port = DEFAULT_PORT

@@ -51,10 +51,10 @@ def main():
 
         for result in ResultsReader(result.body):
             if result is not None:
-                print pprint(result)
+                print(pprint(result))
 
     except KeyboardInterrupt:
-        print "\nInterrupted."
+        print("\nInterrupted.")
 
 if __name__ == "__main__":
     main()

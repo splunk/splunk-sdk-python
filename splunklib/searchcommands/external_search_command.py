@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from logging import getLogger
 import os
@@ -36,11 +36,11 @@ class ExternalSearchCommand(object):
     """
     def __init__(self, path, argv=None, environ=None):
 
-        if not isinstance(path, (bytes, unicode)):
+        if not isinstance(path, (bytes, str)):
             raise ValueError('Expected a string value for path, not {}'.format(repr(path)))
 
         self._logger = getLogger(self.__class__.__name__)
-        self._path = unicode(path)
+        self._path = str(path)
         self._argv = None
         self._environ = None
 
@@ -89,7 +89,7 @@ class ExternalSearchCommand(object):
             self._execute(self._path, self._argv, self._environ)
         except:
             error_type, error, tb = sys.exc_info()
-            message = 'Command execution failed: ' + unicode(error)
+            message = 'Command execution failed: ' + str(error)
             self._logger.error(message + '\nTraceback:\n' + ''.join(traceback.format_tb(tb)))
             sys.exit(1)
 

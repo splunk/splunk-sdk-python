@@ -94,7 +94,7 @@ class SDKTestCase(unittest.TestCase):
             logging.debug("wait finished after %s seconds", datetime.now()-start)
 
     def check_content(self, entity, **kwargs):
-        for k, v in kwargs.iteritems(): 
+        for k, v in kwargs.items(): 
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):
@@ -259,6 +259,6 @@ class SDKTestCase(unittest.TestCase):
                 except HTTPError as error:
                     if not (os.name == 'nt' and error.status == 500):
                         raise
-                    print 'Ignoring failure to delete {0} during tear down: {1}'.format(appName, error)
+                    print('Ignoring failure to delete {0} during tear down: {1}'.format(appName, error))
         if self.service.restart_required:
             self.clear_restart_message()

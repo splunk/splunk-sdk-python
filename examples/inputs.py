@@ -33,13 +33,13 @@ def main():
 
     for item in service.inputs:
         header =  "%s (%s)" % (item.name, item.kind)
-        print header
-        print '='*len(header)
+        print(header)
+        print('='*len(header))
         content = item.content
         for key in sorted(content.keys()):
             value = content[key]
-            print "%s: %s" % (key, value)
-        print
+            print("%s: %s" % (key, value))
+        print()
 
 if __name__ == "__main__":
     main()

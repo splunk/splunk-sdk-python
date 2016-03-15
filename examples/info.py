@@ -35,13 +35,13 @@ if __name__ == "__main__":
     for key in sorted(content.keys()):
         value = content[key]
         if isinstance(value, list):
-            print "%s:" % key
-            for item in value: print "    %s" % item
+            print("%s:" % key)
+            for item in value: print("    %s" % item)
         else:
-            print "%s: %s" % (key, value)
+            print("%s: %s" % (key, value))
 
-    print "Settings:"
+    print("Settings:")
     content = service.settings.content
     for key in sorted(content.keys()):
         value = content[key]
-        print "    %s: %s" % (key, value)
+        print("    %s: %s" % (key, value))

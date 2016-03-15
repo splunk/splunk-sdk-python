@@ -59,21 +59,21 @@ class Session(InteractiveInterpreter):
         return self.runsource(expression)
 
     def load(self, filename):
-        exec open(filename).read() in self.locals, self.locals
+        exec(open(filename).read(), self.locals, self.locals)
 
     # Run the interactive interpreter
     def run(self):
-        print "Welcome to Splunk SDK's Python interactive shell"
-        print "%s connected to %s:%s" % (
+        print("Welcome to Splunk SDK's Python interactive shell")
+        print("%s connected to %s:%s" % (
             self.service.username, 
             self.service.host, 
-            self.service.port)
+            self.service.port))
 
         while True:
             try:
-                input = raw_input("> ")
+                input = input("> ")
             except EOFError:
-                print "\n\nThanks for using Splunk>.\n"
+                print("\n\nThanks for using Splunk>.\n")
                 return
 
             if input is None: 
@@ -87,12 +87,12 @@ class Session(InteractiveInterpreter):
                 while True:
                     co = compile_command(input)
                     if co is not None: break
-                    input = input + '\n' + raw_input(". ") # Keep trying
+                    input = input + '\n' + input(". ") # Keep trying
             except SyntaxError:
                 self.showsyntaxerror()
                 continue
-            except Exception, e:
-                print "Error: %s" % e
+            except Exception as e:
+                print("Error: %s" % e)
                 continue
 
             self.runcode(co)
@@ -112,7 +112,7 @@ RULES = {
 
 def actions(opts):
     """Ansers if the given command line options specify any 'actions'."""
-    return len(opts.args) > 0 or opts.kwargs.has_key('eval') 
+    return len(opts.args) > 0 or 'eval' in opts.kwargs 
 
 def main():
     opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
@@ -130,7 +130,7 @@ def main():
 
     # Enter interactive mode automatically if no actions were specified or
     # or if interactive mode was specifically requested.
-    if not actions(opts) or opts.kwargs.has_key("interactive"):
+    if not actions(opts) or "interactive" in opts.kwargs:
         session.run()
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from . import testlib
 import logging
 
 import splunklib.client as client

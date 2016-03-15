@@ -35,14 +35,14 @@ def invoke(path, **kwargs):
 
 def print_response(response):
     if response.status != 200:
-        print "%d %s" % (response.status, response.reason)
+        print("%d %s" % (response.status, response.reason))
         return
     body = response.body.read()
     try:
         root = ElementTree.XML(body)
-        print ElementTree.tostring(root)
+        print(ElementTree.tostring(root))
     except Exception:
-        print body
+        print(body)
 
 def main():
     opts = utils.parse(sys.argv[1:], {}, ".splunkrc")

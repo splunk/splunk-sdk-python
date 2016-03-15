@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from . import testlib
 import unittest
 
 import splunklib.client as client
@@ -43,7 +43,7 @@ class ServiceTestCase(testlib.SDKTestCase):
             "licenseSignature", "licenseState", "master_guid", "mode", 
             "os_build", "os_name", "os_version", "serverName", "version"]
         for key in keys: 
-            self.assertTrue(key in info.keys())
+            self.assertTrue(key in list(info.keys()))
 
     def test_info_with_namespace(self):
         # Make sure we're not accessing /servicesNS/admin/search/server/info
@@ -107,7 +107,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         try:
             self.service.parse("xyzzy")
             self.fail('Parse on nonsense did not fail')
-        except HTTPError, e:
+        except HTTPError as e:
             self.assertEqual(e.status, 400)
 
     def test_restart(self):
@@ -187,35 +187,35 @@ class TestCookieAuthentication(unittest.TestCase):
 
         def assertIsNotNone(self, obj, msg=None):
             if obj is None:
-                raise self.failureException, (msg or '%r is not None' % obj)
+                raise self.failureException(msg or '%r is not None' % obj)
 
     def test_login_and_store_cookie(self):
         self.assertIsNotNone(self.service.get_cookies())
-        self.assertEquals(len(self.service.get_cookies()), 0)
+        self.assertEqual(len(self.service.get_cookies()), 0)
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
-        self.assertNotEquals(self.service.get_cookies(), {})
-        self.assertEquals(len(self.service.get_cookies()), 1)
+        self.assertNotEqual(self.service.get_cookies(), {})
+        self.assertEqual(len(self.service.get_cookies()), 1)
 
     def test_login_with_cookie(self):
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
         # Use the cookie from the other service as the only auth param (don't need user/password)
-        service2 = client.Service(**{"cookie": "%s=%s" % self.service.get_cookies().items()[0]})
+        service2 = client.Service(**{"cookie": "%s=%s" % list(self.service.get_cookies().items())[0]})
         service2.login()
         self.assertEqual(len(service2.get_cookies()), 1)
         self.assertEqual(service2.get_cookies(), self.service.get_cookies())
         self.assertEqual(len(service2.get_cookies()), len(self.service.get_cookies()))
-        self.assertEqual(service2.get_cookies().keys()[0][:8], "splunkd_")
+        self.assertEqual(list(service2.get_cookies().keys())[0][:8], "splunkd_")
         self.assertEqual(service2.apps.get().status, 200)
 
     def test_login_fails_with_bad_cookie(self):
         bad_cookie = {'bad': 'cookie'}
         service2 = client.Service()
-        self.assertEquals(len(service2.get_cookies()), 0)
+        self.assertEqual(len(service2.get_cookies()), 0)
         service2.get_cookies().update(bad_cookie)
         service2.login()
-        self.assertEquals(service2.get_cookies(), {'bad': 'cookie'})
+        self.assertEqual(service2.get_cookies(), {'bad': 'cookie'})
 
         # Should get an error with a bad cookie
         try:
@@ -229,7 +229,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertTrue(self.service.has_cookies())
         service = client.connect(
             autologin=True,
-            cookie="%s=%s" % self.service.get_cookies().items()[0],
+            cookie="%s=%s" % list(self.service.get_cookies().items())[0],
             **self.opts.kwargs)
         self.assertTrue(service.has_cookies())
         self.service.restart(timeout=120)
@@ -238,7 +238,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
     def test_login_fails_with_no_cookie(self):
         service2 = client.Service()
-        self.assertEquals(len(service2.get_cookies()), 0)
+        self.assertEqual(len(service2.get_cookies()), 0)
 
         # Should get an error when no authentication method
         try:
@@ -280,10 +280,10 @@ class TestCookieAuthentication(unittest.TestCase):
             self.service.get_cookies().update({'bad': 'cookie'})
             self.assertEqual(service2.get_cookies(), self.service.get_cookies())
             self.assertEqual(len(service2.get_cookies()), 2)
-            self.assertEqual(service2.get_cookies().keys()[1][:8], "splunkd_")
-            self.assertTrue('bad' in service2.get_cookies().keys())
+            self.assertEqual(list(service2.get_cookies().keys())[1][:8], "splunkd_")
+            self.assertTrue('bad' in list(service2.get_cookies().keys()))
             self.assertEqual(service2.get_cookies()['bad'], 'cookie')
-            self.assertEqual(self.service.get_cookies().items(), service2.get_cookies().items())
+            self.assertEqual(list(self.service.get_cookies().items()), list(service2.get_cookies().items()))
             service2.login()
             self.assertEqual(service2.apps.get().status, 200)
 
@@ -340,9 +340,9 @@ class TestTrailing(unittest.TestCase):
 class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_arguments(self):
         entity = self.service.apps['search']
-        self.assertEquals((None,None,"global"), entity._proper_namespace(sharing="global"))
-        self.assertEquals((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
-        self.assertEquals(
+        self.assertEqual((None,None,"global"), entity._proper_namespace(sharing="global"))
+        self.assertEqual((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
+        self.assertEqual(
             ("admin", "search", "user"),
             entity._proper_namespace(sharing="user", app="search", owner="admin")
         )
@@ -350,7 +350,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_entity_namespace(self):
         entity = self.service.apps['search']
         namespace = (entity.access.owner, entity.access.app, entity.access.sharing)
-        self.assertEquals(namespace, entity._proper_namespace())
+        self.assertEqual(namespace, entity._proper_namespace())
 
     def test_proper_namespace_with_service_namespace(self):
         entity = client.Entity(self.service, client.PATH_APPS + "search")
@@ -358,7 +358,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
         namespace = (self.service.namespace.owner,
                      self.service.namespace.app,
                      self.service.namespace.sharing)
-        self.assertEquals(namespace, entity._proper_namespace())
+        self.assertEqual(namespace, entity._proper_namespace())
 
 if __name__ == "__main__":
     try:

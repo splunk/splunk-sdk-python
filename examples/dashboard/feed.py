@@ -20,7 +20,7 @@
 # in the README.
 
 
-import sys, os, urllib2, json
+import sys, os, urllib.request, urllib.error, urllib.parse, json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from xml.etree import ElementTree
 
@@ -46,10 +46,10 @@ def send_data(access_key, stream_name, point = None, command = None):
     if not command is None:
         data["command"] = command   
 
-    request = urllib2.Request("https://www.leftronic.com/customSend/",
+    request = urllib.request.Request("https://www.leftronic.com/customSend/",
         data = json.dumps(data)
     )
-    response = urllib2.urlopen(request)
+    response = urllib.request.urlopen(request)
 
 
 def top_sources(service):
@@ -67,8 +67,8 @@ def top_sources(service):
                 if status_source_xml.startswith("<a"):
                     try:
                         source = ElementTree.XML(status_source_xml).text
-                    except Exception, e:
-                        print status_source_xml
+                    except Exception as e:
+                        print(status_source_xml)
                         raise e
                 
                 data.append({

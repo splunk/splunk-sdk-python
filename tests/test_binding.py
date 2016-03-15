@@ -16,17 +16,17 @@
 
 
 import time
-import urllib2
-from StringIO import StringIO
+import urllib.request, urllib.error, urllib.parse
+from io import StringIO
 from xml.etree.ElementTree import XML
 
 import logging
-import testlib
+from . import testlib
 import unittest
 import socket
 import sys
 import ssl
-import Cookie
+import http.cookies
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
@@ -200,14 +200,14 @@ class TestUserManipulation(BindingTestCase):
         try:
             response = self.context.delete(PATH_USERS + self.username)
             self.assertEqual(response.status, 200)
-        except HTTPError, e:
+        except HTTPError as e:
             self.assertTrue(e.status in [400, 500])
 
     def tearDown(self):
         BindingTestCase.tearDown(self)
         try:
             self.context.delete(PATH_USERS + self.username)
-        except HTTPError, e:
+        except HTTPError as e:
             if e.status not in [400, 500]:
                 raise
 
@@ -281,14 +281,14 @@ class TestSocket(BindingTestCase):
 
     def test_unicode_socket(self):
         socket = self.context.connect()
-        socket.write(u"POST %s HTTP/1.1\r\n" %\
+        socket.write("POST %s HTTP/1.1\r\n" %\
                      self.context._abspath("some/path/to/post/to"))
-        socket.write(u"Host: %s:%s\r\n" %\
+        socket.write("Host: %s:%s\r\n" %\
                      (self.context.host, self.context.port))
-        socket.write(u"Accept-Encoding: identity\r\n")
-        socket.write(u"Authorization: %s\r\n" %\
+        socket.write("Accept-Encoding: identity\r\n")
+        socket.write("Authorization: %s\r\n" %\
                      self.context.token)
-        socket.write(u"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n")
         socket.write("\r\n")
         socket.close()
 
@@ -300,7 +300,7 @@ class TestSocket(BindingTestCase):
 class TestUnicodeConnect(BindingTestCase):
     def test_unicode_connect(self):
         opts = self.opts.kwargs.copy()
-        opts['host'] = unicode(opts['host'])
+        opts['host'] = str(opts['host'])
         context = binding.connect(**opts)
         # Just check to make sure the service is alive
         response = context.get("/services")
@@ -438,14 +438,14 @@ def urllib2_handler(url, message, **kwargs):
     method = message['method'].lower()
     data = message.get('body', "") if method == 'post' else None
     headers = dict(message.get('headers', []))
-    req = urllib2.Request(url, data, headers)
+    req = urllib.request.Request(url, data, headers)
     try:
         # If running Python 2.7.9+, disable SSL certificate validation
         if sys.version_info >= (2, 7, 9):
-            response = urllib2.urlopen(req, context=ssl._create_unverified_context())
+            response = urllib.request.urlopen(req, context=ssl._create_unverified_context())
         else:
-            response = urllib2.urlopen(req)
-    except urllib2.HTTPError, response:
+            response = urllib.request.urlopen(req)
+    except urllib.error.HTTPError as response:
         pass # Propagate HTTP errors via the returned response message
     return {
         'status': response.code,
@@ -514,7 +514,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
         def assertIsNotNone(self, obj, msg=None):
             if obj is None:
-                raise self.failureException, (msg or '%r is not None' % obj)
+                raise self.failureException(msg or '%r is not None' % obj)
 
     def test_cookie_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
@@ -528,7 +528,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertIsNotNone(self.context.get_cookies())
         self.assertNotEqual(self.context.get_cookies(), {})
         self.assertEqual(len(self.context.get_cookies()), 1)
-        self.assertEqual(self.context.get_cookies().keys()[0][:8], "splunkd_")
+        self.assertEqual(list(self.context.get_cookies().keys())[0][:8], "splunkd_")
 
     def test_cookie_with_autologin(self):
         self.context.autologin = True
@@ -561,9 +561,9 @@ class TestCookieAuthentication(unittest.TestCase):
                 binding._parse_cookies(value, new_cookies)
                 # We're only expecting 1 in this scenario
                 self.assertEqual(len(old_cookies), 1)
-                self.assertTrue(len(new_cookies.values()), 1)
+                self.assertTrue(len(list(new_cookies.values())), 1)
                 self.assertEqual(old_cookies, new_cookies)
-                self.assertEqual(new_cookies.values()[0], old_cookies.values()[0])
+                self.assertEqual(list(new_cookies.values())[0], list(old_cookies.values())[0])
         self.assertTrue(found)
 
     def test_login_fails_with_bad_cookie(self):
@@ -585,14 +585,14 @@ class TestCookieAuthentication(unittest.TestCase):
         except AuthenticationError as ae:
             self.assertEqual(str(ae), "Request failed: Session is not logged in.")
             # Bring in a valid cookie now
-            for key, value in self.context.get_cookies().items():
+            for key, value in list(self.context.get_cookies().items()):
                 new_context.get_cookies()[key] = value
 
             self.assertEqual(len(new_context.get_cookies()), 2)
-            self.assertTrue('bad' in new_context.get_cookies().keys())
-            self.assertTrue('cookie' in new_context.get_cookies().values())
+            self.assertTrue('bad' in list(new_context.get_cookies().keys()))
+            self.assertTrue('cookie' in list(new_context.get_cookies().values()))
 
-            for k, v in self.context.get_cookies().items():
+            for k, v in list(self.context.get_cookies().items()):
                 self.assertEqual(new_context.get_cookies()[k], v)
 
             self.assertEqual(new_context.get("apps/local").status, 200)
@@ -680,7 +680,7 @@ class TestNamespace(unittest.TestCase):
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
-            for k, v in expected.iteritems():
+            for k, v in expected.items():
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
@@ -701,7 +701,7 @@ class TestBasicAuthentication(unittest.TestCase):
     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
         def assertIsNotNone(self, obj, msg=None):
            if obj is None:
-               raise self.failureException, (msg or '%r is not None' % obj)
+               raise self.failureException(msg or '%r is not None' % obj)
 
     def test_basic_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)

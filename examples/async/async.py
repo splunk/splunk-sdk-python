@@ -21,7 +21,7 @@
 #### Main Code
 
 import sys, os, datetime
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import ssl
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -41,8 +41,8 @@ urllib2 = None
 
 def _spliturl(url):
     scheme, part = url.split(':', 1)
-    host, path = urllib.splithost(part)
-    host, port = urllib.splitnport(host, 80)
+    host, path = urllib.parse.splithost(part)
+    host, port = urllib.parse.splitnport(host, 80)
     return scheme, host, port, path
 
 def main(argv):
@@ -145,7 +145,7 @@ def main(argv):
     # Record the current time at the end of the benchmark,
     # and print the delta elapsed time.
     newtime = datetime.datetime.now()
-    print "Elapsed Time: %s" % (newtime - oldtime)
+    print("Elapsed Time: %s" % (newtime - oldtime))
     
 
 ##### Custom `urllib2`-based HTTP handler
@@ -174,15 +174,15 @@ def request(url, message, **kwargs):
     # Note that we do not support proxies in this example
     # If running Python 2.7.9+, disable SSL certificate validation
     if sys.version_info >= (2, 7, 9):
-        unverified_ssl_handler = urllib2.HTTPSHandler(context=ssl._create_unverified_context())
-        opener = urllib2.build_opener(unverified_ssl_handler)
+        unverified_ssl_handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
+        opener = urllib.request.build_opener(unverified_ssl_handler)
     else:
-        opener = urllib2.build_opener()
+        opener = urllib.request.build_opener()
 
     # Unfortunately, we need to use the hack of 
     # "overriding" `request.get_method` to specify
     # a method other than `GET` or `POST`.
-    request = urllib2.Request(url, body, head)
+    request = urllib.request.Request(url, body, head)
     request.get_method = lambda: method
 
     # Make the request and get the response

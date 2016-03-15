@@ -20,7 +20,7 @@
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import splunklib.binding as binding
 
@@ -169,8 +169,8 @@ def main(argv):
 
     # Extract from command line and build into variable args
     kwargs = {}
-    for key in RULES.keys():
-        if opts.kwargs.has_key(key):
+    for key in list(RULES.keys()):
+        if key in opts.kwargs:
             if key == "operation":
                 operation = opts.kwargs[key]
             else:
@@ -178,7 +178,7 @@ def main(argv):
 
     # no operation? if name present, default to list, otherwise list-all
     if not operation:
-        if kwargs.has_key('name'):
+        if 'name' in kwargs:
             operation = 'list'
         else:
             operation = 'list-all'
@@ -187,11 +187,11 @@ def main(argv):
     if (operation != "list" and operation != "create" 
                             and operation != "delete"
                             and operation != "list-all"):
-        print "operation %s not one of list-all, list, create, delete" % operation
+        print("operation %s not one of list-all, list, create, delete" % operation)
         sys.exit(0)
 
-    if not kwargs.has_key('name') and operation != "list-all":
-        print "operation requires a name"
+    if 'name' not in kwargs and operation != "list-all":
+        print("operation requires a name")
         sys.exit(0)
 
     # remove arg 'name' from passing through to operation builder, except on create
@@ -208,7 +208,7 @@ def main(argv):
         result = context.post("saved/searches", **kwargs)
     else:
         result = context.delete("saved/searches/%s" % name, **kwargs)
-    print "HTTP STATUS: %d" % result.status
+    print("HTTP STATUS: %d" % result.status)
     xml_data = result.body.read()
     sys.stdout.write(xml_data)
 

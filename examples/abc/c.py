@@ -30,4 +30,4 @@ service = client.connect(
     password=PASSWORD)
 
 for app in service.apps:
-    print app.name
+    print(app.name)

@@ -14,11 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
-from cStringIO import StringIO
+from io import StringIO
 from io import open
 import csv
 import os
@@ -58,7 +58,7 @@ class Boolean(Validator):
 
     def __call__(self, value):
         if not (value is None or isinstance(value, bool)):
-            value = unicode(value).lower()
+            value = str(value).lower()
             if value not in Boolean.truth_values:
                 raise ValueError('Unrecognized truth value: {0}'.format(value))
             value = Boolean.truth_values[value]
@@ -91,7 +91,7 @@ class Code(Validator):
         if value is None:
             return None
         try:
-            return Code.object(compile(value, 'string', self._mode), unicode(value))
+            return Code.object(compile(value, 'string', self._mode), str(value))
         except (SyntaxError, TypeError) as error:
             raise ValueError(error.message)
 
@@ -109,7 +109,7 @@ class Fieldname(Validator):
 
     def __call__(self, value):
         if value is not None:
-            value = unicode(value)
+            value = str(value)
             if Fieldname.pattern.match(value) is None:
                 raise ValueError('Illegal characters in fieldname: {}'.format(value))
         return value
@@ -132,7 +132,7 @@ class File(Validator):
         if value is None:
             return value
 
-        path = unicode(value)
+        path = str(value)
 
         if not os.path.isabs(path):
             path = os.path.join(self.directory, path)
@@ -149,7 +149,7 @@ class File(Validator):
         return None if value is None else value.name
 
     _var_run_splunk = os.path.join(
-        os.environ['SPLUNK_HOME'] if 'SPLUNK_HOME' in os.environ else os.getcwdu(), 'var', 'run', 'splunk')
+        os.environ['SPLUNK_HOME'] if 'SPLUNK_HOME' in os.environ else os.getcwd(), 'var', 'run', 'splunk')
 
 
 class Integer(Validator):
@@ -183,7 +183,7 @@ class Integer(Validator):
         if value is None:
             return None
         try:
-            value = long(value)
+            value = int(value)
         except ValueError:
             raise ValueError('Expected integer value, not {}'.format(json_encode_string(value)))
 
@@ -191,7 +191,7 @@ class Integer(Validator):
         return value
 
     def format(self, value):
-        return None if value is None else unicode(long(value))
+        return None if value is None else str(int(value))
 
 
 class Duration(Validator):
@@ -262,7 +262,7 @@ class List(Validator):
             return value
 
         try:
-            value = csv.reader([value], self.Dialect).next()
+            value = next(csv.reader([value], self.Dialect))
         except csv.Error as error:
             raise ValueError(error)
 
@@ -297,7 +297,7 @@ class Map(Validator):
         if value is None:
             return None
 
-        value = unicode(value)
+        value = str(value)
 
         if value not in self.membership:
             raise ValueError('Unrecognized value: {0}'.format(value))
@@ -305,7 +305,7 @@ class Map(Validator):
         return self.membership[value]
 
     def format(self, value):
-        return None if value is None else self.membership.keys()[self.membership.values().index(value)]
+        return None if value is None else list(self.membership.keys())[list(self.membership.values()).index(value)]
 
 
 class Match(Validator):
@@ -313,19 +313,19 @@ class Match(Validator):
 
     """
     def __init__(self, name, pattern, flags=0):
-        self.name = unicode(name)
+        self.name = str(name)
         self.pattern = re.compile(pattern, flags)
 
     def __call__(self, value):
         if value is None:
             return None
-        value = unicode(value)
+        value = str(value)
         if self.pattern.match(value) is None:
             raise ValueError('Expected {}, not {}'.format(self.name, json_encode_string(value)))
         return value
 
     def format(self, value):
-        return None if value is None else unicode(value)
+        return None if value is None else str(value)
 
 
 class OptionName(Validator):
@@ -336,13 +336,13 @@ class OptionName(Validator):
 
     def __call__(self, value):
         if value is not None:
-            value = unicode(value)
+            value = str(value)
             if OptionName.pattern.match(value) is None:
                 raise ValueError('Illegal characters in option name: {}'.format(value))
         return value
 
     def format(self, value):
-        return None if value is None else unicode(value)
+        return None if value is None else str(value)
 
 
 class RegularExpression(Validator):
@@ -353,9 +353,9 @@ class RegularExpression(Validator):
         if value is None:
             return None
         try:
-            value = re.compile(unicode(value))
+            value = re.compile(str(value))
         except re.error as error:
-            raise ValueError('{}: {}'.format(unicode(error).capitalize(), value))
+            raise ValueError('{}: {}'.format(str(error).capitalize(), value))
         return value
 
     def format(self, value):
@@ -372,7 +372,7 @@ class Set(Validator):
     def __call__(self, value):
         if value is None:
             return None
-        value = unicode(value)
+        value = str(value)
         if value not in self.membership:
             raise ValueError('Unrecognized value: {}'.format(value))
         return value

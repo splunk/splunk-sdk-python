@@ -109,7 +109,7 @@ class Program:
         if not cpres:
             # List out the available confs
             for conf in self.service.confs: 
-                print conf.name
+                print(conf.name)
         else:
             # Print out detail on the requested conf
             # check for optional stanza, or key requested (or all)
@@ -118,11 +118,11 @@ class Program:
             
             for stanza in conf:
                 if (spres and argv[1] == stanza.name) or not spres:
-                    print "[%s]" % stanza.name
-                    for key, value in stanza.content.iteritems():
+                    print("[%s]" % stanza.name)
+                    for key, value in stanza.content.items():
                         if (kpres and argv[2] == key) or not kpres:
-                            print "%s = %s" % (key, value)
-                print
+                            print("%s = %s" % (key, value))
+                print()
 
     def run(self, command, opts):
         """Dispatch the given command & args."""

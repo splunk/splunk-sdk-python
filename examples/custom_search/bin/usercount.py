@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import csv, StringIO, sys, urllib
+import csv, io, sys, urllib.request, urllib.parse, urllib.error
 
 # Tees output to a logfile for debugging
 class Logger:
@@ -48,7 +48,7 @@ class Reader:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self.readline()
 
     def readline(self):
@@ -75,11 +75,11 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     # convert all multivalue keys to the right form
     fields = set()
     for result in results:    
-        for key in result.keys():
+        for key in list(result.keys()):
             if(isinstance(result[key], list)):
                 result['__mv_' + key] = encode_mv(result[key])
                 result[key] = mvdelim.join(result[key])
-        fields.update(result.keys())
+        fields.update(list(result.keys()))
 
     # convert the fields into a list and create a CSV writer
     # to output to stdout
@@ -88,7 +88,7 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     writer = csv.DictWriter(output, fields)
 
     # Write out the fields, and then the actual results
-    writer.writerow(dict(zip(fields, fields)))
+    writer.writerow(dict(list(zip(fields, fields))))
     writer.writerows(results)
 
 def read_input(buf, has_header = True):
@@ -121,13 +121,13 @@ def read_input(buf, has_header = True):
             # on a new line, and it belongs to the previous attribute
             if colon < 0:
                 if last_attr:
-                    header[last_attr] = header[last_attr] + '\n' + urllib.unquote(line)
+                    header[last_attr] = header[last_attr] + '\n' + urllib.parse.unquote(line)
                 else:
                     continue
 
             # extract it and set value in settings
             last_attr = attr = line[:colon]
-            val  = urllib.unquote(line[colon+1:])
+            val  = urllib.parse.unquote(line[colon+1:])
             header[attr] = val
 
     return buf, header
@@ -153,7 +153,7 @@ def main(argv):
 
     for event in events:
         # For each event, we read in the raw event data
-        raw = StringIO.StringIO(event["_raw"])
+        raw = io.StringIO(event["_raw"])
         top_output = csv.DictReader(raw, delimiter = ' ', skipinitialspace = True)
     
         # And then, for each row of the output of the 'top' command
@@ -165,7 +165,7 @@ def main(argv):
             user = user if not user.startswith('_') else user[1:]
     
             usercount = 0
-            if usercounts.has_key(user):
+            if user in usercounts:
                 usercount = usercounts[user]
     
             usercount += 1

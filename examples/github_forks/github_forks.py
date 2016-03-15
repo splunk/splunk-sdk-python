@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys, urllib2, json
+import sys, urllib.request, urllib.error, urllib.parse, json
 
 from splunklib.modularinput import *
 
@@ -88,7 +88,7 @@ class MyScript(Script):
         repo_url = "https://api.github.com/repos/%s/%s" % (owner, repo_name)
 
         # Read the response from the Github API, then parse the JSON data into an object
-        response = urllib2.urlopen(repo_url).read()
+        response = urllib.request.urlopen(repo_url).read()
         jsondata = json.loads(response)
 
         # If there is only 1 field in the jsondata object,some kind or error occurred
@@ -117,14 +117,14 @@ class MyScript(Script):
         :param ew: an EventWriter object
         """
         # Go through each input for this modular input
-        for input_name, input_item in inputs.inputs.iteritems():
+        for input_name, input_item in inputs.inputs.items():
             # Get fields from the InputDefinition object
             owner = input_item["owner"]
             repo_name = input_item["repo_name"]
 
             # Get the fork count from the Github API
             repo_url = "https://api.github.com/repos/%s/%s" % (owner, repo_name)
-            response = urllib2.urlopen(repo_url).read()
+            response = urllib.request.urlopen(repo_url).read()
             jsondata = json.loads(response)
             fork_count = jsondata["forks_count"]
 

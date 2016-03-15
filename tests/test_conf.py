@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from . import testlib
 import logging
 
 import splunklib.client as client
@@ -88,7 +88,7 @@ class TestConfs(testlib.SDKTestCase):
                   testlib.tmpname(): testlib.tmpname()}
         stanza.submit(values)
         stanza.refresh()
-        for key, value in values.iteritems():
+        for key, value in values.items():
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 

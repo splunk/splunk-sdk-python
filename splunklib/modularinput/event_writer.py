@@ -17,9 +17,9 @@ import sys
 from splunklib.modularinput.event import ET
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 class EventWriter(object):
     """``EventWriter`` writes events and error messages to Splunk from a modular input.

@@ -15,7 +15,7 @@
 # under the License.
 
 import datetime
-import testlib
+from . import testlib
 import logging
 
 from time import sleep
@@ -171,7 +171,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         logging.debug("Scheduled times: %s", scheduled_times)
         self.assertTrue(all([isinstance(x, datetime.datetime) 
                              for x in scheduled_times]))
-        time_pairs = zip(scheduled_times[:-1], scheduled_times[1:])
+        time_pairs = list(zip(scheduled_times[:-1], scheduled_times[1:]))
         for earlier, later in time_pairs:
             diff = later-earlier
             # diff is an instance of datetime.timedelta, which

@@ -1,4 +1,4 @@
-import testlib
+from . import testlib
 
 try:
     from utils import *

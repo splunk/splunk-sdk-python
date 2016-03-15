@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from itertools import chain
 
@@ -93,7 +93,7 @@ class ReportingCommand(SearchCommand):
             self._configuration.streaming_preop = ' '.join(streaming_preop)
             return
 
-        raise RuntimeError('Unrecognized reporting command phase: {}'.format(json_encode_string(unicode(phase))))
+        raise RuntimeError('Unrecognized reporting command phase: {}'.format(json_encode_string(str(phase))))
 
     def reduce(self, records):
         """ Override this method to produce a reporting data structure.

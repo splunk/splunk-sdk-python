@@ -1,7 +1,7 @@
 #
 # The format of this file is described in this article at Python.org:
 #
-#     [Configuration file format](http://goo.gl/K6edZ8)
+#     [Configuration file format](https://docs.python.org/2/library/logging.config.html#configuration-file-format)
 #
 # This file must contain sections called [loggers], [handlers] and [formatters] which identify by name the entities of
 # each type which are defined in the file. For each such entity, there is a separate section which identifies how that
@@ -57,7 +57,7 @@ propagate = [0|1]
 
 [handlers]
     * Specifies a list of handler keys.
-    * See [logging.handlers](http://goo.gl/9aoOx)
+    * See [logging.handlers](https://docs.python.org/2/library/logging.handlers.html)
 
 keys = <comma-separated strings>
     * A comma-separated list of handlers keys. Each key must have a corresponding [handler_<string>] section in the
@@ -86,7 +86,7 @@ formatter = <string>
 
 [formatters]
     * Specifies a list of formatter keys.
-    * See [logging.formatters](http://goo.gl/z5CBR3)
+    * See [logging.formatters](https://docs.python.org/2/howto/logging.html#formatters)
 
 keys = <comma-separated strings>
     * A comma-separated list of formatter keys. Each key must have a corresponding [formatter_<string>] section in the
@@ -105,12 +105,12 @@ datefmt = <string>
     * The strftime-compatible date/time format string. If empty, the package substitutes ISO8601 format date/times.
     * An example ISO8601 date/time is datetime(2015, 2, 6, 15, 53, 36, 786309).isoformat() ==
     * '2015-02-06T15:53:36.786309'. For a complete list of formatting directives, see section [strftime() and strptime()
-    * Behavior](http://goo.gl/6zUAGv)
+    * Behavior](https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior)
     * Defaults to empty.
 
 format = <string>
     * The overall format string. This string uses %(<dictionary key>)s styled string substitution; the possible keys are
-    * documented in [LogRecord](http://goo.gl/qW83Dg) attributes. The following format string will log the time in a
+    * documented in [LogRecord](https://docs.python.org/2/library/logging.html#logging.LogRecord) attributes. The following format string will log the time in a
     * human-readable format, the severity of the message, and the contents of the message, in that order:
     *    format = '%(asctime)s - %(levelname)s - %(message)s'
     * A value is required.

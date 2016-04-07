@@ -1034,7 +1034,7 @@ SearchMetric = namedtuple(b'SearchMetric', (b'elapsed_seconds', b'invocation_cou
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
 
-    This function implements a `conditional script stanza <http://goo.gl/OFaox6>`_ based on the value of
+    This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of
     :code:`module_name`::
 
         if module_name is None or module_name == '__main__':

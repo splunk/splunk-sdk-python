@@ -41,7 +41,7 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 [3] [Python Logging HOWTO](http://docs.python.org/2/howto/logging.html)  
 [4] [ConfigParser—Configuration file parser](http://docs.python.org/2/library/configparser.html)
 [5] [searchbnf.conf](http://docs.splunk.com/Documentation/Splunk/latest/admin/Searchbnfconf)
-[6] [Set permissions in the file system](http://goo.gl/1oDT7r)
+[6] [Set permissions in the file system](http://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/SetPermissions#Set_permissions_in_the_filesystem)
 
 ## Installation
 

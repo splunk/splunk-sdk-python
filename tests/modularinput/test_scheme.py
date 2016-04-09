@@ -39,7 +39,7 @@ class SchemeTest(unittest.TestCase):
         some arguments added matches what we expect."""
 
         scheme = Scheme("abcd")
-        scheme.description = u"쎼 and 쎶 and <&> für"
+        scheme.description = "쎼 and 쎶 and <&> für"
         scheme.streaming_mode = Scheme.streaming_mode_simple
         scheme.use_external_validation = "false"
         scheme.use_single_instance = "true"
@@ -49,7 +49,7 @@ class SchemeTest(unittest.TestCase):
 
         arg2 = Argument(
             name="arg2",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_number,
             required_on_edit=True,
@@ -68,7 +68,7 @@ class SchemeTest(unittest.TestCase):
         some arguments added matches what we expect. Also sets the title on an argument."""
 
         scheme = Scheme("abcd")
-        scheme.description = u"쎼 and 쎶 and <&> für"
+        scheme.description = "쎼 and 쎶 and <&> für"
         scheme.streaming_mode = Scheme.streaming_mode_simple
         scheme.use_external_validation = "false"
         scheme.use_single_instance = "true"
@@ -78,7 +78,7 @@ class SchemeTest(unittest.TestCase):
 
         arg2 = Argument(
             name="arg2",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_number,
             required_on_edit=True,
@@ -112,7 +112,7 @@ class SchemeTest(unittest.TestCase):
 
         argument = Argument(
             name="some_name",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_boolean,
             required_on_edit="true",

@@ -15,22 +15,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
 from collections import deque, namedtuple, OrderedDict
-from cStringIO import StringIO
+from io import StringIO
 from functools import wraps
 from glob import iglob
-from itertools import chain, ifilter, imap, izip
+from itertools import chain
 from sys import float_info, maxint as maxsize, maxunicode
 from tempfile import mktemp
 from time import time
 from types import MethodType
 from unittest import main, TestCase
 
-import cPickle as pickle
+import pickle as pickle
 import gzip
 import io
 import json
@@ -83,7 +83,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join(imap(lambda x: unichr(x), random.sample(xrange(maxunicode), random.randint(0, max_length))))
+    return ''.join(map(lambda x: chr(x), random.sample(range(maxunicode), random.randint(0, max_length))))
 
 # endregion
 
@@ -168,9 +168,9 @@ class TestInternals(TestCase):
 
         write_record = writer.write_record
 
-        for serial_number in xrange(0, 31):
+        for serial_number in range(0, 31):
             values = [serial_number, time(), random_bytes(), random_dict(), random_integers(), random_unicode()]
-            record = OrderedDict(izip(fieldnames, values))
+            record = OrderedDict(zip(fieldnames, values))
             try:
                 write_record(record)
             except Exception as error:
@@ -199,7 +199,7 @@ class TestInternals(TestCase):
 
         test_data['metrics'] = metrics
 
-        for name, metric in metrics.iteritems():
+        for name, metric in metrics.items():
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 3)
@@ -210,8 +210,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(ifilter(lambda (k, v): k.startswith('metric.'), writer._inspector.iteritems())),
-            dict(imap(lambda (k, v): ('metric.' + k, v), metrics.iteritems())))
+            dict(filter(lambda k_v: k_v[0].startswith('metric.'), iter(writer._inspector.items()))),
+            dict(map(lambda k_v1: ('metric.' + k_v1[0], k_v1[1]), iter(metrics.items()))))
 
         writer.flush(finished=True)
 
@@ -242,7 +242,7 @@ class TestInternals(TestCase):
 
             cls = self.__class__
             method = cls.test_record_writer_with_recordings
-            base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, unicode(time()))))
+            base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, str(time()))))
 
             with gzip.open(base_path + '.input.gz', 'wb') as f:
                 pickle.dump(test_data, f)
@@ -268,7 +268,7 @@ class TestInternals(TestCase):
             fieldnames = test_data['fieldnames']
 
             for values in test_data['values']:
-                record = OrderedDict(izip(fieldnames, values))
+                record = OrderedDict(zip(fieldnames, values))
                 try:
                     write_record(record)
                 except Exception as error:
@@ -277,7 +277,7 @@ class TestInternals(TestCase):
             for message_type, message_text in test_data['messages']:
                 writer.write_message(message_type, '{}', message_text)
 
-            for name, metric in test_data['metrics'].iteritems():
+            for name, metric in test_data['metrics'].items():
                 writer.write_metric(name, metric)
 
             writer.flush(finished=True)
@@ -313,7 +313,7 @@ class TestInternals(TestCase):
     def _compare_chunks(self, chunks_1, chunks_2):
         self.assertEqual(len(chunks_1), len(chunks_2))
         n = 0
-        for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
+        for chunk_1, chunk_2 in zip(chunks_1, chunks_2):
             self.assertDictEqual(
                 chunk_1.metadata, chunk_2.metadata,
                 'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
@@ -371,7 +371,7 @@ class TestInternals(TestCase):
         'n': 12
     }
 
-    _json_input = unicode(json.dumps(_dictionary, separators=(',', ':')))
+    _json_input = str(json.dumps(_dictionary, separators=(',', ':')))
     _package_path = os.path.dirname(os.path.abspath(__file__))
     _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 
@@ -513,8 +513,8 @@ class Test(object):
         write_record = writer.write_record
         names = self.fieldnames
 
-        for self._serial_number in xrange(0, 31):
-            record = OrderedDict(izip(names, self.row))
+        for self._serial_number in range(0, 31):
+            record = OrderedDict(zip(names, self.row))
             write_record(record)
 
         return

@@ -61,7 +61,7 @@
 #   -------
 #   Ensure that pypy.exe is on the system-wide Path environment variable.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import app
 
 from splunklib.searchcommands import app_root, execute

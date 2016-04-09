@@ -78,7 +78,7 @@ def main():
     try:
         follow(job, count, items)
     except KeyboardInterrupt:
-        print "\nInterrupted."
+        print("\nInterrupted.")
     finally:
         job.cancel()
     

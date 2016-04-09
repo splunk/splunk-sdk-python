@@ -60,7 +60,7 @@ class AnalyticsTracker:
     @staticmethod
     def encode(props):
         encoded = " "
-        for k,v in props.iteritems():
+        for k,v in props.items():
             # We disallow dictionaries - it doesn't quite make sense.
             assert(not isinstance(v, dict))
 
@@ -84,12 +84,12 @@ class AnalyticsTracker:
             APPLICATION_KEY, self.application_name, 
             EVENT_KEY, event_name)
 
-        assert(not APPLICATION_KEY in props.keys())
-        assert(not EVENT_KEY in props.keys())
+        assert(not APPLICATION_KEY in list(props.keys()))
+        assert(not EVENT_KEY in list(props.keys()))
 
         if distinct_id is not None:
             event += ('%s="%s" ' % (DISTINCT_KEY, distinct_id))
-            assert(not DISTINCT_KEY in props.keys())
+            assert(not DISTINCT_KEY in list(props.keys()))
 
         event += AnalyticsTracker.encode(props)
 

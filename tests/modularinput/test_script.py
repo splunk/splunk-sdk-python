@@ -21,9 +21,9 @@ from splunklib.modularinput.script import Script
 from splunklib.modularinput.scheme import Scheme
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 try:
     import xml.etree.cElementTree as ET
@@ -69,7 +69,7 @@ class ScriptTest(unittest.TestCase):
         class NewScript(Script):
             def get_scheme(self):
                 scheme = Scheme("abcd")
-                scheme.description = u"\uC3BC and \uC3B6 and <&> f\u00FCr"
+                scheme.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
                 scheme.streaming_mode = scheme.streaming_mode_simple
                 scheme.use_external_validation = False
                 scheme.use_single_instance = True
@@ -78,7 +78,7 @@ class ScriptTest(unittest.TestCase):
                 scheme.add_argument(arg1)
 
                 arg2 = Argument("arg2")
-                arg2.description = u"\uC3BC and \uC3B6 and <&> f\u00FCr"
+                arg2.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
                 arg2.data_type = Argument.data_type_number
                 arg2.required_on_create = True
                 arg2.required_on_edit = True

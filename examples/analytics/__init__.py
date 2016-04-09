@@ -14,5 +14,5 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import input
-import output
+from . import input
+from . import output

@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from . import testlib
 import logging
 import os
 import splunklib.client as client
@@ -116,7 +116,7 @@ class IndexTest(testlib.SDKTestCase):
 
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
 
-        cookie = "%s=%s" % (self.service.http._cookies.items()[0])
+        cookie = "%s=%s" % (list(self.service.http._cookies.items())[0])
         service = client.Service(**{"cookie": cookie})
         service.login()
         cn = service.indexes[self.index_name].attach()
@@ -141,7 +141,7 @@ class IndexTest(testlib.SDKTestCase):
 
     def test_upload(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("file_to_upload")
 

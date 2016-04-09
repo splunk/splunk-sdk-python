@@ -34,8 +34,8 @@ def handler():
     default = binding.handler()
     def request(url, message, **kwargs):
         response = default(url, message, **kwargs)
-        print "%s %s => %d (%s)" % (
-            message['method'], url, response['status'], response['reason'])
+        print("%s %s => %d (%s)" % (
+            message['method'], url, response['status'], response['reason']))
         return response
     return request
 

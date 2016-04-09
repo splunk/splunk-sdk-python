@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import app
 
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
@@ -32,6 +32,6 @@ class GenerateTextCommand(GeneratingCommand):
     def generate(self):
         text = self.text
         for i in range(1, self.count + 1):
-            yield {'_serial': i, '_time': time.time(), '_raw': unicode(i) + '. ' + text}
+            yield {'_serial': i, '_time': time.time(), '_raw': str(i) + '. ' + text}
 
 dispatch(GenerateTextCommand, sys.argv, sys.stdin, sys.stdout, __name__)

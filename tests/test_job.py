@@ -15,7 +15,7 @@
 # under the License.
 
 from time import sleep
-import testlib
+from . import testlib
 
 try:
     import unittest2 as unittest
@@ -209,7 +209,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
 
     def test_enable_preview(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
@@ -235,7 +235,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
 
     def test_setpriority(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
@@ -420,12 +420,12 @@ class TestResultsReader(unittest.TestCase):
             self.assertEqual(N_messages, 3)
 
     def test_xmldtd_filter(self):
-        from StringIO import StringIO
+        from io import StringIO
         s = results._XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
         self.assertEqual(s.read(), "<boris>Other stuf</boris> ab")
 
     def test_concatenated_stream(self):
-        from StringIO import StringIO
+        from io import StringIO
         s = results._ConcatenatedStream(StringIO("This is a test "),
                                        StringIO("of the emergency broadcast system."))
         self.assertEqual(s.read(3), "Thi")

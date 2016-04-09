@@ -33,9 +33,9 @@ def main():
     opts.kwargs["app"] = "search"
     service = connect(**opts.kwargs)
 
-    print "KV Store Collections:"
+    print("KV Store Collections:")
     for collection in service.kvstore:
-        print "  %s" % collection.name
+        print("  %s" % collection.name)
     
     # Let's delete a collection if it already exists, and then create it
     collection_name = "example_collection"
@@ -47,7 +47,7 @@ def main():
     collection = service.kvstore[collection_name]
     
     # Let's make sure it doesn't have any data
-    print "Should be empty: %s" % json.dumps(collection.data.query())
+    print("Should be empty: %s" % json.dumps(collection.data.query()))
     
     # Let's add some data
     collection.data.insert(json.dumps({"_key": "item1", "somekey": 1, "otherkey": "foo"}))
@@ -55,16 +55,16 @@ def main():
     collection.data.insert(json.dumps({"somekey": 3, "otherkey": "bar"}))
     
     # Let's make sure it has the data we just entered
-    print "Should have our data: %s" % json.dumps(collection.data.query(), indent=1)
+    print("Should have our data: %s" % json.dumps(collection.data.query(), indent=1))
     
     # Let's run some queries
-    print "Should return item1: %s" % json.dumps(collection.data.query_by_id("item1"), indent=1)
+    print("Should return item1: %s" % json.dumps(collection.data.query_by_id("item1"), indent=1))
     
     query = json.dumps({"otherkey": "foo"})
-    print "Should return item1 and item2: %s" % json.dumps(collection.data.query(query=query), indent=1)
+    print("Should return item1 and item2: %s" % json.dumps(collection.data.query(query=query), indent=1))
     
     query = json.dumps({"otherkey": "bar"})
-    print "Should return third item with auto-generated _key: %s" % json.dumps(collection.data.query(query=query), indent=1)
+    print("Should return third item with auto-generated _key: %s" % json.dumps(collection.data.query(query=query), indent=1))
     
     # Let's delete the collection
     collection.delete()

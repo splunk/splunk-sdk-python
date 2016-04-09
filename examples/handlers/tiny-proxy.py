@@ -20,7 +20,7 @@ Any help will be greatly appreciated.       SUZUKI Hisao
  
 __version__ = "0.3.1"
  
-import BaseHTTPServer, select, socket, SocketServer, urlparse
+import http.server, select, socket, socketserver, urllib.parse
 import logging
 import logging.handlers
 import getopt
@@ -34,8 +34,8 @@ import ftplib
  
 DEFAULT_LOG_FILENAME = "proxy.log"
  
-class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
-    __base = BaseHTTPServer.BaseHTTPRequestHandler
+class ProxyHandler (http.server.BaseHTTPRequestHandler):
+    __base = http.server.BaseHTTPRequestHandler
     __base_handle = __base.handle
  
     server_version = "TinyHTTPProxy/" + __version__
@@ -65,7 +65,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         self.server.logger.log (logging.INFO, "connect to %s:%d", host_port[0], host_port[1])
         try: 
             return socket.create_connection(host_port)
-        except socket.error, arg:
+        except socket.error as arg:
             try: msg = arg[1]
             except: msg = arg
             self.send_error(404, msg)
@@ -87,7 +87,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.connection.close()
  
     def do_GET(self):
-        (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
+        (scm, netloc, path, params, query, fragment) = urllib.parse.urlparse(
             self.path, 'http')
         if scm not in ('http', 'ftp') or fragment or not netloc:
             self.send_error(400, "bad url %s" % self.path)
@@ -99,13 +99,13 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 if soc:
                     self.log_request()
                     soc.send("%s %s %s\r\n" % (self.command,
-                                               urlparse.urlunparse(('', '', path,
+                                               urllib.parse.urlunparse(('', '', path,
                                                                     params, query,
                                                                     '')),
                                                self.request_version))
                     self.headers['Connection'] = 'close'
                     del self.headers['Proxy-Connection']
-                    for key_val in self.headers.items():
+                    for key_val in list(self.headers.items()):
                         soc.send("%s: %s\r\n" % key_val)
                     soc.send("\r\n")
                     self._read_write(soc)
@@ -124,7 +124,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     if self.command == "GET":
                         ftp.retrbinary ("RETR %s"%path, self.connection.send)
                     ftp.quit ()
-                except Exception, e:
+                except Exception as e:
                     self.server.logger.log (logging.WARNING, "FTP Exception: %s",
                                             e)
         finally:
@@ -166,10 +166,10 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         self.server.logger.log (logging.ERROR, "%s %s", self.address_string (),
                                 format % args)
  
-class ThreadingHTTPServer (SocketServer.ThreadingMixIn,
-                           BaseHTTPServer.HTTPServer):
+class ThreadingHTTPServer (socketserver.ThreadingMixIn,
+                           http.server.HTTPServer):
     def __init__ (self, server_address, RequestHandlerClass, logger=None):
-        BaseHTTPServer.HTTPServer.__init__ (self, server_address,
+        http.server.HTTPServer.__init__ (self, server_address,
                                             RequestHandlerClass)
         self.logger = logger
  
@@ -198,13 +198,13 @@ def logSetup (filename, log_size, daemon):
     return logger
  
 def usage (msg=None):
-    if msg: print msg
-    print sys.argv[0], "[-p port] [-l logfile] [-dh] [allowed_client_name ...]]"
-    print
-    print "   -p       - Port to bind to"
-    print "   -l       - Path to logfile. If not specified, STDOUT is used"
-    print "   -d       - Run in the background"
-    print
+    if msg: print(msg)
+    print(sys.argv[0], "[-p port] [-l logfile] [-dh] [allowed_client_name ...]]")
+    print()
+    print("   -p       - Port to bind to")
+    print("   -l       - Path to logfile. If not specified, STDOUT is used")
+    print("   -d       - Run in the background")
+    print()
  
 def handler (signo, frame):
     while frame and isinstance (frame, FrameType):
@@ -294,7 +294,7 @@ def main ():
     local_hostname = "127.0.0.1"
  
     try: opts, args = getopt.getopt (sys.argv[1:], "l:dhp:", [])
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         usage (str (e))
         return 1
  
@@ -331,7 +331,7 @@ def main ():
     ProxyHandler.protocol = "HTTP/1.0"
     httpd = ThreadingHTTPServer (server_address, ProxyHandler, logger)
     sa = httpd.socket.getsockname ()
-    print "Servering HTTP on", sa[0], "port", sa[1]
+    print("Servering HTTP on", sa[0], "port", sa[1])
     req_count = 0
     while not run_event.isSet ():
         try:
@@ -341,7 +341,7 @@ def main ():
                 logger.log (logging.INFO, "Number of active threads: %s",
                             threading.activeCount ())
                 req_count = 0
-        except select.error, e:
+        except select.error as e:
             if e[0] == 4 and run_event.isSet (): pass
             else:
                 logger.log (logging.CRITICAL, "Errno: %d - %s", e[0], e[1])

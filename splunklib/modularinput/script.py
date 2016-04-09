@@ -13,7 +13,7 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
-from urlparse import urlsplit
+from urllib.parse import urlsplit
 import sys
 
 from splunklib.client import Service
@@ -27,7 +27,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-class Script(object):
+class Script(object, metaclass=ABCMeta):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
@@ -37,7 +37,6 @@ class Script(object):
     The ``run`` function is used to run modular inputs; it typically should
     not be overridden.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         self._input_definition = None

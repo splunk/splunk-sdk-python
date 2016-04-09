@@ -40,12 +40,12 @@ except:
 try:
     from collections import OrderedDict
 except:
-    from ordereddict import OrderedDict
+    from .ordereddict import OrderedDict
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except:
-    from StringIO import StringIO
+    from io import StringIO
 
 __all__ = [
     "ResultsReader",
@@ -201,8 +201,8 @@ class ResultsReader(object):
     def __iter__(self):
         return self
 
-    def next(self):
-        return self._gen.next()
+    def __next__(self):
+        return next(self._gen)
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
@@ -254,7 +254,7 @@ class ResultsReader(object):
 
                         def __itertext(self):
                           tag = self.tag
-                          if not isinstance(tag, basestring) and tag is not None:
+                          if not isinstance(tag, str) and tag is not None:
                               return
                           if self.text:
                               yield self.text

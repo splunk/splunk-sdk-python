@@ -27,11 +27,11 @@
 # 
 
 from pprint import pprint
-from StringIO import StringIO
+from io import StringIO
 import sys, os
 import ssl
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import splunklib.client as client
 
@@ -53,16 +53,16 @@ def request(url, message, **kwargs):
     method = message['method'].lower()
     data = message.get('body', "") if method == 'post' else None
     headers = dict(message.get('headers', []))
-    req = urllib2.Request(url, data, headers)
+    req = urllib.request.Request(url, data, headers)
     try:
-        response = urllib2.urlopen(req)
-    except urllib2.URLError, response:
+        response = urllib.request.urlopen(req)
+    except urllib.error.URLError as response:
         # If running Python 2.7.9+, disable SSL certificate validation and try again
         if sys.version_info >= (2, 7, 9):
-            response = urllib2.urlopen(req, context=ssl._create_unverified_context())
+            response = urllib.request.urlopen(req, context=ssl._create_unverified_context())
         else:
             raise
-    except urllib2.HTTPError, response:
+    except urllib.error.HTTPError as response:
         pass # Propagate HTTP errors via the returned response message
     return {
         'status': response.code,
@@ -72,9 +72,9 @@ def request(url, message, **kwargs):
     }
 
 def handler(proxy):
-    proxy_handler = urllib2.ProxyHandler({'http': proxy, 'https': proxy})
-    opener = urllib2.build_opener(proxy_handler)
-    urllib2.install_opener(opener)
+    proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
+    opener = urllib.request.build_opener(proxy_handler)
+    urllib.request.install_opener(opener)
     return request
 
 opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
@@ -82,7 +82,7 @@ proxy = opts.kwargs['proxy']
 try:
     service = client.connect(handler=handler(proxy), **opts.kwargs)
     pprint([app.name for app in service.apps])
-except urllib2.URLError as e:
+except urllib.error.URLError as e:
     if e.reason.errno == 1 and sys.version_info < (2, 6, 3):
         # There is a bug in Python < 2.6.3 that does not allow proxies with
         # HTTPS. You can read more at: http://bugs.python.org/issue1424152

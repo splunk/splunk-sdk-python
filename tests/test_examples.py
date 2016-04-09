@@ -19,16 +19,16 @@ from subprocess import PIPE, Popen
 import time
 import sys
 
-import testlib 
+from . import testlib 
 
 import splunklib.client as client
 
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    testcase.assertTrue(isinstance(first, basestring), 
+    testcase.assertTrue(isinstance(first, str), 
         'First argument is not a string')
-    testcase.assertTrue(isinstance(second, basestring), 
+    testcase.assertTrue(isinstance(second, str), 
         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
@@ -59,7 +59,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEquals(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
+            self.assertEqual(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
@@ -70,14 +70,14 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
     def test_async(self):
         result = run("async/async.py sync")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
         try:
             # Only try running the async version of the test if eventlet
             # is present on the system
             import eventlet
             result = run("async/async.py async")
-            self.assertEquals(result, 0)
+            self.assertEqual(result, 0)
         except:
             pass
 
@@ -86,14 +86,14 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
     def test_binding1(self):
         result = run("binding1.py")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
     def test_conf(self):
         try:
             conf = self.service.confs['server']
             if 'SDK-STANZA' in conf:
                 conf.delete("SDK-STANZA")
-        except Exception, e:
+        except Exception as e:
             pass
 
         try:
@@ -135,7 +135,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         result = run(
             "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", 
             stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
         # The proxy handler example requires that there be a proxy available
         # to relay requests, so we spin up a local proxy using the proxy
@@ -146,14 +146,14 @@ class ExamplesTestCase(testlib.SDKTestCase):
         try:
             time.sleep(2) # Wait for proxy to finish initializing
             result = run("handlers/handler_proxy.py --proxy=localhost:8080")
-            self.assertEquals(result, 0)
+            self.assertEqual(result, 0)
         finally:
             process.kill()
 
         # Run it again without the proxy and it should fail.
         result = run(
             "handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
     def test_index(self):
         self.check_commands(
@@ -258,7 +258,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
             # Execute the command
             result = run(script, stdin=input_file, stdout=output_file)
-            self.assertEquals(result, 0)
+            self.assertEqual(result, 0)
 
             input_file.close()
             output_file.close()
@@ -333,9 +333,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
         
         # Assert applications
         applications = retriever.applications()
-        self.assertEquals(len(applications), 1)
-        self.assertEquals(applications[0]["name"], "sdk-test")
-        self.assertEquals(applications[0]["count"], 2)
+        self.assertEqual(len(applications), 1)
+        self.assertEqual(applications[0]["name"], "sdk-test")
+        self.assertEqual(applications[0]["count"], 2)
 
         # Assert events
         events = retriever.events()
@@ -353,7 +353,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         for prop in properties:
             name = prop["name"]
             count = prop["count"]
-            self.assertTrue(name in expected_properties.keys())
+            self.assertTrue(name in list(expected_properties.keys()))
             self.assertEqual(count, expected_properties[name])
 
         # Assert property values
@@ -366,15 +366,15 @@ class ExamplesTestCase(testlib.SDKTestCase):
         for value in values:
             name = value["name"]
             count = value["count"]
-            self.assertTrue(name in expected_property_values.keys())
+            self.assertTrue(name in list(expected_property_values.keys()))
             self.assertEqual(count, expected_property_values[name])
             
         # Assert event over time
         over_time = retriever.events_over_time(
             time_range = analytics.output.TimeRange.MONTH)
-        self.assertEquals(len(over_time), 1)
-        self.assertEquals(len(over_time["test_event"]), 1)
-        self.assertEquals(over_time["test_event"][0]["count"], 2)
+        self.assertEqual(len(over_time), 1)
+        self.assertEqual(len(over_time["test_event"]), 1)
+        self.assertEqual(over_time["test_event"][0]["count"], 2)
 
         # Now that we're done, we'll clean the index 
         index.clean()

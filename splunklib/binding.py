@@ -24,29 +24,29 @@ If you want a friendlier interface to the Splunk REST API, use the
 :mod:`splunklib.client` module.
 """
 
-import httplib
+import http.client
 import logging
 import socket
 import ssl
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import io
 import sys
-import Cookie
+import http.cookies
 
 from base64 import b64encode
 from datetime import datetime
 from functools import wraps
-from StringIO import StringIO
+from io import StringIO
 
 from contextlib import contextmanager
 
 from xml.etree.ElementTree import XML
 try:
     from xml.etree.ElementTree import ParseError
-except ImportError, e:
+except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
-from data import record
+from .data import record
 
 __all__ = [
     "AuthenticationError",
@@ -88,8 +88,8 @@ def _parse_cookies(cookie_str, dictionary):
     :param dictionary: A dictionary to update with any found key-value pairs.
     :type dictionary: ``dict``
     """
-    parsed_cookie = Cookie.SimpleCookie(cookie_str)
-    for cookie in parsed_cookie.values():
+    parsed_cookie = http.cookies.SimpleCookie(cookie_str)
+    for cookie in list(parsed_cookie.values()):
         dictionary[cookie.key] = cookie.coded_value
 
 
@@ -168,12 +168,12 @@ class UrlEncoded(str):
         elif skip_encode:
             return str.__new__(self, val)
         elif encode_slash:
-            return str.__new__(self, urllib.quote_plus(val))
+            return str.__new__(self, urllib.parse.quote_plus(val))
         else:
             # When subclassing str, just call str's __new__ method
             # with your class and the value you want to have in the
             # new string.
-            return str.__new__(self, urllib.quote(val))
+            return str.__new__(self, urllib.parse.quote(val))
 
     def __add__(self, other):
         """self + other
@@ -184,7 +184,7 @@ class UrlEncoded(str):
         if isinstance(other, UrlEncoded):
             return UrlEncoded(str.__add__(self, other), skip_encode=True)
         else:
-            return UrlEncoded(str.__add__(self, urllib.quote(other)), skip_encode=True)
+            return UrlEncoded(str.__add__(self, urllib.parse.quote(other)), skip_encode=True)
 
     def __radd__(self, other):
         """other + self
@@ -195,7 +195,7 @@ class UrlEncoded(str):
         if isinstance(other, UrlEncoded):
             return UrlEncoded(str.__radd__(self, other), skip_encode=True)
         else:
-            return UrlEncoded(str.__add__(urllib.quote(other), self), skip_encode=True)
+            return UrlEncoded(str.__add__(urllib.parse.quote(other), self), skip_encode=True)
 
     def __mod__(self, fields):
         """Interpolation into ``UrlEncoded``s is disabled.
@@ -205,7 +205,7 @@ class UrlEncoded(str):
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
     def __repr__(self):
-        return "UrlEncoded(%s)" % repr(urllib.unquote(str(self)))
+        return "UrlEncoded(%s)" % repr(urllib.parse.unquote(str(self)))
 
 @contextmanager
 def _handle_auth_error(msg):
@@ -476,7 +476,7 @@ class Context(object):
         self.autologin = kwargs.get("autologin", False)
 
         # Store any cookies in the self.http._cookies dict
-        if kwargs.has_key("cookie") and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
+        if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
             _parse_cookies(kwargs["cookie"], self.http._cookies)
 
     def get_cookies(self):
@@ -508,7 +508,7 @@ class Context(object):
         :returns: A list of 2-tuples containing key and value
         """
         if self.has_cookies():
-            return [("Cookie", _make_cookie_header(self.get_cookies().items()))]
+            return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
         elif self.basic and (self.username and self.password):
             token = 'Basic %s' % b64encode("%s:%s" % (self.username, self.password))
             return [("Authorization", token)]
@@ -1042,18 +1042,18 @@ class AuthenticationError(HTTPError):
 # 'foo=1&foo=2&foo=3'.
 def _encode(**kwargs):
     items = []
-    for key, value in kwargs.iteritems():
+    for key, value in kwargs.items():
         if isinstance(value, list):
             items.extend([(key, item) for item in value])
         else:
             items.append((key, value))
-    return urllib.urlencode(items)
+    return urllib.parse.urlencode(items)
 
 # Crack the given url into (scheme, host, port, path)
 def _spliturl(url):
-    scheme, opaque = urllib.splittype(url)
-    netloc, path = urllib.splithost(opaque)
-    host, port = urllib.splitport(netloc)
+    scheme, opaque = urllib.parse.splittype(url)
+    netloc, path = urllib.parse.splithost(opaque)
+    host, port = urllib.parse.splitport(netloc)
     # Strip brackets if its an IPv6 address
     if host.startswith('[') and host.endswith(']'): host = host[1:-1]
     if port is None: port = DEFAULT_PORT
@@ -1185,7 +1185,7 @@ class HttpLib(object):
             # We only use application/x-www-form-urlencoded if there is no other
             # Content-Type header present. This can happen in cases where we 
             # send requests as application/json, e.g. for KV Store.
-            if len(filter(lambda x: x[0].lower() == "content-type", headers)) == 0:
+            if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))
 
             body = kwargs.pop('body')
@@ -1226,7 +1226,7 @@ class HttpLib(object):
         # If response.headers is a dict, get the key-value pairs as 2-tuples
         # this is the case when using urllib2
         if isinstance(response.headers, dict):
-            key_value_tuples = response.headers.items()
+            key_value_tuples = list(response.headers.items())
         for key, value in key_value_tuples:
             if key.lower() == "set-cookie":
                 _parse_cookies(value, self._cookies)
@@ -1326,7 +1326,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
         kwargs = {}
         if timeout is not None: kwargs['timeout'] = timeout
         if scheme == "http":
-            return httplib.HTTPConnection(host, port, **kwargs)
+            return http.client.HTTPConnection(host, port, **kwargs)
         if scheme == "https":
             if key_file is not None: kwargs['key_file'] = key_file
             if cert_file is not None: kwargs['cert_file'] = cert_file
@@ -1334,7 +1334,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             # If running Python 2.7.9+, disable SSL certificate validation
             if sys.version_info >= (2,7,9) and key_file is None and cert_file is None:
                 kwargs['context'] = ssl._create_unverified_context()
-            return httplib.HTTPSConnection(host, port, **kwargs)
+            return http.client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)
 
     def request(url, message, **kwargs):

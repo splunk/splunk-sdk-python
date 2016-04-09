@@ -81,7 +81,7 @@ class AnalyticsRetriever:
         for result in reader:
             if not isinstance(result, dict):
                 continue
-            for field, count in result.iteritems():
+            for field, count in result.items():
                 # Ignore internal ResultsReader properties
                 if field.startswith("$"):
                     continue
@@ -131,7 +131,7 @@ class AnalyticsRetriever:
 
                 # The rest is in the form of [event/property]:count
                 # pairs, so we decode those
-                for key,count in result.iteritems():
+                for key,count in result.items():
                     # Ignore internal ResultsReader properties
                     if key.startswith("$"):
                         continue

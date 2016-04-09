@@ -72,7 +72,7 @@ class Program:
         name = argv[0]
 
         if name in self.service.indexes:
-            print "Index '%s' already exists" % name
+            print("Index '%s' already exists" % name)
             return
 
         # Read index metadata and construct command line parser rules that 
@@ -101,15 +101,15 @@ class Program:
            properties of the named indexes."""
 
         def read(index):
-            print index.name
+            print(index.name)
             for key in sorted(index.content.keys()): 
                 value = index.content[key]
-                print "    %s: %s" % (key, value)
+                print("    %s: %s" % (key, value))
 
         if len(argv) == 0:
             for index in self.service.indexes:
                 count = index['totalEventCount']
-                print "%s (%s)" % (index.name, count)
+                print("%s (%s)" % (index.name, count))
         else:
             self.foreach(argv, read)
 

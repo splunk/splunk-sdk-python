@@ -103,7 +103,7 @@ class MyScript(Script):
         :param ew: an EventWriter object
         """
         # Go through each input for this modular input
-        for input_name, input_item in inputs.inputs.iteritems():
+        for input_name, input_item in inputs.inputs.items():
             # Get the values, cast them as floats
             minimum = float(input_item["min"])
             maximum = float(input_item["max"])

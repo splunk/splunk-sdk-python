@@ -22,7 +22,7 @@ __all__ = [ "error", "Parser", "cmdline" ]
 
 # Print the given message to stderr, and optionally exit
 def error(message, exitcode = None):
-    print >> sys.stderr, "Error: %s" % message
+    print("Error: %s" % message, file=sys.stderr)
     if exitcode is not None: sys.exit(exitcode)
 
 
@@ -47,20 +47,20 @@ class Parser(OptionParser):
     def init(self, rules):
         """Initialize the parser with the given command rules."""
         # Initialize the option parser
-        for dest in rules.keys():
+        for dest in list(rules.keys()):
             rule = rules[dest]
 
             # Assign defaults ourselves here, instead of in the option parser
             # itself in order to allow for multiple calls to parse (dont want
             # subsequent calls to override previous values with default vals).
-            if rule.has_key('default'):
+            if 'default' in rule:
                 self.result['kwargs'][dest] = rule['default']
 
             flags = rule['flags']
             kwargs = { 'action': rule.get('action', "store") }
             # NOTE: Don't provision the parser with defaults here, per above.
             for key in ['callback', 'help', 'metavar', 'type']:
-                if rule.has_key(key): kwargs[key] = rule[key]
+                if key in rule: kwargs[key] = rule[key]
             self.add_option(*flags, dest=dest, **kwargs)
 
             # Remember the dest vars that we see, so that we can merge results

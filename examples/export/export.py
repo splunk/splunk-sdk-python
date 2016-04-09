@@ -110,11 +110,11 @@ def get_csv_event_start(event_buffer):
     if start < 0:
         return (-1, -1, "")
 
-    print event_buffer[start:end]
+    print(event_buffer[start:end])
 
     tstart = event_buffer.find(",", start)
     tend = event_buffer.find(",", tstart+1)
-    print event_buffer[tstart:tend]
+    print(event_buffer[tstart:tend])
     last_time = event_buffer[tstart+1:tend].replace('"',"")
 
     while end > 0:
@@ -299,7 +299,7 @@ def export(options, service):
                              count=0)
 
         if result.status != 200:
-            print "warning: export job failed: %d, sleep/retry" % result.status
+            print("warning: export job failed: %d, sleep/retry" % result.status)
             time.sleep(60)
         else:
             success = True
@@ -321,16 +321,16 @@ def main():
     options = parse(sys.argv[1:], CLIRULES, ".splunkrc")
 
     if options.kwargs['omode'] not in OUTPUT_MODES:
-        print "output mode must be one of %s, found %s" % (OUTPUT_MODES,
-              options.kwargs['omode'])
+        print("output mode must be one of %s, found %s" % (OUTPUT_MODES,
+              options.kwargs['omode']))
         sys.exit(1)
 
     service = connect(**options.kwargs)
 
     if path.exists(options.kwargs['output']):
         if not options.kwargs['recover']:
-            print "Export file %s exists, and recover option nor specified" % \
-                  options.kwargs['output']
+            print("Export file %s exists, and recover option nor specified" % \
+                  options.kwargs['output'])
             sys.exit(1)
         else:
             options.kwargs['end'] = recover(options)
@@ -343,8 +343,8 @@ def main():
     try:
         options.kwargs['fd'] = open(options.kwargs['output'], openmode)
     except IOError:
-        print "Failed to open output file %s w/ mode %s" % \
-                             (options.kwargs['output'], openmode)
+        print("Failed to open output file %s w/ mode %s" % \
+                             (options.kwargs['output'], openmode))
         sys.exit(1)
 
     export(options, service)

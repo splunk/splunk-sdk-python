@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import app
 
 from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
@@ -62,9 +62,9 @@ class CountMatchesCommand(StreamingCommand):
         self.logger.debug('CountMatchesCommand: %s', self)  # logs command line
         pattern = self.pattern
         for record in records:
-            count = 0L
+            count = 0
             for fieldname in self.fieldnames:
-                matches = pattern.findall(unicode(record[fieldname].decode("utf-8")))
+                matches = pattern.findall(str(record[fieldname].decode("utf-8")))
                 count += len(matches)
             record[self.fieldname] = count
             yield record

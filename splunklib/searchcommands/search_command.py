@@ -572,8 +572,8 @@ class SearchCommand(object):
                 debug('Writing configuration settings')
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
-                self._record_writer.write_record({
-                    n: ','.join(v) if isinstance(v, (list, tuple)) else v for n, v in self._configuration.iteritems()})
+                self._record_writer.write_record(dict(
+                    (n, ','.join(v)) if isinstance(v, (list, tuple)) else v for n, v in self._configuration.iteritems()))
                 self.finish()
 
             elif argv[1] == '__EXECUTE__':
@@ -884,7 +884,7 @@ class SearchCommand(object):
         except StopIteration:
             return
 
-        mv_fieldnames = {name: name[len('__mv_'):] for name in fieldnames if name.startswith('__mv_')}
+        mv_fieldnames = dict((name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_'))
 
         if len(mv_fieldnames) == 0:
             for values in reader:
@@ -926,7 +926,7 @@ class SearchCommand(object):
                 except StopIteration:
                     return
 
-                mv_fieldnames = {name: name[len('__mv_'):] for name in fieldnames if name.startswith('__mv_')}
+                mv_fieldnames = dict((name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_'))
 
                 if len(mv_fieldnames) == 0:
                     for values in reader:

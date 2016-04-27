@@ -763,7 +763,7 @@ class RecordWriterV2(RecordWriter):
     def _write_chunk(self, metadata, body):
 
         if metadata:
-            metadata = str(''.join(self._iterencode_json({n: v for n, v in metadata if v is not None}, 0)))
+            metadata = str(''.join(self._iterencode_json(dict((n, v) for n, v in metadata if v is not None), 0)))
             metadata_length = len(metadata)
         else:
             metadata_length = 0

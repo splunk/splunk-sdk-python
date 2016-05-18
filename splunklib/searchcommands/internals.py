@@ -16,7 +16,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import deque, namedtuple, OrderedDict
+from collections import deque, namedtuple
+try:
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from splunklib.ordereddict import OrderedDict
 from cStringIO import StringIO
 from itertools import chain, imap
 from json import JSONDecoder, JSONEncoder
@@ -763,7 +767,7 @@ class RecordWriterV2(RecordWriter):
     def _write_chunk(self, metadata, body):
 
         if metadata:
-            metadata = str(''.join(self._iterencode_json({n: v for n, v in metadata if v is not None}, 0)))
+            metadata = str(''.join(self._iterencode_json(dict([(n, v) for n, v in metadata if v is not None]), 0)))
             metadata_length = len(metadata)
         else:
             metadata_length = 0

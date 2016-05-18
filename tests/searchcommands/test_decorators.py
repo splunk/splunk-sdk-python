@@ -17,7 +17,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from unittest import main, TestCase
+try:
+    from unittest2 import main, TestCase
+except ImportError:
+    from unittest import main, TestCase
 import sys
 
 from splunklib.searchcommands import Configuration, Option, environment, validators
@@ -25,7 +28,11 @@ from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
 
-from tests.searchcommands import rebase_environment
+try:
+    from tests.searchcommands import rebase_environment
+except ImportError:
+    # Skip on Python 2.6
+    pass
 
 
 @Configuration()
@@ -227,7 +234,7 @@ class TestDecorators(TestCase):
              (True, False),
              (None, 'anything other than a bool')),
             ('required_fields',
-             (['field_1', 'field_2'], {'field_1', 'field_2'}, ('field_1', 'field_2')),
+             (['field_1', 'field_2'], set(['field_1', 'field_2']), ('field_1', 'field_2')),
              (None, 0xdead, {'foo': 1, 'bar': 2})),
             ('requires_preop',
              (True, False),

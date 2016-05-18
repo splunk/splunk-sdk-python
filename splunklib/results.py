@@ -38,9 +38,9 @@ except:
     import xml.etree.ElementTree as et
 
 try:
-    from collections import OrderedDict
-except:
-    from ordereddict import OrderedDict
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from splunklib.ordereddict import OrderedDict
 
 try:
     from cStringIO import StringIO

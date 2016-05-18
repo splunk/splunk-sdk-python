@@ -19,7 +19,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
-from collections import deque, namedtuple, OrderedDict
+try:
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from splunklib.ordereddict import OrderedDict
+try:
+    __named_tuple_check = namedtuple
+except NameError:
+    # for Python 2.6
+    from collections import namedtuple
 from cStringIO import StringIO
 from functools import wraps
 from glob import iglob
@@ -28,7 +36,11 @@ from sys import float_info, maxint as maxsize, maxunicode
 from tempfile import mktemp
 from time import time
 from types import MethodType
-from unittest import main, TestCase
+from sys import version_info as python_version
+try:
+    from unittest2 import main, TestCase
+except ImportError:
+    from unittest import main, TestCase
 
 import cPickle as pickle
 import gzip
@@ -106,13 +118,18 @@ class TestInternals(TestCase):
 
     def test_recorder(self):
 
+        if (python_version[0] == 2 and python_version[1] < 7):
+            print("Skipping test since we're on {1}".format("".join(python_version)))
+            pass
+
         # Grab an input/output recording, the results of a prior countmatches run
 
         recording = os.path.join(self._package_path, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.')
 
-        with gzip.open(recording + 'input.gz', 'rb') as file_1, io.open(recording + 'output', 'rb') as file_2:
-            ifile = StringIO(file_1.read())
-            result = StringIO(file_2.read())
+        with gzip.open(recording + 'input.gz', 'rb') as file_1:
+            with io.open(recording + 'output', 'rb') as file_2:
+                ifile = StringIO(file_1.read())
+                result = StringIO(file_2.read())
 
         # Set up the input/output recorders that are under test
 
@@ -138,9 +155,10 @@ class TestInternals(TestCase):
                 ifile._recording.close()
                 ofile._recording.close()
 
-                with gzip.open(ifile._recording.name, 'rb') as file_1, gzip.open(ofile._recording.name, 'rb') as file_2:
-                    self.assertEqual(file_1.read(), ifile._file.getvalue())
-                    self.assertEqual(file_2.read(), ofile._file.getvalue())
+                with gzip.open(ifile._recording.name, 'rb') as file_1:
+                    with gzip.open(ofile._recording.name, 'rb') as file_2:
+                        self.assertEqual(file_1.read(), ifile._file.getvalue())
+                        self.assertEqual(file_2.read(), ofile._file.getvalue())
 
             finally:
                 ofile._recording.close()

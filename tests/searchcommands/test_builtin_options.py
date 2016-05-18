@@ -18,7 +18,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from cStringIO import StringIO
-from unittest import main, TestCase
+try:
+    from unittest2 import main, TestCase
+except ImportError:
+    from unittest import main, TestCase
 
 import os
 import sys
@@ -28,7 +31,13 @@ from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
 
-from tests.searchcommands import package_directory, rebase_environment
+try:
+    from tests.searchcommands import rebase_environment, package_directory
+except:
+    # Skip on Python 2.6
+    def rebase_environment(ignore):
+        return
+    pass
 
 
 @Configuration()

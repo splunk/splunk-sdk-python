@@ -686,6 +686,32 @@ class TestNamespace(unittest.TestCase):
     def test_namespace_fails(self):
         self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
+class TestBasicAuthentication(unittest.TestCase):
+    def setUp(self):
+        self.opts = testlib.parse([], {}, ".splunkrc")
+        opts = self.opts.kwargs.copy()
+        opts["basic"] = True
+        opts["username"] = self.opts.kwargs["username"]
+        opts["password"] = self.opts.kwargs["password"]
+
+        self.context = binding.connect(**opts)
+        import splunklib.client as client
+        service = client.Service(**opts)
+
+    if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
+        def assertIsNotNone(self, obj, msg=None):
+           if obj is None:
+               raise self.failureException, (msg or '%r is not None' % obj)
+
+    def test_basic_in_auth_headers(self):
+        self.assertIsNotNone(self.context._auth_headers)
+        self.assertNotEqual(self.context._auth_headers, [])
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(len(self.context._auth_headers), 1)
+        self.assertEqual(self.context._auth_headers[0][0], "Authorization")
+        self.assertEqual(self.context._auth_headers[0][1][:6], "Basic ")
+        self.assertEqual(self.context.get("/services").status, 200)
+
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):
         token = self.context.token

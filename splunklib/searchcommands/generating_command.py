@@ -221,7 +221,7 @@ class GeneratingCommand(SearchCommand):
 
         # region SCP v1 Properties
 
-        generates_timeorder = ConfigurationSetting(value=False, doc='''
+        generates_timeorder = ConfigurationSetting(doc='''
             :const:`True`, if the command generates new events.
 
             Default: :const:`False`
@@ -230,7 +230,7 @@ class GeneratingCommand(SearchCommand):
 
             ''')
 
-        local = ConfigurationSetting(value=False, doc='''
+        local = ConfigurationSetting(doc='''
             :const:`True`, if the command should run locally on the search head.
 
             Default: :const:`False`
@@ -239,7 +239,7 @@ class GeneratingCommand(SearchCommand):
 
             ''')
 
-        retainsevents = ConfigurationSetting(value=False, doc='''
+        retainsevents = ConfigurationSetting(doc='''
             :const:`True`, if the command retains events the way the sort, dedup, and cluster commands do, or whether it
             transforms them the way the stats command does.
 
@@ -249,7 +249,7 @@ class GeneratingCommand(SearchCommand):
 
             ''')
 
-        streaming = ConfigurationSetting(value=True, doc='''
+        streaming = ConfigurationSetting(doc='''
             :const:`True`, if the command is streamable.
 
             Default: :const:`True`

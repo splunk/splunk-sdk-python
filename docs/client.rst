@@ -68,6 +68,18 @@ splunklib.client
     :members: create, export, itemmeta, oneshot
     :inherited-members:
 
+.. autoclass:: KVStoreCollection
+    :members: data, update_index, update_field
+    :inherited-members:
+
+.. autoclass:: KVStoreCollectionData
+    :members: query, query_by_id, insert, delete, delete_by_id, update, batch_save
+    :inherited-members:
+
+.. autoclass:: KVStoreCollections
+    :members: create
+    :inherited-members:
+
 .. autoclass:: Loggers
     :members: itemmeta
     :inherited-members:
@@ -110,7 +122,7 @@ splunklib.client
     :inherited-members:
 
 .. autoclass:: Service
-    :members: apps, confs, capabilities, event_types, fired_alerts, indexes, info, inputs, job, jobs, loggers, messages, modular_input_kinds, parse, restart, restart_required, roles, search, saved_searches, settings, splunk_version, storage_passwords, users
+    :members: apps, confs, capabilities, event_types, fired_alerts, indexes, info, inputs, job, jobs, kvstore, loggers, messages, modular_input_kinds, parse, restart, restart_required, roles, search, saved_searches, settings, splunk_version, storage_passwords, users
     :inherited-members:
 
 .. autoclass:: Settings

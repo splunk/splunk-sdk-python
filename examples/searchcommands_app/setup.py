@@ -432,7 +432,7 @@ try:
     setup(
         description='Custom Search Command examples',
         name=os.path.basename(project_dir),
-        version='1.5.0',
+        version='1.6.0',
         author='Splunk, Inc.',
         author_email='devinfo@splunk.com',
         url='http://github.com/splunk/splunk-sdk-python',

@@ -20,10 +20,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.client import Service
 
-try:
-    __named_tuple_check = namedtuple
-except NameError:
-    from collections import namedtuple
+
+from collections import namedtuple
 try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:

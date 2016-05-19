@@ -23,11 +23,7 @@ try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
     from splunklib.ordereddict import OrderedDict
-try:
-    __named_tuple_check = namedtuple
-except NameError:
-    # for Python 2.6
-    from collections import namedtuple
+from collections import namedtuple, deque
 from cStringIO import StringIO
 from functools import wraps
 from glob import iglob

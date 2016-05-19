@@ -57,7 +57,10 @@ if os.name == 'nt':
     patch_os()
     del locals()['patch_os']  # since this function has done its job
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from splunklib.ordereddict import OrderedDict
 from glob import glob
 from itertools import chain
 from setuptools import setup, Command

@@ -684,7 +684,7 @@ class SearchCommand(object):
         # Write search command configuration for consumption by splunkd
         # noinspection PyBroadException
         try:
-            self._record_writer = RecordWriterV2(ofile, getattr(self._metadata, 'maxresultrows', None))
+            self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
             self.fieldnames = []
             self.options.reset()
 

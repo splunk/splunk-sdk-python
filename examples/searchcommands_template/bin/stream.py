@@ -20,6 +20,7 @@ class %(command.title())Command(StreamingCommand):
     """
     def stream(self, events):
        # Put your event transformation code here
-       pass
+       for event in events:
+          yield event
 
 dispatch(%(command.title())Command, sys.argv, sys.stdin, sys.stdout, __name__)

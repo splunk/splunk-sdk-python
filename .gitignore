@@ -27,3 +27,9 @@ examples/searchcommands_app/package/default/commands.conf
 examples/searchcommands_app/package/bin/packages
 tests/searchcommands/apps/app_with_logging_configuration/*.log
 *.observed
+
+# virtualenv files
+/bin/
+/include/
+/lib/
+/local/

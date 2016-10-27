@@ -84,10 +84,11 @@ PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
 PATH_PROPERTIES = "properties/"
+PATH_DEPLOYMENT_APPS = "deployment/server/applications"
 PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
 PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
 PATH_DEPLOYMENT_SERVERS = "deployment/server/"
-PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
+PATH_DEPLOYMENT_SERVERCLASSES = "deployment/server/serverclasses"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
@@ -416,6 +417,22 @@ class Service(_BaseService):
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
 
     @property
+    def deployment_apps(self):
+        """Returns the collection of deployment apps on this Splunk instance.
+
+        :return: A :class:`ReadOnlyCollection` of :class:`DeploymentApp` entities.
+        """
+        return DeploymentApps(self)
+
+    @property
+    def deployment_clients(self):
+        """Returns the collection of deployment clients on this Splunk instance.
+
+        :return: A :class:`ReadOnlyCollection` of :class:`DeploymentClient` entities.
+        """
+        return DeploymentClient(self)
+
+    @property
     def event_types(self):
         """Returns the collection of event types defined in this Splunk instance.
 
@@ -499,6 +516,14 @@ class Service(_BaseService):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
         else:
             raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
+
+    @property
+    def server_classes(self):
+        """Returns the collection of server classes on this Splunk instance.
+
+        :return: A :class:`ReadOnlyCollection` of :class:`ServerClass` entities.
+        """
+        return ServerClasses(self)
 
     @property
     def storage_passwords(self):
@@ -1882,6 +1907,25 @@ class AlertGroup(Entity):
         :rtype: ``integer``
         """
         return int(self.content.get('triggered_alert_count', 0))
+
+class DeploymentApp(Entity):
+    pass
+
+
+class DeploymentApps(Collection):
+    """This class represents a collection of deployment apps."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_APPS, item=ServerClass)
+
+class DeploymentClient(Entity):
+    pass
+
+
+class DeploymentClient(Collection):
+    """This class represents a collection of deployment clients."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_CLIENTS, item=ServerClass)
+
 
 
 class Indexes(Collection):
@@ -3300,6 +3344,16 @@ class Settings(Entity):
         """
         self.service.post("/services/server/settings/settings", **kwargs)
         return self
+
+
+class ServerClass(Entity):
+    pass
+
+
+class ServerClasses(Collection):
+    """This class represents a collection of server classes."""
+    def __init__(self, service):
+        Collection.__init__(self, service, PATH_DEPLOYMENT_SERVERCLASSES, item=ServerClass)
 
 
 class User(Entity):

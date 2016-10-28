@@ -927,6 +927,11 @@ class Context(object):
         if ns.app is None and ns.owner is None:
             return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
 
+        # if the path_segment starts with receivers it is an indexing submit end point.
+        # these do not work with namespaces
+        if (path_segment.startswith('receivers/')):
+            return UrlEncoded("/services/%s" % path_segment, skip_encode=skip_encode)
+
         oname = "nobody" if ns.owner is None else ns.owner
         aname = "system" if ns.app is None else ns.app
         path = UrlEncoded("/servicesNS/%s/%s/%s" % (oname, aname, path_segment),

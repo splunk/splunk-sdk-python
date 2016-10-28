@@ -1937,7 +1937,7 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
-        cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
+        cookie_or_auth_header = "Authorization: Splunk %s\r\n" % self.service.token.replace('Splunk ','')
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():

@@ -46,7 +46,7 @@ try:
 except ImportError, e:
     from xml.parsers.expat import ExpatError as ParseError
 
-from data import record
+from .data import record
 
 __all__ = [
     "AuthenticationError",

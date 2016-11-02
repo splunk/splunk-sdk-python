@@ -16,10 +16,10 @@ from abc import ABCMeta, abstractmethod
 from urlparse import urlsplit
 import sys
 
-from splunklib.client import Service
-from splunklib.modularinput.event_writer import EventWriter
-from splunklib.modularinput.input_definition import InputDefinition
-from splunklib.modularinput.validation_definition import ValidationDefinition
+from ..client import Service
+from .event_writer import EventWriter
+from .input_definition import InputDefinition
+from .validation_definition import ValidationDefinition
 
 try:
     import xml.etree.cElementTree as ET

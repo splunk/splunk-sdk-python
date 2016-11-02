@@ -14,7 +14,7 @@
 
 import sys
 
-from splunklib.modularinput.event import ET
+from .event import ET
 
 try:
     from cStringIO import StringIO

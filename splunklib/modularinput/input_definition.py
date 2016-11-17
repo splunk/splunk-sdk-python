@@ -17,7 +17,7 @@ try:
 except ImportError as ie:
     import xml.etree.ElementTree as ET
 
-from utils import parse_xml_data
+from .utils import parse_xml_data
 
 class InputDefinition:
     """``InputDefinition`` encodes the XML defining inputs that Splunk passes to

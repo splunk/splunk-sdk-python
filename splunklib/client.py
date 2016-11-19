@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
 from data import record
 import data
 
@@ -1937,7 +1937,9 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
-        cookie_or_auth_header = "Authorization: Splunk %s\r\n" % self.service.token.replace('Splunk ','')
+        cookie_or_auth_header = "Authorization: Splunk %s\r\n" % \
+            self.service.token if isinstance(self.service.token, _NoAuthenticationToken) \
+            else self.service.token.replace("Splunk ", "")
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():

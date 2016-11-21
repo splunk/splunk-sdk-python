@@ -1938,8 +1938,8 @@ class Index(Entity):
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
         cookie_or_auth_header = "Authorization: Splunk %s\r\n" % \
-            self.service.token if isinstance(self.service.token, _NoAuthenticationToken) \
-            else self.service.token.replace("Splunk ", "")
+                                (self.service.token if self.service.token is _NoAuthenticationToken
+                                 else self.service.token.replace("Splunk ", ""))
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():

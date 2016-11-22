@@ -94,6 +94,21 @@ class IndexTest(testlib.SDKTestCase):
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
 
+    def test_submit_namespaced(self):
+        s = client.connect(**{
+            "username": self.service.username,
+            "password": self.service.password,
+            "owner": "nobody",
+            "app": "search"
+        })
+        i = s.indexes[self.index_name]
+
+        event_count = int(i['totalEventCount'])
+        self.assertEqual(i['sync'], '0')
+        self.assertEqual(i['disabled'], '0')
+        i.submit("Hello again namespaced!", sourcetype="Boris", host="meep")
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
+
     def test_submit_via_attach(self):
         event_count = int(self.index['totalEventCount'])
         cn = self.index.attach()

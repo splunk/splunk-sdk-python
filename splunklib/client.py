@@ -100,8 +100,8 @@ PATH_ROLES = "authorization/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
-PATH_RECEIVERS_STREAM = "receivers/stream"
-PATH_RECEIVERS_SIMPLE = "receivers/simple"
+PATH_RECEIVERS_STREAM = "/services/receivers/stream"
+PATH_RECEIVERS_SIMPLE = "/services/receivers/simple"
 PATH_STORAGE_PASSWORDS = "storage/passwords"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"

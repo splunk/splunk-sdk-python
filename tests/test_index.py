@@ -101,6 +101,18 @@ class IndexTest(testlib.SDKTestCase):
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
+    def test_submit_via_attach_using_token_header(self):
+        # Remove the prefix from the token
+        s = client.connect(**{'token': self.service.token.replace("Splunk ", "")})
+        i = s.indexes[self.index_name]
+        event_count = int(i['totalEventCount'])
+        if s.has_cookies():
+            del s.http._cookies
+        cn = i.attach()
+        cn.send("Hello Boris 5!\r\n")
+        cn.close()
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+
     def test_submit_via_attached_socket(self):
         event_count = int(self.index['totalEventCount'])
         f = self.index.attached_socket

@@ -18,7 +18,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from cStringIO import StringIO
-from unittest import main, TestCase
+try:
+    from unittest2 import main, TestCase
+except ImportError:
+    from unittest import main, TestCase
 
 import os
 import sys
@@ -28,7 +31,13 @@ from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
 
-from tests.searchcommands import package_directory, rebase_environment
+try:
+    from tests.searchcommands import rebase_environment, package_directory
+except:
+    # Skip on Python 2.6
+    def rebase_environment(ignore):
+        return
+    pass
 
 
 @Configuration()
@@ -71,7 +80,7 @@ class TestBuiltinOptions(TestCase):
         self.assertIsInstance(root_handler, logging.StreamHandler)
         self.assertEqual(root_handler.stream, sys.stderr)
 
-        self.assertEqual(command.logging_level, logging.getLevelName(logging.WARNING))
+        self.assertEqual(command.logging_level, logging.getLevelName(logging.root.level))
         root_handler.stream = StringIO()
         message = 'Test that output is directed to stderr without formatting'
         command.logger.warning(message)

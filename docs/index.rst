@@ -69,6 +69,12 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     :class:`~splunklib.client.Jobs` class
 
+    :class:`~splunklib.client.KVStoreCollection` class
+
+    :class:`~splunklib.client.KVStoreCollectionData` class
+
+    :class:`~splunklib.client.KVStoreCollections` class
+
     :class:`~splunklib.client.Loggers` class
 
     :class:`~splunklib.client.Message` class

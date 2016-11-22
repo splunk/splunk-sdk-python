@@ -217,10 +217,10 @@ class SDKTestCase(unittest.TestCase):
         appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
         return appPath
 
-    def uncheckedRestartSplunk(self, timeout=120):
+    def uncheckedRestartSplunk(self, timeout=240):
         self.service.restart(timeout)
 
-    def restartSplunk(self, timeout=120):
+    def restartSplunk(self, timeout=240):
         if self.service.restart_required:
             self.service.restart(timeout)
         else:

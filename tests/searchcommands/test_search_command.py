@@ -378,7 +378,9 @@ class TestSearchCommand(TestCase):
                         '"show_configuration={show_configuration}",'
                         '"required_option_1=value_1",'
                         '"required_option_2=value_2"'
-                    ']'
+                    '],'
+                    '"maxresultrows": 10,'
+                    '"command": "countmatches"'
                 '}}'
             '}}')
 
@@ -409,7 +411,6 @@ class TestSearchCommand(TestCase):
         result = StringIO()
         argv = ['some-external-search-command.py']
 
-        self.assertEqual(command.logging_configuration, default_logging_configuration)
         self.assertEqual(command.logging_level, 'WARNING')
         self.assertIs(command.record, None)
         self.assertIs(command.show_configuration, None)
@@ -473,6 +474,8 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')
         self.assertEqual(command_metadata.searchinfo.splunkd_uri, 'https://127.0.0.1:8089')
         self.assertEqual(command_metadata.searchinfo.username, 'admin')
+        self.assertEqual(command_metadata.searchinfo.maxresultrows, 10)
+        self.assertEqual(command_metadata.searchinfo.command, 'countmatches')
 
         command.search_results_info.search_metrics = command.search_results_info.search_metrics.__dict__
         command.search_results_info.optional_fields_json = command.search_results_info.optional_fields_json.__dict__
@@ -602,7 +605,6 @@ class TestSearchCommand(TestCase):
 
         # noinspection PyTypeChecker
         self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
-        self.assertEqual(command.logging_configuration, default_logging_configuration)
         self.assertEqual(command.logging_level, 'ERROR')
         self.assertEqual(command.record, False)
         self.assertEqual(command.show_configuration, False)

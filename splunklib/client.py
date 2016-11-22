@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
 from data import record
 import data
 
@@ -652,6 +652,14 @@ class Service(_BaseService):
         if self._splunk_version is None:
             self._splunk_version = tuple([int(p) for p in self.info['version'].split('.')])
         return self._splunk_version
+
+    @property
+    def kvstore(self):
+        """Returns the collection of KV Store collections.
+
+        :return: A :class:`KVStoreCollections` collection of :class:`KVStoreCollection` entities.
+        """
+        return KVStoreCollections(self)
 
     @property
     def users(self):
@@ -1929,7 +1937,9 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
-        cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
+        cookie_or_auth_header = "Authorization: Splunk %s\r\n" % \
+                                (self.service.token if self.service.token is _NoAuthenticationToken
+                                 else self.service.token.replace("Splunk ", ""))
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():
@@ -2144,7 +2154,7 @@ class Input(Entity):
 
             if 'restrictToHost' in kwargs:
                 raise IllegalOperationException("Cannot set restrictToHost on an existing input with the SDK.")
-            elif 'restrictToHost' in self._state.content:
+            elif 'restrictToHost' in self._state.content and self.kind != 'udp':
                 to_update['restrictToHost'] = self._state.content['restrictToHost']
 
             # Do the actual update operation.
@@ -3518,3 +3528,194 @@ class Application(Entity):
     def updateInfo(self):
         """Returns any update information that is available for the app."""
         return self._run_action("update")
+
+class KVStoreCollections(Collection):
+    def __init__(self, service):
+        Collection.__init__(self, service, 'storage/collections/config', item=KVStoreCollection)
+
+    def create(self, name, indexes = {}, fields = {}, **kwargs):
+        """Creates a KV Store Collection.
+
+        :param name: name of collection to create
+        :type name: ``string``
+        :param indexes: dictionary of index definitions
+        :type indexes: ``dict``
+        :param fields: dictionary of field definitions
+        :type fields: ``dict``
+        :param kwargs: a dictionary of additional parameters specifying indexes and field definitions
+        :type kwargs: ``dict``
+
+        :return: Result of POST request
+        """
+        for k, v in indexes.iteritems():
+            if isinstance(v, dict):
+                v = json.dumps(v)
+            kwargs['index.' + k] = v
+        for k, v in fields.iteritems():
+            kwargs['field.' + k] = v
+        return self.post(name=name, **kwargs)
+
+class KVStoreCollection(Entity):
+    @property
+    def data(self):
+        """Returns data object for this Collection.
+
+        :rtype: :class:`KVStoreData`
+        """
+        return KVStoreCollectionData(self)
+
+    def update_index(self, name, value):
+        """Changes the definition of a KV Store index.
+
+        :param name: name of index to change
+        :type name: ``string``
+        :param value: new index definition
+        :type value: ``dict`` or ``string``
+
+        :return: Result of POST request
+        """
+        kwargs = {}
+        kwargs['index.' + name] = value if isinstance(value, basestring) else json.dumps(value)
+        return self.post(**kwargs)
+
+    def update_field(self, name, value):
+        """Changes the definition of a KV Store field.
+
+        :param name: name of field to change
+        :type name: ``string``
+        :param value: new field definition
+        :type value: ``string``
+
+        :return: Result of POST request
+        """
+        kwargs = {}
+        kwargs['field.' + name] = value
+        return self.post(**kwargs)
+
+class KVStoreCollectionData(object):
+    """This class represents the data endpoint for a KVStoreCollection.
+
+    Retrieve using :meth:`KVStoreCollection.data`
+    """
+    JSON_HEADER = [('Content-Type', 'application/json')]
+
+    def __init__(self, collection):
+        self.service = collection.service
+        self.collection = collection
+        self.owner, self.app, self.sharing = collection._proper_namespace()
+        self.path = 'storage/collections/data/' + UrlEncoded(self.collection.name) + '/'
+
+    def _get(self, url, **kwargs):
+        return self.service.get(self.path + url, owner=self.owner, app=self.app, sharing=self.sharing, **kwargs)
+
+    def _post(self, url, **kwargs):
+        return self.service.post(self.path + url, owner=self.owner, app=self.app, sharing=self.sharing, **kwargs)
+
+    def _delete(self, url, **kwargs):
+        return self.service.delete(self.path + url, owner=self.owner, app=self.app, sharing=self.sharing, **kwargs)
+
+    def query(self, **query):
+        """
+        Gets the results of query, with optional parameters sort, limit, skip, and fields.
+
+        :param query: Optional parameters. Valid options are sort, limit, skip, and fields
+        :type query: ``dict``
+
+        :return: Array of documents retrieved by query.
+        :rtype: ``array``
+        """
+        return json.loads(self._get('', **query).body.read())
+
+    def query_by_id(self, id):
+        """
+        Returns object with _id = id.
+
+        :param id: Value for ID. If not a string will be coerced to string.
+        :type id: ``string``
+
+        :return: Document with id
+        :rtype: ``dict``
+        """
+        return json.loads(self._get(UrlEncoded(str(id))).body.read())
+
+    def insert(self, data):
+        """
+        Inserts item into this collection. An _id field will be generated if not assigned in the data.
+
+        :param data: Document to insert
+        :type data: ``string``
+
+        :return: _id of inserted object
+        :rtype: ``dict``
+        """
+        return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+
+    def delete(self, query=None):
+        """
+        Deletes all data in collection if query is absent. Otherwise, deletes all data matched by query.
+
+        :param query: Query to select documents to delete
+        :type query: ``string``
+
+        :return: Result of DELETE request
+        """
+        return self._delete('', **({'query': query}) if query else {})
+
+    def delete_by_id(self, id):
+        """
+        Deletes document that has _id = id.
+
+        :param id: id of document to delete
+        :type id: ``string``
+
+        :return: Result of DELETE request
+        """
+        return self._delete(UrlEncoded(str(id)))
+
+    def update(self, id, data):
+        """
+        Replaces document with _id = id with data.
+
+        :param id: _id of document to update
+        :type id: ``string``
+        :param data: the new document to insert
+        :type data: ``string``
+
+        :return: id of replaced document
+        :rtype: ``dict``
+        """
+        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+
+    def batch_find(self, *dbqueries):
+        """
+        Returns array of results from queries dbqueries.
+
+        :param dbqueries: Array of individual queries as dictionaries
+        :type dbqueries: ``array`` of ``dict``
+        
+        :return: Results of each query
+        :rtype: ``array`` of ``array``
+        """
+        if len(dbqueries) < 1: 
+            raise Exception('Must have at least one query.')
+        
+        data = json.dumps(dbqueries)
+
+        return json.loads(self._post('batch_find', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+
+    def batch_save(self, *documents):
+        """
+        Inserts or updates every document specified in documents.
+
+        :param documents: Array of documents to save as dictionaries
+        :type documents: ``array`` of ``dict``
+        
+        :return: Results of update operation as overall stats
+        :rtype: ``dict``
+        """
+        if len(documents) < 1: 
+            raise Exception('Must have at least one document.')
+        
+        data = json.dumps(documents)
+
+        return json.loads(self._post('batch_save', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())

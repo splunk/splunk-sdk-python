@@ -1,5 +1,30 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.0
+
+### New Features and APIs
+
+* Added support for KV Store.
+
+* Added support for HTTP basic authentication (GitHub issue #117).
+
+* Improve support for HTTP keep-alive connections (GitHub issue #122).
+
+
+### Bug Fixes
+
+* Fixed Python 2.6 compatibility (GitHub issue #141).
+
+* Fixed appending restrictToHost to UDP inputs (GitHub issue #128).
+
+### Minor Changes
+
+* Added support for Travis CI.
+
+* Updated the default test runner.
+
+* Removed shortened links from documentation and comments.
+
 ## Version 1.5.0
 
 ### New features and APIs
@@ -51,9 +76,9 @@
 
 * Restored support for Python 2.6 (GitHub issues #96 & #114).
 
-* Fix `SearchCommands` decorators and `Validator` classes (Github issue #113).
+* Fix `SearchCommands` decorators and `Validator` classes (GitHub issue #113).
 
-* Fix `SearchCommands` bug iterating over `None` in `dict_reader.fieldnames` (Github issue #110).
+* Fix `SearchCommands` bug iterating over `None` in `dict_reader.fieldnames` (GitHub issue #110).
 
 * Fixed JSON parsing errors (GitHub issue #100).
 

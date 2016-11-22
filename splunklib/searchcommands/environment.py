@@ -61,7 +61,7 @@ def configure_logging(logger_name, filename=None):
     :returns: The named logger and the location of the logging configuration file loaded.
     :rtype: tuple
 
-    .. _ConfigParser format: http://goo.gl/K6edZ8
+    .. _ConfigParser format: https://docs.python.org/2/library/logging.config.html#configuration-file-format
 
     """
     if filename is None:

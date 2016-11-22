@@ -31,7 +31,11 @@ from cStringIO import StringIO
 from datetime import datetime
 from itertools import ifilter, imap, izip
 from subprocess import PIPE, Popen
-from unittest import main, skipUnless, TestCase
+
+try:
+    from unittest2 import main, skipUnless, TestCase
+except ImportError:
+    from unittest import main, skipUnless, TestCase
 
 import gzip
 import json
@@ -39,7 +43,11 @@ import csv
 import io
 import os
 
-from tests.searchcommands import project_root
+try:
+    from tests.searchcommands import project_root
+except ImportError:
+    # Python 2.6
+    pass
 
 
 def pypy():
@@ -81,8 +89,11 @@ class Recording(object):
         self._input_file = path + '.input.gz'
         self._output_file = path + '.output'
 
+        # Remove the "splunk cmd" portion
+        self._args = self._args[2:]
+
     def get_args(self, command_path):
-        self._args[3] = command_path
+        self._args[1] = command_path
         return self._args
 
     @property
@@ -131,7 +142,11 @@ class Recordings(object):
 
 class TestSearchCommandsApp(TestCase):
 
-    app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')
+    try:
+        app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')
+    except NameError:
+        # SKip if Python 2.6
+        pass
 
     def setUp(self):
         if not os.path.isdir(TestSearchCommandsApp.app_root):
@@ -385,17 +400,18 @@ class TestSearchCommandsApp(TestCase):
             compressed_file = recording.input_file
             uncompressed_file = os.path.splitext(recording.input_file)[0]
             try:
-                with gzip.open(compressed_file, 'rb') as ifile, io.open(uncompressed_file, 'wb') as ofile:
-                    b = bytearray(io.DEFAULT_BUFFER_SIZE)
-                    n = len(b)
-                    while True:
-                        count = ifile.readinto(b)
-                        if count == 0:
-                            break
-                        if count < n:
-                            ofile.write(b[:count])
-                            break
-                        ofile.write(b)
+                with gzip.open(compressed_file, 'rb') as ifile:
+                    with io.open(uncompressed_file, 'wb') as ofile:
+                        b = bytearray(io.DEFAULT_BUFFER_SIZE)
+                        n = len(b)
+                        while True:
+                            count = ifile.readinto(b)
+                            if count == 0:
+                                break
+                            if count < n:
+                                ofile.write(b[:count])
+                                break
+                            ofile.write(b)
                 with io.open(uncompressed_file, 'rb') as ifile:
                     process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE)
                     output, errors = process.communicate()

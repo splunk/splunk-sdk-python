@@ -20,12 +20,21 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.client import Service
 
-from collections import namedtuple, OrderedDict
+
+from collections import namedtuple
+try:
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from splunklib.ordereddict import OrderedDict
 from copy import deepcopy
 from cStringIO import StringIO
 from itertools import chain, ifilter, imap, islice, izip
 from logging import _levelNames, getLevelName, getLogger
-from shutil import make_archive
+try:
+    from shutil import make_archive
+except ImportError:
+    # Used for recording, skip on python 2.6
+    pass
 from time import time
 from urllib import unquote
 from urlparse import urlsplit
@@ -572,8 +581,8 @@ class SearchCommand(object):
                 debug('Writing configuration settings')
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
-                self._record_writer.write_record({
-                    n: ','.join(v) if isinstance(v, (list, tuple)) else v for n, v in self._configuration.iteritems()})
+                self._record_writer.write_record(dict(
+                    (n, ','.join(v) if isinstance(v, (list, tuple)) else v) for n, v in self._configuration.iteritems()))
                 self.finish()
 
             elif argv[1] == '__EXECUTE__':
@@ -675,7 +684,7 @@ class SearchCommand(object):
         # Write search command configuration for consumption by splunkd
         # noinspection PyBroadException
         try:
-            self._record_writer = RecordWriterV2(ofile, getattr(self._metadata, 'maxresultrows', None))
+            self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
             self.fieldnames = []
             self.options.reset()
 
@@ -884,7 +893,7 @@ class SearchCommand(object):
         except StopIteration:
             return
 
-        mv_fieldnames = {name: name[len('__mv_'):] for name in fieldnames if name.startswith('__mv_')}
+        mv_fieldnames = dict([(name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_')])
 
         if len(mv_fieldnames) == 0:
             for values in reader:
@@ -926,7 +935,7 @@ class SearchCommand(object):
                 except StopIteration:
                     return
 
-                mv_fieldnames = {name: name[len('__mv_'):] for name in fieldnames if name.startswith('__mv_')}
+                mv_fieldnames = dict([(name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_')])
 
                 if len(mv_fieldnames) == 0:
                     for values in reader:
@@ -1034,7 +1043,7 @@ SearchMetric = namedtuple(b'SearchMetric', (b'elapsed_seconds', b'invocation_cou
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
 
-    This function implements a `conditional script stanza <http://goo.gl/OFaox6>`_ based on the value of
+    This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of
     :code:`module_name`::
 
         if module_name is None or module_name == '__main__':

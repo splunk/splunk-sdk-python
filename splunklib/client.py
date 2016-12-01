@@ -884,7 +884,7 @@ class Entity(Endpoint):
         try:
             self[item]
             return True
-        except KeyError:
+        except KeyError, AttributeError:
             return False
 
     def __eq__(self, other):

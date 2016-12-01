@@ -1,5 +1,23 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.1
+
+### Bug Fixes
+
+* Fixed Search Commands exiting if the external process returns a zero status code (Windows only).
+
+* Fixed Search Command Protocol v2 not parsing the `maxresultrows` and `command` metadata properties.
+
+* Fixed double prepending the `Splunk ` prefix for authentication tokens.
+
+* Fixed `Index.submit()` for namespaced `Service` instances.
+
+* Fixed uncaught `AttributeError` when accessing `Entity` properties (GitHub issue #131).
+
+### Minor Changes
+
+* Fixed broken tests due to expired SSL certificate.
+
 ## Version 1.6.0
 
 ### New Features and APIs

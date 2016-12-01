@@ -67,7 +67,7 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header
+from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
 from data import record
 import data
 
@@ -100,8 +100,8 @@ PATH_ROLES = "authorization/roles/"
 PATH_SAVED_SEARCHES = "saved/searches/"
 PATH_STANZA = "configs/conf-%s/%s" # (file, stanza)
 PATH_USERS = "authentication/users/"
-PATH_RECEIVERS_STREAM = "receivers/stream"
-PATH_RECEIVERS_SIMPLE = "receivers/simple"
+PATH_RECEIVERS_STREAM = "/services/receivers/stream"
+PATH_RECEIVERS_SIMPLE = "/services/receivers/simple"
 PATH_STORAGE_PASSWORDS = "storage/passwords"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"
@@ -884,7 +884,7 @@ class Entity(Endpoint):
         try:
             self[item]
             return True
-        except KeyError:
+        except KeyError, AttributeError:
             return False
 
     def __eq__(self, other):
@@ -1937,7 +1937,9 @@ class Index(Entity):
         if sourcetype is not None: args['sourcetype'] = sourcetype
         path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
 
-        cookie_or_auth_header = "Authorization: %s\r\n" % self.service.token
+        cookie_or_auth_header = "Authorization: Splunk %s\r\n" % \
+                                (self.service.token if self.service.token is _NoAuthenticationToken
+                                 else self.service.token.replace("Splunk ", ""))
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():

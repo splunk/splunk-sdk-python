@@ -378,7 +378,9 @@ class TestSearchCommand(TestCase):
                         '"show_configuration={show_configuration}",'
                         '"required_option_1=value_1",'
                         '"required_option_2=value_2"'
-                    ']'
+                    '],'
+                    '"maxresultrows": 10,'
+                    '"command": "countmatches"'
                 '}}'
             '}}')
 
@@ -472,6 +474,8 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')
         self.assertEqual(command_metadata.searchinfo.splunkd_uri, 'https://127.0.0.1:8089')
         self.assertEqual(command_metadata.searchinfo.username, 'admin')
+        self.assertEqual(command_metadata.searchinfo.maxresultrows, 10)
+        self.assertEqual(command_metadata.searchinfo.command, 'countmatches')
 
         command.search_results_info.search_metrics = command.search_results_info.search_metrics.__dict__
         command.search_results_info.optional_fields_json = command.search_results_info.optional_fields_json.__dict__

@@ -94,10 +94,37 @@ class IndexTest(testlib.SDKTestCase):
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
 
+    def test_submit_namespaced(self):
+        s = client.connect(**{
+            "username": self.service.username,
+            "password": self.service.password,
+            "owner": "nobody",
+            "app": "search"
+        })
+        i = s.indexes[self.index_name]
+
+        event_count = int(i['totalEventCount'])
+        self.assertEqual(i['sync'], '0')
+        self.assertEqual(i['disabled'], '0')
+        i.submit("Hello again namespaced!", sourcetype="Boris", host="meep")
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
+
     def test_submit_via_attach(self):
         event_count = int(self.index['totalEventCount'])
         cn = self.index.attach()
         cn.send("Hello Boris!\r\n")
+        cn.close()
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+
+    def test_submit_via_attach_using_token_header(self):
+        # Remove the prefix from the token
+        s = client.connect(**{'token': self.service.token.replace("Splunk ", "")})
+        i = s.indexes[self.index_name]
+        event_count = int(i['totalEventCount'])
+        if s.has_cookies():
+            del s.http._cookies
+        cn = i.attach()
+        cn.send("Hello Boris 5!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 

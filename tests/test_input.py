@@ -131,6 +131,14 @@ class TestRead(testlib.SDKTestCase):
     def test_inputs_list_on_one_kind(self):
         self.service.inputs.list('monitor')
 
+    def test_read_invalid_input(self):
+        name = testlib.tmpname()
+        try:
+            self.service.inputs.get(name)
+            self.fail("Expected a 404 HTTPError")
+        except HTTPError as he:
+            self.assertTrue("HTTP 404 Not Found" in str(he))
+
     def test_inputs_list_on_one_kind_with_count(self):
         N = 10
         expected = [x.name for x in self.service.inputs.list('monitor')[:10]]

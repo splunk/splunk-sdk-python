@@ -67,9 +67,9 @@ from datetime import datetime, timedelta
 import socket
 import contextlib
 
-from binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
-from data import record
-import data
+from .binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
+from .data import record
+from . import data
 
 __all__ = [
     "connect",

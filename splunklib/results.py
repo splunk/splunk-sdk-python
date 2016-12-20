@@ -40,7 +40,7 @@ except:
 try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
-    from splunklib.ordereddict import OrderedDict
+    from .ordereddict import OrderedDict
 
 try:
     from cStringIO import StringIO

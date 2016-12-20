@@ -20,7 +20,7 @@ from collections import deque, namedtuple
 try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
-    from splunklib.ordereddict import OrderedDict
+    from ..ordereddict import OrderedDict
 from cStringIO import StringIO
 from itertools import chain, imap
 from json import JSONDecoder, JSONEncoder

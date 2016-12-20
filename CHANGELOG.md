@@ -1,5 +1,13 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.2
+
+### Minor changes
+
+* Use relative imports throughout the the SDK.
+
+* Performance improvement when constructing `Input` entity paths.
+
 ## Version 1.6.1
 
 ### Bug Fixes

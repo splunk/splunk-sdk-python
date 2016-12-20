@@ -2432,15 +2432,12 @@ class Inputs(Collection):
         :return: The relative endpoint path.
         :rtype: ``string``
         """
-        if kind in self.kinds:
-            return UrlEncoded(kind, skip_encode=True)
-        # Special cases
-        elif kind == 'tcp':
+        if kind == 'tcp':
             return UrlEncoded('tcp/raw', skip_encode=True)
         elif kind == 'splunktcp':
             return UrlEncoded('tcp/cooked', skip_encode=True)
         else:
-            raise ValueError("No such kind on server: %s" % kind)
+            return UrlEncoded(kind, skip_encode=True)
 
     def list(self, *kinds, **kwargs):
         """Returns a list of inputs that are in the :class:`Inputs` collection.

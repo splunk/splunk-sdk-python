@@ -62,6 +62,8 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
 
+http2str = (lambda s:s) if sys.version_info < (3,) else (lambda b:b.decode())
+
 def _log_duration(f):
     @wraps(f)
     def new_f(*args, **kwargs):
@@ -1289,7 +1291,7 @@ class ResponseReader(io.RawIOBase):
         self._buffer = ''
         if size is not None:
             size -= len(r)
-        r = r + self._response.read(size)
+        r = r + http2str(self._response.read(size))
         return r
 
     def readable(self):

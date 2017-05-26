@@ -180,7 +180,7 @@ class StreamingCommand(SearchCommand):
                     iteritems = ifilter(lambda (name, value): name != 'clear_required_fields', iteritems)
             else:
                 iteritems = ifilter(lambda (name, value): name != 'distributed', iteritems)
-                if self.distributed:
+                if not self.distributed:
                     iteritems = imap(
                         lambda (name, value): (name, 'stateful') if name == 'type' else (name, value), iteritems)
             return iteritems

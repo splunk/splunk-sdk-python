@@ -308,7 +308,7 @@ class GeneratingCommand(SearchCommand):
             version = self.command.protocol_version
             if version == 2:
                 iteritems = ifilter(lambda (name, value): name != 'distributed', iteritems)
-                if self.distributed and self.type == 'streaming':
+                if not self.distributed and self.type == 'streaming':
                     iteritems = imap(
                         lambda (name, value): (name, 'stateful') if name == 'type' else (name, value), iteritems)
             return iteritems

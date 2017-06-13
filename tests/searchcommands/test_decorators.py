@@ -253,7 +253,7 @@ class TestDecorators(TestCase):
              (None, 0xdead)),
             ('type',
              ('events', 'reporting', 'streaming', b'events', b'reporting', b'streaming'),
-             ('events', 0xdead))):
+             ('eventing', 0xdead))):
 
             for value in values:
 

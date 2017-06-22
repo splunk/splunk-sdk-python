@@ -21,12 +21,16 @@ import os
 import sys
 import traceback
 
+from . import splunklib_logger
+# renamed logger to loggerx because global property variable from the init() interferes with module import variable name
+
 if sys.platform == 'win32':
     from signal import signal, CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM
     from subprocess import Popen
     import atexit
 
-from . import splunklib_logger as logger
+
+loggerx = splunklib_logger
 
 # P1 [ ] TODO: Add ExternalSearchCommand class documentation
 
@@ -35,6 +39,7 @@ class ExternalSearchCommand(object):
     """
     """
     def __init__(self, path, argv=None, environ=None):
+        global loggerx
 
         if not isinstance(path, (bytes, unicode)):
             raise ValueError('Expected a string value for path, not {}'.format(repr(path)))
@@ -46,6 +51,7 @@ class ExternalSearchCommand(object):
 
         self.argv = argv
         self.environ = environ
+        loggerx = self._logger
 
     # region Properties
 
@@ -122,14 +128,14 @@ class ExternalSearchCommand(object):
                 raise ValueError('Cannot find command on path: {}'.format(path))
 
             path = found
-            logger.debug('starting command="%s", arguments=%s', path, argv)
+            loggerx.debug('starting command="%s", arguments=%s', path, argv)
 
             def terminate(signal_number, frame):
                 sys.exit('External search command is terminating on receipt of signal={}.'.format(signal_number))
 
             def terminate_child():
                 if p.pid is not None and p.returncode is None:
-                    logger.debug('terminating command="%s", arguments=%d, pid=%d', path, argv, p.pid)
+                    loggerx.debug('terminating command="%s", arguments=%d, pid=%d', path, argv, p.pid)
                     os.kill(p.pid, CTRL_BREAK_EVENT)
 
             p = Popen(argv, executable=path, env=environ, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
@@ -138,10 +144,10 @@ class ExternalSearchCommand(object):
             signal(SIGINT, terminate)
             signal(SIGTERM, terminate)
 
-            logger.debug('started command="%s", arguments=%s, pid=%d', path, argv, p.pid)
+            loggerx.debug('started command="%s", arguments=%s, pid=%d', path, argv, p.pid)
             p.wait()
 
-            logger.debug('finished command="%s", arguments=%s, pid=%d, returncode=%d', path, argv, p.pid, p.returncode)
+            loggerx.debug('finished command="%s", arguments=%s, pid=%d, returncode=%d', path, argv, p.pid, p.returncode)
 
             if p.returncode != 0:
                 sys.exit(p.returncode)

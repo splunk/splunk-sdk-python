@@ -497,7 +497,7 @@ class SearchCommand(object):
 
     def _prepare_protocol_v1(self, argv, ifile, ofile):
 
-        debug = environment.splunklib_logger.debug
+        debug = self.logger.debug
 
         # Provide as much context as possible in advance of parsing the command line and preparing for execution
 
@@ -566,7 +566,7 @@ class SearchCommand(object):
 
     def _process_protocol_v1(self, argv, ifile, ofile):
 
-        debug = environment.splunklib_logger.debug
+        debug = self.logger.debug
         class_name = self.__class__.__name__
 
         debug('%s.process started under protocol_version=1', class_name)
@@ -635,7 +635,7 @@ class SearchCommand(object):
         :return: :const:`None`
 
         """
-        debug = environment.splunklib_logger.debug
+        debug = self.logger.debug
         class_name = self.__class__.__name__
 
         debug('%s.process started under protocol_version=2', class_name)
@@ -966,7 +966,7 @@ class SearchCommand(object):
         lineno = origin.tb_lineno
         message = '{0} at "{1}", line {2:d} : {3}'.format(error_type.__name__, filename, lineno, error)
 
-        environment.splunklib_logger.error(message + '\nTraceback:\n' + ''.join(traceback.format_tb(tb)))
+        self.logger.error(message + '\nTraceback:\n' + ''.join(traceback.format_tb(tb)))
         self.write_error(message)
 
     # endregion

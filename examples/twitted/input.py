@@ -14,15 +14,19 @@
 # License for the specific language governing permissions and limitations 
 # under the License.  
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pprint import pprint
 
 import base64
 from getpass import getpass
-import httplib
+import splunklib.six.moves.http_client
 import json
 import socket
 import sys
 import os
+from splunklib import six
+from six.moves import input
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
@@ -56,12 +60,12 @@ class Twitter:
             'User-Agent': "twitted.py/0.1",
             'Accept': "*/*",
         }
-        connection = httplib.HTTPSConnection(TWITTER_STREAM_HOST)
+        connection = six.moves.http_client.HTTPSConnection(TWITTER_STREAM_HOST)
         connection.request("GET", TWITTER_STREAM_PATH, "", headers)
         response = connection.getresponse()
         if response.status != 200:
-            raise Exception, "HTTP Error %d (%s)" % (
-                response.status, response.reason)
+            raise Exception("HTTP Error %d (%s)" % (
+                response.status, response.reason))
         return response
 
 RULES = {
@@ -93,15 +97,15 @@ def cmdline():
     kwargs = parse(sys.argv[1:], RULES, ".splunkrc").kwargs
 
     # Prompt for Twitter username/password if not provided on command line
-    if not kwargs.has_key('tusername'):
-        kwargs['tusername'] = raw_input("Twitter username: ")
-    if not kwargs.has_key('tpassword'):
+    if 'tusername' not in kwargs:
+        kwargs['tusername'] = input("Twitter username: ")
+    if 'tpassword' not in kwargs:
         kwargs['tpassword'] = getpass("Twitter password:")
 
     # Prompt for Splunk username/password if not provided on command line
-    if not kwargs.has_key('username'):
-        kwargs['username'] = raw_input("Splunk username: ")
-    if not kwargs.has_key('password'):
+    if 'username' not in kwargs:
+        kwargs['username'] = input("Splunk username: ")
+    if 'password' not in kwargs:
         kwargs['password'] = getpass("Splunk password:")
 
     return kwargs
@@ -118,7 +122,7 @@ def flatten(value, prefix=None):
                 return False
         return True
 
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         return value.encode("utf8")
 
     if isinstance(value, list):
@@ -137,7 +141,7 @@ def flatten(value, prefix=None):
     if isinstance(value, dict):
         result = {}
         prefix = "%s" if prefix is None else "%s_%%s" % prefix
-        for k, v in value.iteritems():
+        for k, v in six.iteritems(value):
             k = prefix % str(k)
             v = flatten(v, k)
             if not isinstance(v, dict): v = {k:v}
@@ -219,15 +223,15 @@ def print_record(record):
         return
 
     # Otherwise print a nice summary of the record
-    if record.has_key('delete_status_id'):
-        print "delete %d %d" % (
+    if 'delete_status_id' in record:
+        print("delete %d %d" % (
             record['delete_status_id'],
-            record['delete_status_user_id'])
+            record['delete_status_user_id']))
     else:
-        print "status %s %d %d" % (
+        print("status %s %d %d" % (
             record['created_at'], 
             record['id'], 
-            record['user_id'])
+            record['user_id']))
 
 def process(status):
     status = json.loads(status)
@@ -241,15 +245,15 @@ def main():
     verbose = kwargs['verbose']
 
     # Force the owner namespace, if not provided
-    if 'owner' not in kwargs.keys():
+    if 'owner' not in list(kwargs.keys()):
         kwargs['owner'] = kwargs['username']
 
-    if verbose > 0: print "Initializing Splunk .."
+    if verbose > 0: print("Initializing Splunk ..")
     service = client.connect(**kwargs)
 
     # Create the index if it doesn't exist
     if 'twitter' not in service.indexes:
-        if verbose > 0: print "Creating index 'twitter' .."
+        if verbose > 0: print("Creating index 'twitter' ..")
         service.indexes.create("twitter")
 
     # Create the TCP input if it doesn't exist
@@ -257,7 +261,7 @@ def main():
     input_port = kwargs.get("inputport", DEFAULT_SPLUNK_PORT)
     input_name = str(input_port)
     if input_name not in service.inputs:
-        if verbose > 0: print "Creating input '%s'" % input_name
+        if verbose > 0: print("Creating input '%s'" % input_name)
         service.inputs.create(
             input_port, "tcp", index="twitter", sourcetype="twitter")
     
@@ -266,7 +270,7 @@ def main():
     ingest.connect((input_host, input_port))
 
     if verbose > 0: 
-        print "Listening (and sending data to %s:%s).." % (input_host, input_port)
+        print("Listening (and sending data to %s:%s).." % (input_host, input_port))
     try: 
         listen(kwargs['tusername'], kwargs['tpassword'])
     except KeyboardInterrupt:
@@ -275,7 +279,7 @@ def main():
         error("""There was an error with the connection to Twitter. Make sure
 you don't have other running instances of the 'twitted' sample app, and try 
 again.""", 2)
-        print e
+        print(e)
         
 if __name__ == "__main__":
     main()

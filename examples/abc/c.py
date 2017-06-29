@@ -13,6 +13,8 @@
 # under the License.
 
 """Retrieves a list of installed apps from Splunk using the client module."""
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -30,4 +32,4 @@ service = client.connect(
     password=PASSWORD)
 
 for app in service.apps:
-    print app.name
+    print(app.name)

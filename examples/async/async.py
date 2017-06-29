@@ -20,6 +20,8 @@
 
 #### Main Code
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os, datetime
 import urllib
 import ssl
@@ -145,7 +147,7 @@ def main(argv):
     # Record the current time at the end of the benchmark,
     # and print the delta elapsed time.
     newtime = datetime.datetime.now()
-    print "Elapsed Time: %s" % (newtime - oldtime)
+    print("Elapsed Time: %s" % (newtime - oldtime))
     
 
 ##### Custom `urllib2`-based HTTP handler

@@ -21,6 +21,8 @@ import app
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 import sys
 import time
+from splunklib import six
+from splunklib.six.moves import range
 
 
 @Configuration()
@@ -32,6 +34,6 @@ class GenerateTextCommand(GeneratingCommand):
     def generate(self):
         text = self.text
         for i in range(1, self.count + 1):
-            yield {'_serial': i, '_time': time.time(), '_raw': unicode(i) + '. ' + text}
+            yield {'_serial': i, '_time': time.time(), '_raw': six.text_type(i) + '. ' + text}
 
 dispatch(GenerateTextCommand, sys.argv, sys.stdin, sys.stdout, __name__)

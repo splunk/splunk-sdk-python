@@ -14,7 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from __future__ import absolute_import
+from __future__ import print_function
+from tests import testlib
 import logging
 import os
 import splunklib.client as client
@@ -112,7 +114,7 @@ class IndexTest(testlib.SDKTestCase):
     def test_submit_via_attach(self):
         event_count = int(self.index['totalEventCount'])
         cn = self.index.attach()
-        cn.send("Hello Boris!\r\n")
+        cn.send(b"Hello Boris!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
@@ -124,7 +126,7 @@ class IndexTest(testlib.SDKTestCase):
         if s.has_cookies():
             del s.http._cookies
         cn = i.attach()
-        cn.send("Hello Boris 5!\r\n")
+        cn.send(b"Hello Boris 5!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
@@ -132,7 +134,7 @@ class IndexTest(testlib.SDKTestCase):
         event_count = int(self.index['totalEventCount'])
         f = self.index.attached_socket
         with f() as sock:
-            sock.send('Hello world!\r\n')
+            sock.send(b'Hello world!\r\n')
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
     def test_submit_via_attach_with_cookie_header(self):
@@ -143,11 +145,11 @@ class IndexTest(testlib.SDKTestCase):
 
         event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
 
-        cookie = "%s=%s" % (self.service.http._cookies.items()[0])
+        cookie = "%s=%s" % (list(self.service.http._cookies.items())[0])
         service = client.Service(**{"cookie": cookie})
         service.login()
         cn = service.indexes[self.index_name].attach()
-        cn.send("Hello Boris!\r\n")
+        cn.send(b"Hello Boris!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
@@ -162,13 +164,13 @@ class IndexTest(testlib.SDKTestCase):
         service.http._cookies.update(self.service.http._cookies)
         service.login()
         cn = service.indexes[self.index_name].attach()
-        cn.send("Hello Boris!\r\n")
+        cn.send(b"Hello Boris!\r\n")
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
     def test_upload(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("file_to_upload")
 

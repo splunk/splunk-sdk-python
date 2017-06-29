@@ -17,6 +17,8 @@
 """A command line tool lists out the Splunk logging categories and their
    current logging level."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -34,7 +36,7 @@ def main(argv):
     service = client.connect(**opts.kwargs)
 
     for logger in service.loggers:
-        print "%s (%s)" % (logger.name, logger['level'])
+        print("%s (%s)" % (logger.name, logger['level']))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

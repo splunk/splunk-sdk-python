@@ -31,16 +31,18 @@
 # invoke Splunk without anycert validation.
 # 
 
-import httplib
+from __future__ import absolute_import
+
+from io import BytesIO
 from pprint import pprint
-from StringIO import StringIO
 import ssl
 import socket
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-import urllib
 
+from splunklib import six
+from splunklib.six.moves import urllib
 import splunklib.client as client
 
 try:
@@ -59,9 +61,9 @@ RULES = {
 
 # Extend httplib's implementation of HTTPSConnection with support server
 # certificate validation.
-class HTTPSConnection(httplib.HTTPSConnection):
+class HTTPSConnection(six.moves.http_client.HTTPSConnection):
     def __init__(self, host, port=None, ca_file=None):
-        httplib.HTTPSConnection.__init__(self, host, port)
+        six.moves.http_client.HTTPSConnection.__init__(self, host, port)
         self.ca_file = ca_file
 
     def connect(self):
@@ -75,15 +77,15 @@ class HTTPSConnection(httplib.HTTPSConnection):
             self.sock = ssl.wrap_socket(
                 sock, None, None, cert_reqs=ssl.CERT_NONE)
 
-# Crack the given url into (scheme, host, port, path)
 def spliturl(url):
-    scheme, opaque = urllib.splittype(url)
-    netloc, path = urllib.splithost(opaque)
-    host, port = urllib.splitport(netloc)
+    parsed_url = urllib.parse.urlparse(url)
+    host = parsed_url.hostname
+    port = parsed_url.port
+    path = '?'.join((parsed_url.path, parsed_url.query)) if parsed_url.query else parsed_url.path
     # Strip brackets if its an IPv6 address
     if host.startswith('[') and host.endswith(']'): host = host[1:-1]
     if port is None: port = DEFAULT_PORT
-    return scheme, host, port, path
+    return parsed_url.scheme, host, port, path
 
 def handler(ca_file=None):
     """Returns an HTTP request handler configured with the given ca_file."""
@@ -107,7 +109,7 @@ def handler(ca_file=None):
             'status': response.status,
             'reason': response.reason,
             'headers': response.getheaders(),
-            'body': StringIO(response.read())
+            'body': BytesIO(response.read())
         }
 
     return request

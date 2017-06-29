@@ -15,9 +15,12 @@
 # under the License.
 
 """Shared unit test utilities."""
+from __future__ import absolute_import
+from __future__ import print_function
 import contextlib
 
 import sys
+from splunklib import six
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')
@@ -94,7 +97,7 @@ class SDKTestCase(unittest.TestCase):
             logging.debug("wait finished after %s seconds", datetime.now()-start)
 
     def check_content(self, entity, **kwargs):
-        for k, v in kwargs.iteritems(): 
+        for k, v in six.iteritems(kwargs): 
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):
@@ -259,6 +262,6 @@ class SDKTestCase(unittest.TestCase):
                 except HTTPError as error:
                     if not (os.name == 'nt' and error.status == 500):
                         raise
-                    print 'Ignoring failure to delete {0} during tear down: {1}'.format(appName, error)
+                    print('Ignoring failure to delete {0} during tear down: {1}'.format(appName, error))
         if self.service.restart_required:
             self.clear_restart_message()

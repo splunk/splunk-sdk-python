@@ -89,7 +89,7 @@ class CoverageCommand(Command):
         try:
             import coverage
         except ImportError:
-            print "Could not import coverage. Please install it and try again."
+            print("Could not import coverage. Please install it and try again.")
             exit(1)
         cov = coverage.coverage(source=['splunklib'])
         cov.start()

@@ -784,3 +784,29 @@ class RecordWriterV2(RecordWriter):
         write(body)
         self._ofile.flush()
         self._flushed = False
+
+    def write_records(self, records, isLastRecord=False):
+        self._ensure_validity()
+        write_record = self._write_record
+        for record in records[:-1]:
+            write_record(record, isLastRecord=False)
+
+        write_record(records[-1], isLastRecord=True)
+
+    def _write_record(self, record, isLastRecord=False):
+
+        fieldnames = record.keys()
+
+        get_value = record.get
+        values = []
+        for fieldname in fieldnames:
+            values.append(get_value(fieldname, None))
+
+        self._record_count += 1
+
+        if self._record_count >= self._maxresultrows:
+            self.flush(partial=True)
+
+        body = '%s\n%s\n' % (','.join(fieldnames), ','.join(values))
+        self._write_chunk((('finished', isLastRecord),), body)
+

@@ -683,6 +683,19 @@ class SearchCommand(object):
         # noinspection PyBroadException
         try:
             self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
+
+            # send reply msg to splunk getinfo request
+            self._record_writer._write_chunk(self.reply_message_v2, '')
+
+            # get reply msg from splunk
+            reply_metadata, reply_body = self._read_chunk(ifile)
+            debug("getinfo reply_metadata = %s",reply_metadata)
+
+            # if splunk not send execute action reply, do not proceed
+            action = getattr(reply_metadata, 'action', None)
+            if (action !='execute'):
+                return
+
             self.fieldnames = []
             self.options.reset()
 
@@ -758,7 +771,6 @@ class SearchCommand(object):
             self.finish()
             exit(1)
 
-        self._record_writer.write_metadata(self._configuration)
 
         # Execute search command on data passing through the pipeline
         # noinspection PyBroadException
@@ -847,7 +859,8 @@ class SearchCommand(object):
             raise RuntimeError('Failed to read transport header: {}'.format(error))
 
         if not header:
-            return None
+            return None, None
+
 
         match = SearchCommand._header.match(header)
 

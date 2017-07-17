@@ -174,6 +174,11 @@ class GeneratingCommand(SearchCommand):
         streaming = false
 
     """
+
+    # overwrite reply_message_v2
+
+    reply_message_v2=(('type', "streaming"),("generating",True))
+
     # region Methods
 
     def generate(self):

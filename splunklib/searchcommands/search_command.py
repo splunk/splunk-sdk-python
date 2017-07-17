@@ -86,6 +86,9 @@ from ..client import Service
 
 
 class SearchCommand(object):
+
+    reply_message_v2=(('type', "streaming"))
+
     """ Represents a custom search command.
 
     """

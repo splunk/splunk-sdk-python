@@ -785,6 +785,7 @@ class RecordWriterV2(RecordWriter):
         self._ofile.flush()
         self._flushed = False
 
+    # overwrite write_records() and write_record() based on "Chunked External Command Protocol v1.0"
     def write_records(self, records, isLastRecord=False):
         self._ensure_validity()
         write_record = self._write_record

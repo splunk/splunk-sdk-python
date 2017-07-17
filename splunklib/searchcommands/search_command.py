@@ -857,9 +857,6 @@ class SearchCommand(object):
     def _read_chunk(ifile):
 
         # noinspection PyBroadException
-        debug = environment.splunklib_logger.debug
-
-        debug ("jly 11= in read_chunk")
         try:
             header = ifile.readline()
         except Exception as error:

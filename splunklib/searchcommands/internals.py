@@ -543,12 +543,15 @@ class RecordWriter(object):
 
         get_value = record.get
         values = []
+        values_V2=[]
+
 
         for fieldname in fieldnames:
             value = get_value(fieldname, None)
 
             if value is None:
                 values += (None, None)
+                values_V2+=None
                 continue
 
             value_t = type(value)
@@ -557,6 +560,7 @@ class RecordWriter(object):
 
                 if len(value) == 0:
                     values += (None, None)
+                    values_V2.append(None)
                     continue
 
                 if len(value) > 1:
@@ -590,6 +594,7 @@ class RecordWriter(object):
                         mv += value.replace(b'$', b'$$') + b'$;$'
 
                     values += (sv[:-1], mv[:-2])
+                    values_V2.append(sv[:-1])
                     continue
 
                 value = value[0]
@@ -597,27 +602,40 @@ class RecordWriter(object):
 
             if value_t is bool:
                 values += (str(value.real), None)
+                values_V2.append(str(value.real))
+
                 continue
 
             if value_t is bytes:
                 values += (value, None)
+                values_V2.append(value)
                 continue
 
             if value_t is unicode:
                 values += (value.encode('utf-8', errors='backslashreplace'), None)
+                values_V2.append(value.encode('utf-8', errors='backslashreplace'))
                 continue
 
             if value_t is int or value_t is long or value_t is float or value_t is complex:
                 values += (str(value), None)
+                values_V2.append(str(value))
                 continue
 
             if issubclass(value_t, dict):
                 values += (str(''.join(RecordWriter._iterencode_json(value, 0))), None)
+                values_V2.append( str(''.join(RecordWriter._iterencode_json(value, 0))))
                 continue
 
             values += (repr(value).encode('utf-8', errors='backslashreplace'), None)
+            values_V2.append(repr(value).encode('utf-8', errors='backslashreplace'))
 
-        self._writerow(values)
+        if self is RecordWriterV2:
+            body = '%s\n%s\n' % (','.join(fieldnames), ','.join(values_V2))
+            self._write_chunk((('finished', False),), body)
+
+        else:
+            self._writerow(values)
+
         self._record_count += 1
 
         if self._record_count >= self._maxresultrows:
@@ -784,30 +802,4 @@ class RecordWriterV2(RecordWriter):
         write(body)
         self._ofile.flush()
         self._flushed = False
-
-    # overwrite write_records() and write_record() based on "Chunked External Command Protocol v1.0"
-    def write_records(self, records, isLastRecord=False):
-        self._ensure_validity()
-        write_record = self._write_record
-        for record in records[:-1]:
-            write_record(record, isLastRecord=False)
-
-        write_record(records[-1], isLastRecord=True)
-
-    def _write_record(self, record, isLastRecord=False):
-
-        fieldnames = record.keys()
-
-        get_value = record.get
-        values = []
-        for fieldname in fieldnames:
-            values.append(get_value(fieldname, None))
-
-        self._record_count += 1
-
-        if self._record_count >= self._maxresultrows:
-            self.flush(partial=True)
-
-        body = '%s\n%s\n' % (','.join(fieldnames), ','.join(values))
-        self._write_chunk((('finished', isLastRecord),), body)
-
+        

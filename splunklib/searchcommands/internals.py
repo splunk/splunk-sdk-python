@@ -543,8 +543,9 @@ class RecordWriter(object):
 
         get_value = record.get
         values = []
-        values_V2=[]
 
+        # construct msg body based on Chunked External Command Protocol v1.0
+        values_V2=[]
 
         for fieldname in fieldnames:
             value = get_value(fieldname, None)

@@ -687,8 +687,9 @@ class SearchCommand(object):
         try:
             self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
 
-            # send reply msg to splunk getinfo request
+            # send reply msg to splunk getinfo request based on Chunked External Command Protocol v1.0
             self._record_writer._write_chunk(self.reply_message_v2, '')
+            debug("send reply to splunk: %s", self.reply_message_v2)
 
             # get reply msg from splunk
             reply_metadata, reply_body = self._read_chunk(ifile)
@@ -856,6 +857,9 @@ class SearchCommand(object):
     def _read_chunk(ifile):
 
         # noinspection PyBroadException
+        debug = environment.splunklib_logger.debug
+
+        debug ("jly 11= in read_chunk")
         try:
             header = ifile.readline()
         except Exception as error:

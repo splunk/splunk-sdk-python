@@ -687,6 +687,7 @@ class SearchCommand(object):
         try:
             self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
 
+            # fix dvpl-7207: send reply to splunk and wait for reply of execute action
             # send reply msg to splunk getinfo request based on Chunked External Command Protocol v1.0
             self._record_writer._write_chunk(self.reply_message_v2, '')
             debug("send reply to splunk: %s", self.reply_message_v2)

@@ -937,9 +937,6 @@ class SearchCommand(object):
             metadata, body = result
             action = getattr(metadata, 'action', None)
 
-            if action != 'execute':
-                raise RuntimeError('Expected execute action, not {}'.format(action))
-
             finished = getattr(metadata, 'finished', False)
             self._record_writer.is_flushed = False
 

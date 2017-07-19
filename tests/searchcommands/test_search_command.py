@@ -401,11 +401,13 @@ class TestSearchCommand(TestCase):
             show_configuration=('true' if show_configuration is True else 'false'))
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'test\r\ndata\r\n'
+        send_data_metadata = '{"finished":true}'
+        send_datae_body = 'test\r\ndata\r\n'
 
         ifile = StringIO(
             'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+            'chunked 1.0,{},0\n{}'.format(len(execute_metadata), execute_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(send_data_metadata), len(send_datae_body), send_data_metadata, send_datae_body))
 
         command = TestCommand()
         result = StringIO()
@@ -429,11 +431,9 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.required_option_2, 'value_2')
 
         self.assertEqual(
-            'chunked 1.0,68,0\n'
-            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
-            'chunked 1.0,17,23\n'
-            '{"finished":true}test,__mv_test\r\n'
-            'data,\r\n',
+            'chunked 1.0,20,0\n{"type":"streaming"}chunked 1.0,84,23\n'
+            '{"inspector":{"messages":[["INFO","test command configuration: "]]},'
+            '"finished":true}test,__mv_test\r\ndata,\r\n',
             result.getvalue())
 
         self.assertEqual(command.protocol_version, 2)
@@ -593,11 +593,14 @@ class TestSearchCommand(TestCase):
             show_configuration=show_configuration)
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'test\r\ndata\r\n'
+        send_data_metadata = '{"finished":true}'
+        send_datae_body = 'test\r\ndata\r\n'
 
         ifile = StringIO(
             'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+            'chunked 1.0,{},0\n{}'.format(len(execute_metadata), execute_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(send_data_metadata), len(send_datae_body), send_data_metadata, send_datae_body))
+
 
         command = TestCommand()
         result = StringIO()
@@ -612,7 +615,7 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.required_option_2, 'value_2')
 
         self.assertEqual(
-            'chunked 1.0,287,0\n'
+            'chunked 1.0,20,0\n{"type":"streaming"}chunked 1.0,287,0\n'
             '{"inspector":{"messages":[["ERROR","Illegal value: logging_configuration=non-existent-logging.conf"],'
             '["ERROR","Illegal value: logging_level=NON-EXISTENT-LOGGING-LEVEL"],'
             '["ERROR","Illegal value: record=Non-boolean value"],'
@@ -639,11 +642,14 @@ class TestSearchCommand(TestCase):
             show_configuration=('true' if show_configuration is True else 'false'))
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'action\r\nraise_exception\r\n'
+        send_data_metadata = '{"finished":true}'
+        send_datae_body = 'action\r\nraise_exception\r\n'
 
         ifile = StringIO(
             'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+            'chunked 1.0,{},0\n{}'.format(len(execute_metadata), execute_metadata) +
+            'chunked 1.0,{},{}\n{}{}'.format(len(send_data_metadata), len(send_datae_body), send_data_metadata, send_datae_body))
+
 
         command = TestCommand()
         result = StringIO()
@@ -674,10 +680,10 @@ class TestSearchCommand(TestCase):
 
         self.assertRegexpMatches(
             result.getvalue(),
-            r'^chunked 1.0,2,0\n'
-            r'\{\}\n'
+            r'^chunked 1.0,20,0\n'
+            r'{"type":"streaming"}'
             r'chunked 1.0,\d+,0\n'
-            r'\{(' + inspector + r',' + finished + r'|' + finished + r',' + inspector + r')\}')
+            r'\{' + inspector)
 
         self.assertEqual(command.protocol_version, 2)
         return

@@ -873,8 +873,10 @@ class SearchCommand(object):
         # if body_length <= 0:
         #     return metadata, ''
 
+        body=""
         try:
-            body = ifile.read(body_length)
+            if body_length>0:
+                body = ifile.read(body_length)
         except Exception as error:
             raise RuntimeError('Failed to read body of length {}: {}'.format(body_length, error))
 

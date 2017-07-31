@@ -370,7 +370,6 @@ class TestSearchCommandsApp(TestCase):
             match = pattern.match(line)
             if match is None:
                 continue
-            self.assertIsNotNone(match)
 
             metadata_length = int(match.group('metadata_length'))
             metadata = ifile.read(metadata_length)
@@ -378,9 +377,6 @@ class TestSearchCommandsApp(TestCase):
 
             body_length = int(match.group('body_length'))
             body = ifile.read(body_length) if body_length > 0 else ''
-
-            # if len(chunks) == 0:
-            #     self.assertEqual(ifile.readline(), '\n')  # the getinfo exchange protocol requires this
 
             chunks.append(TestSearchCommandsApp._Chunk(metadata, body))
 

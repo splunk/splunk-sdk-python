@@ -355,7 +355,7 @@ class TestSearchCommandsApp(TestCase):
     def _load_chunks(self, ifile):
         import re
 
-        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)')
+        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)(\n)?')
         decoder = json.JSONDecoder()
 
         chunks = []

@@ -193,6 +193,18 @@ class GeneratingCommand(SearchCommand):
         :return: `None`.
 
         """
+        if self._protocol_version == 2:
+            result = self._read_chunk(ifile)
+
+            if not result:
+                return
+
+            metadata, body = result
+            action = getattr(metadata, 'action', None)
+
+            if action != 'execute':
+                raise RuntimeError('Expected execute action, not {}'.format(action))
+
         self._record_writer.write_records(self.generate())
         self.finish()
 

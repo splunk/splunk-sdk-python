@@ -210,7 +210,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             ["saved_search/saved_search.py", "--operation", "create", "--name", temp_name, "--search", "search * | head 5"],
             ["saved_search/saved_search.py", "list", "--name", temp_name],
             ["saved_search/saved_search.py", "list", "--operation", "delete", "--name", temp_name],
-            ["saved_search/saved_search.py", "list", "--name",  "Top five sourcetypes"]
+            ["saved_search/saved_search.py", "list", "--name",  "Errors in the last 24 hours"]
         )
 
     def test_search(self):

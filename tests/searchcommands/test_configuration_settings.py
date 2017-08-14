@@ -155,7 +155,7 @@ class TestConfigurationSettings(TestCase):
         command.configuration.required_fields = ['field_1', 'field_2', 'field_3']
 
         try:
-            command.configuration.type = 'eventing'
+            command.configuration.type = 'events'
         except AttributeError:
             pass
         except Exception as error:

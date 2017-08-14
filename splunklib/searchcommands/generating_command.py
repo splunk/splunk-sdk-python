@@ -56,7 +56,7 @@ class GeneratingCommand(SearchCommand):
     +==========+=====================================+============================================+
     | streams  | streaming=True[,local=[True|False]] | type='streaming'[,distributed=[true|false] |
     +----------+-------------------------------------+--------------------------------------------+
-    | events   | retainsevents=True, streaming=False | type='eventing'                            |
+    | events   | retainsevents=True, streaming=False | type='events'                              |
     +----------+-------------------------------------+--------------------------------------------+
     | reports  | streaming=False                     | type='reporting'                           |
     +----------+-------------------------------------+--------------------------------------------+
@@ -112,7 +112,7 @@ class GeneratingCommand(SearchCommand):
     |          | settings to your command class:                   | setting to your command class:                    |
     |          |                                                   |                                                   |
     |          | .. code-block:: python                            | .. code-block:: python                            |
-    |          |     @Configuration(                               |     @Configuration(type='eventing')               |
+    |          |     @Configuration(                               |     @Configuration(type='events')                 |
     |          |         retainsevents=True, streaming=False)      |     class SomeCommand(GeneratingCommand)          |
     |          |     class SomeCommand(GeneratingCommand)          |         ...                                       |
     |          |         ...                                       |                                                   |
@@ -127,7 +127,7 @@ class GeneratingCommand(SearchCommand):
     Configure your command class like this, if you wish to support both protocols:
 
     .. code-block:: python
-        @Configuration(type='eventing', retainsevents=True, streaming=False)
+        @Configuration(type='events', retainsevents=True, streaming=False)
         class SomeCommand(GeneratingCommand)
             ...
 
@@ -193,6 +193,18 @@ class GeneratingCommand(SearchCommand):
         :return: `None`.
 
         """
+        if self._protocol_version == 2:
+            result = self._read_chunk(ifile)
+
+            if not result:
+                return
+
+            metadata, body = result
+            action = getattr(metadata, 'action', None)
+
+            if action != 'execute':
+                raise RuntimeError('Expected execute action, not {}'.format(action))
+
         self._record_writer.write_records(self.generate())
         self.finish()
 
@@ -280,7 +292,7 @@ class GeneratingCommand(SearchCommand):
             ====================  ======================================================================================
             Value                 Description
             --------------------  --------------------------------------------------------------------------------------
-            :const:`'eventing'`   Runs as the first command in the Splunk events pipeline. Cannot be distributed.
+            :const:`'events'`     Runs as the first command in the Splunk events pipeline. Cannot be distributed.
             :const:`'reporting'`  Runs as the first command in the Splunk reports pipeline. Cannot be distributed.
             :const:`'streaming'`  Runs as the first command in the Splunk streams pipeline. May be distributed.
             ====================  ======================================================================================

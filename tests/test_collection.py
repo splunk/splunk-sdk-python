@@ -243,7 +243,7 @@ class CollectionTestCase(testlib.SDKTestCase):
     def test_getitem_with_namespace_sample_in_changelog(self):
         from splunklib.binding import namespace
         ns = client.namespace(owner='nobody', app='search')
-        result = self.service.saved_searches['Top five sourcetypes', ns]
+        result = self.service.saved_searches['Errors in the last 24 hours', ns]
 
     def test_collection_search_get(self):
         for search in self.service.saved_searches:

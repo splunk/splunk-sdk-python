@@ -113,10 +113,10 @@ class EventingCommand(SearchCommand):
 
             ''')
 
-        type = ConfigurationSetting(readonly=True, value='eventing', doc='''
+        type = ConfigurationSetting(readonly=True, value='events', doc='''
             Command type
 
-            Fixed: :const:`'eventing'`.
+            Fixed: :const:`'events'`.
 
             Supported by: SCP 2
 

@@ -77,7 +77,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generating', True), ('type', 'streaming')])
+            [('generating', True), ('type', 'stateful')])
 
         self.assertIs(command.configuration.distributed, False)
         self.assertIs(command.configuration.generating, True)
@@ -146,7 +146,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('type', 'stateful')])
+            [('type', 'streaming')])
 
         self.assertIs(command.configuration.distributed, True)
         self.assertEqual(command.configuration.type, 'streaming')

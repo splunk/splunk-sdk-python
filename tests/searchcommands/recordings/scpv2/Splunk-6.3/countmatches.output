@@ -1,5 +1,5 @@
 chunked 1.0,19,0
-{"type":"streaming"}
+{"type":"stateful"}
 chunked 1.0,17,49651
 {"finished":true}_serial,__mv__serial,_time,__mv__time,text,__mv_text,word_count,__mv_word_count
 0,,1380899494,,excellent review my friend loved it yours always guppyman @GGreeny62... http://t.co/fcvq7NDHxl,,14,
@@ -630,3 +630,4 @@ neraka!! Bawaannya panes mulu!!",,11,
 
 (外国にいくときは、はずしたほうがいいです！) http://t.co/kdInkAIGnj",,4,
 499,,1380899487,,,,0,
+

@@ -363,6 +363,7 @@ class TestSearchCommandsApp(TestCase):
         while True:
 
             line = ifile.readline()
+            line = line.strip()
 
             if len(line) == 0:
                 break

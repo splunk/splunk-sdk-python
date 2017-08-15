@@ -235,7 +235,6 @@ class TestSearchCommandsApp(TestCase):
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
-
         self.assertEqual(0, exit_status, msg=unicode(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output)

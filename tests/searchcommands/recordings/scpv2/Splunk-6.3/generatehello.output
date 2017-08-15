@@ -1,5 +1,5 @@
 chunked 1.0,38,0
-{"generating":true,"type":"u'stateful"}
+{"generating":true,"type":"stateful"}
 chunked 1.0,17,37842
 {"finished":true}_time,__mv__time,event_no,__mv_event_no,_raw,__mv__raw
 1500765588.65,,1,,Hello World 1,

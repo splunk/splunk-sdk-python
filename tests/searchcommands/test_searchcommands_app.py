@@ -141,6 +141,7 @@ class Recordings(object):
 
 
 class TestSearchCommandsApp(TestCase):
+    """Recheck the PR job."""
 
     try:
         app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')

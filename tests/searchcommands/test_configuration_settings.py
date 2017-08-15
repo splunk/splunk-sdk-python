@@ -77,7 +77,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generating', True), ('type', 'streaming')])
+            [('generating', True), ('type', 'stateful')])
 
         self.assertIs(command.configuration.distributed, False)
         self.assertIs(command.configuration.generating, True)
@@ -96,7 +96,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('generating', True), ('type', 'streaming')])
+            [('generating', True), ('type', 'stateful')])
 
         return
 
@@ -146,7 +146,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('type', 'stateful')])
+            [('type', 'streaming')])
 
         self.assertIs(command.configuration.distributed, True)
         self.assertEqual(command.configuration.type, 'streaming')
@@ -165,7 +165,7 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in command.configuration.iteritems()],
-            [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'streaming')])
+            [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'stateful')])
 
         return
 

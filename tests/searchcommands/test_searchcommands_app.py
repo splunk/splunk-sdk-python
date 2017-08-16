@@ -265,6 +265,9 @@ class TestSearchCommandsApp(TestCase):
 
     def _compare_chunks(self, expected, output, time_sensitive=True):
 
+        expected = expected.strip()
+        output = output.strip()
+
         if time_sensitive:
             self.assertEqual(len(expected), len(output))
             compare_csv_files = self._compare_csv_files_time_sensitive
@@ -363,7 +366,6 @@ class TestSearchCommandsApp(TestCase):
         while True:
 
             line = ifile.readline()
-            line = line.strip()
 
             if len(line) == 0:
                 break

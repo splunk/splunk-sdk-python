@@ -141,7 +141,6 @@ class Recordings(object):
 
 
 class TestSearchCommandsApp(TestCase):
-    """Recheck the PR job."""
 
     try:
         app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')
@@ -264,7 +263,7 @@ class TestSearchCommandsApp(TestCase):
 
         self.assertDictEqual(expected, output)
 
-    def _compare_chunks(self, expected, output, time_sensitive = True):
+    def _compare_chunks(self, expected, output, time_sensitive=True):
 
         if time_sensitive:
             self.assertEqual(len(expected), len(output))

@@ -237,6 +237,13 @@ class TestSearchCommandsApp(TestCase):
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
         self.assertEqual(0, exit_status, msg=unicode(errors))
         self.assertEqual('', errors)
+
+        print("START DEBUG")
+        print("DEBUG expected:\n")
+        print(expected)
+        print("DEBUG output:\n")
+        print(output)
+        print("END DEBUG")
         self._compare_chunks(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
@@ -263,7 +270,10 @@ class TestSearchCommandsApp(TestCase):
 
         self.assertDictEqual(expected, output)
 
-    def _compare_chunks(self, expected, output, time_sensitive = True):
+    def _compare_chunks(self, expected, output, time_sensitive=True):
+
+        expected = expected.strip()
+        output = output.strip()
 
         if time_sensitive:
             self.assertEqual(len(expected), len(output))

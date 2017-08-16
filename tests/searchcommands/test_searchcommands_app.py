@@ -214,29 +214,36 @@ class TestSearchCommandsApp(TestCase):
 
     def test_sum_as_unit(self):
 
-        # expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
-        # self.assertEqual(0, exit_status, msg=unicode(errors))
-        # self.assertEqual('', errors)
-        # self._compare_csv_files_time_sensitive(expected, output)
-        #
-        # expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
-        # self.assertEqual(0, exit_status, msg=unicode(errors))
-        # self.assertEqual('', errors)
-        # self._compare_csv_files_time_sensitive(expected, output)
-        #
-        # expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
-        # self.assertEqual(0, exit_status, msg=unicode(errors))
-        # self.assertEqual('', errors)
-        # self._compare_csv_files_time_sensitive(expected, output)
-        #
-        # expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
-        # self.assertEqual(0, exit_status, msg=unicode(errors))
-        # self.assertEqual('', errors)
-        # self._compare_csv_files_time_sensitive(expected, output)
+        expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual('', errors)
+        self._compare_csv_files_time_sensitive(expected, output)
+
+        expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual('', errors)
+        self._compare_csv_files_time_sensitive(expected, output)
+
+        expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual('', errors)
+        self._compare_csv_files_time_sensitive(expected, output)
+
+        expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
+        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual('', errors)
+        self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
         self.assertEqual(0, exit_status, msg=unicode(errors))
         self.assertEqual('', errors)
+
+        print("START DEBUG")
+        print("DEBUG expected:\n")
+        print(expected)
+        print("DEBUG output:\n")
+        print(output)
+        print("END DEBUG")
         self._compare_chunks(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')

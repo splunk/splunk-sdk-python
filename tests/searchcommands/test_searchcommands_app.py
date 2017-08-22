@@ -263,7 +263,10 @@ class TestSearchCommandsApp(TestCase):
 
         self.assertDictEqual(expected, output)
 
-    def _compare_chunks(self, expected, output, time_sensitive = True):
+    def _compare_chunks(self, expected, output, time_sensitive=True):
+
+        expected = expected.strip()
+        output = output.strip()
 
         if time_sensitive:
             self.assertEqual(len(expected), len(output))

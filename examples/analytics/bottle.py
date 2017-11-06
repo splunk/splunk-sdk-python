@@ -1086,7 +1086,7 @@ class Response(threading.local):
 
             Signed cookies may store any pickle-able object and are
             cryptographically signed to prevent manipulation. Keep in mind that
-            cookies are limited to 4kb in most browsers.
+            cookies are limited to 4 KiB in most browsers.
 
             Warning: Signed cookies are not encrypted (the client can still see
             the content) and not copy-protected (the client can restore an old

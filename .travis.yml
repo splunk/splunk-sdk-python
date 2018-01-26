@@ -30,8 +30,8 @@ before_install:
     - mkdir -p $SPLUNK_HOME/var/log/splunk
 
 env:
-    - SPLUNK_VERSION=6.6.5-sdk
-    - SPLUNK_VERSION=7.0.1-sdk
+    - SPLUNK_VERSION=6.6-sdk
+    - SPLUNK_VERSION=7.0-sdk
 
 language: python
 

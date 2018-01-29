@@ -163,7 +163,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         service = self._create_unauthenticated_service()
         # Should succeed without AuthenticationError
         service.info['version']
-    
+
     def _create_unauthenticated_service(self):
         return Service(**{
             'host': self.opts.kwargs['host'],
@@ -177,6 +177,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.opts = testlib.parse([], {}, ".splunkrc")
         self.service = client.Service(**self.opts.kwargs)
 
+        self.service.login();
         # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
         splver = self.service.splunk_version
         # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase

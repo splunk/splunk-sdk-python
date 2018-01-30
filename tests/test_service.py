@@ -177,12 +177,12 @@ class TestCookieAuthentication(unittest.TestCase):
         self.opts = testlib.parse([], {}, ".splunkrc")
         self.service = client.Service(**self.opts.kwargs)
 
-        self.service.login();
-        # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
-        splver = self.service.splunk_version
-        # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase
-        if splver[:2] < (6, 2):
-            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+        # remove these code as 6.2- is deprecated and splunk_version can't be got without login on splunk 6.6+
+        # # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
+        # splver = self.service.splunk_version
+        # # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase
+        # if splver[:2] < (6, 2):
+        #     self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
 
     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
 

@@ -158,11 +158,13 @@ class ServiceTestCase(testlib.SDKTestCase):
                 pass
             else:
                 raise
-    
-    def test_server_info_without_login(self):
-        service = self._create_unauthenticated_service()
-        # Should succeed without AuthenticationError
-        service.info['version']
+
+    # remove test as it is not supported on splunk 6.6+
+    # def test_server_info_without_login(self):
+    #     service = self._create_unauthenticated_service()
+    #     # Should succeed without AuthenticationError
+    #     service.info['version']
+    #
 
     def _create_unauthenticated_service(self):
         return Service(**{

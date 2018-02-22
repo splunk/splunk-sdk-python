@@ -55,7 +55,7 @@ import traceback
 
 # Relative imports
 
-from . internals import (
+from .internals import (
     CommandLineParser,
     CsvDialect,
     InputHeader,
@@ -70,6 +70,7 @@ from . internals import (
 
 from . import Boolean, Option, environment
 from ..client import Service
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -97,6 +98,7 @@ class SearchCommand(object):
     """ Represents a custom search command.
 
     """
+
     def __init__(self):
 
         # Variables that may be used, but not altered by derived classes
@@ -882,8 +884,10 @@ class SearchCommand(object):
         # if body_length <= 0:
         #     return metadata, ''
 
+        body = ""
         try:
-            body = ifile.read(body_length)
+            if body_length > 0:
+                body = ifile.read(body_length)
         except Exception as error:
             raise RuntimeError('Failed to read body of length {}: {}'.format(body_length, error))
 

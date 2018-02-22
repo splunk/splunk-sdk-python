@@ -513,6 +513,7 @@ class TestCookieAuthentication(unittest.TestCase):
         import splunklib.client as client
         service = client.Service(**self.opts.kwargs)
         # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase
+        service.login()
         splver = service.splunk_version
         if splver[:2] < (6, 2):
             self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)

@@ -193,6 +193,18 @@ class GeneratingCommand(SearchCommand):
         :return: `None`.
 
         """
+        if self._protocol_version == 2:
+            result = self._read_chunk(ifile)
+
+            if not result:
+                return
+
+            metadata, body = result
+            action = getattr(metadata, 'action', None)
+
+            if action != 'execute':
+                raise RuntimeError('Expected execute action, not {}'.format(action))
+
         self._record_writer.write_records(self.generate())
         self.finish()
 
@@ -308,7 +320,7 @@ class GeneratingCommand(SearchCommand):
             version = self.command.protocol_version
             if version == 2:
                 iteritems = ifilter(lambda name_value1: name_value1[0] != 'distributed', iteritems)
-                if self.distributed and self.type == 'streaming':
+                if not self.distributed and self.type == 'streaming':
                     iteritems = imap(
                         lambda name_value: (name_value[0], 'stateful') if name_value[0] == 'type' else (name_value[0], name_value[1]), iteritems)
             return iteritems

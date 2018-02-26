@@ -21,6 +21,8 @@
 # jobs, eg: @0 would specify the frist job in the list, @1 the second, and so
 # on.
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pprint import pprint
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -129,7 +131,7 @@ class Program:
             error("Command requires a search expression", 2)
         query = opts.args[0]
         job = self.service.jobs.create(opts.args[0], **opts.kwargs)
-        print job.sid
+        print(job.sid)
 
     def events(self, argv):
         """Retrieve events for the specified search jobs."""
@@ -160,12 +162,12 @@ class Program:
                 # Ignore some fields that make the output hard to read and
                 # that are available via other commands.
                 if key in ["performance"]: continue
-                print "%s: %s" % (key, job.content[key])
+                print("%s: %s" % (key, job.content[key]))
 
         if len(argv) == 0:
             index = 0
             for job in self.service.jobs:
-                print "@%d : %s" % (index, job.sid)
+                print("@%d : %s" % (index, job.sid))
                 index += 1
             return
 

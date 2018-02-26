@@ -25,6 +25,8 @@ import os
 import re
 import sys
 import tempfile
+from splunklib import six
+from splunklib.six.moves import range
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
@@ -48,7 +50,7 @@ class TestValidators(TestCase):
 
         for value in truth_values:
             for variant in value, value.capitalize(), value.upper():
-                for s in unicode(variant), bytes(variant):
+                for s in six.text_type(variant), bytes(variant):
                     self.assertEqual(validator.__call__(s), truth_values[value])
 
         self.assertIsNone(validator.__call__(None))
@@ -64,7 +66,7 @@ class TestValidators(TestCase):
         validator = validators.Duration()
 
         for seconds in range(0, 25 * 60 * 60, 59):
-            for value in unicode(seconds), bytes(seconds):
+            for value in six.text_type(seconds), bytes(seconds):
                 self.assertEqual(validator(value), seconds)
                 self.assertEqual(validator(validator.format(seconds)), seconds)
                 value = '%d:%02d' % (seconds / 60, seconds % 60)
@@ -161,27 +163,30 @@ class TestValidators(TestCase):
         validator = validators.Integer()
 
         def test(integer):
-            for s in str(integer), unicode(integer):
+            for s in str(integer), six.text_type(integer):
                 value = validator.__call__(s)
                 self.assertEqual(value, integer)
-                self.assertIsInstance(value, long)
-            self.assertEqual(validator.format(integer), unicode(integer))
+                if six.PY2:
+                    self.assertIsInstance(value, long)
+                else:
+                    self.assertIsInstance(value, int)
+            self.assertEqual(validator.format(integer), six.text_type(integer))
 
-        test(2L * minsize)
+        test(2 * minsize)
         test(minsize)
         test(-1)
         test(0)
         test(1)
-        test(2L * maxsize)
+        test(2 * maxsize)
 
-        for i in xrange(0, 10000):
+        for i in range(0, 10000):
             test(randint(minsize, maxsize))
 
         # The Integer validator can impose a range restriction
 
         validator = validators.Integer(minimum=0)
         self.assertEqual(validator.__call__(0), 0)
-        self.assertEqual(validator.__call__(2L * maxsize), 2L * maxsize)
+        self.assertEqual(validator.__call__(2 * maxsize), 2 * maxsize)
         self.assertRaises(ValueError, validator.__call__, -1)
 
         validator = validators.Integer(minimum=1, maximum=maxsize)
@@ -194,8 +199,8 @@ class TestValidators(TestCase):
         self.assertEqual(validator.__call__(minsize), minsize)
         self.assertEqual(validator.__call__(0), 0)
         self.assertEqual(validator.__call__(maxsize), maxsize)
-        self.assertRaises(ValueError, validator.__call__, minsize - 1L)
-        self.assertRaises(ValueError, validator.__call__, maxsize + 1L)
+        self.assertRaises(ValueError, validator.__call__, minsize - 1)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
         return
 

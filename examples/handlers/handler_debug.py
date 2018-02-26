@@ -17,6 +17,8 @@
 """Example of a debug request handler that wraps the default request handler
    and prints debugging information to stdout."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pprint import pprint
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -34,8 +36,8 @@ def handler():
     default = binding.handler()
     def request(url, message, **kwargs):
         response = default(url, message, **kwargs)
-        print "%s %s => %d (%s)" % (
-            message['method'], url, response['status'], response['reason'])
+        print("%s %s => %d (%s)" % (
+            message['method'], url, response['status'], response['reason']))
         return response
     return request
 

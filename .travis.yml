@@ -37,6 +37,8 @@ language: python
 
 python:
   - "2.7"
+  - "2.6"
+  - "3.5"
 
 install: "pip install unittest2"
 

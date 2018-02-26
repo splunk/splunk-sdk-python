@@ -16,6 +16,8 @@
 
 """A simple command line interface for the Splunk REST APIs."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from xml.etree import ElementTree
@@ -35,14 +37,14 @@ def invoke(path, **kwargs):
 
 def print_response(response):
     if response.status != 200:
-        print "%d %s" % (response.status, response.reason)
+        print("%d %s" % (response.status, response.reason))
         return
     body = response.body.read()
     try:
         root = ElementTree.XML(body)
-        print ElementTree.tostring(root)
+        print(ElementTree.tostring(root))
     except Exception:
-        print body
+        print(body)
 
 def main():
     opts = utils.parse(sys.argv[1:], {}, ".splunkrc")

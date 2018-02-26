@@ -12,14 +12,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-from urlparse import urlsplit
+from splunklib.six.moves.urllib.parse import urlsplit
 import sys
 
 from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
+from splunklib import six
 
 try:
     import xml.etree.cElementTree as ET
@@ -27,7 +29,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-class Script(object):
+class Script(six.with_metaclass(ABCMeta, object)):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
@@ -37,7 +39,6 @@ class Script(object):
     The ``run`` function is used to run modular inputs; it typically should
     not be overridden.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         self._input_definition = None
@@ -103,7 +104,7 @@ class Script(object):
                 event_writer._err.write(err_string)
 
         except Exception as e:
-            err_string = EventWriter.ERROR + str(e.message)
+            err_string = EventWriter.ERROR + str(e)
             event_writer._err.write(err_string)
             return 1
 

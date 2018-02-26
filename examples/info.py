@@ -16,6 +16,8 @@
 
 """An example that prints Splunk service info & settings."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -35,13 +37,13 @@ if __name__ == "__main__":
     for key in sorted(content.keys()):
         value = content[key]
         if isinstance(value, list):
-            print "%s:" % key
-            for item in value: print "    %s" % item
+            print("%s:" % key)
+            for item in value: print("    %s" % item)
         else:
-            print "%s: %s" % (key, value)
+            print("%s: %s" % (key, value))
 
-    print "Settings:"
+    print("Settings:")
     content = service.settings.content
     for key in sorted(content.keys()):
         value = content[key]
-        print "    %s: %s" % (key, value)
+        print("    %s: %s" % (key, value))

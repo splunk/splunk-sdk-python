@@ -18,6 +18,8 @@
 a search Job by its sid.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import time
@@ -44,7 +46,7 @@ def main(argv):
     while not job.is_done():
         time.sleep(1)
 
-    print "Number of events found: %d" % int(job["eventCount"])
+    print("Number of events found: %d" % int(job["eventCount"]))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

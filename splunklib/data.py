@@ -112,7 +112,7 @@ def load_elem(element, nametable=None):
     if attrs is None: return name, value
     if value is None: return name, attrs
     # If value is simple, merge into attrs dict using special key
-    if isinstance(value, str):
+    if isinstance(value, basestring):
         attrs["$text"] = value
         return name, attrs
     # Both attrs & value are complex, so merge the two dicts, resolving collisions.

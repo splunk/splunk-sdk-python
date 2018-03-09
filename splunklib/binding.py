@@ -1346,7 +1346,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.2",
+            "User-Agent": "splunk-sdk-python/1.6.3",
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

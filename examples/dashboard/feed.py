@@ -20,7 +20,10 @@
 # in the README.
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os, urllib2, json
+from six.moves import zip
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from xml.etree import ElementTree
 
@@ -67,8 +70,8 @@ def top_sources(service):
                 if status_source_xml.startswith("<a"):
                     try:
                         source = ElementTree.XML(status_source_xml).text
-                    except Exception, e:
-                        print status_source_xml
+                    except Exception as e:
+                        print(status_source_xml)
                         raise e
                 
                 data.append({

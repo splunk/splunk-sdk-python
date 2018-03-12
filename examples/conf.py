@@ -16,9 +16,13 @@
 
 """Create, delete or list stanza information from/to Splunk confs."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from splunklib import six
 from splunklib.client import connect
 
 try:
@@ -109,7 +113,7 @@ class Program:
         if not cpres:
             # List out the available confs
             for conf in self.service.confs: 
-                print conf.name
+                print(conf.name)
         else:
             # Print out detail on the requested conf
             # check for optional stanza, or key requested (or all)
@@ -118,11 +122,11 @@ class Program:
             
             for stanza in conf:
                 if (spres and argv[1] == stanza.name) or not spres:
-                    print "[%s]" % stanza.name
-                    for key, value in stanza.content.iteritems():
+                    print("[%s]" % stanza.name)
+                    for key, value in six.iteritems(stanza.content):
                         if (kpres and argv[2] == key) or not kpres:
-                            print "%s = %s" % (key, value)
-                print
+                            print("%s = %s" % (key, value))
+                print()
 
     def run(self, command, opts):
         """Dispatch the given command & args."""

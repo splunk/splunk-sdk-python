@@ -20,6 +20,7 @@ import app
 
 from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
 import sys
+from splunklib import six
 
 
 @Configuration()
@@ -62,9 +63,9 @@ class CountMatchesCommand(StreamingCommand):
         self.logger.debug('CountMatchesCommand: %s', self)  # logs command line
         pattern = self.pattern
         for record in records:
-            count = 0L
+            count = 0
             for fieldname in self.fieldnames:
-                matches = pattern.findall(unicode(record[fieldname].decode("utf-8")))
+                matches = pattern.findall(six.text_type(record[fieldname].decode("utf-8")))
                 count += len(matches)
             record[self.fieldname] = count
             yield record

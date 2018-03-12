@@ -3,8 +3,9 @@
 #
 # Copyright © Splunk, Inc. All rights reserved.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 import os
+
 
 if os.name == 'nt':
 
@@ -57,10 +58,16 @@ if os.name == 'nt':
     patch_os()
     del locals()['patch_os']  # since this function has done its job
 
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)))
+
 try:
     from collections import OrderedDict
 except:
     from splunklib.ordereddict import OrderedDict
+
+from splunklib import six
+from splunklib.six.moves import getcwd
 from glob import glob
 from itertools import chain
 from setuptools import setup, Command
@@ -141,14 +148,14 @@ class BuildCommand(Command):
     description = 'Package the app for distribution.'
 
     user_options = [
-        (b'build-number=', None,
+        ('build-number=', None,
          'Build number (default: private)'),
-        (b'debug-client=', None,
+        ('debug-client=', None,
          'Copies the file at the specified location to package/bin/_pydebug.egg and bundles it and _pydebug.conf '
          'with the app'),
-        (b'force', b'f',
+        ('force', 'f',
          'Forcibly build everything'),
-        (b'scp-version=', None,
+        ('scp-version=', None,
          'Specifies the protocol version for search commands (default: 2)')]
 
     def __init__(self, dist):
@@ -179,7 +186,7 @@ class BuildCommand(Command):
         if not (self.scp_version == 1 or self.scp_version == 2):
             raise SystemError('Expected an SCP version number of 1 or 2, not {}'.format(self.scp_version))
 
-        self.package_name = self.package_name + '-' + unicode(self.build_number)
+        self.package_name = self.package_name + '-' + six.text_type(self.build_number)
         return
 
     def run(self):
@@ -232,7 +239,7 @@ class BuildCommand(Command):
         return
 
     def _copy_package_data(self):
-        for directory, path_list in self.distribution.package_data.iteritems():
+        for directory, path_list in six.iteritems(self.distribution.package_data):
             target = os.path.join(self.build_dir, directory)
             if not os.path.isdir(target):
                 os.makedirs(target)
@@ -250,14 +257,14 @@ class BuildCommand(Command):
 
         build_dir = os.path.basename(self.build_dir)
         archive_name = self.package_name + '.tar'
-        current_dir = os.getcwdu()
+        current_dir = getcwd()
         os.chdir(self.build_base)
 
         try:
             # We must convert the archive_name and base_dir from unicode to utf-8 due to a bug in the version of tarfile
             # that ships with Python 2.7.2, the version of Python used by the app team's build system as of this date:
             # 12 Sep 2014.
-            tar = tarfile.open(str(archive_name), b'w|gz')
+            tar = tarfile.open(str(archive_name), 'w|gz')
             try:
                 tar.add(str(build_dir))
             finally:
@@ -280,9 +287,9 @@ class LinkCommand(Command):
     description = 'Create a symbolic link to the app package at $SPLUNK_HOME/etc/apps.'
 
     user_options = [
-        (b'debug-client=', None, 'Copies the specified PyCharm debug client egg to package/_pydebug.egg'),
-        (b'scp-version=', None, 'Specifies the protocol version for search commands (default: 2)'),
-        (b'splunk-home=', None, 'Overrides the value of SPLUNK_HOME.')]
+        ('debug-client=', None, 'Copies the specified PyCharm debug client egg to package/_pydebug.egg'),
+        ('scp-version=', None, 'Specifies the protocol version for search commands (default: 2)'),
+        ('splunk-home=', None, 'Overrides the value of SPLUNK_HOME.')]
 
     def __init__(self, dist):
         Command.__init__(self, dist)
@@ -367,13 +374,13 @@ class TestCommand(Command):
     description = 'Run full test suite.'
 
     user_options = [
-        (b'commands=', None, 'Comma-separated list of commands under test or *, if all commands are under test'),
-        (b'build-number=', None, 'Build number for the test harness'),
-        (b'auth=', None, 'Splunk login credentials'),
-        (b'uri=', None, 'Splunk server URI'),
-        (b'env=', None, 'Test running environment'),
-        (b'pattern=', None, 'Pattern to match test files'),
-        (b'skip-setup-teardown', None, 'Skips test setup/teardown on the Splunk server')]
+        ('commands=', None, 'Comma-separated list of commands under test or *, if all commands are under test'),
+        ('build-number=', None, 'Build number for the test harness'),
+        ('auth=', None, 'Splunk login credentials'),
+        ('uri=', None, 'Splunk server URI'),
+        ('env=', None, 'Test running environment'),
+        ('pattern=', None, 'Pattern to match test files'),
+        ('skip-setup-teardown', None, 'Skips test setup/teardown on the Splunk server')]
 
     def __init__(self, dist):
         Command.__init__(self, dist)
@@ -405,7 +412,7 @@ class TestCommand(Command):
             except CalledProcessError as e:
                 sys.exit(e.returncode)
 
-        current_directory = os.path.abspath(os.getcwd())
+        current_directory = os.path.abspath(getcwd())
         os.chdir(os.path.join(project_dir, 'tests'))
         print('')
 
@@ -425,14 +432,14 @@ class TestCommand(Command):
 
 # endregion
 
-current_directory = os.getcwdu()
+current_directory = getcwd()
 os.chdir(project_dir)
 
 try:
     setup(
         description='Custom Search Command examples',
         name=os.path.basename(project_dir),
-        version='1.6.2',
+        version='1.6.3',
         author='Splunk, Inc.',
         author_email='devinfo@splunk.com',
         url='http://github.com/splunk/splunk-sdk-python',
@@ -447,16 +454,16 @@ try:
             'Topic :: System :: Logging',
             'Topic :: System :: Monitoring'],
         packages=[
-            b'bin.packages.splunklib', b'bin.packages.splunklib.searchcommands'
+            'bin.packages.splunklib', 'bin.packages.splunklib.searchcommands'
         ],
         package_dir={
-            b'bin': os.path.join('package', 'bin'),
-            b'bin.packages': os.path.join('package', 'bin', 'packages'),
-            b'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
-            b'bin.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
+            'bin': os.path.join('package', 'bin'),
+            'bin.packages': os.path.join('package', 'bin', 'packages'),
+            'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
+            'bin.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
         },
         package_data={
-            b'bin': [
+            'bin': [
                 os.path.join('package', 'bin', 'app.py'),
                 os.path.join('package', 'bin', 'countmatches.py'),
                 os.path.join('package', 'bin', 'filter.py'),
@@ -468,10 +475,10 @@ try:
             ]
         },
         data_files=[
-            (b'README', [os.path.join('package', 'README', '*.conf.spec')]),
-            (b'default', [os.path.join('package', 'default', '*.conf')]),
-            (b'lookups', [os.path.join('package', 'lookups', '*.csv.gz')]),
-            (b'metadata', [os.path.join('package', 'metadata', 'default.meta')])
+            ('README', [os.path.join('package', 'README', '*.conf.spec')]),
+            ('default', [os.path.join('package', 'default', '*.conf')]),
+            ('lookups', [os.path.join('package', 'lookups', '*.csv.gz')]),
+            ('metadata', [os.path.join('package', 'metadata', 'default.meta')])
         ],
         requires=[],
 

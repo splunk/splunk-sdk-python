@@ -15,7 +15,9 @@
 """Retrieves a list of installed apps from Splunk by making REST API calls
    using Python's httplib module."""
 
-import httplib
+from __future__ import absolute_import
+from __future__ import print_function
+import splunklib.six.moves.http_client
 import urllib
 from xml.etree import ElementTree
 
@@ -25,7 +27,7 @@ USERNAME = "admin"
 PASSWORD = "changeme"
 
 # Present credentials to Splunk and retrieve the session key
-connection = httplib.HTTPSConnection(HOST, PORT)
+connection = six.moves.http_client.HTTPSConnection(HOST, PORT)
 body = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
 headers = { 
     'Content-Type': "application/x-www-form-urlencoded", 
@@ -40,12 +42,12 @@ try:
 finally:
     connection.close()
 if response.status != 200:
-    raise Exception, "%d (%s)" % (response.status, response.reason)
+    raise Exception("%d (%s)" % (response.status, response.reason))
 body = response.read()
 sessionKey = ElementTree.XML(body).findtext("./sessionKey")
 
 # Now make the request to Splunk for list of installed apps
-connection = httplib.HTTPSConnection(HOST, PORT)
+connection = six.moves.http_client.HTTPSConnection(HOST, PORT)
 headers = { 
     'Content-Length': "0",
     'Host': HOST,
@@ -59,10 +61,10 @@ try:
 finally:
     connection.close()
 if response.status != 200:
-    raise Exception, "%d (%s)" % (response.status, response.reason)
+    raise Exception("%d (%s)" % (response.status, response.reason))
 
 body = response.read()
 data = ElementTree.XML(body)
 apps = data.findall("{http://www.w3.org/2005/Atom}entry/{http://www.w3.org/2005/Atom}title")
 for app in apps: 
-    print app.text
+    print(app.text)

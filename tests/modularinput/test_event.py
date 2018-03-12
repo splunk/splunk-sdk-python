@@ -14,14 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
+from io import BytesIO
 
 try:
-    from cStringIO import StringIO
+    from splunklib.six.moves import cStringIO as StringIO
 except ImportError:
-    from StringIO import StringIO
+    from splunklib.six import StringIO
+
 
 class EventTestCase(unittest.TestCase):
     def test_event_without_enough_fields_fails(self):
@@ -35,7 +38,7 @@ class EventTestCase(unittest.TestCase):
     def test_xml_of_event_with_minimal_configuration(self):
         """Generate XML from an event object with a small number of fields,
         and see if it matches what we expect."""
-        stream = StringIO()
+        stream = BytesIO()
 
         event = Event(
             data="This is a test of the emergency broadcast system.",
@@ -53,7 +56,7 @@ class EventTestCase(unittest.TestCase):
     def test_xml_of_event_with_more_configuration(self):
         """Generate XML from an even object with all fields set, see if
         it matches what we expect"""
-        stream = StringIO()
+        stream = BytesIO()
 
         event = Event(
             data="This is a test of the emergency broadcast system.",
@@ -76,8 +79,8 @@ class EventTestCase(unittest.TestCase):
     def test_writing_events_on_event_writer(self):
         """Write a pair of events with an EventWriter, and ensure that they
         are being encoded immediately and correctly onto the output stream"""
-        out = StringIO()
-        err = StringIO()
+        out = BytesIO()
+        err = BytesIO()
 
         ew = EventWriter(out, err)
 
@@ -94,11 +97,11 @@ class EventTestCase(unittest.TestCase):
         )
         ew.write_event(e)
 
-        found = ET.fromstring("%s</stream>" % out.getvalue())
+        found = ET.fromstring("%s</stream>" % out.getvalue().decode('utf-8'))
         expected = ET.parse(data_open("data/stream_with_one_event.xml")).getroot()
 
         self.assertTrue(xml_compare(expected, found))
-        self.assertEqual(err.getvalue(), "")
+        self.assertEqual(err.getvalue(), b"")
 
         ew.write_event(e)
         ew.close()
@@ -112,8 +115,8 @@ class EventTestCase(unittest.TestCase):
         """An event which cannot write itself onto an output stream
         (such as because it doesn't have a data field set)
         should write an error. Check that it does so."""
-        out = StringIO()
-        err = StringIO()
+        out = BytesIO()
+        err = BytesIO()
 
         ew = EventWriter(out, err)
         e = Event()
@@ -126,20 +129,20 @@ class EventTestCase(unittest.TestCase):
     def test_logging_errors_with_event_writer(self):
         """Check that the log method on EventWriter produces the
         expected error message."""
-        out = StringIO()
-        err = StringIO()
+        out = BytesIO()
+        err = BytesIO()
 
         ew = EventWriter(out, err)
 
         ew.log(EventWriter.ERROR, "Something happened!")
 
-        self.assertEqual("ERROR Something happened!\n", err.getvalue())
+        self.assertEqual(b"ERROR Something happened!\n", err.getvalue())
 
     def test_write_xml_is_sane(self):
         """Check that EventWriter.write_xml_document writes sensible
         XML to the output stream."""
-        out = StringIO()
-        err = StringIO()
+        out = BytesIO()
+        err = BytesIO()
 
         ew = EventWriter(out, err)
 

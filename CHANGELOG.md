@@ -1,5 +1,21 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.3
+
+### New features and APIs
+
+* Support for Python 3.x has been added for external integrations with the Splunk platform. However, because Splunk Enterprise 7+ still includes Python 2.7.x, any apps or scripts that run on the Splunk platform must continue to be written for Python 2.7.x.
+
+### Bug fixes
+
+The following bugs have been fixed:
+
+* Search commands error - `ERROR ChunkedExternProcessor - Invalid custom search command type: eventing`.
+
+* Search commands running more than once for certain cases.
+
+* Search command protocol v2 inverting the `distributed` configuration flag.
+
 ## Version 1.6.2
 
 ### Minor changes

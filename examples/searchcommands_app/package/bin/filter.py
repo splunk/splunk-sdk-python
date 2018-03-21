@@ -59,7 +59,7 @@ class FilterCommand(EventingCommand):
         ''', validate=Code('eval'))
 
     update = Option(doc='''
-        **Syntax:** **map=***<statements>*
+        **Syntax:** **update=***<statements>*
         **Description:** Augments or modifies records for which the predicate is True before they are returned.
 
         ''', validate=Code('exec'))

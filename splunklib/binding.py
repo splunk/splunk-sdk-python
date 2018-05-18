@@ -431,6 +431,8 @@ class Context(object):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
+    :param verify: Enable (True) or disable (False) SSL verrification for https connections.
+    :type verify: ``Boolean``
     :param sharing: The sharing mode for the namespace (the default is "user").
     :type sharing: "global", "system", "app", or "user"
     :param owner: The owner context of the namespace (optional, the default is "None").
@@ -463,7 +465,7 @@ class Context(object):
         c = binding.Context(cookie="splunkd_8089=...")
     """
     def __init__(self, handler=None, **kwargs):
-        self.http = HttpLib(handler)
+        self.http = HttpLib(handler, kwargs.get("verify", True))
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -1103,9 +1105,11 @@ class HttpLib(object):
     The response dictionary is returned directly by ``HttpLib``'s methods with
     no further processing. By default, ``HttpLib`` calls the :func:`handler` function
     to get a handler function.
+
+    If using the default handler, SSL verification can be disabled by passing verify=False.
     """
-    def __init__(self, custom_handler=None):
-        self.handler = handler() if custom_handler is None else custom_handler
+    def __init__(self, custom_handler=None, verify=True):
+        self.handler = handler(verify=verify) if custom_handler is None else custom_handler
         self._cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
@@ -1313,7 +1317,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None):
+def handler(key_file=None, cert_file=None, timeout=None, verify=True):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
@@ -1323,6 +1327,8 @@ def handler(key_file=None, cert_file=None, timeout=None):
     :type cert_file: ``string``
     :param `timeout`: The request time-out period, in seconds (optional).
     :type timeout: ``integer`` or "None"
+    :param `verify`: Set to False to disable SSL verification on https connections.
+    :type verify: ``Boolean``
     """
 
     def connect(scheme, host, port):
@@ -1335,7 +1341,7 @@ def handler(key_file=None, cert_file=None, timeout=None):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             # If running Python 2.7.9+, disable SSL certificate validation
-            if sys.version_info >= (2,7,9) and key_file is None and cert_file is None:
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)

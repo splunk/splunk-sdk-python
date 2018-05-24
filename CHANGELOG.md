@@ -1,5 +1,31 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.4
+
+### New features and APIs
+
+Not Applicable
+
+### Minor Changes
+
+* Changed `splunklib/binding.py` Context class' constructor initialization to support default settings for encrypted http communication when creating the HttpLib object that it depends on. This is extracted from the keyword dictionary that is provided for its initializaiton. Encryption defaults to enabled if not specified.
+* Changed `splunklib/binding.py` HttpLib class constructor to include the `verify` parameter in order to support default encryption if the default handler is being used. Encryption defaults to enabled if not specified.
+* Changed `splunklib/binding.py` `handler` function to include the `verify` parameter in order to support default encryption.
+* Changed `splunklib/binding.py` `handler`'s nested `connect` function to create the context in as unverified if specified by the `verify` parameter.
+
+### Bug fixes
+
+Not Applicable
+
+### Documentation
+
+* Changed `examples/searchcommands_app/package/bin/filter.py` FilterCommand.update doc-string from `map` to `update` in order to align with Splunk search changes.
+* Changed `examples/searchcommands_app/package/default/searchbnf.conf` [filter-command].example1 from the `map` keyword to the `update` keyword in order to align with Splunk search changes.
+* Changed `splunklib/binding.py` Context class' doc-string to include the `verify` parameter and type information related to the new keyword dictionary parameter `verify`.
+* Changed `splunklib/binding.py` `handler` function's doc-string to include the `verify` parameter and type information related to the parameter `verify`.
+* Changed `splunklib/client.py` `connect` function doc-string to include the `verify` parameter and type information related to the new keyword dictionary parameter `verify`.
+* Changed `splunklib/client.py` `Service` Class' doc-string to include the `verify` parameter and type information related to the new keyword dictionary parameter `verify`.
+
 ## Version 1.6.3
 
 ### New features and APIs

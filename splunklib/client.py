@@ -3687,7 +3687,7 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
-        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
+        return json.loads(self._post(UrlEncoded(str(id), encode_slash=True), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):
         """

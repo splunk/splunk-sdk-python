@@ -1343,17 +1343,14 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
         if timeout is not None: kwargs['timeout'] = timeout
         if scheme == "http":
             return six.moves.http_client.HTTPConnection(host, port, **kwargs)
-        if scheme == "https" and verify:
-            if hasssl:
-                if key_file is not None: kwargs['key_file'] = key_file
-                if cert_file is not None: kwargs['cert_file'] = cert_file
+        if scheme == "https":
+            if key_file is not None: kwargs['key_file'] = key_file
+            if cert_file is not None: kwargs['cert_file'] = cert_file
 
-                # If running Python 2.7.9+, disable SSL certificate validation
-                if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
-                    kwargs['context'] = ssl._create_unverified_context()
-                return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
-            else:
-                raise ImportError('No SSL library found')
+            # If running Python 2.7.9+, disable SSL certificate validation
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify or not hasssl:
+                kwargs['context'] = ssl._create_unverified_context()
+            return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)
 
     def request(url, message, **kwargs):

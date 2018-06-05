@@ -552,8 +552,8 @@ class Context(object):
             socket.write("\\r\\n")
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.scheme == "https":
-            if hasssl and self.verify:
+        if self.scheme == "https" and self.verify:
+            if hasssl:
                 sock = ssl.wrap_socket(sock)
             else:
                 raise ImportError('No SSL library found')
@@ -1343,8 +1343,8 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
         if timeout is not None: kwargs['timeout'] = timeout
         if scheme == "http":
             return six.moves.http_client.HTTPConnection(host, port, **kwargs)
-        if scheme == "https":
-            if hasssl and verify:
+        if scheme == "https" and verify:
+            if hasssl:
                 if key_file is not None: kwargs['key_file'] = key_file
                 if cert_file is not None: kwargs['cert_file'] = cert_file
 

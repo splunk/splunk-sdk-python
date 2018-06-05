@@ -19,16 +19,21 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
+from splunklib import six
+from splunklib.six.moves import range
 try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
     from splunklib.ordereddict import OrderedDict
 from collections import namedtuple, deque
-from cStringIO import StringIO
+from splunklib.six.moves import StringIO as StringIO
 from functools import wraps
 from glob import iglob
-from itertools import chain, ifilter, imap, izip
-from sys import float_info, maxint as maxsize, maxunicode
+from itertools import chain
+from splunklib.six.moves import filter as ifilter
+from splunklib.six.moves import map as imap
+from splunklib.six.moves import zip as izip
+from sys import float_info, maxunicode
 from tempfile import mktemp
 from time import time
 from types import MethodType
@@ -38,7 +43,7 @@ try:
 except ImportError:
     from unittest import main, TestCase
 
-import cPickle as pickle
+import splunklib.six.moves.cPickle as pickle
 import gzip
 import io
 import json
@@ -49,8 +54,8 @@ import random
 
 # Confirmed: [minint, maxint) covers the full range of values that xrange allows
 
-minint = (-maxsize - 1) // 2
-maxint = maxsize // 2
+minint = (-six.MAXSIZE - 1) // 2
+maxint = six.MAXSIZE // 2
 
 max_length = 1 * 1024
 
@@ -83,7 +88,7 @@ def random_integer():
 
 
 def random_integers():
-    return random_list(xrange, minint, maxint)
+    return random_list(six.moves.range, minint, maxint)
 
 
 def random_list(population, *args):
@@ -91,7 +96,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join(imap(lambda x: unichr(x), random.sample(xrange(maxunicode), random.randint(0, max_length))))
+    return ''.join(imap(lambda x: six.unichr(x), random.sample(range(maxunicode), random.randint(0, max_length))))
 
 # endregion
 
@@ -182,13 +187,13 @@ class TestInternals(TestCase):
 
         write_record = writer.write_record
 
-        for serial_number in xrange(0, 31):
+        for serial_number in range(0, 31):
             values = [serial_number, time(), random_bytes(), random_dict(), random_integers(), random_unicode()]
             record = OrderedDict(izip(fieldnames, values))
-            try:
-                write_record(record)
-            except Exception as error:
-                self.fail(error)
+            #try:
+            write_record(record)
+            #except Exception as error:
+            #    self.fail(error)
             test_data['values'].append(values)
 
         # RecordWriter accumulates inspector messages and metrics until maxresultrows are written, a partial result
@@ -213,7 +218,7 @@ class TestInternals(TestCase):
 
         test_data['metrics'] = metrics
 
-        for name, metric in metrics.iteritems():
+        for name, metric in six.iteritems(metrics):
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 3)
@@ -224,8 +229,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(ifilter(lambda (k, v): k.startswith('metric.'), writer._inspector.iteritems())),
-            dict(imap(lambda (k, v): ('metric.' + k, v), metrics.iteritems())))
+            dict(ifilter(lambda k_v: k_v[0].startswith('metric.'), six.iteritems(writer._inspector))),
+            dict(imap(lambda k_v1: ('metric.' + k_v1[0], k_v1[1]), six.iteritems(metrics))))
 
         writer.flush(finished=True)
 
@@ -256,7 +261,7 @@ class TestInternals(TestCase):
 
             cls = self.__class__
             method = cls.test_record_writer_with_recordings
-            base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, unicode(time()))))
+            base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, six.text_type(time()))))
 
             with gzip.open(base_path + '.input.gz', 'wb') as f:
                 pickle.dump(test_data, f)
@@ -291,7 +296,7 @@ class TestInternals(TestCase):
             for message_type, message_text in test_data['messages']:
                 writer.write_message(message_type, '{}', message_text)
 
-            for name, metric in test_data['metrics'].iteritems():
+            for name, metric in six.iteritems(test_data['metrics']):
                 writer.write_metric(name, metric)
 
             writer.flush(finished=True)
@@ -364,7 +369,7 @@ class TestInternals(TestCase):
 
         return chunks
 
-    _Chunk = namedtuple('Chunk', (b'metadata', b'body'))
+    _Chunk = namedtuple('Chunk', ('metadata', 'body'))
 
     _dictionary = {
         'a': 1,
@@ -385,7 +390,7 @@ class TestInternals(TestCase):
         'n': 12
     }
 
-    _json_input = unicode(json.dumps(_dictionary, separators=(',', ':')))
+    _json_input = six.text_type(json.dumps(_dictionary, separators=(',', ':')))
     _package_path = os.path.dirname(os.path.abspath(__file__))
     _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 
@@ -527,7 +532,7 @@ class Test(object):
         write_record = writer.write_record
         names = self.fieldnames
 
-        for self._serial_number in xrange(0, 31):
+        for self._serial_number in range(0, 31):
             record = OrderedDict(izip(names, self.row))
             write_record(record)
 

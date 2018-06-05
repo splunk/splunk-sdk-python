@@ -16,6 +16,7 @@
 
 """A command line utility for executing Splunk searches."""
 
+from __future__ import absolute_import
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from time import sleep
@@ -74,7 +75,7 @@ def main(argv):
     try:
         service.parse(search, parse_only=True)
     except HTTPError as e:
-        cmdopts.error("query '%s' is invalid:\n\t%s" % (search, e.message), 2)
+        cmdopts.error("query '%s' is invalid:\n\t%s" % (search, str(e)), 2)
         return
 
     job = service.jobs.create(search, **kwargs_create)
@@ -100,12 +101,12 @@ def main(argv):
             break
         sleep(2)
 
-    if not kwargs_results.has_key('count'): kwargs_results['count'] = 0
+    if 'count' not in kwargs_results: kwargs_results['count'] = 0
     results = job.results(**kwargs_results)
     while True:
         content = results.read(1024)
         if len(content) == 0: break
-        sys.stdout.write(content)
+        sys.stdout.write(content.decode('utf-8'))
         sys.stdout.flush()
     sys.stdout.write('\n')
 

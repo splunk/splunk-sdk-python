@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/splunk/splunk-sdk-python.svg?branch=master)](https://travis-ci.org/splunk/splunk-sdk-python)
 # The Splunk Software Development Kit for Python
 
-#### Version 1.6.2
+#### Version 1.6.4
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.
@@ -36,7 +36,7 @@ Here's what you need to get going with the Splunk SDK for Python.
 
 #### Python
 
-The Splunk SDK for Python requires Python 2.6+. 
+The Splunk SDK for Python requires Python 2.7+. 
 
 #### Splunk
 
@@ -168,9 +168,7 @@ prompt in the **/splunk-sdk-python/tests** subdirectory and enter:
     python test_app.py
 
 The test suite uses Python's standard library and the built-in `unittest` 
-library. If you're using Python 2.7, you're all set. However, if you are using 
-Python 2.6, you'll also need to install the `unittest2` library to
-get the additional features that were added to Python 2.7.
+library. 
 
 You can read more about our testing framework on
 [GitHub](https://github.com/splunk/splunk-sdk-python/tree/master/tests).
@@ -315,7 +313,3 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
 
-For compatibility with Python 2.6, The Splunk Software Development Kit
-for Python ships with ordereddict.py from the ordereddict package on
-[PyPI](http://pypi.python.org/pypi/ordereddict/1.1), which is licensed
-under the MIT license (see the top of splunklib/ordereddict.py).

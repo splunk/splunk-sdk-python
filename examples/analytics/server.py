@@ -14,15 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 import sys, os
+from splunklib import six
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from bottle import route, run, debug, template, static_file, request
+from .bottle import route, run, debug, template, static_file, request
 
 from time import strptime, mktime
 
-from input import AnalyticsTracker
-from output import AnalyticsRetriever, TimeRange
+from .input import AnalyticsTracker
+from .output import AnalyticsRetriever, TimeRange
 try:
     import utils
 except ImportError:
@@ -35,7 +37,7 @@ retrievers = {}
 def get_retriever(name):
     global retrievers
     retriever = None
-    if retrievers.has_key(name):
+    if name in retrievers:
         retriever = retrievers[name]
     else:
         retriever = AnalyticsRetriever(name, splunk_opts)
@@ -87,7 +89,7 @@ def application(name):
 
     # We need to format the events to something the graphing library can handle
     data = []
-    for name, ticks in events_over_time.iteritems():
+    for name, ticks in six.iteritems(events_over_time):
         # We ignore the cases
         if name == "VALUE" or name == "NULL":
             continue

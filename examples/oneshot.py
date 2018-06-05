@@ -16,6 +16,7 @@
 
 """A command line utility for executing oneshot Splunk searches."""
 
+from __future__ import absolute_import
 from pprint import pprint
 import socket
 import sys, os

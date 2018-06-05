@@ -14,7 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import csv, sys, urllib, re
+from __future__ import absolute_import
+import csv, sys, re
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir)))
+
+from splunklib.six.moves import zip
+from splunklib.six.moves import urllib
 
 # Tees output to a logfile for debugging
 class Logger:
@@ -51,6 +58,8 @@ class Reader:
     def next(self):
         return self.readline()
 
+    __next__ = next
+
     def readline(self):
         line = self.buf.readline()
 
@@ -75,11 +84,11 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     # convert all multivalue keys to the right form
     fields = set()
     for result in results:    
-        for key in result.keys():
+        for key in list(result.keys()):
             if(isinstance(result[key], list)):
                 result['__mv_' + key] = encode_mv(result[key])
                 result[key] = mvdelim.join(result[key])
-        fields.update(result.keys())
+        fields.update(list(result.keys()))
 
     # convert the fields into a list and create a CSV writer
     # to output to stdout
@@ -88,7 +97,7 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     writer = csv.DictWriter(output, fields)
 
     # Write out the fields, and then the actual results
-    writer.writerow(dict(zip(fields, fields)))
+    writer.writerow(dict(list(zip(fields, fields))))
     writer.writerows(results)
 
 def read_input(buf, has_header = True):
@@ -121,13 +130,13 @@ def read_input(buf, has_header = True):
             # on a new line, and it belongs to the previous attribute
             if colon < 0:
                 if last_attr:
-                    header[last_attr] = header[last_attr] + '\n' + urllib.unquote(line)
+                    header[last_attr] = header[last_attr] + '\n' + urllib.parse.unquote(line)
                 else:
                     continue
 
             # extract it and set value in settings
             last_attr = attr = line[:colon]
-            val  = urllib.unquote(line[colon+1:])
+            val  = urllib.parse.unquote(line[colon+1:])
             header[attr] = val
 
     return buf, header

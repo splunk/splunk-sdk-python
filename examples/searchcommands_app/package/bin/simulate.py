@@ -93,7 +93,7 @@ class SimulateCommand(GeneratingCommand):
         duration = self.duration
 
         while duration > 0:
-            count = long(round(random.expovariate(self.lambda_value)))
+            count = int(round(random.expovariate(self.lambda_value)))
             start_time = time.clock()
             for record in random.sample(self.records, count):
                 yield record

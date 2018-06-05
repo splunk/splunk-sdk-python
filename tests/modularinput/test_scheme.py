@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.scheme import Scheme
 from splunklib.modularinput.argument import Argument

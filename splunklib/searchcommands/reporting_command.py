@@ -23,6 +23,7 @@ from .decorators import ConfigurationSetting, Option
 from .streaming_command import StreamingCommand
 from .search_command import SearchCommand
 from .validators import Set
+from splunklib import six
 
 
 class ReportingCommand(SearchCommand):
@@ -93,7 +94,7 @@ class ReportingCommand(SearchCommand):
             self._configuration.streaming_preop = ' '.join(streaming_preop)
             return
 
-        raise RuntimeError('Unrecognized reporting command phase: {}'.format(json_encode_string(unicode(phase))))
+        raise RuntimeError('Unrecognized reporting command phase: {}'.format(json_encode_string(six.text_type(phase))))
 
     def reduce(self, records):
         """ Override this method to produce a reporting data structure.

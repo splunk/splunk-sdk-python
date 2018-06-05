@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from cStringIO import StringIO
+from splunklib.six.moves import cStringIO as StringIO
 try:
     from unittest2 import main, TestCase
 except ImportError:

@@ -16,6 +16,8 @@
 
 """A command line utility that lists saved searches."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -34,18 +36,18 @@ def main():
 
     for saved_search in service.saved_searches:
         header = saved_search.name
-        print header
-        print '='*len(header)
+        print(header)
+        print('='*len(header))
         content = saved_search.content
         for key in sorted(content.keys()):
             value = content[key]
-            print "%s: %s" % (key, value)
+            print("%s: %s" % (key, value))
         history = saved_search.history()
         if len(history) > 0:
-            print "history:"
+            print("history:")
             for job in history:
-                print "    %s" % job.name
-        print
+                print("    %s" % job.name)
+        print()
 
 if __name__ == "__main__":
     main()

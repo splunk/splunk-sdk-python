@@ -14,13 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 import datetime
-import testlib
+from tests import testlib
 import logging
 
 from time import sleep
 
 import splunklib.client as client
+from splunklib.six.moves import zip
 
 class TestSavedSearch(testlib.SDKTestCase):
     def setUp(self):
@@ -171,7 +173,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         logging.debug("Scheduled times: %s", scheduled_times)
         self.assertTrue(all([isinstance(x, datetime.datetime) 
                              for x in scheduled_times]))
-        time_pairs = zip(scheduled_times[:-1], scheduled_times[1:])
+        time_pairs = list(zip(scheduled_times[:-1], scheduled_times[1:]))
         for earlier, later in time_pairs:
             diff = later-earlier
             # diff is an instance of datetime.timedelta, which

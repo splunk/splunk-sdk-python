@@ -14,10 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from __future__ import absolute_import
+from tests import testlib
 import logging
 
 import splunklib.client as client
+from splunklib import six
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
@@ -88,7 +90,7 @@ class TestConfs(testlib.SDKTestCase):
                   testlib.tmpname(): testlib.tmpname()}
         stanza.submit(values)
         stanza.refresh()
-        for key, value in values.iteritems():
+        for key, value in six.iteritems(values):
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 

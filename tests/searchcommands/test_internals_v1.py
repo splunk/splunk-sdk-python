@@ -23,11 +23,14 @@ from splunklib.searchcommands.validators import Boolean
 from splunklib.searchcommands.search_command import SearchCommand
 
 from contextlib import closing
-from cStringIO import StringIO
+from splunklib.six.moves import cStringIO as StringIO
 from itertools import izip
 from unittest import main, TestCase
 
 import os
+from splunklib import six
+from splunklib.six.moves import range
+from functools import reduce
 
 
 class TestInternals(TestCase):
@@ -54,7 +57,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
-        for option in command.options.itervalues():
+        for option in six.itervalues(command.options):
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -71,7 +74,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
-        for option in command.options.itervalues():
+        for option in six.itervalues(command.options):
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -86,7 +89,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
-        for option in command.options.itervalues():
+        for option in six.itervalues(command.options):
             if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -281,7 +284,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), collection.iteritems(), '') + '\n'
+        text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), six.iteritems(collection), '') + '\n'
 
         with closing(StringIO(text.encode())) as input_file:
             input_header.read(input_file)

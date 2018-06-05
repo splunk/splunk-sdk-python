@@ -14,15 +14,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import SimpleHTTPServer
-import SocketServer
+from __future__ import absolute_import
+from __future__ import print_function
+import splunklib.six.moves.SimpleHTTPServer
+import splunklib.six.moves.socketserver
 import urllib2
 import sys
 import StringIO
+from splunklib import six
 
 PORT = 8080
 
-class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class RedirectHandler(six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
         redirect_url, headers = self.get_url_and_headers()
         if redirect_url is None:
@@ -67,7 +70,7 @@ class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         # Get the redirect URL and remove it from the headers
         redirect_url = None
-        if headers.has_key("x-redirect-url"):
+        if "x-redirect-url" in headers:
             redirect_url = headers["x-redirect-url"]
             del headers["x-redirect-url"]
         else:
@@ -86,7 +89,7 @@ class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             # We were successful, so send the response code
             self.send_response(response.code, message=response.msg)
-            for key, value in dict(response.headers).iteritems():
+            for key, value in six.iteritems(dict(response.headers)):
                 # Optionally log the headers
                 #self.log_message("%s: %s" % (key, value))
 
@@ -106,7 +109,7 @@ class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             # On errors, log the response code and message
             self.log_message("Code: %s (%s)", e.code, e.msg)
 
-            for key, value in dict(e.hdrs).iteritems():
+            for key, value in six.iteritems(dict(e.hdrs)):
                 # On errors, we always log the headers
                 self.log_message("%s: %s", key, value)
 
@@ -132,17 +135,17 @@ class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             # Finally, send the error itself
             self.copyfile(response_file, self.wfile)
         
-class ReuseableSocketTCPServer(SocketServer.TCPServer):
+class ReuseableSocketTCPServer(six.moves.socketserver.TCPServer):
     def __init__(self, *args, **kwargs):
         self.allow_reuse_address = True
-        SocketServer.TCPServer.__init__(self, *args, **kwargs)
+        six.moves.socketserver.TCPServer.__init__(self, *args, **kwargs)
 
 def serve(port = PORT):
     Handler = RedirectHandler
     
     httpd = ReuseableSocketTCPServer(("", int(port)), Handler)
     
-    print "API Explorer -- Port: %s" % int(port)
+    print("API Explorer -- Port: %s" % int(port))
     
     httpd.serve_forever()
 

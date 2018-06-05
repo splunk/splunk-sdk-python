@@ -27,7 +27,11 @@ If you want a friendlier interface to the Splunk REST API, use the
 from __future__ import absolute_import
 import logging
 import socket
-import ssl
+try:
+    import ssl
+    hasssl = True
+except ImportError:
+    hasssl = False
 from io import BytesIO
 
 from splunklib.six.moves import urllib
@@ -548,8 +552,11 @@ class Context(object):
             socket.write("\\r\\n")
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.scheme == "https":
-            sock = ssl.wrap_socket(sock)
+        if self.scheme == "https" and self.verify:
+            if hasssl:
+                sock = ssl.wrap_socket(sock)
+            else:
+                raise ImportError('No SSL library found')
         sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
 
@@ -1341,7 +1348,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify or not hasssl:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)

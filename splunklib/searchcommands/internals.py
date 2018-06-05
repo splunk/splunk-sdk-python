@@ -327,8 +327,8 @@ class ConfigurationSettingsType(type):
             constraint=None,
             supporting_protocols=[1, 2]),
         'type': specification(
-            constraint=lambda value: value in ('eventing', 'reporting', 'streaming', 'events'),
             type=(bytes, six.text_type),
+            constraint=lambda value: value in ('events', 'reporting', 'streaming'),
             supporting_protocols=[2])}
 
 

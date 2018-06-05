@@ -27,7 +27,11 @@ If you want a friendlier interface to the Splunk REST API, use the
 from __future__ import absolute_import
 import logging
 import socket
-import ssl
+try:
+    import ssl
+    hasssl = True
+except ImportError:
+    hasssl = False
 from io import BytesIO
 
 from splunklib.six.moves import urllib
@@ -549,7 +553,10 @@ class Context(object):
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.scheme == "https":
-            sock = ssl.wrap_socket(sock)
+            if hasssl:
+                sock = ssl.wrap_socket(sock)
+            else:
+                raise ImportError('No SSL library found')
         sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
 
@@ -1337,13 +1344,16 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
         if scheme == "http":
             return six.moves.http_client.HTTPConnection(host, port, **kwargs)
         if scheme == "https":
-            if key_file is not None: kwargs['key_file'] = key_file
-            if cert_file is not None: kwargs['cert_file'] = cert_file
+            if hasssl:
+                if key_file is not None: kwargs['key_file'] = key_file
+                if cert_file is not None: kwargs['cert_file'] = cert_file
 
-            # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
-                kwargs['context'] = ssl._create_unverified_context()
-            return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
+                # If running Python 2.7.9+, disable SSL certificate validation
+                if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
+                    kwargs['context'] = ssl._create_unverified_context()
+                return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
+            else:
+                raise ImportError('No SSL library found')
         raise ValueError("unsupported scheme: %s" % scheme)
 
     def request(url, message, **kwargs):

@@ -17,6 +17,8 @@
 """Follows (aka tails) a realtime search using the job endpoints and prints
    results to stdout."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pprint import pprint
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -78,7 +80,7 @@ def main():
     try:
         follow(job, count, items)
     except KeyboardInterrupt:
-        print "\nInterrupted."
+        print("\nInterrupted.")
     finally:
         job.cancel()
     

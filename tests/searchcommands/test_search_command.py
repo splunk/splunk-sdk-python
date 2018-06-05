@@ -16,13 +16,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from splunklib import six
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from cStringIO import StringIO
-from itertools import izip
+from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
@@ -40,7 +41,10 @@ class TestCommand(SearchCommand):
     def echo(self, records):
         for record in records:
             if record.get('action') == 'raise_exception':
-                raise StandardError(self)
+                if six.PY2:
+                    raise StandardError(self)
+                else:
+                    raise Exception(self)
             yield record
 
     def _execute(self, ifile, process):
@@ -80,14 +84,14 @@ class TestCommand(SearchCommand):
 @Configuration()
 class TestStreamingCommand(StreamingCommand):
     def stream(self, records):
-        serial_number = 0L
+        serial_number = 0
         for record in records:
             action = record['action']
             if action == 'raise_error':
                 raise RuntimeError('Testing')
             value = self.search_results_info if action == 'get_search_results_info' else None
             yield {'_serial': serial_number, 'data': value}
-            serial_number += 1L
+            serial_number += 1
         return
 
 
@@ -131,13 +135,21 @@ class TestSearchCommand(TestCase):
 
         self.assertEqual(str(command.configuration), '')
 
-        self.assertEqual(
-            repr(command.configuration),
-            "[(u'clear_required_fields', None, [1]), (u'distributed', None, [2]), (u'generates_timeorder', None, [1]), "
+        if six.PY2:
+            expected = ("[(u'clear_required_fields', None, [1]), (u'distributed', None, [2]), (u'generates_timeorder', None, [1]), "
             "(u'generating', None, [1, 2]), (u'maxinputs', None, [2]), (u'overrides_timeorder', None, [1]), "
             "(u'required_fields', None, [1, 2]), (u'requires_preop', None, [1]), (u'retainsevents', None, [1]), "
             "(u'run_in_preview', None, [2]), (u'streaming', None, [1]), (u'streaming_preop', None, [1, 2]), "
             "(u'type', None, [2])]")
+        else:
+            expected = ("[('clear_required_fields', None, [1]), ('distributed', None, [2]), ('generates_timeorder', None, [1]), "
+            "('generating', None, [1, 2]), ('maxinputs', None, [2]), ('overrides_timeorder', None, [1]), "
+            "('required_fields', None, [1, 2]), ('requires_preop', None, [1]), ('retainsevents', None, [1]), "
+            "('run_in_preview', None, [2]), ('streaming', None, [1]), ('streaming_preop', None, [1, 2]), "
+            "('type', None, [2])]")
+
+        self.assertEqual(
+            repr(command.configuration), expected)
 
         try:
             # noinspection PyTypeChecker
@@ -173,19 +185,31 @@ class TestSearchCommand(TestCase):
         configuration.run_in_preview = True
         configuration.type = 'streaming'
 
-        self.assertEqual(
-            str(command.configuration),
-            'clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
-            'required_fields="[u\'foo\', u\'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
-            'streaming_preop="some streaming command"')
+        if six.PY2:
+            expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
+                'required_fields="[u\'foo\', u\'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
+                'streaming_preop="some streaming command"')
+        else:
+            expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
+                        'required_fields="[\'foo\', \'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
+                        'streaming_preop="some streaming command"')
+        self.assertEqual(str(command.configuration), expected)
 
-        self.assertEqual(
-            repr(command.configuration),
-            "[(u'clear_required_fields', True, [1]), (u'distributed', True, [2]), (u'generates_timeorder', True, [1]), "
+        if six.PY2:
+            expected = ("[(u'clear_required_fields', True, [1]), (u'distributed', True, [2]), (u'generates_timeorder', True, [1]), "
             "(u'generating', True, [1, 2]), (u'maxinputs', 50000, [2]), (u'overrides_timeorder', True, [1]), "
             "(u'required_fields', [u'foo', u'bar'], [1, 2]), (u'requires_preop', True, [1]), "
             "(u'retainsevents', True, [1]), (u'run_in_preview', True, [2]), (u'streaming', True, [1]), "
             "(u'streaming_preop', u'some streaming command', [1, 2]), (u'type', u'streaming', [2])]")
+        else:
+            expected = ("[('clear_required_fields', True, [1]), ('distributed', True, [2]), ('generates_timeorder', True, [1]), "
+            "('generating', True, [1, 2]), ('maxinputs', 50000, [2]), ('overrides_timeorder', True, [1]), "
+            "('required_fields', ['foo', 'bar'], [1, 2]), ('requires_preop', True, [1]), "
+            "('retainsevents', True, [1]), ('run_in_preview', True, [2]), ('streaming', True, [1]), "
+            "('streaming_preop', 'some streaming command', [1, 2]), ('type', 'streaming', [2])]")
+
+        self.assertEqual(
+            repr(command.configuration), expected)
 
         try:
             # noinspection PyTypeChecker
@@ -193,11 +217,11 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
 
-        result.reset()
+        result.seek(0)
         reader = csv.reader(result)
-        self.assertEqual([], reader.next())
-        observed = dict(izip(reader.next(), reader.next()))
-        self.assertRaises(StopIteration, reader.next)
+        self.assertEqual([], next(reader))
+        observed = dict(izip(next(reader), next(reader)))
+        self.assertRaises(StopIteration, lambda: next(reader))
 
         expected = {
             'clear_required_fields': '1',                '__mv_clear_required_fields': '',

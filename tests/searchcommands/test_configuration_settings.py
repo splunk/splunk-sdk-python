@@ -28,6 +28,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.searchcommands.decorators import Configuration
 from unittest import main, TestCase
+from splunklib import six
 
 
 class TestConfigurationSettings(TestCase):
@@ -45,7 +46,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 1
 
         self.assertTrue(
-            [(name, value) for name, value in command.configuration.iteritems()],
+            [(name, value) for name, value in six.iteritems(command.configuration)],
             [('generating', True)])
 
         self.assertIs(command.configuration.generates_timeorder, None)
@@ -68,7 +69,7 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
+            [(name, value) for name, value in six.iteritems(command.configuration)],
             [('generates_timeorder', True), ('generating', True), ('local', True), ('retainsevents', True),
              ('streaming', True)])
 
@@ -76,8 +77,8 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 2
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
-            [('generating', True), ('type', 'streaming')])
+            [(name, value) for name, value in six.iteritems(command.configuration)],
+            [('generating', True), ('type', 'stateful')])
 
         self.assertIs(command.configuration.distributed, False)
         self.assertIs(command.configuration.generating, True)
@@ -95,8 +96,8 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
-            [('generating', True), ('type', 'stateful')])
+            [(name, value) for name, value in six.iteritems(command.configuration)],
+            [('generating', True), ('type', 'streaming')])
 
         return
 
@@ -114,7 +115,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 1
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
+            [(name, value) for name, value in six.iteritems(command.configuration)],
             [('streaming', True)])
 
         self.assertIs(command.configuration.clear_required_fields, None)
@@ -138,15 +139,15 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
+            [(name, value) for name, value in six.iteritems(command.configuration)],
             [('clear_required_fields', True), ('local', True), ('overrides_timeorder', True), ('required_fields', ['field_1', 'field_2', 'field_3']), ('streaming', True)])
 
         command = TestCommand()
         command._protocol_version = 2
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
-            [('type', 'stateful')])
+            [(name, value) for name, value in six.iteritems(command.configuration)],
+            [('type', 'streaming')])
 
         self.assertIs(command.configuration.distributed, True)
         self.assertEqual(command.configuration.type, 'streaming')
@@ -155,7 +156,7 @@ class TestConfigurationSettings(TestCase):
         command.configuration.required_fields = ['field_1', 'field_2', 'field_3']
 
         try:
-            command.configuration.type = 'eventing'
+            command.configuration.type = 'events'
         except AttributeError:
             pass
         except Exception as error:
@@ -164,8 +165,8 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            [(name, value) for name, value in command.configuration.iteritems()],
-            [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'streaming')])
+            [(name, value) for name, value in six.iteritems(command.configuration)],
+            [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'stateful')])
 
         return
 

@@ -18,6 +18,7 @@
    back to stdout. The script is designed to be used with the search.py 
    example, eg: './search.py "search 404" | ./results.py'"""
  
+from __future__ import absolute_import
 from pprint import pprint
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

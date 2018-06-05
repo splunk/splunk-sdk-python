@@ -21,6 +21,7 @@ import app
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 import sys
 import time
+from six.moves import range
 
 
 @Configuration()

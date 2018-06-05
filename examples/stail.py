@@ -17,6 +17,8 @@
 """Tails a realtime search using the export endpoint and prints results to
    stdout."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -51,10 +53,10 @@ def main():
 
         for result in ResultsReader(result.body):
             if result is not None:
-                print pprint(result)
+                print(pprint(result))
 
     except KeyboardInterrupt:
-        print "\nInterrupted."
+        print("\nInterrupted.")
 
 if __name__ == "__main__":
     main()

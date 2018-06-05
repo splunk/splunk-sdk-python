@@ -14,12 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import testlib
+from __future__ import absolute_import
+from tests import testlib
 import logging
 
 from contextlib import contextmanager
 
 import splunklib.client as client
+from splunklib.six.moves import range
 
 collections = [
     'apps',
@@ -243,7 +245,7 @@ class CollectionTestCase(testlib.SDKTestCase):
     def test_getitem_with_namespace_sample_in_changelog(self):
         from splunklib.binding import namespace
         ns = client.namespace(owner='nobody', app='search')
-        result = self.service.saved_searches['Top five sourcetypes', ns]
+        result = self.service.saved_searches['Errors in the last 24 hours', ns]
 
     def test_collection_search_get(self):
         for search in self.service.saved_searches:

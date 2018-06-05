@@ -14,8 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
+from __future__ import print_function
+
+from io import BytesIO
 from time import sleep
-import testlib
+
+import io
+
+from tests import testlib
 
 try:
     import unittest2 as unittest
@@ -209,7 +216,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
 
     def test_enable_preview(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
@@ -235,7 +242,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
 
     def test_setpriority(self):
         if not self.app_collection_installed():
-            print "Test requires sdk-app-collection. Skipping."
+            print("Test requires sdk-app-collection. Skipping.")
             return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
@@ -378,7 +385,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('data/results.xml') as input:
+        with io.open('data/results.xml', mode='br') as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
             N_results = 0
@@ -401,7 +408,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with open('data/streaming_results.xml') as input:
+        with io.open('data/streaming_results.xml', 'br') as input:
             reader = results.ResultsReader(input)
             N_results = 0
             N_messages = 0
@@ -420,17 +427,15 @@ class TestResultsReader(unittest.TestCase):
             self.assertEqual(N_messages, 3)
 
     def test_xmldtd_filter(self):
-        from StringIO import StringIO
-        s = results._XMLDTDFilter(StringIO("<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"))
-        self.assertEqual(s.read(), "<boris>Other stuf</boris> ab")
+        s = results._XMLDTDFilter(BytesIO(b"""<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"""))
+        self.assertEqual(s.read(), b"<boris>Other stuf</boris> ab")
 
     def test_concatenated_stream(self):
-        from StringIO import StringIO
-        s = results._ConcatenatedStream(StringIO("This is a test "),
-                                       StringIO("of the emergency broadcast system."))
-        self.assertEqual(s.read(3), "Thi")
-        self.assertEqual(s.read(20), 's is a test of the e')
-        self.assertEqual(s.read(), 'mergency broadcast system.')
+        s = results._ConcatenatedStream(BytesIO(b"This is a test "),
+                                       BytesIO(b"of the emergency broadcast system."))
+        self.assertEqual(s.read(3), b"Thi")
+        self.assertEqual(s.read(20), b's is a test of the e')
+        self.assertEqual(s.read(), b'mergency broadcast system.')
 
 if __name__ == "__main__":
     unittest.main()

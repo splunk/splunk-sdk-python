@@ -60,13 +60,14 @@ attributes, and methods that are specific to each kind of entity. For example::
 
 import datetime
 import json
-import urllib
+from splunklib.six.moves import urllib
 import logging
 from time import sleep
 from datetime import datetime, timedelta
 import socket
 import contextlib
 
+from splunklib import six
 from .binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
 from .data import record
 from . import data
@@ -182,7 +183,7 @@ def _trailing(template, *targets):
 def _filter_content(content, *args):
     if len(args) > 0:
         return record((k, content[k]) for k in args)
-    return record((k, v) for k, v in content.iteritems()
+    return record((k, v) for k, v in six.iteritems(content)
         if k not in ['eai:acl', 'eai:attributes', 'type'])
 
 # Construct a resource path from the given base path + resource name
@@ -193,7 +194,7 @@ def _path(base, name):
 
 # Load an atom record from the body of the given response
 def _load_atom(response, match=None):
-    return data.load(response.body.read(), match)
+    return data.load(response.body.read().decode('utf-8'), match)
 
 
 # Load an array of atom entries from the body of the given response
@@ -236,7 +237,7 @@ def _parse_atom_entry(entry):
     metadata = _parse_atom_metadata(content)
 
     # Filter some of the noise out of the content record
-    content = record((k, v) for k, v in content.iteritems()
+    content = record((k, v) for k, v in six.iteritems(content)
                      if k not in ['eai:acl', 'eai:attributes'])
 
     if 'type' in content:
@@ -288,6 +289,9 @@ def connect(**kwargs):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
+    :param verify: Enable (True) or disable (False) SSL verrification for
+                   https connections. (optional, the default is True)
+    :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional).
     :type owner: ``string``
     :param `app`: The app context of the namespace (optional).
@@ -355,6 +359,9 @@ class Service(_BaseService):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
+    :param verify: Enable (True) or disable (False) SSL verrification for
+                   https connections. (optional, the default is True)
+    :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional; use "-" for wildcard).
     :type owner: ``string``
     :param `app`: The app context of the namespace (optional; use "-" for wildcard).
@@ -559,9 +566,9 @@ class Service(_BaseService):
                 self.login()
                 if not self.restart_required:
                     return result
-            except Exception, e:
+            except Exception as e:
                 sleep(1)
-        raise Exception, "Operation time out."
+        raise Exception("Operation time out.")
 
     @property
     def restart_required(self):
@@ -884,7 +891,7 @@ class Entity(Endpoint):
         try:
             self[item]
             return True
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             return False
 
     def __eq__(self, other):
@@ -1081,7 +1088,7 @@ class Entity(Endpoint):
         # text to be dispatched via HTTP. However, these links are already
         # URL encoded when they arrive, and we need to mark them as such.
         unquoted_links = dict([(k, UrlEncoded(v, skip_encode=True))
-                               for k,v in results['links'].iteritems()])
+                               for k,v in six.iteritems(results['links'])])
         results['links'] = unquoted_links
         return results
 
@@ -1290,7 +1297,7 @@ class ReadOnlyCollection(Endpoint):
         # This has been factored out so that it can be easily
         # overloaded by Configurations, which has to switch its
         # entities' endpoints from its own properties/ to configs/.
-        raw_path = urllib.unquote(state.links.alternate)
+        raw_path = urllib.parse.unquote(state.links.alternate)
         if 'servicesNS/' in raw_path:
             return _trailing(raw_path, 'servicesNS/', '/', '/')
         elif 'services/' in raw_path:
@@ -1534,7 +1541,7 @@ class Collection(ReadOnlyCollection):
             applications = s.apps
             new_app = applications.create("my_fake_app")
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise InvalidNameException("%s is not a valid name for an entity." % name)
         if 'namespace' in params:
             namespace = params.pop('namespace')
@@ -1717,7 +1724,7 @@ class Configurations(Collection):
         # This has to be overridden to handle the plumbing of creating
         # a ConfigurationFile (which is a Collection) instead of some
         # Entity.
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise ValueError("Invalid name: %s" % repr(name))
         response = self.post(__conf=name)
         if response.status == 303:
@@ -1811,7 +1818,7 @@ class StoragePasswords(Collection):
 
         :return: The :class:`StoragePassword` object created.
         """
-        if not isinstance(username, basestring):
+        if not isinstance(username, six.string_types):
             raise ValueError("Invalid name: %s" % repr(username))
 
         if realm is None:
@@ -1935,7 +1942,7 @@ class Index(Entity):
         if host is not None: args['host'] = host
         if source is not None: args['source'] = source
         if sourcetype is not None: args['sourcetype'] = sourcetype
-        path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.urlencode(args), skip_encode=True)
+        path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + urllib.parse.urlencode(args), skip_encode=True)
 
         cookie_or_auth_header = "Authorization: Splunk %s\r\n" % \
                                 (self.service.token if self.service.token is _NoAuthenticationToken
@@ -1949,12 +1956,12 @@ class Index(Entity):
         # the connection open and use the Splunk extension headers to note
         # the input mode
         sock = self.service.connect()
-        headers = ["POST %s HTTP/1.1\r\n" % self.service._abspath(path),
-                   "Host: %s:%s\r\n" % (self.service.host, int(self.service.port)),
-                   "Accept-Encoding: identity\r\n",
-                   cookie_or_auth_header,
-                   "X-Splunk-Input-Mode: Streaming\r\n",
-                   "\r\n"]
+        headers = [("POST %s HTTP/1.1\r\n" % str(self.service._abspath(path))).encode('utf-8'),
+                   ("Host: %s:%s\r\n" % (self.service.host, int(self.service.port))).encode('utf-8'),
+                   b"Accept-Encoding: identity\r\n",
+                   cookie_or_auth_header.encode('utf-8'),
+                   b"X-Splunk-Input-Mode: Streaming\r\n",
+                   b"\r\n"]
         
         for h in headers:
             sock.write(h)
@@ -2028,8 +2035,7 @@ class Index(Entity):
                 self.refresh()
 
             if self.content.totalEventCount != '0':
-                raise OperationError, "Cleaning index %s took longer than %s seconds; timing out." %\
-                                      (self.name, timeout)
+                raise OperationError("Cleaning index %s took longer than %s seconds; timing out." % (self.name, timeout))
         finally:
             # Restore original values
             self.update(maxTotalDataSizeMB=tds, frozenTimePeriodInSecs=ftp)
@@ -2297,7 +2303,7 @@ class Inputs(Collection):
         path = _path(
             self.path + kindpath,
             '%s:%s' % (kwargs['restrictToHost'], name) \
-                if kwargs.has_key('restrictToHost') else name
+                if 'restrictToHost' in kwargs else name
                 )
         return Input(self.service, path, kind)
 
@@ -2504,7 +2510,7 @@ class Inputs(Collection):
             try:
                 path = UrlEncoded(path, skip_encode=True)
                 response = self.get(path, **kwargs)
-            except HTTPError, he:
+            except HTTPError as he:
                 if he.status == 404: # No inputs of this kind
                     return []
             entities = []
@@ -2516,7 +2522,7 @@ class Inputs(Collection):
                 # Unquote the URL, since all URL encoded in the SDK
                 # should be of type UrlEncoded, and all str should not
                 # be URL encoded.
-                path = urllib.unquote(state.links.alternate)
+                path = urllib.parse.unquote(state.links.alternate)
                 entity = Input(self.service, path, kind, state=state)
                 entities.append(entity)
             return entities
@@ -2542,7 +2548,7 @@ class Inputs(Collection):
                 # Unquote the URL, since all URL encoded in the SDK
                 # should be of type UrlEncoded, and all str should not
                 # be URL encoded.
-                path = urllib.unquote(state.links.alternate)
+                path = urllib.parse.unquote(state.links.alternate)
                 entity = Input(self.service, path, kind, state=state)
                 entities.append(entity)
         if 'offset' in kwargs:
@@ -3359,7 +3365,7 @@ class Users(Collection):
             boris = users.create("boris", "securepassword", roles="user")
             hilda = users.create("hilda", "anotherpassword", roles=["user","power"])
         """
-        if not isinstance(username, basestring):
+        if not isinstance(username, six.string_types):
             raise ValueError("Invalid username: %s" % str(username))
         username = username.lower()
         self.post(name=username, password=password, roles=roles, **params)
@@ -3370,7 +3376,7 @@ class Users(Collection):
         state = _parse_atom_entry(entry)
         entity = self.item(
             self.service,
-            urllib.unquote(state.links.alternate),
+            urllib.parse.unquote(state.links.alternate),
             state=state)
         return entity
 
@@ -3482,7 +3488,7 @@ class Roles(Collection):
             roles = c.roles
             paltry = roles.create("paltry", imported_roles="user", defaultApp="search")
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise ValueError("Invalid role name: %s" % str(name))
         name = name.lower()
         self.post(name=name, **params)
@@ -3493,7 +3499,7 @@ class Roles(Collection):
         state = _parse_atom_entry(entry)
         entity = self.item(
             self.service,
-            urllib.unquote(state.links.alternate),
+            urllib.parse.unquote(state.links.alternate),
             state=state)
         return entity
 
@@ -3544,11 +3550,11 @@ class KVStoreCollections(Collection):
 
         :return: Result of POST request
         """
-        for k, v in indexes.iteritems():
+        for k, v in six.iteritems(indexes):
             if isinstance(v, dict):
                 v = json.dumps(v)
             kwargs['index.' + k] = v
-        for k, v in fields.iteritems():
+        for k, v in six.iteritems(fields):
             kwargs['field.' + k] = v
         return self.post(name=name, **kwargs)
 
@@ -3621,7 +3627,7 @@ class KVStoreCollectionData(object):
         :return: Array of documents retrieved by query.
         :rtype: ``array``
         """
-        return json.loads(self._get('', **query).body.read())
+        return json.loads(self._get('', **query).body.read().decode('utf-8'))
 
     def query_by_id(self, id):
         """
@@ -3633,7 +3639,7 @@ class KVStoreCollectionData(object):
         :return: Document with id
         :rtype: ``dict``
         """
-        return json.loads(self._get(UrlEncoded(str(id))).body.read())
+        return json.loads(self._get(UrlEncoded(str(id))).body.read().decode('utf-8'))
 
     def insert(self, data):
         """
@@ -3645,7 +3651,7 @@ class KVStoreCollectionData(object):
         :return: _id of inserted object
         :rtype: ``dict``
         """
-        return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+        return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def delete(self, query=None):
         """
@@ -3681,7 +3687,7 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
-        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):
         """
@@ -3698,7 +3704,7 @@ class KVStoreCollectionData(object):
         
         data = json.dumps(dbqueries)
 
-        return json.loads(self._post('batch_find', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+        return json.loads(self._post('batch_find', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_save(self, *documents):
         """
@@ -3715,4 +3721,4 @@ class KVStoreCollectionData(object):
         
         data = json.dumps(documents)
 
-        return json.loads(self._post('batch_save', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read())
+        return json.loads(self._post('batch_save', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))

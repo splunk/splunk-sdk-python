@@ -16,6 +16,8 @@
 
 """A command line utility for interacting with Splunk inputs."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -33,13 +35,13 @@ def main():
 
     for item in service.inputs:
         header =  "%s (%s)" % (item.name, item.kind)
-        print header
-        print '='*len(header)
+        print(header)
+        print('='*len(header))
         content = item.content
         for key in sorted(content.keys()):
             value = content[key]
-            print "%s: %s" % (key, value)
-        print
+            print("%s: %s" % (key, value))
+        print()
 
 if __name__ == "__main__":
     main()

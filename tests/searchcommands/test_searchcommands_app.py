@@ -27,10 +27,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import namedtuple
-from cStringIO import StringIO
+from splunklib.six.moves import cStringIO as StringIO
 from datetime import datetime
 from itertools import ifilter, imap, izip
 from subprocess import PIPE, Popen
+from splunklib import six
 
 try:
     from unittest2 import main, skipUnless, TestCase
@@ -70,7 +71,7 @@ class Recording(object):
         if os.path.exists(self._dispatch_dir):
             with io.open(os.path.join(self._dispatch_dir, 'request.csv')) as ifile:
                 reader = csv.reader(ifile)
-                for name, value in izip(reader.next(), reader.next()):
+                for name, value in izip(next(reader), next(reader)):
                     if name == 'search':
                         self._search = value
                         break
@@ -117,7 +118,7 @@ class Recordings(object):
 
     def __init__(self, name, action, phase, protocol_version):
 
-        basedir = Recordings._prefix + unicode(protocol_version)
+        basedir = Recordings._prefix + six.text_type(protocol_version)
 
         if not os.path.isdir(basedir):
             raise ValueError('Directory "{}" containing recordings for protocol version {} does not exist'.format(
@@ -157,17 +158,17 @@ class TestSearchCommandsApp(TestCase):
     def test_countmatches_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches')
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output)
 
@@ -176,37 +177,37 @@ class TestSearchCommandsApp(TestCase):
     def test_generatehello_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_insensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello')
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output, time_sensitive=False)
-
+ 
         return
 
     @skipUnless(pypy(), 'Skipping TestSearchCommandsApp.test_pypygeneratetext_as_unit because pypy is not on PATH.')
     def test_pypygeneratetext_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_insensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext')
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output, time_sensitive=False)
 
@@ -215,32 +216,32 @@ class TestSearchCommandsApp(TestCase):
     def test_sum_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
-        self.assertEqual(0, exit_status, msg=unicode(errors))
+        self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output)
 
@@ -248,22 +249,25 @@ class TestSearchCommandsApp(TestCase):
 
     def assertInfoEqual(self, output, expected):
         reader = csv.reader(StringIO(output))
-        self.assertEqual([], reader.next())
-        fields = reader.next()
-        values = reader.next()
+        self.assertEqual([], next(reader))
+        fields = next(reader)
+        values = next(reader)
         self.assertRaises(StopIteration, reader.next)
         output = dict(izip(fields, values))
 
         reader = csv.reader(StringIO(expected))
-        self.assertEqual([], reader.next())
-        fields = reader.next()
-        values = reader.next()
+        self.assertEqual([], next(reader))
+        fields = next(reader)
+        values = next(reader)
         self.assertRaises(StopIteration, reader.next)
         expected = dict(izip(fields, values))
 
         self.assertDictEqual(expected, output)
 
-    def _compare_chunks(self, expected, output, time_sensitive = True):
+    def _compare_chunks(self, expected, output, time_sensitive=True):
+
+        expected = expected.strip()
+        output = output.strip()
 
         if time_sensitive:
             self.assertEqual(len(expected), len(output))
@@ -301,7 +305,7 @@ class TestSearchCommandsApp(TestCase):
         output = csv.DictReader(output)
 
         for expected_row in expected:
-            output_row = output.next()
+            output_row = next(output)
 
             try:
                 timestamp = float(output_row['_time'])
@@ -337,7 +341,7 @@ class TestSearchCommandsApp(TestCase):
         output = csv.DictReader(output)
 
         for expected_row in expected:
-            output_row = output.next()
+            output_row = next(output)
             self.assertDictEqual(
                 expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
                     line_number, expected_row, output_row))
@@ -355,7 +359,7 @@ class TestSearchCommandsApp(TestCase):
     def _load_chunks(self, ifile):
         import re
 
-        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)\n')
+        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)(\n)?')
         decoder = json.JSONDecoder()
 
         chunks = []
@@ -368,7 +372,8 @@ class TestSearchCommandsApp(TestCase):
                 break
 
             match = pattern.match(line)
-            self.assertIsNotNone(match)
+            if match is None:
+                continue
 
             metadata_length = int(match.group('metadata_length'))
             metadata = ifile.read(metadata_length)
@@ -376,9 +381,6 @@ class TestSearchCommandsApp(TestCase):
 
             body_length = int(match.group('body_length'))
             body = ifile.read(body_length) if body_length > 0 else ''
-
-            if len(chunks) == 0:
-                self.assertEqual(ifile.readline(), '\n')  # the getinfo exchange protocol requires this
 
             chunks.append(TestSearchCommandsApp._Chunk(metadata, body))
 

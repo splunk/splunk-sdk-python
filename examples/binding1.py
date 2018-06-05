@@ -19,6 +19,7 @@
    binds to a sampling of endpoints showing how to access collections,
    entities and 'method-like' endpoints."""
 
+from __future__ import absolute_import
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

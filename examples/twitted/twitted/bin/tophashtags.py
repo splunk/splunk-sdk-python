@@ -14,7 +14,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 import csv, sys, urllib, re
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir)))
+try:
+    from collections import OrderedDict  # must be python 2.7
+except ImportError:
+    from splunklib.ordereddict import OrderedDict
+
+from splunklib import six
+from splunklib.six.moves import zip
+from splunklib.six.moves import urllib
 
 
 # Tees output to a logfile for debugging
@@ -53,6 +65,8 @@ class Reader:
     def next(self):
         return self.readline()
 
+    __next__ = next
+
     def readline(self):
         line = self.buf.readline()
 
@@ -78,11 +92,11 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     # convert all multivalue keys to the right form
     fields = set()
     for result in results:    
-        for key in result.keys():
+        for key in list(result.keys()):
             if(isinstance(result[key], list)):
                 result['__mv_' + key] = encode_mv(result[key])
                 result[key] = mvdelim.join(result[key])
-        fields.update(result.keys())
+        fields.update(list(result.keys()))
 
     # convert the fields into a list and create a CSV writer
     # to output to stdout
@@ -91,7 +105,7 @@ def output_results(results, mvdelim = '\n', output = sys.stdout):
     writer = csv.DictWriter(output, fields)
 
     # Write out the fields, and then the actual results
-    writer.writerow(dict(zip(fields, fields)))
+    writer.writerow(dict(list(zip(fields, fields))))
     writer.writerows(results)
 
 
@@ -125,13 +139,13 @@ def read_input(buf, has_header = True):
             # on a new line, and it belongs to the previous attribute
             if colon < 0:
                 if last_attr:
-                    header[last_attr] = header[last_attr] + '\n' + urllib.unquote(line)
+                    header[last_attr] = header[last_attr] + '\n' + urllib.parse.unquote(line)
                 else:
                     continue
 
             # extract it and set value in settings
             last_attr = attr = line[:colon]
-            val  = urllib.unquote(line[colon+1:])
+            val  = urllib.parse.unquote(line[colon+1:])
             header[attr] = val
 
     return buf, header
@@ -155,7 +169,7 @@ def main(argv):
     buf, settings = read_input(stdin_wrapper, has_header = True)
     events = csv.DictReader(buf)
     
-    hashtags = dict()
+    hashtags = OrderedDict()
     
     for event in events:
         # For each event, 
@@ -166,7 +180,7 @@ def main(argv):
             hashtag = hashtag_match.group(0).strip().lower()
     
             hashtag_count = 0
-            if hashtags.has_key(hashtag):
+            if hashtag in hashtags:
                 hashtag_count = hashtags[hashtag]
             
             hashtags[hashtag] = hashtag_count + 1
@@ -175,8 +189,8 @@ def main(argv):
 
     from decimal import Decimal
     results = []
-    for k, v in hashtags.iteritems():
-        results.append({
+    for k, v in six.iteritems(hashtags):
+        results.insert(0, {
             "hashtag": k, 
             "count": v, 
             "percentage": (Decimal(v) / Decimal(num_hashtags))

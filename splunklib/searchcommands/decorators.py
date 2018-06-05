@@ -15,6 +15,7 @@
 # under the License.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+from splunklib import six
 
 try:
     from collections import OrderedDict  # must be python 2.7
@@ -22,7 +23,7 @@ except ImportError:
     from ..ordereddict import OrderedDict
 
 from inspect import getmembers, isclass, isfunction
-from itertools import imap
+from splunklib.six.moves import map as imap
 
 from .internals import ConfigurationSettingsType, json_encode_string
 from .validators import OptionName
@@ -69,15 +70,15 @@ class Configuration(object):
             # Set command name
 
             name = o.__name__
-            if name.endswith(b'Command'):
-                name = name[:-len(b'Command')]
-            o.name = unicode(name.lower())
+            if name.endswith('Command'):
+                name = name[:-len('Command')]
+            o.name = six.text_type(name.lower())
 
             # Construct ConfigurationSettings instance for the command class
 
             o.ConfigurationSettings = ConfigurationSettingsType(
-                module=o.__module__ + b'.' + o.__name__,
-                name=b'ConfigurationSettings',
+                module=o.__module__ + '.' + o.__name__,
+                name='ConfigurationSettings',
                 bases=(o.ConfigurationSettings,))
 
             ConfigurationSetting.fix_up(o.ConfigurationSettings, self.settings)
@@ -138,7 +139,7 @@ class ConfigurationSetting(property):
         for name, setting in definitions:
 
             if setting._name is None:
-                setting._name = name = unicode(name)
+                setting._name = name = six.text_type(name)
             else:
                 name = setting._name
 
@@ -195,8 +196,8 @@ class ConfigurationSetting(property):
             del values[name]
 
         if len(values) > 0:
-            settings = sorted(list(values.iteritems()))
-            settings = imap(lambda (n, v): '{}={}'.format(n, repr(v)), settings)
+            settings = sorted(list(six.iteritems(values)))
+            settings = imap(lambda n_v: '{}={}'.format(n_v[0], repr(n_v[1])), settings)
             raise AttributeError('Inapplicable configuration settings: ' + ', '.join(settings))
 
         cls.configuration_setting_definitions = definitions
@@ -357,7 +358,7 @@ class Option(property):
             self._option = option
             self._is_set = False
             validator = self.validator
-            self._format = unicode if validator is None else validator.format
+            self._format = six.text_type if validator is None else validator.format
 
         def __repr__(self):
             return '(' + repr(self.name) + ', ' + repr(self._format(self.value)) + ')'
@@ -417,24 +418,24 @@ class Option(property):
         def __init__(self, command):
             definitions = type(command).option_definitions
             item_class = Option.Item
-            OrderedDict.__init__(self, imap(lambda (name, option): (option.name, item_class(command, option)), definitions))
+            OrderedDict.__init__(self, ((option.name, item_class(command, option)) for (name, option) in definitions))
 
         def __repr__(self):
-            text = 'Option.View([' + ','.join(imap(lambda item: repr(item), self.itervalues())) + '])'
+            text = 'Option.View([' + ','.join(imap(lambda item: repr(item), six.itervalues(self))) + '])'
             return text
 
         def __str__(self):
-            text = ' '.join([str(item) for item in self.itervalues() if item.is_set])
+            text = ' '.join([str(item) for item in six.itervalues(self) if item.is_set])
             return text
 
         # region Methods
 
         def get_missing(self):
-            missing = [item.name for item in self.itervalues() if item.is_required and not item.is_set]
+            missing = [item.name for item in six.itervalues(self) if item.is_required and not item.is_set]
             return missing if len(missing) > 0 else None
 
         def reset(self):
-            for value in self.itervalues():
+            for value in six.itervalues(self):
                 value.reset()
 
         pass

@@ -14,9 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 import random, sys
 
 from splunklib.modularinput import *
+from splunklib import six
 
 class MyScript(Script):
     """All modular inputs should inherit from the abstract base class Script
@@ -103,7 +105,7 @@ class MyScript(Script):
         :param ew: an EventWriter object
         """
         # Go through each input for this modular input
-        for input_name, input_item in inputs.inputs.iteritems():
+        for input_name, input_item in six.iteritems(inputs.inputs):
             # Get the values, cast them as floats
             minimum = float(input_item["min"])
             maximum = float(input_item["max"])

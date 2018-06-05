@@ -14,7 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 import sys, os
+from splunklib import six
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import splunklib.client as client
 import splunklib.results as results
@@ -81,7 +83,7 @@ class AnalyticsRetriever:
         for result in reader:
             if not isinstance(result, dict):
                 continue
-            for field, count in result.iteritems():
+            for field, count in six.iteritems(result):
                 # Ignore internal ResultsReader properties
                 if field.startswith("$"):
                     continue
@@ -131,7 +133,7 @@ class AnalyticsRetriever:
 
                 # The rest is in the form of [event/property]:count
                 # pairs, so we decode those
-                for key,count in result.iteritems():
+                for key,count in six.iteritems(result):
                     # Ignore internal ResultsReader properties
                     if key.startswith("$"):
                         continue

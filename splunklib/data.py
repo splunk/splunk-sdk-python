@@ -76,7 +76,7 @@ def load(text, match=None):
         'namespaces': [],
         'names': {}
     }
-    root = XML(text)
+    root = XML(text.encode('utf-8'))
     items = [root] if match is None else root.findall(match)
     count = len(items)
     if count == 0: 

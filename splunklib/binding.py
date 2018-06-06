@@ -613,7 +613,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def get(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -636,6 +636,8 @@ class Context(object):
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
         :type app: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :param query: All other keyword arguments, which are used as query
@@ -663,10 +665,14 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
+        if headers is None:
+            headers = []
+
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        response = self.http.get(path, self._auth_headers, **query)
+        all_headers = headers + self._auth_headers
+        response = self.http.get(path, all_headers, **query)
         return response
 
     @_authentication
@@ -1190,7 +1196,7 @@ class HttpLib(object):
         # to support the receivers/stream endpoint.
         if 'body' in kwargs:
             # We only use application/x-www-form-urlencoded if there is no other
-            # Content-Type header present. This can happen in cases where we 
+            # Content-Type header present. This can happen in cases where we
             # send requests as application/json, e.g. for KV Store.
             if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))

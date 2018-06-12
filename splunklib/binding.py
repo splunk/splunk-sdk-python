@@ -671,7 +671,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
+    def post(self, path_segment, headers=None, **query):
         """Performs a POST operation from the REST path segment with the given
         namespace and query.
 
@@ -681,7 +681,7 @@ class Context(object):
         the ``autologin`` field of :func:`connect` is set to ``True``.
 
         If *owner*, *app*, and *sharing* are omitted, this method uses the
-        default :class:`Context` namespace. All other keyword arguments are
+        default :class:`Context` namespace. All keyword arguments are
         included in the URL as query parameters.
 
         Some of Splunk's endpoints, such as ``receivers/simple`` and
@@ -697,12 +697,6 @@ class Context(object):
              *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
-        :param owner: The owner context of the namespace (optional).
-        :type owner: ``string``
-        :param app: The app context of the namespace (optional).
-        :type app: ``string``
-        :param sharing: The sharing mode of the namespace (optional).
-        :type sharing: ``string``
         :param headers: List of extra HTTP headers to send (optional).
         :type headers: ``list`` of 2-tuples.
         :param query: All other keyword arguments, which are used as query
@@ -733,8 +727,17 @@ class Context(object):
             c.post('saved/searches', name='boris',
                    search='search * earliest=-1m | head 1')
         """
+        owner = None
+        app = None
+        sharing = None
         if headers is None:
             headers = []
+        if 'owner' in query:
+            owner = query['owner']
+        if 'app' in query:
+            app = query['app']
+        if 'sharing' in query:
+            sharing = query['sharing']
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))

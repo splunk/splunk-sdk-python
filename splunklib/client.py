@@ -58,19 +58,22 @@ attributes, and methods that are specific to each kind of entity. For example::
     my_app.package()  # Creates a compressed package of this application
 """
 
+import contextlib
 import datetime
 import json
-from splunklib.six.moves import urllib
 import logging
-from time import sleep
-from datetime import datetime, timedelta
 import socket
-import contextlib
+from datetime import datetime, timedelta
+from time import sleep
 
 from splunklib import six
-from .binding import Context, HTTPError, AuthenticationError, namespace, UrlEncoded, _encode, _make_cookie_header, _NoAuthenticationToken
-from .data import record
+from splunklib.six.moves import urllib
+
 from . import data
+from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
+                      _encode, _make_cookie_header, _NoAuthenticationToken,
+                      namespace)
+from .data import record
 
 __all__ = [
     "connect",
@@ -193,8 +196,11 @@ def _path(base, name):
 
 
 # Load an atom record from the body of the given response
+# this will ultimately be sent to an xml ElementTree so we
+# should use the xmlcharrefreplace option
 def _load_atom(response, match=None):
-    return data.load(response.body.read().decode('utf-8'), match)
+    return data.load(response.body.read()
+                     .decode('utf-8', 'xmlcharrefreplace'), match)
 
 
 # Load an array of atom entries from the body of the given response
@@ -557,7 +563,7 @@ class Service(_BaseService):
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
         result = self.post("/services/server/control/restart")
-        if timeout is None: 
+        if timeout is None:
             return result
         start = datetime.now()
         diff = timedelta(seconds=timeout)
@@ -1631,7 +1637,7 @@ class Collection(ReadOnlyCollection):
                 and ``status``
 
         Example:
-        
+
         import splunklib.client
             s = client.service(...)
             saved_searches = s.saved_searches
@@ -1685,7 +1691,7 @@ class Configurations(Collection):
         # The superclass implementation is designed for collections that contain
         # entities. This collection (Configurations) contains collections
         # (ConfigurationFile).
-        # 
+        #
         # The configurations endpoint returns multiple entities when we ask for a single file.
         # This screws up the default implementation of __getitem__ from Collection, which thinks
         # that multiple entities means a name collision, so we have to override it here.
@@ -1749,9 +1755,9 @@ class Stanza(Entity):
     """This class contains a single configuration stanza."""
 
     def submit(self, stanza):
-        """Adds keys to the current configuration stanza as a 
+        """Adds keys to the current configuration stanza as a
         dictionary of key-value pairs.
-        
+
         :param stanza: A dictionary of key-value pairs for the stanza.
         :type stanza: ``dict``
         :return: The :class:`Stanza` object.
@@ -1962,7 +1968,7 @@ class Index(Entity):
                    cookie_or_auth_header.encode('utf-8'),
                    b"X-Splunk-Input-Mode: Streaming\r\n",
                    b"\r\n"]
-        
+
         for h in headers:
             sock.write(h)
         return sock
@@ -3695,13 +3701,13 @@ class KVStoreCollectionData(object):
 
         :param dbqueries: Array of individual queries as dictionaries
         :type dbqueries: ``array`` of ``dict``
-        
+
         :return: Results of each query
         :rtype: ``array`` of ``array``
         """
-        if len(dbqueries) < 1: 
+        if len(dbqueries) < 1:
             raise Exception('Must have at least one query.')
-        
+
         data = json.dumps(dbqueries)
 
         return json.loads(self._post('batch_find', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
@@ -3712,13 +3718,13 @@ class KVStoreCollectionData(object):
 
         :param documents: Array of documents to save as dictionaries
         :type documents: ``array`` of ``dict``
-        
+
         :return: Results of update operation as overall stats
         :rtype: ``dict``
         """
-        if len(documents) < 1: 
+        if len(documents) < 1:
             raise Exception('Must have at least one document.')
-        
+
         data = json.dumps(documents)
 
         return json.loads(self._post('batch_save', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))

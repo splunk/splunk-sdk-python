@@ -25,30 +25,30 @@ If you want a friendlier interface to the Splunk REST API, use the
 """
 
 from __future__ import absolute_import
+
+import io
 import logging
 import socket
 import ssl
-from io import BytesIO
-
-from splunklib.six.moves import urllib
-import io
 import sys
-
 from base64 import b64encode
+from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from splunklib.six import StringIO
-
-from contextlib import contextmanager
-
+from io import BytesIO
 from xml.etree.ElementTree import XML
+
 from splunklib import six
+from splunklib.six import StringIO
+from splunklib.six.moves import urllib
+
+from .data import record
+
 try:
     from xml.etree.ElementTree import ParseError
 except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
-from .data import record
 
 __all__ = [
     "AuthenticationError",
@@ -478,6 +478,7 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.basic = kwargs.get("basic", False)
         self.autologin = kwargs.get("autologin", False)
+        self.additional_headers = kwargs.get("headers", [])
 
         # Store any cookies in the self.http._cookies dict
         if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
@@ -671,7 +672,7 @@ class Context(object):
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
         return response
 
@@ -744,7 +745,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
@@ -810,7 +811,7 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
         response = self.http.request(path,
@@ -864,6 +865,7 @@ class Context(object):
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
                 password=self.password,
+                headers=self.additional_headers,
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
             body = response.body.read()

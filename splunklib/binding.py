@@ -449,6 +449,8 @@ class Context(object):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param handler: The HTTP request handler (optional).
     :returns: A ``Context`` instance.
 
@@ -976,6 +978,8 @@ def connect(**kwargs):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param autologin: When ``True``, automatically tries to log in again if the
         session terminates.
     :type autologin: ``Boolean``

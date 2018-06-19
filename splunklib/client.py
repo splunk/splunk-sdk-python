@@ -2887,6 +2887,38 @@ class Job(Entity):
         self.post("control", action="unpause")
         return self
 
+    def await_completion(self, sleep_interval, callback=lambda done, progress: False):
+        """Waits for the job to complete, checking every sleep_interval seconds.
+        If callback is provided, will call the callback for every poll interval
+        with an indication of completion and progress.  If the callback returns
+        true, then the method will return, giving control back to the caller.
+
+        Regardless of the return value of the callback, await_completion always 
+        returns control back to the caller once the job has completed.
+
+        :param `sleep_interval`: The number of seconds between each poll
+        :type value: ``integer``
+        :param `callback`: Optional. A function of two arguments, the first is a 
+        boolean representing if the job has completed.  The second is a floating 
+        point number representing how much of the job has completed.  Returns a 
+        boolean that, if True, causes the await_completion call to return, if 
+        False, polling will continue.
+        :type value: ``function``
+
+        :return: The :class:`Job`
+        """
+        while True:
+            while not job.is_ready():
+                pass
+            progress = float(self._state.content["doneProgress"])
+
+            isDone = self.is_done()
+
+            if callback(isDone, progress) or isDone:
+                return self
+
+            sleep(sleep_interval)
+
 
 class Jobs(Collection):
     """This class represents a collection of search jobs. Retrieve this

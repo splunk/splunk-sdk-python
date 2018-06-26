@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/splunk/splunk-sdk-python.svg?branch=master)](https://travis-ci.org/splunk/splunk-sdk-python)
 # The Splunk Software Development Kit for Python
 
-#### Version 1.6.4
+#### Version 1.6.5
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.

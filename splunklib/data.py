@@ -17,6 +17,7 @@ format, which is the format used by most of the REST API.
 """
 
 from __future__ import absolute_import
+import sys
 from xml.etree.ElementTree import XML
 from splunklib import six
 
@@ -76,6 +77,11 @@ def load(text, match=None):
         'namespaces': [],
         'names': {}
     }
+
+    # Convert to unicode encoding in only python 2 for xml parser
+    if(sys.version_info < (3, 0, 0) and isinstance(text, unicode)):
+        text = text.encode('utf-8')
+
     root = XML(text)
     items = [root] if match is None else root.findall(match)
     count = len(items)

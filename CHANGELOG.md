@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.5
+
+### Bug fixes
+
+* Fixed XML responses to not throw errors for unicode characters.
+
 ## Version 1.6.4
 
 ### New features and APIs
@@ -181,7 +187,7 @@ The following bugs have been fixed:
 
 ### New features and APIs
 
-* Added support for Storage Passwords. 
+* Added support for Storage Passwords.
 
 * Added a script (GenerateHelloCommand) to the searchcommand_app to generate a custom search command.
 
@@ -211,7 +217,7 @@ The following bugs have been fixed:
 
   2. Logs a traceback to SearchCommand.logger. This is old behavior.
 
-* Made ResponseReader more streamlike, so that it can be wrapped in an 
+* Made ResponseReader more streamlike, so that it can be wrapped in an
   io.BufferedReader to realize a significant performance gain.
 
   *Example usage*
@@ -220,7 +226,7 @@ The following bugs have been fixed:
   import io
   ...
   response = job.results(count=maxRecords, offset=self._offset)
-  resultsList = results.ResultsReader(io.BufferedReader(response)) 
+  resultsList = results.ResultsReader(io.BufferedReader(response))
   ```
 
 ### Bug fixes
@@ -231,7 +237,7 @@ The following bugs have been fixed:
    data errors in result elements.
 
 2. When writing a ReportingCommand you no longer need to include a map method.
- 
+
 ## Version 1.2.2
 
 ### Bug fixes
@@ -352,112 +358,112 @@ for any examples.
 ### New features and APIs
 
 * An `AuthenticationError` exception has been added.
-  This exception is a subclass of `HTTPError`, so existing code that expects 
+  This exception is a subclass of `HTTPError`, so existing code that expects
   HTTP 401 (Unauthorized) will continue to work.
- 
+
 * An `"autologin"` argument has been added to the `splunklib.client.connect` and
-  `splunklib.binding.connect` functions. When set to true, Splunk automatically 
+  `splunklib.binding.connect` functions. When set to true, Splunk automatically
   tries to log in again if the session terminates.
- 
-* The `is_ready` and `is_done` methods have been added to the `Job` class to 
+
+* The `is_ready` and `is_done` methods have been added to the `Job` class to
   improve the verification of a job's completion status.
- 
+
 * Modular inputs have been added (requires Splunk 5.0+).
- 
+
 * The `Jobs.export` method has been added, enabling you to run export searches.
- 
-* The `Service.restart` method now takes a `"timeout"` argument. If a timeout 
-  period is specified, the function blocks until splunkd has restarted or the 
-  timeout period has passed. Otherwise, if a timeout period has not been 
+
+* The `Service.restart` method now takes a `"timeout"` argument. If a timeout
+  period is specified, the function blocks until splunkd has restarted or the
+  timeout period has passed. Otherwise, if a timeout period has not been
   specified, the function returns immediately and you must check whether splunkd
   has restarted yourself.
- 
-* The `Collections.__getitem__` method can fetch items from collections with an 
-  explicit namespace. This example shows how to retrieve a saved search for a 
+
+* The `Collections.__getitem__` method can fetch items from collections with an
+  explicit namespace. This example shows how to retrieve a saved search for a
   specific namespace:
 
         from splunklib.binding import namespace
         ns = client.namespace(owner='nobody', app='search')
-        result = service.saved_searches['Top five sourcetypes', ns]       
+        result = service.saved_searches['Top five sourcetypes', ns]
 
 * The `SavedSearch` class has been extended by adding the following:
     - Properties: `alert_count`, `fired_alerts`, `scheduled_times`, `suppressed`
     - Methods: `suppress`, `unsuppress`
- 
-* The `Index.attached_socket` method has been added. This method can be used 
-  inside a `with` block to submit multiple events to an index, which is a more 
+
+* The `Index.attached_socket` method has been added. This method can be used
+  inside a `with` block to submit multiple events to an index, which is a more
   idiomatic style than using the existing `Index.attach` method.
- 
+
 * The `Indexes.get_default` method has been added for returnings the name of the
   default index.
- 
+
 * The `Service.search` method has been added as a shortcut for creating a search
   job.
- 
-* The `User.role_entities` convenience method has been added for returning a 
+
+* The `User.role_entities` convenience method has been added for returning a
   list of role entities of a user.
- 
-* The `Role` class has been added, including the `grant` and `revoke` 
+
+* The `Role` class has been added, including the `grant` and `revoke`
   convenience methods for adding and removing capabilities from a role.
- 
-* The `Application.package` and `Application.updateInfo` methods have been 
+
+* The `Application.package` and `Application.updateInfo` methods have been
   added.
- 
+
 
 ### Breaking changes
 
 * `Job` objects are no longer guaranteed to be ready for querying.
   Client code should call the `Job.is_ready` method to determine when it is safe
   to access properties on the job.
-  
+
 * The `Jobs.create` method can no longer be used to create a oneshot search
   (with `"exec_mode=oneshot"`). Use the `Jobs.oneshot` method instead.
-  
+
 * The `ResultsReader` interface has changed completely, including:
-    - The `read` method has been removed and you must iterate over the 
+    - The `read` method has been removed and you must iterate over the
       `ResultsReader` object directly.
-    - Results from the iteration are either `dict`s or instances of 
+    - Results from the iteration are either `dict`s or instances of
       `results.Message`.
-      
+
 * All `contains` methods on collections have been removed.
-  Use Python's `in` operator instead. For example: 
-  
+  Use Python's `in` operator instead. For example:
+
         # correct usage
         'search' in service.apps
-       
+
         # incorrect usage
         service.apps.contains('search')
-    
+
 * The `Collections.__getitem__` method throws `AmbiguousReferenceException` if
   there are multiple entities that have the specified entity name in
   the current namespace.
-  
+
 * The order of arguments in the `Inputs.create` method has changed. The `name`
-  argument is now first, to be consistent with all other collections and all 
+  argument is now first, to be consistent with all other collections and all
   other operations on `Inputs`.
-  
+
 * The `ConfFile` class has been renamed to `ConfigurationFile`.
 
 * The `Confs` class has been renamed to `Configurations`.
-  
+
 * Namespace handling has changed and any code that depends on namespace handling
   in detail may break.
-  
-* Calling the `Job.cancel` method on a job that has already been cancelled no 
+
+* Calling the `Job.cancel` method on a job that has already been cancelled no
   longer has any effect.
-  
+
 * The `Stanza.submit` method now takes a `dict` instead of a raw string.
 
 
 ### Bug fixes and miscellaneous changes
 
 * Collection listings are optionally paginated.
- 
-* Connecting with a pre-existing session token works whether the token begins 
+
+* Connecting with a pre-existing session token works whether the token begins
   with 'Splunk ' or not; the SDK handles either case correctly.
-  
+
 * Documentation has been improved and expanded.
- 
+
 * Many small bugs have been fixed.
 
 
@@ -481,30 +487,30 @@ for any examples.
     - Added Service.saved_searches + units
     - Added examples/saved_searches.py
 * Sphinx based SDK docs and improved source code docstrings.
-* Support for IPv6 - it is now possible to connect to a Splunk instance 
+* Support for IPv6 - it is now possible to connect to a Splunk instance
   listening on an IPv6 address.
 
 ### Breaking changes
 
 #### Module name
 
-The core module was renamed from `splunk` to `splunklib`. The Splunk product 
-ships with an internal Python module named `splunk` and the name conflict 
-with the SDK prevented installing the SDK into Splunk Python sandbox for use 
-by Splunk extensions. This module name change enables the Python SDK to be 
+The core module was renamed from `splunk` to `splunklib`. The Splunk product
+ships with an internal Python module named `splunk` and the name conflict
+with the SDK prevented installing the SDK into Splunk Python sandbox for use
+by Splunk extensions. This module name change enables the Python SDK to be
 installed on the Splunk server.
 
 #### State caching
 
 The client module was modified to enable Entity state caching which required
-changes to the `Entity` interface and changes to the typical usage pattern. 
-  
+changes to the `Entity` interface and changes to the typical usage pattern.
+
 Previously, entity state values where retrieved with a call to `Entity.read`
 which would issue a round-trip to the server and return a dictionary of values
 corresponding to the entity `content` field and, in a similar way, a call to
 `Entity.readmeta` would issue in a round-trip and return a dictionary
-contianing entity metadata values. 
-  
+contianing entity metadata values.
+
 With the change to enable state caching, the entity is instantiated with a
 copy of its entire state record, which can be accessed using a variety of
 properties:
@@ -527,14 +533,14 @@ The entity _callable_ returns the `content` field as before, but now returns
 the value from the local state cache instead of issuing a round-trip as it
 did before.
 
-It is important to note that refreshing the local state cache is always 
+It is important to note that refreshing the local state cache is always
 explicit and always requires a call to `Entity.refresh`. So, for example
-if you call `Entity.update` and then attempt to retrieve local values, you 
+if you call `Entity.update` and then attempt to retrieve local values, you
 will not see the newly updated values, you will see the previously cached
 values. The interface is designed to give the caller complete control of
 when round-trips are issued and enable multiple updates to be made before
 refreshing the entity.
-  
+
 The `update` and action methods are all designed to support a _fluent_ style
 of programming, so for example you can write:
 
@@ -543,7 +549,7 @@ of programming, so for example you can write:
 And
 
     entity.disable().refresh()
-  
+
 An important benefit and one of the primary motivations for this change is
 that iterating a collection of entities now results in a single round-trip
 to the server, because every entity collection member is initialized with
@@ -554,10 +560,10 @@ common scenarios.
 
 #### Collections
 
-The `Collection` interface was changed so that `Collection.list` and the 
+The `Collection` interface was changed so that `Collection.list` and the
 corresponding collection callable return a list of member `Entity` objects
 instead of a list of member entity names. This change was a result of user
-feedback indicating that people expected to see eg: `service.apps()` return 
+feedback indicating that people expected to see eg: `service.apps()` return
 a list of apps and not a list of app names.
 
 #### Naming context
@@ -566,7 +572,7 @@ Previously the binding context (`binding.Context`) and all tests & samples took
 a single (optional) `namespace` argument that specified both the app and owner
 names to use for the binding context. However, the underlying Splunk REST API
 takes these as separate `app` and `owner` arguments and it turned out to be more
-convenient to reflect these arguments directly in the SDK, so the binding 
+convenient to reflect these arguments directly in the SDK, so the binding
 context (and all samples & test) now take separate (and optional) `app` and
 `owner` arguments instead of the prior `namespace` argument.
 

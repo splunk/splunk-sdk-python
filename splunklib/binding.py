@@ -25,30 +25,30 @@ If you want a friendlier interface to the Splunk REST API, use the
 """
 
 from __future__ import absolute_import
+
+import io
 import logging
 import socket
 import ssl
-from io import BytesIO
-
-from splunklib.six.moves import urllib
-import io
 import sys
-
 from base64 import b64encode
+from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from splunklib.six import StringIO
-
-from contextlib import contextmanager
-
+from io import BytesIO
 from xml.etree.ElementTree import XML
+
 from splunklib import six
+from splunklib.six import StringIO
+from splunklib.six.moves import urllib
+
+from .data import record
+
 try:
     from xml.etree.ElementTree import ParseError
 except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
-from .data import record
 
 __all__ = [
     "AuthenticationError",
@@ -449,6 +449,8 @@ class Context(object):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param handler: The HTTP request handler (optional).
     :returns: A ``Context`` instance.
 
@@ -478,6 +480,7 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.basic = kwargs.get("basic", False)
         self.autologin = kwargs.get("autologin", False)
+        self.additional_headers = kwargs.get("headers", [])
 
         # Store any cookies in the self.http._cookies dict
         if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
@@ -613,7 +616,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def get(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -636,6 +639,8 @@ class Context(object):
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
         :type app: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :param query: All other keyword arguments, which are used as query
@@ -663,10 +668,14 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
+        if headers is None:
+            headers = []
+
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        response = self.http.get(path, self._auth_headers, **query)
+        all_headers = headers + self.additional_headers + self._auth_headers
+        response = self.http.get(path, all_headers, **query)
         return response
 
     @_authentication
@@ -738,7 +747,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
@@ -804,7 +813,7 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
         response = self.http.request(path,
@@ -858,6 +867,7 @@ class Context(object):
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
                 password=self.password,
+                headers=self.additional_headers,
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
             body = response.body.read()
@@ -968,6 +978,8 @@ def connect(**kwargs):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param autologin: When ``True``, automatically tries to log in again if the
         session terminates.
     :type autologin: ``Boolean``
@@ -1190,7 +1202,7 @@ class HttpLib(object):
         # to support the receivers/stream endpoint.
         if 'body' in kwargs:
             # We only use application/x-www-form-urlencoded if there is no other
-            # Content-Type header present. This can happen in cases where we 
+            # Content-Type header present. This can happen in cases where we
             # send requests as application/json, e.g. for KV Store.
             if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))

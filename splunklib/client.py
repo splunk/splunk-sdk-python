@@ -1835,7 +1835,7 @@ class StoragePasswords(Collection):
 
         return storage_password
 
-    def delete(self, username, realm=None):
+    def delete(self, username, realm=None, **params):
         """Delete a storage password by username and/or realm.
 
         The identifier can be passed in through the username parameter as
@@ -1861,7 +1861,7 @@ class StoragePasswords(Collection):
         # Append the : expected at the end of the name
         if name[-1] is not ":":
             name = name + ":"
-        return Collection.delete(self, name)
+        return Collection.delete(self, name, **params)
 
 
 class AlertGroup(Entity):
@@ -1904,7 +1904,7 @@ class Indexes(Collection):
         index = self['_audit']
         return index['defaultDatabase']
 
-    def delete(self, name):
+    def delete(self, name, **params):
         """ Deletes a given index.
 
         **Note**: This method is only supported in Splunk 5.0 and later.
@@ -1913,7 +1913,7 @@ class Indexes(Collection):
         :type name: ``string``
         """
         if self.service.splunk_version >= (5,):
-            Collection.delete(self, name)
+            Collection.delete(self, name, **params)
         else:
             raise IllegalOperationException("Deleting indexes via the REST API is "
                                             "not supported before Splunk version 5.")
@@ -3380,7 +3380,7 @@ class Users(Collection):
             state=state)
         return entity
 
-    def delete(self, name):
+    def delete(self, name, **params):
         """ Deletes the user and returns the resulting collection of users.
 
         :param name: The name of the user to delete.
@@ -3389,7 +3389,7 @@ class Users(Collection):
         :return:
         :rtype: :class:`Users`
         """
-        return Collection.delete(self, name.lower())
+        return Collection.delete(self, name.lower(), **params)
 
 
 class Role(Entity):
@@ -3503,7 +3503,7 @@ class Roles(Collection):
             state=state)
         return entity
 
-    def delete(self, name):
+    def delete(self, name, **params):
         """ Deletes the role and returns the resulting collection of roles.
 
         :param name: The name of the role to delete.
@@ -3511,7 +3511,7 @@ class Roles(Collection):
 
         :rtype: The :class:`Roles`
         """
-        return Collection.delete(self, name.lower())
+        return Collection.delete(self, name.lower(), **params)
 
 
 class Application(Entity):

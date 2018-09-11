@@ -36,7 +36,7 @@ Here's what you need to get going with the Splunk SDK for Python.
 
 #### Python
 
-The Splunk SDK for Python requires Python 2.7+. 
+The Splunk SDK for Python requires Python 2.7+, including Python 3. 
 
 #### Splunk
 

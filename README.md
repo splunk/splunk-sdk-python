@@ -282,12 +282,13 @@ If you would like to contribute to the SDK, go here for more information:
 
 ### Support
 
-1. You will be granted support if you or your company are already covered
-   under an existing maintenance/support agreement. Send an email to    
-   support@splunk.com_ and include "Splunk SDK for Python" in the subject line.    
+1. You will be granted support if you or your company are already covered 
+   under an existing maintenance/support agreement. 
+   Send an email to support@splunk.com and include "Splunk SDK for Python" 
+   in the subject line.    
 2. If you are not covered under an existing maintenance/support agreement, you     
    can find help through the broader community at:  
-    <ul>    
+   <ul>    
    <li><a href='http://splunk-base.splunk.com/answers/'>Splunk Answers</a> (use     
     the <b>sdk</b>, <b>java</b>, <b>python</b>, and <b>javascript</b> tags to   
     identify your questions)</li>   
@@ -298,9 +299,8 @@ If you would like to contribute to the SDK, go here for more information:
    code in the <b>/splunklib</b> directory) has been modified. If you modify an     
    SDK and want support, you can find help through the broader community and    
    Splunk answers (see above). We would also like to know why you modified the  
-   core library&mdash;please send feedback to _devinfo@splunk.com_. 
-4. File any issues on   
-   [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
+   core library&mdash;please send feedback to devinfo@splunk.com. 
+4. File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
  
 ### Contact Us
 

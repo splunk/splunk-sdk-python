@@ -493,7 +493,7 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.owner, 'admin')
         self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
-        self.assertEqual(command_metadata.searchinfo.search, '| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
+        self.assertEqual(command_metadata.searchinfo.search, 'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
         self.assertEqual(command_metadata.searchinfo.session_key, '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
         self.assertEqual(command_metadata.searchinfo.sid, '1433261372.158')
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')

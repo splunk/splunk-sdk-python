@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 #
 # Copyright 2011-2015 Splunk, Inc.
 #
@@ -22,7 +23,7 @@ from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six.moves import StringIO
 from splunklib.six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
@@ -388,7 +389,7 @@ class TestSearchCommand(TestCase):
                         '"required_option_1=value_1",'
                         '"required_option_2=value_2"'
                     '],'
-                    '"search": "%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
+                    '"search": "Ａ%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
                     '"earliest_time": "0",'
                     '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
                     '"owner": "admin",'
@@ -492,7 +493,7 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.owner, 'admin')
         self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
-        self.assertEqual(command_metadata.searchinfo.search, '| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
+        self.assertEqual(command_metadata.searchinfo.search, 'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
         self.assertEqual(command_metadata.searchinfo.session_key, '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
         self.assertEqual(command_metadata.searchinfo.sid, '1433261372.158')
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')

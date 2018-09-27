@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
-from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six.moves import StringIO
 from io import open
 import csv
 import os

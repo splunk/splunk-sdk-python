@@ -27,7 +27,7 @@ try:
 except ImportError:
     from ..ordereddict import OrderedDict
 from copy import deepcopy
-from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six.moves import StringIO
 from itertools import chain, islice
 from splunklib.six.moves import filter as ifilter, map as imap, zip as izip
 from splunklib import six
@@ -850,7 +850,6 @@ class SearchCommand(object):
 
     @staticmethod
     def _read_chunk(ifile):
-
         # noinspection PyBroadException
         try:
             header = ifile.readline()

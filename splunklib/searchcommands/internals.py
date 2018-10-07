@@ -37,7 +37,7 @@ import sys
 
 from . import environment
 
-csv.field_size_limit(10485760)  # The default value is 128KB; upping to 10MB. See SPL-12117 for background on this issue
+csv.field_size_limit(10485760)  # The default value is 128 KiB; upping to 10 MiB. See SPL-12117 for background on this issue
 
 if sys.platform == 'win32':
     # Work around the fact that on Windows '\n' is mapped to '\r\n'. The typical solution is to simply open files in
@@ -165,7 +165,7 @@ class CommandLineParser(object):
 
         **NOTE**
 
-        We are not using a json.JSONDecoder because Splunk quote rules are different than JSON quote rules. A
+        We are not using a json.JSONDecoder because Splunk quote rules are different from JSON quote rules. A
         json.JSONDecoder does not recognize a pair of double-quotes ('""') as an escaped quote ('"') and will
         decode single-quoted strings ("'") in addition to double-quoted ('"') strings.
 
@@ -352,7 +352,7 @@ class InputHeader(dict):
     def read(self, ifile):
         """ Reads an input header from an input file.
 
-        The input header is read as a sequence of *<name>***:***<value>* pairs separated by a newline. The end of the
+        The input header is read as a sequence of *<name>***:***<value>* pairs separated by newlines. The end of the
         input header is signalled by an empty line or an end-of-file.
 
         :param ifile: File-like object that supports iteration over lines.

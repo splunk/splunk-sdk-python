@@ -57,7 +57,7 @@ def main(argv):
         args.append(('owner', opts.kwargs['owner']))
 
     # Encode these arguments
-    args = urllib.urlencode(args)
+    args = urllib.parse.urlencode(args)
 
     # Launch the browser
     webbrowser.open("file://%s" % os.path.join(os.getcwd(), "explorer.html?%s" % args))

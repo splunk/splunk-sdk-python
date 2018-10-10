@@ -18,9 +18,9 @@ from __future__ import absolute_import
 from __future__ import print_function
 import splunklib.six.moves.SimpleHTTPServer
 import splunklib.six.moves.socketserver
-import urllib2
+import urllib
 import sys
-import StringIO
+from io import StringIO
 from splunklib import six
 
 PORT = 8080

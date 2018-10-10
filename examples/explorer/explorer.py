@@ -27,7 +27,8 @@ try:
 except ImportError:
     raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
-import urllib
+
+from splunklib.six.moves import urllib
 
 PORT = 8080
 
@@ -57,7 +58,7 @@ def main(argv):
         args.append(('owner', opts.kwargs['owner']))
 
     # Encode these arguments
-    args = urllib.urlencode(args)
+    args = urllib.parse.urlencode(args)
 
     # Launch the browser
     webbrowser.open("file://%s" % os.path.join(os.getcwd(), "explorer.html?%s" % args))

@@ -1292,8 +1292,8 @@ class ResponseReader(io.RawIOBase):
 
     def close(self):
         """Closes this response."""
-        if _connection:
-            _connection.close()
+        if self._connection:
+            self._connection.close()
         self._response.close()
 
     def read(self, size = None):

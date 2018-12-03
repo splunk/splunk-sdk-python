@@ -465,7 +465,8 @@ class Context(object):
         c = binding.Context(cookie="splunkd_8089=...")
     """
     def __init__(self, handler=None, **kwargs):
-        self.http = HttpLib(handler, kwargs.get("verify", True))
+        self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
+                            cert_file=kwargs.get("cert_file"))  # Default to False for backward compat
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -1108,8 +1109,11 @@ class HttpLib(object):
 
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
-    def __init__(self, custom_handler=None, verify=True):
-        self.handler = handler(verify=verify) if custom_handler is None else custom_handler
+    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None):
+        if custom_handler is None:
+            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file)
+        else:
+            self.handler = custom_handler
         self._cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
@@ -1341,7 +1345,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) and not verify:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)

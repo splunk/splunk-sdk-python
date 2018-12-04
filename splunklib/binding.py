@@ -1321,7 +1321,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=True):
+def handler(key_file=None, cert_file=None, timeout=None, verify=False):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 

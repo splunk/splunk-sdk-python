@@ -16,16 +16,18 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-import splunklib.six.moves.SimpleHTTPServer
-import splunklib.six.moves.socketserver
-import urllib2
 import sys
-import StringIO
-from splunklib import six
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from splunklib.six import iteritems
+from splunklib.six.moves import socketserver, SimpleHTTPServer, StringIO, urllib
 
 PORT = 8080
 
-class RedirectHandler(six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
+
+class RedirectHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
         redirect_url, headers = self.get_url_and_headers()
         if redirect_url is None:
@@ -83,13 +85,13 @@ class RedirectHandler(six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         try:
             # Make the request
-            request = urllib2.Request(url, data, headers)
+            request = urllib.Request(url, data, headers)
             request.get_method = lambda: method
-            response = urllib2.urlopen(request)
+            response = urllib.urlopen(request)
 
             # We were successful, so send the response code
             self.send_response(response.code, message=response.msg)
-            for key, value in six.iteritems(dict(response.headers)):
+            for key, value in iteritems(dict(response.headers)):
                 # Optionally log the headers
                 #self.log_message("%s: %s" % (key, value))
 
@@ -105,16 +107,16 @@ class RedirectHandler(six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             # Copy the response to the output
             self.copyfile(response, self.wfile)
-        except urllib2.HTTPError as e:
+        except urllib.HTTPError as e:
             # On errors, log the response code and message
             self.log_message("Code: %s (%s)", e.code, e.msg)
 
-            for key, value in six.iteritems(dict(e.hdrs)):
+            for key, value in iteritems(dict(e.hdrs)):
                 # On errors, we always log the headers
                 self.log_message("%s: %s", key, value)
 
             response_text = e.fp.read()
-            response_file = StringIO.StringIO(response_text)
+            response_file = StringIO(response_text)
 
             # On errors, we also log the response text
             self.log_message("Response: %s", response_text)
@@ -135,10 +137,10 @@ class RedirectHandler(six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
             # Finally, send the error itself
             self.copyfile(response_file, self.wfile)
         
-class ReuseableSocketTCPServer(six.moves.socketserver.TCPServer):
+class ReuseableSocketTCPServer(socketserver.TCPServer):
     def __init__(self, *args, **kwargs):
         self.allow_reuse_address = True
-        six.moves.socketserver.TCPServer.__init__(self, *args, **kwargs)
+        socketserver.TCPServer.__init__(self, *args, **kwargs)
 
 def serve(port = PORT):
     Handler = RedirectHandler

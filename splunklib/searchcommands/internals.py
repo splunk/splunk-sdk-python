@@ -22,7 +22,7 @@ try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
     from ..ordereddict import OrderedDict
-from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six.moves import StringIO
 from itertools import chain
 from splunklib.six.moves import map as imap
 from json import JSONDecoder, JSONEncoder

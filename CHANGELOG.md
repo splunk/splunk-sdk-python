@@ -1,5 +1,17 @@
 # Splunk SDK for Python Changelog
 
+## Versiom 1.6.6
+
+### Bug fixes
+
+* Fix ssl verify to require certs when true
+
+### Minor changes
+
+* Make the explorer example compatible w/ Python 3
+* Add full support for unicode in SearchCommands
+* Add return code for invalid_args block
+
 ## Version 1.6.5
 
 ### Bug fixes

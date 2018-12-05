@@ -102,6 +102,7 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
                     args)
                 event_writer._err.write(err_string)
+                return 1
 
         except Exception as e:
             err_string = EventWriter.ERROR + str(e)

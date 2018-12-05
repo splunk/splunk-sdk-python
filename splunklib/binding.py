@@ -25,30 +25,30 @@ If you want a friendlier interface to the Splunk REST API, use the
 """
 
 from __future__ import absolute_import
+
+import io
 import logging
 import socket
 import ssl
-from io import BytesIO
-
-from splunklib.six.moves import urllib
-import io
 import sys
-
 from base64 import b64encode
+from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from splunklib.six import StringIO
-
-from contextlib import contextmanager
-
+from io import BytesIO
 from xml.etree.ElementTree import XML
+
 from splunklib import six
+from splunklib.six import StringIO
+from splunklib.six.moves import urllib
+
+from .data import record
+
 try:
     from xml.etree.ElementTree import ParseError
 except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
-from .data import record
 
 __all__ = [
     "AuthenticationError",
@@ -449,6 +449,8 @@ class Context(object):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param handler: The HTTP request handler (optional).
     :returns: A ``Context`` instance.
 
@@ -465,7 +467,8 @@ class Context(object):
         c = binding.Context(cookie="splunkd_8089=...")
     """
     def __init__(self, handler=None, **kwargs):
-        self.http = HttpLib(handler, kwargs.get("verify", True))
+        self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
+                            cert_file=kwargs.get("cert_file"))  # Default to False for backward compat
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -478,6 +481,7 @@ class Context(object):
         self.password = kwargs.get("password", "")
         self.basic = kwargs.get("basic", False)
         self.autologin = kwargs.get("autologin", False)
+        self.additional_headers = kwargs.get("headers", [])
 
         # Store any cookies in the self.http._cookies dict
         if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
@@ -613,7 +617,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def get(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -636,6 +640,8 @@ class Context(object):
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
         :type app: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :param query: All other keyword arguments, which are used as query
@@ -663,10 +669,14 @@ class Context(object):
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
+        if headers is None:
+            headers = []
+
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("GET request to %s (body: %s)", path, repr(query))
-        response = self.http.get(path, self._auth_headers, **query)
+        all_headers = headers + self.additional_headers + self._auth_headers
+        response = self.http.get(path, all_headers, **query)
         return response
 
     @_authentication
@@ -738,7 +748,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
@@ -804,7 +814,7 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
-        all_headers = headers + self._auth_headers
+        all_headers = headers + self.additional_headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
         response = self.http.request(path,
@@ -858,6 +868,7 @@ class Context(object):
                 self.authority + self._abspath("/services/auth/login"),
                 username=self.username,
                 password=self.password,
+                headers=self.additional_headers,
                 cookie="1") # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
             body = response.body.read()
@@ -968,6 +979,8 @@ def connect(**kwargs):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param headers: List of extra HTTP headers to send (optional).
+    :type headers: ``list`` of 2-tuples.
     :param autologin: When ``True``, automatically tries to log in again if the
         session terminates.
     :type autologin: ``Boolean``
@@ -1108,8 +1121,11 @@ class HttpLib(object):
 
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
-    def __init__(self, custom_handler=None, verify=True):
-        self.handler = handler(verify=verify) if custom_handler is None else custom_handler
+    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None):
+        if custom_handler is None:
+            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file)
+        else:
+            self.handler = custom_handler
         self._cookies = {}
 
     def delete(self, url, headers=None, **kwargs):
@@ -1190,7 +1206,7 @@ class HttpLib(object):
         # to support the receivers/stream endpoint.
         if 'body' in kwargs:
             # We only use application/x-www-form-urlencoded if there is no other
-            # Content-Type header present. This can happen in cases where we 
+            # Content-Type header present. This can happen in cases where we
             # send requests as application/json, e.g. for KV Store.
             if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))
@@ -1280,8 +1296,8 @@ class ResponseReader(io.RawIOBase):
 
     def close(self):
         """Closes this response."""
-        if _connection:
-            _connection.close()
+        if self._connection:
+            self._connection.close()
         self._response.close()
 
     def read(self, size = None):
@@ -1317,7 +1333,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=True):
+def handler(key_file=None, cert_file=None, timeout=None, verify=False):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
@@ -1341,7 +1357,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) and not verify:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)
@@ -1352,7 +1368,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=True):
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.5",
+            "User-Agent": "splunk-sdk-python/1.6.6",
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

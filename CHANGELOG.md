@@ -5,11 +5,12 @@
 ### Bug fixes
 
 * Fix ssl verify to require certs when true
+
+### Minor changes
+
 * Make the explorer example compatible w/ Python 3
 * Add full support for unicode in SearchCommands
 * Add return code for invalid_args block
-* Fixed unicode xml decoding error
-* Added headers argument to get requests so that additional headers can be passed in
 
 ## Version 1.6.5
 

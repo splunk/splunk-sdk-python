@@ -1,6 +1,6 @@
 # Splunk SDK for Python Changelog
 
-## Versiom 1.6.6
+## Version 1.6.6
 
 ### Bug fixes
 

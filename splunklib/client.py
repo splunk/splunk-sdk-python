@@ -1057,10 +1057,10 @@ class Entity(Endpoint):
             search = s.apps['search']
             search.access_update(**{'owner': 'new_owner', 'perms.read': 'admin, power', perms.write: '*'})
         """
-        kwargs = {'__' + key if key == 'owner' or key == 'app' or key == 'sharing' else key: val for key, val in kwargs.items()}
-        kwargs['__owner'] = kwargs.get('__owner', self.access.get('owner'))
-        kwargs['__app'] = kwargs.get('__app', self.access.get('app'))
-        kwargs['__sharing'] = kwargs.get('__sharing', self.access('sharing'))
+        kwargs = {'_dup__' + key if key == 'owner' or key == 'app' or key == 'sharing' else key: val for key, val in kwargs.items()}
+        kwargs['_dup__owner'] = kwargs.get('_dup__owner', self.access.get('owner'))
+        kwargs['_dup__app'] = kwargs.get('_dup__app', self.access.get('app'))
+        kwargs['_dup__sharing'] = kwargs.get('_dup__sharing', self.access('sharing'))
         self.service.post(self.path + 'acl', **kwargs)
         return self
 

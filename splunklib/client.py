@@ -1060,7 +1060,7 @@ class Entity(Endpoint):
         kwargs = {'_dup__' + key if key == 'owner' or key == 'app' or key == 'sharing' else key: val for key, val in kwargs.items()}
         kwargs['_dup__owner'] = kwargs.get('_dup__owner', self.access.get('owner'))
         kwargs['_dup__app'] = kwargs.get('_dup__app', self.access.get('app'))
-        kwargs['_dup__sharing'] = kwargs.get('_dup__sharing', self.access('sharing'))
+        kwargs['_dup__sharing'] = kwargs.get('_dup__sharing', self.access.get('sharing'))
         self.service.post(self.path + 'acl', **kwargs)
         return self
 

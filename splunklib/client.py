@@ -1040,6 +1040,29 @@ class Entity(Endpoint):
             ``owner``, ``app``, and ``sharing``.
         """
         return self.state.access
+    
+    def access_update(self, **kwargs):
+        """Updates the server with the ACL along arguments you specify.
+
+        :param kwargs: ACL specific arguments (optional).
+        :type kwargs: ``dict``
+
+        :return: The entity this method is called on.
+        :rtype: class:`Entity`
+
+        **Example**::
+
+            import splunklib.client as client
+            s = client.connect(...)
+            search = s.apps['search']
+            search.access_update(**{'owner': 'new_owner', 'perms.read': 'admin, power', perms.write: '*'})
+        """
+        kwargs = {'__' + key if key == 'owner' or key == 'app' or key == 'sharing' else key: val for key, val in kwargs.items()}
+        kwargs['__owner'] = kwargs.get('__owner', self.access.get('owner'))
+        kwargs['__app'] = kwargs.get('__app', self.access.get('app'))
+        kwargs['__sharing'] = kwargs.get('__sharing', self.access('sharing'))
+        self.service.post(self.path + 'acl', **kwargs)
+        return self
 
     @property
     def content(self):

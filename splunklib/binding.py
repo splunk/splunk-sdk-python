@@ -746,7 +746,7 @@ class Context(object):
         if headers is None:
             headers = []
 
-        query = { key.lstrip('__'): val for key, val in query.items() }
+        query = { key.lstrip('_dup__'): val for key, val in query.items() }
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logging.debug("POST request to %s (body: %s)", path, repr(query))

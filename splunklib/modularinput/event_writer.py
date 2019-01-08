@@ -82,4 +82,5 @@ class EventWriter(object):
 
     def close(self):
         """Write the closing </stream> tag to make this XML well formed."""
-        self._out.write(b"</stream>")
+        if self.header_written:
+          self._out.write(b"</stream>")

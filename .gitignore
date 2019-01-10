@@ -6,6 +6,7 @@
 .coverage
 .coverage.*
 .python-version
+.vscode
 __stdout__
 docs/_build
 build/

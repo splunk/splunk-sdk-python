@@ -23,8 +23,9 @@ import csv
 import sys
 import time
 
+from splunk.clilib.bundle_paths import make_splunkhome_path
 sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
-from packages.splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 
 
 @Configuration()

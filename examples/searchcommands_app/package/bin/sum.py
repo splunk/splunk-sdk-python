@@ -19,8 +19,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import app
 import sys
 
+from splunk.clilib.bundle_paths import make_splunkhome_path
 sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
-from packages.splunklib.searchcommands import dispatch, ReportingCommand, Configuration, Option, validators
+from splunklib.searchcommands import dispatch, ReportingCommand, Configuration, Option, validators
 
 
 @Configuration(requires_preop=True)

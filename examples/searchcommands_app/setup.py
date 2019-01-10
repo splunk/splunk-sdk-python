@@ -454,13 +454,12 @@ try:
             'Topic :: System :: Logging',
             'Topic :: System :: Monitoring'],
         packages=[
-            'lib.packages.splunklib', 'lib.packages.splunklib.searchcommands'
+            'lib.splunklib', 'lib.splunklib.searchcommands'
         ],
         package_dir={
             'lib': os.path.join('package', 'lib'),
-            'lib.packages': os.path.join('package', 'lib', 'packages'),
-            'lib.packages.splunklib': os.path.join('..', '..', 'splunklib'),
-            'lib.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
+            'lib.splunklib': os.path.join('..', '..', 'splunklib'),
+            'lib.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
         },
         package_data={
             'bin': [

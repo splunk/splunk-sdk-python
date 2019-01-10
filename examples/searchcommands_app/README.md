@@ -15,14 +15,14 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 
 ```
 ├── bin
-│   ├── splunklib
-│   │   └── searchcommands ....... splunklib.searchcommands module
 │   ├── countmatches.py .......... CountMatchesCommand implementation
 │   ├── generatetext.py .......... GenerateTextCommand implementation
 │   ├── pypygeneratetext.py ...... Executes generatetext.py with PyPy
 │   ├── simulate.py .............. SimulateCommand implementation
-│   ├── sum.py ................... SumCommand implementation
-│   └── 
+│   └── sum.py ................... SumCommand implementation
+├── lib
+│   └── splunklib
+│       └── searchcommands ....... splunklib.searchcommands module
 ├── default
 │   ├── data
 │   │   └── ui

@@ -20,10 +20,11 @@ import app
 import sys
 import time
 
+from splunk.clilib.bundle_paths import make_splunkhome_path
 sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
-from packages.splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
-from packages.splunklib import six
-from packages.splunklib.six.moves import range
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
+from splunklib import six
+from splunklib.six.moves import range
 
 
 @Configuration()

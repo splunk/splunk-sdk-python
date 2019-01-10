@@ -18,11 +18,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
 
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 import random
 import csv
 import sys
 import time
+
+sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
+from packages.splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 
 
 @Configuration()

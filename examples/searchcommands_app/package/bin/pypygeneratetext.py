@@ -63,11 +63,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
+import sys
 
-from splunklib.searchcommands import app_root, execute
+sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
+from packages.splunklib.searchcommands import app_root, execute
 from os import environ, path
 
-import sys
 
 pypy_argv = ['pypy', path.join(app_root, 'bin', 'generatetext.py')] + sys.argv[1:]
 pypy_environ = dict(environ)

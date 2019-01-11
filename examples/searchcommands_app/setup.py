@@ -323,7 +323,7 @@ class LinkCommand(Command):
             message = 'Cannot create a link at "{}" because a file by that name already exists.'.format(target)
             raise SystemError(message)
 
-        packages = os.path.join(self.app_source, 'lib', 'packages')
+        packages = os.path.join(self.app_source, 'lib')
 
         if not os.path.isdir(packages):
             os.mkdir(packages)

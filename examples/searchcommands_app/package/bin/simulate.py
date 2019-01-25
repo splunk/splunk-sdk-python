@@ -20,14 +20,11 @@ import app
 
 import random
 import csv
-import sys
+import os,sys
 import time
 
-try:
-    from splunk.clilib.bundle_paths import make_splunkhome_path
-    sys.path.append(make_splunkhome_path(['etc', 'apps', 'searchcommands_app', 'lib']))
-except ImportError:
-    pass
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 
 

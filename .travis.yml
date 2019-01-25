@@ -43,4 +43,4 @@ install: "pip install unittest2"
 
 before_script: python setup.py build dist
 
-script: export SPLUNK_HOME="/opt/splunk" && python setup.py test
+script: PYTHONPATH=examples/searchcommands_app/build/searchcommands_app/lib && python setup.py test

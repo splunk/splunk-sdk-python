@@ -44,6 +44,7 @@ import csv
 import io
 import os
 
+os.environ['SPLUNK_HOME'] = 'opt/splunk'
 try:
     from tests.searchcommands import project_root
 except ImportError:

@@ -26,7 +26,7 @@ before_install:
     # After initial setup, we do not want to give the SDK any notion that it has
     # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
     # for it, and make a placeholder for log files (which some tests generate)
-    # - export SPLUNK_HOME=`pwd`/splunk_home
+    - export SPLUNK_HOME=`pwd`/splunk_home
     - mkdir -p $SPLUNK_HOME/var/log/splunk
 
 env:
@@ -43,4 +43,4 @@ install: "pip install unittest2"
 
 before_script: python setup.py build dist
 
-script: python setup.py test
+script: export SPLUNK_HOME="/opt/splunk" && python setup.py test

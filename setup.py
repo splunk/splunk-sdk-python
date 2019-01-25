@@ -52,7 +52,7 @@ def run_test_suite():
                 self.stream, self.descriptions, self.verbosity)
         
     original_cwd = os.path.abspath(os.getcwd())
-    os.chdir('tests/searchcommands')
+    os.chdir('tests')
     suite = unittest.defaultTestLoader.discover('.')
     runner = TrackingTextTestRunner(verbosity=2)
     runner.run(suite)

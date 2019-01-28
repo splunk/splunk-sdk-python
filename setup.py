@@ -68,7 +68,7 @@ def run_test_suite_with_junit_output():
         import unittest
     import xmlrunner
     original_cwd = os.path.abspath(os.getcwd())
-    os.chdir('tests')
+    os.chdir('tests/searchcommands')
     suite = unittest.defaultTestLoader.discover('.')
     xmlrunner.XMLTestRunner(output='../test-reports').run(suite)
     os.chdir(original_cwd)

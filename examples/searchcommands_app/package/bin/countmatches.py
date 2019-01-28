@@ -21,7 +21,9 @@ import app
 from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
 import sys
 from splunklib import six
+import pprint
 
+pprint.pprint(sys.modules)
 
 @Configuration()
 class CountMatchesCommand(StreamingCommand):

@@ -154,7 +154,7 @@ class TestSearchCommandsApp(TestCase):
         if not os.path.isdir(TestSearchCommandsApp.app_root):
             build_command = os.path.join(project_root, 'examples', 'searchcommands_app', 'setup.py build')
             self.skipTest("You must build the searchcommands_app by running " + build_command)
-        sys.path.append(os.path.join(app_root, 'lib'))
+        sys.path.append(os.path.join(TestSearchCommandsApp.app_root, 'lib'))
         TestCase.setUp(self)
 
     def test_countmatches_as_unit(self):

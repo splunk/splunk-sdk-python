@@ -459,7 +459,6 @@ try:
         package_dir={
             'lib': os.path.join('package', 'lib'),
             'lib.splunklib': os.path.join('..', '..', 'splunklib'),
-            'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
             'lib.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
         },
         package_data={

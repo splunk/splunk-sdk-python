@@ -17,8 +17,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
-import sys
+import os,sys
 
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
 from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
 from splunklib import six
 

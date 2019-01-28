@@ -17,10 +17,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
-
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
-import sys
+import os,sys
 import time
+
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 from splunklib import six
 from splunklib.six.moves import range
 

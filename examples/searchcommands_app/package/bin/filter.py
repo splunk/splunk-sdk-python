@@ -17,12 +17,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
+import os,sys
 
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
 from splunklib.searchcommands import dispatch, EventingCommand, Configuration, Option
 from splunklib.searchcommands.validators import Code
-
-import sys
-
 
 @Configuration()
 class FilterCommand(EventingCommand):

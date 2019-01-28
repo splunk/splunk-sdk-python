@@ -415,7 +415,8 @@ class TestSearchCommandsApp(TestCase):
                                 break
                             ofile.write(b)
                 with io.open(uncompressed_file, 'rb') as ifile:
-                    process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE)
+                    env = os.environ.copy()
+                    process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE, env=env)
                     output, errors = process.communicate()
                 with io.open(recording.output_file, 'rb') as ifile:
                     expected = ifile.read()

@@ -18,12 +18,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
 
-from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
-import sys
-from splunklib import six
 import pprint
-
+import sys
 pprint.pprint(sys.modules)
+from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
+from splunklib import six
+
 
 @Configuration()
 class CountMatchesCommand(StreamingCommand):

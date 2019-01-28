@@ -44,7 +44,6 @@ import csv
 import io
 import os
 import sys
-import pprint
 
 try:
     from tests.searchcommands import project_root
@@ -158,7 +157,6 @@ class TestSearchCommandsApp(TestCase):
         TestCase.setUp(self)
 
     def test_countmatches_as_unit(self):
-        pprint.pprint(sys.modules)
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)

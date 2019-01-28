@@ -43,6 +43,7 @@ import json
 import csv
 import io
 import os
+import sys
 
 try:
     from tests.searchcommands import project_root
@@ -153,10 +154,11 @@ class TestSearchCommandsApp(TestCase):
         if not os.path.isdir(TestSearchCommandsApp.app_root):
             build_command = os.path.join(project_root, 'examples', 'searchcommands_app', 'setup.py build')
             self.skipTest("You must build the searchcommands_app by running " + build_command)
+        sys.path.append(os.path.join(app_root, 'lib'))
         TestCase.setUp(self)
 
     def test_countmatches_as_unit(self):
-
+        print(sys.path)
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)

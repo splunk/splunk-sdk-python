@@ -52,7 +52,6 @@ def run_test_suite():
                 self.stream, self.descriptions, self.verbosity)
         
     original_cwd = os.path.abspath(os.getcwd())
-    sys.path.append('examples/searchcommands_app/build/searchcommands_app/lib')
     os.chdir('tests/searchcommands')
     suite = unittest.defaultTestLoader.discover('.')
     runner = TrackingTextTestRunner(verbosity=2)

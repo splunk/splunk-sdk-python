@@ -44,7 +44,6 @@ import csv
 import io
 import os
 import sys
-import pprint
 
 try:
     from tests.searchcommands import project_root

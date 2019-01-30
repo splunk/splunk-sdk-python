@@ -253,67 +253,6 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "upload.py --help",
             "upload.py --index=sdk-tests %s" % file_to_upload)
 
-    # The following tests are for the custom_search examples. The way
-    # the tests work mirrors how Splunk would invoke them: they pipe in
-    # a known good input file into the custom search python file, and then
-    # compare the resulting output file to a known good one.
-    def test_custom_search(self):
-
-        def test_custom_search_command(script, input_path, baseline_path):
-            output_base, _ = os.path.splitext(input_path)
-            output_path = output_base + ".out"
-            output_file = io.open(output_path, 'bw')
-
-            input_file = io.open(input_path, 'br')
-
-            # Execute the command
-            result = run(script, stdin=input_file, stdout=output_file)
-            self.assertEquals(result, 0)
-
-            input_file.close()
-            output_file.close()
-
-            # Make sure the test output matches the baseline
-            baseline_file = io.open(baseline_path, 'br')
-            baseline = baseline_file.read().decode('utf-8')
-
-            output_file = io.open(output_path, 'br')
-            output = output_file.read().decode('utf-8')
-
-            # TODO: DVPL-6700: Rewrite this test so that it is insensitive to ties in score
-
-            message = "%s: %s != %s" % (script, output_file.name, baseline_file.name)
-            check_multiline(self, baseline, output, message)
-
-            # Cleanup
-            baseline_file.close()
-            output_file.close()
-            os.remove(output_path)
-
-        custom_searches = [ 
-            {
-                "script": "custom_search/bin/usercount.py",
-                "input": "../tests/data/custom_search/usercount.in",
-                "baseline": "../tests/data/custom_search/usercount.baseline"
-            },
-            { 
-                "script": "twitted/twitted/bin/hashtags.py",
-                "input": "../tests/data/custom_search/hashtags.in",
-                "baseline": "../tests/data/custom_search/hashtags.baseline"
-            },
-            { 
-                "script": "twitted/twitted/bin/tophashtags.py",
-                "input": "../tests/data/custom_search/tophashtags.in",
-                "baseline": "../tests/data/custom_search/tophashtags.baseline"
-            }
-        ]
-
-        for custom_search in custom_searches:
-            test_custom_search_command(
-                custom_search['script'],
-                custom_search['input'],
-                custom_search['baseline'])
-
     # The following tests are for the Analytics example
     def test_analytics(self):
         # We have to add the current path to the PYTHONPATH,

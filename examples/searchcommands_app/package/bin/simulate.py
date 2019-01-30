@@ -17,12 +17,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
-
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 import random
 import csv
-import sys
+import os,sys
 import time
+
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 
 
 @Configuration()

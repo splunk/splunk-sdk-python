@@ -416,7 +416,7 @@ class TestSearchCommandsApp(TestCase):
                             ofile.write(b)
                 with io.open(uncompressed_file, 'rb') as ifile:
                     env = os.environ.copy()
-                    env['PYTHONPATH'] = ":".join(sys.path)
+                    env['PYTHONPATH'] = os.pathsep.join(sys.path)
                     process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE, env=env)
                     output, errors = process.communicate()
                 with io.open(recording.output_file, 'rb') as ifile:

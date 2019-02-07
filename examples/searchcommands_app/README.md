@@ -1,15 +1,17 @@
 splunk-sdk-python searchcommands_app example
 =============================================
 
-This app provides several examples of custom search commands which illustrate each of the base types:
+This app provides several examples of custom search commands that illustrate each of the base command types:
 
  Command          | Type       | Description
 :---------------- |:-----------|:-------------------------------------------------------------------------------------------
  countmatches     | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
  generatetext     | Generating | Generates a specified number of events containing a specified text string.
- pypygeneratetext |            | Executes generatetext with PyPy 
- simulate         | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement
- sum              | Reporting  | Adds all the numbers in a set of fields.
+ pypygeneratetext | Generating | Executes generatetext with the string 'PyPy'. 
+ simulate         | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement.
+ generatehello    | Generating | Generates a specified number of events containing the text string 'hello'.
+ sum              | Reporting  | Adds all of the numbers in a set of fields.
+ filter           | Eventing   | Filters records from the events stream based on user-specified criteria.
  
 The app is tested on Splunk 5 and 6. Here is its manifest:
 
@@ -59,15 +61,15 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 
   The tarball is build as build/searchcommands_app-1.5.0-private.tar.gz.
   
-+ And then (re)start Splunk so that the app is recognized.
++ Then (re)start Splunk so that the app is recognized.
 
 ## Dashboards and Searches
 
-+ TODO: Add saved search(es) for each example
++ TODO: Add saved search(es) for each example.
 
 ### Searches
 
-+ TODO: Describe saved searches
++ TODO: Describe saved searches.
 
 ## License
 

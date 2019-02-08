@@ -3,8 +3,8 @@
 #
 #     [Configuration file format](https://docs.python.org/2/library/logging.config.html#configuration-file-format)
 #
-# This file must contain sections called [loggers], [handlers] and [formatters] which identify by name the entities of
-# each type which are defined in the file. For each such entity, there is a separate section which identifies how that
+# This file must contain sections called [loggers], [handlers] and [formatters] that identify by name the entities of
+# each type that are defined in the file. For each such entity, there is a separate section that identifies how that
 # entity is configured. Thus, for a logger named log01 in the [loggers] section, the relevant configuration details are
 # held in a section [logger_log01]. Similarly, a handler called hand01 in the [handlers] section will have its
 # configuration held in a section called [handler_hand01], while a formatter called form01 in the [formatters] section
@@ -24,7 +24,7 @@ keys = <comma-separated strings>
     * The root logger must specify a level and a list of handlers.
 
 level = [critical|error|warning|info|debug|notset]
-    * Can be one of debug, info, warning, error, critical or notset. For the root logger only, notset means that all
+    * Can be one of debug, info, warning, error, critical, or notset. For the root logger only, notset means that all
     * messages will be logged. Level values are evaluated in the context of the logging package’s namespace.
     * Defaults to warning.
 
@@ -43,7 +43,7 @@ qualname = <string>
 level = [critical|error|warning|info|debug|notset]
     * Can be one of debug, info, warning, error, critical or notset. For the root logger only, notset means that all
     * messages will be logged. Level values are evaluated in the context of the logging package’s namespace.
-    * Defaults to warning
+    * Defaults to warning.
 
 handlers = <comma-separated strings>
     * A comma-separated list of handler names, which must appear in the [handlers] section. These names must appear in
@@ -57,7 +57,7 @@ propagate = [0|1]
 
 [handlers]
     * Specifies a list of handler keys.
-    * See [logging.handlers](https://docs.python.org/2/library/logging.handlers.html)
+    * See [logging.handlers](https://docs.python.org/2/library/logging.handlers.html).
 
 keys = <comma-separated strings>
     * A comma-separated list of handlers keys. Each key must have a corresponding [handler_<string>] section in the
@@ -77,7 +77,7 @@ class = <string>
 
 level = [critical|error|warning|info|debug|notset]
     * Can be one of debug, info, warning, error, critical or notset. This value is interpreted as for loggers, and
-    * notset is taken to mean, "log everything."
+    * notset is taken to mean, "log everything".
 
 formatter = <string>
     * Specifies the key name of the formatter for this handler. If a name is specified, it must appear in the
@@ -86,7 +86,7 @@ formatter = <string>
 
 [formatters]
     * Specifies a list of formatter keys.
-    * See [logging.formatters](https://docs.python.org/2/howto/logging.html#formatters)
+    * See [logging.formatters](https://docs.python.org/2/howto/logging.html#formatters).
 
 keys = <comma-separated strings>
     * A comma-separated list of formatter keys. Each key must have a corresponding [formatter_<string>] section in the

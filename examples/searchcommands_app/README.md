@@ -7,7 +7,7 @@ This app provides several examples of custom search commands that illustrate eac
 :---------------- |:-----------|:-------------------------------------------------------------------------------------------
  countmatches     | Streaming  | Counts the number of non-overlapping matches to a regular expression in a set of fields.
  generatetext     | Generating | Generates a specified number of events containing a specified text string.
- pypygeneratetext | Generating | Executes generatetext with the string 'PyPy'. 
+ pypygeneratetext | Generating | Runs generatetext with the string 'PyPy'. 
  simulate         | Generating | Generates a sequence of events drawn from a csv file using repeated random sampling with replacement.
  generatehello    | Generating | Generates a specified number of events containing the text string 'hello'.
  sum              | Reporting  | Adds all of the numbers in a set of fields.
@@ -19,7 +19,7 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
 ├── bin
 │   ├── countmatches.py .......... CountMatchesCommand implementation
 │   ├── generatetext.py .......... GenerateTextCommand implementation
-│   ├── pypygeneratetext.py ...... Executes generatetext.py with PyPy
+│   ├── pypygeneratetext.py ...... Runs generatetext.py with PyPy
 │   ├── simulate.py .............. SimulateCommand implementation
 │   └── sum.py ................... SumCommand implementation
 ├── lib

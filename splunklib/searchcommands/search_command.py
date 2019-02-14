@@ -256,7 +256,7 @@ class SearchCommand(object):
         invocation.
 
         :return: Search results info:const:`None`, if the search results info file associated with the command
-        invocation is inaccessible.
+                 invocation is inaccessible.
         :rtype: SearchResultsInfo or NoneType
 
         """
@@ -345,8 +345,8 @@ class SearchCommand(object):
         :code:`requires_srinfo` setting is false by default. Hence, you must set it.
 
         :return: :class:`splunklib.client.Service`, if :code:`enableheader` and :code:`requires_srinfo` are both
-        :code:`true`. Otherwise, if either :code:`enableheader` or :code:`requires_srinfo` are :code:`false`, a value
-        of :code:`None` is returned.
+            :code:`true`. Otherwise, if either :code:`enableheader` or :code:`requires_srinfo` are :code:`false`, a value
+            of :code:`None` is returned.
 
         """
         if self._service is not None:

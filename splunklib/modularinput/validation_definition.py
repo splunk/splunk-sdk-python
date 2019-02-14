@@ -64,7 +64,7 @@ class ValidationDefinition(object):
             </items>
 
         :param stream: ``Stream`` containing XML to parse.
-        :return definition: A ``ValidationDefinition`` object.
+        :return: A ``ValidationDefinition`` object.
 
         """
 

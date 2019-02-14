@@ -810,15 +810,15 @@ class SearchCommand(object):
         :param name: Name of the metric.
         :type name: basestring
 
-        :param value: A 4-tuple containing the value of metric :param:`name` where
+        :param value: A 4-tuple containing the value of metric ``name`` where
 
             value[0] = Elapsed seconds or :const:`None`.
             value[1] = Number of invocations or :const:`None`.
             value[2] = Input count or :const:`None`.
             value[3] = Output count or :const:`None`.
 
-        The :data:`SearchMetric` type provides a convenient encapsulation of :param:`value`.
-        The :data:`SearchMetric` type provides a convenient encapsulation of :param:`value`.
+        The :data:`SearchMetric` type provides a convenient encapsulation of ``value``.
+        The :data:`SearchMetric` type provides a convenient encapsulation of ``value``.
 
         :return: :const:`None`.
 

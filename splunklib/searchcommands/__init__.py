@@ -30,7 +30,7 @@
         field-name    = ( "_" / alpha ) *( alpha / digit / "_" / "." / "-" )
 
      It does not show that :code:`field-name` values may be comma-separated. This is because Splunk strips commas from
-    the command line. A search command will never see them.
+     the command line. A search command will never see them.
 
   2. Search commands targeting versions of Splunk prior to 6.3 must be statically configured as follows:
 

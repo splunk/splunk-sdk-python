@@ -338,6 +338,7 @@ class SearchCommand(object):
         specifying this pair of configuration settings in commands.conf:
 
            .. code-block:: python
+
                enableheader = true
                requires_srinfo = true
 
@@ -1080,7 +1081,7 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys
 
     **Example**
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
 
         #!/usr/bin/env python
@@ -1096,7 +1097,7 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys
 
     **Example**
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
 
         from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators

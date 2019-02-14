@@ -229,8 +229,9 @@ class Option(property):
 
     Short form (recommended). When you are satisfied with built-in or custom validation behaviors.
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
+
         from splunklib.searchcommands.decorators import Option
         from splunklib.searchcommands.validators import Fieldname
 
@@ -247,8 +248,9 @@ class Option(property):
     also provide a deleter. You must be prepared to accept a value of :const:`None` which indicates that your
     :code:`Option` is unset.
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
+
         from splunklib.searchcommands import Option
 
         @Option()

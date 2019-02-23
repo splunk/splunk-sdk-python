@@ -281,7 +281,7 @@ class TestInput(testlib.SDKTestCase):
             entity.refresh()
             self.assertEqual(entity.host, kwargs['host'])
 
-    @unittest2.skip('flaky')
+    @unittest.skip('flaky')
     def test_delete(self):
         inputs = self.service.inputs
         remaining = len(self._test_entities)-1

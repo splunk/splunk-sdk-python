@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import unittest2
-
 from splunklib.binding import HTTPError
 
 from tests import testlib
@@ -30,6 +28,7 @@ except ImportError:
 
 import splunklib.client as client
 
+
 def highest_port(service, base_port, *kinds):
     """Find the first port >= base_port not in use by any input in kinds."""
     highest_port = base_port
@@ -37,6 +36,7 @@ def highest_port(service, base_port, *kinds):
         port = int(input.name.split(':')[-1])
         highest_port = max(port, highest_port)
     return highest_port
+
 
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
@@ -116,6 +116,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                 lambda: boris.update(restrictToHost='hilda')
             )
 
+
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
         inputs = self.service.inputs
@@ -188,6 +189,7 @@ class TestRead(testlib.SDKTestCase):
         self.assertRaises(HTTPError,
             self.service.inputs.oneshot, name)
 
+
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super(TestInput, self).setUp()
@@ -243,7 +245,6 @@ class TestInput(testlib.SDKTestCase):
             input = inputs['abcd', 'test2']
             self.assertEqual(input.field1, 'boris')
 
-
     def test_create(self):
         inputs = self.service.inputs
         for entity in six.itervalues(self._test_entities):
@@ -263,6 +264,13 @@ class TestInput(testlib.SDKTestCase):
             self.assertEqual(this_entity.kind, read_entity.kind)
             self.assertEqual(this_entity.name, read_entity.name)
             self.assertEqual(this_entity.host, read_entity.host)
+
+    def test_read_indiviually(self):
+        tcp_input = self.service.input(self._test_entities['tcp'][0].name,
+                                   self._test_entities['tcp'][0].kind)
+        self.assertIsNotNone(tcp_input)
+        self.assertTrue('tcp', tcp_input.kind)
+        self.assertTrue(self._test_entities['tcp'][0].name, tcp_input.name)
 
     def test_update(self):
         inputs = self.service.inputs

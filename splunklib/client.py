@@ -463,6 +463,13 @@ class Service(_BaseService):
         response = self.get("/services/server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
 
+    def input(self, name, kind=None):
+        """Retrieves an input by name, and optionally type.
+
+        :return: A :class:`Input` object.
+        """
+        return Input(self, name, kind=kind).refresh()
+
     @property
     def inputs(self):
         """Returns the collection of inputs configured on this Splunk instance.

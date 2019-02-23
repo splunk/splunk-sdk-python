@@ -266,7 +266,7 @@ class TestInput(testlib.SDKTestCase):
             self.assertEqual(this_entity.host, read_entity.host)
 
     def test_read_indiviually(self):
-        tcp_input = self.service.input(self._test_entities['tcp'].name,
+        tcp_input = self.service.input(self._test_entities['tcp'].path,
                                        self._test_entities['tcp'].kind)
         self.assertIsNotNone(tcp_input)
         self.assertTrue('tcp', tcp_input.kind)

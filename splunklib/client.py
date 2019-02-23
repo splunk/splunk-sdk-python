@@ -1200,7 +1200,7 @@ class ReadOnlyCollection(Endpoint):
         :raises ValueError: Raised if no namespace is specified and *key*
                             does not refer to a unique name.
 
-        *Example*::
+        **Example**::
 
             s = client.connect(...)
             saved_searches = s.saved_searches
@@ -1636,9 +1636,9 @@ class Collection(ReadOnlyCollection):
         :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
                 and ``status``
 
-        Example:
+        **Example**::
 
-        import splunklib.client
+            import splunklib.client
             s = client.service(...)
             saved_searches = s.saved_searches
             saved_searches.get("my/saved/search") == \\

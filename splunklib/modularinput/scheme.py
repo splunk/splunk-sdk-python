@@ -55,7 +55,7 @@ class Scheme(object):
     def to_xml(self):
         """Creates an ``ET.Element`` representing self, then returns it.
 
-        :returns root, an ``ET.Element`` representing this scheme.
+        :returns: an ``ET.Element`` representing this scheme.
         """
         root = ET.Element("scheme")
 

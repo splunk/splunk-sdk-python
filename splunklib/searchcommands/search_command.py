@@ -828,7 +828,7 @@ class SearchCommand(object):
 
     @staticmethod
     def _decode_list(mv):
-        return [match.replace('$$', '$') for match in SearchCommand._encoded_value.findall(mv)]
+        return [match.replace('$$', '$').encode('utf-8') for match in SearchCommand._encoded_value.findall(mv.decode('utf-8'))]
 
     _encoded_value = re.compile(r'\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)')  # matches a single value in an encoded list
 

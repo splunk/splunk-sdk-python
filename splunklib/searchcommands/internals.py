@@ -623,9 +623,6 @@ class RecordWriter(object):
         self._writerow(values)
         self._record_count += 1
 
-        if self._record_count >= self._maxresultrows:
-            self.flush(partial=True)
-
     try:
         # noinspection PyUnresolvedReferences
         from _json import make_encoder

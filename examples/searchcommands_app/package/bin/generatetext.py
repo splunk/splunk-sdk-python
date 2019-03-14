@@ -35,8 +35,8 @@ class GenerateTextCommand(GeneratingCommand):
 
     def generate(self):
         text = self.text
+        self.logger.debug("Generating %s events" % self.count)
         for i in range(1, self.count + 1):
-            self.logger.debug("Genearting %s events" % self.count)
             yield {'_serial': i, '_time': time.time(), '_raw': six.text_type(i) + '. ' + text}
 
 dispatch(GenerateTextCommand, sys.argv, sys.stdin, sys.stdout, __name__)

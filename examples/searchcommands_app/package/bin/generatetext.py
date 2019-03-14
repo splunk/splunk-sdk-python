@@ -35,6 +35,7 @@ class GenerateTextCommand(GeneratingCommand):
 
     def generate(self):
         text = self.text
+        self.logger.debug("Genearting text: %s" % self.text)
         for i in range(1, self.count + 1):
             yield {'_serial': i, '_time': time.time(), '_raw': six.text_type(i) + '. ' + text}
 

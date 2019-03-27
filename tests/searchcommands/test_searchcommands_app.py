@@ -227,7 +227,7 @@ class TestSearchCommandsApp(TestCase):
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('2019-03-27 20:45:12,006, Level=ERROR, Pi[203 chars]t.', errors)
+        self.assertEqual('2019-03-27 20:45:12,006, Level=ERROR, Pi[203 chars]t.\n', errors)
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)

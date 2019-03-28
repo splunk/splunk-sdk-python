@@ -32,6 +32,7 @@ class GenerateHelloCommand(GeneratingCommand):
     count = Option(require=True, validate=validators.Integer(0))
  
     def generate(self):
+        self.logger.debug("Generating %s events" % self.count)
         for i in range(1, self.count + 1):
             text = 'Hello World %d' % i
             yield {'_time': time.time(), 'event_no': i, '_raw': text}

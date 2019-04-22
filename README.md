@@ -292,8 +292,6 @@ If you would like to contribute to the SDK, go here for more information:
    <li><a href='http://splunk-base.splunk.com/answers/'>Splunk Answers</a> (use     
     the <b>sdk</b>, <b>java</b>, <b>python</b>, and <b>javascript</b> tags to   
     identify your questions)</li>   
-   <li><a href='http://groups.google.com/group/splunkdev'>Splunkdev Google  
-    Group</a></li>  
    </ul>    
 3. Splunk will NOT provide support for SDKs if the core library (the    
    code in the <b>/splunklib</b> directory) has been modified. If you modify an     

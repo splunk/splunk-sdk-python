@@ -9,7 +9,7 @@ before_install:
     # Create .splunkrc file with default credentials
     - echo host=127.0.0.1 >> $HOME/.splunkrc
     - echo username=admin >> $HOME/.splunkrc
-    - echo password=changeme >> $HOME/.splunkrc
+    - echo password=changed! >> $HOME/.splunkrc
     # Set SPLUNK_HOME
     - export SPLUNK_HOME="/opt/splunk"
     # Pull docker image

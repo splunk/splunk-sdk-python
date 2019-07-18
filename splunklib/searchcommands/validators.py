@@ -249,10 +249,10 @@ class List(Validator):
     class Dialect(csv.Dialect):
         """ Describes the properties of list option values. """
         strict = True
-        delimiter = b','
-        quotechar = b'"'
+        delimiter = str(',')
+        quotechar = str('"')
         doublequote = True
-        lineterminator = b'\n'
+        lineterminator = str('\n')
         skipinitialspace = True
         quoting = csv.QUOTE_MINIMAL
 

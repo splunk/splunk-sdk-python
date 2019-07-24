@@ -754,7 +754,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def request(self, path_segment, method="GET", headers=None, body="",
+    def request(self, path_segment, method="GET", headers=None, body={},
                 owner=None, app=None, sharing=None):
         """Issues an arbitrary HTTP request to the REST path segment.
 
@@ -814,13 +814,27 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
+
         all_headers = headers + self.additional_headers + self._auth_headers
         logging.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
-        response = self.http.request(path,
+
+        if body:
+            body = _encode(**body)
+            if method == "GET":
+                path = path + UrlEncoded('?' + body, skip_encode=True)
+                response = self.http.request(path,
                                      {'method': method,
-                                     'headers': all_headers,
-                                     'body': body})
+                                      'headers': all_headers})
+            else:
+                response = self.http.request(path,
+                                     {'method': method,
+                                      'headers': all_headers,
+                                      'body': body})
+        else:
+            response = self.http.request(path,
+                                         {'method': method,
+                                          'headers': all_headers})
         return response
 
     def login(self):

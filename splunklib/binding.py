@@ -1357,7 +1357,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) and not verify:
+            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) or not verify:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)

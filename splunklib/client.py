@@ -3569,7 +3569,7 @@ class KVStoreCollection(Entity):
     def data(self):
         """Returns data object for this Collection.
 
-        :rtype: :class:`KVStoreData`
+        :rtype: :class:`KVStoreCollectionData`
         """
         return KVStoreCollectionData(self)
 

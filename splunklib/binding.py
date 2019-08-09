@@ -821,20 +821,21 @@ class Context(object):
 
         if body:
             body = _encode(**body)
+
             if method == "GET":
                 path = path + UrlEncoded('?' + body, skip_encode=True)
-                response = self.http.request(path,
-                                     {'method': method,
-                                      'headers': all_headers})
+                message = {'method': method,
+                           'headers': all_headers}
             else:
-                response = self.http.request(path,
-                                     {'method': method,
-                                      'headers': all_headers,
-                                      'body': body})
+                message = {'method': method,
+                           'headers': all_headers,
+                           'body': body}
         else:
-            response = self.http.request(path,
-                                         {'method': method,
-                                          'headers': all_headers})
+            message = {'method': method,
+                       'headers': all_headers}
+
+        response = self.http.request(path, message)
+
         return response
 
     def login(self):

@@ -17,6 +17,8 @@ format, which is the format used by most of the REST API.
 """
 
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import sys
 from xml.etree.ElementTree import XML
 from splunklib import six

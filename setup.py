@@ -14,15 +14,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from setuptools import setup, Command
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from contextlib import closing
-from subprocess import check_call, STDOUT
 
 import os
-import sys
 import shutil
+from subprocess import STDOUT, check_call
+import sys
+
 import tarfile
 
+from setuptools import Command, setup
 import splunklib
 
 failed = False
@@ -196,7 +201,7 @@ class DistCommand(Command):
 
         # Create searchcommands_app-<three-part-version-number>-private.tar.gz
         # but only if we are on 2.7 or later
-        if sys.version_info >= (2,7):
+        if sys.version_info >= (2, 7):
             setup_py = os.path.join('examples', 'searchcommands_app', 'setup.py')
 
             check_call(('python', setup_py, 'build', '--force'), stderr=STDOUT, stdout=sys.stdout)

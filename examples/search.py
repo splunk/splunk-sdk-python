@@ -21,6 +21,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from time import sleep
 
+from parse import *
 from splunklib.binding import HTTPError
 import splunklib.client as client
 

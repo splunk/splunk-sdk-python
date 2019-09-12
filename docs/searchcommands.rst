@@ -80,10 +80,6 @@ splunklib.searchcommands
     :members:
     :inherited-members:
 
-.. autoclass:: Fieldname
-    :members:
-    :inherited-members:
-
 .. autoclass:: File
     :members:
     :inherited-members:
@@ -100,6 +96,3 @@ splunklib.searchcommands
     :members:
     :inherited-members:
 
-.. autoclass:: Validator
-    :members:
-    :inherited-members:

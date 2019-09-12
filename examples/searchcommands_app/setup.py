@@ -88,7 +88,7 @@ def install_packages(app_root, distribution):
     if not requires:
         return
 
-    target = os.path.join(app_root, 'bin', 'packages')
+    target = os.path.join(app_root, 'lib', 'packages')
 
     if not os.path.isdir(target):
         os.mkdir(target)
@@ -323,7 +323,7 @@ class LinkCommand(Command):
             message = 'Cannot create a link at "{}" because a file by that name already exists.'.format(target)
             raise SystemError(message)
 
-        packages = os.path.join(self.app_source, 'bin', 'packages')
+        packages = os.path.join(self.app_source, 'lib')
 
         if not os.path.isdir(packages):
             os.mkdir(packages)
@@ -439,7 +439,7 @@ try:
     setup(
         description='Custom Search Command examples',
         name=os.path.basename(project_dir),
-        version='1.6.6',
+        version='1.6.7',
         author='Splunk, Inc.',
         author_email='devinfo@splunk.com',
         url='http://github.com/splunk/splunk-sdk-python',
@@ -454,13 +454,12 @@ try:
             'Topic :: System :: Logging',
             'Topic :: System :: Monitoring'],
         packages=[
-            'bin.packages.splunklib', 'bin.packages.splunklib.searchcommands'
+            'lib.splunklib', 'lib.splunklib.searchcommands'
         ],
         package_dir={
-            'bin': os.path.join('package', 'bin'),
-            'bin.packages': os.path.join('package', 'bin', 'packages'),
-            'bin.packages.splunklib': os.path.join('..', '..', 'splunklib'),
-            'bin.packages.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
+            'lib': os.path.join('package', 'lib'),
+            'lib.splunklib': os.path.join('..', '..', 'splunklib'),
+            'lib.splunklib.searchcommands': os.path.join('..', '..', 'splunklib', 'searchcommands')
         },
         package_data={
             'bin': [

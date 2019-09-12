@@ -36,7 +36,7 @@ class Configuration(object):
     variable to search command classes that don't have one. The :code:`name` is derived from the name of the class.
     By convention command class names end with the word "Command". To derive :code:`name` the word "Command" is removed
     from the end of the class name and then converted to lower case for conformance with the `Search command style guide
-    <http://docs.splunk.com/Documentation/Splunk/latest/Search/Searchcommandstyleguide>`_
+    <http://docs.splunk.com/Documentation/Splunk/latest/Search/Searchcommandstyleguide>`__
 
     """
     def __init__(self, o=None, **kwargs):
@@ -229,8 +229,9 @@ class Option(property):
 
     Short form (recommended). When you are satisfied with built-in or custom validation behaviors.
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
+
         from splunklib.searchcommands.decorators import Option
         from splunklib.searchcommands.validators import Fieldname
 
@@ -247,8 +248,9 @@ class Option(property):
     also provide a deleter. You must be prepared to accept a value of :const:`None` which indicates that your
     :code:`Option` is unset.
 
-    .. code-block:: python
+    ..  code-block:: python
         :linenos:
+
         from splunklib.searchcommands import Option
 
         @Option()

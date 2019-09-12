@@ -17,11 +17,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
-
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
-import sys
+import os,sys
 import time
-from six.moves import range
+
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
+from splunklib.six.moves import range
 
 
 @Configuration()
@@ -30,6 +32,7 @@ class GenerateHelloCommand(GeneratingCommand):
     count = Option(require=True, validate=validators.Integer(0))
  
     def generate(self):
+        self.logger.debug("Generating %s events" % self.count)
         for i in range(1, self.count + 1):
             text = 'Hello World %d' % i
             yield {'_time': time.time(), 'event_no': i, '_raw': text}

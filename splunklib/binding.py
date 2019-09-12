@@ -80,6 +80,7 @@ def _parse_cookies(cookie_str, dictionary):
     then updates the the dictionary with any key-value pairs found.
 
     **Example**::
+
         dictionary = {}
         _parse_cookies('my=value', dictionary)
         # Now the following is True

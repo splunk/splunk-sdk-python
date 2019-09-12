@@ -81,9 +81,9 @@ class Code(Validator):
     def __init__(self, mode='eval'):
         """
         :param mode: Specifies what kind of code must be compiled; it can be :const:`'exec'`, if source consists of a
-        sequence of statements, :const:`'eval'`, if it consists of a single expression, or :const:`'single'` if it
-        consists of a single interactive statement. In the latter case, expression statements that evaluate to
-        something other than :const:`None` will be printed.
+            sequence of statements, :const:`'eval'`, if it consists of a single expression, or :const:`'single'` if it
+            consists of a single interactive statement. In the latter case, expression statements that evaluate to
+            something other than :const:`None` will be printed.
         :type mode: unicode or bytes
 
         """
@@ -249,10 +249,10 @@ class List(Validator):
     class Dialect(csv.Dialect):
         """ Describes the properties of list option values. """
         strict = True
-        delimiter = b','
-        quotechar = b'"'
+        delimiter = str(',')
+        quotechar = str('"')
         doublequote = True
-        lineterminator = b'\n'
+        lineterminator = str('\n')
         skipinitialspace = True
         quoting = csv.QUOTE_MINIMAL
 

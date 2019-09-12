@@ -92,9 +92,10 @@ class GeneratingCommand(SearchCommand):
     +==========+===================================================+===================================================+
     | streams  | 1. Add this line to your command's stanza in      | 1. Add this configuration setting to your code:   |
     |          |                                                   |                                                   |
-    |          |    default/commands.conf.                         |    .. code-block:: python                         |
-    |          |    .. code-block:: python                         |        @Configuration(distributed=True)           |
-    |          |        local = false                              |        class SomeCommand(GeneratingCommand)       |
+    |          |    default/commands.conf::                        |    ..  code-block:: python                        |
+    |          |                                                   |                                                   |
+    |          |        local = false                              |        @Configuration(distributed=True)           |
+    |          |                                                   |        class SomeCommand(GeneratingCommand)       |
     |          |                                                   |            ...                                    |
     |          | 2. Restart splunk                                 |                                                   |
     |          |                                                   | 2. You are good to go; no need to restart Splunk  |
@@ -112,6 +113,7 @@ class GeneratingCommand(SearchCommand):
     |          | settings to your command class:                   | setting to your command class:                    |
     |          |                                                   |                                                   |
     |          | .. code-block:: python                            | .. code-block:: python                            |
+    |          |                                                   |                                                   |
     |          |     @Configuration(                               |     @Configuration(type='events')                 |
     |          |         retainsevents=True, streaming=False)      |     class SomeCommand(GeneratingCommand)          |
     |          |     class SomeCommand(GeneratingCommand)          |         ...                                       |
@@ -119,22 +121,25 @@ class GeneratingCommand(SearchCommand):
     |          |                                                   |                                                   |
     |          | Or add these lines to default/commands.conf:      |                                                   |
     |          |                                                   |                                                   |
-    |          | .. code-block::                                   |                                                   |
-    |          |     retains events = true                         |                                                   |
+    |          | ..  code-block:: text                             |                                                   |
+    |          |                                                   |                                                   |
+    |          |     retainsevents = true                          |                                                   |
     |          |     streaming = false                             |                                                   |
     +----------+---------------------------------------------------+---------------------------------------------------+
 
     Configure your command class like this, if you wish to support both protocols:
 
-    .. code-block:: python
+    ..  code-block:: python
+
         @Configuration(type='events', retainsevents=True, streaming=False)
         class SomeCommand(GeneratingCommand)
             ...
 
     You might also consider adding these lines to commands.conf instead of adding them to your command class:
 
-    .. code-block:: python
-        retains events = false
+    ..  code-block:: python
+
+        retainsevents = false
         streaming = false
 
     Reporting Generating command
@@ -149,28 +154,32 @@ class GeneratingCommand(SearchCommand):
     |          | settings to your command class:                   | setting to your command class:                    |
     |          |                                                   |                                                   |
     |          | .. code-block:: python                            | .. code-block:: python                            |
+    |          |                                                   |                                                   |
     |          |     @Configuration(retainsevents=False)           |     @Configuration(type='reporting')              |
     |          |     class SomeCommand(GeneratingCommand)          |     class SomeCommand(GeneratingCommand)          |
     |          |         ...                                       |         ...                                       |
     |          |                                                   |                                                   |
     |          | Or add this lines to default/commands.conf:       |                                                   |
     |          |                                                   |                                                   |
-    |          | .. code-block::                                   |                                                   |
-    |          |     retains events = false                        |                                                   |
+    |          | .. code-block:: text                              |                                                   |
+    |          |                                                   |                                                   |
+    |          |     retainsevents = false                         |                                                   |
     |          |     streaming = false                             |                                                   |
     +----------+---------------------------------------------------+---------------------------------------------------+
 
     Configure your command class like this, if you wish to support both protocols:
 
-    .. code-block:: python
+    ..  code-block:: python
+
         @Configuration(type='reporting', streaming=False)
         class SomeCommand(GeneratingCommand)
             ...
 
     You might also consider adding these lines to commands.conf instead of adding them to your command class:
 
-    .. code-block:: python
-        retains events = false
+    ..  code-block:: text
+
+        retainsevents = false
         streaming = false
 
     """

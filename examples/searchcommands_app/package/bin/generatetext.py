@@ -17,10 +17,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
-
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
-import sys
+import os,sys
 import time
+
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
+from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
 from splunklib import six
 from splunklib.six.moves import range
 
@@ -33,6 +35,7 @@ class GenerateTextCommand(GeneratingCommand):
 
     def generate(self):
         text = self.text
+        self.logger.debug("Generating %d events with text %s" % (self.count, self.text))
         for i in range(1, self.count + 1):
             yield {'_serial': i, '_time': time.time(), '_raw': six.text_type(i) + '. ' + text}
 

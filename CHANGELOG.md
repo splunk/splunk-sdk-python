@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.8
+
+### Bug Fix
+
+* Fix custom search command on python 3 on windows 
+
 ## Version 1.6.7
 
 ### Changes

@@ -24,6 +24,7 @@ from .streaming_command import StreamingCommand
 from .search_command import SearchCommand
 from .validators import Set
 from splunklib import six
+import sys
 
 
 class ReportingCommand(SearchCommand):
@@ -253,7 +254,11 @@ class ReportingCommand(SearchCommand):
                 cls._requires_preop = False
                 return
 
-            f = vars(command)['map']   # Function backing the map method
+            if sys.version >= '3':
+                # In python 3 byte string indexing fails
+                f = vars(command)['map']
+            else:
+                f = vars(command)[b'map']   # Function backing the map method
 
             # EXPLANATION OF PREVIOUS STATEMENT: There is no way to add custom attributes to methods. See [Why does
             # setattr fail on a method](http://stackoverflow.com/questions/7891277/why-does-setattr-fail-on-a-bound-method) for a discussion of this issue.
@@ -266,8 +271,15 @@ class ReportingCommand(SearchCommand):
 
             # Create new StreamingCommand.ConfigurationSettings class
 
-            module = command.__module__ + '.' + command.__name__ + '.map'
-            name = b'ConfigurationSettings'
+            if sys.version >= '3':
+                # Byte string concatenation errors in python 3
+                module = command.__module__ + '.' + command.__name__ + '.map'
+                module = module.encode()
+                name = 'ConfigurationSettings'.encode()
+            else:
+                module = command.__module__ + b'.' + command.__name__ + b'.map'
+                name = b'ConfigurationSettings'
+
             bases = (StreamingCommand.ConfigurationSettings,)
 
             f.ConfigurationSettings = ConfigurationSettingsType(module, name, bases)

@@ -364,10 +364,6 @@ class InputHeader(dict):
         name, value = None, None
 
         for line in ifile:
-            # SPL-175233 -- input is buffered, needs to be decoded
-            if sys.version_info >= (3, 0):
-                line = line.decode()
-
             if line == '\n':
                 break
             item = line.split(':', 1)

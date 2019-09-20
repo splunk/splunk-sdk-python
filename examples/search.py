@@ -70,6 +70,10 @@ def main(argv):
     kwargs_create = dslice(opts.kwargs, FLAGS_CREATE)
     kwargs_results = dslice(opts.kwargs, FLAGS_RESULTS)
 
+    print(kwargs_splunk)
+    print(kwargs_create)
+    print(kwargs_results)
+
     service = client.connect(**kwargs_splunk)
 
     try:
@@ -113,4 +117,20 @@ def main(argv):
     job.cancel()
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    
+    SEARCH_COMMANDS = [
+        'search index="itools" source="pipln_Dashboard.log" host="localhost" sourcetype="itools" id=*',
+        '--host=localhost',
+        '--port=8089',
+        '--username=Amos',
+        '--password=Amos19961129',
+        '--version=7.2.0',
+        '--earliest_time=-30d',
+        '--latest_time=now',
+        '--rf=desc',
+        '--output_mode=json',
+        '--verbose=1',
+        '--count=3'
+    ]
+    
+    main(SEARCH_COMMANDS)

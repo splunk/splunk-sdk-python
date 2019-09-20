@@ -113,7 +113,7 @@ class ServiceTestCase(testlib.SDKTestCase):
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)
-        self.service.restart(timeout=300)
+        self.service.restart(timeout=3000)
         service.login() # Make sure we are awake
 
     def test_read_outputs_with_type(self):

@@ -113,4 +113,9 @@ def main(argv):
     job.cancel()
 
 if __name__ == "__main__":
+    
+    # Here add a simple print function to test if CI env allows to modify examples
+
+    print("Hello World!")
+    
     main(sys.argv[1:])

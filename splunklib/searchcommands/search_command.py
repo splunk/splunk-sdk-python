@@ -1054,13 +1054,8 @@ class SearchCommand(object):
 SearchMetric = namedtuple('SearchMetric', ('elapsed_seconds', 'invocation_count', 'input_count', 'output_count'))
 
 
-# SPL-175233, set default stdin to be buffered
-if sys.version_info >= (3, 0) and sys.platform == 'win32':
-    stdinput = sys.stdin.buffer
-else:
-    stdinput = sys.stdin
 
-def dispatch(command_class, argv=sys.argv, input_file=stdinput, output_file=sys.stdout, module_name=None):
+def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
 
     This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of

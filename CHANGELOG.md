@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.9
+
+### Bug Fix
+
+* Fix buffered input in python 3 
+
 ## Version 1.6.8
 
 ### Bug Fix

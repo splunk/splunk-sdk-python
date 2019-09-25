@@ -1004,9 +1004,12 @@ class HTTPError(Exception):
     def __init__(self, response, _message=None):
         status = response.status
         reason = response.reason
-        # decode is added to convert the returned object from read() to str
-        # which shows expected error in Python2 and Python3
-        body = (response.body.read()).decode()
+        if sys.version_info < (3, 0):
+            body = response.body.read()
+        else:
+            # decode is added to convert the returned object from read() to str
+            # which shows expected error in Python2 and Python
+            body = (response.body.read()).decode()
         try:
             detail = XML(body).findtext("./messages/msg")
         except ParseError as err:

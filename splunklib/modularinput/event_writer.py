@@ -77,9 +77,9 @@ class EventWriter(object):
 
         :param document: An ``ElementTree`` object.
         """
-        try:
+        if sys.version_info < (3, 0):
             self._out.write(ET.tostring(document))
-        except:
+        else:
             # encoding parameter is added so that tostring() returns str
             # which works as expected on Python2 and Python3
             self._out.write(ET.tostring(document, encoding="unicode"))

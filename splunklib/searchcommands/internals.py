@@ -580,7 +580,7 @@ class RecordWriter(object):
                                 value = str(value.real)
                             elif value_t is six.text_type:
                                 value = value
-                            elif value_t is int or value_t is int or value_t is float or value_t is complex:
+                            elif isinstance(value, six.integer_types) or value_t is float or value_t is complex:
                                 value = str(value)
                             elif issubclass(value_t, (dict, list, tuple)):
                                 value = str(''.join(RecordWriter._iterencode_json(value, 0)))
@@ -610,7 +610,7 @@ class RecordWriter(object):
                 values += (value, None)
                 continue
 
-            if value_t is int or value_t is int or value_t is float or value_t is complex:
+            if isinstance(value, six.integer_types) or value_t is float or value_t is complex:
                 values += (str(value), None)
                 continue
 

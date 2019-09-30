@@ -1,5 +1,25 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.9
+
+### Bug Fix
+
+* Fix buffered input in python 3 
+
+## Version 1.6.8
+
+### Bug Fix
+
+* Fix custom search command on python 3 on windows 
+
+## Version 1.6.7
+
+### Changes
+
+* Updated the Splunk SDK for Python to work with the Python 3 version of Splunk Enterprise on Windows
+* Improved the performance of deleting/updating an input
+* Added logging to custom search commands app to showcase how to do logging in custom search commands by using the Splunk SDK for Python
+
 ## Version 1.6.6
 
 ### Bug fixes

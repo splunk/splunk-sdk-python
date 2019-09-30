@@ -39,7 +39,8 @@ from . import environment
 
 csv.field_size_limit(10485760)  # The default value is 128KB; upping to 10MB. See SPL-12117 for background on this issue
 
-if sys.platform == 'win32':
+# SPL-175233 -- python3 stdout is already binary
+if sys.platform == 'win32' and sys.version_info <= (3, 0):
     # Work around the fact that on Windows '\n' is mapped to '\r\n'. The typical solution is to simply open files in
     # binary mode, but stdout is already open, thus this hack. 'CPython' and 'PyPy' work differently. We assume that
     # all other Python implementations are compatible with 'CPython'. This might or might not be a valid assumption.
@@ -339,6 +340,8 @@ class CsvDialect(csv.Dialect):
     doublequote = True
     skipinitialspace = False
     lineterminator = '\r\n'
+    if sys.version_info >= (3, 0) and sys.platform == 'win32':
+        lineterminator = '\n'
     quoting = csv.QUOTE_MINIMAL
 
 
@@ -658,6 +661,13 @@ class RecordWriterV1(RecordWriter):
 
     def flush(self, finished=None, partial=None):
 
+        # SPL-175233
+        def writeEOL():
+            if sys.version_info >= (3, 0) and sys.platform == 'win32':
+                write('\n')
+            else:
+                write('\r\n')
+
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
 
         if self._record_count > 0 or (self._chunk_count == 0 and 'messages' in self._inspector):
@@ -678,9 +688,9 @@ class RecordWriterV1(RecordWriter):
                         write(message_level(level, level))
                         write('=')
                         write(text)
-                        write('\r\n')
+                        writeEOL()
 
-                write('\r\n')
+                writeEOL()
 
             elif messages is not None:
 

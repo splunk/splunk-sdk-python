@@ -1054,6 +1054,7 @@ class SearchCommand(object):
 SearchMetric = namedtuple('SearchMetric', ('elapsed_seconds', 'invocation_count', 'input_count', 'output_count'))
 
 
+
 def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None):
     """ Instantiates and executes a search command class
 

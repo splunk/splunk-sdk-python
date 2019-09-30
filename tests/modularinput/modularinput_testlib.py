@@ -26,6 +26,6 @@ import io
 sys.path.insert(0, os.path.join('../../splunklib', '..'))
 
 from splunklib.modularinput.utils import xml_compare, parse_xml_data, parse_parameters
-
+file_type = 'rb' if sys.version_info < (3, 0) else 'rt'
 def data_open(filepath):
-    return io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), 'r')
+    return io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), file_type)

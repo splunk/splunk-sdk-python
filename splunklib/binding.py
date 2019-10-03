@@ -1004,9 +1004,9 @@ class HTTPError(Exception):
     def __init__(self, response, _message=None):
         status = response.status
         reason = response.reason
-        if sys.version_info < (3, 0):
+        try:
             body = response.body.read()
-        else:
+        except:
             # decode is added to convert the returned object from read() to str
             # which shows expected error in Python2 and Python3
             body = (response.body.read()).decode()
@@ -1033,9 +1033,9 @@ class AuthenticationError(HTTPError):
     def __init__(self, message, cause):
         # Put the body back in the response so that HTTPError's constructor can
         # read it again.
-        if sys.version_info < (3, 0):
+        try:
             cause._response.body = BytesIO(cause.body)
-        else:
+        except:
             cause._response.body = StringIO(cause.body)
 
         HTTPError.__init__(self, cause._response, message)

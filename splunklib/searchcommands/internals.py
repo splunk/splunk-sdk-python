@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+from io import TextIOWrapper
 from collections import deque, namedtuple
 from splunklib import six
 try:
@@ -781,19 +782,49 @@ class RecordWriterV2(RecordWriter):
 
         if metadata:
             metadata = str(''.join(self._iterencode_json(dict([(n, v) for n, v in metadata if v is not None]), 0)))
+            if sys.version_info >= (3, 0):
+                metadata = metadata.encode('utf-8')
             metadata_length = len(metadata)
         else:
             metadata_length = 0
 
+        if sys.version_info >= (3, 0):
+            body = body.encode('utf-8')
         body_length = len(body)
 
         if not (metadata_length > 0 or body_length > 0):
             return
 
         start_line = 'chunked 1.0,%s,%s\n' % (metadata_length, body_length)
-        write = self._ofile.write
-        write(start_line)
+        ofile_handle = set_binary_mode(self._ofile)
+        write = ofile_handle.write
+        write(start_line.encode('utf-8'))
         write(metadata)
         write(body)
         self._ofile.flush()
         self._flushed = False
+
+def set_binary_mode(fh):
+    """ Helper method to set up binary mode for file handles.
+    Emphasis being sys.stdin, sys.stdout, sys.stderr.
+    For python3, we want to return .buffer
+    For python2+windows we want to set os.O_BINARY
+    """
+    typefile = TextIOWrapper if sys.version_info >= (3, 0) else file
+    # check for file handle
+    if not isinstance(fh, typefile):
+        return fh
+
+    # check for python3 and buffer
+    if sys.version_info >= (3, 0) and hasattr(fh, 'buffer'):
+        return fh.buffer
+    # check for python3
+    elif sys.version_info >= (3, 0):
+        pass
+    # check for windows
+    elif sys.platform == 'win32':
+        import msvcrt
+        msvcrt.setmode(fh.fileno(), os.O_BINARY)
+
+    return fh
+

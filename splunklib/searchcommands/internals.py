@@ -40,19 +40,37 @@ from . import environment
 
 csv.field_size_limit(10485760)  # The default value is 128KB; upping to 10MB. See SPL-12117 for background on this issue
 
-# SPL-175233 -- python3 stdout is already binary
-if sys.platform == 'win32' and sys.version_info <= (3, 0):
-    # Work around the fact that on Windows '\n' is mapped to '\r\n'. The typical solution is to simply open files in
-    # binary mode, but stdout is already open, thus this hack. 'CPython' and 'PyPy' work differently. We assume that
-    # all other Python implementations are compatible with 'CPython'. This might or might not be a valid assumption.
-    from platform import python_implementation
-    implementation = python_implementation()
-    fileno = sys.stdout.fileno()
-    if implementation == 'PyPy':
-        sys.stdout = os.fdopen(fileno, 'wb', 0)
-    else:
-        from msvcrt import setmode
-        setmode(fileno, os.O_BINARY)
+
+def set_binary_mode(fh):
+    """ Helper method to set up binary mode for file handles.
+    Emphasis being sys.stdin, sys.stdout, sys.stderr.
+    For python3, we want to return .buffer
+    For python2+windows we want to set os.O_BINARY
+    """
+    typefile = TextIOWrapper if sys.version_info >= (3, 0) else file
+    # check for file handle
+    if not isinstance(fh, typefile):
+        return fh
+
+    # check for python3 and buffer
+    if sys.version_info >= (3, 0) and hasattr(fh, 'buffer'):
+        return fh.buffer
+    # check for python3
+    elif sys.version_info >= (3, 0):
+        pass
+    # check for windows python2. SPL-175233 -- python3 stdout is already binary
+    elif sys.platform == 'win32':
+        # Work around the fact that on Windows '\n' is mapped to '\r\n'. The typical solution is to simply open files in
+        # binary mode, but stdout is already open, thus this hack. 'CPython' and 'PyPy' work differently. We assume that
+        # all other Python implementations are compatible with 'CPython'. This might or might not be a valid assumption.
+        from platform import python_implementation
+        implementation = python_implementation()
+        if implementation == 'PyPy':
+            return os.fdopen(fh.fileno(), 'wb', 0)
+        else:
+            import msvcrt
+            msvcrt.setmode(fh.fileno(), os.O_BINARY)
+    return fh
 
 
 class CommandLineParser(object):
@@ -350,6 +368,7 @@ class InputHeader(dict):
     """ Represents a Splunk input header as a collection of name/value pairs.
 
     """
+
     def __str__(self):
         return '\n'.join([name + ':' + value for name, value in six.iteritems(self)])
 
@@ -377,7 +396,8 @@ class InputHeader(dict):
                 # continuation of the current item
                 value += urllib.parse.unquote(line)
 
-        if name is not None: self[name] = value[:-1] if value[-1] == '\n' else value
+        if name is not None:
+            self[name] = value[:-1] if value[-1] == '\n' else value
 
 
 Message = namedtuple('Message', ('type', 'text'))
@@ -474,7 +494,7 @@ class RecordWriter(object):
     def __init__(self, ofile, maxresultrows=None):
         self._maxresultrows = 50000 if maxresultrows is None else maxresultrows
 
-        self._ofile = ofile
+        self._ofile = set_binary_mode(ofile)
         self._fieldnames = None
         self._buffer = StringIO()
 
@@ -502,7 +522,13 @@ class RecordWriter(object):
 
     @ofile.setter
     def ofile(self, value):
-        self._ofile = value
+        self._ofile = set_binary_mode(value)
+
+    def write(self, data):
+        bytes_type = bytes if sys.version_info >= (3, 0) else str
+        if not isinstance(data, bytes_type):
+            data = data.encode('utf-8')
+        self.ofile.write(data)
 
     def flush(self, finished=None, partial=None):
         assert finished is None or isinstance(finished, bool)
@@ -662,19 +688,11 @@ class RecordWriterV1(RecordWriter):
 
     def flush(self, finished=None, partial=None):
 
-        # SPL-175233
-        def writeEOL():
-            if sys.version_info >= (3, 0) and sys.platform == 'win32':
-                write('\n')
-            else:
-                write('\r\n')
-
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
 
         if self._record_count > 0 or (self._chunk_count == 0 and 'messages' in self._inspector):
 
             messages = self._inspector.get('messages')
-            write = self._ofile.write
 
             if self._chunk_count == 0:
 
@@ -686,12 +704,12 @@ class RecordWriterV1(RecordWriter):
                     message_level = RecordWriterV1._message_level.get
 
                     for level, text in messages:
-                        write(message_level(level, level))
-                        write('=')
-                        write(text)
-                        writeEOL()
+                        self.write(message_level(level, level))
+                        self.write('=')
+                        self.write(text)
+                        self.write('\r\n')
 
-                writeEOL()
+                self.write('\r\n')
 
             elif messages is not None:
 
@@ -709,7 +727,7 @@ class RecordWriterV1(RecordWriter):
                 for level, text in messages:
                     print(level, text, file=stderr)
 
-            write(self._buffer.getvalue())
+            self.write(self._buffer.getvalue())
             self._clear()
             self._chunk_count += 1
             self._total_record_count += self._record_count
@@ -767,7 +785,7 @@ class RecordWriterV2(RecordWriter):
 
         metadata = chain(six.iteritems(configuration), (('inspector', self._inspector if self._inspector else None),))
         self._write_chunk(metadata, '')
-        self._ofile.write('\n')
+        self.write('\n')
         self._clear()
 
     def write_metric(self, name, value):
@@ -796,35 +814,8 @@ class RecordWriterV2(RecordWriter):
             return
 
         start_line = 'chunked 1.0,%s,%s\n' % (metadata_length, body_length)
-        ofile_handle = set_binary_mode(self._ofile)
-        write = ofile_handle.write
-        write(start_line.encode('utf-8'))
-        write(metadata)
-        write(body)
+        self.write(start_line)
+        self.write(metadata)
+        self.write(body)
         self._ofile.flush()
         self._flushed = False
-
-def set_binary_mode(fh):
-    """ Helper method to set up binary mode for file handles.
-    Emphasis being sys.stdin, sys.stdout, sys.stderr.
-    For python3, we want to return .buffer
-    For python2+windows we want to set os.O_BINARY
-    """
-    typefile = TextIOWrapper if sys.version_info >= (3, 0) else file
-    # check for file handle
-    if not isinstance(fh, typefile):
-        return fh
-
-    # check for python3 and buffer
-    if sys.version_info >= (3, 0) and hasattr(fh, 'buffer'):
-        return fh.buffer
-    # check for python3
-    elif sys.version_info >= (3, 0):
-        pass
-    # check for windows
-    elif sys.platform == 'win32':
-        import msvcrt
-        msvcrt.setmode(fh.fileno(), os.O_BINARY)
-
-    return fh
-

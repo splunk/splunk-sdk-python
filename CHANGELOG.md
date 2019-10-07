@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.10
+
+### Bug Fix
+
+* Fix long type gets wrong values on windows for python 2 
+
 ## Version 1.6.9
 
 ### Bug Fix

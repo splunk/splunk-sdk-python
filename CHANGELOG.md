@@ -1,5 +1,11 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.11
+
+### Bug Fix
+
+* Fix custom search command V2 failures on Windows for Python3 
+
 ## Version 1.6.10
 
 ### Bug Fix

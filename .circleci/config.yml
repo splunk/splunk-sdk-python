@@ -3,35 +3,10 @@ version: 2.1
 orbs:
   docker: circleci/docker@0.5.13
 jobs:
-  build:
-    working_directory: ~/your_project
-    docker:
-      - image: themattrix/tox
-    steps:
-      - checkout
-      - run:
-            name: Trigger Jobs
-            command: |
-              # a similar function will liekly get built in into the circleci cli 
-              function trigger_job() {
-                job_name=$1
-                curl -u ${CIRCLE_API_TOKEN}: \
-                  -d build_parameters[CIRCLE_JOB]=${job_name} \
-                  -d revision=$CIRCLE_SHA1 \
-                  https://circleci.com/api/v1.1/project/github/rfaircloth-splunk/splunk-sdk-python/tree/$CIRCLE_BRANCH
-              }      
-              trigger_job build-python27
-              trigger_job build-python35
-              trigger_job build-python36
-              trigger_job build-python37
-      - deploy:
-          name: Echo
-          command: echo "I would deploy here"
-
   # here are our jobs with different Python versions
   build-python27:
      docker:
-       - image: python:2.7
+       - image: themattrix/tox
      working_directory: ~/your_project
      environment:
        - SPLUNK_VERSION: 7.2-sdk

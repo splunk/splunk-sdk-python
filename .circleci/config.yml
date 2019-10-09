@@ -30,38 +30,40 @@ jobs:
 
   # here are our jobs with different Python versions
   build-python27:
-       docker:
-         - image: python:2.7
-       working_directory: ~/your_project
-       environment:
-         - SPLUNK_VERSION: 7.2-sdk
-       steps:
-         - checkout
-         - run: apt-get update; apt-get install jq curl -y
-         - docker/install-docker
-         - run: echo "hello python 2.7"
-          # Create .splunkrc file with default credentials
-         - run: echo host=127.0.0.1 >> $HOME/.splunkrc
-         - run: echo username=admin >> $HOME/.splunkrc
-         - run: echo password=changed! >> $HOME/.splunkrc
-          # Set SPLUNK_HOME
-         - run: export SPLUNK_HOME="/opt/splunk"
-          # Pull docker image
-         - run: docker pull splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
-          # Add DOCKER to iptables, 1/10 times this is needed, force 0 exit status
-         - run: sudo iptables -N DOCKER || true
-          # Start Docker container
-         - run: docker run -p 127.0.0.1:8089:8089 -d splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
-          # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
-         - run: for i in `seq 0 20`; do if curl --fail -k https://localhost:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
-          # The upload test needs to refer to a file that Splunk has in the docker
-          # container
-         - run: export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
-          # After initial setup, we do not want to give the SDK any notion that it has
-          # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
-          # for it, and make a placeholder for log files (which some tests generate)
-         - run: export SPLUNK_HOME=`pwd`/splunk_home
-         - run: mkdir -p $SPLUNK_HOME/var/log/splunk
+     docker:
+       - image: python:2.7
+     working_directory: ~/your_project
+     environment:
+       - SPLUNK_VERSION: 7.2-sdk
+     steps:
+       - checkout
+       - setup_remote_docker:
+          docker_layer_caching: true
+       - run: apt-get update; apt-get install jq curl -y
+       - docker/install-docker
+       - run: echo "hello python 2.7"
+        # Create .splunkrc file with default credentials
+       - run: echo host=127.0.0.1 >> $HOME/.splunkrc
+       - run: echo username=admin >> $HOME/.splunkrc
+       - run: echo password=changed! >> $HOME/.splunkrc
+        # Set SPLUNK_HOME
+       - run: export SPLUNK_HOME="/opt/splunk"
+        # Pull docker image
+       - run: docker pull splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
+        # Add DOCKER to iptables, 1/10 times this is needed, force 0 exit status
+       - run: sudo iptables -N DOCKER || true
+        # Start Docker container
+       - run: docker run -p 127.0.0.1:8089:8089 -d splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
+        # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
+       - run: for i in `seq 0 20`; do if curl --fail -k https://localhost:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
+        # The upload test needs to refer to a file that Splunk has in the docker
+        # container
+       - run: export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
+        # After initial setup, we do not want to give the SDK any notion that it has
+        # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
+        # for it, and make a placeholder for log files (which some tests generate)
+       - run: export SPLUNK_HOME=`pwd`/splunk_home
+       - run: mkdir -p $SPLUNK_HOME/var/log/splunk
   
   build-python35:
        docker:

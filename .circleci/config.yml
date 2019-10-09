@@ -18,7 +18,7 @@ jobs:
                 curl -u ${CIRCLE_API_TOKEN}: \
                   -d build_parameters[CIRCLE_JOB]=${job_name} \
                   -d revision=$CIRCLE_SHA1 \
-                  https://circleci.com/api/v1.1/project/github/your_org/your_project/tree/$CIRCLE_BRANCH
+                  https://circleci.com/api/v1.1/project/github/rfaircloth-splunk/splunk-sdk-python/tree/$CIRCLE_BRANCH
               }      
               trigger_job build-python27
               trigger_job build-python35
@@ -36,6 +36,7 @@ jobs:
        environment:
          - SPLUNK_VERSION: 7.2-sdk
        steps:
+         - checkout
          - docker/install
          - run: echo "hello python 2.7"
           # Create .splunkrc file with default credentials

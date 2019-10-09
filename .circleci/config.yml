@@ -4,7 +4,7 @@ orbs:
   docker: circleci/docker@0.5.13
 jobs:
   # here are our jobs with different Python versions
-  build-python27:
+  build_splunk72:
      docker:
        - image: themattrix/tox
      working_directory: ~/your_project
@@ -40,30 +40,12 @@ jobs:
        - run: export SPLUNK_HOME=`pwd`/splunk_home
        - run: mkdir -p $SPLUNK_HOME/var/log/splunk
        - run: tox
-  
-  build-python35:
-       docker:
-         - image: python:3.5
-       working_directory: ~/your_project
-       steps:
-         - run: echo "hello python 3.5"
-  
-  build-python36:
-       docker:
-         - image: python:3.6
-       working_directory: ~/your_project
-       steps:
-         - run: echo "hello python 3.6"
-  build-python37:
-       docker:
-         - image: python:3.7
-       working_directory: ~/your_project
-       steps:
-         - run: echo "hello python 3.7"
+       - store_test_results:
+           path: test-reports
 
 
 workflows:
   version: 2
   build:
     jobs:
-      - build-python27
+      - build_splunk72

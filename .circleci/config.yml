@@ -24,20 +24,15 @@ jobs:
        - run: echo host=splunk >> $HOME/.splunkrc
        - run: echo username=admin >> $HOME/.splunkrc
        - run: echo password=changed! >> $HOME/.splunkrc
-        # Set SPLUNK_HOME
-       - run: export SPLUNK_HOME="/opt/splunk"
-       - run: sudo iptables -N DOCKER || true
-        # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
        - run: for i in `seq 0 20`; do if curl --fail -k https://splunk:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
-        # The upload test needs to refer to a file that Splunk has in the docker
-        # container
-       - run: export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
         # After initial setup, we do not want to give the SDK any notion that it has
         # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
         # for it, and make a placeholder for log files (which some tests generate)
-       - run: export SPLUNK_HOME=`pwd`/splunk_home
-       - run: mkdir -p $SPLUNK_HOME/var/log/splunk
-       - run: tox
+       - run: |
+            export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
+            export SPLUNK_HOME=`pwd`/splunk_home
+            mkdir -p $SPLUNK_HOME/var/log/splunk
+            tox
        - store_test_results:
            path: test-reports
 

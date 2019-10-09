@@ -64,9 +64,7 @@ jobs:
         # for it, and make a placeholder for log files (which some tests generate)
        - run: export SPLUNK_HOME=`pwd`/splunk_home
        - run: mkdir -p $SPLUNK_HOME/var/log/splunk
-       - run: pip install unittest2
-       - run: python setup.py build dist
-       - run: python setup.py test
+       - run: tox
   
   build-python35:
        docker:

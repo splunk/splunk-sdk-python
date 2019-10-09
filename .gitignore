@@ -29,3 +29,5 @@ examples/searchcommands_app/package/lib/splunklib
 tests/searchcommands/apps/app_with_logging_configuration/*.log
 *.observed
 venv/
+.tox
+test-reports/

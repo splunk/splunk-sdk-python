@@ -30,7 +30,7 @@ jobs:
         # Start Docker container
        - run: docker run -p 127.0.0.1:8089:8089 -d splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
         # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
-       - run: for i in `seq 0 20`; do if curl --fail -k https://localhost:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
+       - run: for i in `seq 0 20`; do if curl --fail -k https://127.0.0.1:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
         # The upload test needs to refer to a file that Splunk has in the docker
         # container
        - run: export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log

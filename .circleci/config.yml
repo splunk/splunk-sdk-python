@@ -37,7 +37,7 @@ jobs:
          - SPLUNK_VERSION: 7.2-sdk
        steps:
          - checkout
-         - run: apt-get install jq curl
+         - run: apt-get install jq curl -y
          - docker/install-docker
          - run: echo "hello python 2.7"
           # Create .splunkrc file with default credentials

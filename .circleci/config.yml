@@ -6,7 +6,7 @@ jobs:
   build:
     working_directory: ~/your_project
     docker:
-      - image: python:3.6.0
+      - image: themattrix/tox
     steps:
       - checkout
       - run:

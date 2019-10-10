@@ -30,8 +30,8 @@ jobs:
         # for it, and make a placeholder for log files (which some tests generate)
        - run: sleep 90
        - run: |
-            export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
             export SPLUNK_HOME=`pwd`/splunk_home
+            export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
             mkdir -p $SPLUNK_HOME/var/log/splunk
             tox
        - store_test_results:

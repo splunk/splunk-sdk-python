@@ -28,6 +28,7 @@ jobs:
         # After initial setup, we do not want to give the SDK any notion that it has
         # a local Splunk installation it can use, so we create a blank SPLUNK_HOME
         # for it, and make a placeholder for log files (which some tests generate)
+       - run: sleep 90
        - run: |
             export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
             export SPLUNK_HOME=`pwd`/splunk_home

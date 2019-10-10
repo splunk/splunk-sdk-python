@@ -17,14 +17,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib import six
+import six
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from splunklib.six.moves import StringIO
-from splunklib.six.moves import zip as izip
+from six.moves import StringIO
+from six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 

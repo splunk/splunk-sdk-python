@@ -27,7 +27,7 @@ import unittest2
 from tests import testlib
 
 import splunklib.client as client
-from splunklib import six
+import six
 
 
 def check_multiline(testcase, first, second, message=None):

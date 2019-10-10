@@ -19,7 +19,7 @@ import sys
 from os import path
 import xml.etree.ElementTree as et
 
-from splunklib import six
+import six
 from tests import testlib
 
 import splunklib.data as data

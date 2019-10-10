@@ -27,11 +27,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import namedtuple
-from splunklib.six.moves import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
 from datetime import datetime
 from itertools import ifilter, imap, izip
 from subprocess import PIPE, Popen
-from splunklib import six
+import six
 
 try:
     from unittest2 import main, skipUnless, TestCase

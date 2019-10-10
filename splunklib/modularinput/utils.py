@@ -15,7 +15,7 @@
 # File for utility functions
 
 from __future__ import absolute_import
-from splunklib.six.moves import zip
+from six.moves import zip
 def xml_compare(expected, found):
     """Checks equality of two ``ElementTree`` objects.
 

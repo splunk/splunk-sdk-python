@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 from utils.cmdopts import *
-from splunklib import six
+import six
 
 def config(option, opt, value, parser):
     assert opt == "--config"

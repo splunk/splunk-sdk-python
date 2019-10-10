@@ -24,9 +24,9 @@ try:
 except ImportError:
     from splunklib.ordereddict import OrderedDict
 
-from splunklib import six
-from splunklib.six.moves import zip
-from splunklib.six.moves import urllib
+import six
+from six.moves import zip
+from six.moves import urllib
 
 
 # Tees output to a logfile for debugging

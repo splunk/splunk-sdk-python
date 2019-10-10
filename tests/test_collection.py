@@ -21,7 +21,7 @@ import logging
 from contextlib import contextmanager
 
 import splunklib.client as client
-from splunklib.six.moves import range
+from six.moves import range
 
 collections = [
     'apps',

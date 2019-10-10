@@ -20,7 +20,7 @@ from __future__ import print_function
 import contextlib
 
 import sys
-from splunklib import six
+import six
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')

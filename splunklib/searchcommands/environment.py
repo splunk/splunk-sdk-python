@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from logging import getLogger, root, StreamHandler
 from logging.config import fileConfig
 from os import chdir, environ, path
-from splunklib.six.moves import getcwd
+from six.moves import getcwd
 
 import sys
 

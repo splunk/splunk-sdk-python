@@ -20,8 +20,8 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir)))
 
-from splunklib.six.moves import zip
-from splunklib.six.moves import urllib
+from six.moves import zip
+from six.moves import urllib
 
 # Tees output to a logfile for debugging
 class Logger:

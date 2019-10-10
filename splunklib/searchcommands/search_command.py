@@ -27,10 +27,10 @@ try:
 except ImportError:
     from ..ordereddict import OrderedDict
 from copy import deepcopy
-from splunklib.six.moves import StringIO
+from six.moves import StringIO
 from itertools import chain, islice
-from splunklib.six.moves import filter as ifilter, map as imap, zip as izip
-from splunklib import six
+from six.moves import filter as ifilter, map as imap, zip as izip
+import six
 if six.PY2:
     from logging import _levelNames, getLevelName, getLogger
 else:
@@ -41,8 +41,8 @@ except ImportError:
     # Used for recording, skip on python 2.6
     pass
 from time import time
-from splunklib.six.moves.urllib.parse import unquote
-from splunklib.six.moves.urllib.parse import urlsplit
+from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
 

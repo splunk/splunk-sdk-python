@@ -33,7 +33,7 @@ except ImportError:
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from splunklib.six.moves import input as raw_input
+from six.moves import input as raw_input
 import splunklib.client as client
 
 try:

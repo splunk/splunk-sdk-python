@@ -41,8 +41,8 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from splunklib import six
-from splunklib.six.moves import urllib
+import six
+from six.moves import urllib
 import splunklib.client as client
 
 try:

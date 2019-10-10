@@ -14,14 +14,14 @@
 
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-from splunklib.six.moves.urllib.parse import urlsplit
+from six.moves.urllib.parse import urlsplit
 import sys
 
 from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
-from splunklib import six
+import six
 
 try:
     import xml.etree.cElementTree as ET

@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib.six.moves import map as imap
+from six.moves import map as imap
 
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand

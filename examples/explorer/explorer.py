@@ -28,7 +28,7 @@ except ImportError:
     raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
-from splunklib.six.moves import urllib
+from six.moves import urllib
 
 PORT = 8080
 

@@ -21,8 +21,8 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from splunklib.six import iteritems
-from splunklib.six.moves import socketserver, SimpleHTTPServer, StringIO, urllib
+from six import iteritems
+from six.moves import socketserver, SimpleHTTPServer, StringIO, urllib
 
 PORT = 8080
 

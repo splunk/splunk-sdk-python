@@ -20,7 +20,7 @@ from splunklib.binding import HTTPError
 
 from tests import testlib
 import logging
-from splunklib import six
+import six
 try:
     import unittest
 except ImportError:

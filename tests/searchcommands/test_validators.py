@@ -25,8 +25,8 @@ import os
 import re
 import sys
 import tempfile
-from splunklib import six
-from splunklib.six.moves import range
+import six
+from six.moves import range
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 

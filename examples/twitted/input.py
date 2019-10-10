@@ -20,12 +20,12 @@ from pprint import pprint
 
 import base64
 from getpass import getpass
-import splunklib.six.moves.http_client
+import six.moves.http_client
 import json
 import socket
 import sys
 import os
-from splunklib import six
+import six
 from six.moves import input
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 

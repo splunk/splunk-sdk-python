@@ -21,9 +21,9 @@ from splunklib.modularinput.event_writer import EventWriter
 from io import BytesIO
 
 try:
-    from splunklib.six.moves import cStringIO as StringIO
+    from six.moves import cStringIO as StringIO
 except ImportError:
-    from splunklib.six import StringIO
+    from six import StringIO
 
 
 class EventTestCase(unittest.TestCase):

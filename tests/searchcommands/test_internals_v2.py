@@ -19,20 +19,20 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
-from splunklib import six
-from splunklib.six.moves import range
+import six
+from six.moves import range
 try:
     from collections import OrderedDict  # must be python 2.7
 except ImportError:
     from splunklib.ordereddict import OrderedDict
 from collections import namedtuple, deque
-from splunklib.six.moves import StringIO as StringIO
+from six.moves import StringIO as StringIO
 from functools import wraps
 from glob import iglob
 from itertools import chain
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
+from six.moves import filter as ifilter
+from six.moves import map as imap
+from six.moves import zip as izip
 from sys import float_info, maxunicode
 from tempfile import mktemp
 from time import time
@@ -43,7 +43,7 @@ try:
 except ImportError:
     from unittest import main, TestCase
 
-import splunklib.six.moves.cPickle as pickle
+import six.moves.cPickle as pickle
 import gzip
 import io
 import json

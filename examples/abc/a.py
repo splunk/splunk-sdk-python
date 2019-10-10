@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-import splunklib.six.moves.http_client
+import six.moves.http_client
 import urllib
 from xml.etree import ElementTree
 

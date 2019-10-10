@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
 
-from splunklib.six.moves import map as imap, filter as ifilter
+from six.moves import map as imap, filter as ifilter
 
 # P1 [O] TODO: Discuss generates_timeorder in the class-level documentation for GeneratingCommand
 

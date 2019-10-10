@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 import sys, os
-from splunklib import six
+import six
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from .bottle import route, run, debug, template, static_file, request

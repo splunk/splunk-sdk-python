@@ -38,9 +38,9 @@ from functools import wraps
 from io import BytesIO
 from xml.etree.ElementTree import XML
 
-from splunklib import six
-from splunklib.six import StringIO
-from splunklib.six.moves import urllib
+import six
+from six import StringIO
+from six.moves import urllib
 
 from .data import record
 

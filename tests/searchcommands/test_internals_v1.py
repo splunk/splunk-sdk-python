@@ -23,13 +23,13 @@ from splunklib.searchcommands.validators import Boolean
 from splunklib.searchcommands.search_command import SearchCommand
 
 from contextlib import closing
-from splunklib.six.moves import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
 from itertools import izip
 from unittest import main, TestCase
 
 import os
-from splunklib import six
-from splunklib.six.moves import range
+import six
+from six.moves import range
 from functools import reduce
 
 

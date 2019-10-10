@@ -66,8 +66,8 @@ import socket
 from datetime import datetime, timedelta
 from time import sleep
 
-from splunklib import six
-from splunklib.six.moves import urllib
+import six
+from six.moves import urllib
 
 from . import data
 from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,

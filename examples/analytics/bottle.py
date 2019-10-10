@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 from __future__ import absolute_import
 from __future__ import print_function
-from splunklib import six
+import six
 from six.moves import map
 from six.moves import zip
 __author__ = 'Marcel Hellkamp'
@@ -28,7 +28,7 @@ import cgi
 import email.utils
 import functools
 import hmac
-import splunklib.six.moves.http_client
+import six.moves.http_client
 import imp
 import itertools
 import mimetypes
@@ -37,7 +37,7 @@ import re
 import subprocess
 import sys
 import tempfile
-import splunklib.six.moves._thread
+import six.moves._thread
 import threading
 import time
 import warnings
@@ -56,7 +56,7 @@ try: from urlparse import parse_qs
 except ImportError: # pragma: no cover
     from cgi import parse_qs
 
-try: import splunklib.six.moves.cPickle as pickle
+try: import six.moves.cPickle as pickle
 except ImportError: # pragma: no cover
     import pickle
 

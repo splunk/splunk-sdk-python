@@ -22,7 +22,7 @@ import sys, os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from splunklib import six
+import six
 from splunklib.client import connect
 
 try:

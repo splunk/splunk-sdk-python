@@ -22,7 +22,7 @@ import logging
 from time import sleep
 
 import splunklib.client as client
-from splunklib.six.moves import zip
+from six.moves import zip
 
 class TestSavedSearch(testlib.SDKTestCase):
     def setUp(self):

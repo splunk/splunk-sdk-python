@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import random, sys
 
 from splunklib.modularinput import *
-from splunklib import six
+import six
 
 class MyScript(Script):
     """All modular inputs should inherit from the abstract base class Script

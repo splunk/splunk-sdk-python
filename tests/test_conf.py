@@ -19,7 +19,7 @@ from tests import testlib
 import logging
 
 import splunklib.client as client
-from splunklib import six
+import six
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):

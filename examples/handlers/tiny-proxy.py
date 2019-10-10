@@ -24,9 +24,9 @@ __version__ = "0.3.1"
  
 import select
 import socket
-from splunklib.six.moves import BaseHTTPServer
-from splunklib.six.moves import socketserver
-from splunklib.six.moves import urllib
+from six.moves import BaseHTTPServer
+from six.moves import socketserver
+from six.moves import urllib
 import logging
 import logging.handlers
 import getopt

@@ -19,9 +19,9 @@ from __future__ import absolute_import
 import time
 from io import BytesIO
 
-from splunklib.six.moves.urllib.request import Request, urlopen
-from splunklib.six.moves.urllib.error import HTTPError
-from splunklib.six import StringIO
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError
+from six import StringIO
 from xml.etree.ElementTree import XML
 
 import logging
@@ -30,12 +30,12 @@ import unittest
 import socket
 import sys
 import ssl
-import  splunklib.six.moves.http_cookies
+import  six.moves.http_cookies
 
 import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 import splunklib.data as data
-from splunklib import six
+import six
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"

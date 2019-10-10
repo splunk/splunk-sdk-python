@@ -66,8 +66,8 @@ try:
 except:
     from splunklib.ordereddict import OrderedDict
 
-from splunklib import six
-from splunklib.six.moves import getcwd
+import six
+from six.moves import getcwd
 from glob import glob
 from itertools import chain
 from setuptools import setup, Command

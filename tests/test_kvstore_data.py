@@ -17,7 +17,7 @@
 from __future__ import absolute_import
 import json
 from tests import testlib
-from splunklib.six.moves import range
+from six.moves import range
 try:
     import unittest
 except ImportError:

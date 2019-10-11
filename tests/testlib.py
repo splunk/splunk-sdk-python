@@ -84,7 +84,7 @@ class SDKTestCase(unittest.TestCase):
     restart_already_required = False
     installedApps = []
 
-    def assertEventuallyTrue(self, predicate, timeout=30, pause_time=0.5,
+    def assertEventuallyTrue(self, predicate, timeout=180, pause_time=1,
                              timeout_message="Operation timed out."):
         assert pause_time < timeout
         start = datetime.now()

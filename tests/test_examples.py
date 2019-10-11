@@ -22,7 +22,10 @@ import sys
 
 import io
 
-import unittest2
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 
 from tests import testlib
 
@@ -74,7 +77,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
-    @unittest2.skipIf(six.PY3, "Async needs work to support Python 3")
+    @unittest.skipIf(six.PY3, "Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
         self.assertEquals(result, 0)

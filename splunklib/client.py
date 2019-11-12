@@ -1848,6 +1848,37 @@ class StoragePasswords(Collection):
 
         return storage_password
 
+    def get(self, username, realm=None):
+        """ Retrieves a storage password.
+
+        A `StoragePassword` can be identified by <username>, or by <realm>:<username> if the
+        optional realm parameter is also provided.
+
+        :param username: The username for the credentials.
+        :type name: ``string``
+        :param realm: The credential realm. (optional)
+        :type name: ``string``
+
+        :return: The :class:`StoragePassword` object.
+        """
+        if realm is None:
+            # This case makes the username optional, so
+            # the full name can be passed in as realm.
+            # Assume it's already encoded.
+            name = username
+        else:
+            # Encode each component separately
+            name = UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
+
+        # Append the : expected at the end of the name
+        if name[-1] is not ":":
+            name = name + ":"
+        
+        response = Collection.get(self, name)
+        entries = _load_atom_entries(response)
+        state = _parse_atom_entry(entries[0])
+        return StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
+
     def delete(self, username, realm=None):
         """Delete a storage password by username and/or realm.
 

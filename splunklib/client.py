@@ -1874,7 +1874,7 @@ class StoragePasswords(Collection):
         if name[-1] is not ":":
             name = name + ":"
         
-        response = Collection.get(self, name)
+        response = Collection.get(self, name=name)
         entries = _load_atom_entries(response)
         state = _parse_atom_entry(entries[0])
         return StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)

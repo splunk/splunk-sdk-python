@@ -104,5 +104,5 @@ class Event(object):
         if self.done:
             ET.SubElement(event, "done")
 
-        stream.write(ET.tostring(event))
+        stream.write(ET.tostring(event).decode())
         stream.flush()

@@ -560,7 +560,7 @@ class Context(object):
 
     @_authentication
     @_log_duration
-    def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def delete(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a DELETE operation at the REST path segment with the given
         namespace and query.
 
@@ -583,6 +583,8 @@ class Context(object):
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
         :type app: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :param query: All other keyword arguments, which are used as query
@@ -610,10 +612,15 @@ class Context(object):
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
+
+        if headers is None:
+            headers = []
+
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         logging.debug("DELETE request to %s (body: %s)", path, repr(query))
-        response = self.http.delete(path, self._auth_headers, **query)
+        all_headers = headers + self.additional_headers + self._auth_headers
+        response = self.http.delete(path, all_headers, **query)
         return response
 
     @_authentication

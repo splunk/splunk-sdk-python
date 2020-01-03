@@ -750,6 +750,11 @@ class RecordWriterV2(RecordWriter):
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
         inspector = self._inspector
 
+        if partial:
+            # Don't flush partial chunks, since the SCP v2 protocol does not
+            # provide a way to send partial chunks yet.
+            return
+
         if self._flushed is False:
 
             self._total_record_count += self._record_count

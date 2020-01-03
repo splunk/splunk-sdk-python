@@ -398,7 +398,7 @@ class SearchCommand(object):
         :return: :const:`None`
 
         """
-        self._record_writer.flush(partial=True)
+        self._record_writer.flush(finished=False)
 
     def prepare(self):
         """ Prepare for execution.

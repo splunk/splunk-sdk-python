@@ -13,7 +13,6 @@
 # under the License.
 
 from __future__ import absolute_import
-from abc import ABCMeta, abstractmethod
 from splunklib.six.moves.urllib.parse import urlsplit
 import sys
 
@@ -29,8 +28,8 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-class Script(six.with_metaclass(ABCMeta, object)):
-    """An abstract base class for implementing modular inputs.
+class Script(object):
+    """A base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
     and optionally ``validate_input`` if the modular input uses
@@ -74,6 +73,12 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 event_writer.close()
                 return 0
 
+            elif str(args[1]).lower() == "--spec":
+                scheme = self.get_scheme()
+                print("[{0}]".format(self.name))
+                for argument in scheme.arguments:
+                    print("{0} = <{1}>".format(argument.name, argument.data_type.lower()))
+                return 0
             elif str(args[1]).lower() == "--scheme":
                 # Splunk has requested XML specifying the scheme for this
                 # modular input Return it and exit.
@@ -143,12 +148,19 @@ class Script(six.with_metaclass(ABCMeta, object)):
 
         return self._service
 
-    @abstractmethod
+    # decorating a Script adds a valid decorated_get_scheme function
+    def decorated_get_scheme(self):
+        raise NotImplementedError('Script.get_scheme(self)')
+
+    # overriding get_scheme results in decorated_get_scheme not being called
     def get_scheme(self):
         """The scheme defines the parameters understood by this modular input.
 
+        You must override this method or use the Configuration decorator to use the auto-scheme.
+
         :return: a ``Scheme`` object representing the parameters for this modular input.
         """
+        return self.decorated_get_scheme()
 
     def validate_input(self, definition):
         """Handles external validation for modular input kinds.
@@ -168,11 +180,23 @@ class Script(six.with_metaclass(ABCMeta, object)):
         """
         pass
 
-    @abstractmethod
-    def stream_events(self, inputs, ew):
-        """The method called to stream events into Splunk. It should do all of its output via
-        EventWriter rather than assuming that there is a console attached.
+    # if Script.decorated_stream_events is called it means stream_events wasn't overridden and the class wasn't decorated
+    def decorated_stream_events(self, inputs, ew):
+        raise NotImplementedError('Script.stream_events(self, inputs, ew)')
 
-        :param inputs: An ``InputDefinition`` object.
-        :param ew: An object with methods to write events and log messages to Splunk.
-        """
+    # in Script we define stream_events to call decorated_stream_events.  stream_events should either be overridden or the class should be decorated
+    # to create decorated_stream_events (which calls preflight, process_input, postflight)
+    def stream_events(self, inputs, ew):
+        self.decorated_stream_events(inputs, ew)
+
+    # preflight is called before each input is called with process_input
+    def preflight(fn_self, inputs, ew):
+        pass
+
+    # process_input is called once per input.  it should be overridden when the class is decorated
+    def process_input(fn_self, input_name, input_item, ew):
+        raise Exception("Not Implemented: Script.process_input(self, input_name, input_item, ew)")
+
+    # postflight is called after each input is called with process_input
+    def postflight(fn_self, inputs, ew):
+        pass

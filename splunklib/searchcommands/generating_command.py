@@ -193,6 +193,16 @@ class GeneratingCommand(SearchCommand):
         """
         raise NotImplementedError('GeneratingCommand.generate(self)')
 
+
+    def __generate_chunk(self, unused_input):
+        count = 0
+        for row in generate():
+            yield row
+            count += 1
+            if count == self._record_writer._maxresultrows:
+                # count = 0
+                return
+
     def _execute(self, ifile, process):
         """ Execution loop
 
@@ -203,18 +213,10 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            result = self._read_chunk(ifile)
-
-            if not result:
-                return
-
-            metadata, body = result
-            action = getattr(metadata, 'action', None)
-
-            if action != 'execute':
-                raise RuntimeError('Expected execute action, not {}'.format(action))
-
-        self._record_writer.write_records(self.generate())
+            self._execute_v2(ifile, self.__generate_chunk)
+        else:
+            assert self._protocol_version == 1
+            self._record_writer.write_records(self.generate())
         self.finish()
 
     # endregion

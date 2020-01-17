@@ -654,6 +654,7 @@ class RecordWriter(object):
         self._record_count += 1
 
         if self._record_count >= self._maxresultrows:
+
             self.flush(partial=True)
 
     try:
@@ -748,42 +749,39 @@ class RecordWriterV2(RecordWriter):
     def flush(self, finished=None, partial=None):
 
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
-        inspector = self._inspector
 
-        if partial:
+        if partial or not finished:
             # Don't flush partial chunks, since the SCP v2 protocol does not
             # provide a way to send partial chunks yet.
             return
 
-        if self._flushed is False:
+        #if finished is True:
+        self.write_chunk(finished=True)
 
-            self._total_record_count += self._record_count
-            self._chunk_count += 1
+    def write_chunk(self, finished=None):
+        inspector = self._inspector
+        self._total_record_count += self._record_count
+        self._chunk_count += 1
 
-            # TODO: DVPL-6448: splunklib.searchcommands | Add support for partial: true when it is implemented in
-            # ChunkedExternProcessor (See SPL-103525)
-            #
-            # We will need to replace the following block of code with this block:
-            #
-            # metadata = [
-            #     ('inspector', self._inspector if len(self._inspector) else None),
-            #     ('finished', finished),
-            #     ('partial', partial)]
+        # TODO: DVPL-6448: splunklib.searchcommands | Add support for partial: true when it is implemented in
+        # ChunkedExternProcessor (See SPL-103525)
+        #
+        # We will need to replace the following block of code with this block:
+        #
+        # metadata = [
+        #     ('inspector', self._inspector if len(self._inspector) else None),
+        #     ('finished', finished),
+        #     ('partial', partial)]
 
-            if len(inspector) == 0:
-                inspector = None
+        if len(inspector) == 0:
+            inspector = None
 
-            if partial is True:
-                finished = False
+        #if partial is True:
+        #    finished = False
 
-            metadata = [item for item in (('inspector', inspector), ('finished', finished))]
-            self._write_chunk(metadata, self._buffer.getvalue())
-            self._clear()
-
-        elif finished is True:
-            self._write_chunk((('finished', True),), '')
-
-        self._finished = finished is True
+        metadata = [item for item in (('inspector', inspector), ('finished', finished))]
+        self._write_chunk(metadata, self._buffer.getvalue())
+        self._clear()
 
     def write_metadata(self, configuration):
         self._ensure_validity()

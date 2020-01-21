@@ -194,14 +194,6 @@ class GeneratingCommand(SearchCommand):
         raise NotImplementedError('GeneratingCommand.generate(self)')
 
 
-    def __generate_chunk(self, unused_input):
-        count = 0
-        for row in generate():
-            yield row
-            count += 1
-            if count == self._record_writer._maxresultrows:
-                # count = 0
-                return
 
     def _execute(self, ifile, process):
         """ Execution loop
@@ -213,11 +205,21 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            self._execute_v2(ifile, self.__generate_chunk)
+            self._execute_v2(ifile, self.generate())
         else:
             assert self._protocol_version == 1
             self._record_writer.write_records(self.generate())
         self.finish()
+
+    def _execute_chunk_v2(self, process, chunk):
+        count = 0
+        for row in process:
+            self._record_writer.write_record(row)
+            count += 1
+            if count == self._record_writer._maxresultrows:
+                self._finished = False
+                return
+        self._finished = True
 
     # endregion
 

@@ -945,7 +945,7 @@ class SearchCommand(object):
 
             self._execute_chunk_v2(process, result)
 
-            self._record_writer.write_chunk()
+            self._record_writer.write_chunk(finished=self._finished)
 
     def _execute_chunk_v2(self, process, chunk):
             metadata, body = chunk

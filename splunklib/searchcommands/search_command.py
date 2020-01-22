@@ -941,6 +941,8 @@ class SearchCommand(object):
             action = getattr(metadata, 'action', None)
             if action != 'execute':
                 raise RuntimeError('Expected execute action, not {}'.format(action))
+
+            self._finished = getattr(metadata, 'finished', False)
             self._record_writer.is_flushed = False
 
             self._execute_chunk_v2(process, result)

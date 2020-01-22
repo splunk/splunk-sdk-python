@@ -221,10 +221,10 @@ class TestInternals(TestCase):
         for name, metric in six.iteritems(metrics):
             writer.write_metric(name, metric)
 
-        self.assertEqual(writer._chunk_count, 3)
-        self.assertEqual(writer._record_count, 1)
+        self.assertEqual(writer._chunk_count, 0)
+        self.assertEqual(writer._record_count, 31)
         self.assertGreater(writer._buffer.tell(), 0)
-        self.assertEqual(writer._total_record_count, 30)
+        self.assertEqual(writer._total_record_count, 0)
         self.assertListEqual(writer._fieldnames, fieldnames)
         self.assertListEqual(writer._inspector['messages'], messages)
 
@@ -234,7 +234,7 @@ class TestInternals(TestCase):
 
         writer.flush(finished=True)
 
-        self.assertEqual(writer._chunk_count, 4)
+        self.assertEqual(writer._chunk_count, 1)
         self.assertEqual(writer._record_count, 0)
         self.assertEqual(writer._buffer.tell(), 0)
         self.assertEqual(writer._buffer.getvalue(), '')
@@ -245,7 +245,8 @@ class TestInternals(TestCase):
         self.assertRaises(AssertionError, writer.flush, partial='non-boolean')
         self.assertRaises(AssertionError, writer.flush)
 
-        self.assertRaises(RuntimeError, writer.write_record, {})
+        # For SCPv2 we should follow the finish negotiation protocol.
+        # self.assertRaises(RuntimeError, writer.write_record, {})
 
         self.assertFalse(writer._ofile.closed)
         self.assertIsNone(writer._fieldnames)

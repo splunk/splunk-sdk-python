@@ -556,7 +556,6 @@ class RecordWriter(object):
         self._buffer.truncate()
         self._inspector.clear()
         self._record_count = 0
-        self._flushed = False
 
     def _ensure_validity(self):
         if self._finished is True:
@@ -654,7 +653,6 @@ class RecordWriter(object):
         self._record_count += 1
 
         if self._record_count >= self._maxresultrows:
-
             self.flush(partial=True)
 
     try:
@@ -755,8 +753,8 @@ class RecordWriterV2(RecordWriter):
             # provide a way to send partial chunks yet.
             return
 
-        #if finished is True:
-        self.write_chunk(finished=True)
+        if not self.is_flushed:
+            self.write_chunk(finished=True)
 
     def write_chunk(self, finished=None):
         inspector = self._inspector
@@ -821,4 +819,4 @@ class RecordWriterV2(RecordWriter):
         self.write(metadata)
         self.write(body)
         self._ofile.flush()
-        self._flushed = False
+        self._flushed = True

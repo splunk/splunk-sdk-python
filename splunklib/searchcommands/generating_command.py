@@ -194,8 +194,6 @@ class GeneratingCommand(SearchCommand):
         """
         raise NotImplementedError('GeneratingCommand.generate(self)')
 
-
-
     def _execute(self, ifile, process):
         """ Execution loop
 

@@ -32,6 +32,7 @@ before_install:
 env:
     - SPLUNK_VERSION=7.0-sdk
     - SPLUNK_VERSION=7.2-sdk
+    - SPLUNK_VERSION=8.0-sdk
 
 language: python
 

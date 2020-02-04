@@ -13,6 +13,9 @@
 # under the License.
 
 from __future__ import absolute_import
+
+import sys
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
@@ -103,6 +106,10 @@ class Event(object):
 
         if self.done:
             ET.SubElement(event, "done")
+            
+        event_string = ET.tostring(event)
+        if sys.version[0] != "2" and type(event_string) is not str:
+            event_string = str(event_string, 'utf-8')
 
-        stream.write(ET.tostring(event))
+        stream.write(event_string)
         stream.flush()

@@ -1844,7 +1844,7 @@ class StoragePasswords(Collection):
 
         entries = _load_atom_entries(response)
         state = _parse_atom_entry(entries[0])
-        storage_password = StoragePassword(self.service, self._entity_path(state), state=state, skip_refresh=True)
+        storage_password = StoragePassword(self.service, self._entity_path(state))
 
         return storage_password
 

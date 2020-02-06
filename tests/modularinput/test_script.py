@@ -21,12 +21,7 @@ from splunklib.modularinput.event_writer import EventWriter
 from splunklib.modularinput.script import Script
 from splunklib.modularinput.scheme import Scheme
 
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except ImportError:
-    from splunklib.six import StringIO
-
-from io import BytesIO
+from io import StringIO, BytesIO
 
 try:
     import xml.etree.cElementTree as ET

@@ -144,9 +144,6 @@ class EventTestCase(unittest.TestCase):
         out = BytesIO()
         err = BytesIO()
 
-        outwrap = TextIOWrapper(out)
-        errwrap = TextIOWrapper(err)
-
         ew = EventWriter(out, err)
 
         expected_xml = ET.parse(data_open("data/event_maximal.xml")).getroot()

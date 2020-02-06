@@ -48,7 +48,7 @@ class EventWriter(object):
         else:
             self._out = TextIOWrapper(output)
 
-        if isinstance(output, TextIOBase):
+        if isinstance(error, TextIOBase):
             self._err = error
         else:
             self._err = TextIOWrapper(error)

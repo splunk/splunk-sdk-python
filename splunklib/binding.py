@@ -450,6 +450,8 @@ class Context(object):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param splunkToken: Splunk authentication token
+    :type splunkToken: ``string``
     :param headers: List of extra HTTP headers to send (optional).
     :type headers: ``list`` of 2-tuples.
     :param handler: The HTTP request handler (optional).

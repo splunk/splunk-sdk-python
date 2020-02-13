@@ -1,5 +1,15 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.12
+
+### New features and APIs
+* Added Bearer token support using Splunk Token in v7.3
+* Made modinput text consistent
+
+### Bug fixes
+* Changed permissions from 755 to 644 for python files to pass appinspect checks
+* Removed version check on ssl verify toggle
+
 ## Version 1.6.11
 
 ### Bug Fix

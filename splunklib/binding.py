@@ -450,6 +450,8 @@ class Context(object):
     :type username: ``string``
     :param password: The password for the Splunk account.
     :type password: ``string``
+    :param splunkToken: Splunk authentication token
+    :type splunkToken: ``string``
     :param headers: List of extra HTTP headers to send (optional).
     :type headers: ``list`` of 2-tuples.
     :param handler: The HTTP request handler (optional).
@@ -481,6 +483,7 @@ class Context(object):
         self.username = kwargs.get("username", "")
         self.password = kwargs.get("password", "")
         self.basic = kwargs.get("basic", False)
+        self.bearerToken = kwargs.get("splunkToken", "")
         self.autologin = kwargs.get("autologin", False)
         self.additional_headers = kwargs.get("headers", [])
 
@@ -520,6 +523,9 @@ class Context(object):
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
         elif self.basic and (self.username and self.password):
             token = 'Basic %s' % b64encode(("%s:%s" % (self.username, self.password)).encode('utf-8')).decode('ascii')
+            return [("Authorization", token)]
+        elif self.bearerToken:
+            token = 'Bearer %s' % self.bearerToken
             return [("Authorization", token)]
         elif self.token is _NoAuthenticationToken:
             return []
@@ -863,6 +869,10 @@ class Context(object):
             # as credentials were passed in.
             return
 
+        if self.bearerToken:
+            # Bearer auth mode requested, so this method is a nop as long
+            # as authentication token was passed in.
+            return
         # Only try to get a token and updated cookie if username & password are specified
         try:
             response = self.http.post(
@@ -1357,8 +1367,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False):
             if key_file is not None: kwargs['key_file'] = key_file
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
-            # If running Python 2.7.9+, disable SSL certificate validation
-            if (sys.version_info >= (2,7,9) and key_file is None and cert_file is None) and not verify:
+            if not verify:
                 kwargs['context'] = ssl._create_unverified_context()
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)
@@ -1369,7 +1378,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False):
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.11",
+            "User-Agent": "splunk-sdk-python/1.6.12",
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

@@ -248,6 +248,8 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def test_upload(self):
         # Note: test must run on machine where splunkd runs,
         # or a failure is expected
+        if "SPLUNK_HOME" not in os.environ:
+            self.skipTest("SPLUNK_HOME is not set, skipping")
         file_to_upload = os.path.expandvars(os.environ.get("INPUT_EXAMPLE_UPLOAD", "./upload.py"))
         self.check_commands(
             "upload.py --help",

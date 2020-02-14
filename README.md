@@ -17,7 +17,7 @@ monitoring of IT machine data, security, compliance and a wide variety of other
 scenarios that share a requirement to efficiently index, search, analyze and
 generate real-time notifications from large volumes of time series data.
 
-The Splunk developer platform enables ^Fdevelopers to take advantage of the same
+The Splunk developer platform enables developers to take advantage of the same
 technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
@@ -31,25 +31,25 @@ complete applications.
 
 The information in this Readme provides steps to get going quickly, but for more
 in-depth information be sure to visit the 
-[Splunk Developer Portal](http://dev.splunk.com/view/SP-CAAAEBB). 
+[Splunk Developer Portal](http://dev.splunk.com/view/SP-CAAAEBB).
+
 ### Requirements
 
 Here's what you need to get going with the Splunk SDK for Python.
 
 #### Python
 
-The Splunk SDK for Python requires Python 2.7+, including Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5. 
+The Splunk SDK for Python requires Python 2.7+, including Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.7. 
 
 #### Splunk
 
 If you haven't already installed Splunk, download it 
 [here](http://www.splunk.com/download). For more about installing and running 
 Splunk and system requirements, see 
-[Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). The Splunk SDK for Python has been tested with Splunk Enterprise 7.0 and 7.2.
+[Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). The Splunk SDK for Python has been tested with Splunk Enterprise 7.0, 7.2 and 8.0.
 
 #### Splunk SDK for Python
-Get the Splunk SDK for Python; [download the SDK as a ZIP](http://dev.splunk.com/view/SP-CAAAEBB) 
-and extract the files. Or, if you want to contribute to the SDK, clone the 
+If you want to contribute to the SDK, clone the 
 repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
 
@@ -111,7 +111,7 @@ To use this convenience file, create a text file with the following format:
     # Access scheme (default: https)
     scheme=https
     # Your version of Splunk (default: 5.0)
-    version=5.0
+    version=8.0
 
 Save the file as **.splunkrc** in the current user's home directory.
 

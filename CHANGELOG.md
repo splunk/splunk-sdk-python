@@ -3,12 +3,12 @@
 ## Version 1.6.12
 
 ### New features and APIs
-* Added Bearer token support using Splunk Token in v7.3
+* Added bearer token support using Splunk token in v7.3
 * Made modinput text consistent
 
 ### Bug fixes
-* Changed permissions from 755 to 644 for python files to pass appinspect checks
-* Removed version check on ssl verify toggle
+* Changed permissions from 755 to 644 for Python files to pass AppInspect checks
+* Removed version check on SSL verify toggle
 
 ## Version 1.6.11
 

@@ -1368,7 +1368,11 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False):
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             if not verify:
-                kwargs['context'] = ssl._create_unverified_context()
+                try:
+                    kwargs['context'] = ssl._create_unverified_context()
+                except AttributeError:
+                    #  Legacy Python that doesn't support verify PEP 476
+                    pass
             return six.moves.http_client.HTTPSConnection(host, port, **kwargs)
         raise ValueError("unsupported scheme: %s" % scheme)
 

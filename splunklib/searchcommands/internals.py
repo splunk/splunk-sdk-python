@@ -232,7 +232,7 @@ class CommandLineParser(object):
 
     _escaped_character_re = re.compile(r'(\\.|""|[\\"])')
 
-    _fieldnames_re = re.compile(r"""("(?:\\.|""|[^"])+"|(?:\\.|[^\s"])+)""")
+    _fieldnames_re = re.compile(r"""("(?:\\.|""|[^"\\])+"|(?:\\.|[^\s"])+)""")
 
     _options_re = re.compile(r"""
         # Captures a set of name/value pairs when used with re.finditer

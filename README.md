@@ -286,7 +286,7 @@ If you would like to contribute to the SDK, go here for more information:
 
 1. You will be granted support if you or your company are already covered 
    under an existing maintenance/support agreement. 
-   Send an email to support@splunk.com and include "Splunk SDK for Python" 
+   Submit a new case in the [Support Portal][contact] and include "Splunk SDK for Python" 
    in the subject line.    
 2. If you are not covered under an existing maintenance/support agreement, you     
    can find help through the broader community at:  
@@ -304,6 +304,8 @@ If you would like to contribute to the SDK, go here for more information:
  
 ### Contact Us
 
+You can [contact support][contact] if you have Splunk related questions.
+
 You can reach the Developer Platform team at _devinfo@splunk.com_.
 
 ## License
@@ -311,3 +313,4 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
 
+[contact]:                  https://www.splunk.com/en_us/support-and-services.html

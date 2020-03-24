@@ -33,7 +33,7 @@ To create a pull request:
 
 ## Contact us
 
-You can reach Splunk support at _support@splunk.com_ if you have Splunk related questions.
+You can _[contact us][contact]_ if you have Splunk related questions.
 
 You can reach the Developer Platform team at _devinfo@splunk.com_.
 
@@ -44,3 +44,4 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 [repo]:                     https://github.com/splunk/splunk-sdk-python
 [issues]:                   https://github.com/splunk/splunk-sdk-python/issues
 [pulls]:                    https://github.com/splunk/splunk-sdk-python/pulls
+[contact]:                  https://www.splunk.com/en_us/about-splunk/contact-us.html#tabs/tab_parsys_tabs_CustomerSupport_4

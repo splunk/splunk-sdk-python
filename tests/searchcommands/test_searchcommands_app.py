@@ -29,7 +29,22 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from collections import namedtuple
 from splunklib.six.moves import cStringIO as StringIO
 from datetime import datetime
-from itertools import ifilter, imap, izip
+
+try:
+    from itertools import ifilter  # python 2
+except ImportError:
+    from builtins import filter as ifilter  # python 3
+
+try:
+    from itertools import imap  # python 2
+except ImportError:
+    from builtins import map as imap  # python 3
+
+try:
+    from itertools import izip  # python 2
+except ImportError:
+    from builtins import zip as izip  # python 3
+
 from subprocess import PIPE, Popen
 from splunklib import six
 
@@ -190,7 +205,7 @@ class TestSearchCommandsApp(TestCase):
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors)
         self._compare_chunks(expected, output, time_sensitive=False)
- 
+
         return
 
     @skipUnless(pypy(), 'Skipping TestSearchCommandsApp.test_pypygeneratetext_as_unit because pypy is not on PATH.')
@@ -426,7 +441,7 @@ class TestSearchCommandsApp(TestCase):
 
         return expected, output, errors, process.returncode
 
-    _Chunk = namedtuple('Chunk', (b'metadata', b'body'))
+    _Chunk = namedtuple('Chunk', 'metadata body')
 
 
 if __name__ == "__main__":

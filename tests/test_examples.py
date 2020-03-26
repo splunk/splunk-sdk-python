@@ -22,7 +22,10 @@ import sys
 
 import io
 
-import unittest2
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
 
 from tests import testlib
 
@@ -32,9 +35,9 @@ from splunklib import six
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    testcase.assertTrue(isinstance(first, six.string_types), 
+    testcase.assertTrue(isinstance(first, six.string_types),
         'First argument is not a string')
-    testcase.assertTrue(isinstance(second, six.string_types), 
+    testcase.assertTrue(isinstance(second, six.string_types),
         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
@@ -43,7 +46,7 @@ def check_multiline(testcase, first, second, message=None):
         testcase.fail("Multiline strings are not equal: %s" % message)
 
 
-# Run the given python script and return its exit code. 
+# Run the given python script and return its exit code.
 def run(script, stdin=None, stdout=PIPE, stderr=None):
     process = start(script, stdin, stdout, stderr)
     process.communicate()
@@ -74,7 +77,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
-    @unittest2.skipIf(six.PY3, "Async needs work to support Python 3")
+    @unittest.skipIf(six.PY3, "Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
         self.assertEquals(result, 0)
@@ -121,12 +124,12 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "event_types.py --help",
             "event_types.py")
-        
+
     def test_fired_alerts(self):
         self.check_commands(
             "fired_alerts.py --help",
             "fired_alerts.py")
-        
+
     def test_follow(self):
         self.check_commands("follow.py --help")
 
@@ -140,7 +143,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Run the cert handler example with a bad cert file, should error.
         result = run(
-            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", 
+            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem",
             stderr=PIPE)
         self.assertNotEquals(result, 0)
 
@@ -185,7 +188,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "inputs.py --help",
             "inputs.py")
-        
+
     def test_job(self):
         self.check_commands(
             "job.py --help",
@@ -197,7 +200,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "kvstore.py --help",
             "kvstore.py")
-        
+
     def test_loggers(self):
         self.check_commands(
             "loggers.py --help",
@@ -210,7 +213,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "saved_searches.py --help",
             "saved_searches.py")
-    
+
     def test_saved_search(self):
         temp_name = testlib.tmpname()
         self.check_commands(
@@ -227,7 +230,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "search.py --help",
             ["search.py", "search * | head 10"],
-            ["search.py", 
+            ["search.py",
              "search * | head 10 | stats count", '--output_mode=csv'])
 
     def test_spcmd(self):
@@ -271,7 +274,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Before we start, we'll clean the index
         index = service.indexes["sdk-test"]
         index.clean()
-        
+
         tracker.track("test_event", distinct_id="abc123", foo="bar", abc="123")
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
@@ -280,8 +283,8 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(
-            "sdk-test", self.opts.kwargs, index = "sdk-test")    
-        
+            "sdk-test", self.opts.kwargs, index = "sdk-test")
+
         # Assert applications
         applications = retriever.applications()
         self.assertEquals(len(applications), 1)
@@ -319,7 +322,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             count = value["count"]
             self.assertTrue(name in list(expected_property_values.keys()))
             self.assertEqual(count, expected_property_values[name])
-            
+
         # Assert event over time
         over_time = retriever.events_over_time(
             time_range = analytics.output.TimeRange.MONTH)
@@ -327,9 +330,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.assertEquals(len(over_time["test_event"]), 1)
         self.assertEquals(over_time["test_event"][0]["count"], 2)
 
-        # Now that we're done, we'll clean the index 
+        # Now that we're done, we'll clean the index
         index.clean()
- 
+
 if __name__ == "__main__":
     os.chdir("../examples")
     try:

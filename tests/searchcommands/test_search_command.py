@@ -32,6 +32,7 @@ import csv
 import os
 import re
 
+import pytest
 
 @Configuration()
 class TestCommand(SearchCommand):
@@ -95,7 +96,7 @@ class TestStreamingCommand(StreamingCommand):
             serial_number += 1
         return
 
-
+@pytest.mark.smoke
 class TestSearchCommand(TestCase):
     def setUp(self):
         TestCase.setUp(self)

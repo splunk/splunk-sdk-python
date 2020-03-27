@@ -25,6 +25,8 @@ try:
 except ImportError:
     import unittest2 as unittest
 
+import pytest
+
 
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):

@@ -50,6 +50,8 @@ import json
 import os
 import random
 
+import pytest
+
 # region Functions for producing random apps
 
 # Confirmed: [minint, maxint) covers the full range of values that xrange allows
@@ -101,6 +103,7 @@ def random_unicode():
 # endregion
 
 
+@pytest.mark.smoke
 class TestInternals(TestCase):
 
     def setUp(self):

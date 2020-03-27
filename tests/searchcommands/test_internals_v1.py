@@ -37,7 +37,9 @@ from splunklib import six
 from splunklib.six.moves import range
 from functools import reduce
 
+import pytest
 
+@pytest.mark.smoke
 class TestInternals(TestCase):
     def setUp(self):
         TestCase.setUp(self)

@@ -66,6 +66,7 @@ except ImportError:
     # Python 2.6
     pass
 
+import pytest
 
 def pypy():
     try:
@@ -156,7 +157,7 @@ class Recordings(object):
 
     _prefix = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'recordings', 'scpv')
 
-
+@pytest.mark.smoke
 class TestSearchCommandsApp(TestCase):
 
     try:

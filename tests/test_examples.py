@@ -27,6 +27,8 @@ try:
 except ImportError:
     import unittest2 as unittest
 
+import pytest
+
 from tests import testlib
 
 import splunklib.client as client

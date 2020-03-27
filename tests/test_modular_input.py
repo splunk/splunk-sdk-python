@@ -21,13 +21,15 @@ try:
 except ImportError:
     import unittest
 from tests import testlib
+import pytest
 
 
+@pytest.mark.smoke
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(ModularInputKindTestCase, self).setUp()
         self.uncheckedRestartSplunk()
-    
+
     def test_lists_modular_inputs(self):
         if self.service.splunk_version[0] < 5:
             print("Modular inputs don't exist prior to Splunk 5.0. Skipping.")

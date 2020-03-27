@@ -27,6 +27,8 @@ import os
 import sys
 import logging
 
+import pytest
+
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
@@ -48,6 +50,7 @@ class StubbedSearchCommand(SearchCommand):
             pass
 
 
+@pytest.mark.smoke
 class TestBuiltinOptions(TestCase):
 
     def setUp(self):

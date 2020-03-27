@@ -28,9 +28,11 @@ import tempfile
 from splunklib import six
 from splunklib.six.moves import range
 
+import pytest
+
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
-
+@pytest.mark.smoke
 class TestValidators(TestCase):
 
     def setUp(self):

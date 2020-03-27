@@ -34,6 +34,8 @@ except ImportError:
     # Skip on Python 2.6
     pass
 
+import pytest
+
 
 @Configuration()
 class TestSearchCommand(SearchCommand):
@@ -182,6 +184,7 @@ class TestSearchCommand(SearchCommand):
             pass
 
 
+@pytest.mark.smoke
 class TestDecorators(TestCase):
 
     def setUp(self):

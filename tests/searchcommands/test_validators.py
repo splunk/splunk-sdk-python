@@ -52,8 +52,8 @@ class TestValidators(TestCase):
 
         for value in truth_values:
             for variant in value, value.capitalize(), value.upper():
-                for s in six.text_type(variant), bytes(variant):
-                    self.assertEqual(validator.__call__(s), truth_values[value])
+                s = six.text_type(variant)
+                self.assertEqual(validator.__call__(s), truth_values[value])
 
         self.assertIsNone(validator.__call__(None))
         self.assertRaises(ValueError, validator.__call__, 'anything-else')

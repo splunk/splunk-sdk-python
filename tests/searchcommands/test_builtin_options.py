@@ -145,18 +145,18 @@ class TestBuiltinOptions(TestCase):
 
         # logging_level accepts all logging levels and returns their canonical string values
 
-        self.assertEquals(warning, command.logging_level)
+        self.assertEqual(warning, command.logging_level)
 
         for level in logging._levelNames:
             if type(level) is int:
                 command.logging_level = level
                 level_name = logging.getLevelName(level)
-                self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
             else:
                 level_name = logging.getLevelName(logging.getLevelName(level))
                 for variant in level, level.lower(), level.capitalize():
                     command.logging_level = variant
-                    self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                    self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
 
         # logging_level accepts any numeric value
 
@@ -203,10 +203,10 @@ class TestBuiltinOptions(TestCase):
             for variant in value, value.capitalize(), value.upper():
                 for s in variant, bytes(variant):
                     option.fset(command, s)
-                    self.assertEquals(option.fget(command), boolean_values[value])
+                    self.assertEqual(option.fget(command), boolean_values[value])
 
         option.fset(command, None)
-        self.assertEquals(option.fget(command), None)
+        self.assertEqual(option.fget(command), None)
 
         for value in 13, b'bytes', 'string', object():
             try:

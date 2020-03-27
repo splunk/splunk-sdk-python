@@ -30,7 +30,7 @@ class ResultsTestCase(testlib.SDKTestCase):
         job = self.service.jobs.create("search index=_internal_does_not_exist | head 2")
         while not job.is_done():
             sleep(0.5)
-        self.assertEquals(0, len(list(results.ResultsReader(io.BufferedReader(job.results())))))
+        self.assertEqual(0, len(list(results.ResultsReader(io.BufferedReader(job.results())))))
 
     def test_read_normal_results(self):
         xml_text = """
@@ -162,7 +162,7 @@ class ResultsTestCase(testlib.SDKTestCase):
     def assert_parsed_results_equals(self, xml_text, expected_results):
         results_reader = results.ResultsReader(BytesIO(xml_text.encode('utf-8')))
         actual_results = [x for x in results_reader]
-        self.assertEquals(expected_results, actual_results)
+        self.assertEqual(expected_results, actual_results)
 
 if __name__ == "__main__":
     try:

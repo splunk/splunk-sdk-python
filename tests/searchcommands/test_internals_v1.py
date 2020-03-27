@@ -89,7 +89,7 @@ class TestInternals(TestCase):
 
         expected = 'testcommandlineparser required_option="t" unnecessary_option="f" field_1 field_2 field_3'
         self.assertEqual(expected, str(command))
-        self.assertEquals(command.fieldnames, fieldnames)
+        self.assertEqual(command.fieldnames, fieldnames)
 
         # Command line without any unnecessary options
 
@@ -104,7 +104,7 @@ class TestInternals(TestCase):
 
         expected = 'testcommandlineparser required_option="t" field_1 field_2 field_3'
         self.assertEqual(expected, str(command))
-        self.assertEquals(command.fieldnames, fieldnames)
+        self.assertEqual(command.fieldnames, fieldnames)
 
         # Command line with missing required options, with or without fieldnames or unnecessary options
 
@@ -235,7 +235,7 @@ class TestInternals(TestCase):
         with closing(StringIO('\r\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         # One unnamed single-line item (same as no items)
 
@@ -244,14 +244,14 @@ class TestInternals(TestCase):
         with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
         with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 0)
+        self.assertEqual(len(input_header), 0)
 
         # One named single-line item
 
@@ -260,16 +260,16 @@ class TestInternals(TestCase):
         with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
-        self.assertEquals(input_header['Foo'], 'this is a single-line item')
+        self.assertEqual(len(input_header), 1)
+        self.assertEqual(input_header['Foo'], 'this is a single-line item')
 
         input_header = InputHeader()
 
         with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
-        self.assertEquals(input_header['Bar'], 'this is a\nmulti-\nline item')
+        self.assertEqual(len(input_header), 1)
+        self.assertEqual(input_header['Bar'], 'this is a\nmulti-\nline item')
 
         # The infoPath item (which is the path to a file that we open for reads)
 
@@ -278,7 +278,7 @@ class TestInternals(TestCase):
         with closing(StringIO('infoPath:non-existent.csv\n\n'.encode())) as input_file:
             input_header.read(input_file)
 
-        self.assertEquals(len(input_header), 1)
+        self.assertEqual(len(input_header), 1)
         self.assertEqual(input_header['infoPath'], 'non-existent.csv')
 
         # Set of named items
@@ -348,7 +348,7 @@ class TestInternals(TestCase):
             'warn_message=warning_message\r\n'
             '\r\n')
 
-        self.assertEquals(output_buffer.getvalue(), expected)
+        self.assertEqual(output_buffer.getvalue(), expected)
         return
 
     _package_path = os.path.dirname(__file__)

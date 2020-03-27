@@ -41,9 +41,9 @@ class ServiceTestCase(testlib.SDKTestCase):
     def test_info(self):
         info = self.service.info
         keys = ["build", "cpu_arch", "guid", "isFree", "isTrial", "licenseKeys",
-            "licenseSignature", "licenseState", "master_guid", "mode", 
+            "licenseSignature", "licenseState", "master_guid", "mode",
             "os_build", "os_name", "os_version", "serverName", "version"]
-        for key in keys: 
+        for key in keys:
             self.assertTrue(key in list(info.keys()))
 
     def test_info_with_namespace(self):
@@ -141,11 +141,11 @@ class ServiceTestCase(testlib.SDKTestCase):
         for version in [(4,3,3), (5,), (5,0,1)]:
             with self.fake_splunk_version(version):
                 self.assertEqual(version, self.service.splunk_version)
-    
+
     def test_query_without_login_raises_auth_error(self):
         service = self._create_unauthenticated_service()
         self.assertRaises(AuthenticationError, lambda: service.indexes.list())
-    
+
     # This behavior is needed for backward compatibility for code
     # prior to the introduction of AuthenticationError
     def test_query_without_login_raises_http_401(self):
@@ -181,11 +181,11 @@ class TestCookieAuthentication(unittest.TestCase):
 
     def test_login_and_store_cookie(self):
         self.assertIsNotNone(self.service.get_cookies())
-        self.assertEquals(len(self.service.get_cookies()), 0)
+        self.assertEqual(len(self.service.get_cookies()), 0)
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
         self.assertNotEquals(self.service.get_cookies(), {})
-        self.assertEquals(len(self.service.get_cookies()), 1)
+        self.assertEqual(len(self.service.get_cookies()), 1)
 
     def test_login_with_cookie(self):
         self.service.login()
@@ -202,10 +202,10 @@ class TestCookieAuthentication(unittest.TestCase):
     def test_login_fails_with_bad_cookie(self):
         bad_cookie = {'bad': 'cookie'}
         service2 = client.Service()
-        self.assertEquals(len(service2.get_cookies()), 0)
+        self.assertEqual(len(service2.get_cookies()), 0)
         service2.get_cookies().update(bad_cookie)
         service2.login()
-        self.assertEquals(service2.get_cookies(), {'bad': 'cookie'})
+        self.assertEqual(service2.get_cookies(), {'bad': 'cookie'})
 
         # Should get an error with a bad cookie
         try:
@@ -228,7 +228,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
     def test_login_fails_with_no_cookie(self):
         service2 = client.Service()
-        self.assertEquals(len(service2.get_cookies()), 0)
+        self.assertEqual(len(service2.get_cookies()), 0)
 
         # Should get an error when no authentication method
         try:
@@ -330,9 +330,9 @@ class TestTrailing(unittest.TestCase):
 class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_arguments(self):
         entity = self.service.apps['search']
-        self.assertEquals((None,None,"global"), entity._proper_namespace(sharing="global"))
-        self.assertEquals((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
-        self.assertEquals(
+        self.assertEqual((None,None,"global"), entity._proper_namespace(sharing="global"))
+        self.assertEqual((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
+        self.assertEqual(
             ("admin", "search", "user"),
             entity._proper_namespace(sharing="user", app="search", owner="admin")
         )
@@ -340,7 +340,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_entity_namespace(self):
         entity = self.service.apps['search']
         namespace = (entity.access.owner, entity.access.app, entity.access.sharing)
-        self.assertEquals(namespace, entity._proper_namespace())
+        self.assertEqual(namespace, entity._proper_namespace())
 
     def test_proper_namespace_with_service_namespace(self):
         entity = client.Entity(self.service, client.PATH_APPS + "search")
@@ -348,7 +348,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
         namespace = (self.service.namespace.owner,
                      self.service.namespace.app,
                      self.service.namespace.sharing)
-        self.assertEquals(namespace, entity._proper_namespace())
+        self.assertEqual(namespace, entity._proper_namespace())
 
 if __name__ == "__main__":
     try:

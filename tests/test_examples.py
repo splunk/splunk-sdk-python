@@ -70,7 +70,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEquals(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
+            self.assertEqual(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
@@ -82,14 +82,14 @@ class ExamplesTestCase(testlib.SDKTestCase):
     @unittest.skipIf(six.PY3, "Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
         try:
             # Only try running the async version of the test if eventlet
             # is present on the system
             import eventlet
             result = run("async/async.py async")
-            self.assertEquals(result, 0)
+            self.assertEqual(result, 0)
         except:
             pass
 
@@ -98,7 +98,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
     def test_binding1(self):
         result = run("binding1.py")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
     def test_conf(self):
         try:
@@ -161,7 +161,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         #     try:
         #         time.sleep(5) # Wait for proxy to finish initializing
         #         result = run("handlers/handler_proxy.py --proxy=localhost:8080")
-        #         self.assertEquals(result, 0)
+        #         self.assertEqual(result, 0)
         #     finally:
         #         process.kill()
 
@@ -289,9 +289,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Assert applications
         applications = retriever.applications()
-        self.assertEquals(len(applications), 1)
-        self.assertEquals(applications[0]["name"], "sdk-test")
-        self.assertEquals(applications[0]["count"], 2)
+        self.assertEqual(len(applications), 1)
+        self.assertEqual(applications[0]["name"], "sdk-test")
+        self.assertEqual(applications[0]["count"], 2)
 
         # Assert events
         events = retriever.events()
@@ -328,9 +328,9 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Assert event over time
         over_time = retriever.events_over_time(
             time_range = analytics.output.TimeRange.MONTH)
-        self.assertEquals(len(over_time), 1)
-        self.assertEquals(len(over_time["test_event"]), 1)
-        self.assertEquals(over_time["test_event"][0]["count"], 2)
+        self.assertEqual(len(over_time), 1)
+        self.assertEqual(len(over_time["test_event"]), 1)
+        self.assertEqual(over_time["test_event"][0]["count"], 2)
 
         # Now that we're done, we'll clean the index
         index.clean()

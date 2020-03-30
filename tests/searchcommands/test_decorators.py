@@ -23,6 +23,8 @@ except ImportError:
     from unittest import main, TestCase
 import sys
 
+from io import TextIOWrapper
+
 from splunklib.searchcommands import Configuration, Option, environment, validators
 from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
@@ -33,6 +35,8 @@ try:
 except ImportError:
     # Skip on Python 2.6
     pass
+
+from splunklib import six
 
 import pytest
 
@@ -231,8 +235,8 @@ class TestDecorators(TestCase):
              (True, False),
              (None, 'anything other than a bool')),
             ('maxinputs',
-             (0, 50000, sys.maxint),
-             (None, -1, sys.maxint + 1, 'anything other than an int')),
+             (0, 50000, sys.maxsize),
+             (None, -1, sys.maxsize + 1, 'anything other than an int')),
             ('overrides_timeorder',
              (True, False),
              (None, 'anything other than a bool')),
@@ -252,10 +256,11 @@ class TestDecorators(TestCase):
              (True, False),
              (None, 'anything other than a bool')),
             ('streaming_preop',
-             ('some unicode string', b'some byte string'),
+             (u'some unicode string', b'some byte string'),
              (None, 0xdead)),
             ('type',
-             ('events', 'reporting', 'streaming', b'events', b'reporting', b'streaming'),
+             # TODO: Do we need to validate byte versions of these strings?
+             ('events', 'reporting', 'streaming'),
              ('eventing', 0xdead))):
 
             for value in values:
@@ -348,13 +353,14 @@ class TestDecorators(TestCase):
 
         command = TestSearchCommand()
         options = command.options
-        itervalues = options.itervalues
+
+        itervalues = lambda: six.itervalues(options)
 
         options.reset()
         missing = options.get_missing()
         self.assertListEqual(missing, [option.name for option in itervalues() if option.is_required])
-        self.assertListEqual(presets, [unicode(option) for option in itervalues() if option.value is not None])
-        self.assertListEqual(presets, [unicode(option) for option in itervalues() if unicode(option) != option.name + '=None'])
+        self.assertListEqual(presets, [six.text_type(option) for option in itervalues() if option.value is not None])
+        self.assertListEqual(presets, [six.text_type(option) for option in itervalues() if six.text_type(option) != option.name + '=None'])
 
         test_option_values = {
             validators.Boolean: ('0', 'non-boolean value'),
@@ -394,38 +400,85 @@ class TestDecorators(TestCase):
             else:
                 self.assertFalse('Expected ValueError for {}={}, not a pass.'.format(option.name, illegal_value))
 
-        expected = (
-            "Option.View(["
-            "(u'foo', u'f'),"
-            "('boolean', u'f'),"
-            "('code', u'foo == \"bar\"'),"
-            "('duration', u'24:59:59'),"
-            "('fieldname', u'some.field_name'),"
-            "('file', u" + unicode(repr(__file__)) + "),"
-            "('integer', u'100'),"
-            "('logging_configuration', " + repr(environment.logging_configuration) + "),"
-            "('logging_level', u'WARNING'),"
-            "('map', 'foo'),"
-            "('match', u'123-45-6789'),"
-            "('optionname', u'some_option_name'),"
-            "('record', u'f'),"
-            "('regularexpression', u'\\\\s+'),"
-            "('required_boolean', u'f'),"
-            "('required_code', u'foo == \"bar\"'),"
-            "('required_duration', u'24:59:59'),"
-            "('required_fieldname', u'some.field_name'),"
-            "('required_file', u" + unicode(repr(__file__)) + "),"
-            "('required_integer', u'100'),"
-            "('required_map', 'foo'),"
-            "('required_match', u'123-45-6789'),"
-            "('required_optionname', u'some_option_name'),"
-            "('required_regularexpression', u'\\\\s+'),"
-            "('required_set', u'bar'),"
-            "('set', u'bar'),"
-            "('show_configuration', u'f')])")
+        # expected = (
+        #     "Option.View(["
+        #     "(u'foo', u'f'),"
+        #     "('boolean', u'f'),"
+        #     "('code', u'foo == \"bar\"'),"
+        #     "('duration', u'24:59:59'),"
+        #     "('fieldname', u'some.field_name'),"
+        #     "('file', u" + six.text_type(repr(__file__)) + "),"
+        #     "('integer', u'100'),"
+        #     "('logging_configuration', " + repr(environment.logging_configuration) + "),"
+        #     "('logging_level', u'WARNING'),"
+        #     "('map', 'foo'),"
+        #     "('match', u'123-45-6789'),"
+        #     "('optionname', u'some_option_name'),"
+        #     "('record', u'f'),"
+        #     "('regularexpression', u'\\\\s+'),"
+        #     "('required_boolean', u'f'),"
+        #     "('required_code', u'foo == \"bar\"'),"
+        #     "('required_duration', u'24:59:59'),"
+        #     "('required_fieldname', u'some.field_name'),"
+        #     "('required_file', u" + six.text_type(repr(__file__)) + "),"
+        #     "('required_integer', u'100'),"
+        #     "('required_map', 'foo'),"
+        #     "('required_match', u'123-45-6789'),"
+        #     "('required_optionname', u'some_option_name'),"
+        #     "('required_regularexpression', u'\\\\s+'),"
+        #     "('required_set', u'bar'),"
+        #     "('set', u'bar'),"
+        #     "('show_configuration', u'f')])")
 
-        observed = unicode(repr(command.options))
-        self.assertEqual(observed, expected)
+        expected = {
+            u'foo': False,
+            'boolean': False,
+            'code': u'foo == \"bar\"',
+            'duration': 89999,
+            'fieldname': u'some.field_name',
+            'file': six.text_type(repr(__file__)),
+            'integer': 100,
+            'logging_configuration': environment.logging_configuration,
+            'logging_level': u'WARNING',
+            'map': 'foo',
+            'match': u'123-45-6789',
+            'optionname': u'some_option_name',
+            'record': False,
+            'regularexpression': u'\\s+',
+            'required_boolean': False,
+            'required_code': u'foo == \"bar\"',
+            'required_duration': 89999,
+            'required_fieldname': u'some.field_name',
+            'required_file': six.text_type(repr(__file__)),
+            'required_integer': 100,
+            'required_map': 'foo',
+            'required_match': u'123-45-6789',
+            'required_optionname': u'some_option_name',
+            'required_regularexpression': u'\\s+',
+            'required_set': u'bar',
+            'set': u'bar',
+            'show_configuration': False,
+        }
+
+        self.maxDiff = None
+
+        tuplewrap = lambda x: x if isinstance(x, tuple) else (x,)
+        invert = lambda x: {v: k for k, v in six.iteritems(x)}
+
+        for x in six.itervalues(command.options):
+             # isinstance doesn't work for some reason
+            if type(x.value).__name__ == 'Code':
+                self.assertEqual(expected[x.name], x.value.source)
+            elif type(x.validator).__name__ == 'Map':
+                self.assertEqual(expected[x.name], invert(x.validator.membership)[x.value])
+            elif type(x.validator).__name__ == 'RegularExpression':
+                self.assertEqual(expected[x.name], x.value.pattern)
+            elif isinstance(x.value, TextIOWrapper):
+                self.assertEqual(expected[x.name], "'%s'" % x.value.name)
+            elif not isinstance(x.value, (bool,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
+                self.assertEqual(expected[x.name], repr(x.value))
+            else:
+                self.assertEqual(expected[x.name], x.value)
 
         expected = (
             'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
@@ -436,7 +489,7 @@ class TestDecorators(TestCase):
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 
-        observed = unicode(command.options)
+        observed = six.text_type(command.options)
 
         self.assertEqual(observed, expected)
         return

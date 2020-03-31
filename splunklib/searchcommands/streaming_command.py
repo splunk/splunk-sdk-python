@@ -185,4 +185,6 @@ class StreamingCommand(SearchCommand):
                         lambda name_value1: (name_value1[0], 'stateful') if name_value1[0] == 'type' else (name_value1[0], name_value1[1]), iteritems)
             return iteritems
 
+        items = iteritems
+
         # endregion

@@ -334,6 +334,8 @@ class GeneratingCommand(SearchCommand):
                         lambda name_value: (name_value[0], 'stateful') if name_value[0] == 'type' else (name_value[0], name_value[1]), iteritems)
             return iteritems
 
+        items = iteritems
+
         pass
         # endregion
 

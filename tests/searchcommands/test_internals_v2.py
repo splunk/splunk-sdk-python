@@ -26,14 +26,14 @@ try:
 except ImportError:
     from splunklib.ordereddict import OrderedDict
 from collections import namedtuple, deque
-from splunklib.six.moves import StringIO as StringIO
+from splunklib.six import BytesIO as BytesIO
 from functools import wraps
 from glob import iglob
 from itertools import chain
 from splunklib.six.moves import filter as ifilter
 from splunklib.six.moves import map as imap
 from splunklib.six.moves import zip as izip
-from sys import float_info, maxunicode
+from sys import float_info
 from tempfile import mktemp
 from time import time
 from types import MethodType
@@ -60,6 +60,9 @@ minint = (-six.MAXSIZE - 1) // 2
 maxint = six.MAXSIZE // 2
 
 max_length = 1 * 1024
+
+# generate only non-wide Unicode characters, as in Python 2, to prevent surrogate values
+MAX_NARROW_UNICODE = 0xD800 - 1
 
 
 def random_bytes():
@@ -98,7 +101,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join(imap(lambda x: six.unichr(x), random.sample(range(maxunicode), random.randint(0, max_length))))
+    return ''.join(imap(lambda x: six.unichr(x), random.sample(range(MAX_NARROW_UNICODE), random.randint(0, max_length))))
 
 # endregion
 
@@ -132,15 +135,15 @@ class TestInternals(TestCase):
 
         with gzip.open(recording + 'input.gz', 'rb') as file_1:
             with io.open(recording + 'output', 'rb') as file_2:
-                ifile = StringIO(file_1.read())
-                result = StringIO(file_2.read())
+                ifile = BytesIO(file_1.read())
+                result = BytesIO(file_2.read())
 
         # Set up the input/output recorders that are under test
 
         ifile = Recorder(mktemp(), ifile)
 
         try:
-            ofile = Recorder(mktemp(), StringIO())
+            ofile = Recorder(mktemp(), BytesIO())
 
             try:
                 # Read and then write a line
@@ -181,7 +184,7 @@ class TestInternals(TestCase):
         # RecordWriter writes apps in units of maxresultrows records. Default: 50,0000.
         # Partial results are written when the record count reaches maxresultrows.
 
-        writer = RecordWriterV2(StringIO(), maxresultrows=10)  # small for the purposes of this unit test
+        writer = RecordWriterV2(BytesIO(), maxresultrows=10)  # small for the purposes of this unit test
         test_data = OrderedDict()
 
         fieldnames = ['_serial', '_time', 'random_bytes', 'random_dict', 'random_integers', 'random_unicode']
@@ -259,76 +262,6 @@ class TestInternals(TestCase):
 
         # P2 [ ] TODO: Verify that RecordWriter gives consumers the ability to finish early by calling
         # RecordWriter.flush(finish=True).
-
-        if save_recording:
-
-            cls = self.__class__
-            method = cls.test_record_writer_with_recordings
-            base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__, six.text_type(time()))))
-
-            with gzip.open(base_path + '.input.gz', 'wb') as f:
-                pickle.dump(test_data, f)
-
-            with open(base_path + '.output', 'wb') as f:
-                f.write(writer._ofile.getvalue())
-
-        return
-
-    def test_record_writer_with_recordings(self):
-
-        cls = self.__class__
-        method = cls.test_record_writer_with_recordings
-        base_path = os.path.join(self._recordings_path, '.'.join((cls.__name__, method.__name__)))
-
-        for input_file in iglob(base_path + '*.input.gz'):
-
-            with gzip.open(input_file, 'rb') as ifile:
-                test_data = pickle.load(ifile)
-
-            writer = RecordWriterV2(StringIO(), maxresultrows=10)  # small for the purposes of this unit test
-            write_record = writer.write_record
-            fieldnames = test_data['fieldnames']
-
-            for values in test_data['values']:
-                record = OrderedDict(izip(fieldnames, values))
-                try:
-                    write_record(record)
-                except Exception as error:
-                    self.fail(error)
-
-            for message_type, message_text in test_data['messages']:
-                writer.write_message(message_type, '{}', message_text)
-
-            for name, metric in six.iteritems(test_data['metrics']):
-                writer.write_metric(name, metric)
-
-            writer.flush(finished=True)
-
-            # Read expected data
-
-            expected_path = os.path.splitext(os.path.splitext(input_file)[0])[0] + '.output'
-
-            with io.open(expected_path, 'rb') as ifile:
-                expected = ifile.read()
-
-            expected = self._load_chunks(StringIO(expected))
-
-            # Read observed data
-
-            ifile = writer._ofile
-            ifile.seek(0)
-
-            observed = self._load_chunks(ifile)
-
-            # Write observed data (as an aid to diagnostics)
-
-            observed_path = expected_path + '.observed'
-            observed_value = ifile.getvalue()
-
-            with io.open(observed_path, 'wb') as ifile:
-                ifile.write(observed_value)
-
-            self._compare_chunks(observed, expected)
 
         return
 
@@ -422,7 +355,7 @@ class TestRecorder(object):
         with open(path, 'rb') as f:
             test_data = pickle.load(f)
 
-        self._output = StringIO()
+        self._output = BytesIO()
         self._recording = test_data['inputs']
         self._recording_part = self._recording.popleft()
 
@@ -444,7 +377,7 @@ class TestRecorder(object):
 
     def record(self, path):
 
-        self._output = StringIO()
+        self._output = BytesIO()
         self._recording = deque()
         self._recording_part = OrderedDict()
         self._recording.append(self._recording_part)

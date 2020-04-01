@@ -23,7 +23,7 @@ from splunklib.searchcommands.validators import Boolean
 from splunklib.searchcommands.search_command import SearchCommand
 
 from contextlib import closing
-from splunklib.six.moves import cStringIO as StringIO
+from splunklib.six import StringIO, BytesIO
 
 try:
     from itertools import izip  # python 2
@@ -232,7 +232,10 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('\r\n'.encode())) as input_file:
+        print("String: %s" % type('\r\n'))
+        print("Encode: %s" % type('\r\n'.encode()))
+
+        with closing(StringIO('\r\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -241,14 +244,14 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n'.encode())) as input_file:
+        with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n'.encode())) as input_file:
+        with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -257,7 +260,7 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n'.encode())) as input_file:
+        with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
@@ -265,7 +268,7 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n'.encode())) as input_file:
+        with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
@@ -275,7 +278,7 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('infoPath:non-existent.csv\n\n'.encode())) as input_file:
+        with closing(StringIO('infoPath:non-existent.csv\n\n')) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
@@ -293,14 +296,14 @@ class TestInternals(TestCase):
         input_header = InputHeader()
         text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), six.iteritems(collection), '') + '\n'
 
-        with closing(StringIO(text.encode())) as input_file:
+        with closing(StringIO(text)) as input_file:
             input_header.read(input_file)
 
         self.assertDictEqual(input_header, collection)
 
         # Set of named items with an unnamed item at the beginning (the only place that an unnamed item can appear)
 
-        with closing(StringIO(('unnamed item\n' + text).encode())) as input_file:
+        with closing(StringIO('unnamed item\n' + text)) as input_file:
             input_header.read(input_file)
 
         self.assertDictEqual(input_header, collection)
@@ -325,7 +328,7 @@ class TestInternals(TestCase):
 
         command = TestMessagesHeaderCommand()
         command._protocol_version = 1
-        output_buffer = StringIO()
+        output_buffer = BytesIO()
         command._record_writer = RecordWriterV1(output_buffer)
 
         messages = [
@@ -348,7 +351,7 @@ class TestInternals(TestCase):
             'warn_message=warning_message\r\n'
             '\r\n')
 
-        self.assertEqual(output_buffer.getvalue(), expected)
+        self.assertEqual(output_buffer.getvalue().decode('utf-8'), expected)
         return
 
     _package_path = os.path.dirname(__file__)

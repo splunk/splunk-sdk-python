@@ -23,12 +23,13 @@ from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from splunklib.six.moves import StringIO
+from splunklib.six import StringIO, BytesIO
 from splunklib.six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
 import csv
+import codecs
 import os
 import re
 
@@ -123,17 +124,17 @@ class TestSearchCommand(TestCase):
 
         argv = ['test.py', 'not__GETINFO__or__EXECUTE__', 'option=value', 'fieldname']
         command = TestCommand()
-        result = StringIO()
+        result = BytesIO()
 
         self.assertRaises(SystemExit, command.process, argv, ofile=result)
-        self.assertRegexpMatches(result.getvalue(), expected)
+        self.assertRegexpMatches(result.getvalue().decode('UTF-8'), expected)
 
         # TestCommand.process should return configuration settings on Getinfo probe
 
         argv = ['test.py', '__GETINFO__', 'required_option_1=value', 'required_option_2=value']
         command = TestCommand()
         ifile = StringIO('\n')
-        result = StringIO()
+        result = BytesIO()
 
         self.assertEqual(str(command.configuration), '')
 
@@ -157,12 +158,12 @@ class TestSearchCommand(TestCase):
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
         except BaseException as error:
-            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('UTF-8')))
 
-        self.assertEqual('\r\n\r\n\r\n', result.getvalue())  # No message header and no configuration settings
+        self.assertEqual('\r\n\r\n\r\n', result.getvalue().decode('UTF-8'))  # No message header and no configuration settings
 
         ifile = StringIO('\n')
-        result = StringIO()
+        result = BytesIO()
 
         # We might also put this sort of code into our SearchCommand.prepare override ...
 
@@ -217,10 +218,10 @@ class TestSearchCommand(TestCase):
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
         except BaseException as error:
-            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('UTF-8')))
 
         result.seek(0)
-        reader = csv.reader(result)
+        reader = csv.reader(codecs.iterdecode(result, 'UTF-8'))
         self.assertEqual([], next(reader))
         observed = dict(izip(next(reader), next(reader)))
         self.assertRaises(StopIteration, lambda: next(reader))
@@ -249,44 +250,44 @@ class TestSearchCommand(TestCase):
 
             command = TestCommand()
             ifile = StringIO('\n')
-            result = StringIO()
+            result = BytesIO()
 
             self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
             self.assertTrue(
                 'error_message=Unrecognized test command option: undefined_option="value"\r\n\r\n',
-                result.getvalue())
+                result.getvalue().decode('UTF-8'))
 
             # TestCommand.process should produce an error record when required options are missing
 
             argv = ['test.py', action, 'required_option_2=value', 'fieldname_1']
             command = TestCommand()
             ifile = StringIO('\n')
-            result = StringIO()
+            result = BytesIO()
 
             self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
 
             self.assertTrue(
                 'error_message=A value for test command option required_option_1 is required\r\n\r\n',
-                result.getvalue())
+                result.getvalue().decode('UTF-8'))
 
             argv = ['test.py', action, 'fieldname_1']
             command = TestCommand()
             ifile = StringIO('\n')
-            result = StringIO()
+            result = BytesIO()
 
             self.assertRaises(SystemExit, command.process, argv, ifile, ofile=result)
 
             self.assertTrue(
                 'error_message=Values for these test command options are required: required_option_1, required_option_2'
                 '\r\n\r\n',
-                result.getvalue())
+                result.getvalue().decode('UTF-8'))
 
         # TestStreamingCommand.process should exit on processing exceptions
 
         ifile = StringIO('\naction\r\nraise_error\r\n')
         argv = ['test.py', '__EXECUTE__']
         command = TestStreamingCommand()
-        result = StringIO()
+        result = BytesIO()
 
         try:
             # noinspection PyTypeChecker
@@ -294,7 +295,7 @@ class TestSearchCommand(TestCase):
         except SystemExit as error:
             self.assertNotEqual(error.code, 0)
             self.assertRegexpMatches(
-                result.getvalue(),
+                result.getvalue().decode('UTF-8'),
                 r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
         except BaseException as error:
             self.fail('Expected SystemExit, but caught {}: {}'.format(type(error).__name__, error))
@@ -309,7 +310,7 @@ class TestSearchCommand(TestCase):
         ifile = StringIO('infoPath:' + info_path + '\n\naction\r\nget_search_results_info\r\n')
         argv = ['test.py', '__EXECUTE__']
         command = TestStreamingCommand()
-        result = StringIO()
+        result = BytesIO()
 
         try:
             # noinspection PyTypeChecker
@@ -318,14 +319,14 @@ class TestSearchCommand(TestCase):
             self.fail('Expected no exception, but caught {}: {}'.format(type(error).__name__, error))
         else:
             self.assertRegexpMatches(
-                result.getvalue(),
+                result.getvalue().decode('UTF-8'),
                 r'^\r\n'
                 r'('
                 r'data,__mv_data,_serial,__mv__serial\r\n'
-                r'"\{.*u\'is_summary_index\': 0, .+\}",,0,'
+                r'\"\{.*u\'is_summary_index\': 0, .+\}\",,0,'
                 r'|'
                 r'_serial,__mv__serial,data,__mv_data\r\n'
-                r'0,,"\{.*u\'is_summary_index\': 0, .+\}",'
+                r'0,,\"\{.*\'is_summary_index\': 0, .+\}\",'
                 r')'
                 r'\r\n$'
             )
@@ -434,7 +435,7 @@ class TestSearchCommand(TestCase):
             'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
 
         command = TestCommand()
-        result = StringIO()
+        result = BytesIO()
         argv = ['some-external-search-command.py']
 
         self.assertEqual(command.logging_level, 'WARNING')
@@ -460,7 +461,7 @@ class TestSearchCommand(TestCase):
             'chunked 1.0,17,23\n'
             '{"finished":true}test,__mv_test\r\n'
             'data,\r\n',
-            result.getvalue())
+            result.getvalue().decode('utf-8'))
 
         self.assertEqual(command.protocol_version, 2)
 
@@ -626,7 +627,7 @@ class TestSearchCommand(TestCase):
             'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
 
         command = TestCommand()
-        result = StringIO()
+        result = BytesIO()
         argv = ['test.py']
 
         # noinspection PyTypeChecker
@@ -645,7 +646,7 @@ class TestSearchCommand(TestCase):
             '["ERROR","Illegal value: show_configuration=Non-boolean value"]]}}\n'
             'chunked 1.0,17,0\n'
             '{"finished":true}',
-            result.getvalue())
+            result.getvalue().decode('utf-8'))
 
         self.assertEqual(command.protocol_version, 2)
 
@@ -672,7 +673,7 @@ class TestSearchCommand(TestCase):
             'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
 
         command = TestCommand()
-        result = StringIO()
+        result = BytesIO()
         argv = ['test.py']
 
         try:
@@ -680,9 +681,9 @@ class TestSearchCommand(TestCase):
         except SystemExit as error:
             self.assertNotEqual(0, error.code)
         except BaseException as error:
-            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue()))
+            self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('utf-8')))
         else:
-            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(result.getvalue()))
+            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(result.getvalue().decode('utf-8')))
 
         self.assertEqual(command.logging_configuration, logging_configuration)
         self.assertEqual(command.logging_level, logging_level)
@@ -691,15 +692,21 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.required_option_1, 'value_1')
         self.assertEqual(command.required_option_2, 'value_2')
 
-        finished = r'"finished":true'
+        finished = r'\"finished\":true'
 
-        inspector = \
-            r'"inspector":\{"messages":\[\["ERROR","StandardError at \\".+\\", line \d+ : test ' \
-            r'logging_configuration=\\".+\\" logging_level=\\"WARNING\\" record=\\"f\\" ' \
-            r'required_option_1=\\"value_1\\" required_option_2=\\"value_2\\" show_configuration=\\"f\\""\]\]\}'
+        if six.PY2:
+            inspector = \
+                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"StandardError at \\\".+\\\", line \d+ : test ' \
+                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
+                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
+        else:
+            inspector = \
+                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"Exception at \\\".+\\\", line \d+ : test ' \
+                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
+                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
         self.assertRegexpMatches(
-            result.getvalue(),
+            result.getvalue().decode('utf-8'),
             r'^chunked 1.0,2,0\n'
             r'\{\}\n'
             r'chunked 1.0,\d+,0\n'

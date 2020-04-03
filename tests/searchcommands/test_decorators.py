@@ -400,36 +400,6 @@ class TestDecorators(TestCase):
             else:
                 self.assertFalse('Expected ValueError for {}={}, not a pass.'.format(option.name, illegal_value))
 
-        # expected = (
-        #     "Option.View(["
-        #     "(u'foo', u'f'),"
-        #     "('boolean', u'f'),"
-        #     "('code', u'foo == \"bar\"'),"
-        #     "('duration', u'24:59:59'),"
-        #     "('fieldname', u'some.field_name'),"
-        #     "('file', u" + six.text_type(repr(__file__)) + "),"
-        #     "('integer', u'100'),"
-        #     "('logging_configuration', " + repr(environment.logging_configuration) + "),"
-        #     "('logging_level', u'WARNING'),"
-        #     "('map', 'foo'),"
-        #     "('match', u'123-45-6789'),"
-        #     "('optionname', u'some_option_name'),"
-        #     "('record', u'f'),"
-        #     "('regularexpression', u'\\\\s+'),"
-        #     "('required_boolean', u'f'),"
-        #     "('required_code', u'foo == \"bar\"'),"
-        #     "('required_duration', u'24:59:59'),"
-        #     "('required_fieldname', u'some.field_name'),"
-        #     "('required_file', u" + six.text_type(repr(__file__)) + "),"
-        #     "('required_integer', u'100'),"
-        #     "('required_map', 'foo'),"
-        #     "('required_match', u'123-45-6789'),"
-        #     "('required_optionname', u'some_option_name'),"
-        #     "('required_regularexpression', u'\\\\s+'),"
-        #     "('required_set', u'bar'),"
-        #     "('set', u'bar'),"
-        #     "('show_configuration', u'f')])")
-
         expected = {
             u'foo': False,
             'boolean': False,

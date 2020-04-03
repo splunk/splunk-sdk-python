@@ -232,9 +232,6 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        print("String: %s" % type('\r\n'))
-        print("Encode: %s" % type('\r\n'.encode()))
-
         with closing(StringIO('\r\n')) as input_file:
             input_header.read(input_file)
 

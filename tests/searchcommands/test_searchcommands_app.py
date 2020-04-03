@@ -30,20 +30,9 @@ from collections import namedtuple
 from splunklib.six.moves import cStringIO as StringIO
 from datetime import datetime
 
-try:
-    from itertools import ifilter  # python 2
-except ImportError:
-    from builtins import filter as ifilter  # python 3
-
-try:
-    from itertools import imap  # python 2
-except ImportError:
-    from builtins import map as imap  # python 3
-
-try:
-    from itertools import izip  # python 2
-except ImportError:
-    from builtins import zip as izip  # python 3
+from splunklib.six.moves import filter as ifilter
+from splunklib.six.moves import map as imap
+from splunklib.six.moves import zip as izip
 
 from subprocess import PIPE, Popen
 from splunklib import six

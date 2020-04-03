@@ -25,10 +25,7 @@ from splunklib.searchcommands.search_command import SearchCommand
 from contextlib import closing
 from splunklib.six import StringIO, BytesIO
 
-try:
-    from itertools import izip  # python 2
-except ImportError:
-    from builtins import zip as izip  # python 3
+from splunklib.six.moves import zip as izip
 
 from unittest import main, TestCase
 

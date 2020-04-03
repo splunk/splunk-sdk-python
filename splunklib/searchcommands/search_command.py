@@ -1036,6 +1036,8 @@ class SearchCommand(object):
             """
             return
 
+        # TODO: Stop looking like a dictionary because we don't obey the semantics
+        # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             definitions = type(self).configuration_setting_definitions
             version = self.command.protocol_version
@@ -1044,7 +1046,9 @@ class SearchCommand(object):
                     lambda setting: (setting.name, setting.__get__(self)), ifilter(
                         lambda setting: setting.is_supported_by_protocol(version), definitions)))
 
-        items = iteritems
+        # N.B.: Does not use Python 3 dict view semantics
+        if not six.PY2:
+            items = iteritems
 
         pass  # endregion
 

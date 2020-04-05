@@ -9,6 +9,8 @@ withSplunkWrapNode('master') {
         echo "Clone the repo into Jenkins container"
         splunkPrepareAndCheckOut repoName: 'git@github.com:splunk/splunk-sdk-python.git',
                                  branchName: "${env.BRANCH_NAME}";
+        echo "Install Orca"
+        splunkRunScript script: 'pip install splunk_orca --index-url=https://repo.splunk.com/artifactory/api/pypi/pypi/simple'
         echo "Create an orca instance for testing"
         splunkRunScript script: 'orca --printer add-json create --splunk-build 1e271617aabe --splunk-version 7.2.11 --so 1';
         echo "Install tox"

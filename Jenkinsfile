@@ -15,7 +15,10 @@ withSplunkWrapNode('master') {
                     orcaVersion             : orcaVersion,
                     ucpServerName           : ucpServer,
                     orcaVerbose             : true,
-                    args                    : "create --splunk-version 7.2.11";
+        echo "orca version"
+        splunkRunScript script: 'orca --version';
+        echo "Create an orca instance for testing"
+        splunkRunScript script: 'orca create --splunk-version 7.2.11';
         echo "Install tox"
         splunkRunScript script: 'pip install tox', debugMode: 'sleep';
     }

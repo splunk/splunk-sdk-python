@@ -14,7 +14,7 @@ withSplunkWrapNode('master') {
         splunkFunctionalTest runner : "orca",
                     orcaVersion             : orcaVersion,
                     ucpServerName           : ucpServer,
-                    orcaVerbose             : orcaVerbose,
+                    orcaVerbose             : true,
                     args                    : "create --splunk-version 7.2.11";
         echo "Install tox"
         splunkRunScript script: 'pip install tox', debugMode: 'sleep';

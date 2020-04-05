@@ -12,7 +12,7 @@ withSplunkWrapNode('master') {
         echo "Install Orca"
         splunkRunScript script: 'pip install orca'
         echo "Create an orca instance for testing"
-        splunkRunScript script: 'orca --printer sdd-json create --splunk-build 1e271617aabe --splunk-version 7.2.11 --so 1';
+        splunkRunScript script: 'orca create --splunk-version 7.2.11';
         echo "Install tox"
         splunkRunScript script: 'pip install tox', debugMode: 'sleep';
     }

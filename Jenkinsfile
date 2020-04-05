@@ -15,7 +15,6 @@ withSplunkWrapNode('master') {
                     orcaVersion             : orcaVersion,
                     ucpServerName           : ucpServer,
                     orcaVerbose             : true,
-        echo "orca version"
         splunkRunScript script: 'orca --version';
         echo "Create an orca instance for testing"
         splunkRunScript script: 'orca create --splunk-version 7.2.11';

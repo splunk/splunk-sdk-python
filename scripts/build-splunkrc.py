@@ -85,7 +85,7 @@ def parse_hostport(host_port):
 def run(variable, splunkrc_path=None):
     # read JSON from input
     # parse the JSON
-    input_config = build_config(variable)
+    input_config = build_config(variable) if variable else DEFAULT_CONFIG
 
     config = {**DEFAULT_CONFIG, **input_config}
 
@@ -104,5 +104,9 @@ def run(variable, splunkrc_path=None):
     with open(splunkrc_path, 'w') as f:
         f.write(splunkrc_string)
 
-DATA = sys.stdin.read()
+if sys.stdin.isatty():
+    DATA = None
+else:
+    DATA = sys.stdin.read()
+
 run(DATA, sys.argv[1] if len(sys.argv) > 1 else None)

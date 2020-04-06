@@ -11,11 +11,8 @@ withSplunkWrapNode('master') {
         echo "Clone the repo into Jenkins container"
         splunkPrepareAndCheckOut repoName: 'git@github.com:splunk/splunk-sdk-python.git',
                                  branchName: "${env.BRANCH_NAME}";
-        splunkFunctionalTest runner : "orca",
-                    orcaVersion             : orcaVersion,
-                    orcaVerbose             : true;
-        echo "Run orca config"
-        splunkRunScript script: 'orca config';
+        echo "Run orca installation"
+        splunkRunScript script: 'pip install splunk-orca -i https://repo.splunk.com/artifactory/api/pypi/pypi/simple';
         echo "Display orca version"
         splunkRunScript script: 'orca --version';
         echo "Create an orca instance for testing"

@@ -3,7 +3,7 @@
 withSplunkWrapNode('master') {
     def orcaVersion = "1.0.5"
 
-    def ucpServer = "ucp.west.splunkeng.com"
+    def ucpServer = "ucp-cicd-west"
 
     stage('Build and Test'){
 

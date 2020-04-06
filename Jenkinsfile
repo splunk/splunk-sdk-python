@@ -13,7 +13,6 @@ withSplunkWrapNode('master') {
                                  branchName: "${env.BRANCH_NAME}";
         splunkFunctionalTest runner : "orca",
                     orcaVersion             : orcaVersion,
-                    ucpServerName           : ucpServer,
                     orcaVerbose             : true;
         echo "Run orca config"
         splunkRunScript script: 'orca config';

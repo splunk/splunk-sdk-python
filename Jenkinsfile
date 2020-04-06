@@ -3,7 +3,7 @@
 withSplunkWrapNode('master') {
     def orcaVersion = "1.0.5"
 
-    def ucpServer = "ucp-west.splunkeng.com"
+    def ucpServer = "ucp-cicd-west"
 
     stage('Build and Test'){
 
@@ -15,6 +15,9 @@ withSplunkWrapNode('master') {
                     orcaVersion             : orcaVersion,
                     ucpServerName           : ucpServer,
                     orcaVerbose             : true;
+        echo "Run orca config"
+        splunkRunScript script: 'orca config';
+        echo "Display orca version"
         splunkRunScript script: 'orca --version';
         echo "Create an orca instance for testing"
         splunkRunScript script: 'orca create --splunk-version 7.2.11';

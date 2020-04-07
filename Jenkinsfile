@@ -3,21 +3,21 @@
 withSplunkWrapNode('master') {
     def orcaVersion = "1.0.5"
 
-    def ucpServer = "ucp-cicd-west"
-
     stage('Build and Test'){
 
         echo "Before checkout"
         echo "Clone the repo into Jenkins container"
         splunkPrepareAndCheckOut repoName: 'git@github.com:splunk/splunk-sdk-python.git',
                                  branchName: "${env.BRANCH_NAME}";
-        echo "Run orca installation"
-        splunkRunScript script: 'pip install splunk-orca -i https://repo.splunk.com/artifactory/api/pypi/pypi/simple';
-        echo "Display orca version"
-        splunkRunScript script: 'orca --version';
-        echo "Create an orca instance for testing"
-        splunkRunScript script: 'orca create --splunk-version 7.2.11';
-        echo "Install tox"
-        splunkRunScript script: 'pip install tox', debugMode: 'sleep';
+        echo "Install tox and run smoke tests"
+        splunkRunScript script: """#!/bin/sh
+                    ls && \
+                    pip install https://repo.splunk.com/artifactory/pypi-remote-cache/7b/4b/a90a0a89db60fc39fc92e31e7da436177a12c06038973c8b7199f47b47c0/tox-3.14.6-py2.py3-none-any.whl && \
+                    ls && \
+                    python scripts/build-splunkrc.py ~/.splunkrc && \
+                    ls && \
+                    tox -e py27,py37 -- -m smoke -v && \
+                    ls
+                """.stripIndent();
     }
 }

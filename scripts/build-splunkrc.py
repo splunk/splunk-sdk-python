@@ -74,7 +74,7 @@ def build_config(json_string):
             'version': splunk_config['version'],
         }
     except Exception as e:
-        raise ValueError('Invalid configuration JSON string') from e
+        raise ValueError('Invalid configuration JSON string') #from e
 
 # Source: https://stackoverflow.com/a/53172593
 def parse_hostport(host_port):

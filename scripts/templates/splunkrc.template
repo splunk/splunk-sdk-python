@@ -1,0 +1,12 @@
+# Splunk host (default: localhost)
+host=$host
+# Splunk admin port (default: 8089)
+port=$port
+# Splunk username
+username=$username
+# Splunk password
+password=$password
+# Access scheme (default: https)
+scheme=$scheme
+# Your version of Splunk (default: 6.2)
+version=$version

@@ -26,10 +26,20 @@ test:
 	@echo "$(ATTN_COLOR)==> test $(NO_COLOR)"
 	@tox -e py27,py37
 
+.PHONY: test_specific
+test_specific:
+	@echo "$(ATTN_COLOR)==> test_specific $(NO_COLOR)"
+	@sh ./scripts/test_specific.sh
+
 .PHONY: test_smoke
 test_smoke:
 	@echo "$(ATTN_COLOR)==> test_smoke $(NO_COLOR)"
 	@tox -e py27,py37 -- -m smoke
+
+.PHONY: test_no_app
+test_no_app:
+	@echo "$(ATTN_COLOR)==> test_no_app $(NO_COLOR)"
+	@tox -e py27,py37 -- -m "not app"
 
 .PHONY: test_smoke_no_app
 test_smoke_no_app:

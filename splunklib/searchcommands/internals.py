@@ -75,7 +75,7 @@ def set_binary_mode(fh):
 
 
 class CommandLineParser(object):
-    """ Parses the arguments to a search command.
+    r""" Parses the arguments to a search command.
 
     A search command line is described by the following syntax.
 

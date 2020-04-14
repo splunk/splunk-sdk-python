@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 
 try:
     from splunklib.six.moves import cStringIO as StringIO

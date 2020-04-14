@@ -3,7 +3,7 @@
 
 # The Splunk Software Development Kit for Python
 
-#### Version 1.6.11
+#### Version 1.6.12
 
 The Splunk Software Development Kit (SDK) for Python contains library code and 
 examples designed to enable developers to build applications using Splunk.
@@ -17,7 +17,7 @@ monitoring of IT machine data, security, compliance and a wide variety of other
 scenarios that share a requirement to efficiently index, search, analyze and
 generate real-time notifications from large volumes of time series data.
 
-The Splunk developer platform enables developers to take advantage of the same
+The Splunk developer platform enables ^Fdevelopers to take advantage of the same
 technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
@@ -286,7 +286,7 @@ If you would like to contribute to the SDK, go here for more information:
 
 1. You will be granted support if you or your company are already covered 
    under an existing maintenance/support agreement. 
-   Send an email to support@splunk.com and include "Splunk SDK for Python" 
+   Submit a new case in the [Support Portal][contact] and include "Splunk SDK for Python" 
    in the subject line.    
 2. If you are not covered under an existing maintenance/support agreement, you     
    can find help through the broader community at:  
@@ -304,6 +304,8 @@ If you would like to contribute to the SDK, go here for more information:
  
 ### Contact Us
 
+You can [contact support][contact] if you have Splunk related questions.
+
 You can reach the Developer Platform team at _devinfo@splunk.com_.
 
 ## License
@@ -311,3 +313,4 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 The Splunk Software Development Kit for Python is licensed under the Apache
 License 2.0. Details can be found in the file LICENSE.
 
+[contact]:                  https://www.splunk.com/en_us/support-and-services.html

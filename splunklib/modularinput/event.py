@@ -13,6 +13,9 @@
 # under the License.
 
 from __future__ import absolute_import
+from io import TextIOBase
+from splunklib.six import ensure_text
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
@@ -104,5 +107,8 @@ class Event(object):
         if self.done:
             ET.SubElement(event, "done")
 
-        stream.write(ET.tostring(event))
+        if isinstance(stream, TextIOBase):
+            stream.write(ensure_text(ET.tostring(event)))
+        else:
+            stream.write(ET.tostring(event))
         stream.flush()

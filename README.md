@@ -5,11 +5,11 @@
 
 #### Version 1.6.12
 
-The Splunk Software Development Kit (SDK) for Python contains library code and 
+The Splunk Software Development Kit (SDK) for Python contains library code and
 examples designed to enable developers to build applications using Splunk.
 
 Splunk is a search engine and analytic environment that uses a distributed
-map-reduce architecture to efficiently index, search and process large 
+map-reduce architecture to efficiently index, search and process large
 time-varying data sets.
 
 The Splunk product is popular with system administrators for aggregation and
@@ -25,31 +25,31 @@ are enabled by Splunk's unique capabilities.
 ## Getting started with the Splunk SDK for Python
 
 The Splunk SDK for Python contains library code and examples that show how to
-programmatically interact with Splunk for a variety of scenarios including 
-searching, saved searches, data inputs, and many more, along with building 
-complete applications. 
+programmatically interact with Splunk for a variety of scenarios including
+searching, saved searches, data inputs, and many more, along with building
+complete applications.
 
 The information in this Readme provides steps to get going quickly, but for more
-in-depth information be sure to visit the 
-[Splunk Developer Portal](http://dev.splunk.com/view/SP-CAAAEBB). 
+in-depth information be sure to visit the
+[Splunk Developer Portal](http://dev.splunk.com/view/SP-CAAAEBB).
 ### Requirements
 
 Here's what you need to get going with the Splunk SDK for Python.
 
 #### Python
 
-The Splunk SDK for Python requires Python 2.7+, including Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5. 
+The Splunk SDK for Python requires Python 2.7+, including Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5.
 
 #### Splunk
 
-If you haven't already installed Splunk, download it 
-[here](http://www.splunk.com/download). For more about installing and running 
-Splunk and system requirements, see 
+If you haven't already installed Splunk, download it
+[here](http://www.splunk.com/download). For more about installing and running
+Splunk and system requirements, see
 [Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). The Splunk SDK for Python has been tested with Splunk Enterprise 7.0 and 7.2.
 
 #### Splunk SDK for Python
-Get the Splunk SDK for Python; [download the SDK as a ZIP](http://dev.splunk.com/view/SP-CAAAEBB) 
-and extract the files. Or, if you want to contribute to the SDK, clone the 
+Get the Splunk SDK for Python; [download the SDK as a ZIP](http://dev.splunk.com/view/SP-CAAAEBB)
+and extract the files. Or, if you want to contribute to the SDK, clone the
 repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
 
@@ -85,17 +85,17 @@ home folder and are running OS X or Linux, add the following line to your
     export PYTHONPATH=~/splunk-sdk-python
 
 The SDK command-line examples require a common set of arguments
-that specify things like the Splunk host, port, and login credentials. For a 
-full list of command-line arguments, include `--help` as an argument to any of 
-the examples. 
+that specify things like the Splunk host, port, and login credentials. For a
+full list of command-line arguments, include `--help` as an argument to any of
+the examples.
 
 #### .splunkrc
 
 To connect to Splunk, many of the SDK examples and unit tests take command-line
 arguments that specify values for the host, port, and login credentials for
 Splunk. For convenience during development, you can store these arguments as
-key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and 
-unit tests use the values from the **.splunkrc** file when you don't specify 
+key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and
+unit tests use the values from the **.splunkrc** file when you don't specify
 them.
 
 To use this convenience file, create a text file with the following format:
@@ -115,39 +115,39 @@ To use this convenience file, create a text file with the following format:
 
 Save the file as **.splunkrc** in the current user's home directory.
 
-*   For example on OS X, save the file as: 
+*   For example on OS X, save the file as:
 
         ~/.splunkrc
 
-*   On Windows, save the file as: 
+*   On Windows, save the file as:
 
         C:\Users\currentusername\.splunkrc
 
     You might get errors in Windows when you try to name the file because
     ".splunkrc" looks like a nameless file with an extension. You can use
-    the command line to create this file&mdash;go to the 
-    **C:\Users\currentusername** directory and enter the following command: 
+    the command line to create this file&mdash;go to the
+    **C:\Users\currentusername** directory and enter the following command:
 
         Notepad.exe .splunkrc
 
     Click **Yes**, then continue creating the file.
 
-**Note**: Storing login credentials in the **.splunkrc** file is only for 
-convenience during development. This file isn't part of the Splunk platform and 
-shouldn't be used for storing user credentials for production. And, if you're 
-at all concerned about the security of your credentials, just enter them at 
-the command line rather than saving them in this file. 
+**Note**: Storing login credentials in the **.splunkrc** file is only for
+convenience during development. This file isn't part of the Splunk platform and
+shouldn't be used for storing user credentials for production. And, if you're
+at all concerned about the security of your credentials, just enter them at
+the command line rather than saving them in this file.
 
 
 #### Examples
 
-Examples are located in the **/splunk-sdk-python/examples** directory. To run 
-the examples at the command line, use the Python interpreter and include any 
+Examples are located in the **/splunk-sdk-python/examples** directory. To run
+the examples at the command line, use the Python interpreter and include any
 arguments that are required by the example:
 
     python examplename.py --username="admin" --password="changeme"
 
-If you saved your login credentials in the **.splunkrc** file, you can omit 
+If you saved your login credentials in the **.splunkrc** file, you can omit
 those arguments:
 
     python examplename.py
@@ -158,19 +158,26 @@ To get help for an example, use the `--help` argument with an example:
 
 #### Unit tests
 
-The Splunk SDK for Python contains a collection of unit tests. To run them, open a 
+The Splunk SDK for Python contains a collection of unit tests. To run them, open a
 command prompt in the **/splunk-sdk-python** directory and enter:
 
-    python setup.py test
+    make test
 
-You can also run individual test files, which are located in 
-**/splunk-sdk-python/tests**. For example, to run the apps test, open a command 
-prompt in the **/splunk-sdk-python/tests** subdirectory and enter:
+You can also run individual test files, which are located in
+**/splunk-sdk-python/tests**. The following command explains how to run
+a specific test:
 
-    python test_app.py
+    make test_specific
 
-The test suite uses Python's standard library and the built-in `unittest` 
-library. 
+The test suite uses Python's standard library, the built-in `unittest`
+library, `pytest`, and `tox`.
+
+**Important Note:** The test run will fail unless the
+[SDK App Collection](https://github.com/splunk/sdk-app-collection) is installed.
+
+You can exclude app-specific tests with the following command:
+
+    make test_no_app
 
 You can read more about our testing framework on
 [GitHub](https://github.com/splunk/splunk-sdk-python/tree/master/tests).
@@ -209,34 +216,34 @@ You can read more about our testing framework on
 ### Changelog
 
 The **CHANGELOG.md** file in the root of the repository contains a description
-of changes for each version of the SDK. You can also find it online at 
+of changes for each version of the SDK. You can also find it online at
 [https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md).
 
 ### Branches
 
 The **master** branch always represents a stable and released version of the SDK.
-You can read more about our branching model on our Wiki at 
+You can read more about our branching model on our Wiki at
 [https://github.com/splunk/splunk-sdk-python/wiki/Branching-Model](https://github.com/splunk/splunk-sdk-python/wiki/Branching-Model).
 
 ## Documentation and resources
-If you need to know more: 
+If you need to know more:
 
-* For all things developer with Splunk, your main resource is the 
+* For all things developer with Splunk, your main resource is the
   [Splunk Developer Portal](http://dev.splunk.com).
 
-* For conceptual and how-to documentation, see the 
+* For conceptual and how-to documentation, see the
   [Overview of the Splunk SDK for Python](http://dev.splunk.com/view/SP-CAAAEBB).
 
-* For API reference documentation, see the 
+* For API reference documentation, see the
   [Splunk SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK).
 
-* For more about the Splunk REST API, see the 
+* For more about the Splunk REST API, see the
   [REST API Reference](http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI).
 
-* For more about about Splunk in general, see 
+* For more about about Splunk in general, see
   [Splunk>Docs](http://docs.splunk.com/Documentation/Splunk).
 
-* For more about this SDK's repository, see our 
+* For more about this SDK's repository, see our
   [GitHub Wiki](https://github.com/splunk/splunk-sdk-python/wiki/).
 
 ## Community
@@ -284,24 +291,24 @@ If you would like to contribute to the SDK, go here for more information:
 
 ### Support
 
-1. You will be granted support if you or your company are already covered 
-   under an existing maintenance/support agreement. 
-   Submit a new case in the [Support Portal][contact] and include "Splunk SDK for Python" 
-   in the subject line.    
-2. If you are not covered under an existing maintenance/support agreement, you     
-   can find help through the broader community at:  
-   <ul>    
-   <li><a href='http://splunk-base.splunk.com/answers/'>Splunk Answers</a> (use     
-    the <b>sdk</b>, <b>java</b>, <b>python</b>, and <b>javascript</b> tags to   
-    identify your questions)</li>   
-   </ul>    
-3. Splunk will NOT provide support for SDKs if the core library (the    
-   code in the <b>/splunklib</b> directory) has been modified. If you modify an     
-   SDK and want support, you can find help through the broader community and    
-   Splunk answers (see above). We would also like to know why you modified the  
-   core library&mdash;please send feedback to devinfo@splunk.com. 
+1. You will be granted support if you or your company are already covered
+   under an existing maintenance/support agreement.
+   Submit a new case in the [Support Portal][contact] and include "Splunk SDK for Python"
+   in the subject line.
+2. If you are not covered under an existing maintenance/support agreement, you
+   can find help through the broader community at:
+   <ul>
+   <li><a href='http://splunk-base.splunk.com/answers/'>Splunk Answers</a> (use
+    the <b>sdk</b>, <b>java</b>, <b>python</b>, and <b>javascript</b> tags to
+    identify your questions)</li>
+   </ul>
+3. Splunk will NOT provide support for SDKs if the core library (the
+   code in the <b>/splunklib</b> directory) has been modified. If you modify an
+   SDK and want support, you can find help through the broader community and
+   Splunk answers (see above). We would also like to know why you modified the
+   core library&mdash;please send feedback to devinfo@splunk.com.
 4. File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
- 
+
 ### Contact Us
 
 You can [contact support][contact] if you have Splunk related questions.

@@ -170,10 +170,8 @@ class IndexTest(testlib.SDKTestCase):
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
+    @pytest.mark.app
     def test_upload(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection("file_to_upload")
 
         event_count = int(self.index['totalEventCount'])

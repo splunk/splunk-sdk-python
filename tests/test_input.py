@@ -28,6 +28,8 @@ except ImportError:
 
 import splunklib.client as client
 
+import pytest
+
 
 def highest_port(service, base_port, *kinds):
     """Find the first port >= base_port not in use by any input in kinds."""
@@ -164,10 +166,8 @@ class TestRead(testlib.SDKTestCase):
         found = [x.name for x in self.service.inputs.list('monitor', search=search)]
         self.assertEqual(expected, found)
 
+    @pytest.mark.app
     def test_oneshot(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection('file_to_upload')
 
         index_name = testlib.tmpname()
@@ -225,25 +225,19 @@ class TestInput(testlib.SDKTestCase):
         for input in input_list:
             self.assertTrue(input.name is not None)
 
+    @pytest.mark.app
     def test_lists_modular_inputs(self):
-        if self.service.splunk_version[0] < 5:
-            print("Modular inputs don't exist prior to Splunk 5.0. Skipping.")
-            return
-        elif not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
-        else:
-            # Install modular inputs to list, and restart
-            # so they'll show up.
-            self.install_app_from_collection("modular-inputs")
-            self.uncheckedRestartSplunk()
+        # Install modular inputs to list, and restart
+        # so they'll show up.
+        self.install_app_from_collection("modular-inputs")
+        self.uncheckedRestartSplunk()
 
-            inputs = self.service.inputs
-            if ('abcd','test2') not in inputs:
-                inputs.create('abcd', 'test2', field1='boris')
+        inputs = self.service.inputs
+        if ('abcd','test2') not in inputs:
+            inputs.create('abcd', 'test2', field1='boris')
 
-            input = inputs['abcd', 'test2']
-            self.assertEqual(input.field1, 'boris')
+        input = inputs['abcd', 'test2']
+        self.assertEqual(input.field1, 'boris')
 
     def test_create(self):
         inputs = self.service.inputs

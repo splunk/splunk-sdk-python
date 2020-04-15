@@ -1,37 +1,40 @@
 @Library('jenkinstools@master') _
-
 withSplunkWrapNode('master') {
     def orcaVersion = "1.0.5"
-
     stage('Build and Test'){
-
         echo "Before checkout"
         def functionalJobs = [:]
-
         def jobName = "Python-SDK"
         functionalJobs[jobName] = {
-            withCredentials([file(credentialsId: 'ucp_cicd_west_core2', variable: 'orcaTarFile')]) {
+            withCredentials([file(credentialsId: 'srv-devplat-cicd', variable: 'orcaTarFile')]) {
                 splunkFunctionalTest repoName: "https://github.com/splunk/splunk-sdk-python.git",
                                 branchName: "${env.BRANCH_NAME}",
-                                imageName: "repo.splunk.com/splunk/infra/centos_py2py3",
+                                imageName: "repo.splunk.com/splunk/py2py3_orca_tox:latest",
                                 runner: "userScript",
                                 reportPrefix: "Enterprise_SDK",
                                 orcaCredentialId: "ucp_cicd_west_core2",
                                 debugMode: "",
+                                jobTimeoutMinutes: 1440,
                                 files:"$orcaTarFile:orca.tar",
                                 script: """#!/bin/bash
-                                        cd /tmp/ && git clone "https://github.com/splunk/splunk-sdk-python.git" && cd splunk-sdk-python && \
+                                        git clone "https://github.com/splunk/splunk-sdk-python.git" && cd splunk-sdk-python && \
                                         git checkout "${env.BRANCH_NAME}" && \
+                                        tox --version && \
                                         tar xvf /build/orca.tar -C ~ && \
+                                        orca -qqq --printer sdd-json create --splunk-version 7.2.10 --apps sdk-app-collection::https://repo.splunk.com/artifactory/Solutions/sdk-app-collection/legacy/sdk-app-collection.tar.gz | tee orca.json && \
+                                        echo "Running cat orca.json" && \
+                                        cat orca.json
+                                        echo "Output script into file"
+                                        cat orca.json | python scripts/build-splunkrc.py ~/.splunkrc && \
                                         ls -lah ~ && echo "the home directory is" && echo ~ && \
                                         ls &&  ls -lah /build && echo "I am:" && whoami && echo "python version" && python --version && sleep 30 && \
-                                        pip install https://repo.splunk.com/artifactory/pypi-remote-cache/7b/4b/a90a0a89db60fc39fc92e31e7da436177a12c06038973c8b7199f47b47c0/tox-3.14.6-py2.py3-none-any.whl && \
                                         ls && \
-                                        python scripts/build-splunkrc.py ~/.splunkrc && \
+                                        orca --version && \
                                         ls && orca --help  && \
                                         ls -lah && pwd && mkdir .tox && \
                                         tox -e py27,py37 -- -m smoke -v && \
                                         ls
+                                        =]]]
                                     """
             }
         }

@@ -16,13 +16,9 @@
 
 import sys
 import json
-try:
-    from urllib.parse import urlparse
-except ImportError:
-     from urlparse import urlparse
+import urllib.parse
 import os
-#from pathlib import Path
-from os.path import expanduser
+from pathlib import Path
 from string import Template
 
 DEFAULT_CONFIG = {
@@ -34,8 +30,7 @@ DEFAULT_CONFIG = {
     'version': '6.3'
 }
 
-home = expanduser("~")
-DEFAULT_SPLUNKRC_PATH = os.path.join(str(home), '.splunkrc')
+DEFAULT_SPLUNKRC_PATH = os.path.join(str(Path.home()), '.splunkrc')
 
 SPLUNKRC_TEMPLATE_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'templates/splunkrc.template')
@@ -79,24 +74,20 @@ def build_config(json_string):
             'version': splunk_config['version'],
         }
     except Exception as e:
-        raise ValueError('Invalid configuration JSON string') #from e
-
+        raise ValueError('Invalid configuration JSON string') from e
 
 # Source: https://stackoverflow.com/a/53172593
 def parse_hostport(host_port):
     # urlparse() and urlsplit() insists on absolute URLs starting with "//"
-    result = urlparse.urlsplit('//' + host_port)
+    result = urllib.parse.urlsplit('//' + host_port)
     return result.hostname, result.port
-
 
 def run(variable, splunkrc_path=None):
     # read JSON from input
     # parse the JSON
     input_config = build_config(variable) if variable else DEFAULT_CONFIG
 
-    # config = {**DEFAULT_CONFIG, **input_config}
-    config = DEFAULT_CONFIG.copy()
-    config.update(input_config)
+    config = {**DEFAULT_CONFIG, **input_config}
 
     # build a splunkrc file
     with open(SPLUNKRC_TEMPLATE_PATH, 'r') as f:
@@ -112,7 +103,6 @@ def run(variable, splunkrc_path=None):
     # write the .splunkrc file
     with open(splunkrc_path, 'w') as f:
         f.write(splunkrc_string)
-
 
 if sys.stdin.isatty():
     DATA = None

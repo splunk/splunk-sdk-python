@@ -1,8 +1,6 @@
 @Library('jenkinstools@master') _
 withSplunkWrapNode('master') {
-    def orcaVersion = "1.0.5"
     stage('Build and Test'){
-        echo "Before checkout"
         def functionalJobs = [:]
         def jobName = "Python-SDK"
         functionalJobs[jobName] = {

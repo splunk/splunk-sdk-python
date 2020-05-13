@@ -161,7 +161,7 @@ To get help for an example, use the `--help` argument with an example:
 The Splunk SDK for Python contains a collection of unit tests. To run them, open a
 command prompt in the **/splunk-sdk-python** directory and enter:
 
-    make test
+    make
 
 You can also run individual test files, which are located in
 **/splunk-sdk-python/tests**. The following command explains how to run
@@ -172,7 +172,9 @@ a specific test:
 The test suite uses Python's standard library, the built-in `unittest`
 library, `pytest`, and `tox`.
 
-**Important Note:** The test run will fail unless the
+**Important Notes:**
+
+The test run will fail unless the
 [SDK App Collection](https://github.com/splunk/sdk-app-collection) is installed.
 
 You can exclude app-specific tests with the following command:
@@ -181,6 +183,10 @@ You can exclude app-specific tests with the following command:
 
 You can read more about our testing framework on
 [GitHub](https://github.com/splunk/splunk-sdk-python/tree/master/tests).
+
+In addition, the test run requires the searchcommands app to be built. The `make`
+command runs the tasks to do this, but more complex testing may require you to
+rebuild using `make build_app`.
 
 ## Repository
 

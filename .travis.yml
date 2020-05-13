@@ -29,17 +29,17 @@ before_install:
     - export SPLUNK_HOME=`pwd`/splunk_home
     - mkdir -p $SPLUNK_HOME/var/log/splunk
 
+language: python
+
 env:
     - SPLUNK_VERSION=7.3-sdk
     - SPLUNK_VERSION=8.0-sdk
-
-language: python
 
 python:
   - "2.7"
   - "3.7"
 
-install: pip install tox
+install: pip install tox-travis
 
 before_script: python setup.py build dist
 

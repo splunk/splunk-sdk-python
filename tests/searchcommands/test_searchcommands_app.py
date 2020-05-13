@@ -164,17 +164,18 @@ class TestSearchCommandsApp(TestCase):
     def test_countmatches_as_unit(self):
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='execute', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches')
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
         return
@@ -183,17 +184,17 @@ class TestSearchCommandsApp(TestCase):
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='execute', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_insensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello')
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output, time_sensitive=False)
 
         return
@@ -203,17 +204,17 @@ class TestSearchCommandsApp(TestCase):
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='execute', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_insensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('pypygeneratetext')
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output, time_sensitive=False)
 
         return
@@ -222,32 +223,32 @@ class TestSearchCommandsApp(TestCase):
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors)
+        self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
         return

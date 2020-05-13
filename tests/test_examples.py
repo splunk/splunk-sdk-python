@@ -34,6 +34,9 @@ from tests import testlib
 import splunklib.client as client
 from splunklib import six
 
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
+BUILD_PATH = os.path.join(DIR_PATH, '..', 'build')
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -62,7 +65,7 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     if isinstance(script, str):
         script = script.split()
     script = ["python"] + script
-    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
+    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd=EXAMPLES_PATH)
 
 
 # Rudimentary sanity check for each of the examples
@@ -79,7 +82,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
-    @unittest.skipIf(six.PY3, "Async needs work to support Python 3")
+    @pytest.mark.skipif(six.PY3, reason="Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
         self.assertEqual(result, 0)
@@ -94,7 +97,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             pass
 
     def test_build_dir_exists(self):
-        self.assertTrue(os.path.exists("../build"), 'Run setup.py build, then setup.py dist')
+        self.assertTrue(os.path.exists(BUILD_PATH), 'Run setup.py build, then setup.py dist')
 
     def test_binding1(self):
         result = run("binding1.py")
@@ -264,7 +267,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def test_analytics(self):
         # We have to add the current path to the PYTHONPATH,
         # otherwise the import doesn't work quite right
-        sys.path.append(os.getcwd())
+        sys.path.append(EXAMPLES_PATH)
         import analytics
 
         # Create a tracker

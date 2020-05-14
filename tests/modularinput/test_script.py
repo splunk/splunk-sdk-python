@@ -231,5 +231,3 @@ def test_service_property(capsys):
         assert output.err == ""
         assert isinstance(script.service, Service)
         assert script.service.authority == script.authority_uri
-        # self.test.assertIsInstance(service, Service)
-        # self.test.assertEqual(str(service.authority), inputs.metadata['server_uri'])

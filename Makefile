@@ -16,10 +16,15 @@ COMMITHASH := `git rev-parse --short HEAD 2>/dev/null`
 DATE := `date "+%FT%T%z"`
 
 .PHONY: all
-all: test
+all: build_app test
 
 init:
 	@echo "$(ATTN_COLOR)==> init $(NO_COLOR)"
+
+.PHONY: build_app
+build_app:
+	@echo "$(ATTN_COLOR)==> build_app $(NO_COLOR)"
+	@python setup.py build dist
 
 .PHONY: test
 test:

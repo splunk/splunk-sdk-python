@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import sys
 
 from io import TextIOWrapper, TextIOBase
-from splunklib.six import ensure_text
+from splunklib.six import ensure_str
 from .event import ET
 
 try:
@@ -43,15 +43,8 @@ class EventWriter(object):
         :param output: Where to write the output; defaults to sys.stdout.
         :param error: Where to write any errors; defaults to sys.stderr.
         """
-        if isinstance(output, TextIOBase):
-            self._out = output
-        else:
-            self._out = TextIOWrapper(output)
-
-        if isinstance(error, TextIOBase):
-            self._err = error
-        else:
-            self._err = TextIOWrapper(error)
+        self._out = output
+        self._err = error
 
         # has the opening <stream> tag been written yet?
         self.header_written = False
@@ -63,7 +56,7 @@ class EventWriter(object):
         """
 
         if not self.header_written:
-            self._out.write(ensure_text("<stream>"))
+            self._out.write("<stream>")
             self.header_written = True
 
         event.write_to(self._out)
@@ -71,10 +64,12 @@ class EventWriter(object):
     def log(self, severity, message):
         """Logs messages about the state of this modular input to Splunk.
         These messages will show up in Splunk's internal logs.
+
         :param severity: ``string``, severity of message, see severities defined as class constants.
         :param message: ``string``, message to log.
         """
-        self._err.write(ensure_text("%s %s\n" % (severity, message)))
+
+        self._err.write("%s %s\n" % (severity, message))
         self._err.flush()
 
     def write_xml_document(self, document):
@@ -83,11 +78,10 @@ class EventWriter(object):
 
         :param document: An ``ElementTree`` object.
         """
-        data = ET.tostring(document)
-        self._out.write(ensure_text(data))
+        self._out.write(ensure_str(ET.tostring(document)))
         self._out.flush()
 
     def close(self):
         """Write the closing </stream> tag to make this XML well formed."""
-        self._out.write(ensure_text("</stream>"))
+        self._out.write("</stream>")
         self._out.flush()

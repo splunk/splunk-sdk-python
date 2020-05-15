@@ -15,143 +15,139 @@
 # under the License.
 
 from __future__ import absolute_import
+
+import sys
+
+import pytest
+
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
-from io import BytesIO, TextIOWrapper
-
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except ImportError:
-    from splunklib.six import StringIO
 
 
-class EventTestCase(unittest.TestCase):
-    def test_event_without_enough_fields_fails(self):
-        """Check that events without data throw an error"""
-        with self.assertRaises(ValueError):
-            event = Event()
-            stream = StringIO()
-            event.write_to(stream)
-        self.assertTrue(True)
+def test_event_without_enough_fields_fails(capsys):
+    """Check that events without data throw an error"""
+    with pytest.raises(ValueError), capsys.disabled():
+        event = Event()
+        event.write_to(sys.stdout)
 
-    def test_xml_of_event_with_minimal_configuration(self):
-        """Generate XML from an event object with a small number of fields,
-        and see if it matches what we expect."""
-        stream = BytesIO()
+def test_xml_of_event_with_minimal_configuration(capsys):
+    """Generate XML from an event object with a small number of fields,
+    and see if it matches what we expect."""
 
-        event = Event(
-            data="This is a test of the emergency broadcast system.",
-            stanza="fubar",
-            time="%.3f" % 1372187084.000
-        )
+    event = Event(
+        data="This is a test of the emergency broadcast system.",
+        stanza="fubar",
+        time="%.3f" % 1372187084.000
+    )
 
-        event.write_to(stream)
+    event.write_to(sys.stdout)
 
-        constructed = ET.fromstring(stream.getvalue())
-        expected = ET.parse(data_open("data/event_minimal.xml")).getroot()
+    captured = capsys.readouterr()
+    constructed = ET.fromstring(captured.out)
+    with data_open("data/event_minimal.xml") as data:
+        expected = ET.parse(data).getroot()
 
-        self.assertTrue(xml_compare(expected, constructed))
+        assert xml_compare(expected, constructed)
 
-    def test_xml_of_event_with_more_configuration(self):
-        """Generate XML from an even object with all fields set, see if
-        it matches what we expect"""
-        stream = BytesIO()
+def test_xml_of_event_with_more_configuration(capsys):
+    """Generate XML from an even object with all fields set, see if
+    it matches what we expect"""
 
-        event = Event(
-            data="This is a test of the emergency broadcast system.",
-            stanza="fubar",
-            time="%.3f" % 1372274622.493,
-            host="localhost",
-            index="main",
-            source="hilda",
-            sourcetype="misc",
-            done=True,
-            unbroken=True
-        )
-        event.write_to(stream)
+    event = Event(
+        data="This is a test of the emergency broadcast system.",
+        stanza="fubar",
+        time="%.3f" % 1372274622.493,
+        host="localhost",
+        index="main",
+        source="hilda",
+        sourcetype="misc",
+        done=True,
+        unbroken=True
+    )
+    event.write_to(sys.stdout)
 
-        constructed = ET.fromstring(stream.getvalue())
-        expected = ET.parse(data_open("data/event_maximal.xml")).getroot()
+    captured = capsys.readouterr()
 
-        self.assertTrue(xml_compare(expected, constructed))
+    constructed = ET.fromstring(captured.out)
+    with data_open("data/event_maximal.xml") as data:
+        expected = ET.parse(data).getroot()
 
-    def test_writing_events_on_event_writer(self):
-        """Write a pair of events with an EventWriter, and ensure that they
-        are being encoded immediately and correctly onto the output stream"""
-        out = BytesIO()
-        err = BytesIO()
+        assert xml_compare(expected, constructed)
 
-        ew = EventWriter(out, err)
+def test_writing_events_on_event_writer(capsys):
+    """Write a pair of events with an EventWriter, and ensure that they
+    are being encoded immediately and correctly onto the output stream"""
 
-        e = Event(
-            data="This is a test of the emergency broadcast system.",
-            stanza="fubar",
-            time="%.3f" % 1372275124.466,
-            host="localhost",
-            index="main",
-            source="hilda",
-            sourcetype="misc",
-            done=True,
-            unbroken=True
-        )
+    ew = EventWriter(sys.stdout, sys.stderr)
+
+    e = Event(
+        data="This is a test of the emergency broadcast system.",
+        stanza="fubar",
+        time="%.3f" % 1372275124.466,
+        host="localhost",
+        index="main",
+        source="hilda",
+        sourcetype="misc",
+        done=True,
+        unbroken=True
+    )
+    ew.write_event(e)
+
+    captured = capsys.readouterr()
+
+    first_out_part = captured.out
+
+    with data_open("data/stream_with_one_event.xml") as data:
+        found = ET.fromstring("%s</stream>" % first_out_part)
+        expected = ET.parse(data).getroot()
+
+        assert xml_compare(expected, found)
+        assert captured.err == ""
+
+    ew.write_event(e)
+    ew.close()
+
+    captured = capsys.readouterr()
+    with data_open("data/stream_with_two_events.xml") as data:
+        found = ET.fromstring(first_out_part + captured.out)
+        expected = ET.parse(data).getroot()
+
+        assert xml_compare(expected, found)
+
+def test_error_in_event_writer():
+    """An event which cannot write itself onto an output stream
+    (such as because it doesn't have a data field set)
+    should write an error. Check that it does so."""
+
+    ew = EventWriter(sys.stdout, sys.stderr)
+    e = Event()
+    with pytest.raises(ValueError) as excinfo:
         ew.write_event(e)
+    assert str(excinfo.value) == "Events must have at least the data field set to be written to XML."
 
-        found = ET.fromstring("%s</stream>" % out.getvalue().decode('utf-8'))
-        expected = ET.parse(data_open("data/stream_with_one_event.xml")).getroot()
+def test_logging_errors_with_event_writer(capsys):
+    """Check that the log method on EventWriter produces the
+    expected error message."""
 
-        self.assertTrue(xml_compare(expected, found))
-        self.assertEqual(err.getvalue(), b"")
+    ew = EventWriter(sys.stdout, sys.stderr)
 
-        ew.write_event(e)
-        ew.close()
+    ew.log(EventWriter.ERROR, "Something happened!")
 
-        found = ET.fromstring(out.getvalue())
-        expected = ET.parse(data_open("data/stream_with_two_events.xml")).getroot()
+    captured = capsys.readouterr()
+    assert captured.err == "ERROR Something happened!\n"
 
-        self.assertTrue(xml_compare(expected, found))
+def test_write_xml_is_sane(capsys):
+    """Check that EventWriter.write_xml_document writes sensible
+    XML to the output stream."""
 
-    def test_error_in_event_writer(self):
-        """An event which cannot write itself onto an output stream
-        (such as because it doesn't have a data field set)
-        should write an error. Check that it does so."""
-        out = BytesIO()
-        err = BytesIO()
+    ew = EventWriter(sys.stdout, sys.stderr)
 
-        ew = EventWriter(out, err)
-        e = Event()
-        try:
-            ew.write_event(e)
-            self.assertTrue(False)
-        except ValueError as e:
-            self.assertEqual("Events must have at least the data field set to be written to XML.", str(e))
-
-    def test_logging_errors_with_event_writer(self):
-        """Check that the log method on EventWriter produces the
-        expected error message."""
-        out = BytesIO()
-        err = BytesIO()
-
-        ew = EventWriter(out, err)
-
-        ew.log(EventWriter.ERROR, "Something happened!")
-
-        self.assertEqual(b"ERROR Something happened!\n", err.getvalue())
-
-    def test_write_xml_is_sane(self):
-        """Check that EventWriter.write_xml_document writes sensible
-        XML to the output stream."""
-        out = BytesIO()
-        err = BytesIO()
-
-        ew = EventWriter(out, err)
-
-        expected_xml = ET.parse(data_open("data/event_maximal.xml")).getroot()
+    with data_open("data/event_maximal.xml") as data:
+        expected_xml = ET.parse(data).getroot()
 
         ew.write_xml_document(expected_xml)
-        found_xml = ET.fromstring(out.getvalue())
+        captured = capsys.readouterr()
+        found_xml = ET.fromstring(captured.out)
 
-        self.assertTrue(xml_compare(expected_xml, found_xml))
-
-if __name__ == "__main__":
-    unittest.main()
+        assert xml_compare(expected_xml, found_xml)

@@ -34,6 +34,8 @@ import splunklib.results as results
 
 from splunklib.binding import _log_duration, HTTPError
 
+import pytest
+
 # TODO: Determine if we should be importing ExpatError if ParseError is not avaialble (e.g., on Python 2.6)
 # There's code below that now catches SyntaxError instead of ParseError. Should we be catching ExpathError instead?
 
@@ -214,10 +216,8 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             self.job.cancel()
             self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
 
+    @pytest.mark.app
     def test_enable_preview(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
         self.query = "search index=_internal | sleep %d" % sleep_duration
@@ -240,10 +240,8 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         self.assertEventuallyTrue(is_preview_enabled)
         return
 
+    @pytest.mark.app
     def test_setpriority(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection("sleep_command")
         sleep_duration = 100
         self.query = "search index=_internal | sleep %s" % sleep_duration

@@ -30,7 +30,9 @@ from splunklib.searchcommands.decorators import Configuration
 from unittest import main, TestCase
 from splunklib import six
 
+import pytest
 
+@pytest.mark.smoke
 class TestConfigurationSettings(TestCase):
 
     def test_generating_command(self):

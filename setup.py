@@ -36,7 +36,7 @@ def run_test_suite():
     def mark_failed():
         global failed
         failed = True
-    
+
     class _TrackingTextTestResult(unittest._TextTestResult):
         def addError(self, test, err):
             unittest._TextTestResult.addError(self, test, err)
@@ -50,14 +50,14 @@ def run_test_suite():
         def _makeResult(self):
             return _TrackingTextTestResult(
                 self.stream, self.descriptions, self.verbosity)
-        
+
     original_cwd = os.path.abspath(os.getcwd())
     os.chdir('tests')
     suite = unittest.defaultTestLoader.discover('.')
     runner = TrackingTextTestRunner(verbosity=2)
     runner.run(suite)
     os.chdir(original_cwd)
-    
+
     return failed
 
 
@@ -205,7 +205,7 @@ class DistCommand(Command):
             target = os.path.join('build', tarball)
 
             shutil.copyfile(source, target)
-            
+
         return
 
 setup(

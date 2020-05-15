@@ -22,19 +22,27 @@ import sys
 
 import io
 
-import unittest2
+try:
+    import unittest
+except ImportError:
+    import unittest2 as unittest
+
+import pytest
 
 from tests import testlib
 
 import splunklib.client as client
 from splunklib import six
 
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
+BUILD_PATH = os.path.join(DIR_PATH, '..', 'build')
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    testcase.assertTrue(isinstance(first, six.string_types), 
+    testcase.assertTrue(isinstance(first, six.string_types),
         'First argument is not a string')
-    testcase.assertTrue(isinstance(second, six.string_types), 
+    testcase.assertTrue(isinstance(second, six.string_types),
         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
@@ -43,7 +51,7 @@ def check_multiline(testcase, first, second, message=None):
         testcase.fail("Multiline strings are not equal: %s" % message)
 
 
-# Run the given python script and return its exit code. 
+# Run the given python script and return its exit code.
 def run(script, stdin=None, stdout=PIPE, stderr=None):
     process = start(script, stdin, stdout, stderr)
     process.communicate()
@@ -57,7 +65,7 @@ def start(script, stdin=None, stdout=PIPE, stderr=None):
     if isinstance(script, str):
         script = script.split()
     script = ["python"] + script
-    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd='../examples')
+    return Popen(script, stdin=stdin, stdout=stdout, stderr=stderr, cwd=EXAMPLES_PATH)
 
 
 # Rudimentary sanity check for each of the examples
@@ -65,7 +73,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEquals(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
+            self.assertEqual(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
@@ -74,26 +82,26 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
-    @unittest2.skipIf(six.PY3, "Async needs work to support Python 3")
+    @pytest.mark.skipif(six.PY3, reason="Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
         try:
             # Only try running the async version of the test if eventlet
             # is present on the system
             import eventlet
             result = run("async/async.py async")
-            self.assertEquals(result, 0)
+            self.assertEqual(result, 0)
         except:
             pass
 
     def test_build_dir_exists(self):
-        self.assertTrue(os.path.exists("../build"), 'Run setup.py build, then setup.py dist')
+        self.assertTrue(os.path.exists(BUILD_PATH), 'Run setup.py build, then setup.py dist')
 
     def test_binding1(self):
         result = run("binding1.py")
-        self.assertEquals(result, 0)
+        self.assertEqual(result, 0)
 
     def test_conf(self):
         try:
@@ -121,12 +129,12 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "event_types.py --help",
             "event_types.py")
-        
+
     def test_fired_alerts(self):
         self.check_commands(
             "fired_alerts.py --help",
             "fired_alerts.py")
-        
+
     def test_follow(self):
         self.check_commands("follow.py --help")
 
@@ -140,7 +148,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Run the cert handler example with a bad cert file, should error.
         result = run(
-            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem", 
+            "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem",
             stderr=PIPE)
         self.assertNotEquals(result, 0)
 
@@ -156,7 +164,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         #     try:
         #         time.sleep(5) # Wait for proxy to finish initializing
         #         result = run("handlers/handler_proxy.py --proxy=localhost:8080")
-        #         self.assertEquals(result, 0)
+        #         self.assertEqual(result, 0)
         #     finally:
         #         process.kill()
 
@@ -185,7 +193,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "inputs.py --help",
             "inputs.py")
-        
+
     def test_job(self):
         self.check_commands(
             "job.py --help",
@@ -197,7 +205,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "kvstore.py --help",
             "kvstore.py")
-        
+
     def test_loggers(self):
         self.check_commands(
             "loggers.py --help",
@@ -210,7 +218,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "saved_searches.py --help",
             "saved_searches.py")
-    
+
     def test_saved_search(self):
         temp_name = testlib.tmpname()
         self.check_commands(
@@ -227,7 +235,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         self.check_commands(
             "search.py --help",
             ["search.py", "search * | head 10"],
-            ["search.py", 
+            ["search.py",
              "search * | head 10 | stats count", '--output_mode=csv'])
 
     def test_spcmd(self):
@@ -259,7 +267,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def test_analytics(self):
         # We have to add the current path to the PYTHONPATH,
         # otherwise the import doesn't work quite right
-        sys.path.append(os.getcwd())
+        sys.path.append(EXAMPLES_PATH)
         import analytics
 
         # Create a tracker
@@ -271,7 +279,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Before we start, we'll clean the index
         index = service.indexes["sdk-test"]
         index.clean()
-        
+
         tracker.track("test_event", distinct_id="abc123", foo="bar", abc="123")
         tracker.track("test_event", distinct_id="123abc", abc="12345")
 
@@ -280,13 +288,13 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(
-            "sdk-test", self.opts.kwargs, index = "sdk-test")    
-        
+            "sdk-test", self.opts.kwargs, index = "sdk-test")
+
         # Assert applications
         applications = retriever.applications()
-        self.assertEquals(len(applications), 1)
-        self.assertEquals(applications[0]["name"], "sdk-test")
-        self.assertEquals(applications[0]["count"], 2)
+        self.assertEqual(len(applications), 1)
+        self.assertEqual(applications[0]["name"], "sdk-test")
+        self.assertEqual(applications[0]["count"], 2)
 
         # Assert events
         events = retriever.events()
@@ -319,17 +327,17 @@ class ExamplesTestCase(testlib.SDKTestCase):
             count = value["count"]
             self.assertTrue(name in list(expected_property_values.keys()))
             self.assertEqual(count, expected_property_values[name])
-            
+
         # Assert event over time
         over_time = retriever.events_over_time(
             time_range = analytics.output.TimeRange.MONTH)
-        self.assertEquals(len(over_time), 1)
-        self.assertEquals(len(over_time["test_event"]), 1)
-        self.assertEquals(over_time["test_event"][0]["count"], 2)
+        self.assertEqual(len(over_time), 1)
+        self.assertEqual(len(over_time["test_event"]), 1)
+        self.assertEqual(over_time["test_event"][0]["count"], 2)
 
-        # Now that we're done, we'll clean the index 
+        # Now that we're done, we'll clean the index
         index.clean()
- 
+
 if __name__ == "__main__":
     os.chdir("../examples")
     try:

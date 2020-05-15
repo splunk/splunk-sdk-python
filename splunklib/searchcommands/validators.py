@@ -95,7 +95,12 @@ class Code(Validator):
         try:
             return Code.object(compile(value, 'string', self._mode), six.text_type(value))
         except (SyntaxError, TypeError) as error:
-            raise ValueError(error.message)
+            if six.PY2:
+                message = error.message
+            else:
+                message = str(error)
+
+            six.raise_from(ValueError(message), error)
 
     def format(self, value):
         return None if value is None else value.source

@@ -1,5 +1,10 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.13
+
+### Bug fix
+* Fixes regression in mod inputs which resulted in an error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.  
+
 ## Version 1.6.12
 
 ### New features and APIs

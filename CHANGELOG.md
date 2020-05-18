@@ -3,7 +3,10 @@
 ## Version 1.6.13
 
 ### Bug fix
-* Fixes regression in mod inputs which resulted in an error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.  
+* Fixed regression in mod inputs which resulted in error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.  
+
+### Minor changes
+* Minor updates to the splunklib search commands to support Python3 
 
 ## Version 1.6.12
 

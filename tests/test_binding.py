@@ -37,6 +37,8 @@ from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 import splunklib.data as data
 from splunklib import six
 
+import pytest
+
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"
 
@@ -313,6 +315,7 @@ class TestUnicodeConnect(BindingTestCase):
         response = context.get("/services")
         self.assertEqual(response.status, 200)
 
+@pytest.mark.smoke
 class TestAutologin(BindingTestCase):
     def test_with_autologin(self):
         self.context.autologin = True
@@ -486,6 +489,7 @@ class TestPluggableHTTP(testlib.SDKTestCase):
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
 
+@pytest.mark.smoke
 class TestLogout(BindingTestCase):
     def test_logout(self):
         response = self.context.get("/services")
@@ -524,6 +528,7 @@ class TestCookieAuthentication(unittest.TestCase):
             if obj is None:
                 raise self.failureException(msg or '%r is not None' % obj)
 
+    @pytest.mark.smoke
     def test_cookie_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
         self.assertNotEqual(self.context._auth_headers, [])
@@ -532,12 +537,14 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][0], "Cookie")
         self.assertEqual(self.context._auth_headers[0][1][:8], "splunkd_")
 
+    @pytest.mark.smoke
     def test_got_cookie_on_connect(self):
         self.assertIsNotNone(self.context.get_cookies())
         self.assertNotEqual(self.context.get_cookies(), {})
         self.assertEqual(len(self.context.get_cookies()), 1)
         self.assertEqual(list(self.context.get_cookies().keys())[0][:8], "splunkd_")
 
+    @pytest.mark.smoke
     def test_cookie_with_autologin(self):
         self.context.autologin = True
         self.assertEqual(self.context.get("/services").status, 200)
@@ -547,6 +554,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.context.get("/services").status, 200)
         self.assertTrue(self.context.has_cookies())
 
+    @pytest.mark.smoke
     def test_cookie_without_autologin(self):
         self.context.autologin = False
         self.assertEqual(self.context.get("/services").status, 200)
@@ -556,6 +564,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
 
+    @pytest.mark.smoke
     def test_got_updated_cookie_with_get(self):
         old_cookies = self.context.get_cookies()
         resp = self.context.get("apps/local")
@@ -605,6 +614,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
             self.assertEqual(new_context.get("apps/local").status, 200)
 
+    @pytest.mark.smoke
     def test_login_fails_without_cookie_or_token(self):
         opts = {
             'host': self.opts.kwargs['host'],
@@ -694,6 +704,7 @@ class TestNamespace(unittest.TestCase):
     def test_namespace_fails(self):
         self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
+@pytest.mark.smoke
 class TestBasicAuthentication(unittest.TestCase):
     def setUp(self):
         self.opts = testlib.parse([], {}, ".splunkrc")
@@ -720,6 +731,7 @@ class TestBasicAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][1][:6], "Basic ")
         self.assertEqual(self.context.get("/services").status, 200)
 
+@pytest.mark.smoke
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):
         token = self.context.token

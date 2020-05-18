@@ -28,9 +28,11 @@ import tempfile
 from splunklib import six
 from splunklib.six.moves import range
 
+import pytest
+
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
-
+@pytest.mark.smoke
 class TestValidators(TestCase):
 
     def setUp(self):
@@ -50,8 +52,8 @@ class TestValidators(TestCase):
 
         for value in truth_values:
             for variant in value, value.capitalize(), value.upper():
-                for s in six.text_type(variant), bytes(variant):
-                    self.assertEqual(validator.__call__(s), truth_values[value])
+                s = six.text_type(variant)
+                self.assertEqual(validator.__call__(s), truth_values[value])
 
         self.assertIsNone(validator.__call__(None))
         self.assertRaises(ValueError, validator.__call__, 'anything-else')
@@ -66,15 +68,15 @@ class TestValidators(TestCase):
         validator = validators.Duration()
 
         for seconds in range(0, 25 * 60 * 60, 59):
-            for value in six.text_type(seconds), bytes(seconds):
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
-                value = '%d:%02d' % (seconds / 60, seconds % 60)
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
-                value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = six.text_type(seconds)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d' % (seconds / 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
 
         self.assertEqual(validator('230:00:00'), 230 * 60 * 60)
         self.assertEqual(validator('23:00:00'), 23 * 60 * 60)
@@ -246,9 +248,11 @@ class TestValidators(TestCase):
         pass
 
     def test_regular_expression(self):
-
         validator = validators.RegularExpression()
-        self.assertIsInstance(validator.__call__('a'), re._pattern_type)
+
+        # duck-type: act like it's a regex and allow failure if it isn't one
+        validator.__call__('a').match('a')
+
         self.assertEqual(validator.__call__(None), None)
         self.assertRaises(ValueError, validator.__call__, '(a')
 

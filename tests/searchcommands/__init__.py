@@ -19,27 +19,22 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from sys import version_info as python_version
 
-if not (python_version[0] == 2 and python_version[1] == 7):
-    def load_tests(loader, tests, pattern):
-        return
-else:
-    from os import path
-    import logging
+from os import path
+import logging
 
-    from splunklib.searchcommands import environment
-    from splunklib import searchcommands
+from splunklib.searchcommands import environment
+from splunklib import searchcommands
 
-    package_directory = path.dirname(path.realpath(__file__))
-    project_root = path.dirname(path.dirname(package_directory))
+package_directory = path.dirname(path.realpath(__file__))
+project_root = path.dirname(path.dirname(package_directory))
 
 
-    def rebase_environment(name):
+def rebase_environment(name):
+    environment.app_root = path.join(package_directory, 'apps', name)
+    logging.Logger.manager.loggerDict.clear()
+    del logging.root.handlers[:]
 
-        environment.app_root = path.join(package_directory, 'apps', name)
-        logging.Logger.manager.loggerDict.clear()
-        del logging.root.handlers[:]
-
-        environment.splunklib_logger, environment.logging_configuration = environment.configure_logging('splunklib')
-        searchcommands.logging_configuration = environment.logging_configuration
-        searchcommands.splunklib_logger = environment.splunklib_logger
-        searchcommands.app_root = environment.app_root
+    environment.splunklib_logger, environment.logging_configuration = environment.configure_logging('splunklib')
+    searchcommands.logging_configuration = environment.logging_configuration
+    searchcommands.splunklib_logger = environment.splunklib_logger
+    searchcommands.app_root = environment.app_root

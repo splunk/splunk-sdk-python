@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
 
+from splunklib import six
 from splunklib.six.moves import map as imap, filter as ifilter
 
 # P1 [O] TODO: Discuss generates_timeorder in the class-level documentation for GeneratingCommand
@@ -324,6 +325,8 @@ class GeneratingCommand(SearchCommand):
             if command.generate == GeneratingCommand.generate:
                 raise AttributeError('No GeneratingCommand.generate override')
 
+        # TODO: Stop looking like a dictionary because we don't obey the semantics
+        # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
             version = self.command.protocol_version
@@ -333,6 +336,10 @@ class GeneratingCommand(SearchCommand):
                     iteritems = imap(
                         lambda name_value: (name_value[0], 'stateful') if name_value[0] == 'type' else (name_value[0], name_value[1]), iteritems)
             return iteritems
+
+        # N.B.: Does not use Python 3 dict view semantics
+        if not six.PY2:
+            items = iteritems
 
         pass
         # endregion

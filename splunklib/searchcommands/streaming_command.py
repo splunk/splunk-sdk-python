@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from splunklib import six
 from splunklib.six.moves import map as imap, filter as ifilter
 
 from .decorators import ConfigurationSetting
@@ -172,6 +173,8 @@ class StreamingCommand(SearchCommand):
                 raise AttributeError('No StreamingCommand.stream override')
             return
 
+        # TODO: Stop looking like a dictionary because we don't obey the semantics
+        # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
             version = self.command.protocol_version
@@ -184,5 +187,9 @@ class StreamingCommand(SearchCommand):
                     iteritems = imap(
                         lambda name_value1: (name_value1[0], 'stateful') if name_value1[0] == 'type' else (name_value1[0], name_value1[1]), iteritems)
             return iteritems
+
+        # N.B.: Does not use Python 3 dict view semantics
+        if not six.PY2:
+            items = iteritems
 
         # endregion

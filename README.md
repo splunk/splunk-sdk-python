@@ -21,7 +21,6 @@ The Splunk developer platform enables developers to take advantage of the same
 technology used by the Splunk product to build exciting new applications that
 are enabled by Splunk's unique capabilities.
 
-
 ## Getting started with the Splunk SDK for Python
 
 The Splunk SDK for Python contains library code and examples that show how to
@@ -45,7 +44,9 @@ The Splunk SDK for Python requires Python 2.7+, including Python 3. The Splunk S
 If you haven't already installed Splunk, download it
 [here](http://www.splunk.com/download). For more about installing and running
 Splunk and system requirements, see
-[Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). The Splunk SDK for Python has been tested with Splunk Enterprise 7.0 and 7.2.
+[Installing & Running Splunk](http://dev.splunk.com/view/SP-CAAADRV). The Splunk SDK for Python has been tested with Splunk Enterprise 7.3 and 8.0.
+
+You can also run `SPLUNK_VERSION=(VERSION) make up` to run a version of [Splunk from DockerHub](https://hub.docker.com/r/splunk/splunk/).
 
 #### Splunk SDK for Python
 Get the Splunk SDK for Python; [download the SDK as a ZIP](http://dev.splunk.com/view/SP-CAAAEBB)
@@ -74,6 +75,17 @@ Alternatively, you can use **setup.py** on the sources you cloned from GitHub:
 However, it's not necessary to install the libraries to run the
 examples and unit tests from the SDK.
 
+## Testing Quickstart
+
+You'll need `docker` and `docker-compose` to get up and running using this method.
+
+```
+SPLUNK_VERSION=8.0 make up
+make wait_up
+make splunkrc_default
+make test
+make down
+```
 
 ### Running the examples and unit tests
 

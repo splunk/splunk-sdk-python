@@ -12,14 +12,12 @@ before_install:
     - echo password=changed! >> $HOME/.splunkrc
     # Set SPLUNK_HOME
     - export SPLUNK_HOME="/opt/splunk"
-    # Pull docker image
-    - docker pull splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
     # Add DOCKER to iptables, 1/10 times this is needed, force 0 exit status
     - sudo iptables -N DOCKER || true
-    # Start Docker container
-    - docker run -p 127.0.0.1:8089:8089 -d splunk/splunk-sdk-travis-ci:$SPLUNK_VERSION
-    # curl Splunk until it returns valid data indicating it has been setup, try 20 times maximum
-    - for i in `seq 0 20`; do if curl --fail -k https://localhost:8089/services/server/info &> /dev/null; then break; fi; echo $i; sleep 1; done
+    # Start docker-compose in detached mode
+    - docker-compose up -d
+    # Health Check (3 minutes)
+    - for i in `seq 0 180`; do if docker exec -it splunk /sbin/checkstate.sh &> /dev/null; then break; fi; echo $i; sleep 1; done
     # The upload test needs to refer to a file that Splunk has in the docker
     # container
     - export INPUT_EXAMPLE_UPLOAD=$SPLUNK_HOME/var/log/splunk/splunkd_ui_access.log
@@ -32,8 +30,8 @@ before_install:
 language: python
 
 env:
-    - SPLUNK_VERSION=7.3-sdk
-    - SPLUNK_VERSION=8.0-sdk
+    - SPLUNK_VERSION=7.3
+    - SPLUNK_VERSION=8.0
 
 python:
   - "2.7"

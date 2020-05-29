@@ -80,7 +80,7 @@ examples and unit tests from the SDK.
 You'll need `docker` and `docker-compose` to get up and running using this method.
 
 ```
-SPLUNK_VERSION=8.0 make up
+make up SPLUNK_VERSION=8.0
 make wait_up
 make splunkrc_default
 make test

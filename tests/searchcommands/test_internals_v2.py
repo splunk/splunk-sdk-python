@@ -229,8 +229,10 @@ class TestInternals(TestCase):
 
         self.assertEqual(writer._chunk_count, 0)
         self.assertEqual(writer._record_count, 31)
+        self.assertEqual(writer.pending_record_count, 31)
         self.assertGreater(writer._buffer.tell(), 0)
         self.assertEqual(writer._total_record_count, 0)
+        self.assertEqual(writer.committed_record_count, 0)
         self.assertListEqual(writer._fieldnames, fieldnames)
         self.assertListEqual(writer._inspector['messages'], messages)
 
@@ -242,16 +244,18 @@ class TestInternals(TestCase):
 
         self.assertEqual(writer._chunk_count, 1)
         self.assertEqual(writer._record_count, 0)
+        self.assertEqual(writer.pending_record_count, 0)
         self.assertEqual(writer._buffer.tell(), 0)
         self.assertEqual(writer._buffer.getvalue(), '')
         self.assertEqual(writer._total_record_count, 31)
+        self.assertEqual(writer.committed_record_count, 31)
 
         self.assertRaises(AssertionError, writer.flush, finished=True, partial=True)
         self.assertRaises(AssertionError, writer.flush, finished='non-boolean')
         self.assertRaises(AssertionError, writer.flush, partial='non-boolean')
         self.assertRaises(AssertionError, writer.flush)
 
-        # For SCPv2 we should follow the finish negotiation protocol.
+        # P2 [ ] TODO: For SCPv2 we should follow the finish negotiation protocol.
         # self.assertRaises(RuntimeError, writer.write_record, {})
 
         self.assertFalse(writer._ofile.closed)

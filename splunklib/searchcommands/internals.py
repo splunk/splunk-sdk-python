@@ -35,6 +35,7 @@ import gzip
 import os
 import re
 import sys
+import warnings
 
 from . import environment
 
@@ -505,8 +506,8 @@ class RecordWriter(object):
 
         self._inspector = OrderedDict()
         self._chunk_count = 0
-        self._record_count = 0
-        self._total_record_count = 0
+        self._pending_record_count = 0
+        self._committed_record_count = 0
 
     @property
     def is_flushed(self):
@@ -523,6 +524,30 @@ class RecordWriter(object):
     @ofile.setter
     def ofile(self, value):
         self._ofile = set_binary_mode(value)
+
+    @property
+    def pending_record_count(self):
+        return self._pending_record_count
+
+    @property
+    def _record_count(self):
+        warnings.warn(
+            "_record_count will be deprecated soon. Use pending_record_count instead.",
+             PendingDeprecationWarning
+        )
+        return self.pending_record_count
+
+    @property
+    def committed_record_count(self):
+        return self._committed_record_count
+
+    @property
+    def _total_record_count(self):
+        warnings.warn(
+            "_total_record_count will be deprecated soon. Use committed_record_count instead.",
+             PendingDeprecationWarning
+        )
+        return self.committed_record_count
 
     def write(self, data):
         bytes_type = bytes if sys.version_info >= (3, 0) else str
@@ -555,7 +580,7 @@ class RecordWriter(object):
         self._buffer.seek(0)
         self._buffer.truncate()
         self._inspector.clear()
-        self._record_count = 0
+        self._pending_record_count = 0
 
     def _ensure_validity(self):
         if self._finished is True:
@@ -650,9 +675,9 @@ class RecordWriter(object):
             values += (repr(value), None)
 
         self._writerow(values)
-        self._record_count += 1
+        self._pending_record_count += 1
 
-        if self._record_count >= self._maxresultrows:
+        if self.pending_record_count >= self._maxresultrows:
             self.flush(partial=True)
 
     try:
@@ -689,7 +714,7 @@ class RecordWriterV1(RecordWriter):
 
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
 
-        if self._record_count > 0 or (self._chunk_count == 0 and 'messages' in self._inspector):
+        if self.pending_record_count > 0 or (self._chunk_count == 0 and 'messages' in self._inspector):
 
             messages = self._inspector.get('messages')
 
@@ -727,9 +752,9 @@ class RecordWriterV1(RecordWriter):
                     print(level, text, file=stderr)
 
             self.write(self._buffer.getvalue())
-            self._clear()
             self._chunk_count += 1
-            self._total_record_count += self._record_count
+            self._committed_record_count += self.pending_record_count
+            self._clear()
 
         self._finished = finished is True
 
@@ -758,7 +783,7 @@ class RecordWriterV2(RecordWriter):
 
     def write_chunk(self, finished=None):
         inspector = self._inspector
-        self._total_record_count += self._record_count
+        self._committed_record_count += self.pending_record_count
         self._chunk_count += 1
 
         # TODO: DVPL-6448: splunklib.searchcommands | Add support for partial: true when it is implemented in
@@ -766,16 +791,13 @@ class RecordWriterV2(RecordWriter):
         #
         # We will need to replace the following block of code with this block:
         #
-        # metadata = [
-        #     ('inspector', self._inspector if len(self._inspector) else None),
-        #     ('finished', finished),
-        #     ('partial', partial)]
+        # metadata = [item for item in (('inspector', inspector), ('finished', finished), ('partial', partial))]
+        #
+        # if partial is True:
+        #     finished = False
 
         if len(inspector) == 0:
             inspector = None
-
-        #if partial is True:
-        #    finished = False
 
         metadata = [item for item in (('inspector', inspector), ('finished', finished))]
         self._write_chunk(metadata, self._buffer.getvalue())
@@ -794,7 +816,7 @@ class RecordWriterV2(RecordWriter):
         self._inspector['metric.' + name] = value
 
     def _clear(self):
-        RecordWriter._clear(self)
+        super(RecordWriterV2, self)._clear()
         self._fieldnames = None
 
     def _write_chunk(self, metadata, body):

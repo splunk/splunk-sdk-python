@@ -776,7 +776,6 @@ class SearchCommand(object):
         # noinspection PyBroadException
         try:
             debug('Executing under protocol_version=2')
-            #self._records = self._records_protocol_v2
             self._metadata.action = 'execute'
             self._execute(ifile, None)
         except SystemExit:
@@ -951,9 +950,12 @@ class SearchCommand(object):
 
     def _execute_chunk_v2(self, process, chunk):
             metadata, body = chunk
-            if len(body) > 0:
-                records = self._read_csv_records(StringIO(body))
-                self._record_writer.write_records(process(records))
+
+            if len(body) <= 0:
+                return
+
+            records = self._read_csv_records(StringIO(body))
+            self._record_writer.write_records(process(records))
 
 
     def _report_unexpected_error(self):

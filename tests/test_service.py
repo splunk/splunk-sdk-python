@@ -184,7 +184,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(len(self.service.get_cookies()), 0)
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
-        self.assertNotEquals(self.service.get_cookies(), {})
+        self.assertNotEqual(self.service.get_cookies(), {})
         self.assertEqual(len(self.service.get_cookies()), 1)
 
     def test_login_with_cookie(self):

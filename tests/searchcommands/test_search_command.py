@@ -127,7 +127,7 @@ class TestSearchCommand(TestCase):
         result = BytesIO()
 
         self.assertRaises(SystemExit, command.process, argv, ofile=result)
-        self.assertRegexpMatches(result.getvalue().decode('UTF-8'), expected)
+        six.assertRegex(self, result.getvalue().decode('UTF-8'), expected)
 
         # TestCommand.process should return configuration settings on Getinfo probe
 
@@ -294,7 +294,8 @@ class TestSearchCommand(TestCase):
             command.process(argv, ifile, ofile=result)
         except SystemExit as error:
             self.assertNotEqual(error.code, 0)
-            self.assertRegexpMatches(
+            six.assertRegex(
+                self,
                 result.getvalue().decode('UTF-8'),
                 r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
         except BaseException as error:
@@ -318,7 +319,8 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail('Expected no exception, but caught {}: {}'.format(type(error).__name__, error))
         else:
-            self.assertRegexpMatches(
+            six.assertRegex(
+                self,
                 result.getvalue().decode('UTF-8'),
                 r'^\r\n'
                 r'('
@@ -705,7 +707,8 @@ class TestSearchCommand(TestCase):
                 r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
                 r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
-        self.assertRegexpMatches(
+        six.assertRegex(
+            self,
             result.getvalue().decode('utf-8'),
             r'^chunked 1.0,2,0\n'
             r'\{\}\n'

@@ -2086,10 +2086,6 @@ class Index(Entity):
         if source is not None: args['source'] = source
         if sourcetype is not None: args['sourcetype'] = sourcetype
 
-        # The reason we use service.request directly rather than POST
-        # is that we are not sending a POST request encoded using
-        # x-www-form-urlencoded (as we do not have a key=value body),
-        # because we aren't really sending a "form".
         self.service.post(PATH_RECEIVERS_SIMPLE, body=event, **args)
         return self
 

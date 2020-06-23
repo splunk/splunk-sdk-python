@@ -1,8 +1,12 @@
+import io
+import json
 import sys
 
+from mock import Mock, patch
+
+from splunklib import six
 from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
-import io
 
 from splunklib.modularinput.utils import xml_compare
 from tests.modularinput.modularinput_testlib import data_open
@@ -14,6 +18,17 @@ except ImportError:
 
 TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__"
 
+PATCHED_TELEMETRY_RESPONSE = {
+    'status': 201,
+    'reason': 'Created',
+    'body.read.return_value': six.ensure_binary(json.dumps({
+        'message': 'Data submitted successfully',
+        'metricValueID': '26844DB9-7806-40E0-96C0-1BD554930BA8'
+    })),
+    'headers': [
+        ('content-type', 'application/json; charset=UTF-8')
+    ]
+}
 
 def test_error_on_script_with_null_scheme(capsys):
     """A script that returns a null scheme should generate no output on
@@ -184,9 +199,12 @@ def test_write_events(capsys):
     script = NewScript()
     input_configuration = data_open("data/conf_with_2_inputs.xml")
 
-    ew = EventWriter(sys.stdout, sys.stderr)
+    event_writer = EventWriter(sys.stdout, sys.stderr)
 
-    return_value = script.run_script([TEST_SCRIPT_PATH], ew, input_configuration)
+    with patch.object(Service, 'post') as patched_telemetry_post:
+        patched_telemetry_post.return_value = Mock(**PATCHED_TELEMETRY_RESPONSE)
+
+        return_value = script.run_script([TEST_SCRIPT_PATH], event_writer, input_configuration)
 
     output = capsys.readouterr()
     assert output.err == ""
@@ -218,7 +236,12 @@ def test_service_property(capsys):
             self.authority_uri = inputs.metadata['server_uri']
 
     script = NewScript()
-    with data_open("data/conf_with_2_inputs.xml") as input_configuration:
+
+    with data_open("data/conf_with_2_inputs.xml") as input_configuration, \
+            patch.object(Service, 'post') as patched_telemetry_post:
+
+        patched_telemetry_post.return_value = Mock(**PATCHED_TELEMETRY_RESPONSE)
+
         ew = EventWriter(sys.stdout, sys.stderr)
 
         assert script.service is None

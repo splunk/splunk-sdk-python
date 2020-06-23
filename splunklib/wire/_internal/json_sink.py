@@ -44,6 +44,7 @@ class JsonSink(Entity):
         """
 
         response = self._post('', headers=self.__class__.JSON_HEADER, body=json.dumps(data))
+
         body = json.loads(response.body.read().decode('utf-8'))
 
         return response, body

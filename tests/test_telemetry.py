@@ -21,15 +21,10 @@ from tests import testlib
 from splunklib.wire._internal.telemetry import Telemetry
 from splunklib.wire._internal.telemetry_metric import TelemetryMetric
 
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-
 @pytest.mark.app
-class TelemetryTestCase(testlib.SDKTestCase):
+class TestTelemetry(testlib.SDKTestCase):
     def setUp(self):
-        super(TelemetryTestCase, self).setUp()
+        super(TestTelemetry, self).setUp()
 
         self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'sdk-app-collection'
@@ -51,10 +46,3 @@ class TelemetryTestCase(testlib.SDKTestCase):
 
         # it should return a 201
         self.assertEqual(response.status, 201)
-
-if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
-    unittest.main()

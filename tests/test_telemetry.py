@@ -18,8 +18,7 @@ from __future__ import absolute_import
 import pytest
 
 from tests import testlib
-from splunklib.wire._internal.telemetry import Telemetry
-from splunklib.wire._internal.telemetry_metric import TelemetryMetric
+from splunklib.wire._internal import Telemetry, EventTelemetryMetric, AggregateTelemetryMetric
 
 @pytest.mark.app
 class TestTelemetry(testlib.SDKTestCase):
@@ -33,12 +32,51 @@ class TestTelemetry(testlib.SDKTestCase):
 
     def test_submit(self):
         # create a telemetry metric
-        metric = TelemetryMetric(**{
-            'metric_type': 'event',
+        metric = EventTelemetryMetric(**{
             'component': 'telemetry_test_case',
             'data': {
                 'testValue': 32
             }
+        })
+
+        # call out to telemetry
+        response, _body = self.telemetry.submit(metric.to_wire())
+
+        # it should return a 201
+        self.assertEqual(response.status, 201)
+
+    def test_event_submit(self):
+        # create a telemetry metric
+        metric = EventTelemetryMetric(**{
+            'component': 'telemetry_test_case',
+            'data': {
+                'testValue': 32
+            },
+            'version': 'test',
+            'index_data': False,
+            'timestamp': 0,
+            'visibility': ['anonymous'],
+        })
+
+        # call out to telemetry
+        response, _body = self.telemetry.submit(metric.to_wire())
+
+        # it should return a 201
+        self.assertEqual(response.status, 201)
+
+    def test_aggregate_submit(self):
+        # create a telemetry metric
+        metric = AggregateTelemetryMetric(**{
+            'component': 'telemetry_test_case',
+            'data': {
+                'testValue': 32
+            },
+            'version': 'test',
+            'index_data': False,
+            'timestamp': 3,
+            'visibility': ['anonymous'],
+            'begin': 0,
+            'end': 1,
         })
 
         # call out to telemetry

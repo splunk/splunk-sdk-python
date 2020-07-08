@@ -25,7 +25,7 @@ from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
-from ..wire._internal import Telemetry, TelemetryMetric
+from ..wire._internal import Telemetry, EventTelemetryMetric
 
 try:
     import xml.etree.cElementTree as ET
@@ -76,8 +76,7 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 self._input_definition = InputDefinition.parse(input_stream)
 
                 # create a telemetry metric
-                metric = TelemetryMetric(**{
-                    'metric_type': 'event',
+                metric = EventTelemetryMetric(**{
                     'component': 'splunk-sdk-python',
                     'data': {
                         'version': splunklib.__version__

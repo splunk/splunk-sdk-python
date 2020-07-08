@@ -14,5 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from .aggregate_telemetry_metric import *
+from .event_telemetry_metric import *
 from .telemetry import *
-from .telemetry_metric import *

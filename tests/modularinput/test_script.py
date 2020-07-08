@@ -4,7 +4,7 @@ import sys
 
 from mock import Mock, patch
 
-from splunklib import six
+from splunklib import six, __version__
 from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
 
@@ -171,7 +171,6 @@ def test_failed_validation(capsys):
         assert xml_compare(expected, found)
         assert return_value != 0
 
-
 def test_write_events(capsys):
     """Check that passing an input definition and writing a couple events goes smoothly."""
 
@@ -216,6 +215,55 @@ def test_write_events(capsys):
 
         assert xml_compare(expected, found)
 
+
+def test_telemetry(capsys):
+    """Check that writing telemetry goes smoothly."""
+
+    EXPECTED_TELEMETRY_BODY = {
+        'type': 'event',
+        'component': 'splunk-sdk-python',
+        'data': {
+            'version': __version__,
+        },
+        'optInRequired': 2
+    }
+
+    # Override abstract methods
+    class NewScript(Script):
+        def get_scheme(self):
+            return None
+
+        def stream_events(self, _inputs, ew):
+            event = Event(
+                data="Test",
+            )
+
+            ew.write_event(event)
+
+    script = NewScript()
+    input_configuration = data_open("data/conf_with_2_inputs.xml")
+
+    event_writer = EventWriter(sys.stdout, sys.stderr)
+
+    with patch.object(Service, 'post') as patched_telemetry_post:
+        patched_telemetry_post.return_value = Mock(**PATCHED_TELEMETRY_RESPONSE)
+
+        return_value = script.run_script([TEST_SCRIPT_PATH], event_writer, input_configuration)
+
+        post_args, post_kwargs = patched_telemetry_post.call_args_list[0]
+
+        assert post_args == ('telemetry-metric/',)
+        assert post_kwargs == {
+            'app': None,
+            'body': json.dumps(EXPECTED_TELEMETRY_BODY),
+            'headers': [('Content-Type', 'application/json')],
+            'owner': None,
+            'sharing': None
+        }
+
+    output = capsys.readouterr()
+    assert output.err == ""
+    assert return_value == 0
 
 def test_service_property(capsys):
     """ Check that Script.service returns a valid Service instance as soon

@@ -14,12 +14,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-class TelemetryMetric:
-    def __init__(self, metric_type, component, data, opt_in_required=2):
+from abc import ABCMeta
+from splunklib import six
+
+class TelemetryMetric(six.with_metaclass(ABCMeta, object)):
+    def __init__(self, metric_type, component, data,
+                 opt_in_required=2,
+                 version=None,
+                 index_data=None,
+                 timestamp=None,
+                 visibility=None):
         self.metric_type = metric_type
         self.component = component
         self.data = data
         self.opt_in_required = opt_in_required
+        self.version = version
+        self.index_data = index_data
+        self.timestamp = timestamp
+        self.visibility = visibility
 
     @property
     def metric_type(self):
@@ -53,10 +65,56 @@ class TelemetryMetric:
     def opt_in_required(self, value):
         self._opt_in_required = value
 
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, value):
+        self._version = value
+
+    @property
+    def index_data(self):
+        return self._index_data
+
+    @index_data.setter
+    def index_data(self, value):
+        self._index_data = value
+
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self._timestamp = value
+
+    @property
+    def visibility(self):
+        return self._visibility
+
+    @visibility.setter
+    def visibility(self, value):
+        self._visibility = value
+
     def to_wire(self):
-        return {
+        wire = {
             'type': self.metric_type,
             'component': self.component,
             'data': self.data,
             'optInRequired': self.opt_in_required,
         }
+
+        if self.version is not None:
+            wire['version'] = self.version
+
+        if self.index_data is not None:
+            wire['indexData'] = self.index_data
+
+        if self.timestamp is not None:
+            wire['timestamp'] = self.timestamp
+
+        if self.visibility is not None:
+            wire['visibility'] = self.visibility
+
+        return wire

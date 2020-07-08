@@ -4,7 +4,7 @@ import sys
 
 from mock import Mock, patch
 
-from splunklib import six
+from splunklib import six, __version__
 from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
 
@@ -219,6 +219,15 @@ def test_write_events(capsys):
 def test_telemetry(capsys):
     """Check that writing telemetry goes smoothly."""
 
+    EXPECTED_TELEMETRY_BODY = {
+        'type': 'event',
+        'component': 'splunk-sdk-python',
+        'data': {
+            'version': __version__,
+        },
+        'optInRequired': 2
+    }
+
     # Override abstract methods
     class NewScript(Script):
         def get_scheme(self):
@@ -246,7 +255,7 @@ def test_telemetry(capsys):
         assert post_args == ('telemetry-metric/',)
         assert post_kwargs == {
             'app': None,
-            'body': '{"type": "event", "component": "splunk-sdk-python", "data": {"version": "1.6.13"}, "optInRequired": 2}',
+            'body': json.dumps(EXPECTED_TELEMETRY_BODY),
             'headers': [('Content-Type', 'application/json')],
             'owner': None,
             'sharing': None

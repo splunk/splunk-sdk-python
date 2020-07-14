@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import
 import pytest
+import splunklib
 
 from tests import testlib
 from splunklib.wire._internal import Telemetry, EventTelemetryMetric, AggregateTelemetryMetric
@@ -35,7 +36,8 @@ class TestTelemetry(testlib.SDKTestCase):
         metric = EventTelemetryMetric(**{
             'component': 'telemetry_test_case',
             'data': {
-                'testValue': 32
+                 'version': splunklib.__version__,
+                 'source': 'splunk-sdk-python/mod-inputs'
             }
         })
 
@@ -50,7 +52,8 @@ class TestTelemetry(testlib.SDKTestCase):
         metric = EventTelemetryMetric(**{
             'component': 'telemetry_test_case',
             'data': {
-                'testValue': 32
+                 'version': splunklib.__version__,
+                 'source': 'splunk-sdk-python/mod-inputs'
             },
             'version': 'test',
             'index_data': False,
@@ -69,7 +72,8 @@ class TestTelemetry(testlib.SDKTestCase):
         metric = AggregateTelemetryMetric(**{
             'component': 'telemetry_test_case',
             'data': {
-                'testValue': 32
+                 'version': splunklib.__version__,
+                 'source': 'splunk-sdk-python/mod-inputs'
             },
             'version': 'test',
             'index_data': False,

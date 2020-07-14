@@ -79,7 +79,8 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 metric = EventTelemetryMetric(**{
                     'component': 'splunk-sdk-python',
                     'data': {
-                        'version': splunklib.__version__
+                        'version': splunklib.__version__,
+                        'source': 'splunk-sdk-python/mod-inputs'
                     }
                 })
 

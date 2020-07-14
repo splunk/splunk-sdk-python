@@ -224,6 +224,7 @@ def test_telemetry(capsys):
         'component': 'splunk-sdk-python',
         'data': {
             'version': __version__,
+            'source': 'splunk-sdk-python/mod-inputs'
         },
         'optInRequired': 2
     }

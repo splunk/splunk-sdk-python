@@ -49,6 +49,7 @@ try:
 except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "AuthenticationError",
@@ -70,7 +71,7 @@ def _log_duration(f):
         start_time = datetime.now()
         val = f(*args, **kwargs)
         end_time = datetime.now()
-        logging.debug("Operation took %s", end_time-start_time)
+        logger.debug("Operation took %s", end_time-start_time)
         return val
     return new_f
 
@@ -618,7 +619,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("DELETE request to %s (body: %s)", path, repr(query))
+        logger.debug("DELETE request to %s (body: %s)", path, repr(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
@@ -681,7 +682,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("GET request to %s (body: %s)", path, repr(query))
+        logger.debug("GET request to %s (body: %s)", path, repr(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
         return response
@@ -754,7 +755,7 @@ class Context(object):
             headers = []
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
-        logging.debug("POST request to %s (body: %s)", path, repr(query))
+        logger.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
@@ -822,7 +823,7 @@ class Context(object):
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
         all_headers = headers + self.additional_headers + self._auth_headers
-        logging.debug("%s request to %s (headers: %s, body: %s)",
+        logger.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
         response = self.http.request(path,
                                      {'method': method,

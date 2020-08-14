@@ -75,6 +75,8 @@ from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
                       namespace)
 from .data import record
 
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "connect",
     "NotSupportedError",
@@ -1444,7 +1446,7 @@ class ReadOnlyCollection(Endpoint):
             if pagesize is None or N < pagesize:
                 break
             offset += N
-            logging.debug("pagesize=%d, fetched=%d, offset=%d, N=%d, kwargs=%s", pagesize, fetched, offset, N, kwargs)
+            logger.debug("pagesize=%d, fetched=%d, offset=%d, N=%d, kwargs=%s", pagesize, fetched, offset, N, kwargs)
 
     # kwargs: count, offset, search, sort_dir, sort_key, sort_mode
     def list(self, count=None, **kwargs):
@@ -2517,9 +2519,9 @@ class Inputs(Collection):
             kinds = self.kinds
         if len(kinds) == 1:
             kind = kinds[0]
-            logging.debug("Inputs.list taking short circuit branch for single kind.")
+            logger.debug("Inputs.list taking short circuit branch for single kind.")
             path = self.kindpath(kind)
-            logging.debug("Path for inputs: %s", path)
+            logger.debug("Path for inputs: %s", path)
             try:
                 path = UrlEncoded(path, skip_encode=True)
                 response = self.get(path, **kwargs)

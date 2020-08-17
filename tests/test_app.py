@@ -17,6 +17,8 @@
 from __future__ import absolute_import
 from tests import testlib
 import logging
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
 
 import splunklib.client as client
 
@@ -37,9 +39,9 @@ class TestApp(testlib.SDKTestCase):
             # than entities like indexes, this is okay.
             self.app_name = testlib.tmpname()
             self.app = self.service.apps.create(self.app_name)
-            logging.debug("Creating app %s", self.app_name)
+            logger.debug("Creating app %s", self.app_name)
         else:
-            logging.debug("App %s already exists. Skipping creation.", self.app_name)
+            logger.debug("App %s already exists. Skipping creation.", self.app_name)
         if self.service.restart_required:
             self.service.restart(120)
         return
@@ -94,6 +96,7 @@ class TestApp(testlib.SDKTestCase):
 
     def test_package(self):
         p = self.app.package()
+        logger.debug('package(name=%s, path=%s, url=%s)', p.name, p.path, p.url)
         self.assertEqual(p.name, self.app_name)
         self.assertTrue(p.path.endswith(self.app_name + '.spl'))
         self.assertTrue(p.url.endswith(self.app_name + '.spl'))

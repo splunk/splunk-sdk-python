@@ -15,6 +15,8 @@ VERSION := `git describe --tags --dirty 2>/dev/null`
 COMMITHASH := `git rev-parse --short HEAD 2>/dev/null`
 DATE := `date "+%FT%T%z"`
 
+CONTAINER_NAME := 'splunk'
+
 .PHONY: all
 all: build_app test
 
@@ -56,3 +58,37 @@ splunkrc:
 	@echo "$(ATTN_COLOR)==> splunkrc $(NO_COLOR)"
 	@echo "To make a .splunkrc:"
 	@echo "  [SPLUNK_INSTANCE_JSON] | python scripts/build-splunkrc.py ~/.splunkrc"
+
+.PHONY: splunkrc_default
+splunkrc_default:
+	@echo "$(ATTN_COLOR)==> splunkrc_default $(NO_COLOR)"
+	@python scripts/build-splunkrc.py ~/.splunkrc
+
+.PHONY: up
+up:
+	@echo "$(ATTN_COLOR)==> up $(NO_COLOR)"
+	@docker-compose up -d
+
+.PHONY: remove
+remove:
+	@echo "$(ATTN_COLOR)==> rm $(NO_COLOR)"
+	@docker-compose rm -f -s
+
+.PHONY: wait_up
+wait_up:
+	@echo "$(ATTN_COLOR)==> wait_up $(NO_COLOR)"
+	@for i in `seq 0 180`; do if docker exec -it $(CONTAINER_NAME) /sbin/checkstate.sh &> /dev/null; then break; fi; printf "\rWaiting for Splunk for %s seconds..." $$i; sleep 1; done
+
+.PHONY: down
+down:
+	@echo "$(ATTN_COLOR)==> down $(NO_COLOR)"
+	@docker-compose stop
+
+.PHONY: start
+start: up wait_up
+
+.PHONY: restart
+restart: down start
+
+.PHONY: refresh
+refresh: remove start

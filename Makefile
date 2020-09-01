@@ -15,6 +15,8 @@ VERSION := `git describe --tags --dirty 2>/dev/null`
 COMMITHASH := `git rev-parse --short HEAD 2>/dev/null`
 DATE := `date "+%FT%T%z"`
 
+CONTAINER_NAME := 'splunk'
+
 .PHONY: all
 all: build_app test
 
@@ -67,12 +69,26 @@ up:
 	@echo "$(ATTN_COLOR)==> up $(NO_COLOR)"
 	@docker-compose up -d
 
+.PHONY: remove
+remove:
+	@echo "$(ATTN_COLOR)==> rm $(NO_COLOR)"
+	@docker-compose rm -f -s
+
 .PHONY: wait_up
 wait_up:
 	@echo "$(ATTN_COLOR)==> wait_up $(NO_COLOR)"
-	@for i in `seq 0 180`; do if docker exec -it splunk /sbin/checkstate.sh &> /dev/null; then break; fi; printf "\rWaiting for Splunk for %s seconds..." $$i; sleep 1; done
+	@for i in `seq 0 180`; do if docker exec -it $(CONTAINER_NAME) /sbin/checkstate.sh &> /dev/null; then break; fi; printf "\rWaiting for Splunk for %s seconds..." $$i; sleep 1; done
 
 .PHONY: down
 down:
 	@echo "$(ATTN_COLOR)==> down $(NO_COLOR)"
 	@docker-compose stop
+
+.PHONY: start
+start: up wait_up
+
+.PHONY: restart
+restart: down start
+
+.PHONY: refresh
+refresh: remove start

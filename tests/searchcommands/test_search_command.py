@@ -35,6 +35,9 @@ import re
 
 import pytest
 
+class CustomTestCommandException(Exception):
+    pass
+
 @Configuration()
 class TestCommand(SearchCommand):
 
@@ -44,10 +47,7 @@ class TestCommand(SearchCommand):
     def echo(self, records):
         for record in records:
             if record.get('action') == 'raise_exception':
-                if six.PY2:
-                    raise StandardError(self)
-                else:
-                    raise Exception(self)
+                raise CustomTestCommandException()
             yield record
 
     def _execute(self, ifile, process):
@@ -83,6 +83,8 @@ class TestCommand(SearchCommand):
 
         # endregion
 
+class CustomRuntimeError(RuntimeError):
+    pass
 
 @Configuration()
 class TestStreamingCommand(StreamingCommand):
@@ -91,7 +93,7 @@ class TestStreamingCommand(StreamingCommand):
         for record in records:
             action = record['action']
             if action == 'raise_error':
-                raise RuntimeError('Testing')
+                raise CustomRuntimeError('Testing')
             value = self.search_results_info if action == 'get_search_results_info' else None
             yield {'_serial': serial_number, 'data': value}
             serial_number += 1
@@ -126,7 +128,7 @@ class TestSearchCommand(TestCase):
         command = TestCommand()
         result = BytesIO()
 
-        self.assertRaises(SystemExit, command.process, argv, ofile=result)
+        self.assertRaises(RuntimeError, command.process, argv, ofile=result)
         self.assertRegexpMatches(result.getvalue().decode('UTF-8'), expected)
 
         # TestCommand.process should return configuration settings on Getinfo probe
@@ -292,15 +294,14 @@ class TestSearchCommand(TestCase):
         try:
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
-        except SystemExit as error:
-            self.assertNotEqual(error.code, 0)
+        except CustomRuntimeError:
             self.assertRegexpMatches(
                 result.getvalue().decode('UTF-8'),
                 r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
         except BaseException as error:
-            self.fail('Expected SystemExit, but caught {}: {}'.format(type(error).__name__, error))
+            self.fail('Expected CustomRuntimeError, but caught {}: {}'.format(type(error).__name__, error))
         else:
-            self.fail('Expected SystemExit, but no exception was raised')
+            self.fail('Expected CustomRuntimeError, but no exception was raised')
 
         # Command.process should provide access to search results info
         info_path = os.path.join(
@@ -676,12 +677,12 @@ class TestSearchCommand(TestCase):
 
         try:
             command.process(argv, ifile, ofile=result)
-        except SystemExit as error:
-            self.assertNotEqual(0, error.code)
+        except CustomTestCommandException:
+            pass # Expected exception was preserved.
         except BaseException as error:
             self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('utf-8')))
         else:
-            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(result.getvalue().decode('utf-8')))
+            self.fail('Expected CustomTestCommandException, not a return from TestCommand.process: {}\n'.format(result.getvalue().decode('utf-8')))
 
         self.assertEqual(command.logging_configuration, logging_configuration)
         self.assertEqual(command.logging_level, logging_level)
@@ -692,17 +693,13 @@ class TestSearchCommand(TestCase):
 
         finished = r'\"finished\":true'
 
-        if six.PY2:
-            inspector = \
-                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"StandardError at \\\".+\\\", line \d+ : test ' \
-                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
-                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
-        else:
-            inspector = \
-                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"Exception at \\\".+\\\", line \d+ : test ' \
-                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
-                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
+        inspector = \
+            r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"CustomTestCommandException at \\\".+\\\", line \d+ : test ' \
+            r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
+            r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
+        res = result.getvalue().decode('utf-8')
+        print('result = '+res)
         self.assertRegexpMatches(
             result.getvalue().decode('utf-8'),
             r'^chunked 1.0,2,0\n'

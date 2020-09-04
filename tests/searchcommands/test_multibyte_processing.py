@@ -1,9 +1,11 @@
-from splunklib.searchcommands import StreamingCommand, Configuration, dispatch
-import gzip
-import os
 import io
+import gzip
 import sys
 
+from os import path
+
+from splunklib import six
+from splunklib.searchcommands import StreamingCommand, Configuration
 
 def build_test_command():
     @Configuration()
@@ -13,14 +15,13 @@ def build_test_command():
                 yield record
     return TestSearchCommand()
 
-
 def get_input_file(name):
-    return "tests/data/custom_search/" + name + ".gz"
+    return path.join(
+        path.dirname(path.dirname(__file__)), 'data', 'custom_search', name + '.gz')
 
-
-def test_multibyte_chunked(capsys):
+def test_multibyte_chunked():
     data = gzip.open(get_input_file("multibyte_input"))
-    if sys.version_info.major >= 3:
+    if not six.PY2:
         data = io.TextIOWrapper(data)
     cmd = build_test_command()
     cmd._process_protocol_v2(sys.argv, data, sys.stdout)

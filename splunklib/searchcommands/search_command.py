@@ -656,7 +656,7 @@ class SearchCommand(object):
         # noinspection PyBroadException
         try:
             debug('Reading metadata')
-            metadata, body = self._read_chunk(ifile)
+            metadata, body = self._read_chunk(self._as_binary_stream(ifile))
 
             action = getattr(metadata, 'action', None)
 
@@ -850,15 +850,20 @@ class SearchCommand(object):
         self.finish()
 
     @staticmethod
-    def _read_chunk(ifile):
-        # noinspection PyBroadException
+    def _as_binary_stream(ifile):
         if six.PY2:
-            istream = ifile
-        else:
-            try:
-                istream = ifile.buffer
-            except AttributeError as error:
-                raise RuntimeError('Failed to get underlying buffer: {}'.format(error))
+            return ifile
+
+        try:
+            return ifile.buffer
+        except AttributeError as error:
+            raise RuntimeError('Failed to get underlying buffer: {}'.format(error))
+
+    @staticmethod
+    def _read_chunk(istream):
+        # noinspection PyBroadException
+        if not six.PY2:
+            assert issubclass(type(istream), (io.BufferedIOBase, io.RawIOBase)), 'Stream must be binary'
 
         try:
             header = istream.readline()
@@ -930,9 +935,10 @@ class SearchCommand(object):
             yield record
 
     def _records_protocol_v2(self, ifile):
+        istream = self._as_binary_stream(ifile)
 
         while True:
-            result = self._read_chunk(ifile)
+            result = self._read_chunk(istream)
 
             if not result:
                 return

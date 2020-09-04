@@ -204,7 +204,7 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            result = self._read_chunk(ifile)
+            result = self._read_chunk(self._as_binary_stream(ifile))
 
             if not result:
                 return

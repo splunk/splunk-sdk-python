@@ -38,10 +38,10 @@ from io import TextIOWrapper
 import pytest
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
-    header = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
-              'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)), len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
+    input = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
+             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)), len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
 
-    ifile = BytesIO(six.ensure_binary(header))
+    ifile = BytesIO(six.ensure_binary(input))
 
     if not six.PY2:
         ifile = TextIOWrapper(ifile)

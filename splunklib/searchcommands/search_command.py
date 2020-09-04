@@ -852,15 +852,23 @@ class SearchCommand(object):
     @staticmethod
     def _read_chunk(ifile):
         # noinspection PyBroadException
+        if six.PY2:
+            istream = ifile
+        else:
+            try:
+                istream = ifile.buffer
+            except AttributeError as error:
+                raise RuntimeError('Failed to get underlying buffer: {}'.format(error))
+
         try:
-            header = ifile.readline()
+            header = istream.readline()
         except Exception as error:
             raise RuntimeError('Failed to read transport header: {}'.format(error))
 
         if not header:
             return None
 
-        match = SearchCommand._header.match(header)
+        match = SearchCommand._header.match(six.ensure_str(header))
 
         if match is None:
             raise RuntimeError('Failed to parse transport header: {}'.format(header))
@@ -870,14 +878,14 @@ class SearchCommand(object):
         body_length = int(body_length)
 
         try:
-            metadata = ifile.read(metadata_length)
+            metadata = istream.read(metadata_length)
         except Exception as error:
             raise RuntimeError('Failed to read metadata of length {}: {}'.format(metadata_length, error))
 
         decoder = MetadataDecoder()
 
         try:
-            metadata = decoder.decode(metadata)
+            metadata = decoder.decode(six.ensure_str(metadata))
         except Exception as error:
             raise RuntimeError('Failed to parse metadata of length {}: {}'.format(metadata_length, error))
 
@@ -887,11 +895,11 @@ class SearchCommand(object):
         body = ""
         try:
             if body_length > 0:
-                body = ifile.read(body_length)
+                body = istream.read(body_length)
         except Exception as error:
             raise RuntimeError('Failed to read body of length {}: {}'.format(body_length, error))
 
-        return metadata, body
+        return metadata, six.ensure_str(body)
 
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 

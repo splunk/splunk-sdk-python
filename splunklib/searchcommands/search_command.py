@@ -862,8 +862,7 @@ class SearchCommand(object):
     @staticmethod
     def _read_chunk(istream):
         # noinspection PyBroadException
-        if not six.PY2:
-            assert issubclass(type(istream), (io.BufferedIOBase, io.RawIOBase)), 'Stream must be binary'
+        assert isinstance(istream.read(0), six.binary_type), 'Stream must be binary'
 
         try:
             header = istream.readline()

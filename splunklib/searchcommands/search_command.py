@@ -630,7 +630,7 @@ class SearchCommand(object):
         except:
             self._report_unexpected_error()
             self.flush()
-            exit(1)
+            raise
 
         debug('%s.process finished under protocol_version=1', class_name)
 
@@ -688,7 +688,7 @@ class SearchCommand(object):
             self._record_writer = RecordWriterV2(ofile)
             self._report_unexpected_error()
             self.finish()
-            exit(1)
+            raise
 
         # Write search command configuration for consumption by splunkd
         # noinspection PyBroadException
@@ -768,7 +768,7 @@ class SearchCommand(object):
             self._record_writer.write_metadata(self._configuration)
             self._report_unexpected_error()
             self.finish()
-            exit(1)
+            raise
 
         self._record_writer.write_metadata(self._configuration)
 
@@ -784,7 +784,7 @@ class SearchCommand(object):
         except:
             self._report_unexpected_error()
             self.finish()
-            exit(1)
+            raise
 
         debug('%s.process completed', class_name)
 

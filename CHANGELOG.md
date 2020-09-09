@@ -1,12 +1,17 @@
 # Splunk SDK for Python Changelog
 
+## Version 1.6.14
+
+### Bug fix
+* `SearchCommand` now correctly supports multibyte characters in Python 3.
+
 ## Version 1.6.13
 
 ### Bug fix
-* Fixed regression in mod inputs which resulted in error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.  
+* Fixed regression in mod inputs which resulted in error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.
 
 ### Minor changes
-* Minor updates to the splunklib search commands to support Python3 
+* Minor updates to the splunklib search commands to support Python3
 
 ## Version 1.6.12
 
@@ -22,25 +27,25 @@
 
 ### Bug Fix
 
-* Fix custom search command V2 failures on Windows for Python3 
+* Fix custom search command V2 failures on Windows for Python3
 
 ## Version 1.6.10
 
 ### Bug Fix
 
-* Fix long type gets wrong values on windows for python 2 
+* Fix long type gets wrong values on windows for python 2
 
 ## Version 1.6.9
 
 ### Bug Fix
 
-* Fix buffered input in python 3 
+* Fix buffered input in python 3
 
 ## Version 1.6.8
 
 ### Bug Fix
 
-* Fix custom search command on python 3 on windows 
+* Fix custom search command on python 3 on windows
 
 ## Version 1.6.7
 

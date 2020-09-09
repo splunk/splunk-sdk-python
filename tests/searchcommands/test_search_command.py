@@ -33,7 +33,20 @@ import codecs
 import os
 import re
 
+from io import TextIOWrapper
+
 import pytest
+
+def build_command_input(getinfo_metadata, execute_metadata, execute_body):
+    input = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
+             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)), len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
+
+    ifile = BytesIO(six.ensure_binary(input))
+
+    if not six.PY2:
+        ifile = TextIOWrapper(ifile)
+
+    return ifile
 
 @Configuration()
 class TestCommand(SearchCommand):
@@ -428,11 +441,9 @@ class TestSearchCommand(TestCase):
             show_configuration=('true' if show_configuration is True else 'false'))
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'test\r\ndata\r\n'
+        execute_body = 'test\r\ndata\r\n测试\r\n'
 
-        ifile = StringIO(
-            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+        ifile = build_command_input(getinfo_metadata, execute_metadata, execute_body)
 
         command = TestCommand()
         result = BytesIO()
@@ -455,12 +466,17 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.required_option_1, 'value_1')
         self.assertEqual(command.required_option_2, 'value_2')
 
-        self.assertEqual(
+        expected = (
             'chunked 1.0,68,0\n'
             '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
-            'chunked 1.0,17,23\n'
+            'chunked 1.0,17,32\n'
             '{"finished":true}test,__mv_test\r\n'
-            'data,\r\n',
+            'data,\r\n'
+            '测试,\r\n'
+        )
+
+        self.assertEqual(
+            expected,
             result.getvalue().decode('utf-8'))
 
         self.assertEqual(command.protocol_version, 2)
@@ -620,11 +636,9 @@ class TestSearchCommand(TestCase):
             show_configuration=show_configuration)
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'test\r\ndata\r\n'
+        execute_body = 'test\r\ndata\r\n测试\r\n'
 
-        ifile = StringIO(
-            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+        ifile = build_command_input(getinfo_metadata, execute_metadata, execute_body)
 
         command = TestCommand()
         result = BytesIO()
@@ -666,11 +680,9 @@ class TestSearchCommand(TestCase):
             show_configuration=('true' if show_configuration is True else 'false'))
 
         execute_metadata = '{"action":"execute","finished":true}'
-        execute_body = 'action\r\nraise_exception\r\n'
+        execute_body = 'action\r\nraise_exception\r\n测试\r\n'
 
-        ifile = StringIO(
-            'chunked 1.0,{},0\n{}'.format(len(getinfo_metadata), getinfo_metadata) +
-            'chunked 1.0,{},{}\n{}{}'.format(len(execute_metadata), len(execute_body), execute_metadata, execute_body))
+        ifile = build_command_input(getinfo_metadata, execute_metadata, execute_body)
 
         command = TestCommand()
         result = BytesIO()

@@ -656,7 +656,7 @@ class SearchCommand(object):
         # noinspection PyBroadException
         try:
             debug('Reading metadata')
-            metadata, body = self._read_chunk(ifile)
+            metadata, body = self._read_chunk(self._as_binary_stream(ifile))
 
             action = getattr(metadata, 'action', None)
 
@@ -850,17 +850,29 @@ class SearchCommand(object):
         self.finish()
 
     @staticmethod
-    def _read_chunk(ifile):
-        # noinspection PyBroadException
+    def _as_binary_stream(ifile):
+        if six.PY2:
+            return ifile
+
         try:
-            header = ifile.readline()
+            return ifile.buffer
+        except AttributeError as error:
+            raise RuntimeError('Failed to get underlying buffer: {}'.format(error))
+
+    @staticmethod
+    def _read_chunk(istream):
+        # noinspection PyBroadException
+        assert isinstance(istream.read(0), six.binary_type), 'Stream must be binary'
+
+        try:
+            header = istream.readline()
         except Exception as error:
             raise RuntimeError('Failed to read transport header: {}'.format(error))
 
         if not header:
             return None
 
-        match = SearchCommand._header.match(header)
+        match = SearchCommand._header.match(six.ensure_str(header))
 
         if match is None:
             raise RuntimeError('Failed to parse transport header: {}'.format(header))
@@ -870,14 +882,14 @@ class SearchCommand(object):
         body_length = int(body_length)
 
         try:
-            metadata = ifile.read(metadata_length)
+            metadata = istream.read(metadata_length)
         except Exception as error:
             raise RuntimeError('Failed to read metadata of length {}: {}'.format(metadata_length, error))
 
         decoder = MetadataDecoder()
 
         try:
-            metadata = decoder.decode(metadata)
+            metadata = decoder.decode(six.ensure_str(metadata))
         except Exception as error:
             raise RuntimeError('Failed to parse metadata of length {}: {}'.format(metadata_length, error))
 
@@ -887,11 +899,11 @@ class SearchCommand(object):
         body = ""
         try:
             if body_length > 0:
-                body = ifile.read(body_length)
+                body = istream.read(body_length)
         except Exception as error:
             raise RuntimeError('Failed to read body of length {}: {}'.format(body_length, error))
 
-        return metadata, body
+        return metadata, six.ensure_str(body)
 
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 
@@ -922,9 +934,10 @@ class SearchCommand(object):
             yield record
 
     def _records_protocol_v2(self, ifile):
+        istream = self._as_binary_stream(ifile)
 
         while True:
-            result = self._read_chunk(ifile)
+            result = self._read_chunk(istream)
 
             if not result:
                 return

@@ -111,8 +111,8 @@ def splunk_restart(uri, auth):
 
 
 class AnalyzeCommand(Command):
-    """ 
-    setup.py command to run code coverage of the test suite. 
+    """
+    setup.py command to run code coverage of the test suite.
 
     """
     description = 'Create an HTML coverage report from running the full test suite.'
@@ -367,8 +367,8 @@ class LinkCommand(Command):
 
 
 class TestCommand(Command):
-    """ 
-    setup.py command to run the whole test suite. 
+    """
+    setup.py command to run the whole test suite.
 
     """
     description = 'Run full test suite.'
@@ -439,7 +439,7 @@ try:
     setup(
         description='Custom Search Command examples',
         name=os.path.basename(project_dir),
-        version='1.6.13',
+        version='1.6.14',
         author='Splunk, Inc.',
         author_email='devinfo@splunk.com',
         url='http://github.com/splunk/splunk-sdk-python',

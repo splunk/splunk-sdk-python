@@ -184,7 +184,7 @@ class SDKTestCase(unittest.TestCase):
         return collectionName in self.service.apps
 
     def pathInApp(self, appName, pathComponents):
-        """Return a path to *pathComponents* in *appName*.
+        r"""Return a path to *pathComponents* in *appName*.
 
         `pathInApp` is used to refer to files in applications installed with
         `install_app_from_collection`. For example, the app `file_to_upload` in

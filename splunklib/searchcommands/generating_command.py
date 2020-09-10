@@ -204,7 +204,7 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            self._execute_v2(self._as_binary_stream(ifile), self.generate())
+            self._execute_v2(ifile, self.generate())
         else:
             assert self._protocol_version == 1
             self._record_writer.write_records(self.generate())

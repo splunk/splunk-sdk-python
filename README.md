@@ -205,4 +205,4 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 
 ## License
 
-The Splunk Software Development Kit for Python is licensed under the Apache License 2.0. See the LICENSE file for details.
+The Splunk Software Development Kit for Python is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

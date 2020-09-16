@@ -7,7 +7,7 @@
 
 The Splunk Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 
-Splunk is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
+The Splunk platform is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
 
 The Splunk platform is popular with system administrators for aggregation and monitoring of IT machine data, security, compliance, and a wide variety of other scenarios that share a requirement to efficiently index, search, analyze, and generate real-time notifications from large volumes of time-series data.
 
@@ -16,7 +16,7 @@ The Splunk developer platform enables developers to take advantage of the same t
 
 ## Get started with the Splunk SDK for Python
 
-The Splunk SDK for Python contains library code and examples that show how to programmatically interact with Splunk for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
+The Splunk SDK for Python contains library code and examples that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
 
 ### Requirements
 
@@ -29,7 +29,7 @@ The Splunk SDK for Python requires Python 2.7+ and Python 3. The Splunk SDK for 
 #### Splunk
 
 If you haven't already installed Splunk, download it [here](http://www.splunk.com/download). 
-For more information, see [System requirements for use of Splunk Enterprise on-premises](https://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements) in the Splunk Enterprise _Installation Manual_.
+For more information, see the Splunk Enterprise [Installation Manual](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
 
 #### Splunk SDK for Python
 
@@ -65,9 +65,9 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
-#### .splunkrc
+#### Convenience file (.splunkrc)
 
-To connect to Splunk, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
 
 To use this convenience file, create a text file with the following format:
 
@@ -201,7 +201,7 @@ If you would like to contribute to the SDK, see [Contributions to Splunk](https:
 
 ### Contact Us
 
-You can reach the Developer Platform team at _devinfo@splunk.com_.
+You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
 
 ## License
 

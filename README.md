@@ -24,18 +24,18 @@ The Splunk SDK for Python contains library code and examples that show how to pr
 
 Here's what you need to get going with the Splunk SDK for Python.
 
-#### Python
+* Python
 
-The Splunk SDK for Python requires Python 2.7+ and Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5.
+  The Splunk SDK for Python requires Python 2.7+ and Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5.
 
-#### Splunk
+* Splunk
 
-If you haven't already installed Splunk, download it [here](http://www.splunk.com/download). 
-For more information, see the Splunk Enterprise [Installation Manual](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
+  If you haven't already installed Splunk, download it [here](http://www.splunk.com/download). 
+  For more information, see the Splunk Enterprise [_Installation Manual_](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
 
-#### Splunk SDK for Python
+* Splunk SDK for Python
 
-Get the Splunk SDK for Python from [PyPI](https://pypi.org/project/splunk-sdk/). If you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
+  Get the Splunk SDK for Python from [PyPI](https://pypi.org/project/splunk-sdk/). If you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
 
 ### Install the SDK
@@ -67,9 +67,11 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
-#### Convenience file (.splunkrc)
+#### Create a .splunkrc convenience file
 
 To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
+
+>**Note**: Storing login credentials in the **.splunkrc** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
 
 To use this convenience file, create a text file with the following format:
 
@@ -102,10 +104,7 @@ Save the file as **.splunkrc** in the current user's home directory.
 
     Click **Yes**, then continue creating the file.
 
-**Note**: Storing login credentials in the **.splunkrc** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
-
-
-#### Examples
+#### Run the examples
 
 Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example:
 
@@ -119,7 +118,7 @@ To get help for an example, use the `--help` argument with an example:
 
     python examplename.py --help
 
-#### Unit tests
+#### Run the unit tests
 
 The Splunk SDK for Python contains a collection of unit tests. To run them, open a command prompt in the **/splunk-sdk-python** directory and enter:
 
@@ -131,16 +130,15 @@ You can also run individual test files, which are located in **/splunk-sdk-pytho
 
 The test suite uses Python's standard library, the built-in `unittest` library, `pytest`, and `tox`.
 
-**Notes:**
-
-*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
-*  To exclude app-specific tests, use the following command:
-
-       make test_no_app
-
-*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
-
-   In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
+>**Notes:**
+>*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
+>*  To exclude app-specific tests, use the following command:
+>
+>       make test_no_app
+>
+>*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
+>
+>  In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
 
 ## Repository
 
@@ -185,7 +183,7 @@ Stay connected with other developers building on the Splunk platform.
 * [Splunk Blogs](https://www.splunk.com/blog)
 * [Twitter](https://twitter.com/splunkdev)
 
-### How to contribute
+### Contribute
 
 If you would like to contribute to the SDK, see [Contributions to Splunk](https://www.splunk.com/en_us/form/contributions.html).
 

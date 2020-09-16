@@ -134,7 +134,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 >*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
 >*  To exclude app-specific tests, use the following command:
 >
->       make test_no_app
+>   `make test_no_app`
 >
 >*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
 >
@@ -152,8 +152,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 
 ### Changelog
 
-The CHANGELOG.md file in the root of this repository contains a description
-of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
+The [CHANGELOG](CHANGELOG) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
 
 ### Branches
 
@@ -189,7 +188,7 @@ If you would like to contribute to the SDK, see [Contributions to Splunk](https:
 
 ### Support
 
-*  You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html)) and include "Splunk SDK for Python" in the subject line.
+*  You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html) and include "Splunk SDK for Python" in the subject line.
 
    If you are not covered under an existing maintenance/support agreement, you can find help through the broader community at [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 

@@ -94,7 +94,7 @@ Save the file as **.splunkrc** in the current user's home directory.
 
         C:\Users\currentusername\.splunkrc
 
-    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\**_currentusername_ directory and entering the following command:
+    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\***currentusername* directory and entering the following command:
 
         Notepad.exe .splunkrc
 
@@ -131,15 +131,14 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 
 **Notes:**
 
-The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
-
-To exclude app-specific tests, use the following command:
+*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
+*  To exclude app-specific tests, use the following command:
 
     make test_no_app
 
-To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
+*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
 
-In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
+   In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
 
 ## Repository
 
@@ -190,17 +189,15 @@ If you would like to contribute to the SDK, see [Contributions to Splunk](https:
 
 ### Support
 
-1. You will be granted support if you or your company are already covered under an existing maintenance/support agreement.
+*  You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html)) and include "Splunk SDK for Python" in the subject line.
 
-   Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html)) and include "Splunk SDK for Python" in the subject line.
+   If you are not covered under an existing maintenance/support agreement, you can find help through the broader community at [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 
-2. If you are not covered under an existing maintenance/support agreement, you can find help through the broader community at [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
-
-3. Splunk will NOT provide support for SDKs if the core library (the code in the <b>/splunklib</b> directory) has been modified. If you modify an SDK and want support, you can find help through the broader community and [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools). 
+*  Splunk will NOT provide support for SDKs if the core library (the code in the <b>/splunklib</b> directory) has been modified. If you modify an SDK and want support, you can find help through the broader community and [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools). 
 
    We would also like to know why you modified the core library, so please send feedback to _devinfo@splunk.com_.
 
-4. File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
+*  File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
 
 ### Contact Us
 

@@ -178,7 +178,7 @@ Stay connected with other developers building on the Splunk platform.
 * [Splunk Blogs](https://www.splunk.com/blog)
 * [Twitter](https://twitter.com/splunkdev)
 
-### Contribute
+### Contributions
 
 If you would like to contribute to the SDK, see [Contributions to Splunk](https://www.splunk.com/en_us/form/contributions.html).
 

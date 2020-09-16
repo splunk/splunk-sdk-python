@@ -98,7 +98,7 @@ Save the file as **.splunkrc** in the current user's home directory.
 
         C:\Users\currentusername\.splunkrc
 
-    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\<currentusername** directory and entering the following command:
+    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\<currentusername>** directory and entering the following command:
 
         Notepad.exe .splunkrc
 
@@ -132,7 +132,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 
 >**Notes:**
 >*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
->*  To exclude app-specific tests, use the following command: `make test_no_app`
+>*  To exclude app-specific tests, use the `make test_no_app` command.
 >*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
 >   In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
 

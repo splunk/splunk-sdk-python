@@ -132,13 +132,9 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 
 >**Notes:**
 >*  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
->*  To exclude app-specific tests, use the following command:
->
->   `make test_no_app`
->
+>*  To exclude app-specific tests, use the following command: `make test_no_app`
 >*  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
->
->  In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
+>   In addition, the test run requires you to build the searchcommands app. The `make` command runs the tasks to do this, but more complex testing may require you to rebuild using the `make build_app` command.
 
 ## Repository
 
@@ -152,7 +148,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 
 ### Changelog
 
-The [CHANGELOG](CHANGELOG) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
+The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
 
 ### Branches
 

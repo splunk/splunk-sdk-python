@@ -1,11 +1,11 @@
 [![Build Status](https://travis-ci.org/splunk/splunk-sdk-python.svg?branch=master)](https://travis-ci.org/splunk/splunk-sdk-python)
 [![Documentation Status](https://readthedocs.org/projects/splunk-python-sdk/badge/?version=latest)](https://splunk-python-sdk.readthedocs.io/en/latest/?badge=latest)
 
-# The Splunk Software Development Kit for Python
+# The Splunk Enterprise Software Development Kit for Python
 
 #### Version 1.6.14
 
-The Splunk Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
+The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 
 The Splunk platform is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
 
@@ -16,31 +16,31 @@ The Splunk developer platform enables developers to take advantage of the same t
 For more information, see [Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/) on the Splunk Developer Portal.
 
 
-## Get started with the Splunk SDK for Python
+## Get started with the Splunk Enterprise SDK for Python
 
-The Splunk SDK for Python contains library code and examples that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
+The Splunk Enterprise SDK for Python contains library code and examples that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
 
 ### Requirements
 
-Here's what you need to get going with the Splunk SDK for Python.
+Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
-* Python
+* Python 2.7+ and Python 3. 
+  
+  The Splunk Enterprise SDK for Python has been tested with Python v2.7 and v3.5.
 
-  The Splunk SDK for Python requires Python 2.7+ and Python 3. The Splunk SDK for Python has been tested with Python v2.7 and v3.5.
+* Splunk Enterprise
 
-* Splunk
-
-  If you haven't already installed Splunk, download it [here](http://www.splunk.com/download). 
+  If you haven't already installed Splunk Enterprise, download it [here](http://www.splunk.com/download). 
   For more information, see the Splunk Enterprise [_Installation Manual_](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
 
-* Splunk SDK for Python
+* Splunk Enterprise SDK for Python
 
-  Get the Splunk SDK for Python from [PyPI](https://pypi.org/project/splunk-sdk/). If you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
+  Get the Splunk Enterprise SDK for Python from [PyPI](https://pypi.org/project/splunk-sdk/). If you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
 
 ### Install the SDK
 
-Use the following commands to install the Splunk SDK for Python libraries in different ways. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
+Use the following commands to install the Splunk Enterprise SDK for Python libraries in different ways. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
 
 Use `easy_install`:
 
@@ -120,7 +120,7 @@ To get help for an example, use the `--help` argument with an example:
 
 #### Run the unit tests
 
-The Splunk SDK for Python contains a collection of unit tests. To run them, open a command prompt in the **/splunk-sdk-python** directory and enter:
+The Splunk Enterprise SDK for Python contains a collection of unit tests. To run them, open a command prompt in the **/splunk-sdk-python** directory and enter:
 
     make
 
@@ -161,7 +161,7 @@ To learn about our branching model, see [Branching Model](https://github.com/spl
 |:----------------------- |:----------- |
 | [Splunk Developer Portal](http://dev.splunk.com) | General developer documentation, tools, and examples |
 | [Integrate the Splunk platform using development tools for Python](https://dev.splunk.com/enterprise/docs/devtools/python)| Documentation for Python development |
-| [Splunk SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK) | SDK API reference documentation |
+| [Splunk Enterprise SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK) | SDK API reference documentation |
 | [REST API Reference Manual](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog) | Splunk REST API reference documentation |
 | [Splunk>Docs](https://docs.splunk.com/Documentation) | General documentation for the Splunk platform |
 | [GitHub Wiki](https://github.com/splunk/splunk-sdk-python/wiki/) | Documentation for this SDK's repository on GitHub |
@@ -184,7 +184,7 @@ If you would like to contribute to the SDK, see [Contributions to Splunk](https:
 
 ### Support
 
-*  You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html) and include "Splunk SDK for Python" in the subject line.
+*  You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html) and include "Splunk Enterprise SDK for Python" in the subject line.
 
    If you are not covered under an existing maintenance/support agreement, you can find help through the broader community at [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 
@@ -200,4 +200,4 @@ You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
 
 ## License
 
-The Splunk Software Development Kit for Python is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+The Splunk Enterprise Software Development Kit for Python is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

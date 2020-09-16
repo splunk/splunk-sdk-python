@@ -13,6 +13,8 @@ The Splunk platform is popular with system administrators for aggregation and mo
 
 The Splunk developer platform enables developers to take advantage of the same technology used by the Splunk platform to build exciting new applications.
 
+For more information, see [Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/) on the Splunk Developer Portal.
+
 
 ## Get started with the Splunk SDK for Python
 

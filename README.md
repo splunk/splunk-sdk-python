@@ -94,7 +94,7 @@ Save the file as **.splunkrc** in the current user's home directory.
 
         C:\Users\currentusername\.splunkrc
 
-    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\***currentusername* directory and entering the following command:
+    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\<currentusername** directory and entering the following command:
 
         Notepad.exe .splunkrc
 
@@ -134,7 +134,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 *  The test run fails unless the [SDK App Collection](https://github.com/splunk/sdk-app-collection) app is installed.
 *  To exclude app-specific tests, use the following command:
 
-    make test_no_app
+       make test_no_app
 
 *  To learn about our testing framework, see [Splunk Test Suite](https://github.com/splunk/splunk-sdk-python/tree/master/tests) on GitHub.
 
@@ -205,4 +205,4 @@ You can reach the Developer Platform team at _devinfo@splunk.com_.
 
 ## License
 
-The Splunk Software Development Kit for Python is licensed under the Apache License 2.0. Details can be found in the file LICENSE.
+The Splunk Software Development Kit for Python is licensed under the Apache License 2.0. See the LICENSE file for details.

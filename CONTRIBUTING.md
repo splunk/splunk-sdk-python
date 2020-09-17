@@ -2,7 +2,7 @@
 
 ## How to contribute
 
-If you would like to contribute to this project, see [Contributions to Splunk][https://www.splunk.com/en_us/form/contributions.html] for more information.
+If you would like to contribute to this project, see [Contributions to Splunk](https://www.splunk.com/en_us/form/contributions.html) for more information.
 
 ## Issues and bug reports
 
@@ -22,14 +22,14 @@ We love to see pull requests!
 
 To create a pull request:
 
-1. Fill out the [Individual Contributor Agreement][https://www.splunk.com/en_us/form/contributions.html].
-1. Fork the [repository][https://github.com/splunk/splunk-sdk-python].
+1. Fill out the [Individual Contributor Agreement](https://www.splunk.com/en_us/form/contributions.html).
+1. Fork the [repository](https://github.com/splunk/splunk-sdk-python).
 1. Make changes to the **develop** branch, preferably with tests.
-1. Create a [pull request][https://github.com/splunk/splunk-sdk-python/pulls] against the **develop** branch.
+1. Create a [pull request](https://github.com/splunk/splunk-sdk-python/pulls) against the **develop** branch.
 
 ## Contact us
 
-You can contact [Support][https://www.splunk.com/en_us/support-and-services.html] if you have questions.
+You can contact [Support](https://www.splunk.com/en_us/support-and-services.html) if you have questions.
 
 You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
 

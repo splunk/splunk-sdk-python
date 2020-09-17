@@ -1,12 +1,12 @@
-# Splunk host (default: localhost)
+# Splunk Enterprise host (default: localhost)
 host=localhost
-# Splunk admin port (default: 8089)
+# Splunk Enterprise admin port (default: 8089)
 port=8089
-# Splunk username
+# Splunk Enterprise username
 username=admin
-# Splunk password
+# Splunk Enterprise password
 password=changeme
 # Access scheme (default: https)
 scheme=https
-# Your version of Splunk (default: 6.3)
-version=6.3
+# Your version of Splunk Enterprise
+version=8.0

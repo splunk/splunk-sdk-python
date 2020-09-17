@@ -24,9 +24,9 @@ The Splunk Enterprise SDK for Python contains library code and examples that sho
 
 Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
-* Python 2.7+ and Python 3. 
+* Python 2.7+ or Python 3.7. 
   
-  The Splunk Enterprise SDK for Python has been tested with Python v2.7 and v3.5.
+  The Splunk Enterprise SDK for Python has been tested with Python v2.7 and v3.7.
 
 * Splunk Enterprise
 

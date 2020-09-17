@@ -29,7 +29,7 @@ To create a pull request:
 
 ## Contact us
 
-You can contact [Support](https://www.splunk.com/en_us/support-and-services.html) if you have questions.
+Contact [Support](https://www.splunk.com/en_us/support-and-services.html) if you have questions.
 
 You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
 

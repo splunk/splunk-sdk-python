@@ -180,7 +180,7 @@ Stay connected with other developers building on the Splunk platform.
 
 ### Contributions
 
-If you would like to contribute to the SDK, see [Contributions to Splunk](https://www.splunk.com/en_us/form/contributions.html).
+If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](CONTRIBUTING.md). 
 
 ### Support
 

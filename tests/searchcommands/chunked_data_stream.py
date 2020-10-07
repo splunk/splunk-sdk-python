@@ -82,12 +82,22 @@ def _build_data_csv(data):
         return b''
     if isinstance(data, bytes):
         return data
-    csvout = io.StringIO()
+    if six.PY2:
+        csvout = io.BytesIO()
+    else:
+        csvout = io.StringIO()
+
     headers = set()
     for datum in data:
-        headers.update(datum.keys())
+        if six.PY2:
+            headers.update(datum.keys())
+        else:
+            headers.update(datum.keys())
     writer = csv.DictWriter(csvout, headers, dialect=splunklib.searchcommands.internals.CsvDialect)
     writer.writeheader()
     for datum in data:
-        writer.writerow(datum)
-    return csvout.getvalue().encode("utf-8")
+        if six.PY2:
+            writer.writerow(datum)
+        else:
+            writer.writerow(datum)
+    return six.ensure_binary(csvout.getvalue())

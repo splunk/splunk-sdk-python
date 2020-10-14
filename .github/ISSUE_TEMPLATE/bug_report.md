@@ -30,6 +30,7 @@ If applicable, add logs or screenshots to help explain your problem.
 
 **SDK (please complete the following information):**
  - Version: [e.g. 1.6.14]
+ - Language Runtime Version: [e.g. Python 3.7]
  - OS: [e.g. MacOS 10.15.7]
 
 **Additional context**

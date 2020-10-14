@@ -724,7 +724,10 @@ class Context(object):
         :type headers: ``list`` of 2-tuples.
         :param query: All other keyword arguments, which are used as query
             parameters.
-        :type query: ``string``
+        :param body: Parameters to be used in the post body. If specified,
+            any parameters in the query will be applied to the URL instead of
+            the body.
+        :type body: dict
         :return: The response from the server.
         :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
                 and ``status``

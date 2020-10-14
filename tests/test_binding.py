@@ -808,6 +808,47 @@ class TestTokenAuthentication(BindingTestCase):
         socket.write("\r\n".encode('utf-8'))
         socket.close()
 
+
+class TestPostWithBodyParam(unittest.TestCase):
+
+    def test_post(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"]["testkey"] == "testvalue"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
+
+    def test_post_with_params_and_body(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            assert message["body"]["testkey"] == "testvalue"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp", body={"testkey": "testvalue"})
+
+    def test_post_with_params_and_no_body(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == "extrakey=extraval"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
+
+    def test_with_body_with_full_request(self):
+        class TestRequestHandler(BaseHTTPRequestHandler):
+            pass
+
+
 if __name__ == "__main__":
     try:
         import unittest2 as unittest

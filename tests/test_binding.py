@@ -16,14 +16,16 @@
 
 
 from __future__ import absolute_import
-import time
 from io import BytesIO
+from threading import Thread
 
+from splunklib.six.moves import BaseHTTPServer
 from splunklib.six.moves.urllib.request import Request, urlopen
 from splunklib.six.moves.urllib.error import HTTPError
-from splunklib.six import StringIO
+import splunklib.six as six
 from xml.etree.ElementTree import XML
 
+import json
 import logging
 from tests import testlib
 import unittest
@@ -104,7 +106,7 @@ class TestResponseReader(BindingTestCase):
 
     def test_readable(self):
         txt = "abcd"
-        response = binding.ResponseReader(StringIO(txt))
+        response = binding.ResponseReader(six.StringIO(txt))
         self.assertTrue(response.readable())
 
     def test_readinto_bytearray(self):
@@ -813,8 +815,8 @@ class TestPostWithBodyParam(unittest.TestCase):
 
     def test_post(self):
         def handler(url, message, **kwargs):
-            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert message["body"]["testkey"] == "testvalue"
+            assert six.ensure_str(url) == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert six.ensure_str(message["body"]) == "testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -825,7 +827,7 @@ class TestPostWithBodyParam(unittest.TestCase):
     def test_post_with_params_and_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
-            assert message["body"]["testkey"] == "testvalue"
+            assert six.ensure_str(message["body"]) == "testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -836,7 +838,7 @@ class TestPostWithBodyParam(unittest.TestCase):
     def test_post_with_params_and_no_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert message["body"] == "extrakey=extraval"
+            assert six.ensure_str(message["body"]) == "extrakey=extraval"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -844,9 +846,81 @@ class TestPostWithBodyParam(unittest.TestCase):
         ctx = binding.Context(handler=handler)
         ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
 
-    def test_with_body_with_full_request(self):
-        class TestRequestHandler(BaseHTTPRequestHandler):
+
+def _wrap_handler(func, response_code=200, body=""):
+    def wrapped(handler_self):
+        result = func(handler_self)
+        if result is None:
+            handler_self.send_response(response_code)
+            handler_self.end_headers()
+            handler_self.wfile.write(body)
+    return wrapped
+
+
+class MockServer(object):
+    def __init__(self, port=9093, **handlers):
+        methods = {"do_" + k: _wrap_handler(v) for (k, v) in handlers.items()}
+
+        def init(handler_self, socket, address, server):
+            BaseHTTPServer.BaseHTTPRequestHandler.__init__(handler_self, socket, address, server)
+
+        def log(*args):  # To silence server access logs
             pass
+
+        methods["__init__"] = init
+        methods["log_message"] = log
+        Handler = type("Handler",
+                       (BaseHTTPServer.BaseHTTPRequestHandler, object),
+                       methods)
+        self._svr = BaseHTTPServer.HTTPServer(("localhost", port), Handler)
+
+        def run():
+            self._svr.handle_request()
+        self._thread = Thread(target=run)
+        self._thread.daemon = True
+
+    def __enter__(self):
+        self._thread.start()
+        return self._svr
+
+    def __exit__(self, typ, value, traceback):
+        self._thread.join(10)
+        self._svr.server_close()
+
+
+class TestFullPost(unittest.TestCase):
+
+    def test_post_with_body_urlencoded(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(body) == "foo=bar"
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle")
+            ctx.post("/", foo="bar")
+
+    def test_post_with_body_string(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(handler.headers['content-type']) == 'application/json'
+            assert json.loads(body)["baz"] == "baf"
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle", headers=[("Content-Type", "application/json")])
+            ctx.post("/", foo="bar", body='{"baz": "baf"}')
+
+    def test_post_with_body_dict(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(handler.headers['content-type']) == 'application/x-www-form-urlencoded'
+            assert six.ensure_str(body) == 'baz=baf&hep=cat'
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle")
+            ctx.post("/", foo="bar", body={"baz": "baf", "hep": "cat"})
 
 
 if __name__ == "__main__":

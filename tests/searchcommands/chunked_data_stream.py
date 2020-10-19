@@ -39,11 +39,12 @@ class ChunkedDataStream(collections.Iterable):
 
     def read_chunk(self):
         header = self.stream.readline()
-        if len(header) == 0:
-            raise EOFError
 
         while len(header) > 0 and header.strip() == b'':
             header = self.stream.readline()  # Skip empty lines
+
+        if len(header) == 0:
+            raise EOFError
         version, meta, data = header.rstrip().split(b',')
         metabytes = self.stream.read(int(meta))
         databytes = self.stream.read(int(data))
@@ -82,22 +83,13 @@ def _build_data_csv(data):
         return b''
     if isinstance(data, bytes):
         return data
-    if six.PY2:
-        csvout = io.BytesIO()
-    else:
-        csvout = io.StringIO()
+    csvout = splunklib.six.StringIO()
 
     headers = set()
     for datum in data:
-        if six.PY2:
-            headers.update(datum.keys())
-        else:
-            headers.update(datum.keys())
+        headers.update(datum.keys())
     writer = csv.DictWriter(csvout, headers, dialect=splunklib.searchcommands.internals.CsvDialect)
     writer.writeheader()
     for datum in data:
-        if six.PY2:
-            writer.writerow(datum)
-        else:
-            writer.writerow(datum)
+        writer.writerow(datum)
     return six.ensure_binary(csvout.getvalue())

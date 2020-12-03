@@ -916,7 +916,7 @@ class TestFullPost(unittest.TestCase):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
             assert six.ensure_str(handler.headers['content-type']) == 'application/x-www-form-urlencoded'
-            assert six.ensure_str(body) == 'baz=baf&hep=cat'
+            assert six.ensure_str(body) == 'baz=baf&hep=cat' or six.ensure_str(body) == 'hep=cat&baz=baf'
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")

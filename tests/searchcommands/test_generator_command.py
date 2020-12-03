@@ -34,6 +34,9 @@ def test_simple_generator():
         finished_seen = chunk.meta.get("finished", False)
         for row in chunk.data:
             seen.add(row["event_index"])
+    print(out_stream.getvalue())
+    print(expected)
+    print(seen)
     assert expected.issubset(seen)
     assert finished_seen
 

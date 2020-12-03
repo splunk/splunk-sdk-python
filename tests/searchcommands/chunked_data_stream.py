@@ -42,11 +42,11 @@ class ChunkedDataStream(collections.Iterable):
     def read_chunk(self):
         header = self.stream.readline()
 
-        while header > 0 and header.strip() == b'':
+        while len(header) > 0 and header.strip() == b'':
             header = self.stream.readline()  # Skip empty lines
-
-        if not header == 0:
+        if len(header) == 0:
             raise EOFError
+
         version, meta, data = header.rstrip().split(b',')
         metabytes = self.stream.read(int(meta))
         databytes = self.stream.read(int(data))

@@ -25,9 +25,9 @@ DEFAULT_CONFIG = {
     'host': 'localhost',
     'port': '8089',
     'username': 'admin',
-    'password': 'changeme',
+    'password': 'changed!',
     'scheme': 'https',
-    'version': '6.3'
+    'version': '8.0'
 }
 
 DEFAULT_SPLUNKRC_PATH = os.path.join(str(Path.home()), '.splunkrc')

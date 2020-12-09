@@ -13,7 +13,7 @@ The Splunk platform is popular with system administrators for aggregation and mo
 
 The Splunk developer platform enables developers to take advantage of the same technology used by the Splunk platform to build exciting new applications.
 
-For more information, see [Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/) on the Splunk Developer Portal.
+## Getting started with the Splunk SDK for Python
 
 
 ## Get started with the Splunk Enterprise SDK for Python
@@ -37,7 +37,6 @@ Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
   Get the Splunk Enterprise SDK for Python from [PyPI](https://pypi.org/project/splunk-sdk/). If you want to contribute to the SDK, clone the repository from [GitHub](https://github.com/splunk/splunk-sdk-python).
 
-
 ### Install the SDK
 
 Use the following commands to install the Splunk Enterprise SDK for Python libraries in different ways. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
@@ -58,8 +57,17 @@ Install the sources you cloned from GitHub:
 
     [sudo] python setup.py install
 
+## Testing Quickstart
 
-### Run the examples and unit tests
+You'll need `docker` and `docker-compose` to get up and running using this method.
+
+```
+make up SPLUNK_VERSION=8.0
+make wait_up
+make splunkrc_default
+make test
+make down
+```
 
 To run the examples and unit tests, you must put the root of the SDK on your PYTHONPATH. For example, if you downloaded the SDK to your home folder and are running OS X or Linux, add the following line to your **.bash_profile** file:
 

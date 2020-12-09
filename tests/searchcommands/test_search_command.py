@@ -657,9 +657,7 @@ class TestSearchCommand(TestCase):
             '{"inspector":{"messages":[["ERROR","Illegal value: logging_configuration=non-existent-logging.conf"],'
             '["ERROR","Illegal value: logging_level=NON-EXISTENT-LOGGING-LEVEL"],'
             '["ERROR","Illegal value: record=Non-boolean value"],'
-            '["ERROR","Illegal value: show_configuration=Non-boolean value"]]}}\n'
-            'chunked 1.0,17,0\n'
-            '{"finished":true}',
+            '["ERROR","Illegal value: show_configuration=Non-boolean value"]]}}\n',
             result.getvalue().decode('utf-8'))
 
         self.assertEqual(command.protocol_version, 2)

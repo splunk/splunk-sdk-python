@@ -398,7 +398,7 @@ class SearchCommand(object):
         :return: :const:`None`
 
         """
-        self._record_writer.flush(partial=True)
+        self._record_writer.flush(finished=False)
 
     def prepare(self):
         """ Prepare for execution.
@@ -776,7 +776,6 @@ class SearchCommand(object):
         # noinspection PyBroadException
         try:
             debug('Executing under protocol_version=2')
-            self._records = self._records_protocol_v2
             self._metadata.action = 'execute'
             self._execute(ifile, None)
         except SystemExit:
@@ -833,6 +832,8 @@ class SearchCommand(object):
 
     _encoded_value = re.compile(r'\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)')  # matches a single value in an encoded list
 
+    # Note: Subclasses must override this method so that it can be called
+    # called as self._execute(ifile, None)
     def _execute(self, ifile, process):
         """ Default processing loop
 
@@ -846,8 +847,12 @@ class SearchCommand(object):
         :rtype: NoneType
 
         """
-        self._record_writer.write_records(process(self._records(ifile)))
-        self.finish()
+        if self.protocol_version == 1:
+            self._record_writer.write_records(process(self._records(ifile)))
+            self.finish()
+        else:
+            assert self._protocol_version == 2
+            self._execute_v2(ifile, process)
 
     @staticmethod
     def _as_binary_stream(ifile):
@@ -908,7 +913,9 @@ class SearchCommand(object):
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 
     def _records_protocol_v1(self, ifile):
+        return self._read_csv_records(ifile)
 
+    def _read_csv_records(self, ifile):
         reader = csv.reader(ifile, dialect=CsvDialect)
 
         try:
@@ -933,7 +940,7 @@ class SearchCommand(object):
                     record[fieldname] = value
             yield record
 
-    def _records_protocol_v2(self, ifile):
+    def _execute_v2(self, ifile, process):
         istream = self._as_binary_stream(ifile)
 
         while True:
@@ -944,41 +951,25 @@ class SearchCommand(object):
 
             metadata, body = result
             action = getattr(metadata, 'action', None)
-
             if action != 'execute':
                 raise RuntimeError('Expected execute action, not {}'.format(action))
 
-            finished = getattr(metadata, 'finished', False)
+            self._finished = getattr(metadata, 'finished', False)
             self._record_writer.is_flushed = False
 
-            if len(body) > 0:
-                reader = csv.reader(StringIO(body), dialect=CsvDialect)
+            self._execute_chunk_v2(process, result)
 
-                try:
-                    fieldnames = next(reader)
-                except StopIteration:
-                    return
+            self._record_writer.write_chunk(finished=self._finished)
 
-                mv_fieldnames = dict([(name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_')])
+    def _execute_chunk_v2(self, process, chunk):
+            metadata, body = chunk
 
-                if len(mv_fieldnames) == 0:
-                    for values in reader:
-                        yield OrderedDict(izip(fieldnames, values))
-                else:
-                    for values in reader:
-                        record = OrderedDict()
-                        for fieldname, value in izip(fieldnames, values):
-                            if fieldname.startswith('__mv_'):
-                                if len(value) > 0:
-                                    record[mv_fieldnames[fieldname]] = self._decode_list(value)
-                            elif fieldname not in record:
-                                record[fieldname] = value
-                        yield record
-
-            if finished:
+            if len(body) <= 0:
                 return
 
-            self.flush()
+            records = self._read_csv_records(StringIO(body))
+            self._record_writer.write_records(process(records))
+
 
     def _report_unexpected_error(self):
 

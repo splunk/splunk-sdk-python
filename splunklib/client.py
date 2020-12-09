@@ -1872,7 +1872,7 @@ class StoragePasswords(Collection):
             name = UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
 
         # Append the : expected at the end of the name
-        if name[-1] is not ":":
+        if name[-1] != ":":
             name = name + ":"
         return Collection.delete(self, name)
 

@@ -851,7 +851,8 @@ class SearchCommand(object):
 
     @staticmethod
     def _as_binary_stream(ifile):
-        if six.PY2:
+        naught = ifile.read(0)
+        if isinstance(naught, bytes):
             return ifile
 
         try:

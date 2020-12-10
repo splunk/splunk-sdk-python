@@ -1,4 +1,4 @@
-# Splunk SDK for Python Changelog
+# Splunk Enterprise SDK for Python Changelog
 
 ## Version 1.6.14
 
@@ -51,9 +51,9 @@
 
 ### Changes
 
-* Updated the Splunk SDK for Python to work with the Python 3 version of Splunk Enterprise on Windows
+* Updated the Splunk Enterprise SDK for Python to work with the Python 3 version of Splunk Enterprise on Windows
 * Improved the performance of deleting/updating an input
-* Added logging to custom search commands app to showcase how to do logging in custom search commands by using the Splunk SDK for Python
+* Added logging to custom search commands app to showcase how to do logging in custom search commands by using the Splunk Enterprise SDK for Python
 
 ## Version 1.6.6
 

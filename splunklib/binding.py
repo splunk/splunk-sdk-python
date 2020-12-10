@@ -724,7 +724,12 @@ class Context(object):
         :type headers: ``list`` of 2-tuples.
         :param query: All other keyword arguments, which are used as query
             parameters.
-        :type query: ``string``
+        :param body: Parameters to be used in the post body. If specified,
+            any parameters in the query will be applied to the URL instead of
+            the body. If a dict is supplied, the key-value pairs will be form
+            encoded. If a string is supplied, the body will be passed through
+            in the request unchanged.
+        :type body: ``dict`` or ``str``
         :return: The response from the server.
         :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
                 and ``status``
@@ -1223,6 +1228,8 @@ class HttpLib(object):
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))
 
             body = kwargs.pop('body')
+            if isinstance(body, dict):
+                body = _encode(**body).encode('utf-8')
             if len(kwargs) > 0:
                 url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
         else:

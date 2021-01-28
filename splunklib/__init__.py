@@ -16,5 +16,5 @@
 
 from __future__ import absolute_import
 from splunklib.six.moves import map
-__version_info__ = (1, 6, 14)
+__version_info__ = (1, 6, 15)
 __version__ = ".".join(map(str, __version_info__))

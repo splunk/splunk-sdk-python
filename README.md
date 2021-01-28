@@ -3,7 +3,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.6.14
+#### Version 1.6.15
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 

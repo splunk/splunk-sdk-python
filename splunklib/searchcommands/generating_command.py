@@ -204,19 +204,21 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            result = self._read_chunk(self._as_binary_stream(ifile))
-
-            if not result:
-                return
-
-            metadata, body = result
-            action = getattr(metadata, 'action', None)
-
-            if action != 'execute':
-                raise RuntimeError('Expected execute action, not {}'.format(action))
-
-        self._record_writer.write_records(self.generate())
+            self._execute_v2(ifile, self.generate())
+        else:
+            assert self._protocol_version == 1
+            self._record_writer.write_records(self.generate())
         self.finish()
+
+    def _execute_chunk_v2(self, process, chunk):
+        count = 0
+        for row in process:
+            self._record_writer.write_record(row)
+            count += 1
+            if count == self._record_writer._maxresultrows:
+                self._finished = False
+                return
+        self._finished = True
 
     # endregion
 

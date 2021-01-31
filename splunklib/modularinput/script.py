@@ -13,15 +13,19 @@
 # under the License.
 
 from __future__ import absolute_import
-from abc import ABCMeta, abstractmethod
-from splunklib.six.moves.urllib.parse import urlsplit
+
 import sys
+
+from abc import ABCMeta, abstractmethod
+import splunklib
+from splunklib import six
+from splunklib.six.moves.urllib.parse import urlsplit
 
 from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
-from splunklib import six
+from ..wire._internal import Telemetry, TelemetryMetric
 
 try:
     import xml.etree.cElementTree as ET
@@ -70,6 +74,20 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 # passed on stdin as XML, and the script will write events on
                 # stdout and log entries on stderr.
                 self._input_definition = InputDefinition.parse(input_stream)
+
+                # create a telemetry metric
+                metric = TelemetryMetric(**{
+                    'metric_type': 'event',
+                    'component': 'splunk-sdk-python',
+                    'data': {
+                        'version': splunklib.__version__
+                    }
+                })
+
+                # call out to telemetry
+                telemetry = Telemetry(self.service)
+                telemetry.submit(metric.to_wire())
+
                 self.stream_events(self._input_definition, event_writer)
                 event_writer.close()
                 return 0

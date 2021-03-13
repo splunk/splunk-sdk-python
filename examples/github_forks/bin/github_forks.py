@@ -130,6 +130,10 @@ class MyScript(Script):
             owner = input_item["owner"]
             repo_name = input_item["repo_name"]
 
+            # Hint: API auth required?, get a secret from passwords.conf
+            # self.service.namespace["app"] = input_item["__app"]
+            # api_token = self.service.storage_passwords["github_api_token"].clear_password
+
             # Get the fork count from the Github API
             jsondata = _get_github_repos(owner, repo_name)
             fork_count = jsondata["forks_count"]

@@ -65,6 +65,11 @@ RULES_SPLUNK = {
         'default': None,
         'help': "Password to login with" 
     },
+    'splunkToken': {
+        'flags': ["--splunkToken"],
+        'default': None,
+        'help': "Authentication token to use"
+    },    
     'version': {
         'flags': ["--version"],
         'default': None,

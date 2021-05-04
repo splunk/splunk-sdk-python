@@ -3,15 +3,17 @@
 ## Version 1.6.15
 
 ### Bug fixes
-[#301](https://github.com/splunk/splunk-sdk-python/pull/301) Fix chunk synchronization
-[#327](https://github.com/splunk/splunk-sdk-python/pull/327) Rename and cleanup follow-up for chunk synchronization
-[#352](https://github.com/splunk/splunk-sdk-python/pull/352) Allow supplying of a key-value body when calling Context.post()
+
+* [#301](https://github.com/splunk/splunk-sdk-python/pull/301) Fix chunk synchronization
+* [#327](https://github.com/splunk/splunk-sdk-python/pull/327) Rename and cleanup follow-up for chunk synchronization
+* [#352](https://github.com/splunk/splunk-sdk-python/pull/352) Allow supplying of a key-value body when calling Context.post()
 
 ### Minor changes
-[#350](https://github.com/splunk/splunk-sdk-python/pull/350) Initial end-to-end tests for streaming, reporting, generating custom search commands
-[#348](https://github.com/splunk/splunk-sdk-python/pull/348) Update copyright years to 2020 
-[#346](https://github.com/splunk/splunk-sdk-python/pull/346) Readme updates to urls, terminology, and formatting
-[#317](https://github.com/splunk/splunk-sdk-python/pull/317) Fix deprecation warnings
+
+* [#350](https://github.com/splunk/splunk-sdk-python/pull/350) Initial end-to-end tests for streaming, reporting, generating custom search commands
+* [#348](https://github.com/splunk/splunk-sdk-python/pull/348) Update copyright years to 2020 
+* [#346](https://github.com/splunk/splunk-sdk-python/pull/346) Readme updates to urls, terminology, and formatting
+* [#317](https://github.com/splunk/splunk-sdk-python/pull/317) Fix deprecation warnings
 
 ## Version 1.6.14
 

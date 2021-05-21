@@ -91,13 +91,14 @@ def main(argv):
         scanned = int(stats['scanCount'])
         matched = int(stats['eventCount'])
         results = int(stats['resultCount'])
-        if verbose > 0:
+        if bool(verbose) > 0:
             status = ("\r%03.1f%% | %d scanned | %d matched | %d results" % (
                 progress, scanned, matched, results))
             sys.stdout.write(status)
             sys.stdout.flush()
         if stats['isDone'] == '1': 
-            if verbose > 0: sys.stdout.write('\n')
+            if bool(verbose) > 0:
+                sys.stdout.write('\n')
             break
         sleep(2)
 

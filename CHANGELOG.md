@@ -1,5 +1,10 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.16
+
+### Bug fixes
+[#312](https://github.com/splunk/splunk-sdk-python/pull/312) Fix issue [#309](https://github.com/splunk/splunk-sdk-python/issues/309), avoid catastrophic backtracking in searchcommands
+
 ## Version 1.6.15
 
 ### Bug fixes

@@ -28,6 +28,14 @@ build_app:
 	@echo "$(ATTN_COLOR)==> build_app $(NO_COLOR)"
 	@python setup.py build dist
 
+.PHONY: docs
+docs:
+	@echo "$(ATTN_COLOR)==> docs $(NO_COLOR)"
+	@rm -rf ./docs/_build
+	@tox -e docs
+	@cd ./docs/_build/html && zip -r ../docs_html.zip . -x ".*" -x "__MACOSX"
+	@echo "$(ATTN_COLOR)==> Docs pages can be found at ./docs/_build/html, docs bundle available at ./docs/_build/docs_html.zip"
+
 .PHONY: test
 test:
 	@echo "$(ATTN_COLOR)==> test $(NO_COLOR)"

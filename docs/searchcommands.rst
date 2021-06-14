@@ -88,6 +88,10 @@ splunklib.searchcommands
     :members:
     :inherited-members:
 
+.. autoclass:: Float
+    :members:
+    :inherited-members:
+
 .. autoclass:: RegularExpression
     :members:
     :inherited-members:

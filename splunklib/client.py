@@ -856,7 +856,7 @@ class Entity(Endpoint):
         ent.whitelist
 
     However, because some of the field names are not valid Python identifiers,
-    the dictionary-like syntax is preferrable.
+    the dictionary-like syntax is preferable.
 
     The state of an :class:`Entity` object is cached, so accessing a field
     does not contact the server. If you think the values on the

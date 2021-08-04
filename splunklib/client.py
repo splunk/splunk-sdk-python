@@ -295,7 +295,7 @@ def connect(**kwargs):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verrification for
+    :param verify: Enable (True) or disable (False) SSL verification for
                    https connections. (optional, the default is True)
     :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional).
@@ -365,7 +365,7 @@ class Service(_BaseService):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verrification for
+    :param verify: Enable (True) or disable (False) SSL verification for
                    https connections. (optional, the default is True)
     :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional; use "-" for wildcard).

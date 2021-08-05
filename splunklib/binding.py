@@ -1070,7 +1070,7 @@ class AuthenticationError(HTTPError):
 #
 
 # Encode the given kwargs as a query string. This wrapper will also _encode
-# a list value as a sequence of assignemnts to the corresponding arg name,
+# a list value as a sequence of assignments to the corresponding arg name,
 # for example an argument such as 'foo=[1,2,3]' will be encoded as
 # 'foo=1&foo=2&foo=3'.
 def _encode(**kwargs):

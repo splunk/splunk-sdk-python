@@ -98,7 +98,7 @@ def main(argv):
         return results
 
     # We specify many queries to get show the advantages
-    # of paralleism.
+    # of parallelism.
     queries = [
         'search * | head 100',
         'search * | head 100',

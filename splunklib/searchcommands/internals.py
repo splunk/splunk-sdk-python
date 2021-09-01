@@ -572,9 +572,20 @@ class RecordWriter(object):
 
     def write_records(self, records):
         self._ensure_validity()
+        records = list(records)
+        self._fetch_fieldname(records)
         write_record = self._write_record
         for record in records:
             write_record(record)
+
+    def _fetch_fieldname(self, records):
+        fieldnames = set()
+        for record in records:
+            fieldname = set(list(record.keys()))
+            fieldnames = fieldnames | fieldname
+        self._fieldnames = list(fieldnames)
+        value_list = imap(lambda fn: (str(fn), str('__mv_') + str(fn)), self._fieldnames)
+        self._writerow(list(chain.from_iterable(value_list)))
 
     def _clear(self):
         self._buffer.seek(0)

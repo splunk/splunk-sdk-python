@@ -16,6 +16,8 @@
 
 from __future__ import absolute_import
 import random, sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 
 from splunklib.modularinput import *
 from splunklib import six

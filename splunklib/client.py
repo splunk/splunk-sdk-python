@@ -3664,6 +3664,8 @@ class KVStoreCollectionData(object):
         :return: _id of inserted object
         :rtype: ``dict``
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def delete(self, query=None):
@@ -3700,6 +3702,8 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):

@@ -3640,6 +3640,11 @@ class KVStoreCollectionData(object):
         :return: Array of documents retrieved by query.
         :rtype: ``array``
         """
+
+        for key, value in query.items():
+            if isinstance(query[key], dict):
+                query[key] = json.dumps(value)
+
         return json.loads(self._get('', **query).body.read().decode('utf-8'))
 
     def query_by_id(self, id):

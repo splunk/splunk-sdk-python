@@ -3619,7 +3619,7 @@ class KVStoreCollectionData(object):
         self.service = collection.service
         self.collection = collection
         self.owner, self.app, self.sharing = collection._proper_namespace()
-        self.path = 'storage/collections/data/' + UrlEncoded(self.collection.name) + '/'
+        self.path = 'storage/collections/data/' + UrlEncoded(self.collection.name, encode_slash=True) + '/'
 
     def _get(self, url, **kwargs):
         return self.service.get(self.path + url, owner=self.owner, app=self.app, sharing=self.sharing, **kwargs)
@@ -3652,7 +3652,7 @@ class KVStoreCollectionData(object):
         :return: Document with id
         :rtype: ``dict``
         """
-        return json.loads(self._get(UrlEncoded(str(id))).body.read().decode('utf-8'))
+        return json.loads(self._get(UrlEncoded(str(id), encode_slash=True)).body.read().decode('utf-8'))
 
     def insert(self, data):
         """
@@ -3686,7 +3686,7 @@ class KVStoreCollectionData(object):
 
         :return: Result of DELETE request
         """
-        return self._delete(UrlEncoded(str(id)))
+        return self._delete(UrlEncoded(str(id), encode_slash=True))
 
     def update(self, id, data):
         """
@@ -3700,7 +3700,7 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
-        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
+        return json.loads(self._post(UrlEncoded(str(id), encode_slash=True), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):
         """

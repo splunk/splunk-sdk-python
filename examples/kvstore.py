@@ -80,7 +80,11 @@ def main():
     
     query = json.dumps({"otherkey": "bar"})
     print("Should return third item with auto-generated _key: %s" % json.dumps(collection.data.query(query=query), indent=1))
-    
+
+    # passing query data as dict
+    query = {"somekey": {"$gt": 1}}
+    print("Should return item2 and item3: %s" % json.dumps(collection.data.query(query=query), indent=1))
+
     # Let's delete the collection
     collection.delete()
 

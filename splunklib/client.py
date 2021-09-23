@@ -3640,6 +3640,11 @@ class KVStoreCollectionData(object):
         :return: Array of documents retrieved by query.
         :rtype: ``array``
         """
+
+        for key, value in query.items():
+            if isinstance(query[key], dict):
+                query[key] = json.dumps(value)
+
         return json.loads(self._get('', **query).body.read().decode('utf-8'))
 
     def query_by_id(self, id):
@@ -3664,6 +3669,8 @@ class KVStoreCollectionData(object):
         :return: _id of inserted object
         :rtype: ``dict``
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def delete(self, query=None):
@@ -3700,6 +3707,8 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         return json.loads(self._post(UrlEncoded(str(id), encode_slash=True), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):

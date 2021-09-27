@@ -15,6 +15,7 @@ jobs:
         splunk-version:
           - "8.0"
           - "latest"
+      fail-fast: false
 
     services:
       splunk:

@@ -124,6 +124,7 @@ class SearchCommand(object):
         self._default_logging_level = self._logger.level
         self._record_writer = None
         self._records = None
+        self._allow_empty_list = False
 
     def __str__(self):
         text = ' '.join(chain((type(self).name, str(self.options)), [] if self.fieldnames is None else self.fieldnames))
@@ -413,7 +414,7 @@ class SearchCommand(object):
         """
         pass
 
-    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout):
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_list=False):
         """ Process data.
 
         :param argv: Command line arguments.
@@ -425,10 +426,16 @@ class SearchCommand(object):
         :param ofile: Output data file.
         :type ofile: file
 
+        :param allow_empty_list: Allow empty results
+        :type allow_empty_list: bool
+
         :return: :const:`None`
         :rtype: NoneType
 
         """
+
+        self._allow_empty_list = allow_empty_list
+
         if len(argv) > 1:
             self._process_protocol_v1(argv, ifile, ofile)
         else:
@@ -965,8 +972,10 @@ class SearchCommand(object):
     def _execute_chunk_v2(self, process, chunk):
             metadata, body = chunk
 
-            if len(body) <= 0:
-                return
+            if len(body) <= 0 and not self._allow_empty_list:
+                raise ValueError(
+                    "No records found to process. Set _allow_empty_list=True in dispatch function to move forward "
+                    "with empty records.")
 
             records = self._read_csv_records(StringIO(body))
             self._record_writer.write_records(process(records))
@@ -1063,8 +1072,7 @@ class SearchCommand(object):
 SearchMetric = namedtuple('SearchMetric', ('elapsed_seconds', 'invocation_count', 'input_count', 'output_count'))
 
 
-
-def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None):
+def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None, allow_empty_list = False):
     """ Instantiates and executes a search command class
 
     This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of
@@ -1124,4 +1132,4 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys
     assert issubclass(command_class, SearchCommand)
 
     if module_name is None or module_name == '__main__':
-        command_class().process(argv, input_file, output_file)
+        command_class().process(argv, input_file, output_file, allow_empty_list)

@@ -39,11 +39,7 @@ Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
 ### Install the SDK
 
-Use the following commands to install the Splunk Enterprise SDK for Python libraries in different ways. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
-
-Use `easy_install`:
-
-    [sudo] easy_install splunk-sdk
+Use the following commands to install the Splunk Enterprise SDK for Python libraries. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
 
 Use `pip`:
 

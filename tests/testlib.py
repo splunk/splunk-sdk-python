@@ -165,13 +165,14 @@ class SDKTestCase(unittest.TestCase):
 
 
     def install_app_from_collection(self, name):
-        collectionName = 'sdk-app-collection'
+        collectionName = 'sdkappcollection'
         if collectionName not in self.service.apps:
             raise ValueError("sdk-test-application not installed in splunkd")
         appPath = self.pathInApp(collectionName, ["build", name+".tar"])
-        kwargs = {"update": 1, "name": appPath}
+        kwargs = {"update": True, "name": appPath, "filename": True}
+
         try:
-            self.service.post("apps/appinstall", **kwargs)
+            self.service.post("apps/local", **kwargs)
         except client.HTTPError as he:
             if he.status == 400:
                 raise IOError("App %s not found in app collection" % name)
@@ -180,7 +181,7 @@ class SDKTestCase(unittest.TestCase):
         self.installedApps.append(name)
 
     def app_collection_installed(self):
-        collectionName = 'sdk-app-collection'
+        collectionName = 'sdkappcollection'
         return collectionName in self.service.apps
 
     def pathInApp(self, appName, pathComponents):

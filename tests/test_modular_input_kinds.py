@@ -32,7 +32,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
     @pytest.mark.app
     def test_list_arguments(self):
-        self.install_app_from_collection("modular-inputs")
+        self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0
@@ -49,7 +49,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
     @pytest.mark.app
     def test_update_raises_exception(self):
-        self.install_app_from_collection("modular-inputs")
+        self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0
@@ -68,7 +68,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
     @pytest.mark.app
     def test_list_modular_inputs(self):
-        self.install_app_from_collection("modular-inputs")
+        self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
             # Not implemented before 5.0

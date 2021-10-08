@@ -45,6 +45,9 @@ jobs:
           echo password=changed! >> .splunkrc
           echo scheme=https >> .splunkrc
           echo version=${{ matrix.splunk }} >> .splunkrc
+          cd /home/runner/work/splunk-sdk-python/splunk-sdk-python/
+          python setup.py build
+          python setup.py dist
       - name: Install tox
         run: pip install tox
       - name: Test Execution

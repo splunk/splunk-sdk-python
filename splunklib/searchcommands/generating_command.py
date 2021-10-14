@@ -15,6 +15,7 @@
 # under the License.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
@@ -219,6 +220,27 @@ class GeneratingCommand(SearchCommand):
                 self._finished = False
                 return
         self._finished = True
+
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout):
+        """ Process data.
+
+        :param argv: Command line arguments.
+        :type argv: list or tuple
+
+        :param ifile: Input data file.
+        :type ifile: file
+
+        :param ofile: Output data file.
+        :type ofile: file
+
+        :param allow_empty_records: Allow empty results
+        :type allow_empty_records: bool
+
+        :return: :const:`None`
+        :rtype: NoneType
+
+        """
+        return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_list=True)
 
     # endregion
 

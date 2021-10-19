@@ -150,6 +150,31 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 |/tests     | Source for unit tests                                      |
 |/utils     | Source for utilities shared by the examples and unit tests |
 
+### Customization
+* When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, We may need to add new fields to the records based on certain conditions.
+* Structural changes like this may not be preserved.
+* Make sure to use ``add_field(record, fieldname, value)`` method from SearchCommand to add a new field and value to the record.
+
+Do
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                self.add_field(record, "odd_record", "true")
+            yield record
+```
+
+Don't
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                record["odd_record"] = "true"
+            yield record
+```
+
 ### Changelog
 
 The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.

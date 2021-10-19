@@ -221,6 +221,28 @@ class GeneratingCommand(SearchCommand):
                 return
         self._finished = True
 
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
+        """ Process data.
+
+        :param argv: Command line arguments.
+        :type argv: list or tuple
+
+        :param ifile: Input data file.
+        :type ifile: file
+
+        :param ofile: Output data file.
+        :type ofile: file
+
+        :param allow_empty_input: It is set to true for generating commands.
+        :type allow_empty_input: bool
+
+        :return: :const:`None`
+        :rtype: NoneType
+
+        """
+        allow_empty_input = True
+        return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=allow_empty_input)
+
     # endregion
 
     # region Types

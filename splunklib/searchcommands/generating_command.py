@@ -233,15 +233,17 @@ class GeneratingCommand(SearchCommand):
         :param ofile: Output data file.
         :type ofile: file
 
-        :param allow_empty_input: It is set to true for generating commands.
+        :param allow_empty_input: For generating commands, it must be true. Doing otherwise will cause an error.
         :type allow_empty_input: bool
 
         :return: :const:`None`
         :rtype: NoneType
 
         """
-        allow_empty_input = True
-        return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=allow_empty_input)
+        if not allow_empty_input:
+            raise ValueError("allow_empty_input cannot be False for Generating Commands")
+        else:
+            return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
 
     # endregion
 

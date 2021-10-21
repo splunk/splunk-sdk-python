@@ -176,7 +176,6 @@ class SearchCommand(object):
     def add_field(self, current_record, field_name, field_value):
         self._record_writer.custom_fields.add(field_name)
         current_record[field_name] = field_value
-        return current_record
 
     record = Option(doc='''
         **Syntax: record=<bool>

@@ -318,6 +318,8 @@ def connect(**kwargs):
     :type username: ``string``
     :param `password`: The password for the Splunk account.
     :type password: ``string``
+    :param `context`: The SSLContext that can be used when setting verify=True (optional)
+    :type context: ``SSLContext``
     :return: An initialized :class:`Service` connection.
 
     **Example**::

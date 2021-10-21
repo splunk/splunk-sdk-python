@@ -573,6 +573,7 @@ class RecordWriter(object):
 
     def write_records(self, records):
         self._ensure_validity()
+        records = list(records)
         write_record = self._write_record
         for record in records:
             write_record(record)
@@ -593,9 +594,7 @@ class RecordWriter(object):
         fieldnames = self._fieldnames
 
         if fieldnames is None:
-            self._fieldnames = fieldnames = list(record.keys())
-            self._fieldnames.extend(self.custom_fields)
-            fieldnames.extend(self.custom_fields)
+            self._fieldnames = fieldnames = {*list(record.keys())} | self.custom_fields
             value_list = imap(lambda fn: (str(fn), str('__mv_') + str(fn)), fieldnames)
             self._writerow(list(chain.from_iterable(value_list)))
 

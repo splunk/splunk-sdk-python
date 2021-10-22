@@ -594,8 +594,8 @@ class RecordWriter(object):
         fieldnames = self._fieldnames
 
         if fieldnames is None:
-            self._fieldnames = fieldnames = list(record.keys())
-            self._fieldnames.extend(self.custom_fields)
+            self.custom_fields |= set(record.keys())
+            self._fieldnames = fieldnames = [*self.custom_fields]
             value_list = imap(lambda fn: (str(fn), str('__mv_') + str(fn)), fieldnames)
             self._writerow(list(chain.from_iterable(value_list)))
 

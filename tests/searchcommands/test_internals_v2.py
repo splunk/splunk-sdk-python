@@ -233,6 +233,8 @@ class TestInternals(TestCase):
         self.assertGreater(writer._buffer.tell(), 0)
         self.assertEqual(writer._total_record_count, 0)
         self.assertEqual(writer.committed_record_count, 0)
+        fieldnames.sort()
+        writer._fieldnames.sort()
         self.assertListEqual(writer._fieldnames, fieldnames)
         self.assertListEqual(writer._inspector['messages'], messages)
 

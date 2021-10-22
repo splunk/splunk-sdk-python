@@ -18,15 +18,10 @@ DATE := `date "+%FT%T%z"`
 CONTAINER_NAME := 'splunk'
 
 .PHONY: all
-all: build_app test
+all: test
 
 init:
 	@echo "$(ATTN_COLOR)==> init $(NO_COLOR)"
-
-.PHONY: build_app
-build_app:
-	@echo "$(ATTN_COLOR)==> build_app $(NO_COLOR)"
-	@python setup.py build dist
 
 .PHONY: docs
 docs:

@@ -130,84 +130,6 @@ class JunitXmlTestCommand(Command):
         run_test_suite_with_junit_output()
 
 
-class DistCommand(Command):
-    """setup.py command to create .spl files for modular input and search
-    command examples"""
-    description = "Build modular input and search command example tarballs."
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    @staticmethod
-    def get_python_files(files):
-        """Utility function to get .py files from a list"""
-        python_files = []
-        for file_name in files:
-            if file_name.endswith(".py"):
-                python_files.append(file_name)
-
-        return python_files
-
-    def run(self):
-        # Create random_numbers.spl and github_forks.spl
-
-        app_names = ['random_numbers', 'github_forks']
-        splunklib_arcname = "splunklib"
-        modinput_dir = os.path.join(splunklib_arcname, "modularinput")
-
-        if not os.path.exists("build"):
-            os.makedirs("build")
-
-        for app in app_names:
-            with closing(tarfile.open(os.path.join("build", app + ".spl"), "w")) as spl:
-                spl.add(
-                    os.path.join("examples", app, app + ".py"),
-                    arcname=os.path.join(app, "bin", app + ".py")
-                )
-
-                spl.add(
-                    os.path.join("examples", app, "default", "app.conf"),
-                    arcname=os.path.join(app, "default", "app.conf")
-                )
-                spl.add(
-                    os.path.join("examples", app, "README", "inputs.conf.spec"),
-                    arcname=os.path.join(app, "README", "inputs.conf.spec")
-                )
-
-                splunklib_files = self.get_python_files(os.listdir(splunklib_arcname))
-                for file_name in splunklib_files:
-                    spl.add(
-                        os.path.join(splunklib_arcname, file_name),
-                        arcname=os.path.join(app, "bin", splunklib_arcname, file_name)
-                    )
-
-                modinput_files = self.get_python_files(os.listdir(modinput_dir))
-                for file_name in modinput_files:
-                    spl.add(
-                        os.path.join(modinput_dir, file_name),
-                        arcname=os.path.join(app, "bin", modinput_dir, file_name)
-                    )
-
-                spl.close()
-
-        # Create searchcommands_app-<three-part-version-number>-private.tar.gz
-        # but only if we are on 2.7 or later
-        if sys.version_info >= (2,7):
-            setup_py = os.path.join('examples', 'searchcommands_app', 'setup.py')
-
-            check_call(('python', setup_py, 'build', '--force'), stderr=STDOUT, stdout=sys.stdout)
-            tarball = 'searchcommands_app-{0}-private.tar.gz'.format(self.distribution.metadata.version)
-            source = os.path.join('examples', 'searchcommands_app', 'build', tarball)
-            target = os.path.join('build', tarball)
-
-            shutil.copyfile(source, target)
-
-        return
-
 setup(
     author="Splunk, Inc.",
 
@@ -215,8 +137,7 @@ setup(
 
     cmdclass={'coverage': CoverageCommand,
               'test': TestCommand,
-              'testjunit': JunitXmlTestCommand,
-              'dist': DistCommand},
+              'testjunit': JunitXmlTestCommand},
 
     description="The Splunk Software Development Kit for Python.",
 

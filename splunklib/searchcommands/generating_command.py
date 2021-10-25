@@ -213,7 +213,15 @@ class GeneratingCommand(SearchCommand):
 
     def _execute_chunk_v2(self, process, chunk):
         count = 0
+        records = []
         for row in process:
+            records.append(row)
+            count+=1
+            if count == self._record_writer._maxresultrows:
+                break
+
+        count = 0
+        for row in records:
             self._record_writer.write_record(row)
             count += 1
             if count == self._record_writer._maxresultrows:

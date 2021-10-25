@@ -243,7 +243,7 @@ class GeneratingCommand(SearchCommand):
         if not allow_empty_input:
             raise ValueError("allow_empty_input cannot be False for Generating Commands")
         else:
-            return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
+            return super(GeneratingCommand, self).process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
 
     # endregion
 

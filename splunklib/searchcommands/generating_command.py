@@ -240,6 +240,11 @@ class GeneratingCommand(SearchCommand):
         :rtype: NoneType
 
         """
+
+        # Generating commands are expected to run on an empty set of inputs as the first command being run in a search,
+        # also this class implements its own separate _execute_chunk_v2 method which does not respect allow_empty_input
+        # so ensure that allow_empty_input is always True
+
         if not allow_empty_input:
             raise ValueError("allow_empty_input cannot be False for Generating Commands")
         else:

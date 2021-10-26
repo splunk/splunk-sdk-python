@@ -179,7 +179,7 @@ class SearchCommand(object):
 
     def gen_record(self, **record):
         self._record_writer.custom_fields |= record.keys()
-        return {**record}
+        return record
 
     record = Option(doc='''
         **Syntax: record=<bool>

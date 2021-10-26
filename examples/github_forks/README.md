@@ -1,7 +1,7 @@
 splunk-sdk-python github_forks example
 ========================================
 
-This app provides an example of a modular input that generates a random number between the min and max values provided by the user during setup of the input.
+This app provides an example of a modular input that generates the number of repository forks according to the Github API based on the owner and repo_name provided by the user during setup of the input.
 
 To run this example locally run `SPLUNK_VERSION=latest docker compose up -d` from the root of this repository which will mount this example alongside the latest version of splunklib within `/opt/splunk/etc/apps/github_forks` and `/opt/splunk/etc/apps/github_forks/lib/splunklib` within the `splunk` container.
 

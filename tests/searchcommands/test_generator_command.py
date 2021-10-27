@@ -4,7 +4,6 @@ import time
 from . import chunked_data_stream as chunky
 
 from splunklib.searchcommands import Configuration, GeneratingCommand
-from unittest import TestCase
 
 
 def test_simple_generator():

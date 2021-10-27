@@ -15,6 +15,7 @@
 # under the License.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
@@ -219,6 +220,35 @@ class GeneratingCommand(SearchCommand):
                 self._finished = False
                 return
         self._finished = True
+
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
+        """ Process data.
+
+        :param argv: Command line arguments.
+        :type argv: list or tuple
+
+        :param ifile: Input data file.
+        :type ifile: file
+
+        :param ofile: Output data file.
+        :type ofile: file
+
+        :param allow_empty_input: For generating commands, it must be true. Doing otherwise will cause an error.
+        :type allow_empty_input: bool
+
+        :return: :const:`None`
+        :rtype: NoneType
+
+        """
+
+        # Generating commands are expected to run on an empty set of inputs as the first command being run in a search,
+        # also this class implements its own separate _execute_chunk_v2 method which does not respect allow_empty_input
+        # so ensure that allow_empty_input is always True
+
+        if not allow_empty_input:
+            raise ValueError("allow_empty_input cannot be False for Generating Commands")
+        else:
+            return super(GeneratingCommand, self).process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
 
     # endregion
 

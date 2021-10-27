@@ -174,6 +174,27 @@ class CustomStreamingCommand(StreamingCommand):
                 record["odd_record"] = "true"
             yield record
 ```
+### Customization for Generating Custom Search Command
+* Generating Custom Search Command is used to generate events using SDK code.
+* Make sure to use ``gen_record()`` method from SearchCommand to add a new record and pass event data as a key=value pair separated by , (mentioned in below example).
+
+Do
+```python
+@Configuration()
+    class GeneratorTest(GeneratingCommand):
+        def generate(self):
+            yield self.gen_record(_time=time.time(), one=1)
+            yield self.gen_record(_time=time.time(), two=2)
+```
+
+Don't
+```python
+@Configuration()
+    class GeneratorTest(GeneratingCommand):
+        def generate(self):
+            yield {'_time': time.time(), 'one': 1}
+            yield {'_time': time.time(), 'two': 2}
+```
 
 ### Changelog
 

@@ -178,7 +178,7 @@ class SearchCommand(object):
         current_record[field_name] = field_value
 
     def gen_record(self, **record):
-        self._record_writer.custom_fields |= record.keys()
+        self._record_writer.custom_fields |= set(record.keys())
         return record
 
     record = Option(doc='''

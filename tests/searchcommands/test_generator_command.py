@@ -82,5 +82,5 @@ def test_all_fieldnames_present_for_generated_records():
     fieldnames_actual = set()
     for chunk in ds:
         for row in chunk.data:
-            fieldnames_actual |= row.keys()
+            fieldnames_actual |= set(row.keys())
     assert fieldnames_expected.issubset(fieldnames_actual)

@@ -69,6 +69,16 @@ RULES_SPLUNK = {
         'flags': ["--version"],
         'default': None,
         'help': 'Ignore. Used by JavaScript SDK.'
+    },
+    'splunkToken': {
+        'flags': ["--bearerToken"],
+        'default': None,
+        'help': 'Bearer token for authentication'
+    },
+    'token': {
+        'flags': ["--sessionKey"],
+        'default': None,
+        'help': 'Session key for authentication'
     }
 }
 

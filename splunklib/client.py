@@ -756,6 +756,8 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
+        if owner is None:
+            owner = "nobody"
         if path_segment.startswith('/'):
             path = path_segment
         else:

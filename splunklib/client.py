@@ -403,6 +403,7 @@ class Service(_BaseService):
     def __init__(self, **kwargs):
         super(Service, self).__init__(**kwargs)
         self._splunk_version = None
+        self._kvstore_owner = None
 
     @property
     def apps(self):
@@ -676,11 +677,26 @@ class Service(_BaseService):
         return self._splunk_version
 
     @property
+    def kvstore_owner(self):
+        if self._kvstore_owner is None:
+            self._kvstore_owner = "nobody"
+            #self.namespace['owner'] = "nobody"
+        return self._kvstore_owner
+
+    @kvstore_owner.setter
+    def kvstore_owner(self, value):
+        self._kvstore_owner = value
+        #self.namespace['owner'] = value
+
+    @property
     def kvstore(self):
         """Returns the collection of KV Store collections.
 
         :return: A :class:`KVStoreCollections` collection of :class:`KVStoreCollection` entities.
         """
+        self.namespace['owner'] = self.kvstore_owner
+        # if self.namespace['owner'] is None:
+        #     self.namespace['owner'] = "nobody"
         return KVStoreCollections(self)
 
     @property
@@ -756,8 +772,6 @@ class Endpoint(object):
         # self.path to the Endpoint is relative in the SDK, so passing
         # owner, app, sharing, etc. along will produce the correct
         # namespace in the final request.
-        if owner is None:
-            owner = "nobody"
         if path_segment.startswith('/'):
             path = path_segment
         else:

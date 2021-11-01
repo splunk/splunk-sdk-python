@@ -154,6 +154,7 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 * When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, We may need to add new fields to the records based on certain conditions.
 * Structural changes like this may not be preserved.
 * Make sure to use ``add_field(record, fieldname, value)`` method from SearchCommand to add a new field and value to the record.
+* ___Note:__ Usage of ``add_field`` method is completely optional, if you are not facing any issues with field retention._
 
 Do
 ```python

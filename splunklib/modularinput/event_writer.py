@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 import sys
 
-from io import TextIOWrapper, TextIOBase
 from splunklib.six import ensure_str
 from .event import ET
 

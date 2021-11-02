@@ -30,7 +30,6 @@ import io
 import logging
 import socket
 import ssl
-import sys
 from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
@@ -39,7 +38,6 @@ from io import BytesIO
 from xml.etree.ElementTree import XML
 
 from splunklib import six
-from splunklib.six import StringIO
 from splunklib.six.moves import urllib
 
 from .data import record

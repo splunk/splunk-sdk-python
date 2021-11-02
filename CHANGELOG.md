@@ -4,9 +4,11 @@
 
 ### Bug fixes
 
+* [#383](https://github.com/splunk/splunk-sdk-python/pull/383) Implemented the possibility to provide a SSLContext object to the connect method
 * [#396](https://github.com/splunk/splunk-sdk-python/pull/396) Updated KVStore Methods to support dictionaries
 * [#397](https://github.com/splunk/splunk-sdk-python/pull/397) Added code changes for encoding '/' in _key parameter in kvstore.data APIs.
 * [#398](https://github.com/splunk/splunk-sdk-python/pull/398) Added dictionary support for KVStore "query" methods.
+* [#402](https://github.com/splunk/splunk-sdk-python/pull/402) Fixed regression introduced in 1.6.15 to once again allow processing of empty input records in custom search commands (fix [#376](https://github.com/splunk/splunk-sdk-python/issues/376))
 * [#404](https://github.com/splunk/splunk-sdk-python/pull/404) Fixed test case failure for 8.0 and latest(8.2.x) splunk version
 
 ### Minor changes

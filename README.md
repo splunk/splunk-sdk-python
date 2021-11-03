@@ -112,7 +112,17 @@ Save the file as **.splunkrc** in the current user's home directory.
 
 Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example. In the commands below, replace "examplename" with the name of the specific example in the directory that you want to run:
 
+Using username and Password
+    
     python examplename.py --username="admin" --password="changeme"
+
+Using Bearer token
+    
+    python examplename.py --bearerToken=<value>
+
+Using Session key
+    
+    python examplename.py --sessionKey="<value>"
 
 If you saved your login credentials in the **.splunkrc** file, you can omit those arguments:
 

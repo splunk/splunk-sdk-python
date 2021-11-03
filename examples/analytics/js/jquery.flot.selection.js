@@ -34,7 +34,7 @@ you want to know what's happening while it's happening,
 A "plotunselected" event with no arguments is emitted when the user
 clicks the mouse to remove the selection.
 
-The plugin allso adds the following methods to the plot object:
+The plugin also adds the following methods to the plot object:
 
 - setSelection(ranges, preventEvent)
 

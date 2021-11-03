@@ -8,7 +8,7 @@ services:
             - SPLUNK_START_ARGS=--accept-license
             - SPLUNK_HEC_TOKEN=11111111-1111-1111-1111-1111111111113
             - SPLUNK_PASSWORD=changed!
-            - SPLUNK_APPS_URL=https://github.com/splunk/sdk-app-collection/releases/download/v1.0.0/sdk-app-collection.tgz
+            - SPLUNK_APPS_URL=https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
         ports:
             - 8000:8000
             - 8088:8088

@@ -229,7 +229,7 @@ class TestInput(testlib.SDKTestCase):
     def test_lists_modular_inputs(self):
         # Install modular inputs to list, and restart
         # so they'll show up.
-        self.install_app_from_collection("modular-inputs")
+        self.install_app_from_collection("modular_inputs")
         self.uncheckedRestartSplunk()
 
         inputs = self.service.inputs

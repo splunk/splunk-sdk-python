@@ -18,7 +18,7 @@
 
 # All job commands operate on search 'specifiers' (spec). A search specifier
 # is either a search-id (sid) or the index of the search job in the list of
-# jobs, eg: @0 would specify the frist job in the list, @1 the second, and so
+# jobs, eg: @0 would specify the first job in the list, @1 the second, and so
 # on.
 
 from __future__ import absolute_import

@@ -256,7 +256,7 @@ class CollectionTestCase(testlib.SDKTestCase):
         valid_kinds = self.service.inputs._get_kind_list()
         valid_kinds.remove("script")
         for inp in self.service.inputs.list(*valid_kinds):
-            self.assertTrue(self.service.inputs[inp.name])
+            self.assertTrue(self.service.inputs[inp.name, inp.kind])
 
 
 

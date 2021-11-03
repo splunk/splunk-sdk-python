@@ -19,6 +19,7 @@ from __future__ import print_function
 from tests import testlib
 import logging
 import os
+import time
 import splunklib.client as client
 try:
     import unittest
@@ -43,6 +44,7 @@ class IndexTest(testlib.SDKTestCase):
         # clashes, though.
         if self.service.splunk_version >= (5,):
             if self.index_name in self.service.indexes:
+                time.sleep(5)
                 self.service.indexes.delete(self.index_name)
                 self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
         else:
@@ -56,6 +58,7 @@ class IndexTest(testlib.SDKTestCase):
     def test_delete(self):
         if self.service.splunk_version >= (5,):
             self.assertTrue(self.index_name in self.service.indexes)
+            time.sleep(5)
             self.service.indexes.delete(self.index_name)
             self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
 

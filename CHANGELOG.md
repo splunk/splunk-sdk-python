@@ -1,5 +1,27 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.17
+
+### Bug fixes
+
+* [#383](https://github.com/splunk/splunk-sdk-python/pull/383) Implemented the possibility to provide a SSLContext object to the connect method
+* [#396](https://github.com/splunk/splunk-sdk-python/pull/396) Updated KVStore Methods to support dictionaries
+* [#397](https://github.com/splunk/splunk-sdk-python/pull/397) Added code changes for encoding '/' in _key parameter in kvstore.data APIs.
+* [#398](https://github.com/splunk/splunk-sdk-python/pull/398) Added dictionary support for KVStore "query" methods.
+* [#402](https://github.com/splunk/splunk-sdk-python/pull/402) Fixed regression introduced in 1.6.15 to once again allow processing of empty input records in custom search commands (fix [#376](https://github.com/splunk/splunk-sdk-python/issues/376))
+* [#404](https://github.com/splunk/splunk-sdk-python/pull/404) Fixed test case failure for 8.0 and latest(8.2.x) splunk version
+
+### Minor changes
+
+* [#381](https://github.com/splunk/splunk-sdk-python/pull/381) Updated current year in conf.py
+* [#389](https://github.com/splunk/splunk-sdk-python/pull/389) Fixed few typos
+* [#391](https://github.com/splunk/splunk-sdk-python/pull/391) Fixed spelling error in client.py
+* [#393](https://github.com/splunk/splunk-sdk-python/pull/393) Updated development status past 3
+* [#394](https://github.com/splunk/splunk-sdk-python/pull/394) Updated Readme steps to run examples
+* [#395](https://github.com/splunk/splunk-sdk-python/pull/395) Updated random_number.py
+* [#399](https://github.com/splunk/splunk-sdk-python/pull/399) Moved CI tests to GitHub Actions
+* [#403](https://github.com/splunk/splunk-sdk-python/pull/403) Removed usage of Easy_install to install SDK
+
 ## Version 1.6.16
 
 ### Bug fixes

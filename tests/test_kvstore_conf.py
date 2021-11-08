@@ -33,6 +33,7 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
 
     def test_owner_restriction(self):
         self.service.kvstore_owner = 'admin'
+        self.confs = self.service.kvstore
         self.assertRaises(client.HTTPError, lambda: self.confs.list())
         self.service.kvstore_owner = 'nobody'
 

@@ -690,6 +690,7 @@ class Service(_BaseService):
     @kvstore_owner.setter
     def kvstore_owner(self, value):
         self._kvstore_owner = value
+        self.kvstore
 
     @property
     def kvstore(self):

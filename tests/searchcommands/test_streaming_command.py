@@ -27,3 +27,71 @@ def test_simple_streaming_command():
     output = chunky.ChunkedDataStream(ofile)
     getinfo_response = output.read_chunk()
     assert getinfo_response.meta["type"] == "streaming"
+
+
+def test_field_preservation_negative():
+    @Configuration()
+    class TestStreamingCommand(StreamingCommand):
+
+        def stream(self, records):
+            for index, record in enumerate(records):
+                if index % 2 != 0:
+                    record["odd_field"] = True
+                else:
+                    record["even_field"] = True
+                yield record
+
+    cmd = TestStreamingCommand()
+    ifile = io.BytesIO()
+    ifile.write(chunky.build_getinfo_chunk())
+    data = list()
+    for i in range(0, 10):
+        data.append({"in_index": str(i)})
+    ifile.write(chunky.build_data_chunk(data, finished=True))
+    ifile.seek(0)
+    ofile = io.BytesIO()
+    cmd._process_protocol_v2([], ifile, ofile)
+    ofile.seek(0)
+    output_iter = chunky.ChunkedDataStream(ofile).__iter__()
+    output_iter.next()
+    output_records = [i for i in output_iter.next().data]
+
+    # Assert that count of records having "odd_field" is 0
+    assert len(list(filter(lambda r: "odd_field" in r, output_records))) == 0
+
+    # Assert that count of records having "even_field" is 10
+    assert len(list(filter(lambda r: "even_field" in r, output_records))) == 10
+
+
+def test_field_preservation_positive():
+    @Configuration()
+    class TestStreamingCommand(StreamingCommand):
+
+        def stream(self, records):
+            for index, record in enumerate(records):
+                if index % 2 != 0:
+                    self.add_field(record, "odd_field", True)
+                else:
+                    self.add_field(record, "even_field", True)
+                yield record
+
+    cmd = TestStreamingCommand()
+    ifile = io.BytesIO()
+    ifile.write(chunky.build_getinfo_chunk())
+    data = list()
+    for i in range(0, 10):
+        data.append({"in_index": str(i)})
+    ifile.write(chunky.build_data_chunk(data, finished=True))
+    ifile.seek(0)
+    ofile = io.BytesIO()
+    cmd._process_protocol_v2([], ifile, ofile)
+    ofile.seek(0)
+    output_iter = chunky.ChunkedDataStream(ofile).__iter__()
+    output_iter.next()
+    output_records = [i for i in output_iter.next().data]
+
+    # Assert that count of records having "odd_field" is 10
+    assert len(list(filter(lambda r: "odd_field" in r, output_records))) == 10
+
+    # Assert that count of records having "even_field" is 10
+    assert len(list(filter(lambda r: "even_field" in r, output_records))) == 10

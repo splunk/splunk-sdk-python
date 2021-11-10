@@ -10,3 +10,7 @@ password=$password
 scheme=$scheme
 # Your version of Splunk (default: 6.2)
 version=$version
+# Bearer token for authentication
+#bearerToken=<Bearer-token>
+# Session key for authentication
+#sessionKey=<Session-Key>

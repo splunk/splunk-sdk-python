@@ -15,13 +15,9 @@
 # under the License.
 
 from setuptools import setup, Command
-from contextlib import closing
-from subprocess import check_call, STDOUT
 
 import os
 import sys
-import shutil
-import tarfile
 
 import splunklib
 

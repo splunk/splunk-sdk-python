@@ -45,12 +45,6 @@ jobs:
           echo password=changed! >> .splunkrc
           echo scheme=https >> .splunkrc
           echo version=${{ matrix.splunk }} >> .splunkrc
-      - name: Create build dir for ExamplesTestCase::test_build_dir_exists test case
-        run: |
-          cd ~
-          cd /home/runner/work/splunk-sdk-python/splunk-sdk-python/
-          python setup.py build
-          python setup.py dist
       - name: Install tox
         run: pip install tox
       - name: Test Execution

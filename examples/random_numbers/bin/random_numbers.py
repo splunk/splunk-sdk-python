@@ -17,6 +17,10 @@
 from __future__ import absolute_import
 import random, sys
 import os
+# NOTE: splunklib must exist within random_numbers/lib/splunklib for this
+# example to run! To run this locally use `SPLUNK_VERSION=latest docker compose up -d`
+# from the root of this repo which mounts this example and the latest splunklib
+# code together at /opt/splunk/etc/apps/random_numbers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 
 from splunklib.modularinput import *

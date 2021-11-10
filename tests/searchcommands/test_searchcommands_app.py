@@ -199,26 +199,6 @@ class TestSearchCommandsApp(TestCase):
 
         return
 
-    @skipUnless(pypy(), 'Skipping TestSearchCommandsApp.test_pypygeneratetext_as_unit because pypy is not on PATH.')
-    def test_pypygeneratetext_as_unit(self):
-
-        expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
-        self._compare_csv_files_time_sensitive(expected, output)
-
-        expected, output, errors, exit_status = self._run_command('pypygeneratetext', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
-        self._compare_csv_files_time_insensitive(expected, output)
-
-        expected, output, errors, exit_status = self._run_command('pypygeneratetext')
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
-        self._compare_chunks(expected, output, time_sensitive=False)
-
-        return
-
     def test_sum_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)

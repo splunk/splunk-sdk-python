@@ -25,16 +25,16 @@ import splunklib.client as client
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(KVStoreConfTestCase, self).setUp()
-        self.service.namespace['owner'] = 'nobody'
+        #self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):
             self.confs['test'].delete()
 
     def test_owner_restriction(self):
-        self.service.namespace['owner'] = 'admin'
+        self.service.kvstore_owner = 'admin'
         self.assertRaises(client.HTTPError, lambda: self.confs.list())
-        self.service.namespace['owner'] = 'nobody'
+        self.service.kvstore_owner = 'nobody'
 
     def test_create_delete_collection(self):
         self.confs.create('test')

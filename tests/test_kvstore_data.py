@@ -27,7 +27,7 @@ import splunklib.client as client
 class KVStoreDataTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(KVStoreDataTestCase, self).setUp()
-        self.service.namespace['owner'] = 'nobody'
+        #self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):

@@ -1,5 +1,17 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.18
+
+### Bug fixes
+* [#405](https://github.com/splunk/splunk-sdk-python/pull/405) Fix searchcommands_app example
+* [#406](https://github.com/splunk/splunk-sdk-python/pull/406) Fix mod inputs examples
+* [#407](https://github.com/splunk/splunk-sdk-python/pull/407) Modified Streaming and Generating Custom Search Command
+
+### Minor changes
+* [#408](https://github.com/splunk/splunk-sdk-python/pull/408) Add search mode example
+* [#409](https://github.com/splunk/splunk-sdk-python/pull/409) Add Support for authorization tokens read from .splunkrc
+* [#413](https://github.com/splunk/splunk-sdk-python/pull/413) Default kvstore owner to nobody
+
 ## Version 1.6.17
 
 ### Bug fixes

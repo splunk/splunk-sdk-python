@@ -3,7 +3,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.6.17
+#### Version 1.6.18
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 
@@ -71,6 +71,26 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
+### Following are the different ways to connect to Splunk Enterprise
+#### Using username/password
+```python
+import splunklib.client as client
+    service = client.connect(host=<host_url>, username=<username>, password=<password>, autoLogin=True)
+```
+
+#### Using bearer token
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, splunkToken=<bearer_token>, autologin=True)
+```
+
+#### Using session key
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, token=<session_key>, autologin=True)
+```
+
+###
 #### Create a .splunkrc convenience file
 
 To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.

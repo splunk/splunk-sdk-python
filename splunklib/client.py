@@ -403,6 +403,7 @@ class Service(_BaseService):
     def __init__(self, **kwargs):
         super(Service, self).__init__(**kwargs)
         self._splunk_version = None
+        self._kvstore_owner = None
 
     @property
     def apps(self):
@@ -676,11 +677,33 @@ class Service(_BaseService):
         return self._splunk_version
 
     @property
+    def kvstore_owner(self):
+        """Returns the KVStore owner for this instance of Splunk.
+
+        By default is the kvstore owner is not set, it will return "nobody"
+        :return: A string with the KVStore owner.
+        """
+        if self._kvstore_owner is None:
+            self._kvstore_owner = "nobody"
+        return self._kvstore_owner
+
+    @kvstore_owner.setter
+    def kvstore_owner(self, value):
+        """
+        kvstore is refreshed, when the owner value is changed
+        """
+        self._kvstore_owner = value
+        self.kvstore
+
+    @property
     def kvstore(self):
         """Returns the collection of KV Store collections.
 
+        sets the owner for the namespace, before retrieving the KVStore Collection
+
         :return: A :class:`KVStoreCollections` collection of :class:`KVStoreCollection` entities.
         """
+        self.namespace['owner'] = self.kvstore_owner
         return KVStoreCollections(self)
 
     @property

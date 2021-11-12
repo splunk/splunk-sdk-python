@@ -47,9 +47,7 @@ class SimulateCommand(GeneratingCommand):
     ##Example
 
     .. code-block::
-        | simulate csv=population.csv rate=50 interval=00:00:01
-            duration=00:00:05 | countmatches fieldname=word_count
-            pattern="\\w+" text | stats mean(word_count) stdev(word_count)
+        | simulate csv="/opt/splunk/etc/apps/searchcommands_app/data/population.csv" rate=10 interval=00:00:01 duration=00:00:02 seed=1
 
     This example generates events drawn from repeated random sampling of events from :code:`tweets.csv`. Events are
     drawn at an average rate of 50 per second for a duration of 5 seconds. Events are piped to the example
@@ -85,28 +83,20 @@ class SimulateCommand(GeneratingCommand):
         **Description:** Value for initializing the random number generator ''')
 
     def generate(self):
-
-        if not self.records:
-            if self.seed is not None:
-                random.seed(self.seed)
-            self.records = [record for record in csv.DictReader(self.csv_file)]
-            self.lambda_value = 1.0 / (self.rate / float(self.interval))
+        if self.seed is not None:
+            random.seed(self.seed)
+        records = [record for record in csv.DictReader(self.csv_file)]
+        lambda_value = 1.0 / (self.rate / float(self.interval))
 
         duration = self.duration
-
         while duration > 0:
-            count = int(round(random.expovariate(self.lambda_value)))
+            count = int(round(random.expovariate(lambda_value)))
             start_time = time.clock()
-            for record in random.sample(self.records, count):
+            for record in random.sample(records, count):
                 yield record
             interval = time.clock() - start_time
             if interval < self.interval:
                 time.sleep(self.interval - interval)
             duration -= max(interval, self.interval)
-
-    def __init__(self):
-        super(SimulateCommand, self).__init__()
-        self.lambda_value = None
-        self.records = None
 
 dispatch(SimulateCommand, sys.argv, sys.stdin, sys.stdout, __name__)

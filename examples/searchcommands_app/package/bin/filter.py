@@ -49,7 +49,7 @@ class FilterCommand(EventingCommand):
 
     .. code-block::
         | generatetext text="Hello world! How the heck are you?" count=6
-        | filter predicate="(long(_serial) & 1) == 0" update="_raw = _raw.replace('world', 'Splunk')"
+        | filter predicate="(int(_serial) & 1) == 0" update="_raw = _raw.replace('world', 'Splunk')"
 
     """
     predicate = Option(doc='''

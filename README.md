@@ -3,7 +3,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.6.17
+#### Version 1.6.18
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 
@@ -71,6 +71,26 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
+### Following are the different ways to connect to Splunk Enterprise
+#### Using username/password
+```python
+import splunklib.client as client
+    service = client.connect(host=<host_url>, username=<username>, password=<password>, autoLogin=True)
+```
+
+#### Using bearer token
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, splunkToken=<bearer_token>, autologin=True)
+```
+
+#### Using session key
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, token=<session_key>, autologin=True)
+```
+
+###
 #### Create a .splunkrc convenience file
 
 To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
@@ -112,7 +132,17 @@ Save the file as **.splunkrc** in the current user's home directory.
 
 Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example. In the commands below, replace "examplename" with the name of the specific example in the directory that you want to run:
 
+Using username and Password
+    
     python examplename.py --username="admin" --password="changeme"
+
+Using Bearer token
+    
+    python examplename.py --bearerToken=<value>
+
+Using Session key
+    
+    python examplename.py --sessionKey="<value>"
 
 If you saved your login credentials in the **.splunkrc** file, you can omit those arguments:
 
@@ -149,6 +179,53 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 |/splunklib | Source for the Splunk library modules                      |
 |/tests     | Source for unit tests                                      |
 |/utils     | Source for utilities shared by the examples and unit tests |
+
+### Customization
+* When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, We may need to add new fields to the records based on certain conditions.
+* Structural changes like this may not be preserved.
+* Make sure to use ``add_field(record, fieldname, value)`` method from SearchCommand to add a new field and value to the record.
+* ___Note:__ Usage of ``add_field`` method is completely optional, if you are not facing any issues with field retention._
+
+Do
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                self.add_field(record, "odd_record", "true")
+            yield record
+```
+
+Don't
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                record["odd_record"] = "true"
+            yield record
+```
+### Customization for Generating Custom Search Command
+* Generating Custom Search Command is used to generate events using SDK code.
+* Make sure to use ``gen_record()`` method from SearchCommand to add a new record and pass event data as a key=value pair separated by , (mentioned in below example).
+
+Do
+```python
+@Configuration()
+    class GeneratorTest(GeneratingCommand):
+        def generate(self):
+            yield self.gen_record(_time=time.time(), one=1)
+            yield self.gen_record(_time=time.time(), two=2)
+```
+
+Don't
+```python
+@Configuration()
+    class GeneratorTest(GeneratingCommand):
+        def generate(self):
+            yield {'_time': time.time(), 'one': 1}
+            yield {'_time': time.time(), 'two': 2}
+```
 
 ### Changelog
 

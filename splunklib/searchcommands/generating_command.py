@@ -213,13 +213,20 @@ class GeneratingCommand(SearchCommand):
 
     def _execute_chunk_v2(self, process, chunk):
         count = 0
+        records = []
         for row in process:
-            self._record_writer.write_record(row)
+            records.append(row)
             count += 1
             if count == self._record_writer._maxresultrows:
-                self._finished = False
-                return
-        self._finished = True
+                break
+
+        for row in records:
+            self._record_writer.write_record(row)
+
+        if count == self._record_writer._maxresultrows:
+            self._finished = False
+        else:
+            self._finished = True
 
     def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
         """ Process data.

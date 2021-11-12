@@ -15,10 +15,18 @@
 # under the License.
 
 from __future__ import absolute_import
-import sys, urllib2, json
+import os
+import sys
+import json
+# NOTE: splunklib must exist within github_forks/lib/splunklib for this
+# example to run! To run this locally use `SPLUNK_VERSION=latest docker compose up -d`
+# from the root of this repo which mounts this example and the latest splunklib
+# code together at /opt/splunk/etc/apps/github_forks
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 
 from splunklib.modularinput import *
 from splunklib import six
+from six.moves import http_client
 
 class MyScript(Script):
     """All modular inputs should inherit from the abstract base class Script
@@ -87,11 +95,9 @@ class MyScript(Script):
         # Get the values of the parameters, and construct a URL for the Github API
         owner = validation_definition.parameters["owner"]
         repo_name = validation_definition.parameters["repo_name"]
-        repo_url = "https://api.github.com/repos/%s/%s" % (owner, repo_name)
 
-        # Read the response from the Github API, then parse the JSON data into an object
-        response = urllib2.urlopen(repo_url).read()
-        jsondata = json.loads(response)
+        # Call Github to retrieve repo information
+        jsondata = _get_github_repos(owner, repo_name)
 
         # If there is only 1 field in the jsondata object,some kind or error occurred
         # with the Github API.
@@ -125,9 +131,7 @@ class MyScript(Script):
             repo_name = input_item["repo_name"]
 
             # Get the fork count from the Github API
-            repo_url = "https://api.github.com/repos/%s/%s" % (owner, repo_name)
-            response = urllib2.urlopen(repo_url).read()
-            jsondata = json.loads(response)
+            jsondata = _get_github_repos(owner, repo_name)
             fork_count = jsondata["forks_count"]
 
             # Create an Event object, and set its fields
@@ -138,6 +142,21 @@ class MyScript(Script):
 
             # Tell the EventWriter to write this event
             ew.write_event(event)
+
+
+def _get_github_repos(owner, repo_name):
+    # Read the response from the Github API, then parse the JSON data into an object
+    repo_path = "/repos/%s/%s" % (owner, repo_name)
+    connection = http_client.HTTPSConnection('api.github.com')
+    headers = {
+        'Content-type': 'application/json',
+        'User-Agent': 'splunk-sdk-python',
+    }
+    connection.request('GET', repo_path, headers=headers)
+    response = connection.getresponse()
+    body = response.read().decode()
+    return json.loads(body)
+
 
 if __name__ == "__main__":
     sys.exit(MyScript().run(sys.argv))

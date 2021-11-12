@@ -36,7 +36,6 @@ from splunklib import six
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
-BUILD_PATH = os.path.join(DIR_PATH, '..', 'build')
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -95,9 +94,6 @@ class ExamplesTestCase(testlib.SDKTestCase):
             self.assertEqual(result, 0)
         except:
             pass
-
-    def test_build_dir_exists(self):
-        self.assertTrue(os.path.exists(BUILD_PATH), 'Run setup.py build, then setup.py dist')
 
     def test_binding1(self):
         result = run("binding1.py")

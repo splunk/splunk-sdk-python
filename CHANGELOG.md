@@ -5,12 +5,13 @@
 ### Bug fixes
 * [#405](https://github.com/splunk/splunk-sdk-python/pull/405) Fix searchcommands_app example
 * [#406](https://github.com/splunk/splunk-sdk-python/pull/406) Fix mod inputs examples
-* [#407](https://github.com/splunk/splunk-sdk-python/pull/407) Modified Streaming and Generating Custom Search Command
+* [#407](https://github.com/splunk/splunk-sdk-python/pull/407) Fixed issue with Streaming and Generating Custom Search Commands dropping fields that aren't present in the first row of results. More details on how to opt-in to this fix can be found here: 
+https://github.com/splunk/splunk-sdk-python/blob/develop/README.md#customization [ [issue#401](https://github.com/splunk/splunk-sdk-python/issues/401) ]
 
 ### Minor changes
 * [#408](https://github.com/splunk/splunk-sdk-python/pull/408) Add search mode example
-* [#409](https://github.com/splunk/splunk-sdk-python/pull/409) Add Support for authorization tokens read from .splunkrc
-* [#413](https://github.com/splunk/splunk-sdk-python/pull/413) Default kvstore owner to nobody
+* [#409](https://github.com/splunk/splunk-sdk-python/pull/409) Add Support for authorization tokens read from .splunkrc [ [issue#388](https://github.com/splunk/splunk-sdk-python/issues/388) ]
+* [#413](https://github.com/splunk/splunk-sdk-python/pull/413) Default kvstore owner to nobody [ [issue#231](https://github.com/splunk/splunk-sdk-python/issues/231) ]
 
 ## Version 1.6.17
 

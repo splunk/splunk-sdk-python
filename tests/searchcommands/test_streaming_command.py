@@ -1,13 +1,13 @@
 import io
 
+from splunklib.searchcommands import Configuration, StreamingCommand
+
 from . import chunked_data_stream as chunky
-from splunklib.searchcommands import StreamingCommand, Configuration
 
 
 def test_simple_streaming_command():
     @Configuration()
     class TestStreamingCommand(StreamingCommand):
-
         def stream(self, records):
             for record in records:
                 record["out_index"] = record["in_index"]
@@ -32,7 +32,6 @@ def test_simple_streaming_command():
 def test_field_preservation_negative():
     @Configuration()
     class TestStreamingCommand(StreamingCommand):
-
         def stream(self, records):
             for index, record in enumerate(records):
                 if index % 2 != 0:
@@ -66,7 +65,6 @@ def test_field_preservation_negative():
 def test_field_preservation_positive():
     @Configuration()
     class TestStreamingCommand(StreamingCommand):
-
         def stream(self, records):
             for index, record in enumerate(records):
                 if index % 2 != 0:

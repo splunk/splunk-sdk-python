@@ -18,30 +18,33 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from splunklib.six.moves import cStringIO as StringIO
+
 try:
-    from unittest2 import main, TestCase
+    from unittest2 import TestCase, main
 except ImportError:
     from unittest import main, TestCase
 
+import logging
 import os
 import sys
-import logging
 
 import pytest
 
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
+from tests.searchcommands import package_directory, rebase_environment
 
-from tests.searchcommands import rebase_environment, package_directory
 
 # portable log level names
 # https://stackoverflow.com/a/49724281
 def level_names():
-    return [logging.getLevelName(v) for v in
-            sorted(getattr(logging, '_levelToName', None)
-                    or logging._levelNames)
-            if getattr(v, "real", 0)]
+    return [
+        logging.getLevelName(v)
+        for v in sorted(getattr(logging, "_levelToName", None) or logging._levelNames)
+        if getattr(v, "real", 0)
+    ]
+
 
 @Configuration()
 class StubbedSearchCommand(SearchCommand):
@@ -53,7 +56,6 @@ class StubbedSearchCommand(SearchCommand):
 
 @pytest.mark.smoke
 class TestBuiltinOptions(TestCase):
-
     def setUp(self):
         TestCase.setUp(self)
 
@@ -61,78 +63,103 @@ class TestBuiltinOptions(TestCase):
 
         # Test that logging is properly initialized when there is no logging configuration file
 
-        rebase_environment('app_without_logging_configuration')
+        rebase_environment("app_without_logging_configuration")
 
         self.assertIsNone(environment.logging_configuration)
-        self.assertTrue(any(isinstance(h, logging.StreamHandler) for h in logging.root.handlers))
-        self.assertTrue('splunklib' in logging.Logger.manager.loggerDict)
-        self.assertEqual(environment.splunklib_logger, logging.Logger.manager.loggerDict['splunklib'])
+        self.assertTrue(
+            any(isinstance(h, logging.StreamHandler) for h in logging.root.handlers)
+        )
+        self.assertTrue("splunklib" in logging.Logger.manager.loggerDict)
+        self.assertEqual(
+            environment.splunklib_logger, logging.Logger.manager.loggerDict["splunklib"]
+        )
         self.assertIsInstance(environment.splunklib_logger, logging.Logger)
 
         command = StubbedSearchCommand()
 
-        self.assertIs(command.logger, logging.getLogger('StubbedSearchCommand'))
+        self.assertIs(command.logger, logging.getLogger("StubbedSearchCommand"))
         self.assertEqual(len(command.logger.handlers), 0)
         self.assertIsNone(command.logging_configuration)
         self.assertIs(command.logger.root, logging.root)
 
-        root_handler = next(h for h in logging.root.handlers if isinstance(h, logging.StreamHandler))
+        root_handler = next(
+            h for h in logging.root.handlers if isinstance(h, logging.StreamHandler)
+        )
 
         self.assertIsInstance(root_handler, logging.StreamHandler)
         self.assertEqual(root_handler.stream, sys.stderr)
 
-        self.assertEqual(command.logging_level, logging.getLevelName(logging.root.level))
+        self.assertEqual(
+            command.logging_level, logging.getLevelName(logging.root.level)
+        )
         root_handler.stream = StringIO()
-        message = 'Test that output is directed to stderr without formatting'
+        message = "Test that output is directed to stderr without formatting"
         command.logger.warning(message)
-        self.assertEqual(root_handler.stream.getvalue(), message + '\n')
+        self.assertEqual(root_handler.stream.getvalue(), message + "\n")
 
         # A search command loads {local,default}/logging.conf when it is available
 
-        rebase_environment('app_with_logging_configuration')
+        rebase_environment("app_with_logging_configuration")
 
         command = StubbedSearchCommand()
-        self.assertEqual(command.logging_configuration, os.path.join(environment.app_root, 'default', 'logging.conf'))
-        self.assertIs(command.logger, logging.getLogger('StubbedSearchCommand'))
+        self.assertEqual(
+            command.logging_configuration,
+            os.path.join(environment.app_root, "default", "logging.conf"),
+        )
+        self.assertIs(command.logger, logging.getLogger("StubbedSearchCommand"))
 
         # Setting logging_configuration loads a new logging configuration file relative to the app root
 
-        command.logging_configuration = 'alternative-logging.conf'
+        command.logging_configuration = "alternative-logging.conf"
         self.assertEqual(
-            command.logging_configuration, os.path.join(environment.app_root, 'default', 'alternative-logging.conf'))
-        self.assertIs(command.logger, logging.getLogger('StubbedSearchCommand'))
+            command.logging_configuration,
+            os.path.join(environment.app_root, "default", "alternative-logging.conf"),
+        )
+        self.assertIs(command.logger, logging.getLogger("StubbedSearchCommand"))
 
         # Setting logging_configuration loads a new logging configuration file on an absolute path
 
-        app_root_logging_configuration = os.path.join(environment.app_root, 'logging.conf')
+        app_root_logging_configuration = os.path.join(
+            environment.app_root, "logging.conf"
+        )
         command.logging_configuration = app_root_logging_configuration
 
         self.assertEqual(command.logging_configuration, app_root_logging_configuration)
-        self.assertIs(command.logger, logging.getLogger('StubbedSearchCommand'))
+        self.assertIs(command.logger, logging.getLogger("StubbedSearchCommand"))
 
         # logging_configuration raises a value error, if a non-existent logging configuration file is provided
 
         try:
-            command.logging_configuration = 'foo'
+            command.logging_configuration = "foo"
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail("Expected ValueError, but {} was raised".format(type(e)))
         else:
-            self.fail('Expected ValueError, but logging_configuration={}'.format(command.logging_configuration))
+            self.fail(
+                "Expected ValueError, but logging_configuration={}".format(
+                    command.logging_configuration
+                )
+            )
 
         try:
-            command.logging_configuration = os.path.join(package_directory, 'non-existent.logging.conf')
+            command.logging_configuration = os.path.join(
+                package_directory, "non-existent.logging.conf"
+            )
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail("Expected ValueError, but {} was raised".format(type(e)))
         else:
-            self.fail('Expected ValueError, but logging_configuration={}'.format(command.logging_configuration))
+            self.fail(
+                "Expected ValueError, but logging_configuration={}".format(
+                    command.logging_configuration
+                )
+            )
 
     def test_logging_level(self):
 
-        rebase_environment('app_without_logging_configuration')
+        rebase_environment("app_without_logging_configuration")
         command = StubbedSearchCommand()
 
         warning = logging.getLevelName(logging.WARNING)
@@ -149,31 +176,41 @@ class TestBuiltinOptions(TestCase):
             if type(level) is int:
                 command.logging_level = level
                 level_name = logging.getLevelName(level)
-                self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
+                self.assertEqual(
+                    command.logging_level,
+                    warning if level_name == notset else level_name,
+                )
             else:
                 level_name = logging.getLevelName(logging.getLevelName(level))
                 for variant in level, level.lower(), level.capitalize():
                     command.logging_level = variant
-                    self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
+                    self.assertEqual(
+                        command.logging_level,
+                        warning if level_name == notset else level_name,
+                    )
 
         # logging_level accepts any numeric value
 
         for level in 999, 999.999:
             command.logging_level = level
-            self.assertEqual(command.logging_level, 'Level 999')
+            self.assertEqual(command.logging_level, "Level 999")
 
         # logging_level raises a value error for unknown logging level names
 
         current_value = command.logging_level
 
         try:
-            command.logging_level = 'foo'
+            command.logging_level = "foo"
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail("Expected ValueError, but {} was raised".format(type(e)))
         else:
-            self.fail('Expected ValueError, but logging_level={}'.format(command.logging_level))
+            self.fail(
+                "Expected ValueError, but logging_level={}".format(
+                    command.logging_level
+                )
+            )
 
         self.assertEqual(command.logging_level, current_value)
 
@@ -185,17 +222,23 @@ class TestBuiltinOptions(TestCase):
 
     def _test_boolean_option(self, option):
 
-        rebase_environment('app_without_logging_configuration')
+        rebase_environment("app_without_logging_configuration")
         command = StubbedSearchCommand()
 
         # show_configuration accepts Splunk boolean values
 
         boolean_values = {
-            '0': False, '1': True,
-            'f': False, 't': True,
-            'n': False, 'y': True,
-            'no': False, 'yes': True,
-            'false': False, 'true': True}
+            "0": False,
+            "1": True,
+            "f": False,
+            "t": True,
+            "n": False,
+            "y": True,
+            "no": False,
+            "yes": True,
+            "false": False,
+            "true": True,
+        }
 
         for value in boolean_values:
             for variant in value, value.capitalize(), value.upper():
@@ -205,17 +248,23 @@ class TestBuiltinOptions(TestCase):
         option.fset(command, None)
         self.assertEqual(option.fget(command), None)
 
-        for value in 13, b'bytes', 'string', object():
+        for value in 13, b"bytes", "string", object():
             try:
                 option.fset(command, value)
             except ValueError:
                 pass
             except BaseException as error:
-                self.fail('Expected ValueError when setting {}={}, but {} was raised'.format(
-                    option.name, repr(value), type(error)))
+                self.fail(
+                    "Expected ValueError when setting {}={}, but {} was raised".format(
+                        option.name, repr(value), type(error)
+                    )
+                )
             else:
-                self.fail('Expected ValueError, but {}={} was accepted.'.format(
-                    option.name, repr(option.fget(command))))
+                self.fail(
+                    "Expected ValueError, but {}={} was accepted.".format(
+                        option.name, repr(option.fget(command))
+                    )
+                )
 
         return
 

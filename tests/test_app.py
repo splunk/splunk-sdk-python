@@ -15,10 +15,11 @@
 # under the License.
 
 from __future__ import absolute_import
-from tests import testlib
+
 import logging
 
 import splunklib.client as client
+from tests import testlib
 
 
 class TestApp(testlib.SDKTestCase):
@@ -29,7 +30,7 @@ class TestApp(testlib.SDKTestCase):
         super(TestApp, self).setUp()
         if self.app is None:
             for app in self.service.apps:
-                if app.name.startswith('delete-me'):
+                if app.name.startswith("delete-me"):
                     self.service.apps.delete(app.name)
             # Creating apps takes 0.8s, which is too long to wait for
             # each test in this test suite. Therefore we create one
@@ -51,7 +52,7 @@ class TestApp(testlib.SDKTestCase):
         self.service = client.connect(**self.opts.kwargs)
         for app in self.service.apps:
             app_name = app.name
-            if app_name.startswith('delete-me'):
+            if app_name.startswith("delete-me"):
                 self.service.apps.delete(app_name)
                 self.assertEventuallyTrue(lambda: app_name not in self.service.apps)
         self.clear_restart_message()
@@ -59,30 +60,30 @@ class TestApp(testlib.SDKTestCase):
     def test_app_integrity(self):
         self.check_entity(self.app)
         self.app.setupInfo
-        self.app['setupInfo']
+        self.app["setupInfo"]
 
     def test_disable_enable(self):
         self.app.disable()
         self.app.refresh()
-        self.assertEqual(self.app['disabled'], '1')
+        self.assertEqual(self.app["disabled"], "1")
         self.app.enable()
         self.app.refresh()
-        self.assertEqual(self.app['disabled'], '0')
+        self.assertEqual(self.app["disabled"], "0")
 
     def test_update(self):
         kwargs = {
-            'author': "Me",
-            'description': "Test app description",
-            'label': "SDK Test",
-            'version': "1.2",
-            'visible': True,
+            "author": "Me",
+            "description": "Test app description",
+            "label": "SDK Test",
+            "version": "1.2",
+            "visible": True,
         }
         self.app.update(**kwargs)
         self.app.refresh()
-        self.assertEqual(self.app['author'], "Me")
-        self.assertEqual(self.app['label'], "SDK Test")
-        self.assertEqual(self.app['version'], "1.2")
-        self.assertEqual(self.app['visible'], "1")
+        self.assertEqual(self.app["author"], "Me")
+        self.assertEqual(self.app["label"], "SDK Test")
+        self.assertEqual(self.app["version"], "1.2")
+        self.assertEqual(self.app["visible"], "1")
 
     def test_delete(self):
         name = testlib.tmpname()
@@ -90,18 +91,19 @@ class TestApp(testlib.SDKTestCase):
         self.assertTrue(name in self.service.apps)
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)
-        self.clear_restart_message() # We don't actually have to restart here.
+        self.clear_restart_message()  # We don't actually have to restart here.
 
     def test_package(self):
         p = self.app.package()
         self.assertEqual(p.name, self.app_name)
-        self.assertTrue(p.path.endswith(self.app_name + '.spl'))
+        self.assertTrue(p.path.endswith(self.app_name + ".spl"))
         # Assert string due to deprecation of this property in new Splunk versions
         self.assertIsInstance(p.url, str)
 
     def test_updateInfo(self):
         p = self.app.updateInfo()
         self.assertTrue(p is not None)
+
 
 if __name__ == "__main__":
     try:

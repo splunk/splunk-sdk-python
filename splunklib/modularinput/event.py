@@ -13,7 +13,9 @@
 # under the License.
 
 from __future__ import absolute_import
+
 from io import TextIOBase
+
 from splunklib.six import ensure_text
 
 try:
@@ -21,13 +23,25 @@ try:
 except ImportError as ie:
     import xml.etree.ElementTree as ET
 
+
 class Event(object):
     """Represents an event or fragment of an event to be written by this modular input to Splunk.
 
     To write an input to a stream, call the ``write_to`` function, passing in a stream.
     """
-    def __init__(self, data=None, stanza=None, time=None, host=None, index=None, source=None,
-                 sourcetype=None, done=True, unbroken=True):
+
+    def __init__(
+        self,
+        data=None,
+        stanza=None,
+        time=None,
+        host=None,
+        index=None,
+        source=None,
+        sourcetype=None,
+        done=True,
+        unbroken=True,
+    ):
         """There are no required parameters for constructing an Event
 
         **Example with minimal configuration**::
@@ -81,7 +95,9 @@ class Event(object):
         :param stream: stream to write XML to.
         """
         if self.data is None:
-            raise ValueError("Events must have at least the data field set to be written to XML.")
+            raise ValueError(
+                "Events must have at least the data field set to be written to XML."
+            )
 
         event = ET.Element("event")
         if self.stanza is not None:
@@ -98,7 +114,7 @@ class Event(object):
             ("sourcetype", self.sourceType),
             ("index", self.index),
             ("host", self.host),
-            ("data", self.data)
+            ("data", self.data),
         ]
         for node, value in subelements:
             if value is not None:

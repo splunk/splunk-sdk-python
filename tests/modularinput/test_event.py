@@ -20,9 +20,9 @@ import sys
 
 import pytest
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
-from splunklib.modularinput.event import Event, ET
+from splunklib.modularinput.event import ET, Event
 from splunklib.modularinput.event_writer import EventWriter
+from tests.modularinput.modularinput_testlib import data_open, unittest, xml_compare
 
 
 def test_event_without_enough_fields_fails(capsys):
@@ -31,6 +31,7 @@ def test_event_without_enough_fields_fails(capsys):
         event = Event()
         event.write_to(sys.stdout)
 
+
 def test_xml_of_event_with_minimal_configuration(capsys):
     """Generate XML from an event object with a small number of fields,
     and see if it matches what we expect."""
@@ -38,7 +39,7 @@ def test_xml_of_event_with_minimal_configuration(capsys):
     event = Event(
         data="This is a test of the emergency broadcast system.",
         stanza="fubar",
-        time="%.3f" % 1372187084.000
+        time="%.3f" % 1372187084.000,
     )
 
     event.write_to(sys.stdout)
@@ -49,6 +50,7 @@ def test_xml_of_event_with_minimal_configuration(capsys):
         expected = ET.parse(data).getroot()
 
         assert xml_compare(expected, constructed)
+
 
 def test_xml_of_event_with_more_configuration(capsys):
     """Generate XML from an even object with all fields set, see if
@@ -63,7 +65,7 @@ def test_xml_of_event_with_more_configuration(capsys):
         source="hilda",
         sourcetype="misc",
         done=True,
-        unbroken=True
+        unbroken=True,
     )
     event.write_to(sys.stdout)
 
@@ -74,6 +76,7 @@ def test_xml_of_event_with_more_configuration(capsys):
         expected = ET.parse(data).getroot()
 
         assert xml_compare(expected, constructed)
+
 
 def test_writing_events_on_event_writer(capsys):
     """Write a pair of events with an EventWriter, and ensure that they
@@ -90,7 +93,7 @@ def test_writing_events_on_event_writer(capsys):
         source="hilda",
         sourcetype="misc",
         done=True,
-        unbroken=True
+        unbroken=True,
     )
     ew.write_event(e)
 
@@ -115,6 +118,7 @@ def test_writing_events_on_event_writer(capsys):
 
         assert xml_compare(expected, found)
 
+
 def test_error_in_event_writer():
     """An event which cannot write itself onto an output stream
     (such as because it doesn't have a data field set)
@@ -124,7 +128,11 @@ def test_error_in_event_writer():
     e = Event()
     with pytest.raises(ValueError) as excinfo:
         ew.write_event(e)
-    assert str(excinfo.value) == "Events must have at least the data field set to be written to XML."
+    assert (
+        str(excinfo.value)
+        == "Events must have at least the data field set to be written to XML."
+    )
+
 
 def test_logging_errors_with_event_writer(capsys):
     """Check that the log method on EventWriter produces the
@@ -136,6 +144,7 @@ def test_logging_errors_with_event_writer(capsys):
 
     captured = capsys.readouterr()
     assert captured.err == "ERROR Something happened!\n"
+
 
 def test_write_xml_is_sane(capsys):
     """Check that EventWriter.write_xml_document writes sensible

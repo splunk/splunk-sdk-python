@@ -15,19 +15,22 @@
 # under the License.
 
 """Shared unit test utilities."""
-from __future__ import absolute_import
-from __future__ import print_function
-import contextlib
+from __future__ import absolute_import, print_function
 
+import contextlib
 import sys
+
 from splunklib import six
+
 # Run the test suite on the SDK without installing it.
-sys.path.insert(0, '../')
-sys.path.insert(0, '../examples')
+sys.path.insert(0, "../")
+sys.path.insert(0, "../examples")
+
+from datetime import datetime, timedelta
+from time import sleep
 
 import splunklib.client as client
-from time import sleep
-from datetime import datetime, timedelta
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -36,35 +39,41 @@ except ImportError:
 try:
     from utils import parse
 except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
-                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+    raise Exception(
+        "Add the SDK repository to your PYTHONPATH to run the examples "
+        "(e.g., export PYTHONPATH=~/splunk-sdk-python."
+    )
 
+import logging
 import os
 import time
 
-import logging
 logging.basicConfig(
-    filename='test.log',
+    filename="test.log",
     level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s")
+    format="%(asctime)s:%(levelname)s:%(message)s",
+)
+
 
 class NoRestartRequiredError(Exception):
     pass
 
+
 class WaitTimedOutError(Exception):
     pass
 
+
 def to_bool(x):
-    if x == '1':
+    if x == "1":
         return True
-    elif x == '0':
+    elif x == "0":
         return False
     else:
         raise ValueError("Not a boolean value: %s", x)
 
 
 def tmpname():
-    name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
+    name = "delete-me-" + str(os.getpid()) + str(time.time()).replace(".", "-")
     return name
 
 
@@ -77,15 +86,20 @@ def wait(predicate, timeout=60, pause_time=0.5):
             logging.debug("wait timed out after %d seconds", timeout)
             raise WaitTimedOutError
         sleep(pause_time)
-        logging.debug("wait finished after %s seconds", datetime.now()-start)
+        logging.debug("wait finished after %s seconds", datetime.now() - start)
 
 
 class SDKTestCase(unittest.TestCase):
     restart_already_required = False
     installedApps = []
 
-    def assertEventuallyTrue(self, predicate, timeout=30, pause_time=0.5,
-                             timeout_message="Operation timed out."):
+    def assertEventuallyTrue(
+        self,
+        predicate,
+        timeout=30,
+        pause_time=0.5,
+        timeout_message="Operation timed out.",
+    ):
         assert pause_time < timeout
         start = datetime.now()
         diff = timedelta(seconds=timeout)
@@ -94,7 +108,7 @@ class SDKTestCase(unittest.TestCase):
                 logging.debug("wait timed out after %d seconds", timeout)
                 self.fail(timeout_message)
             sleep(pause_time)
-            logging.debug("wait finished after %s seconds", datetime.now()-start)
+            logging.debug("wait finished after %s seconds", datetime.now() - start)
 
     def check_content(self, entity, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -163,12 +177,11 @@ class SDKTestCase(unittest.TestCase):
         finally:
             self.service._splunk_version = original_version
 
-
     def install_app_from_collection(self, name):
-        collectionName = 'sdkappcollection'
+        collectionName = "sdkappcollection"
         if collectionName not in self.service.apps:
             raise ValueError("sdk-test-application not installed in splunkd")
-        appPath = self.pathInApp(collectionName, ["build", name+".tar"])
+        appPath = self.pathInApp(collectionName, ["build", name + ".tar"])
         kwargs = {"update": True, "name": appPath, "filename": True}
 
         try:
@@ -181,7 +194,7 @@ class SDKTestCase(unittest.TestCase):
         self.installedApps.append(name)
 
     def app_collection_installed(self):
-        collectionName = 'sdkappcollection'
+        collectionName = "sdkappcollection"
         return collectionName in self.service.apps
 
     def pathInApp(self, appName, pathComponents):
@@ -209,7 +222,7 @@ class SDKTestCase(unittest.TestCase):
 
         :return: A string giving the path.
         """
-        splunkHome = self.service.settings['SPLUNK_HOME']
+        splunkHome = self.service.settings["SPLUNK_HOME"]
         if "\\" in splunkHome:
             # This clause must come first, since Windows machines may
             # have mixed \ and / in their paths.
@@ -217,7 +230,9 @@ class SDKTestCase(unittest.TestCase):
         elif "/" in splunkHome:
             separator = "/"
         else:
-            raise ValueError("No separators in $SPLUNK_HOME. Can't determine what file separator to use.")
+            raise ValueError(
+                "No separators in $SPLUNK_HOME. Can't determine what file separator to use."
+            )
         appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
         return appPath
 
@@ -247,7 +262,10 @@ class SDKTestCase(unittest.TestCase):
         # the test.
         if self.service.restart_required:
             self.restartSplunk()
-        logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
+        logging.debug(
+            "Connected to splunkd version %s",
+            ".".join(str(x) for x in self.service.splunk_version),
+        )
 
     def tearDown(self):
         from splunklib.binding import HTTPError
@@ -261,8 +279,12 @@ class SDKTestCase(unittest.TestCase):
                     self.service.apps.delete(appName)
                     wait(lambda: appName not in self.service.apps)
                 except HTTPError as error:
-                    if not (os.name == 'nt' and error.status == 500):
+                    if not (os.name == "nt" and error.status == 500):
                         raise
-                    print('Ignoring failure to delete {0} during tear down: {1}'.format(appName, error))
+                    print(
+                        "Ignoring failure to delete {0} during tear down: {1}".format(
+                            appName, error
+                        )
+                    )
         if self.service.restart_required:
             self.clear_restart_message()

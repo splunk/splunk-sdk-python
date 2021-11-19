@@ -26,15 +26,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib.searchcommands.decorators import Configuration
-from unittest import main, TestCase
-from splunklib import six
+from unittest import TestCase, main
 
 import pytest
 
+from splunklib import six
+from splunklib.searchcommands.decorators import Configuration
+
+
 @pytest.mark.smoke
 class TestConfigurationSettings(TestCase):
-
     def test_generating_command(self):
 
         from splunklib.searchcommands import Configuration, GeneratingCommand
@@ -49,7 +50,8 @@ class TestConfigurationSettings(TestCase):
 
         self.assertTrue(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('generating', True)])
+            [("generating", True)],
+        )
 
         self.assertIs(command.configuration.generates_timeorder, None)
         self.assertIs(command.configuration.generating, True)
@@ -66,25 +68,36 @@ class TestConfigurationSettings(TestCase):
         except AttributeError:
             pass
         except Exception as error:
-            self.fail('Expected AttributeError, not {}: {}'.format(type(error).__name__, error))
+            self.fail(
+                "Expected AttributeError, not {}: {}".format(
+                    type(error).__name__, error
+                )
+            )
         else:
-            self.fail('Expected AttributeError')
+            self.fail("Expected AttributeError")
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('generates_timeorder', True), ('generating', True), ('local', True), ('retainsevents', True),
-             ('streaming', True)])
+            [
+                ("generates_timeorder", True),
+                ("generating", True),
+                ("local", True),
+                ("retainsevents", True),
+                ("streaming", True),
+            ],
+        )
 
         command = TestCommand()
         command._protocol_version = 2
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('generating', True), ('type', 'stateful')])
+            [("generating", True), ("type", "stateful")],
+        )
 
         self.assertIs(command.configuration.distributed, False)
         self.assertIs(command.configuration.generating, True)
-        self.assertEqual(command.configuration.type, 'streaming')
+        self.assertEqual(command.configuration.type, "streaming")
 
         command.configuration.distributed = True
 
@@ -93,13 +106,18 @@ class TestConfigurationSettings(TestCase):
         except AttributeError:
             pass
         except Exception as error:
-            self.fail('Expected AttributeError, not {}: {}'.format(type(error).__name__, error))
+            self.fail(
+                "Expected AttributeError, not {}: {}".format(
+                    type(error).__name__, error
+                )
+            )
         else:
-            self.fail('Expected AttributeError')
+            self.fail("Expected AttributeError")
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('generating', True), ('type', 'streaming')])
+            [("generating", True), ("type", "streaming")],
+        )
 
         return
 
@@ -118,7 +136,8 @@ class TestConfigurationSettings(TestCase):
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('streaming', True)])
+            [("streaming", True)],
+        )
 
         self.assertIs(command.configuration.clear_required_fields, None)
         self.assertIs(command.configuration.local, None)
@@ -129,48 +148,69 @@ class TestConfigurationSettings(TestCase):
         command.configuration.clear_required_fields = True
         command.configuration.local = True
         command.configuration.overrides_timeorder = True
-        command.configuration.required_fields = ['field_1', 'field_2', 'field_3']
+        command.configuration.required_fields = ["field_1", "field_2", "field_3"]
 
         try:
             command.configuration.streaming = False
         except AttributeError:
             pass
         except Exception as error:
-            self.fail('Expected AttributeError, not {}: {}'.format(type(error).__name__, error))
+            self.fail(
+                "Expected AttributeError, not {}: {}".format(
+                    type(error).__name__, error
+                )
+            )
         else:
-            self.fail('Expected AttributeError')
+            self.fail("Expected AttributeError")
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('clear_required_fields', True), ('local', True), ('overrides_timeorder', True), ('required_fields', ['field_1', 'field_2', 'field_3']), ('streaming', True)])
+            [
+                ("clear_required_fields", True),
+                ("local", True),
+                ("overrides_timeorder", True),
+                ("required_fields", ["field_1", "field_2", "field_3"]),
+                ("streaming", True),
+            ],
+        )
 
         command = TestCommand()
         command._protocol_version = 2
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('type', 'streaming')])
+            [("type", "streaming")],
+        )
 
         self.assertIs(command.configuration.distributed, True)
-        self.assertEqual(command.configuration.type, 'streaming')
+        self.assertEqual(command.configuration.type, "streaming")
 
         command.configuration.distributed = False
-        command.configuration.required_fields = ['field_1', 'field_2', 'field_3']
+        command.configuration.required_fields = ["field_1", "field_2", "field_3"]
 
         try:
-            command.configuration.type = 'events'
+            command.configuration.type = "events"
         except AttributeError:
             pass
         except Exception as error:
-            self.fail('Expected AttributeError, not {}: {}'.format(type(error).__name__, error))
+            self.fail(
+                "Expected AttributeError, not {}: {}".format(
+                    type(error).__name__, error
+                )
+            )
         else:
-            self.fail('Expected AttributeError')
+            self.fail("Expected AttributeError")
 
         self.assertEqual(
             [(name, value) for name, value in six.iteritems(command.configuration)],
-            [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'stateful')])
+            [
+                ("required_fields", ["field_1", "field_2", "field_3"]),
+                ("type", "stateful"),
+            ],
+        )
 
         return
+
 
 if __name__ == "__main__":
     main()

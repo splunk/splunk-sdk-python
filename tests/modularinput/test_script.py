@@ -1,9 +1,8 @@
+import io
 import sys
 
 from splunklib.client import Service
-from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
-import io
-
+from splunklib.modularinput import Argument, Event, EventWriter, Scheme, Script
 from splunklib.modularinput.utils import xml_compare
 from tests.modularinput.modularinput_testlib import data_open
 
@@ -175,7 +174,7 @@ def test_write_events(capsys):
                 source="hilda",
                 sourcetype="misc",
                 done=True,
-                unbroken=True
+                unbroken=True,
             )
 
             ew.write_event(event)
@@ -200,7 +199,7 @@ def test_write_events(capsys):
 
 
 def test_service_property(capsys):
-    """ Check that Script.service returns a valid Service instance as soon
+    """Check that Script.service returns a valid Service instance as soon
     as the stream_events method is called, but not before.
 
     """
@@ -215,7 +214,7 @@ def test_service_property(capsys):
             return None
 
         def stream_events(self, inputs, ew):
-            self.authority_uri = inputs.metadata['server_uri']
+            self.authority_uri = inputs.metadata["server_uri"]
 
     script = NewScript()
     with data_open("data/conf_with_2_inputs.xml") as input_configuration:
@@ -223,8 +222,7 @@ def test_service_property(capsys):
 
         assert script.service is None
 
-        return_value = script.run_script(
-            [TEST_SCRIPT_PATH], ew, input_configuration)
+        return_value = script.run_script([TEST_SCRIPT_PATH], ew, input_configuration)
 
         output = capsys.readouterr()
         assert return_value == 0

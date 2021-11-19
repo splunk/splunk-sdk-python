@@ -16,16 +16,22 @@
 
 # Utility file for unit tests, import common functions and modules
 from __future__ import absolute_import
+
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-import sys, os
+
 import io
+import os
+import sys
 
-sys.path.insert(0, os.path.join('../../splunklib', '..'))
+sys.path.insert(0, os.path.join("../../splunklib", ".."))
 
-from splunklib.modularinput.utils import xml_compare, parse_xml_data, parse_parameters
+from splunklib.modularinput.utils import parse_parameters, parse_xml_data, xml_compare
+
 
 def data_open(filepath):
-    return io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), 'rb')
+    return io.open(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), "rb"
+    )

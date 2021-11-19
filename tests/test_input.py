@@ -13,29 +13,29 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-from splunklib.binding import HTTPError
-
-from tests import testlib
 import logging
+
 from splunklib import six
+from splunklib.binding import HTTPError
+from tests import testlib
+
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
 
-import splunklib.client as client
-
 import pytest
+
+import splunklib.client as client
 
 
 def highest_port(service, base_port, *kinds):
     """Find the first port >= base_port not in use by any input in kinds."""
     highest_port = base_port
     for input in service.inputs.list(*kinds):
-        port = int(input.name.split(':')[-1])
+        port = int(input.name.split(":")[-1])
         highest_port = max(port, highest_port)
     return highest_port
 
@@ -43,18 +43,20 @@ def highest_port(service, base_port, *kinds):
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
         super(TestTcpInputNameHandling, self).setUp()
-        self.base_port = highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp') + 1
+        self.base_port = (
+            highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1
+        )
 
     def tearDown(self):
-        for input in self.service.inputs.list('tcp', 'splunktcp'):
-            port = int(input.name.split(':')[-1])
+        for input in self.service.inputs.list("tcp", "splunktcp"):
+            port = int(input.name.split(":")[-1])
             if port >= self.base_port:
                 input.delete()
         super(TestTcpInputNameHandling, self).tearDown()
 
     def create_tcp_input(self, base_port, kind, **options):
         port = base_port
-        while True: # Find the next unbound port
+        while True:  # Find the next unbound port
             try:
                 input = self.service.inputs.create(str(port), kind, **options)
                 return input
@@ -63,22 +65,25 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                     port += 1
 
     def test_create_tcp_port(self):
-        for kind in ['tcp', 'splunktcp']:
+        for kind in ["tcp", "splunktcp"]:
             input = self.service.inputs.create(str(self.base_port), kind)
             self.check_entity(input)
             input.delete()
 
     def test_cannot_create_with_restrictToHost_in_name(self):
         self.assertRaises(
-            client.HTTPError,
-            lambda: self.service.inputs.create('boris:10000', 'tcp')
+            client.HTTPError, lambda: self.service.inputs.create("boris:10000", "tcp")
         )
 
     def test_create_tcp_ports_with_restrictToHost(self):
-        for kind in ['tcp', 'splunktcp']: # Multiplexed UDP ports are not supported
+        for kind in ["tcp", "splunktcp"]:  # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
-            boris = self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
-            natasha = self.service.inputs.create(str(self.base_port), kind, restrictToHost='natasha')
+            boris = self.service.inputs.create(
+                str(self.base_port), kind, restrictToHost="boris"
+            )
+            natasha = self.service.inputs.create(
+                str(self.base_port), kind, restrictToHost="natasha"
+            )
             # And that they both function
             boris.refresh()
             natasha.refresh()
@@ -100,22 +105,24 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
     #         restricted.delete()
 
     def test_unrestricted_to_restricted_collision(self):
-        for kind in ['tcp', 'splunktcp', 'udp']:
+        for kind in ["tcp", "splunktcp", "udp"]:
             unrestricted = self.service.inputs.create(str(self.base_port), kind)
             self.assertTrue(str(self.base_port) in self.service.inputs)
             self.assertRaises(
                 client.HTTPError,
-                lambda: self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
+                lambda: self.service.inputs.create(
+                    str(self.base_port), kind, restrictToHost="boris"
+                ),
             )
             unrestricted.delete()
 
     def test_update_restrictToHost_fails(self):
-        for kind in ['tcp', 'splunktcp']: # No UDP, since it's broken in Splunk
-            boris = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
+        for kind in ["tcp", "splunktcp"]:  # No UDP, since it's broken in Splunk
+            boris = self.create_tcp_input(self.base_port, kind, restrictToHost="boris")
 
             self.assertRaises(
                 client.IllegalOperationException,
-                lambda: boris.update(restrictToHost='hilda')
+                lambda: boris.update(restrictToHost="hilda"),
             )
 
 
@@ -138,7 +145,7 @@ class TestRead(testlib.SDKTestCase):
                 self.assertEqual(item.kind, kind)
 
     def test_inputs_list_on_one_kind(self):
-        self.service.inputs.list('monitor')
+        self.service.inputs.list("monitor")
 
     def test_read_invalid_input(self):
         name = testlib.tmpname()
@@ -150,71 +157,81 @@ class TestRead(testlib.SDKTestCase):
 
     def test_inputs_list_on_one_kind_with_count(self):
         N = 10
-        expected = [x.name for x in self.service.inputs.list('monitor')[:10]]
-        found = [x.name for x in self.service.inputs.list('monitor', count=10)]
+        expected = [x.name for x in self.service.inputs.list("monitor")[:10]]
+        found = [x.name for x in self.service.inputs.list("monitor", count=10)]
         self.assertEqual(expected, found)
 
     def test_inputs_list_on_one_kind_with_offset(self):
         N = 2
-        expected = [x.name for x in self.service.inputs.list('monitor')[N:]]
-        found = [x.name for x in self.service.inputs.list('monitor', offset=N)]
+        expected = [x.name for x in self.service.inputs.list("monitor")[N:]]
+        found = [x.name for x in self.service.inputs.list("monitor", offset=N)]
         self.assertEqual(expected, found)
 
     def test_inputs_list_on_one_kind_with_search(self):
         search = "SPLUNK"
-        expected = [x.name for x in self.service.inputs.list('monitor') if search in x.name]
-        found = [x.name for x in self.service.inputs.list('monitor', search=search)]
+        expected = [
+            x.name for x in self.service.inputs.list("monitor") if search in x.name
+        ]
+        found = [x.name for x in self.service.inputs.list("monitor", search=search)]
         self.assertEqual(expected, found)
 
     @pytest.mark.app
     def test_oneshot(self):
-        self.install_app_from_collection('file_to_upload')
+        self.install_app_from_collection("file_to_upload")
 
         index_name = testlib.tmpname()
         index = self.service.indexes.create(index_name)
-        self.assertEventuallyTrue(lambda: index.refresh() and index['disabled'] == '0')
+        self.assertEventuallyTrue(lambda: index.refresh() and index["disabled"] == "0")
 
-        eventCount = int(index['totalEventCount'])
+        eventCount = int(index["totalEventCount"])
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.service.inputs.oneshot(path, index=index_name)
 
         def f():
             index.refresh()
-            return int(index['totalEventCount']) == eventCount+4
+            return int(index["totalEventCount"]) == eventCount + 4
+
         self.assertEventuallyTrue(f, timeout=60)
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()
-        self.assertRaises(HTTPError,
-            self.service.inputs.oneshot, name)
+        self.assertRaises(HTTPError, self.service.inputs.oneshot, name)
 
 
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super(TestInput, self).setUp()
         inputs = self.service.inputs
-        unrestricted_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp')+1)
-        restricted_port = str(highest_port(self.service, int(unrestricted_port)+1, 'tcp', 'splunktcp')+1)
-        test_inputs = [{'kind': 'tcp', 'name': unrestricted_port, 'host': 'sdk-test'},
-                       {'kind': 'udp', 'name': unrestricted_port, 'host': 'sdk-test'},
-                       {'kind': 'tcp', 'name': 'boris:' + restricted_port, 'host': 'sdk-test'}]
+        unrestricted_port = str(
+            highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1
+        )
+        restricted_port = str(
+            highest_port(self.service, int(unrestricted_port) + 1, "tcp", "splunktcp")
+            + 1
+        )
+        test_inputs = [
+            {"kind": "tcp", "name": unrestricted_port, "host": "sdk-test"},
+            {"kind": "udp", "name": unrestricted_port, "host": "sdk-test"},
+            {"kind": "tcp", "name": "boris:" + restricted_port, "host": "sdk-test"},
+        ]
         self._test_entities = {}
 
-        self._test_entities['tcp'] = \
-            inputs.create(unrestricted_port, 'tcp', host='sdk-test')
-        self._test_entities['udp'] = \
-            inputs.create(unrestricted_port, 'udp', host='sdk-test')
-        self._test_entities['restrictedTcp'] = \
-            inputs.create(restricted_port, 'tcp', restrictToHost='boris')
+        self._test_entities["tcp"] = inputs.create(
+            unrestricted_port, "tcp", host="sdk-test"
+        )
+        self._test_entities["udp"] = inputs.create(
+            unrestricted_port, "udp", host="sdk-test"
+        )
+        self._test_entities["restrictedTcp"] = inputs.create(
+            restricted_port, "tcp", restrictToHost="boris"
+        )
 
     def tearDown(self):
         super(TestInput, self).tearDown()
         for entity in six.itervalues(self._test_entities):
             try:
-                self.service.inputs.delete(
-                    kind=entity.kind,
-                    name=entity.name)
+                self.service.inputs.delete(kind=entity.kind, name=entity.name)
             except KeyError:
                 pass
 
@@ -233,11 +250,11 @@ class TestInput(testlib.SDKTestCase):
         self.uncheckedRestartSplunk()
 
         inputs = self.service.inputs
-        if ('abcd','test2') not in inputs:
-            inputs.create('abcd', 'test2', field1='boris')
+        if ("abcd", "test2") not in inputs:
+            inputs.create("abcd", "test2", field1="boris")
 
-        input = inputs['abcd', 'test2']
-        self.assertEqual(input.field1, 'boris')
+        input = inputs["abcd", "test2"]
+        self.assertEqual(input.field1, "boris")
 
     def test_create(self):
         inputs = self.service.inputs
@@ -248,7 +265,7 @@ class TestInput(testlib.SDKTestCase):
     def test_get_kind_list(self):
         inputs = self.service.inputs
         kinds = inputs._get_kind_list()
-        self.assertTrue('tcp/raw' in kinds)
+        self.assertTrue("tcp/raw" in kinds)
 
     def test_read(self):
         inputs = self.service.inputs
@@ -260,41 +277,42 @@ class TestInput(testlib.SDKTestCase):
             self.assertEqual(this_entity.host, read_entity.host)
 
     def test_read_indiviually(self):
-        tcp_input = self.service.input(self._test_entities['tcp'].path,
-                                       self._test_entities['tcp'].kind)
+        tcp_input = self.service.input(
+            self._test_entities["tcp"].path, self._test_entities["tcp"].kind
+        )
         self.assertIsNotNone(tcp_input)
-        self.assertTrue('tcp', tcp_input.kind)
-        self.assertTrue(self._test_entities['tcp'].name, tcp_input.name)
+        self.assertTrue("tcp", tcp_input.kind)
+        self.assertTrue(self._test_entities["tcp"].name, tcp_input.name)
 
     def test_update(self):
         inputs = self.service.inputs
         for entity in six.itervalues(self._test_entities):
             kind, name = entity.kind, entity.name
-            kwargs = {'host': 'foo'}
+            kwargs = {"host": "foo"}
             entity.update(**kwargs)
             entity.refresh()
-            self.assertEqual(entity.host, kwargs['host'])
+            self.assertEqual(entity.host, kwargs["host"])
 
-    @pytest.mark.skip('flaky')
+    @pytest.mark.skip("flaky")
     def test_delete(self):
         inputs = self.service.inputs
-        remaining = len(self._test_entities)-1
+        remaining = len(self._test_entities) - 1
         for input_entity in six.itervalues(self._test_entities):
             name = input_entity.name
             kind = input_entity.kind
             self.assertTrue(name in inputs)
-            self.assertTrue((name,kind) in inputs)
+            self.assertTrue((name, kind) in inputs)
             if remaining == 0:
                 inputs.delete(name)
                 self.assertFalse(name in inputs)
             else:
-                if not name.startswith('boris'):
-                    self.assertRaises(client.AmbiguousReferenceException,
-                        inputs.delete, name)
+                if not name.startswith("boris"):
+                    self.assertRaises(
+                        client.AmbiguousReferenceException, inputs.delete, name
+                    )
                 self.service.inputs.delete(name, kind)
                 self.assertFalse((name, kind) in inputs)
-            self.assertRaises(client.HTTPError,
-                              input_entity.refresh)
+            self.assertRaises(client.HTTPError, input_entity.refresh)
             remaining -= 1
 
 

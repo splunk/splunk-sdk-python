@@ -15,11 +15,12 @@
 # under the License.
 
 from __future__ import absolute_import
-from tests.modularinput.modularinput_testlib import unittest, data_open
+
 from splunklib.modularinput.input_definition import InputDefinition
+from tests.modularinput.modularinput_testlib import data_open, unittest
+
 
 class InputDefinitionTestCase(unittest.TestCase):
-
     def test_parse_inputdef_with_zero_inputs(self):
         """Check parsing of XML that contains only metadata"""
 
@@ -30,7 +31,7 @@ class InputDefinitionTestCase(unittest.TestCase):
             "server_host": "tiny",
             "server_uri": "https://127.0.0.1:8089",
             "checkpoint_dir": "/some/dir",
-            "session_key": "123102983109283019283"
+            "session_key": "123102983109283019283",
         }
 
         self.assertEqual(found, expectedDefinition)
@@ -45,13 +46,13 @@ class InputDefinitionTestCase(unittest.TestCase):
             "server_host": "tiny",
             "server_uri": "https://127.0.0.1:8089",
             "checkpoint_dir": "/some/dir",
-            "session_key": "123102983109283019283"
+            "session_key": "123102983109283019283",
         }
         expectedDefinition.inputs["foobar://aaa"] = {
             "param1": "value1",
             "param2": "value2",
             "disabled": "0",
-            "index": "default"
+            "index": "default",
         }
         expectedDefinition.inputs["foobar://bbb"] = {
             "param1": "value11",
@@ -59,7 +60,7 @@ class InputDefinitionTestCase(unittest.TestCase):
             "disabled": "0",
             "index": "default",
             "multiValue": ["value1", "value2"],
-            "multiValue2": ["value3", "value4"]
+            "multiValue2": ["value3", "value4"],
         }
 
         self.assertEqual(expectedDefinition, found)
@@ -68,7 +69,10 @@ class InputDefinitionTestCase(unittest.TestCase):
         """Does malformed XML cause the expected exception."""
 
         with self.assertRaises(ValueError):
-            found = InputDefinition.parse(data_open("data/conf_with_invalid_inputs.xml"))
+            found = InputDefinition.parse(
+                data_open("data/conf_with_invalid_inputs.xml")
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

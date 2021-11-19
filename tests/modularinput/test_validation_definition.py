@@ -15,8 +15,10 @@
 # under the License.
 
 from __future__ import absolute_import
-from tests.modularinput.modularinput_testlib import unittest, data_open
+
 from splunklib.modularinput.validation_definition import ValidationDefinition
+from tests.modularinput.modularinput_testlib import data_open, unittest
+
 
 class ValidationDefinitionTestCase(unittest.TestCase):
     def test_validation_definition_parse(self):
@@ -29,7 +31,7 @@ class ValidationDefinitionTestCase(unittest.TestCase):
             "server_uri": "https://127.0.0.1:8089",
             "checkpoint_dir": "/opt/splunk/var/lib/splunk/modinputs",
             "session_key": "123102983109283019283",
-            "name": "aaa"
+            "name": "aaa",
         }
         expected.parameters = {
             "param1": "value1",
@@ -37,10 +39,11 @@ class ValidationDefinitionTestCase(unittest.TestCase):
             "disabled": "0",
             "index": "default",
             "multiValue": ["value1", "value2"],
-            "multiValue2": ["value3", "value4"]
+            "multiValue2": ["value3", "value4"],
         }
 
         self.assertEqual(expected, found)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -142,14 +142,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .environment import *
 from .decorators import *
-from .validators import *
-
-from .generating_command import GeneratingCommand
-from .streaming_command import StreamingCommand
+from .environment import *
 from .eventing_command import EventingCommand
+from .external_search_command import ExternalSearchCommand, execute
+from .generating_command import GeneratingCommand
 from .reporting_command import ReportingCommand
-
-from .external_search_command import execute, ExternalSearchCommand
-from .search_command import dispatch, SearchMetric
+from .search_command import SearchMetric, dispatch
+from .streaming_command import StreamingCommand
+from .validators import *

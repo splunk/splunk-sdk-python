@@ -724,7 +724,7 @@ class Endpoint(object):
     """
     def __init__(self, service, path):
         self.service = service
-        self.path = path if path.endswith('/') else path + '/'
+        self.path = path #if path.endswith('/') else path + '/'
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """Performs a GET operation on the path segment relative to this endpoint.
@@ -782,6 +782,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
+            if not self.path.endswith('/'):
+                self.path = self.path if self.path != "" and path_segment.startswith('/') else self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner,
                                          app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment).
@@ -842,6 +844,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
+            if not self.path.endswith('/'):
+                self.path = self.path if self.path != "" and path_segment.startswith('/') else self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 

@@ -233,6 +233,17 @@ class Tests(testlib.SDKTestCase):
         self.storage_passwords.delete(username + "/foo", "/myrealm")
         self.assertEqual(start_count, len(self.storage_passwords))
 
+    def test_spaces_in_username(self):
+        start_count = len(self.storage_passwords)
+        realm = testlib.tmpname()
+        username = "  user1  "
+
+        p = self.storage_passwords.create("changeme", username, realm)
+        self.assertEqual(p.username, username)
+
+        p.delete()
+        self.assertEqual(start_count, len(self.storage_passwords))
+
 
 if __name__ == "__main__":
     try:

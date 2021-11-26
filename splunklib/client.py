@@ -847,7 +847,6 @@ class Endpoint(object):
             if not self.path.endswith('/') and path_segment != "":
                 self.path = self.path if path_segment.startswith('/') else self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
-        print(path)
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 

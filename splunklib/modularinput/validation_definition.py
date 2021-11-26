@@ -14,6 +14,7 @@
 
 
 from __future__ import absolute_import
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
@@ -31,6 +32,7 @@ class ValidationDefinition(object):
         v = ValidationDefinition()
 
     """
+
     def __init__(self):
         self.metadata = {}
         self.parameters = {}

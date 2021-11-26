@@ -20,6 +20,7 @@ import logging
 
 import splunklib.client as client
 
+
 class RoleTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(RoleTestCase, self).setUp()
@@ -29,7 +30,7 @@ class RoleTestCase(testlib.SDKTestCase):
     def tearDown(self):
         super(RoleTestCase, self).tearDown()
         for role in self.service.roles:
-            if role.name.startswith('delete-me'):
+            if role.name.startswith("delete-me"):
                 self.service.roles.delete(role.name)
 
     def check_role(self, role):
@@ -61,49 +62,53 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertRaises(client.HTTPError, self.role.refresh)
 
     def test_grant_and_revoke(self):
-        self.assertFalse('edit_user' in self.role.capabilities)
-        self.role.grant('edit_user')
+        self.assertFalse("edit_user" in self.role.capabilities)
+        self.role.grant("edit_user")
         self.role.refresh()
-        self.assertTrue('edit_user' in self.role.capabilities)
+        self.assertTrue("edit_user" in self.role.capabilities)
 
-        self.assertFalse('change_own_password' in self.role.capabilities)
-        self.role.grant('change_own_password')
+        self.assertFalse("change_own_password" in self.role.capabilities)
+        self.role.grant("change_own_password")
         self.role.refresh()
-        self.assertTrue('edit_user' in self.role.capabilities)
-        self.assertTrue('change_own_password' in self.role.capabilities)
+        self.assertTrue("edit_user" in self.role.capabilities)
+        self.assertTrue("change_own_password" in self.role.capabilities)
 
-        self.role.revoke('edit_user')
+        self.role.revoke("edit_user")
         self.role.refresh()
-        self.assertFalse('edit_user' in self.role.capabilities)
-        self.assertTrue('change_own_password' in self.role.capabilities)
+        self.assertFalse("edit_user" in self.role.capabilities)
+        self.assertTrue("change_own_password" in self.role.capabilities)
 
-        self.role.revoke('change_own_password')
+        self.role.revoke("change_own_password")
         self.role.refresh()
-        self.assertFalse('edit_user' in self.role.capabilities)
-        self.assertFalse('change_own_password' in self.role.capabilities)
+        self.assertFalse("edit_user" in self.role.capabilities)
+        self.assertFalse("change_own_password" in self.role.capabilities)
 
     def test_invalid_grant(self):
-        self.assertRaises(client.NoSuchCapability, self.role.grant, 'i-am-an-invalid-capability')
+        self.assertRaises(
+            client.NoSuchCapability, self.role.grant, "i-am-an-invalid-capability"
+        )
 
     def test_invalid_revoke(self):
-        self.assertRaises(client.NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
+        self.assertRaises(
+            client.NoSuchCapability, self.role.revoke, "i-am-an-invalid-capability"
+        )
 
     def test_revoke_capability_not_granted(self):
-        self.role.revoke('change_own_password')
-
+        self.role.revoke("change_own_password")
 
     def test_update(self):
         kwargs = {}
-        if 'user' in self.role['imported_roles']:
-            kwargs['imported_roles'] = ''
+        if "user" in self.role["imported_roles"]:
+            kwargs["imported_roles"] = ""
         else:
-            kwargs['imported_roles'] = ['user']
-        if self.role['srchJobsQuota'] is not None:
-            kwargs['srchJobsQuota'] = int(self.role['srchJobsQuota']) + 1
+            kwargs["imported_roles"] = ["user"]
+        if self.role["srchJobsQuota"] is not None:
+            kwargs["srchJobsQuota"] = int(self.role["srchJobsQuota"]) + 1
         self.role.update(**kwargs)
         self.role.refresh()
-        self.assertEqual(self.role['imported_roles'], kwargs['imported_roles'])
-        self.assertEqual(int(self.role['srchJobsQuota']), kwargs['srchJobsQuota'])
+        self.assertEqual(self.role["imported_roles"], kwargs["imported_roles"])
+        self.assertEqual(int(self.role["srchJobsQuota"]), kwargs["srchJobsQuota"])
+
 
 if __name__ == "__main__":
     try:

@@ -57,9 +57,10 @@ except ImportError:
 
 import pytest
 
+
 def pypy():
     try:
-        process = Popen(['pypy', '--version'], stderr=PIPE, stdout=PIPE)
+        process = Popen(["pypy", "--version"], stderr=PIPE, stdout=PIPE)
     except OSError:
         return False
     else:
@@ -68,37 +69,38 @@ def pypy():
 
 
 class Recording(object):
-
     def __init__(self, path):
 
-        self._dispatch_dir = path + '.dispatch_dir'
+        self._dispatch_dir = path + ".dispatch_dir"
         self._search = None
 
         if os.path.exists(self._dispatch_dir):
-            with io.open(os.path.join(self._dispatch_dir, 'request.csv')) as ifile:
+            with io.open(os.path.join(self._dispatch_dir, "request.csv")) as ifile:
                 reader = csv.reader(ifile)
                 for name, value in izip(next(reader), next(reader)):
-                    if name == 'search':
+                    if name == "search":
                         self._search = value
                         break
             assert self._search is not None
 
-        splunk_cmd = path + '.splunk_cmd'
+        splunk_cmd = path + ".splunk_cmd"
 
         try:
-            with io.open(splunk_cmd, 'r') as f:
-                self._args = f.readline().encode().split(None, 5)  # ['splunk', 'cmd', <filename>, <action>, <args>]
+            with io.open(splunk_cmd, "r") as f:
+                self._args = (
+                    f.readline().encode().split(None, 5)
+                )  # ['splunk', 'cmd', <filename>, <action>, <args>]
         except IOError as error:
             if error.errno != 2:
                 raise
-            self._args = ['splunk', 'cmd', 'python', None]
+            self._args = ["splunk", "cmd", "python", None]
 
-        self._input_file = path + '.input.gz'
+        self._input_file = path + ".input.gz"
 
-        self._output_file = path + '.output'
+        self._output_file = path + ".output"
 
-        if six.PY3 and os.path.isfile(self._output_file + '.py3'):
-            self._output_file = self._output_file + '.py3'
+        if six.PY3 and os.path.isfile(self._output_file + ".py3"):
+            self._output_file = self._output_file + ".py3"
 
         # Remove the "splunk cmd" portion
         self._args = self._args[2:]
@@ -125,17 +127,21 @@ class Recording(object):
 
 
 class Recordings(object):
-
     def __init__(self, name, action, phase, protocol_version):
 
         basedir = Recordings._prefix + six.text_type(protocol_version)
 
         if not os.path.isdir(basedir):
-            raise ValueError('Directory "{}" containing recordings for protocol version {} does not exist'.format(
-                protocol_version, basedir))
+            raise ValueError(
+                'Directory "{}" containing recordings for protocol version {} does not exist'.format(
+                    protocol_version, basedir
+                )
+            )
 
         self._basedir = basedir
-        self._name = '.'.join(ifilter(lambda part: part is not None, (name, action, phase)))
+        self._name = ".".join(
+            ifilter(lambda part: part is not None, (name, action, phase))
+        )
 
     def __iter__(self):
 
@@ -143,92 +149,124 @@ class Recordings(object):
         name = self._name
 
         iterator = imap(
-            lambda directory: Recording(os.path.join(basedir, directory, name)), ifilter(
-                lambda filename: os.path.isdir(os.path.join(basedir, filename)), os.listdir(basedir)))
+            lambda directory: Recording(os.path.join(basedir, directory, name)),
+            ifilter(
+                lambda filename: os.path.isdir(os.path.join(basedir, filename)),
+                os.listdir(basedir),
+            ),
+        )
 
         return iterator
 
-    _prefix = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'recordings', 'scpv')
+    _prefix = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "recordings", "scpv"
+    )
+
 
 @pytest.mark.smoke
 class TestSearchCommandsApp(TestCase):
-    app_root = os.path.join(project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app')
+    app_root = os.path.join(
+        project_root, "examples", "searchcommands_app", "build", "searchcommands_app"
+    )
 
     def setUp(self):
         if not os.path.isdir(TestSearchCommandsApp.app_root):
-            build_command = os.path.join(project_root, 'examples', 'searchcommands_app', 'setup.py build')
-            self.skipTest("You must build the searchcommands_app by running " + build_command)
+            build_command = os.path.join(
+                project_root, "examples", "searchcommands_app", "setup.py build"
+            )
+            self.skipTest(
+                "You must build the searchcommands_app by running " + build_command
+            )
         TestCase.setUp(self)
 
-    @pytest.mark.skipif(six.PY3, reason="Python 2 does not treat Unicode as words for regex, so Python 3 has broken fixtures")
+    @pytest.mark.skipif(
+        six.PY3,
+        reason="Python 2 does not treat Unicode as words for regex, so Python 3 has broken fixtures",
+    )
     def test_countmatches_as_unit(self):
-        expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "countmatches", action="getinfo", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('countmatches', action='execute', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "countmatches", action="execute", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
 
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('countmatches')
+        expected, output, errors, exit_status = self._run_command("countmatches")
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
         return
 
     def test_generatehello_as_unit(self):
 
-        expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "generatehello", action="getinfo", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('generatehello', action='execute', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "generatehello", action="execute", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_insensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('generatehello')
+        expected, output, errors, exit_status = self._run_command("generatehello")
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output, time_sensitive=False)
 
         return
 
     def test_sum_as_unit(self):
 
-        expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "sum", action="getinfo", phase="reduce", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "sum", action="getinfo", phase="map", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "sum", action="execute", phase="map", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
+        expected, output, errors, exit_status = self._run_command(
+            "sum", action="execute", phase="reduce", protocol=1
+        )
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('sum', phase='map')
+        expected, output, errors, exit_status = self._run_command("sum", phase="map")
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
-        expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
+        expected, output, errors, exit_status = self._run_command("sum", phase="reduce")
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual("", errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
         return
@@ -267,8 +305,12 @@ class TestSearchCommandsApp(TestCase):
 
         for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
             self.assertDictEqual(
-                chunk_1.metadata, chunk_2.metadata,
-                'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
+                chunk_1.metadata,
+                chunk_2.metadata,
+                'Chunk {0}: metadata error: "{1}" != "{2}"'.format(
+                    n, chunk_1.metadata, chunk_2.metadata
+                ),
+            )
             compare_csv_files(chunk_1.body, chunk_2.body)
             n += 1
 
@@ -276,7 +318,7 @@ class TestSearchCommandsApp(TestCase):
 
     def _compare_csv_files_time_insensitive(self, expected, output):
 
-        skip_first_row = expected[0:2] == '\r\n'
+        skip_first_row = expected[0:2] == "\r\n"
         expected = StringIO(expected)
         output = StringIO(output)
         line_number = 1
@@ -292,16 +334,20 @@ class TestSearchCommandsApp(TestCase):
             output_row = next(output)
 
             try:
-                timestamp = float(output_row['_time'])
+                timestamp = float(output_row["_time"])
                 datetime.fromtimestamp(timestamp)
             except BaseException as error:
                 self.fail(error)
             else:
-                output_row['_time'] = expected_row['_time']
+                output_row["_time"] = expected_row["_time"]
 
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row,
+                output_row,
+                "Error on line {0}: expected {1}, not {2}".format(
+                    line_number, expected_row, output_row
+                ),
+            )
 
             line_number += 1
 
@@ -313,7 +359,7 @@ class TestSearchCommandsApp(TestCase):
     def _compare_csv_files_time_sensitive(self, expected, output):
         self.assertEqual(len(expected), len(output))
 
-        skip_first_row = expected[0:2] == '\r\n'
+        skip_first_row = expected[0:2] == "\r\n"
         expected = StringIO(expected)
         output = StringIO(output)
         line_number = 1
@@ -328,8 +374,12 @@ class TestSearchCommandsApp(TestCase):
         for expected_row in expected:
             output_row = next(output)
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row,
+                output_row,
+                "Error on line {0}: expected {1}, not {2}".format(
+                    line_number, expected_row, output_row
+                ),
+            )
             line_number += 1
 
         if six.PY2:
@@ -339,14 +389,23 @@ class TestSearchCommandsApp(TestCase):
 
     def _get_search_command_path(self, name):
         path = os.path.join(
-            project_root, 'examples', 'searchcommands_app', 'build', 'searchcommands_app', 'bin', name + '.py')
+            project_root,
+            "examples",
+            "searchcommands_app",
+            "build",
+            "searchcommands_app",
+            "bin",
+            name + ".py",
+        )
         self.assertTrue(os.path.isfile(path))
         return path
 
     def _load_chunks(self, ifile):
         import re
 
-        pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)(\n)?')
+        pattern = re.compile(
+            r"chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)(\n)?"
+        )
         decoder = json.JSONDecoder()
 
         chunks = []
@@ -362,12 +421,12 @@ class TestSearchCommandsApp(TestCase):
             if match is None:
                 continue
 
-            metadata_length = int(match.group('metadata_length'))
+            metadata_length = int(match.group("metadata_length"))
             metadata = ifile.read(metadata_length)
             metadata = decoder.decode(metadata)
 
-            body_length = int(match.group('body_length'))
-            body = ifile.read(body_length) if body_length > 0 else ''
+            body_length = int(match.group("body_length"))
+            body = ifile.read(body_length) if body_length > 0 else ""
 
             chunks.append(TestSearchCommandsApp._Chunk(metadata, body))
 
@@ -389,8 +448,8 @@ class TestSearchCommandsApp(TestCase):
             compressed_file = recording.input_file
             uncompressed_file = os.path.splitext(recording.input_file)[0]
             try:
-                with gzip.open(compressed_file, 'rb') as ifile:
-                    with io.open(uncompressed_file, 'wb') as ofile:
+                with gzip.open(compressed_file, "rb") as ifile:
+                    with io.open(uncompressed_file, "wb") as ofile:
                         b = bytearray(io.DEFAULT_BUFFER_SIZE)
                         n = len(b)
                         while True:
@@ -402,20 +461,31 @@ class TestSearchCommandsApp(TestCase):
                                 break
                             ofile.write(b)
 
-                with io.open(uncompressed_file, 'rb') as ifile:
+                with io.open(uncompressed_file, "rb") as ifile:
                     env = os.environ.copy()
-                    env['PYTHONPATH'] = os.pathsep.join(sys.path)
-                    process = Popen(recording.get_args(command), stdin=ifile, stderr=PIPE, stdout=PIPE, env=env)
+                    env["PYTHONPATH"] = os.pathsep.join(sys.path)
+                    process = Popen(
+                        recording.get_args(command),
+                        stdin=ifile,
+                        stderr=PIPE,
+                        stdout=PIPE,
+                        env=env,
+                    )
                     output, errors = process.communicate()
 
-                with io.open(recording.output_file, 'rb') as ifile:
+                with io.open(recording.output_file, "rb") as ifile:
                     expected = ifile.read()
             finally:
                 os.remove(uncompressed_file)
 
-        return six.ensure_str(expected), six.ensure_str(output), six.ensure_str(errors), process.returncode
+        return (
+            six.ensure_str(expected),
+            six.ensure_str(output),
+            six.ensure_str(errors),
+            process.returncode,
+        )
 
-    _Chunk = namedtuple('Chunk', 'metadata body')
+    _Chunk = namedtuple("Chunk", "metadata body")
 
 
 if __name__ == "__main__":

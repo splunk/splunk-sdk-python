@@ -13,15 +13,17 @@
 # under the License.
 
 from __future__ import absolute_import
+
 try:
     import xml.etree.ElementTree as ET
 except ImportError:
     import xml.etree.cElementTree as ET
 
+
 class Argument(object):
     """Class representing an argument to a modular input kind.
 
-    ``Argument`` is meant to be used with ``Scheme`` to generate an XML 
+    ``Argument`` is meant to be used with ``Scheme`` to generate an XML
     definition of the modular input kind that Splunk understands.
 
     ``name`` is the only required parameter for the constructor.
@@ -48,8 +50,16 @@ class Argument(object):
     data_type_number = "NUMBER"
     data_type_string = "STRING"
 
-    def __init__(self, name, description=None, validation=None,
-                 data_type=data_type_string, required_on_edit=False, required_on_create=False, title=None):
+    def __init__(
+        self,
+        name,
+        description=None,
+        validation=None,
+        data_type=data_type_string,
+        required_on_edit=False,
+        required_on_create=False,
+        title=None,
+    ):
         """
         :param name: ``string``, identifier for this argument in Splunk.
         :param description: ``string``, human-readable description of the argument.
@@ -94,7 +104,7 @@ class Argument(object):
         subelements = [
             ("data_type", self.data_type),
             ("required_on_edit", self.required_on_edit),
-            ("required_on_create", self.required_on_create)
+            ("required_on_create", self.required_on_create),
         ]
 
         for name, value in subelements:

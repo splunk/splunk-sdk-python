@@ -11,7 +11,7 @@ def test_simple_reporting_command():
             value = 0
             for record in records:
                 value += int(record["value"])
-            yield {'sum': value}
+            yield {"sum": value}
 
     cmd = TestReportingCommand()
     ifile = io.BytesIO()
@@ -26,9 +26,9 @@ def test_simple_reporting_command():
     ofile.seek(0)
     chunk_stream = chunky.ChunkedDataStream(ofile)
     getinfo_response = chunk_stream.read_chunk()
-    assert getinfo_response.meta['type'] == 'reporting'
+    assert getinfo_response.meta["type"] == "reporting"
     data_chunk = chunk_stream.read_chunk()
-    assert data_chunk.meta['finished'] is True  # Should only be one row
+    assert data_chunk.meta["finished"] is True  # Should only be one row
     data = list(data_chunk.data)
     assert len(data) == 1
-    assert int(data[0]['sum']) == sum(range(0, 10))
+    assert int(data[0]["sum"]) == sum(range(0, 10))

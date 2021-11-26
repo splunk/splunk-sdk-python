@@ -24,7 +24,7 @@ from .search_command import SearchCommand
 
 
 class StreamingCommand(SearchCommand):
-    """ Applies a transformation to search results as they travel through the streams pipeline.
+    """Applies a transformation to search results as they travel through the streams pipeline.
 
     Streaming commands typically filter, augment, or update, search result records. Splunk will send them in batches of
     up to 50,000 records. Hence, a search command must be prepared to be invoked many times during the course of
@@ -41,15 +41,16 @@ class StreamingCommand(SearchCommand):
     Splunk 6.3 or later.
 
     """
+
     # region Methods
 
     def stream(self, records):
-        """ Generator function that processes and yields event records to the Splunk stream pipeline.
+        """Generator function that processes and yields event records to the Splunk stream pipeline.
 
         You must override this method.
 
         """
-        raise NotImplementedError('StreamingCommand.stream(self, records)')
+        raise NotImplementedError("StreamingCommand.stream(self, records)")
 
     def _execute(self, ifile, process):
         SearchCommand._execute(self, ifile, self.stream)
@@ -57,12 +58,12 @@ class StreamingCommand(SearchCommand):
     # endregion
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ Represents the configuration settings that apply to a :class:`StreamingCommand`.
+        """Represents the configuration settings that apply to a :class:`StreamingCommand`."""
 
-        """
         # region SCP v1/v2 properties
 
-        required_fields = ConfigurationSetting(doc='''
+        required_fields = ConfigurationSetting(
+            doc="""
             List of required fields for this search which back-propagates to the generating search.
 
             Setting this value enables selected fields mode under SCP 2. Under SCP 1 you must also specify
@@ -73,13 +74,15 @@ class StreamingCommand(SearchCommand):
 
             Supported by: SCP 1, SCP 2
 
-            ''')
+            """
+        )
 
         # endregion
 
         # region SCP v1 properties
 
-        clear_required_fields = ConfigurationSetting(doc='''
+        clear_required_fields = ConfigurationSetting(
+            doc="""
             :const:`True`, if required_fields represent the *only* fields required.
 
             If :const:`False`, required_fields are additive to any fields that may be required by subsequent commands.
@@ -89,40 +92,51 @@ class StreamingCommand(SearchCommand):
 
             Supported by: SCP 1
 
-            ''')
+            """
+        )
 
-        local = ConfigurationSetting(doc='''
+        local = ConfigurationSetting(
+            doc="""
             :const:`True`, if the command should run locally on the search head.
 
             Default: :const:`False`
 
             Supported by: SCP 1
 
-            ''')
+            """
+        )
 
-        overrides_timeorder = ConfigurationSetting(doc='''
+        overrides_timeorder = ConfigurationSetting(
+            doc="""
             :const:`True`, if the command changes the order of events with respect to time.
 
             Default: :const:`False`
 
             Supported by: SCP 1
 
-            ''')
+            """
+        )
 
-        streaming = ConfigurationSetting(readonly=True, value=True, doc='''
+        streaming = ConfigurationSetting(
+            readonly=True,
+            value=True,
+            doc="""
             Specifies that the command is streamable.
 
             Fixed: :const:`True`
 
             Supported by: SCP 1
 
-            ''')
+            """,
+        )
 
         # endregion
 
         # region SCP v2 Properties
 
-        distributed = ConfigurationSetting(value=True, doc='''
+        distributed = ConfigurationSetting(
+            value=True,
+            doc="""
             :const:`True`, if this command should be distributed to indexers.
 
             Under SCP 1 you must either specify `local = False` or include this line in commands.conf_, if this command
@@ -137,9 +151,11 @@ class StreamingCommand(SearchCommand):
 
             .. commands.conf_: http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf
 
-            ''')
+            """,
+        )
 
-        maxinputs = ConfigurationSetting(doc='''
+        maxinputs = ConfigurationSetting(
+            doc="""
             Specifies the maximum number of events that can be passed to the command for each invocation.
 
             This limit cannot exceed the value of `maxresultrows` in limits.conf. Under SCP 1 you must specify this
@@ -149,16 +165,21 @@ class StreamingCommand(SearchCommand):
 
             Supported by: SCP 2
 
-            ''')
+            """
+        )
 
-        type = ConfigurationSetting(readonly=True, value='streaming', doc='''
+        type = ConfigurationSetting(
+            readonly=True,
+            value="streaming",
+            doc="""
             Command type name.
 
             Fixed: :const:`'streaming'`
 
             Supported by: SCP 2
 
-            ''')
+            """,
+        )
 
         # endregion
 
@@ -166,11 +187,9 @@ class StreamingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies :code:`command` class structure.
-
-            """
+            """Verifies :code:`command` class structure."""
             if command.stream == StreamingCommand.stream:
-                raise AttributeError('No StreamingCommand.stream override')
+                raise AttributeError("No StreamingCommand.stream override")
             return
 
         # TODO: Stop looking like a dictionary because we don't obey the semantics
@@ -180,12 +199,21 @@ class StreamingCommand(SearchCommand):
             version = self.command.protocol_version
             if version == 1:
                 if self.required_fields is None:
-                    iteritems = ifilter(lambda name_value: name_value[0] != 'clear_required_fields', iteritems)
+                    iteritems = ifilter(
+                        lambda name_value: name_value[0] != "clear_required_fields",
+                        iteritems,
+                    )
             else:
-                iteritems = ifilter(lambda name_value2: name_value2[0] != 'distributed', iteritems)
+                iteritems = ifilter(
+                    lambda name_value2: name_value2[0] != "distributed", iteritems
+                )
                 if not self.distributed:
                     iteritems = imap(
-                        lambda name_value1: (name_value1[0], 'stateful') if name_value1[0] == 'type' else (name_value1[0], name_value1[1]), iteritems)
+                        lambda name_value1: (name_value1[0], "stateful")
+                        if name_value1[0] == "type"
+                        else (name_value1[0], name_value1[1]),
+                        iteritems,
+                    )
             return iteritems
 
         # N.B.: Does not use Python 3 dict view semantics

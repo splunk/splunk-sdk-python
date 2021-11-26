@@ -23,6 +23,7 @@ import splunklib
 
 failed = False
 
+
 def run_test_suite():
     try:
         import unittest2 as unittest
@@ -45,11 +46,12 @@ def run_test_suite():
     class TrackingTextTestRunner(unittest.TextTestRunner):
         def _makeResult(self):
             return _TrackingTextTestResult(
-                self.stream, self.descriptions, self.verbosity)
+                self.stream, self.descriptions, self.verbosity
+            )
 
     original_cwd = os.path.abspath(os.getcwd())
-    os.chdir('tests')
-    suite = unittest.defaultTestLoader.discover('.')
+    os.chdir("tests")
+    suite = unittest.defaultTestLoader.discover(".")
     runner = TrackingTextTestRunner(verbosity=2)
     runner.run(suite)
     os.chdir(original_cwd)
@@ -63,15 +65,17 @@ def run_test_suite_with_junit_output():
     except ImportError:
         import unittest
     import xmlrunner
+
     original_cwd = os.path.abspath(os.getcwd())
-    os.chdir('tests')
-    suite = unittest.defaultTestLoader.discover('.')
-    xmlrunner.XMLTestRunner(output='../test-reports').run(suite)
+    os.chdir("tests")
+    suite = unittest.defaultTestLoader.discover(".")
+    xmlrunner.XMLTestRunner(output="../test-reports").run(suite)
     os.chdir(original_cwd)
 
 
 class CoverageCommand(Command):
     """setup.py command to run code coverage of the test suite."""
+
     description = "Create an HTML coverage report from running the full test suite."
     user_options = []
 
@@ -87,15 +91,16 @@ class CoverageCommand(Command):
         except ImportError:
             print("Could not import coverage. Please install it and try again.")
             exit(1)
-        cov = coverage.coverage(source=['splunklib'])
+        cov = coverage.coverage(source=["splunklib"])
         cov.start()
         run_test_suite()
         cov.stop()
-        cov.html_report(directory='coverage_report')
+        cov.html_report(directory="coverage_report")
 
 
 class TestCommand(Command):
     """setup.py command to run the whole test suite."""
+
     description = "Run test full test suite."
     user_options = []
 
@@ -113,6 +118,7 @@ class TestCommand(Command):
 
 class JunitXmlTestCommand(Command):
     """setup.py command to run the whole test suite."""
+
     description = "Run test full test suite with JUnit-formatted output."
     user_options = []
 
@@ -128,28 +134,19 @@ class JunitXmlTestCommand(Command):
 
 setup(
     author="Splunk, Inc.",
-
     author_email="devinfo@splunk.com",
-
-    cmdclass={'coverage': CoverageCommand,
-              'test': TestCommand,
-              'testjunit': JunitXmlTestCommand},
-
+    cmdclass={
+        "coverage": CoverageCommand,
+        "test": TestCommand,
+        "testjunit": JunitXmlTestCommand,
+    },
     description="The Splunk Software Development Kit for Python.",
-
     license="http://www.apache.org/licenses/LICENSE-2.0",
-
     name="splunk-sdk",
-
-    packages = ["splunklib",
-                "splunklib.modularinput",
-                "splunklib.searchcommands"],
-
+    packages=["splunklib", "splunklib.modularinput", "splunklib.searchcommands"],
     url="http://github.com/splunk/splunk-sdk-python",
-
     version=splunklib.__version__,
-
-    classifiers = [
+    classifiers=[
         "Programming Language :: Python",
         "Development Status :: 6 - Mature",
         "Environment :: Other Environment",

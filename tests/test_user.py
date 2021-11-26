@@ -20,24 +20,24 @@ import logging
 
 import splunklib.client as client
 
+
 class UserTestCase(testlib.SDKTestCase):
     def check_user(self, user):
         self.check_entity(user)
         # Verify expected fields exist
-        [user[f] for f in ['email', 'password', 'realname', 'roles']]
-        
+        [user[f] for f in ["email", "password", "realname", "roles"]]
+
     def setUp(self):
         super(UserTestCase, self).setUp()
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
-            self.username,
-            password='changeme!',
-            roles=['power', 'user'])
+            self.username, password="changeme!", roles=["power", "user"]
+        )
 
     def tearDown(self):
         super(UserTestCase, self).tearDown()
         for user in self.service.users:
-            if user.name.startswith('delete-me'):
+            if user.name.startswith("delete-me"):
                 self.service.users.delete(user.name)
 
     def test_read(self):
@@ -46,8 +46,7 @@ class UserTestCase(testlib.SDKTestCase):
             for role in user.role_entities:
                 self.assertTrue(isinstance(role, client.Entity))
                 self.assertTrue(role.name in self.service.roles)
-            self.assertEqual(user.roles,
-                             [role.name for role in user.role_entities])
+            self.assertEqual(user.roles, [role.name for role in user.role_entities])
 
     def test_create(self):
         self.assertTrue(self.username in self.service.users)
@@ -60,10 +59,10 @@ class UserTestCase(testlib.SDKTestCase):
             self.user.refresh()
 
     def test_update(self):
-        self.assertTrue(self.user['email'] is None)
+        self.assertTrue(self.user["email"] is None)
         self.user.update(email="foo@bar.com")
         self.user.refresh()
-        self.assertTrue(self.user['email'] == "foo@bar.com")
+        self.assertTrue(self.user["email"] == "foo@bar.com")
 
     def test_in_is_case_insensitive(self):
         # Splunk lowercases user names, verify the casing works as expected
@@ -83,6 +82,7 @@ class UserTestCase(testlib.SDKTestCase):
         users.delete(self.username.upper())
         self.assertFalse(self.username in users)
         self.assertFalse(self.username.upper() in users)
+
 
 if __name__ == "__main__":
     try:

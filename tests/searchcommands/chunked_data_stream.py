@@ -12,8 +12,7 @@ class Chunk(object):
         self.version = six.ensure_str(version)
         self.meta = json.loads(meta)
         dialect = splunklib.searchcommands.internals.CsvDialect
-        self.data = csv.DictReader(io.StringIO(data.decode("utf-8")),
-                                   dialect=dialect)
+        self.data = csv.DictReader(io.StringIO(data.decode("utf-8")), dialect=dialect)
 
 
 class ChunkedDataStreamIter(collections.Iterator):
@@ -42,49 +41,53 @@ class ChunkedDataStream(collections.Iterable):
     def read_chunk(self):
         header = self.stream.readline()
 
-        while len(header) > 0 and header.strip() == b'':
+        while len(header) > 0 and header.strip() == b"":
             header = self.stream.readline()  # Skip empty lines
         if len(header) == 0:
             raise EOFError
 
-        version, meta, data = header.rstrip().split(b',')
+        version, meta, data = header.rstrip().split(b",")
         metabytes = self.stream.read(int(meta))
         databytes = self.stream.read(int(data))
         return Chunk(version, metabytes, databytes)
 
 
 def build_chunk(keyval, data=None):
-    metadata = six.ensure_binary(json.dumps(keyval), 'utf-8')
+    metadata = six.ensure_binary(json.dumps(keyval), "utf-8")
     data_output = _build_data_csv(data)
-    return b"chunked 1.0,%d,%d\n%s%s" % (len(metadata), len(data_output), metadata, data_output)
+    return b"chunked 1.0,%d,%d\n%s%s" % (
+        len(metadata),
+        len(data_output),
+        metadata,
+        data_output,
+    )
 
 
 def build_empty_searchinfo():
     return {
-        'earliest_time': 0,
-        'latest_time': 0,
-        'search': "",
-        'dispatch_dir': "",
-        'sid': "",
-        'args': [],
-        'splunk_version': "42.3.4",
+        "earliest_time": 0,
+        "latest_time": 0,
+        "search": "",
+        "dispatch_dir": "",
+        "sid": "",
+        "args": [],
+        "splunk_version": "42.3.4",
     }
 
 
 def build_getinfo_chunk():
-    return build_chunk({
-        'action': 'getinfo',
-        'preview': False,
-        'searchinfo': build_empty_searchinfo()})
+    return build_chunk(
+        {"action": "getinfo", "preview": False, "searchinfo": build_empty_searchinfo()}
+    )
 
 
 def build_data_chunk(data, finished=True):
-    return build_chunk({'action': 'execute', 'finished': finished}, data)
+    return build_chunk({"action": "execute", "finished": finished}, data)
 
 
 def _build_data_csv(data):
     if data is None:
-        return b''
+        return b""
     if isinstance(data, bytes):
         return data
     csvout = splunklib.six.StringIO()
@@ -92,8 +95,9 @@ def _build_data_csv(data):
     headers = set()
     for datum in data:
         headers.update(datum.keys())
-    writer = csv.DictWriter(csvout, headers,
-                            dialect=splunklib.searchcommands.internals.CsvDialect)
+    writer = csv.DictWriter(
+        csvout, headers, dialect=splunklib.searchcommands.internals.CsvDialect
+    )
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)

@@ -30,7 +30,9 @@ class ResultsTestCase(testlib.SDKTestCase):
         job = self.service.jobs.create("search index=_internal_does_not_exist | head 2")
         while not job.is_done():
             sleep(0.5)
-        self.assertEqual(0, len(list(results.ResultsReader(io.BufferedReader(job.results())))))
+        self.assertEqual(
+            0, len(list(results.ResultsReader(io.BufferedReader(job.results()))))
+        )
 
     def test_read_normal_results(self):
         xml_text = """
@@ -89,27 +91,30 @@ class ResultsTestCase(testlib.SDKTestCase):
 </results>
 """.strip()
         expected_results = [
-            results.Message('DEBUG', 'base lispy: [ AND ]'),
-            results.Message('DEBUG', "search context: user='admin', app='search', bs-pathname='/some/path'"),
+            results.Message("DEBUG", "base lispy: [ AND ]"),
+            results.Message(
+                "DEBUG",
+                "search context: user='admin', app='search', bs-pathname='/some/path'",
+            ),
             {
-                'series': 'twitter',
-                'sum(kb)': '14372242.758775',
+                "series": "twitter",
+                "sum(kb)": "14372242.758775",
             },
             {
-                'series': 'splunkd',
-                'sum(kb)': '267802.333926',
+                "series": "splunkd",
+                "sum(kb)": "267802.333926",
             },
             {
-                'series': 'flurry',
-                'sum(kb)': '12576.454102',
+                "series": "flurry",
+                "sum(kb)": "12576.454102",
             },
             {
-                'series': 'splunkd_access',
-                'sum(kb)': '5979.036338',
+                "series": "splunkd_access",
+                "sum(kb)": "5979.036338",
             },
             {
-                'series': 'splunk_web_access',
-                'sum(kb)': '5838.935649',
+                "series": "splunk_web_access",
+                "sum(kb)": "5838.935649",
             },
         ]
 
@@ -131,7 +136,7 @@ class ResultsTestCase(testlib.SDKTestCase):
 """.strip()
         expected_results = [
             {
-                '_raw': '07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0',
+                "_raw": "07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0",
             },
         ]
 
@@ -153,16 +158,17 @@ class ResultsTestCase(testlib.SDKTestCase):
 """.strip()
         expected_results = [
             {
-                '_raw': '07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0',
+                "_raw": "07-13-2012 09:27:27.307 -0700 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0",
             },
         ]
 
         self.assert_parsed_results_equals(xml_text, expected_results)
 
     def assert_parsed_results_equals(self, xml_text, expected_results):
-        results_reader = results.ResultsReader(BytesIO(xml_text.encode('utf-8')))
+        results_reader = results.ResultsReader(BytesIO(xml_text.encode("utf-8")))
         actual_results = [x for x in results_reader]
         self.assertEqual(expected_results, actual_results)
+
 
 if __name__ == "__main__":
     try:

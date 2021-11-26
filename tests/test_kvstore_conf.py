@@ -16,66 +16,68 @@
 
 from __future__ import absolute_import
 from tests import testlib
+
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
 import splunklib.client as client
 
+
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(KVStoreConfTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
-        self.service.namespace['app'] = 'search'
+        # self.service.namespace['owner'] = 'nobody'
+        self.service.namespace["app"] = "search"
         self.confs = self.service.kvstore
-        if ('test' in self.confs):
-            self.confs['test'].delete()
+        if "test" in self.confs:
+            self.confs["test"].delete()
 
     def test_owner_restriction(self):
-        self.service.kvstore_owner = 'admin'
+        self.service.kvstore_owner = "admin"
         self.assertRaises(client.HTTPError, lambda: self.confs.list())
-        self.service.kvstore_owner = 'nobody'
+        self.service.kvstore_owner = "nobody"
 
     def test_create_delete_collection(self):
-        self.confs.create('test')
-        self.assertTrue('test' in self.confs)
-        self.confs['test'].delete()
-        self.assertTrue(not 'test' in self.confs)
+        self.confs.create("test")
+        self.assertTrue("test" in self.confs)
+        self.confs["test"].delete()
+        self.assertTrue(not "test" in self.confs)
 
     def test_update_collection(self):
-        self.confs.create('test')
-        self.confs['test'].post(**{'accelerated_fields.ind1': '{"a": 1}', 'field.a': 'number'})
-        self.assertEqual(self.confs['test']['field.a'], 'number')
-        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], '{"a": 1}')
-        self.confs['test'].delete()
-
+        self.confs.create("test")
+        self.confs["test"].post(
+            **{"accelerated_fields.ind1": '{"a": 1}', "field.a": "number"}
+        )
+        self.assertEqual(self.confs["test"]["field.a"], "number")
+        self.assertEqual(self.confs["test"]["accelerated_fields.ind1"], '{"a": 1}')
+        self.confs["test"].delete()
 
     def test_update_fields(self):
-        self.confs.create('test')
-        self.confs['test'].post(**{'field.a': 'number'})
-        self.assertEqual(self.confs['test']['field.a'], 'number')
-        self.confs['test'].update_field('a', 'string')
-        self.assertEqual(self.confs['test']['field.a'], 'string')
-        self.confs['test'].delete()
-
+        self.confs.create("test")
+        self.confs["test"].post(**{"field.a": "number"})
+        self.assertEqual(self.confs["test"]["field.a"], "number")
+        self.confs["test"].update_field("a", "string")
+        self.assertEqual(self.confs["test"]["field.a"], "string")
+        self.confs["test"].delete()
 
     def test_create_unique_collection(self):
-        self.confs.create('test')
-        self.assertTrue('test' in self.confs)
-        self.assertRaises(client.HTTPError, lambda: self.confs.create('test'))
-        self.confs['test'].delete()
+        self.confs.create("test")
+        self.assertTrue("test" in self.confs)
+        self.assertRaises(client.HTTPError, lambda: self.confs.create("test"))
+        self.confs["test"].delete()
 
     def test_overlapping_collections(self):
-        self.service.namespace['app'] = 'system'
-        self.confs.create('test')
-        self.service.namespace['app'] = 'search'
-        self.confs.create('test')
-        self.assertEqual(self.confs['test']['eai:appName'], 'search')
-        self.service.namespace['app'] = 'system'
-        self.assertEqual(self.confs['test']['eai:appName'], 'system')
-        self.service.namespace['app'] = 'search'
-        self.confs['test'].delete()
-        self.confs['test'].delete()
+        self.service.namespace["app"] = "system"
+        self.confs.create("test")
+        self.service.namespace["app"] = "search"
+        self.confs.create("test")
+        self.assertEqual(self.confs["test"]["eai:appName"], "search")
+        self.service.namespace["app"] = "system"
+        self.assertEqual(self.confs["test"]["eai:appName"], "system")
+        self.service.namespace["app"] = "search"
+        self.confs["test"].delete()
+        self.confs["test"].delete()
 
     """
     def test_create_accelerated_fields_fields(self):
@@ -89,8 +91,9 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
     """
 
     def tearDown(self):
-        if ('test' in self.confs):
-            self.confs['test'].delete()
+        if "test" in self.confs:
+            self.confs["test"].delete()
+
 
 if __name__ == "__main__":
     try:

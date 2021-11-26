@@ -37,6 +37,7 @@ from __future__ import absolute_import
 from io import BytesIO
 
 from splunklib import six
+
 try:
     import xml.etree.cElementTree as et
 except:
@@ -52,10 +53,8 @@ try:
 except:
     from splunklib.six import StringIO
 
-__all__ = [
-    "ResultsReader",
-    "Message"
-]
+__all__ = ["ResultsReader", "Message"]
+
 
 class Message(object):
     """This class represents informational messages that Splunk interleaves in the results stream.
@@ -67,6 +66,7 @@ class Message(object):
 
         m = Message("DEBUG", "There's something in that variable...")
     """
+
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
@@ -80,6 +80,7 @@ class Message(object):
     def __hash__(self):
         return hash((self.type, self.message))
 
+
 class _ConcatenatedStream(object):
     """Lazily concatenate zero or more streams into a stream.
 
@@ -92,6 +93,7 @@ class _ConcatenatedStream(object):
         s = _ConcatenatedStream(StringIO("abc"), StringIO("def"))
         assert s.read() == "abcdef"
     """
+
     def __init__(self, *streams):
         self.streams = list(streams)
 
@@ -110,6 +112,7 @@ class _ConcatenatedStream(object):
                 del self.streams[0]
         return response
 
+
 class _XMLDTDFilter(object):
     """Lazily remove all XML DTDs from a stream.
 
@@ -123,6 +126,7 @@ class _XMLDTDFilter(object):
         s = _XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
         assert s.read() == "<element></element>"
     """
+
     def __init__(self, stream):
         self.stream = stream
 
@@ -153,6 +157,7 @@ class _XMLDTDFilter(object):
                     n -= 1
         return response
 
+
 class ResultsReader(object):
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
@@ -180,6 +185,7 @@ class ResultsReader(object):
                 print "Message: %s" % result
         print "is_preview = %s " % reader.is_preview
     """
+
     # Be sure to update the docstrings of client.Jobs.oneshot,
     # client.Job.results_preview and client.Job.results to match any
     # changes made to ResultsReader.
@@ -216,31 +222,31 @@ class ResultsReader(object):
         result = None
         values = None
         try:
-            for event, elem in et.iterparse(stream, events=('start', 'end')):
-                if elem.tag == 'results' and event == 'start':
+            for event, elem in et.iterparse(stream, events=("start", "end")):
+                if elem.tag == "results" and event == "start":
                     # The wrapper element is a <results preview="0|1">. We
                     # don't care about it except to tell is whether these
                     # are preview results, or the final results from the
                     # search.
-                    is_preview = elem.attrib['preview'] == '1'
+                    is_preview = elem.attrib["preview"] == "1"
                     self.is_preview = is_preview
-                if elem.tag == 'result':
-                    if event == 'start':
+                if elem.tag == "result":
+                    if event == "start":
                         result = OrderedDict()
-                    elif event == 'end':
+                    elif event == "end":
                         yield result
                         result = None
                         elem.clear()
 
-                elif elem.tag == 'field' and result is not None:
+                elif elem.tag == "field" and result is not None:
                     # We need the 'result is not None' check because
                     # 'field' is also the element name in the <meta>
                     # header that gives field order, which is not what we
                     # want at all.
-                    if event == 'start':
+                    if event == "start":
                         values = []
-                    elif event == 'end':
-                        field_name = elem.attrib['k']
+                    elif event == "end":
+                        field_name = elem.attrib["k"]
                         if len(values) == 1:
                             result[field_name] = values[0]
                         else:
@@ -252,7 +258,7 @@ class ResultsReader(object):
                         # streaming.
                         elem.clear()
 
-                elif elem.tag in ('text', 'v') and event == 'end':
+                elif elem.tag in ("text", "v") and event == "end":
                     try:
                         text = "".join(elem.itertext())
                     except AttributeError:
@@ -260,36 +266,35 @@ class ResultsReader(object):
                         # So we'll define it here
 
                         def __itertext(self):
-                          tag = self.tag
-                          if not isinstance(tag, six.string_types) and tag is not None:
-                              return
-                          if self.text:
-                              yield self.text
-                          for e in self:
-                              for s in __itertext(e):
-                                  yield s
-                              if e.tail:
-                                  yield e.tail
+                            tag = self.tag
+                            if (
+                                not isinstance(tag, six.string_types)
+                                and tag is not None
+                            ):
+                                return
+                            if self.text:
+                                yield self.text
+                            for e in self:
+                                for s in __itertext(e):
+                                    yield s
+                                if e.tail:
+                                    yield e.tail
 
                         text = "".join(__itertext(elem))
                     values.append(text)
                     elem.clear()
 
-                elif elem.tag == 'msg':
-                    if event == 'start':
-                        msg_type = elem.attrib['type']
-                    elif event == 'end':
+                elif elem.tag == "msg":
+                    if event == "start":
+                        msg_type = elem.attrib["type"]
+                    elif event == "end":
                         text = elem.text if elem.text is not None else ""
                         yield Message(msg_type, text)
                         elem.clear()
         except SyntaxError as pe:
             # This is here to handle the same incorrect return from
             # splunk that is described in __init__.
-            if 'no element found' in pe.msg:
+            if "no element found" in pe.msg:
                 return
             else:
                 raise
-
-
-
-

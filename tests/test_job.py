@@ -44,7 +44,7 @@ import pytest
 
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):
-        job = self.service.search('search index=_internal earliest=-1m | head 3')
+        job = self.service.search("search index=_internal earliest=-1m | head 3")
         self.assertTrue(job.sid in self.service.jobs)
         job.cancel()
 
@@ -58,8 +58,7 @@ class TestUtilities(testlib.SDKTestCase):
         result = results.ResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
-        self.assertTrue(isinstance(ds[0], dict) or \
-                            isinstance(ds[0], results.Message))
+        self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 3)
 
@@ -73,27 +72,28 @@ class TestUtilities(testlib.SDKTestCase):
         result = results.ResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
-        self.assertTrue(isinstance(ds[0], dict) or \
-                            isinstance(ds[0], results.Message))
+        self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 3)
 
     def test_export_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
-        service = self.service # cheat
+
+        service = self.service  # cheat
         rr = results.ResultsReader(service.jobs.export("search * | head 5"))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass  # print '%s: %s' % (result.type, result.message)
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass  # print result
         assert rr.is_preview == False
 
     def test_results_docstring_sample(self):
         import splunklib.results as results
+
         service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
         while not job.is_done():
@@ -102,42 +102,44 @@ class TestUtilities(testlib.SDKTestCase):
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass  # print '%s: %s' % (result.type, result.message)
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass  # print result
         assert rr.is_preview == False
 
     def test_preview_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
-        service = self.service # cheat
+
+        service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
         rr = results.ResultsReader(job.preview())
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass  # print '%s: %s' % (result.type, result.message)
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass  # print result
         if rr.is_preview:
-            pass #print "Preview of a running search job."
+            pass  # print "Preview of a running search job."
         else:
-            pass #print "Job is finished. Results are final."
+            pass  # print "Job is finished. Results are final."
 
     def test_oneshot_docstring_sample(self):
         import splunklib.client as client
         import splunklib.results as results
-        service = self.service # cheat
+
+        service = self.service  # cheat
         rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass  # print '%s: %s' % (result.type, result.message)
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass  # print result
         assert rr.is_preview == False
 
     def test_normal_job_with_garbage_fails(self):
@@ -146,41 +148,76 @@ class TestUtilities(testlib.SDKTestCase):
             bad_search = "abcd|asfwqqq"
             jobs.create(bad_search)
         except client.HTTPError as he:
-            self.assertTrue('abcd' in str(he))
+            self.assertTrue("abcd" in str(he))
             return
         self.fail("Job with garbage search failed to raise TypeError.")
 
     def test_cancel(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_internal | head 3",
-                          earliest_time="-1m",
-                          latest_time="now")
+        job = jobs.create(
+            query="search index=_internal | head 3",
+            earliest_time="-1m",
+            latest_time="now",
+        )
         self.assertTrue(job.sid in jobs)
         job.cancel()
         self.assertFalse(job.sid in jobs)
 
     def test_cancel_is_idempotent(self):
         jobs = self.service.jobs
-        job = jobs.create(query="search index=_internal | head 3",
-                          earliest_time="-1m",
-                          latest_time="now")
+        job = jobs.create(
+            query="search index=_internal | head 3",
+            earliest_time="-1m",
+            latest_time="now",
+        )
         self.assertTrue(job.sid in jobs)
         job.cancel()
-        job.cancel() # Second call should be nop
+        job.cancel()  # Second call should be nop
 
     def check_job(self, job):
         self.check_entity(job)
-        keys = ['cursorTime', 'delegate', 'diskUsage', 'dispatchState',
-                'doneProgress', 'dropCount', 'earliestTime', 'eventAvailableCount',
-                'eventCount', 'eventFieldCount', 'eventIsStreaming',
-                'eventIsTruncated', 'eventSearch', 'eventSorting', 'isDone',
-                'isFailed', 'isFinalized', 'isPaused', 'isPreviewEnabled',
-                'isRealTimeSearch', 'isRemoteTimeline', 'isSaved', 'isSavedSearch',
-                'isZombie', 'keywords', 'label', 'messages',
-                'numPreviews', 'priority', 'remoteSearch', 'reportSearch',
-                'resultCount', 'resultIsStreaming', 'resultPreviewCount',
-                'runDuration', 'scanCount', 'searchProviders', 'sid',
-                'statusBuckets', 'ttl']
+        keys = [
+            "cursorTime",
+            "delegate",
+            "diskUsage",
+            "dispatchState",
+            "doneProgress",
+            "dropCount",
+            "earliestTime",
+            "eventAvailableCount",
+            "eventCount",
+            "eventFieldCount",
+            "eventIsStreaming",
+            "eventIsTruncated",
+            "eventSearch",
+            "eventSorting",
+            "isDone",
+            "isFailed",
+            "isFinalized",
+            "isPaused",
+            "isPreviewEnabled",
+            "isRealTimeSearch",
+            "isRemoteTimeline",
+            "isSaved",
+            "isSavedSearch",
+            "isZombie",
+            "keywords",
+            "label",
+            "messages",
+            "numPreviews",
+            "priority",
+            "remoteSearch",
+            "reportSearch",
+            "resultCount",
+            "resultIsStreaming",
+            "resultPreviewCount",
+            "runDuration",
+            "scanCount",
+            "searchProviders",
+            "sid",
+            "statusBuckets",
+            "ttl",
+        ]
         for key in keys:
             self.assertTrue(key in job.content)
         return
@@ -205,6 +242,7 @@ class TestUtilities(testlib.SDKTestCase):
         self.assertEqual(10, int(job["eventCount"]))
         self.assertEqual(10, int(job["resultCount"]))
 
+
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
         super(TestJobWithDelayedDone, self).setUp()
@@ -222,20 +260,18 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         sleep_duration = 100
         self.query = "search index=_internal | sleep %d" % sleep_duration
         self.job = self.service.jobs.create(
-            query=self.query,
-            earliest_time="-1m",
-            priority=5,
-            latest_time="now")
+            query=self.query, earliest_time="-1m", priority=5, latest_time="now"
+        )
         while not self.job.is_ready():
             pass
-        self.assertEqual(self.job.content['isPreviewEnabled'], '0')
+        self.assertEqual(self.job.content["isPreviewEnabled"], "0")
         self.job.enable_preview()
 
         def is_preview_enabled():
             is_done = self.job.is_done()
             if is_done:
-                self.fail('Job finished before preview enabled.')
-            return self.job.content['isPreviewEnabled'] == '1'
+                self.fail("Job finished before preview enabled.")
+            return self.job.content["isPreviewEnabled"] == "1"
 
         self.assertEventuallyTrue(is_preview_enabled)
         return
@@ -246,10 +282,8 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         sleep_duration = 100
         self.query = "search index=_internal | sleep %s" % sleep_duration
         self.job = self.service.jobs.create(
-            query=self.query,
-            earliest_time="-1m",
-            priority=5,
-            latest_time="now")
+            query=self.query, earliest_time="-1m", priority=5, latest_time="now"
+        )
 
         # Note: You can only *decrease* the priority (i.e., 5 decreased to 3) of
         # a job unless Splunk is running as root. This is because Splunk jobs
@@ -257,7 +291,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
 
         if self.service._splunk_version[0] < 6:
             # BUG: Splunk 6 doesn't return priority until job is ready
-            old_priority = int(self.job.content['priority'])
+            old_priority = int(self.job.content["priority"])
             self.assertEqual(5, old_priority)
 
         new_priority = 3
@@ -271,7 +305,7 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
         def f():
             if self.job.is_done():
                 self.fail("Job already done before priority was set.")
-            return int(self.job.content['priority']) == new_priority
+            return int(self.job.content["priority"]) == new_priority
 
         self.assertEventuallyTrue(f, timeout=sleep_duration + 5)
         return
@@ -282,9 +316,8 @@ class TestJob(testlib.SDKTestCase):
         super(TestJob, self).setUp()
         self.query = "search index=_internal | head 3"
         self.job = self.service.jobs.create(
-            query=self.query,
-            earliest_time="-1m",
-            latest_time="now")
+            query=self.query, earliest_time="-1m", latest_time="now"
+        )
 
     def tearDown(self):
         super(TestJob, self).tearDown()
@@ -293,7 +326,7 @@ class TestJob(testlib.SDKTestCase):
     @_log_duration
     def test_get_preview_and_events(self):
         self.assertEventuallyTrue(self.job.is_done)
-        self.assertLessEqual(int(self.job['eventCount']), 3)
+        self.assertLessEqual(int(self.job["eventCount"]), 3)
 
         preview_stream = self.job.preview()
         preview_r = results.ResultsReader(preview_stream)
@@ -307,40 +340,41 @@ class TestJob(testlib.SDKTestCase):
         self.assertEqual(n_events, n_preview)
 
     def test_pause(self):
-        if self.job['isPaused'] == '1':
+        if self.job["isPaused"] == "1":
             self.job.unpause()
             self.job.refresh()
-            self.assertEqual(self.job['isPaused'], '0')
+            self.assertEqual(self.job["isPaused"], "0")
         self.job.pause()
-        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '1')
+        self.assertEventuallyTrue(lambda: self.job.refresh()["isPaused"] == "1")
 
     def test_unpause(self):
-        if self.job['isPaused'] == '0':
+        if self.job["isPaused"] == "0":
             self.job.pause()
             self.job.refresh()
-            self.assertEqual(self.job['isPaused'], '1')
+            self.assertEqual(self.job["isPaused"], "1")
         self.job.unpause()
-        self.assertEventuallyTrue(lambda: self.job.refresh()['isPaused'] == '0')
+        self.assertEventuallyTrue(lambda: self.job.refresh()["isPaused"] == "0")
 
     def test_finalize(self):
-        if self.job['isFinalized'] == '1':
+        if self.job["isFinalized"] == "1":
             self.fail("Job is already finalized; can't test .finalize() method.")
         else:
             self.job.finalize()
-            self.assertEventuallyTrue(lambda: self.job.refresh()['isFinalized'] == '1')
+            self.assertEventuallyTrue(lambda: self.job.refresh()["isFinalized"] == "1")
 
     def test_setttl(self):
-        old_ttl = int(self.job['ttl'])
+        old_ttl = int(self.job["ttl"])
         new_ttl = old_ttl + 1000
 
         from datetime import datetime
+
         start_time = datetime.now()
         self.job.set_ttl(new_ttl)
 
         tries = 3
         while True:
             self.job.refresh()
-            ttl = int(self.job['ttl'])
+            ttl = int(self.job["ttl"])
             if ttl <= new_ttl and ttl > old_ttl:
                 break
             else:
@@ -362,16 +396,15 @@ class TestJob(testlib.SDKTestCase):
         # Touch will increase the updated time
         self.assertLess(old_updated, new_updated)
 
-
     def test_search_invalid_query_as_json(self):
-        args = {
-            'output_mode': 'json',
-            'exec_mode': 'normal'
-        }
+        args = {"output_mode": "json", "exec_mode": "normal"}
         try:
-            self.service.jobs.create('invalid query', **args)
+            self.service.jobs.create("invalid query", **args)
         except SyntaxError as pe:
-            self.fail("Something went wrong with parsing the REST API response. %s" % pe.message)
+            self.fail(
+                "Something went wrong with parsing the REST API response. %s"
+                % pe.message
+            )
         except HTTPError as he:
             self.assertEqual(he.status, 400)
         except Exception as e:
@@ -383,7 +416,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with io.open('data/results.xml', mode='br') as input:
+        with io.open("data/results.xml", mode="br") as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
             N_results = 0
@@ -393,8 +426,9 @@ class TestResultsReader(unittest.TestCase):
                     from collections import OrderedDict
                 except:
                     from splunklib.ordereddict import OrderedDict
-                self.assertTrue(isinstance(r, OrderedDict)
-                                or isinstance(r, results.Message))
+                self.assertTrue(
+                    isinstance(r, OrderedDict) or isinstance(r, results.Message)
+                )
                 if isinstance(r, OrderedDict):
                     N_results += 1
                 elif isinstance(r, results.Message):
@@ -406,7 +440,7 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with io.open('data/streaming_results.xml', 'br') as input:
+        with io.open("data/streaming_results.xml", "br") as input:
             reader = results.ResultsReader(input)
             N_results = 0
             N_messages = 0
@@ -415,8 +449,9 @@ class TestResultsReader(unittest.TestCase):
                     from collections import OrderedDict
                 except:
                     from splunklib.ordereddict import OrderedDict
-                self.assertTrue(isinstance(r, OrderedDict)
-                                or isinstance(r, results.Message))
+                self.assertTrue(
+                    isinstance(r, OrderedDict) or isinstance(r, results.Message)
+                )
                 if isinstance(r, OrderedDict):
                     N_results += 1
                 elif isinstance(r, results.Message):
@@ -425,15 +460,21 @@ class TestResultsReader(unittest.TestCase):
             self.assertEqual(N_messages, 3)
 
     def test_xmldtd_filter(self):
-        s = results._XMLDTDFilter(BytesIO(b"""<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"""))
+        s = results._XMLDTDFilter(
+            BytesIO(
+                b"""<?xml asdf awe awdf=""><boris>Other stuf</boris><?xml dafawe \n asdfaw > ab"""
+            )
+        )
         self.assertEqual(s.read(), b"<boris>Other stuf</boris> ab")
 
     def test_concatenated_stream(self):
-        s = results._ConcatenatedStream(BytesIO(b"This is a test "),
-                                       BytesIO(b"of the emergency broadcast system."))
+        s = results._ConcatenatedStream(
+            BytesIO(b"This is a test "), BytesIO(b"of the emergency broadcast system.")
+        )
         self.assertEqual(s.read(3), b"Thi")
-        self.assertEqual(s.read(20), b's is a test of the e')
-        self.assertEqual(s.read(), b'mergency broadcast system.')
+        self.assertEqual(s.read(20), b"s is a test of the e")
+        self.assertEqual(s.read(), b"mergency broadcast system.")
+
 
 if __name__ == "__main__":
     unittest.main()

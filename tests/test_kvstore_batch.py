@@ -17,63 +17,68 @@
 from __future__ import absolute_import
 from tests import testlib
 from splunklib.six.moves import range
+
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
 import splunklib.client as client
 
+
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(KVStoreBatchTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
-        self.service.namespace['app'] = 'search'
+        # self.service.namespace['owner'] = 'nobody'
+        self.service.namespace["app"] = "search"
         confs = self.service.kvstore
-        if ('test' in confs):
-            confs['test'].delete()
-        confs.create('test')
+        if "test" in confs:
+            confs["test"].delete()
+        confs.create("test")
 
-        self.col = confs['test'].data
+        self.col = confs["test"].data
 
     def test_insert_find_update_data(self):
-        data = [{'_key': str(x), 'data': '#' + str(x), 'num': x} for x in range(1000)]
+        data = [{"_key": str(x), "data": "#" + str(x), "num": x} for x in range(1000)]
         self.col.batch_save(*data)
 
-        testData = self.col.query(sort='num')
+        testData = self.col.query(sort="num")
         self.assertEqual(len(testData), 1000)
 
         for x in range(1000):
-            self.assertEqual(testData[x]['_key'], str(x))
-            self.assertEqual(testData[x]['data'], '#' + str(x))
-            self.assertEqual(testData[x]['num'], x)
+            self.assertEqual(testData[x]["_key"], str(x))
+            self.assertEqual(testData[x]["data"], "#" + str(x))
+            self.assertEqual(testData[x]["num"], x)
 
-        data = [{'_key': str(x), 'data': '#' + str(x + 1), 'num': x + 1} for x in range(1000)]
+        data = [
+            {"_key": str(x), "data": "#" + str(x + 1), "num": x + 1}
+            for x in range(1000)
+        ]
         self.col.batch_save(*data)
 
-        testData = self.col.query(sort='num')
+        testData = self.col.query(sort="num")
         self.assertEqual(len(testData), 1000)
 
         for x in range(1000):
-            self.assertEqual(testData[x]['_key'], str(x))
-            self.assertEqual(testData[x]['data'], '#' + str(x + 1))
-            self.assertEqual(testData[x]['num'], x + 1)
+            self.assertEqual(testData[x]["_key"], str(x))
+            self.assertEqual(testData[x]["data"], "#" + str(x + 1))
+            self.assertEqual(testData[x]["num"], x + 1)
 
         query = [{"query": {"num": x + 1}} for x in range(100)]
         testData = self.col.batch_find(*query)
 
         self.assertEqual(len(testData), 100)
-        testData.sort(key=lambda x: x[0]['num'])
+        testData.sort(key=lambda x: x[0]["num"])
 
         for x in range(100):
-            self.assertEqual(testData[x][0]['_key'], str(x))
-            self.assertEqual(testData[x][0]['data'], '#' + str(x + 1))
-            self.assertEqual(testData[x][0]['num'], x + 1)
-
+            self.assertEqual(testData[x][0]["_key"], str(x))
+            self.assertEqual(testData[x][0]["data"], "#" + str(x + 1))
+            self.assertEqual(testData[x][0]["num"], x + 1)
 
     def tearDown(self):
         confs = self.service.kvstore
-        if ('test' in confs):
-            confs['test'].delete()
+        if "test" in confs:
+            confs["test"].delete()
+
 
 if __name__ == "__main__":
     try:

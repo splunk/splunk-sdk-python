@@ -175,8 +175,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         event_collector_endpoint = client.Endpoint(service_hec, "/services/collector/event")
         msg = {"index": "main", "event": "Hello World"}
         response = event_collector_endpoint.post("", body=json.dumps(msg))
-        body = response.body.read()
-        self.assertEqual(body.code, 200)
+        self.assertEqual(response.status,200)
 
 
 class TestCookieAuthentication(unittest.TestCase):

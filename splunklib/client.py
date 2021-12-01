@@ -724,7 +724,7 @@ class Endpoint(object):
     """
     def __init__(self, service, path):
         self.service = service
-        self.path = path #if path.endswith('/') else path + '/'
+        self.path = path
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """Performs a GET operation on the path segment relative to this endpoint.

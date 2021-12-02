@@ -75,7 +75,7 @@ The SDK command-line examples require a common set of arguments that specify the
 #### Using username/password
 ```python
 import splunklib.client as client
-    service = client.connect(host=<host_url>, username=<username>, password=<password>, autoLogin=True)
+    service = client.connect(host=<host_url>, username=<username>, password=<password>, autologin=True)
 ```
 
 #### Using bearer token

@@ -22,10 +22,7 @@ from collections import namedtuple
 
 import io
 
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from ..ordereddict import OrderedDict
+from collections import OrderedDict
 from copy import deepcopy
 from splunklib.six.moves import StringIO
 from itertools import chain, islice

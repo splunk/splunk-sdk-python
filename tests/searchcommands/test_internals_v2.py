@@ -21,10 +21,7 @@ from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder,
 from splunklib.searchcommands import SearchMetric
 from splunklib import six
 from splunklib.six.moves import range
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from splunklib.ordereddict import OrderedDict
+from collections import OrderedDict
 from collections import namedtuple, deque
 from splunklib.six import BytesIO as BytesIO
 from functools import wraps

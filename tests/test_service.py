@@ -167,6 +167,16 @@ class ServiceTestCase(testlib.SDKTestCase):
             'scheme': self.opts.kwargs['scheme']
         })
 
+    #To check the HEC event endpoint using Endpoint instance
+    def test_hec_event(self):
+        import json
+        service_hec = client.connect(host='localhost', scheme='https', port=8088,
+                                     token="11111111-1111-1111-1111-1111111111113")
+        event_collector_endpoint = client.Endpoint(service_hec, "/services/collector/event")
+        msg = {"index": "main", "event": "Hello World"}
+        response = event_collector_endpoint.post("", body=json.dumps(msg))
+        self.assertEqual(response.status,200)
+
 
 class TestCookieAuthentication(unittest.TestCase):
     def setUp(self):

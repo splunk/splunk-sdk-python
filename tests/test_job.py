@@ -389,10 +389,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):
@@ -411,10 +408,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):

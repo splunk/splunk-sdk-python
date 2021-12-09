@@ -204,6 +204,48 @@ class Integer(Validator):
         return None if value is None else six.text_type(int(value))
 
 
+class Float(Validator):
+    """ Validates float option values.
+
+    """
+    def __init__(self, minimum=None, maximum=None):
+        if minimum is not None and maximum is not None:
+            def check_range(value):
+                if not (minimum <= value <= maximum):
+                    raise ValueError('Expected float in the range [{0},{1}], not {2}'.format(minimum, maximum, value))
+                return
+        elif minimum is not None:
+            def check_range(value):
+                if value < minimum:
+                    raise ValueError('Expected float in the range [{0},+∞], not {1}'.format(minimum, value))
+                return
+        elif maximum is not None:
+            def check_range(value):
+                if value > maximum:
+                    raise ValueError('Expected float in the range [-∞,{0}], not {1}'.format(maximum, value))
+                return
+        else:
+            def check_range(value):
+                return
+
+        self.check_range = check_range
+        return
+
+    def __call__(self, value):
+        if value is None:
+            return None
+        try:
+            value = float(value)
+        except ValueError:
+            raise ValueError('Expected float value, not {}'.format(json_encode_string(value)))
+
+        self.check_range(value)
+        return value
+
+    def format(self, value):
+        return None if value is None else six.text_type(float(value))
+
+
 class Duration(Validator):
     """ Validates duration option values.
 
@@ -391,4 +433,4 @@ class Set(Validator):
         return self.__call__(value)
 
 
-__all__ = ['Boolean', 'Code', 'Duration', 'File', 'Integer', 'List', 'Map', 'RegularExpression', 'Set']
+__all__ = ['Boolean', 'Code', 'Duration', 'File', 'Integer', 'Float', 'List', 'Map', 'RegularExpression', 'Set']

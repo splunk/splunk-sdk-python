@@ -121,6 +121,18 @@ class TestSearchCommand(SearchCommand):
         **Syntax:** **integer=***<value>*
         **Description:** An integer value''',
         require=True, validate=validators.Integer())
+    
+    float = Option(
+        doc='''
+        **Syntax:** **float=***<value>*
+        **Description:** An float value''',
+        validate=validators.Float())
+
+    required_float = Option(
+        doc='''
+        **Syntax:** **float=***<value>*
+        **Description:** An float value''',
+        require=True, validate=validators.Float())
 
     map = Option(
         doc='''
@@ -408,6 +420,7 @@ class TestDecorators(TestCase):
             'fieldname': u'some.field_name',
             'file': six.text_type(repr(__file__)),
             'integer': 100,
+            'float': 99.9,
             'logging_configuration': environment.logging_configuration,
             'logging_level': u'WARNING',
             'map': 'foo',
@@ -421,6 +434,7 @@ class TestDecorators(TestCase):
             'required_fieldname': u'some.field_name',
             'required_file': six.text_type(repr(__file__)),
             'required_integer': 100,
+            'required_float': 99.9,
             'required_map': 'foo',
             'required_match': u'123-45-6789',
             'required_optionname': u'some_option_name',
@@ -452,10 +466,10 @@ class TestDecorators(TestCase):
 
         expected = (
             'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
-            'file=' + json_encode_string(__file__) + ' integer="100" map="foo" match="123-45-6789" '
+            'file=' + json_encode_string(__file__) + ' integer="100" float="99.9" map="foo" match="123-45-6789" '
             'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
             'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
-            'required_file=' + json_encode_string(__file__) + ' required_integer="100" required_map="foo" '
+            'required_file=' + json_encode_string(__file__) + ' required_integer="100" required_float="99.9" required_map="foo" '
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 

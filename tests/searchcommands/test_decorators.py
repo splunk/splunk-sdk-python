@@ -460,7 +460,7 @@ class TestDecorators(TestCase):
                 self.assertEqual(expected[x.name], x.value.pattern)
             elif isinstance(x.value, TextIOWrapper):
                 self.assertEqual(expected[x.name], "'%s'" % x.value.name)
-            elif not isinstance(x.value, (bool,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
+            elif not isinstance(x.value, (bool,) + (float,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
                 self.assertEqual(expected[x.name], repr(x.value))
             else:
                 self.assertEqual(expected[x.name], x.value)

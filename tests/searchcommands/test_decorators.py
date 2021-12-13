@@ -381,6 +381,7 @@ class TestDecorators(TestCase):
             validators.Fieldname: ('some.field_name', 'non-fieldname value'),
             validators.File: (__file__, 'non-existent file'),
             validators.Integer: ('100', 'non-integer value'),
+            validators.Float: ('99.9', 'non-float value'),
             validators.List: ('a,b,c', '"non-list value'),
             validators.Map: ('foo', 'non-existent map entry'),
             validators.Match: ('123-45-6789', 'not a social security number'),

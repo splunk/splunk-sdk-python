@@ -222,7 +222,7 @@ class TestValidators(TestCase):
                 assert False
             for s in str(float_val), six.text_type(float_val):
                 value = validator.__call__(s)
-                self.assertEqual(value, float_val)
+                self.assertAlmostEqual(value, float_val)
                 self.assertIsInstance(value, float)
             self.assertEqual(validator.format(float_val), six.text_type(float_val))
 

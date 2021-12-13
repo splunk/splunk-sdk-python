@@ -467,13 +467,16 @@ class TestDecorators(TestCase):
 
         expected = (
             'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
-            'file=' + json_encode_string(__file__) + ' integer="100" float="99.9" map="foo" match="123-45-6789" '
+            'file=' + json_encode_string(__file__) + ' float="99.9" integer="100" map="foo" match="123-45-6789" '
             'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
             'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
-            'required_file=' + json_encode_string(__file__) + ' required_integer="100" required_float="99.9" required_map="foo" '
+            'required_file=' + json_encode_string(__file__) + ' required_float="99.9" required_integer="100" required_map="foo" '
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 
+        print(command.options)
+        print()
+        print(expected)
         observed = six.text_type(command.options)
 
         self.assertEqual(observed, expected)

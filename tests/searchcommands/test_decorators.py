@@ -474,9 +474,6 @@ class TestDecorators(TestCase):
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 
-        print(command.options)
-        print()
-        print(expected)
         observed = six.text_type(command.options)
 
         self.assertEqual(observed, expected)

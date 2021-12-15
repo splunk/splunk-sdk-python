@@ -208,9 +208,10 @@ class TestValidators(TestCase):
     
     def test_float(self):
         # Float validator test
+        import random
 
-        maxsize = sys.maxsize
-        minsize = -(sys.maxsize - 1)
+        maxsize = random.random() + 1
+        minsize = random.random() - 1
 
         validator = validators.Float()
 
@@ -221,7 +222,7 @@ class TestValidators(TestCase):
                 assert False
             for s in str(float_val), six.text_type(float_val):
                 value = validator.__call__(s)
-                self.assertEqual(value, float_val)
+                self.assertAlmostEqual(value, float_val)
                 self.assertIsInstance(value, float)
             self.assertEqual(validator.format(float_val), six.text_type(float_val))
 
@@ -240,27 +241,25 @@ class TestValidators(TestCase):
         self.assertEqual(validator.__call__(0), 0)
         self.assertEqual(validator.__call__(1.154), 1.154)
         self.assertEqual(validator.__call__(888.51), 888.51)
-        self.assertEqual(validator.__call__(2 * maxsize), float(2 * maxsize))
+        self.assertEqual(validator.__call__(2 * maxsize), (2 * maxsize))
         self.assertRaises(ValueError, validator.__call__, -1)
         self.assertRaises(ValueError, validator.__call__, -1111.00578)
         self.assertRaises(ValueError, validator.__call__, -0.005)
 
         validator = validators.Float(minimum=1, maximum=maxsize)
         self.assertEqual(validator.__call__(1), float(1))
-        self.assertEqual(validator.__call__(100.111), 100.111)
-        self.assertEqual(validator.__call__(9999.0), 9999.0)
-        self.assertEqual(validator.__call__(maxsize), float(maxsize))
+        self.assertEqual(validator.__call__(maxsize), maxsize)
         self.assertRaises(ValueError, validator.__call__, 0)
         self.assertRaises(ValueError, validator.__call__, 0.9999)
-        self.assertRaises(ValueError, validator.__call__, -199)
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
-        validator = validators.Float(minimum=-1, maximum=1)
-        self.assertEqual(validator.__call__(0), float(0))
+        validator = validators.Float(minimum=minsize, maximum=maxsize)
+        self.assertEqual(validator.__call__(minsize), minsize)
         self.assertEqual(validator.__call__(0.123456), 0.123456)
+        self.assertEqual(validator.__call__(0), float(0))
         self.assertEqual(validator.__call__(-0.012), -0.012)
-        self.assertRaises(ValueError, validator.__call__, -1.1)
-        self.assertRaises(ValueError, validator.__call__, 100.123456)
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, minsize - 1)
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
         return

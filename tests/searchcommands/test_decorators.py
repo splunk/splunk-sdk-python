@@ -381,6 +381,7 @@ class TestDecorators(TestCase):
             validators.Fieldname: ('some.field_name', 'non-fieldname value'),
             validators.File: (__file__, 'non-existent file'),
             validators.Integer: ('100', 'non-integer value'),
+            validators.Float: ('99.9', 'non-float value'),
             validators.List: ('a,b,c', '"non-list value'),
             validators.Map: ('foo', 'non-existent map entry'),
             validators.Match: ('123-45-6789', 'not a social security number'),
@@ -459,17 +460,17 @@ class TestDecorators(TestCase):
                 self.assertEqual(expected[x.name], x.value.pattern)
             elif isinstance(x.value, TextIOWrapper):
                 self.assertEqual(expected[x.name], "'%s'" % x.value.name)
-            elif not isinstance(x.value, (bool,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
+            elif not isinstance(x.value, (bool,) + (float,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
                 self.assertEqual(expected[x.name], repr(x.value))
             else:
                 self.assertEqual(expected[x.name], x.value)
 
         expected = (
             'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
-            'file=' + json_encode_string(__file__) + ' integer="100" float="99.9" map="foo" match="123-45-6789" '
+            'file=' + json_encode_string(__file__) + ' float="99.9" integer="100" map="foo" match="123-45-6789" '
             'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
             'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
-            'required_file=' + json_encode_string(__file__) + ' required_integer="100" required_float="99.9" required_map="foo" '
+            'required_file=' + json_encode_string(__file__) + ' required_float="99.9" required_integer="100" required_map="foo" '
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 

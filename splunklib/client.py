@@ -857,11 +857,11 @@ class Entity(Endpoint):
 
     ``Entity`` provides the majority of functionality required by entities.
     Subclasses only implement the special cases for individual entities.
-    For example for saved searches, the subclass makes fields like `action.email`,
-    `alert_type`, and `search` are made available.
+    For example for saved searches, the subclass makes fields like ``action.email``,
+    ``alert_type``, and ``search`` available.
 
     An ``Entity`` is addressed like a dictionary, with a few extensions,
-    so the following all work, for example in saved searches:
+    so the following all work, for example in saved searches::
 
         ent['action.email']
         ent['alert_type']

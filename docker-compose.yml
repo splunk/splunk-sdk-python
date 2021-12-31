@@ -14,6 +14,8 @@ services:
             - ./splunklib:/opt/splunk/etc/apps/github_forks/lib/splunklib
             - ./examples/random_numbers:/opt/splunk/etc/apps/random_numbers
             - ./splunklib:/opt/splunk/etc/apps/random_numbers/lib/splunklib
+            - ./examples/github_commits:/opt/splunk/etc/apps/github_commits
+            - ./splunklib:/opt/splunk/etc/apps/github_commits/lib/splunklib
             - ./examples/searchcommands_app/package:/opt/splunk/etc/apps/searchcommands_app
             - ./splunklib:/opt/splunk/etc/apps/searchcommands_app/lib/splunklib
             - ./examples/twitted/twitted:/opt/splunk/etc/apps/twitted

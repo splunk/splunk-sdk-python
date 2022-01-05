@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Splunk, Inc.
+# Copyright 2021 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -149,7 +149,7 @@ class MyScript(Script):
             # Get the checkpoint directory out of the modular input's metadata
             checkpoint_dir = inputs.metadata["checkpoint_dir"]
 
-            checkpoint_file_path = os.path.join(checkpoint_dir, owner + " " + repo_name + ".txt")
+            checkpoint_file_path = os.path.join(checkpoint_dir, owner + "_" + repo_name + ".txt")
             checkpoint_file_new_contents = ""
             error_found = False
 

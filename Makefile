@@ -56,17 +56,6 @@ test_smoke_no_app:
 	@echo "$(ATTN_COLOR)==> test_smoke_no_app $(NO_COLOR)"
 	@tox -e py27,py37 -- -m "smoke and not app"
 
-.PHONY: splunkrc
-splunkrc:
-	@echo "$(ATTN_COLOR)==> splunkrc $(NO_COLOR)"
-	@echo "To make a .splunkrc:"
-	@echo "  [SPLUNK_INSTANCE_JSON] | python scripts/build-splunkrc.py ~/.splunkrc"
-
-.PHONY: splunkrc_default
-splunkrc_default:
-	@echo "$(ATTN_COLOR)==> splunkrc_default $(NO_COLOR)"
-	@python scripts/build-splunkrc.py ~/.splunkrc
-
 .PHONY: up
 up:
 	@echo "$(ATTN_COLOR)==> up $(NO_COLOR)"

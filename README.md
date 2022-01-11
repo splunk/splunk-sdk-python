@@ -60,7 +60,6 @@ You'll need `docker` and `docker-compose` to get up and running using this metho
 ```
 make up SPLUNK_VERSION=8.0
 make wait_up
-make splunkrc_default
 make test
 make down
 ```
@@ -91,42 +90,12 @@ service = client.connect(host=<host_url>, token=<session_key>, autologin=True)
 ```
 
 ###
-#### Create a .splunkrc convenience file
+#### Update a .env file
 
-To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a **.env** file. Then, the SDK examples and unit tests use the values from the **.env** file when you don't specify them.
 
->**Note**: Storing login credentials in the **.splunkrc** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
+>**Note**: Storing login credentials in the **.env** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
 
-To use this convenience file, create a text file with the following format:
-
-    # Splunk Enterprise host (default: localhost)
-    host=localhost
-    # Splunk Enterprise admin port (default: 8089)
-    port=8089
-    # Splunk Enterprise username
-    username=admin
-    # Splunk Enterprise password
-    password=changeme
-    # Access scheme (default: https)
-    scheme=https
-    # Your version of Splunk Enterprise
-    version=8.0
-
-Save the file as **.splunkrc** in the current user's home directory.
-
-*   For example on OS X, save the file as:
-
-        ~/.splunkrc
-
-*   On Windows, save the file as:
-
-        C:\Users\currentusername\.splunkrc
-
-    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\\&lt;currentusername&gt;** directory and entering the following command:
-
-        Notepad.exe .splunkrc
-
-    Click **Yes**, then continue creating the file.
 
 #### Run the examples
 
@@ -144,7 +113,7 @@ Using Session key
     
     python examplename.py --sessionKey="<value>"
 
-If you saved your login credentials in the **.splunkrc** file, you can omit those arguments:
+If you saved your login credentials in the **.env** file, you can omit those arguments:
 
     python examplename.py
 

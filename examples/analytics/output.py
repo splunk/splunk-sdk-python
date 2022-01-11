@@ -152,7 +152,7 @@ def main():
 
     argv = sys.argv[1:]
 
-    opts = utils.parse(argv, {}, ".splunkrc", usage=usage)
+    opts = utils.parse(argv, {}, ".env", usage=usage)
     retriever = AnalyticsRetriever(opts.args[0], opts.kwargs)    
 
     #events = retriever.events()

@@ -43,7 +43,7 @@ def main(argv):
         },
     }
 
-    opts = utils.parse(argv, redirect_port_args, ".splunkrc", usage=usage)
+    opts = utils.parse(argv, redirect_port_args, ".env", usage=usage)
 
     args = [("scheme", opts.kwargs["scheme"]),
             ("host", opts.kwargs["host"]),

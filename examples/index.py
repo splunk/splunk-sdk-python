@@ -183,7 +183,7 @@ def main():
         options = argv[:index]
         command = argv[index:]
 
-    opts = parse(options, {}, ".splunkrc", usage=usage, epilog=HELP_EPILOG)
+    opts = parse(options, {}, ".env", usage=usage, epilog=HELP_EPILOG)
     service = connect(**opts.kwargs)
     program = Program(service)
     program.run(command)

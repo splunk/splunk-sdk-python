@@ -171,7 +171,7 @@ def top_tags(service):
 
 def main(argv):
     # Parse the command line args.
-    opts = parse(argv, {}, ".splunkrc")
+    opts = parse(argv, {}, ".env")
 
     # Connect to Splunk
     service = client.connect(**opts.kwargs)

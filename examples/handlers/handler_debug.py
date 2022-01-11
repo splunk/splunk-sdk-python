@@ -41,6 +41,6 @@ def handler():
         return response
     return request
 
-opts = utils.parse(sys.argv[1:], {}, ".splunkrc")
+opts = utils.parse(sys.argv[1:], {}, ".env")
 service = client.connect(handler=handler(), **opts.kwargs)
 pprint([app.name for app in service.apps])

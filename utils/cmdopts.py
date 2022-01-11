@@ -19,6 +19,7 @@ from __future__ import print_function
 from os import path
 from optparse import OptionParser
 import sys
+from dotenv import dotenv_values
 
 __all__ = [ "error", "Parser", "cmdline" ]
 
@@ -67,22 +68,24 @@ class Parser(OptionParser):
 
             # Remember the dest vars that we see, so that we can merge results
             self.dests.add(dest)
-            
-    # Load command options from given 'config' file. Long form options may omit
-    # the leading "--", and if so we fix that up here.
+
+    # Load command options from '.env' file
     def load(self, filepath):
         argv = []
         try:
-            file = open(filepath)
+            filedata = dotenv_values(filepath)
         except:
             error("Unable to open '%s'" % filepath, 2)
-        for line in file:
-            if line.startswith("#"): continue # Skip comment
-            line = line.strip()
-            if len(line) == 0: continue # Skip blank line
-            if not line.startswith("-"): line = "--" + line
-            argv.append(line)
-        self.parse(argv)
+
+        # update result kwargs value with .env file data
+        for key, value in filedata.items():
+            value = value.strip()
+            if len(value) == 0 or value is None: continue  # Skip blank value
+            elif key in self.dests:
+                self.result['kwargs'][key] = value
+            else:
+                raise NameError("No such option --" + key)
+
         return self
 
     def loadif(self, filepath):
@@ -90,8 +93,9 @@ class Parser(OptionParser):
         if path.isfile(filepath): self.load(filepath)
         return self
 
-    def loadrc(self, filename):
-        filepath = path.expanduser(path.join("~", "%s" % filename))
+    def loadenv(self, filename):
+        dir_path = path.dirname(path.realpath(__file__))
+        filepath = path.join(dir_path, '..', filename)
         self.loadif(filepath)
         return self
 
@@ -114,6 +118,6 @@ def cmdline(argv, rules=None, config=None, **kwargs):
     """Simplified cmdopts interface that does not default any parsing rules
        and that does not allow compounding calls to the parser."""
     parser = Parser(rules, **kwargs)
-    if config is not None: parser.loadrc(config)
+    if config is not None: parser.loadenv(config)
     return parser.parse(argv).result
 

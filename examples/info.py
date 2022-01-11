@@ -30,7 +30,7 @@ except ImportError:
                 "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 if __name__ == "__main__":
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    opts = parse(sys.argv[1:], {}, ".env")
     service = client.connect(**opts.kwargs)
 
     content = service.info

@@ -33,7 +33,7 @@ except ImportError:
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main(argv):
-    opts = parse(argv, {}, ".splunkrc")
+    opts = parse(argv, {}, ".env")
     service = client.connect(**opts.kwargs)
 
     # Execute a simple search, and store the sid

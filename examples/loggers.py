@@ -32,7 +32,7 @@ except ImportError:
 
 def main(argv):
     usage = "usage: %prog [options]"
-    opts = parse(argv, {}, ".splunkrc", usage=usage)
+    opts = parse(argv, {}, ".env", usage=usage)
     service = client.connect(**opts.kwargs)
 
     for logger in service.loggers:

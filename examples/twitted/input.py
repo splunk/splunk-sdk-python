@@ -94,7 +94,7 @@ RULES = {
 }
 
 def cmdline():
-    kwargs = parse(sys.argv[1:], RULES, ".splunkrc").kwargs
+    kwargs = parse(sys.argv[1:], RULES, ".env").kwargs
 
     # Prompt for Twitter username/password if not provided on command line
     if 'tusername' not in kwargs:

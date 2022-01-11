@@ -1290,8 +1290,7 @@ class ResponseReader(io.RawIOBase):
         self._buffer = b''
 
     def __str__(self):
-        import sys
-        if sys.version_info[0] < 3:
+        if six.PY2:
             return self.read()
         else:
             return str(self.read(), 'UTF-8')

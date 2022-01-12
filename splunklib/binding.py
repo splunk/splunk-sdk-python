@@ -1305,7 +1305,10 @@ class ResponseReader(io.RawIOBase):
         self._buffer = b''
 
     def __str__(self):
-        return self.read()
+        if six.PY2:
+            return self.read()
+        else:
+            return str(self.read(), 'UTF-8')
 
     @property
     def empty(self):

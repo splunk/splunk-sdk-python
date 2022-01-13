@@ -19,11 +19,14 @@ from __future__ import print_function
 from tests import testlib
 import logging
 import os
+import time
 import splunklib.client as client
 try:
     import unittest
 except ImportError:
     import unittest2 as unittest
+
+import pytest
 
 
 class IndexTest(testlib.SDKTestCase):
@@ -40,9 +43,10 @@ class IndexTest(testlib.SDKTestCase):
         # someone cares to go clean them up. Unique naming prevents
         # clashes, though.
         if self.service.splunk_version >= (5,):
-            if self.index_name in self.service.indexes and "TRAVIS" in os.environ:
+            if self.index_name in self.service.indexes:
+                time.sleep(5)
                 self.service.indexes.delete(self.index_name)
-            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
+                self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
         else:
             logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
                             "delete indexes via the REST API in Splunk 4.x")
@@ -54,6 +58,7 @@ class IndexTest(testlib.SDKTestCase):
     def test_delete(self):
         if self.service.splunk_version >= (5,):
             self.assertTrue(self.index_name in self.service.indexes)
+            time.sleep(5)
             self.service.indexes.delete(self.index_name)
             self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
 
@@ -168,10 +173,8 @@ class IndexTest(testlib.SDKTestCase):
         cn.close()
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
 
+    @pytest.mark.app
     def test_upload(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection("file_to_upload")
 
         event_count = int(self.index['totalEventCount'])

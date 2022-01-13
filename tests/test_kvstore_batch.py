@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2020 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -26,7 +26,7 @@ import splunklib.client as client
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):
         super(KVStoreBatchTestCase, self).setUp()
-        self.service.namespace['owner'] = 'nobody'
+        #self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         confs = self.service.kvstore
         if ('test' in confs):
@@ -68,7 +68,7 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
             self.assertEqual(testData[x][0]['_key'], str(x))
             self.assertEqual(testData[x][0]['data'], '#' + str(x + 1))
             self.assertEqual(testData[x][0]['num'], x + 1)
-   
+
 
     def tearDown(self):
         confs = self.service.kvstore

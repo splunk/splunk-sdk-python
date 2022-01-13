@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import unittest2
-
 from splunklib.binding import HTTPError
 
 from tests import testlib
@@ -30,6 +28,9 @@ except ImportError:
 
 import splunklib.client as client
 
+import pytest
+
+
 def highest_port(service, base_port, *kinds):
     """Find the first port >= base_port not in use by any input in kinds."""
     highest_port = base_port
@@ -37,6 +38,7 @@ def highest_port(service, base_port, *kinds):
         port = int(input.name.split(':')[-1])
         highest_port = max(port, highest_port)
     return highest_port
+
 
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
@@ -116,6 +118,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
                 lambda: boris.update(restrictToHost='hilda')
             )
 
+
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
         inputs = self.service.inputs
@@ -163,10 +166,8 @@ class TestRead(testlib.SDKTestCase):
         found = [x.name for x in self.service.inputs.list('monitor', search=search)]
         self.assertEqual(expected, found)
 
+    @pytest.mark.app
     def test_oneshot(self):
-        if not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
         self.install_app_from_collection('file_to_upload')
 
         index_name = testlib.tmpname()
@@ -187,6 +188,7 @@ class TestRead(testlib.SDKTestCase):
         name = testlib.tmpname()
         self.assertRaises(HTTPError,
             self.service.inputs.oneshot, name)
+
 
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
@@ -223,26 +225,19 @@ class TestInput(testlib.SDKTestCase):
         for input in input_list:
             self.assertTrue(input.name is not None)
 
+    @pytest.mark.app
     def test_lists_modular_inputs(self):
-        if self.service.splunk_version[0] < 5:
-            print("Modular inputs don't exist prior to Splunk 5.0. Skipping.")
-            return
-        elif not self.app_collection_installed():
-            print("Test requires sdk-app-collection. Skipping.")
-            return
-        else:
-            # Install modular inputs to list, and restart
-            # so they'll show up.
-            self.install_app_from_collection("modular-inputs")
-            self.uncheckedRestartSplunk()
+        # Install modular inputs to list, and restart
+        # so they'll show up.
+        self.install_app_from_collection("modular_inputs")
+        self.uncheckedRestartSplunk()
 
-            inputs = self.service.inputs
-            if ('abcd','test2') not in inputs:
-                inputs.create('abcd', 'test2', field1='boris')
+        inputs = self.service.inputs
+        if ('abcd','test2') not in inputs:
+            inputs.create('abcd', 'test2', field1='boris')
 
-            input = inputs['abcd', 'test2']
-            self.assertEqual(input.field1, 'boris')
-
+        input = inputs['abcd', 'test2']
+        self.assertEqual(input.field1, 'boris')
 
     def test_create(self):
         inputs = self.service.inputs
@@ -264,6 +259,13 @@ class TestInput(testlib.SDKTestCase):
             self.assertEqual(this_entity.name, read_entity.name)
             self.assertEqual(this_entity.host, read_entity.host)
 
+    def test_read_indiviually(self):
+        tcp_input = self.service.input(self._test_entities['tcp'].path,
+                                       self._test_entities['tcp'].kind)
+        self.assertIsNotNone(tcp_input)
+        self.assertTrue('tcp', tcp_input.kind)
+        self.assertTrue(self._test_entities['tcp'].name, tcp_input.name)
+
     def test_update(self):
         inputs = self.service.inputs
         for entity in six.itervalues(self._test_entities):
@@ -273,7 +275,7 @@ class TestInput(testlib.SDKTestCase):
             entity.refresh()
             self.assertEqual(entity.host, kwargs['host'])
 
-    @unittest2.skip('flaky')
+    @pytest.mark.skip('flaky')
     def test_delete(self):
         inputs = self.service.inputs
         remaining = len(self._test_entities)-1

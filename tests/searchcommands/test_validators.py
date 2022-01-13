@@ -28,9 +28,11 @@ import tempfile
 from splunklib import six
 from splunklib.six.moves import range
 
+import pytest
+
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
-
+@pytest.mark.smoke
 class TestValidators(TestCase):
 
     def setUp(self):
@@ -50,8 +52,8 @@ class TestValidators(TestCase):
 
         for value in truth_values:
             for variant in value, value.capitalize(), value.upper():
-                for s in six.text_type(variant), bytes(variant):
-                    self.assertEqual(validator.__call__(s), truth_values[value])
+                s = six.text_type(variant)
+                self.assertEqual(validator.__call__(s), truth_values[value])
 
         self.assertIsNone(validator.__call__(None))
         self.assertRaises(ValueError, validator.__call__, 'anything-else')
@@ -66,15 +68,15 @@ class TestValidators(TestCase):
         validator = validators.Duration()
 
         for seconds in range(0, 25 * 60 * 60, 59):
-            for value in six.text_type(seconds), bytes(seconds):
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
-                value = '%d:%02d' % (seconds / 60, seconds % 60)
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
-                value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
-                self.assertEqual(validator(value), seconds)
-                self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = six.text_type(seconds)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d' % (seconds / 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
+            value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
+            self.assertEqual(validator(value), seconds)
+            self.assertEqual(validator(validator.format(seconds)), seconds)
 
         self.assertEqual(validator('230:00:00'), 230 * 60 * 60)
         self.assertEqual(validator('23:00:00'), 23 * 60 * 60)
@@ -203,6 +205,64 @@ class TestValidators(TestCase):
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
         return
+    
+    def test_float(self):
+        # Float validator test
+        import random
+
+        maxsize = random.random() + 1
+        minsize = random.random() - 1
+
+        validator = validators.Float()
+
+        def test(float_val):
+            try:
+                float_val = float(float_val)
+            except ValueError:
+                assert False
+            for s in str(float_val), six.text_type(float_val):
+                value = validator.__call__(s)
+                self.assertAlmostEqual(value, float_val)
+                self.assertIsInstance(value, float)
+            self.assertEqual(validator.format(float_val), six.text_type(float_val))
+
+        test(2 * minsize)
+        test(minsize)
+        test(-1)
+        test(0)
+        test(-1.12345)
+        test(0.0001)
+        test(100101.011)
+        test(2 * maxsize)
+        test('18.32123')
+        self.assertRaises(ValueError, validator.__call__, 'Splunk!')
+
+        validator = validators.Float(minimum=0)
+        self.assertEqual(validator.__call__(0), 0)
+        self.assertEqual(validator.__call__(1.154), 1.154)
+        self.assertEqual(validator.__call__(888.51), 888.51)
+        self.assertEqual(validator.__call__(2 * maxsize), (2 * maxsize))
+        self.assertRaises(ValueError, validator.__call__, -1)
+        self.assertRaises(ValueError, validator.__call__, -1111.00578)
+        self.assertRaises(ValueError, validator.__call__, -0.005)
+
+        validator = validators.Float(minimum=1, maximum=maxsize)
+        self.assertEqual(validator.__call__(1), float(1))
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, 0)
+        self.assertRaises(ValueError, validator.__call__, 0.9999)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
+
+        validator = validators.Float(minimum=minsize, maximum=maxsize)
+        self.assertEqual(validator.__call__(minsize), minsize)
+        self.assertEqual(validator.__call__(0.123456), 0.123456)
+        self.assertEqual(validator.__call__(0), float(0))
+        self.assertEqual(validator.__call__(-0.012), -0.012)
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, minsize - 1)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
+
+        return
 
     def test_list(self):
 
@@ -246,9 +306,11 @@ class TestValidators(TestCase):
         pass
 
     def test_regular_expression(self):
-
         validator = validators.RegularExpression()
-        self.assertIsInstance(validator.__call__('a'), re._pattern_type)
+
+        # duck-type: act like it's a regex and allow failure if it isn't one
+        validator.__call__('a').match('a')
+
         self.assertEqual(validator.__call__(None), None)
         self.assertRaises(ValueError, validator.__call__, '(a')
 

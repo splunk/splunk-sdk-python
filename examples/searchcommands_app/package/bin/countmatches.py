@@ -17,9 +17,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
+import os,sys
 
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
 from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
-import sys
 from splunklib import six
 
 
@@ -65,7 +67,7 @@ class CountMatchesCommand(StreamingCommand):
         for record in records:
             count = 0
             for fieldname in self.fieldnames:
-                matches = pattern.findall(six.text_type(record[fieldname].decode("utf-8")))
+                matches = pattern.findall(six.text_type(six.ensure_binary(record[fieldname]).decode("utf-8")))
                 count += len(matches)
             record[self.fieldname] = count
             yield record

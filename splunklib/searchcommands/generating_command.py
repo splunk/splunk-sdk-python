@@ -15,10 +15,12 @@
 # under the License.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
 
+from splunklib import six
 from splunklib.six.moves import map as imap, filter as ifilter
 
 # P1 [O] TODO: Discuss generates_timeorder in the class-level documentation for GeneratingCommand
@@ -92,9 +94,10 @@ class GeneratingCommand(SearchCommand):
     +==========+===================================================+===================================================+
     | streams  | 1. Add this line to your command's stanza in      | 1. Add this configuration setting to your code:   |
     |          |                                                   |                                                   |
-    |          |    default/commands.conf.                         |    .. code-block:: python                         |
-    |          |    .. code-block:: python                         |        @Configuration(distributed=True)           |
-    |          |        local = false                              |        class SomeCommand(GeneratingCommand)       |
+    |          |    default/commands.conf::                        |    ..  code-block:: python                        |
+    |          |                                                   |                                                   |
+    |          |        local = false                              |        @Configuration(distributed=True)           |
+    |          |                                                   |        class SomeCommand(GeneratingCommand)       |
     |          |                                                   |            ...                                    |
     |          | 2. Restart splunk                                 |                                                   |
     |          |                                                   | 2. You are good to go; no need to restart Splunk  |
@@ -112,6 +115,7 @@ class GeneratingCommand(SearchCommand):
     |          | settings to your command class:                   | setting to your command class:                    |
     |          |                                                   |                                                   |
     |          | .. code-block:: python                            | .. code-block:: python                            |
+    |          |                                                   |                                                   |
     |          |     @Configuration(                               |     @Configuration(type='events')                 |
     |          |         retainsevents=True, streaming=False)      |     class SomeCommand(GeneratingCommand)          |
     |          |     class SomeCommand(GeneratingCommand)          |         ...                                       |
@@ -119,22 +123,25 @@ class GeneratingCommand(SearchCommand):
     |          |                                                   |                                                   |
     |          | Or add these lines to default/commands.conf:      |                                                   |
     |          |                                                   |                                                   |
-    |          | .. code-block::                                   |                                                   |
-    |          |     retains events = true                         |                                                   |
+    |          | ..  code-block:: text                             |                                                   |
+    |          |                                                   |                                                   |
+    |          |     retainsevents = true                          |                                                   |
     |          |     streaming = false                             |                                                   |
     +----------+---------------------------------------------------+---------------------------------------------------+
 
     Configure your command class like this, if you wish to support both protocols:
 
-    .. code-block:: python
+    ..  code-block:: python
+
         @Configuration(type='events', retainsevents=True, streaming=False)
         class SomeCommand(GeneratingCommand)
             ...
 
     You might also consider adding these lines to commands.conf instead of adding them to your command class:
 
-    .. code-block:: python
-        retains events = false
+    ..  code-block:: python
+
+        retainsevents = false
         streaming = false
 
     Reporting Generating command
@@ -149,28 +156,32 @@ class GeneratingCommand(SearchCommand):
     |          | settings to your command class:                   | setting to your command class:                    |
     |          |                                                   |                                                   |
     |          | .. code-block:: python                            | .. code-block:: python                            |
+    |          |                                                   |                                                   |
     |          |     @Configuration(retainsevents=False)           |     @Configuration(type='reporting')              |
     |          |     class SomeCommand(GeneratingCommand)          |     class SomeCommand(GeneratingCommand)          |
     |          |         ...                                       |         ...                                       |
     |          |                                                   |                                                   |
     |          | Or add this lines to default/commands.conf:       |                                                   |
     |          |                                                   |                                                   |
-    |          | .. code-block::                                   |                                                   |
-    |          |     retains events = false                        |                                                   |
+    |          | .. code-block:: text                              |                                                   |
+    |          |                                                   |                                                   |
+    |          |     retainsevents = false                         |                                                   |
     |          |     streaming = false                             |                                                   |
     +----------+---------------------------------------------------+---------------------------------------------------+
 
     Configure your command class like this, if you wish to support both protocols:
 
-    .. code-block:: python
+    ..  code-block:: python
+
         @Configuration(type='reporting', streaming=False)
         class SomeCommand(GeneratingCommand)
             ...
 
     You might also consider adding these lines to commands.conf instead of adding them to your command class:
 
-    .. code-block:: python
-        retains events = false
+    ..  code-block:: text
+
+        retainsevents = false
         streaming = false
 
     """
@@ -194,19 +205,57 @@ class GeneratingCommand(SearchCommand):
 
         """
         if self._protocol_version == 2:
-            result = self._read_chunk(ifile)
-
-            if not result:
-                return
-
-            metadata, body = result
-            action = getattr(metadata, 'action', None)
-
-            if action != 'execute':
-                raise RuntimeError('Expected execute action, not {}'.format(action))
-
-        self._record_writer.write_records(self.generate())
+            self._execute_v2(ifile, self.generate())
+        else:
+            assert self._protocol_version == 1
+            self._record_writer.write_records(self.generate())
         self.finish()
+
+    def _execute_chunk_v2(self, process, chunk):
+        count = 0
+        records = []
+        for row in process:
+            records.append(row)
+            count += 1
+            if count == self._record_writer._maxresultrows:
+                break
+
+        for row in records:
+            self._record_writer.write_record(row)
+
+        if count == self._record_writer._maxresultrows:
+            self._finished = False
+        else:
+            self._finished = True
+
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
+        """ Process data.
+
+        :param argv: Command line arguments.
+        :type argv: list or tuple
+
+        :param ifile: Input data file.
+        :type ifile: file
+
+        :param ofile: Output data file.
+        :type ofile: file
+
+        :param allow_empty_input: For generating commands, it must be true. Doing otherwise will cause an error.
+        :type allow_empty_input: bool
+
+        :return: :const:`None`
+        :rtype: NoneType
+
+        """
+
+        # Generating commands are expected to run on an empty set of inputs as the first command being run in a search,
+        # also this class implements its own separate _execute_chunk_v2 method which does not respect allow_empty_input
+        # so ensure that allow_empty_input is always True
+
+        if not allow_empty_input:
+            raise ValueError("allow_empty_input cannot be False for Generating Commands")
+        else:
+            return super(GeneratingCommand, self).process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
 
     # endregion
 
@@ -315,6 +364,8 @@ class GeneratingCommand(SearchCommand):
             if command.generate == GeneratingCommand.generate:
                 raise AttributeError('No GeneratingCommand.generate override')
 
+        # TODO: Stop looking like a dictionary because we don't obey the semantics
+        # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
             version = self.command.protocol_version
@@ -324,6 +375,10 @@ class GeneratingCommand(SearchCommand):
                     iteritems = imap(
                         lambda name_value: (name_value[0], 'stateful') if name_value[0] == 'type' else (name_value[0], name_value[1]), iteritems)
             return iteritems
+
+        # N.B.: Does not use Python 3 dict view semantics
+        if not six.PY2:
+            items = iteritems
 
         pass
         # endregion

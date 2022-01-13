@@ -17,12 +17,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import app
+import os,sys
 
+splunkhome = os.environ['SPLUNK_HOME']
+sys.path.append(os.path.join(splunkhome, 'etc', 'apps', 'searchcommands_app', 'lib'))
 from splunklib.searchcommands import dispatch, EventingCommand, Configuration, Option
 from splunklib.searchcommands.validators import Code
-
-import sys
-
 
 @Configuration()
 class FilterCommand(EventingCommand):
@@ -49,7 +49,7 @@ class FilterCommand(EventingCommand):
 
     .. code-block::
         | generatetext text="Hello world! How the heck are you?" count=6
-        | filter predicate="(long(_serial) & 1) == 0" update="_raw = _raw.replace('world', 'Splunk')"
+        | filter predicate="(int(_serial) & 1) == 0" update="_raw = _raw.replace('world', 'Splunk')"
 
     """
     predicate = Option(doc='''

@@ -16,14 +16,16 @@
 
 
 from __future__ import absolute_import
-import time
 from io import BytesIO
+from threading import Thread
 
+from splunklib.six.moves import BaseHTTPServer
 from splunklib.six.moves.urllib.request import Request, urlopen
 from splunklib.six.moves.urllib.error import HTTPError
-from splunklib.six import StringIO
+import splunklib.six as six
 from xml.etree.ElementTree import XML
 
+import json
 import logging
 from tests import testlib
 import unittest
@@ -36,6 +38,8 @@ import splunklib.binding as binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 import splunklib.data as data
 from splunklib import six
+
+import pytest
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"
@@ -102,7 +106,7 @@ class TestResponseReader(BindingTestCase):
 
     def test_readable(self):
         txt = "abcd"
-        response = binding.ResponseReader(StringIO(txt))
+        response = binding.ResponseReader(six.StringIO(txt))
         self.assertTrue(response.readable())
 
     def test_readinto_bytearray(self):
@@ -313,6 +317,7 @@ class TestUnicodeConnect(BindingTestCase):
         response = context.get("/services")
         self.assertEqual(response.status, 200)
 
+@pytest.mark.smoke
 class TestAutologin(BindingTestCase):
     def test_with_autologin(self):
         self.context.autologin = True
@@ -486,6 +491,7 @@ class TestPluggableHTTP(testlib.SDKTestCase):
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
 
+@pytest.mark.smoke
 class TestLogout(BindingTestCase):
     def test_logout(self):
         response = self.context.get("/services")
@@ -524,6 +530,7 @@ class TestCookieAuthentication(unittest.TestCase):
             if obj is None:
                 raise self.failureException(msg or '%r is not None' % obj)
 
+    @pytest.mark.smoke
     def test_cookie_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
         self.assertNotEqual(self.context._auth_headers, [])
@@ -532,12 +539,14 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][0], "Cookie")
         self.assertEqual(self.context._auth_headers[0][1][:8], "splunkd_")
 
+    @pytest.mark.smoke
     def test_got_cookie_on_connect(self):
         self.assertIsNotNone(self.context.get_cookies())
         self.assertNotEqual(self.context.get_cookies(), {})
         self.assertEqual(len(self.context.get_cookies()), 1)
         self.assertEqual(list(self.context.get_cookies().keys())[0][:8], "splunkd_")
 
+    @pytest.mark.smoke
     def test_cookie_with_autologin(self):
         self.context.autologin = True
         self.assertEqual(self.context.get("/services").status, 200)
@@ -547,6 +556,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.context.get("/services").status, 200)
         self.assertTrue(self.context.has_cookies())
 
+    @pytest.mark.smoke
     def test_cookie_without_autologin(self):
         self.context.autologin = False
         self.assertEqual(self.context.get("/services").status, 200)
@@ -556,6 +566,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
 
+    @pytest.mark.smoke
     def test_got_updated_cookie_with_get(self):
         old_cookies = self.context.get_cookies()
         resp = self.context.get("apps/local")
@@ -605,6 +616,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
             self.assertEqual(new_context.get("apps/local").status, 200)
 
+    @pytest.mark.smoke
     def test_login_fails_without_cookie_or_token(self):
         opts = {
             'host': self.opts.kwargs['host'],
@@ -694,6 +706,7 @@ class TestNamespace(unittest.TestCase):
     def test_namespace_fails(self):
         self.assertRaises(ValueError, binding.namespace, sharing="gobble")
 
+@pytest.mark.smoke
 class TestBasicAuthentication(unittest.TestCase):
     def setUp(self):
         self.opts = testlib.parse([], {}, ".splunkrc")
@@ -720,6 +733,7 @@ class TestBasicAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][1][:6], "Basic ")
         self.assertEqual(self.context.get("/services").status, 200)
 
+@pytest.mark.smoke
 class TestTokenAuthentication(BindingTestCase):
     def test_preexisting_token(self):
         token = self.context.token
@@ -795,6 +809,119 @@ class TestTokenAuthentication(BindingTestCase):
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
+
+
+class TestPostWithBodyParam(unittest.TestCase):
+
+    def test_post(self):
+        def handler(url, message, **kwargs):
+            assert six.ensure_str(url) == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
+
+    def test_post_with_params_and_body(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp", body={"testkey": "testvalue"})
+
+    def test_post_with_params_and_no_body(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert six.ensure_str(message["body"]) == "extrakey=extraval"
+            return splunklib.data.Record({
+                "status": 200,
+                "headers": [],
+            })
+        ctx = binding.Context(handler=handler)
+        ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
+
+
+def _wrap_handler(func, response_code=200, body=""):
+    def wrapped(handler_self):
+        result = func(handler_self)
+        if result is None:
+            handler_self.send_response(response_code)
+            handler_self.end_headers()
+            handler_self.wfile.write(body)
+    return wrapped
+
+
+class MockServer(object):
+    def __init__(self, port=9093, **handlers):
+        methods = {"do_" + k: _wrap_handler(v) for (k, v) in handlers.items()}
+
+        def init(handler_self, socket, address, server):
+            BaseHTTPServer.BaseHTTPRequestHandler.__init__(handler_self, socket, address, server)
+
+        def log(*args):  # To silence server access logs
+            pass
+
+        methods["__init__"] = init
+        methods["log_message"] = log
+        Handler = type("Handler",
+                       (BaseHTTPServer.BaseHTTPRequestHandler, object),
+                       methods)
+        self._svr = BaseHTTPServer.HTTPServer(("localhost", port), Handler)
+
+        def run():
+            self._svr.handle_request()
+        self._thread = Thread(target=run)
+        self._thread.daemon = True
+
+    def __enter__(self):
+        self._thread.start()
+        return self._svr
+
+    def __exit__(self, typ, value, traceback):
+        self._thread.join(10)
+        self._svr.server_close()
+
+
+class TestFullPost(unittest.TestCase):
+
+    def test_post_with_body_urlencoded(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(body) == "foo=bar"
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle")
+            ctx.post("/", foo="bar")
+
+    def test_post_with_body_string(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(handler.headers['content-type']) == 'application/json'
+            assert json.loads(body)["baz"] == "baf"
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle", headers=[("Content-Type", "application/json")])
+            ctx.post("/", foo="bar", body='{"baz": "baf"}')
+
+    def test_post_with_body_dict(self):
+        def check_response(handler):
+            length = int(handler.headers.get('content-length', 0))
+            body = handler.rfile.read(length)
+            assert six.ensure_str(handler.headers['content-type']) == 'application/x-www-form-urlencoded'
+            assert six.ensure_str(body) == 'baz=baf&hep=cat' or six.ensure_str(body) == 'hep=cat&baz=baf'
+
+        with MockServer(POST=check_response):
+            ctx = binding.connect(port=9093, scheme='http', token="waffle")
+            ctx.post("/", foo="bar", body={"baz": "baf", "hep": "cat"})
+
 
 if __name__ == "__main__":
     try:

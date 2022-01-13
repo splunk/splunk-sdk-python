@@ -295,7 +295,7 @@ def connect(**kwargs):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verrification for
+    :param verify: Enable (True) or disable (False) SSL verification for
                    https connections. (optional, the default is True)
     :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional).
@@ -318,6 +318,8 @@ def connect(**kwargs):
     :type username: ``string``
     :param `password`: The password for the Splunk account.
     :type password: ``string``
+    :param `context`: The SSLContext that can be used when setting verify=True (optional)
+    :type context: ``SSLContext``
     :return: An initialized :class:`Service` connection.
 
     **Example**::
@@ -365,7 +367,7 @@ class Service(_BaseService):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verrification for
+    :param verify: Enable (True) or disable (False) SSL verification for
                    https connections. (optional, the default is True)
     :type verify: ``Boolean``
     :param `owner`: The owner context of the namespace (optional; use "-" for wildcard).
@@ -401,6 +403,7 @@ class Service(_BaseService):
     def __init__(self, **kwargs):
         super(Service, self).__init__(**kwargs)
         self._splunk_version = None
+        self._kvstore_owner = None
 
     @property
     def apps(self):
@@ -462,6 +465,13 @@ class Service(_BaseService):
         """
         response = self.get("/services/server/info")
         return _filter_content(_load_atom(response, MATCH_ENTRY_CONTENT))
+
+    def input(self, path, kind=None):
+        """Retrieves an input by path, and optionally kind.
+
+        :return: A :class:`Input` object.
+        """
+        return Input(self, path, kind=kind).refresh()
 
     @property
     def inputs(self):
@@ -667,11 +677,33 @@ class Service(_BaseService):
         return self._splunk_version
 
     @property
+    def kvstore_owner(self):
+        """Returns the KVStore owner for this instance of Splunk.
+
+        By default is the kvstore owner is not set, it will return "nobody"
+        :return: A string with the KVStore owner.
+        """
+        if self._kvstore_owner is None:
+            self._kvstore_owner = "nobody"
+        return self._kvstore_owner
+
+    @kvstore_owner.setter
+    def kvstore_owner(self, value):
+        """
+        kvstore is refreshed, when the owner value is changed
+        """
+        self._kvstore_owner = value
+        self.kvstore
+
+    @property
     def kvstore(self):
         """Returns the collection of KV Store collections.
 
+        sets the owner for the namespace, before retrieving the KVStore Collection
+
         :return: A :class:`KVStoreCollections` collection of :class:`KVStoreCollection` entities.
         """
+        self.namespace['owner'] = self.kvstore_owner
         return KVStoreCollections(self)
 
     @property
@@ -692,7 +724,7 @@ class Endpoint(object):
     """
     def __init__(self, service, path):
         self.service = service
-        self.path = path if path.endswith('/') else path + '/'
+        self.path = path
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """Performs a GET operation on the path segment relative to this endpoint.
@@ -750,6 +782,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
+            if not self.path.endswith('/') and path_segment != "":
+                self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner,
                                          app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment).
@@ -810,6 +844,8 @@ class Endpoint(object):
         if path_segment.startswith('/'):
             path = path_segment
         else:
+            if not self.path.endswith('/') and path_segment != "":
+                self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
@@ -849,7 +885,7 @@ class Entity(Endpoint):
         ent.whitelist
 
     However, because some of the field names are not valid Python identifiers,
-    the dictionary-like syntax is preferrable.
+    the dictionary-like syntax is preferable.
 
     The state of an :class:`Entity` object is cached, so accessing a field
     does not contact the server. If you think the values on the
@@ -1200,7 +1236,7 @@ class ReadOnlyCollection(Endpoint):
         :raises ValueError: Raised if no namespace is specified and *key*
                             does not refer to a unique name.
 
-        *Example*::
+        **Example**::
 
             s = client.connect(...)
             saved_searches = s.saved_searches
@@ -1636,9 +1672,9 @@ class Collection(ReadOnlyCollection):
         :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
                 and ``status``
 
-        Example:
+        **Example**::
 
-        import splunklib.client
+            import splunklib.client
             s = client.service(...)
             saved_searches = s.saved_searches
             saved_searches.get("my/saved/search") == \\
@@ -1865,7 +1901,7 @@ class StoragePasswords(Collection):
             name = UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
 
         # Append the : expected at the end of the name
-        if name[-1] is not ":":
+        if name[-1] != ":":
             name = name + ":"
         return Collection.delete(self, name)
 
@@ -2079,10 +2115,6 @@ class Index(Entity):
         if source is not None: args['source'] = source
         if sourcetype is not None: args['sourcetype'] = sourcetype
 
-        # The reason we use service.request directly rather than POST
-        # is that we are not sending a POST request encoded using
-        # x-www-form-urlencoded (as we do not have a key=value body),
-        # because we aren't really sending a "form".
         self.service.post(PATH_RECEIVERS_SIMPLE, body=event, **args)
         return self
 
@@ -3569,7 +3601,7 @@ class KVStoreCollection(Entity):
     def data(self):
         """Returns data object for this Collection.
 
-        :rtype: :class:`KVStoreData`
+        :rtype: :class:`KVStoreCollectionData`
         """
         return KVStoreCollectionData(self)
 
@@ -3584,7 +3616,7 @@ class KVStoreCollection(Entity):
         :return: Result of POST request
         """
         kwargs = {}
-        kwargs['index.' + name] = value if isinstance(value, basestring) else json.dumps(value)
+        kwargs['index.' + name] = value if isinstance(value, six.string_types) else json.dumps(value)
         return self.post(**kwargs)
 
     def update_field(self, name, value):
@@ -3612,7 +3644,7 @@ class KVStoreCollectionData(object):
         self.service = collection.service
         self.collection = collection
         self.owner, self.app, self.sharing = collection._proper_namespace()
-        self.path = 'storage/collections/data/' + UrlEncoded(self.collection.name) + '/'
+        self.path = 'storage/collections/data/' + UrlEncoded(self.collection.name, encode_slash=True) + '/'
 
     def _get(self, url, **kwargs):
         return self.service.get(self.path + url, owner=self.owner, app=self.app, sharing=self.sharing, **kwargs)
@@ -3633,6 +3665,11 @@ class KVStoreCollectionData(object):
         :return: Array of documents retrieved by query.
         :rtype: ``array``
         """
+
+        for key, value in query.items():
+            if isinstance(query[key], dict):
+                query[key] = json.dumps(value)
+
         return json.loads(self._get('', **query).body.read().decode('utf-8'))
 
     def query_by_id(self, id):
@@ -3645,7 +3682,7 @@ class KVStoreCollectionData(object):
         :return: Document with id
         :rtype: ``dict``
         """
-        return json.loads(self._get(UrlEncoded(str(id))).body.read().decode('utf-8'))
+        return json.loads(self._get(UrlEncoded(str(id), encode_slash=True)).body.read().decode('utf-8'))
 
     def insert(self, data):
         """
@@ -3657,6 +3694,8 @@ class KVStoreCollectionData(object):
         :return: _id of inserted object
         :rtype: ``dict``
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         return json.loads(self._post('', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def delete(self, query=None):
@@ -3679,7 +3718,7 @@ class KVStoreCollectionData(object):
 
         :return: Result of DELETE request
         """
-        return self._delete(UrlEncoded(str(id)))
+        return self._delete(UrlEncoded(str(id), encode_slash=True))
 
     def update(self, id, data):
         """
@@ -3693,7 +3732,9 @@ class KVStoreCollectionData(object):
         :return: id of replaced document
         :rtype: ``dict``
         """
-        return json.loads(self._post(UrlEncoded(str(id)), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
+        if isinstance(data, dict):
+            data = json.dumps(data)
+        return json.loads(self._post(UrlEncoded(str(id), encode_slash=True), headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
 
     def batch_find(self, *dbqueries):
         """

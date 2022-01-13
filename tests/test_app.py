@@ -96,7 +96,8 @@ class TestApp(testlib.SDKTestCase):
         p = self.app.package()
         self.assertEqual(p.name, self.app_name)
         self.assertTrue(p.path.endswith(self.app_name + '.spl'))
-        self.assertTrue(p.url.endswith(self.app_name + '.spl'))
+        # Assert string due to deprecation of this property in new Splunk versions
+        self.assertIsInstance(p.url, str)
 
     def test_updateInfo(self):
         p = self.app.updateInfo()

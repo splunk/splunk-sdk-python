@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Splunk SDK for Python'
-copyright = u'2014, Splunk Inc'
+copyright = u'2021, Splunk Inc'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -95,7 +95,7 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 
 # agogo, default, epub, haiku, nature, pyramid, scrolls, sphinxdoc, traditional
-html_theme = 'default' 
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -138,7 +138,7 @@ html_static_path = ['css']
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {
 html_sidebars = {
-   '**': ['localtoc.html', 'globaltoc.html', 'searchbox.html'],
+   '**': ['globaltoc.html', 'searchbox.html'],
 }
 
 # Additional templates that should be rendered to pages, maps page names to

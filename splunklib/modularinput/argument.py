@@ -54,9 +54,9 @@ class Argument(object):
         :param name: ``string``, identifier for this argument in Splunk.
         :param description: ``string``, human-readable description of the argument.
         :param validation: ``string`` specifying how the argument should be validated, if using internal validation.
-        If using external validation, this will be ignored.
+               If using external validation, this will be ignored.
         :param data_type: ``string``, data type of this field; use the class constants.
-        "data_type_boolean", "data_type_number", or "data_type_string".
+               "data_type_boolean", "data_type_number", or "data_type_string".
         :param required_on_edit: ``Boolean``, whether this arg is required when editing an existing modular input of this kind.
         :param required_on_create: ``Boolean``, whether this arg is required when creating a modular input of this kind.
         :param title: ``String``, a human-readable title for the argument.

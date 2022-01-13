@@ -27,18 +27,21 @@ import os
 import sys
 import logging
 
+import pytest
+
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
 
-try:
-    from tests.searchcommands import rebase_environment, package_directory
-except:
-    # Skip on Python 2.6
-    def rebase_environment(ignore):
-        return
-    pass
+from tests.searchcommands import rebase_environment, package_directory
 
+# portable log level names
+# https://stackoverflow.com/a/49724281
+def level_names():
+    return [logging.getLevelName(v) for v in
+            sorted(getattr(logging, '_levelToName', None)
+                    or logging._levelNames)
+            if getattr(v, "real", 0)]
 
 @Configuration()
 class StubbedSearchCommand(SearchCommand):
@@ -48,6 +51,7 @@ class StubbedSearchCommand(SearchCommand):
             pass
 
 
+@pytest.mark.smoke
 class TestBuiltinOptions(TestCase):
 
     def setUp(self):
@@ -59,13 +63,11 @@ class TestBuiltinOptions(TestCase):
 
         rebase_environment('app_without_logging_configuration')
 
+        self.assertIsNone(environment.logging_configuration)
+        self.assertTrue(any(isinstance(h, logging.StreamHandler) for h in logging.root.handlers))
+        self.assertTrue('splunklib' in logging.Logger.manager.loggerDict)
+        self.assertEqual(environment.splunklib_logger, logging.Logger.manager.loggerDict['splunklib'])
         self.assertIsInstance(environment.splunklib_logger, logging.Logger)
-        self.assertIsNone(environment.logging_configuration)
-        self.assertEqual(len(logging.root.handlers), 1)
-        self.assertEqual(len(logging.Logger.manager.loggerDict), 1)
-        self.assertIsInstance(logging.root.handlers[0], logging.StreamHandler)
-        self.assertIs(environment.splunklib_logger, logging.getLogger('splunklib'))
-        self.assertIsNone(environment.logging_configuration)
 
         command = StubbedSearchCommand()
 
@@ -73,9 +75,8 @@ class TestBuiltinOptions(TestCase):
         self.assertEqual(len(command.logger.handlers), 0)
         self.assertIsNone(command.logging_configuration)
         self.assertIs(command.logger.root, logging.root)
-        self.assertEqual(len(logging.root.handlers), 1)
 
-        root_handler = logging.root.handlers[0]
+        root_handler = next(h for h in logging.root.handlers if isinstance(h, logging.StreamHandler))
 
         self.assertIsInstance(root_handler, logging.StreamHandler)
         self.assertEqual(root_handler.stream, sys.stderr)
@@ -142,18 +143,18 @@ class TestBuiltinOptions(TestCase):
 
         # logging_level accepts all logging levels and returns their canonical string values
 
-        self.assertEquals(warning, command.logging_level)
+        self.assertEqual(warning, command.logging_level)
 
-        for level in logging._levelNames:
+        for level in level_names():
             if type(level) is int:
                 command.logging_level = level
                 level_name = logging.getLevelName(level)
-                self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
             else:
                 level_name = logging.getLevelName(logging.getLevelName(level))
                 for variant in level, level.lower(), level.capitalize():
                     command.logging_level = variant
-                    self.assertEquals(command.logging_level, warning if level_name == notset else level_name)
+                    self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
 
         # logging_level accepts any numeric value
 
@@ -198,12 +199,11 @@ class TestBuiltinOptions(TestCase):
 
         for value in boolean_values:
             for variant in value, value.capitalize(), value.upper():
-                for s in variant, bytes(variant):
-                    option.fset(command, s)
-                    self.assertEquals(option.fget(command), boolean_values[value])
+                option.fset(command, variant)
+                self.assertEqual(option.fget(command), boolean_values[value])
 
         option.fset(command, None)
-        self.assertEquals(option.fget(command), None)
+        self.assertEqual(option.fget(command), None)
 
         for value in 13, b'bytes', 'string', object():
             try:

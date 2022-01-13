@@ -1,0 +1,51 @@
+name: Python CI
+
+on:
+  [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        python: [2.7, 3.7]
+        splunk-version:
+          - "8.0"
+          - "latest"
+      fail-fast: false
+
+    services:
+      splunk:
+        image: splunk/splunk:${{matrix.splunk-version}}
+        env:
+          SPLUNK_START_ARGS: --accept-license
+          SPLUNK_HEC_TOKEN: 11111111-1111-1111-1111-1111111111113
+          SPLUNK_PASSWORD: changed!
+          SPLUNK_APPS_URL: https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
+        ports:
+          - 8000:8000
+          - 8088:8088
+          - 8089:8089
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Create .splunkrc file
+        run: |
+          cd ~
+          echo host=localhost > .splunkrc
+          echo port=8089 >> .splunkrc
+          echo username=admin >> .splunkrc
+          echo password=changed! >> .splunkrc
+          echo scheme=https >> .splunkrc
+          echo version=${{ matrix.splunk }} >> .splunkrc
+      - name: Install tox
+        run: pip install tox
+      - name: Test Execution
+        run: tox -e py

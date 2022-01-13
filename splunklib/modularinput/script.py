@@ -105,8 +105,7 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 return 1
 
         except Exception as e:
-            err_string = EventWriter.ERROR + str(e)
-            event_writer._err.write(err_string)
+            event_writer.log(EventWriter.ERROR, str(e))
             return 1
 
     @property
@@ -118,9 +117,9 @@ class Script(six.with_metaclass(ABCMeta, object)):
         available as soon as the :code:`Script.stream_events` method is
         called.
 
-        :return: :class:splunklib.client.Service. A value of None is returned,
-        if you call this method before the :code:`Script.stream_events` method
-        is called.
+        :return: :class:`splunklib.client.Service`. A value of None is returned,
+            if you call this method before the :code:`Script.stream_events` method
+            is called.
 
         """
         if self._service is not None:

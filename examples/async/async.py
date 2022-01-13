@@ -19,7 +19,6 @@
 # based systems like Eventlet.
 
 #### Main Code
-
 from __future__ import absolute_import
 from __future__ import print_function
 import sys, os, datetime
@@ -67,10 +66,10 @@ def main(argv):
     # of `urllib2`. Otherwise, import the stdlib version of `urllib2`.
     #
     # The reason for the funky import syntax is that Python imports
-    # are scoped to functions, and we need to make it global. 
+    # are scoped to functions, and we need to make it global.
     # In a real application, you would only import one of these.
     if is_async:
-        urllib2 = __import__('eventlet.green', globals(), locals(), 
+        urllib2 = __import__('eventlet.green', globals(), locals(),
                             ['urllib2'], -1).urllib2
     else:
         urllib2 = __import__("urllib2", globals(), locals(), [], -1)
@@ -99,7 +98,7 @@ def main(argv):
         return results
 
     # We specify many queries to get show the advantages
-    # of paralleism.
+    # of parallelism.
     queries = [
         'search * | head 100',
         'search * | head 100',
@@ -143,12 +142,12 @@ def main(argv):
         # and we can also ignore the result.
         for query in queries:
             do_search(query)
-    
+
     # Record the current time at the end of the benchmark,
     # and print the delta elapsed time.
     newtime = datetime.datetime.now()
     print("Elapsed Time: %s" % (newtime - oldtime))
-    
+
 
 ##### Custom `urllib2`-based HTTP handler
 
@@ -158,7 +157,7 @@ def request(url, message, **kwargs):
     body = message.get("body", "")
 
     # Setup the default headers.
-    head = { 
+    head = {
         "Content-Length": str(len(body)),
         "Host": host,
         "User-Agent": "http.py/1.0",
@@ -166,13 +165,13 @@ def request(url, message, **kwargs):
     }
 
     # Add in the passed in headers.
-    for key, value in message["headers"]: 
+    for key, value in message["headers"]:
         head[key] = value
 
     # Note the HTTP method we're using, defaulting
     # to `GET`.
     method = message.get("method", "GET")
-    
+
     # Note that we do not support proxies in this example
     # If running Python 2.7.9+, disable SSL certificate validation
     if sys.version_info >= (2, 7, 9):
@@ -181,7 +180,7 @@ def request(url, message, **kwargs):
     else:
         opener = urllib2.build_opener()
 
-    # Unfortunately, we need to use the hack of 
+    # Unfortunately, we need to use the hack of
     # "overriding" `request.get_method` to specify
     # a method other than `GET` or `POST`.
     request = urllib2.Request(url, body, head)
@@ -194,10 +193,10 @@ def request(url, message, **kwargs):
     except Exception as e:
         response = e
 
-    # Normalize the response to something the SDK expects, and 
+    # Normalize the response to something the SDK expects, and
     # return it.
     return {
-        'status': response.code, 
+        'status': response.code,
         'reason': response.msg,
         'headers': response.info().dict,
         'body': binding.ResponseReader(response)

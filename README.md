@@ -227,6 +227,22 @@ Don't
             yield {'_time': time.time(), 'two': 2}
 ```
 
+### Access metadata of modular inputs app
+* In stream_events() method we can access modular input app metadata from InputDefinition object
+* See [GitHub Commit](https://github.com/splunk/splunk-sdk-python/blob/develop/examples/github_commits/bin/github_commits.py) Modular input App example for reference.
+```python
+    def stream_events(self, inputs, ew):
+        # other code
+        
+        # access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
+        # here inputs is a InputDefinition object
+        server_host = inputs.metadata["server_host"]
+        server_uri = inputs.metadata["server_uri"]
+        
+        # Get the checkpoint directory out of the modular input's metadata
+        checkpoint_dir = inputs.metadata["checkpoint_dir"]
+```
+
 ### Changelog
 
 The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.

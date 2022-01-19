@@ -75,7 +75,7 @@ The SDK command-line examples require a common set of arguments that specify the
 #### Using username/password
 ```python
 import splunklib.client as client
-    service = client.connect(host=<host_url>, username=<username>, password=<password>, autologin=True)
+service = client.connect(host=<host_url>, username=<username>, password=<password>, autologin=True)
 ```
 
 #### Using bearer token
@@ -212,19 +212,19 @@ class CustomStreamingCommand(StreamingCommand):
 Do
 ```python
 @Configuration()
-    class GeneratorTest(GeneratingCommand):
-        def generate(self):
-            yield self.gen_record(_time=time.time(), one=1)
-            yield self.gen_record(_time=time.time(), two=2)
+class GeneratorTest(GeneratingCommand):
+    def generate(self):
+        yield self.gen_record(_time=time.time(), one=1)
+        yield self.gen_record(_time=time.time(), two=2)
 ```
 
 Don't
 ```python
 @Configuration()
-    class GeneratorTest(GeneratingCommand):
-        def generate(self):
-            yield {'_time': time.time(), 'one': 1}
-            yield {'_time': time.time(), 'two': 2}
+class GeneratorTest(GeneratingCommand):
+    def generate(self):
+        yield {'_time': time.time(), 'one': 1}
+        yield {'_time': time.time(), 'two': 2}
 ```
 
 ### Changelog

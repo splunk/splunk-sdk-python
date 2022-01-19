@@ -146,7 +146,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         result = run(
             "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem",
             stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
         # The proxy handler example requires that there be a proxy available
         # to relay requests, so we spin up a local proxy using the proxy
@@ -167,7 +167,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Run it again without the proxy and it should fail.
         result = run(
             "handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
     def test_index(self):
         self.check_commands(

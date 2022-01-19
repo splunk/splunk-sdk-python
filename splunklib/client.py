@@ -982,7 +982,10 @@ class Entity(Endpoint):
     def _load_atom_entry(self, response):
         elem = _load_atom(response, XNAME_ENTRY)
         if isinstance(elem, list):
-            raise AmbiguousReferenceException("Fetch from server returned multiple entries for name %s." % self.name)
+            apps = [ele.entry.content.get('eai:appName') for ele in elem]
+
+            raise AmbiguousReferenceException(
+                "Fetch from server returned multiple entries for name '%s' in apps %s." % (elem[0].entry.title, apps))
         else:
             return elem.entry
 

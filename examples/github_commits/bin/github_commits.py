@@ -146,6 +146,13 @@ class MyScript(Script):
             token = None
             if "token" in input_item:
                 token = input_item["token"]
+
+            '''
+            access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
+            here inputs is a InputDefinition object
+                server_host = inputs.metadata["server_host"]
+                server_uri = inputs.metadata["server_uri"]
+            '''
             # Get the checkpoint directory out of the modular input's metadata
             checkpoint_dir = inputs.metadata["checkpoint_dir"]
 

@@ -96,6 +96,24 @@ To connect to Splunk Enterprise, many of the SDK examples and unit tests take co
 
 >**Note**: Storing login credentials in the **.env** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
 
+here is an example of .env file:
+
+    # Splunk Enterprise host (default: localhost)
+    host=localhost
+    # Splunk Enterprise admin port (default: 8089)
+    port=8089
+    # Splunk Enterprise username
+    username=admin
+    # Splunk Enterprise password
+    password=changed!
+    # Access scheme (default: https)
+    scheme=https
+    # Your version of Splunk Enterprise
+    version=8.0
+    # Bearer token for authentication
+    #bearerToken=<Bearer-token>
+    # Session key for authentication
+    #sessionKey=<Session-Key>
 
 #### Run the examples
 

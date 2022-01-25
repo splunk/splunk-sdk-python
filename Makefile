@@ -56,6 +56,17 @@ test_smoke_no_app:
 	@echo "$(ATTN_COLOR)==> test_smoke_no_app $(NO_COLOR)"
 	@tox -e py27,py37 -- -m "smoke and not app"
 
+.PHONY: env
+env:
+	@echo "$(ATTN_COLOR)==> env $(NO_COLOR)"
+	@echo "To make a .env:"
+	@echo "  [SPLUNK_INSTANCE_JSON] | python scripts/build-env.py"
+
+.PHONY: env_default
+env_default:
+	@echo "$(ATTN_COLOR)==> env_default $(NO_COLOR)"
+	@python scripts/build-env.py
+
 .PHONY: up
 up:
 	@echo "$(ATTN_COLOR)==> up $(NO_COLOR)"

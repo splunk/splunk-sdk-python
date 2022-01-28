@@ -137,7 +137,7 @@ setup(
 
     description="The Splunk Software Development Kit for Python.",
 
-    license="http://www.apache.org/licenses/LICENSE-2.0",
+    license="Apache 2.0",
 
     name="splunk-sdk",
 

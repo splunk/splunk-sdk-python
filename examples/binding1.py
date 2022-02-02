@@ -52,7 +52,7 @@ class Service:
         return self.context.post("search/jobs/export", search=query, **kwargs)
 
 def main(argv):
-    opts = parse(argv, {}, ".splunkrc")
+    opts = parse(argv, {}, ".env")
     context = connect(**opts.kwargs)
     service = Service(context)
     assert service.apps().status == 200

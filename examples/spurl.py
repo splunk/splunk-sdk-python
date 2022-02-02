@@ -47,7 +47,7 @@ def print_response(response):
         print(body)
 
 def main():
-    opts = utils.parse(sys.argv[1:], {}, ".splunkrc")
+    opts = utils.parse(sys.argv[1:], {}, ".env")
     for arg in opts.args: 
         print_response(invoke(arg, **opts.kwargs))
 

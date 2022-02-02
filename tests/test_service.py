@@ -180,7 +180,7 @@ class ServiceTestCase(testlib.SDKTestCase):
 
 class TestCookieAuthentication(unittest.TestCase):
     def setUp(self):
-        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.opts = testlib.parse([], {}, ".env")
         self.service = client.Service(**self.opts.kwargs)
 
     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:

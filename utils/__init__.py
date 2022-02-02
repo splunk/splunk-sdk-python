@@ -109,7 +109,8 @@ def dslice(value, *args):
 def parse(argv, rules=None, config=None, **kwargs):
     """Parse the given arg vector with the default Splunk command rules."""
     parser_ = parser(rules, **kwargs)
-    if config is not None: parser_.loadrc(config)
+    if config is not None:
+        parser_.loadenv(config)
     return parser_.parse(argv).result
 
 def parser(rules=None, **kwargs):

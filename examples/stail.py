@@ -35,7 +35,7 @@ except ImportError:
 
 def main():
     usage = "usage: %prog <search>"
-    opts = utils.parse(sys.argv[1:], {}, ".splunkrc", usage=usage)
+    opts = utils.parse(sys.argv[1:], {}, ".env", usage=usage)
 
     if len(opts.args) != 1:
         utils.error("Search expression required", 2)

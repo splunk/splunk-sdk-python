@@ -36,15 +36,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - name: Create .splunkrc file
-        run: |
-          cd ~
-          echo host=localhost > .splunkrc
-          echo port=8089 >> .splunkrc
-          echo username=admin >> .splunkrc
-          echo password=changed! >> .splunkrc
-          echo scheme=https >> .splunkrc
-          echo version=${{ matrix.splunk }} >> .splunkrc
       - name: Install tox
         run: pip install tox
       - name: Test Execution

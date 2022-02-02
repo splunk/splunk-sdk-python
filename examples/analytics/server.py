@@ -146,7 +146,7 @@ def application(name):
 def main():
     argv = sys.argv[1:]
 
-    opts = utils.parse(argv, {}, ".splunkrc")
+    opts = utils.parse(argv, {}, ".env")
     global splunk_opts
     splunk_opts = opts.kwargs
 

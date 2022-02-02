@@ -160,7 +160,7 @@ RULES = {
 def main(argv):
     """ main entry """
     usage = 'usage: %prog --help for options'
-    opts = utils.parse(argv, RULES, ".splunkrc", usage=usage)
+    opts = utils.parse(argv, RULES, ".env", usage=usage)
 
     context = binding.connect(**opts.kwargs)
     operation = None

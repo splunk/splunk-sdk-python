@@ -45,7 +45,7 @@ RULES = {
 
 def main(argv):
     usage = 'usage: %prog [options] <index>'
-    opts = parse(argv, RULES, ".splunkrc", usage=usage)
+    opts = parse(argv, RULES, ".env", usage=usage)
 
     if len(opts.args) == 0: error("Index name required", 2)
     index = opts.args[0]

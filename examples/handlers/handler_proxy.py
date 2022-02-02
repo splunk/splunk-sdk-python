@@ -80,7 +80,7 @@ def handler(proxy):
     urllib.request.install_opener(opener)
     return request
 
-opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
+opts = utils.parse(sys.argv[1:], RULES, ".env")
 proxy = opts.kwargs['proxy']
 try:
     service = client.connect(handler=handler(proxy), **opts.kwargs)

@@ -30,10 +30,10 @@ DEFAULT_CONFIG = {
     'version': '8.0'
 }
 
-DEFAULT_SPLUNKRC_PATH = os.path.join(str(Path.home()), '.splunkrc')
+DEFAULT_ENV_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '.env')
 
-SPLUNKRC_TEMPLATE_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), 'templates/splunkrc.template')
+ENV_TEMPLATE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), 'templates/env.template')
 
 # {
 #     "server_roles": {
@@ -82,27 +82,27 @@ def parse_hostport(host_port):
     result = urllib.parse.urlsplit('//' + host_port)
     return result.hostname, result.port
 
-def run(variable, splunkrc_path=None):
+def run(variable, env_path=None):
     # read JSON from input
     # parse the JSON
     input_config = build_config(variable) if variable else DEFAULT_CONFIG
 
     config = {**DEFAULT_CONFIG, **input_config}
 
-    # build a splunkrc file
-    with open(SPLUNKRC_TEMPLATE_PATH, 'r') as f:
+    # build a env file
+    with open(ENV_TEMPLATE_PATH, 'r') as f:
         template = Template(f.read())
 
-    splunkrc_string = template.substitute(config)
-
-    # if no splunkrc, dry-run
-    if not splunkrc_path:
-        print(splunkrc_string)
+    env_string = template.substitute(config)
+    env_path = DEFAULT_ENV_PATH if env_path is None else env_path
+    # if no env, dry-run
+    if not env_path:
+        print(env_string)
         return
 
-    # write the .splunkrc file
-    with open(splunkrc_path, 'w') as f:
-        f.write(splunkrc_string)
+    # write the .env file
+    with open(env_path, 'w') as f:
+        f.write(env_string)
 
 if sys.stdin.isatty():
     DATA = None

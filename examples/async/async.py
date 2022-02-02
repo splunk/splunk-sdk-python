@@ -51,7 +51,7 @@ def main(argv):
     usage = "async.py <sync | async>"
 
     # Parse the command line args.
-    opts = parse(argv, {}, ".splunkrc")
+    opts = parse(argv, {}, ".env")
 
     # We have to see if we got either the "sync" or
     # "async" command line arguments.

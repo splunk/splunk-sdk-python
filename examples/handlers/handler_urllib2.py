@@ -53,7 +53,7 @@ def request(url, message, **kwargs):
         'body': BytesIO(response.read())
     }
 
-opts = utils.parse(sys.argv[1:], {}, ".splunkrc")
+opts = utils.parse(sys.argv[1:], {}, ".env")
 service = client.connect(handler=request, **opts.kwargs)
 pprint([app.name for app in service.apps])
 

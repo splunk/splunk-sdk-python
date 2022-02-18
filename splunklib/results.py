@@ -343,7 +343,7 @@ class JSONResultsReader(object):
             if "preview" in event:
                 self.is_preview = event["preview"]
             if "msg" in event:
-                msg_type = event.get("type", "Uknown Message Type")
+                msg_type = event.get("type", "Unknown Message Type")
                 text = event.get("text")
                 yield Message(msg_type, text)
             yield event

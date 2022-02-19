@@ -33,7 +33,7 @@ as follows:::
 """
 
 from __future__ import absolute_import
-
+from collections import OrderedDict
 from io import BufferedReader, BytesIO
 from json import loads as json_loads
 from splunklib import six
@@ -41,10 +41,6 @@ try:
     import xml.etree.cElementTree as et
 except ImportError:
     import xml.etree.ElementTree as et
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from .ordereddict import OrderedDict
 
 __all__ = [
     "ResultsReader",

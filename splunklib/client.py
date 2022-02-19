@@ -1085,7 +1085,7 @@ class Entity(Endpoint):
         return self
 
     @property
-    def state(self):
+    def state(self) -> dict:
         """Returns the entity's state record.
 
         :return: A ``dict`` containing fields and metadata for the entity.
@@ -3563,7 +3563,7 @@ class KVStoreCollection(Entity):
         :return: Result of POST request
         """
         kwargs = {}
-        kwargs['index.' + name] = value if isinstance(value, str) else json.dumps(value)
+        kwargs['index.' + name] = value if isinstance(value, six.string_types) else json.dumps(value)
         return self.post(**kwargs)
 
     def update_field(self, name, value):

@@ -1291,7 +1291,9 @@ class ResponseReader(io.RawIOBase):
         self._buffer = b''
 
     def __str__(self):
-        return str(self.read())
+        if six.PY2:
+            return self.read()
+        return self.read().decode('utf-8')
 
     @property
     def empty(self) -> bool:

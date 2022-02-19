@@ -70,9 +70,8 @@ from splunklib import six
 from splunklib.six.moves import urllib
 
 from . import data
-from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
-                      _encode, _make_cookie_header, _NoAuthenticationToken,
-                      namespace)
+from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded, ResponseReader,
+                      _encode, _make_cookie_header, _NoAuthenticationToken, namespace)
 from .data import record
 
 __all__ = [
@@ -282,56 +281,6 @@ def _parse_atom_metadata(content):
 
     return record({'access': access, 'fields': fields})
 
-# kwargs: scheme, host, port, app, owner, username, password
-def connect(**kwargs):
-    """This function connects and logs in to a Splunk instance.
-
-    This function is a shorthand for :meth:`Service.login`.
-    The ``connect`` function makes one round trip to the server (for logging in).
-
-    :param host: The host name (the default is "localhost").
-    :type host: ``string``
-    :param port: The port number (the default is 8089).
-    :type port: ``integer``
-    :param scheme: The scheme for accessing the service (the default is "https").
-    :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verification for
-                   https connections. (optional, the default is True)
-    :type verify: ``Boolean``
-    :param `owner`: The owner context of the namespace (optional).
-    :type owner: ``string``
-    :param `app`: The app context of the namespace (optional).
-    :type app: ``string``
-    :param sharing: The sharing mode for the namespace (the default is "user").
-    :type sharing: "global", "system", "app", or "user"
-    :param `token`: The current session token (optional). Session tokens can be
-                    shared across multiple service instances.
-    :type token: ``string``
-    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
-        This parameter is only supported for Splunk 6.2+.
-    :type cookie: ``string``
-    :param autologin: When ``True``, automatically tries to log in again if the
-        session terminates.
-    :type autologin: ``boolean``
-    :param `username`: The Splunk account username, which is used to
-                       authenticate the Splunk instance.
-    :type username: ``string``
-    :param `password`: The password for the Splunk account.
-    :type password: ``string``
-    :param `context`: The SSLContext that can be used when setting verify=True (optional)
-    :type context: ``SSLContext``
-    :return: An initialized :class:`Service` connection.
-
-    **Example**::
-
-        import splunklib.client as client
-        s = client.connect(...)
-        a = s.apps["my_app"]
-        ...
-    """
-    s = Service(**kwargs)
-    s.login()
-    return s
 
 
 # In preparation for adding Storm support, we added an
@@ -2719,7 +2668,7 @@ class Job(Entity):
         self.post("control", action="finalize")
         return self
 
-    def is_done(self):
+    def is_done(self) -> bool:
         """Indicates whether this job finished running.
 
         :return: ``True`` if the job is done, ``False`` if not.
@@ -2727,10 +2676,9 @@ class Job(Entity):
         """
         if not self.is_ready():
             return False
-        done = (self._state.content['isDone'] == '1')
-        return done
+        return self._state.content['isDone'] == '1'
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """Indicates whether this job is ready for querying.
 
         :return: ``True`` if the job is ready, ``False`` if not.
@@ -2741,11 +2689,10 @@ class Job(Entity):
         if response.status == 204:
             return False
         self._state = self.read(response)
-        ready = self._state.content['dispatchState'] not in ['QUEUED', 'PARSING']
-        return ready
+        return self._state.content['dispatchState'] not in ['QUEUED', 'PARSING']
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Returns the name of the search job, which is the search ID (SID).
 
         :return: The search ID.
@@ -2761,7 +2708,7 @@ class Job(Entity):
         self.post("control", action="pause")
         return self
 
-    def results(self, **query_params):
+    def results(self, **query_params) -> ResponseReader:
         """Returns a streaming handle to this job's search results. To get a
         nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultsReader`,
         as in::
@@ -2949,7 +2896,7 @@ class Jobs(Collection):
             entities.append(entity)
         return entities
 
-    def create(self, query, **kwargs):
+    def create(self, query, **kwargs) -> Job:
         """ Creates a search using a search query and any additional parameters
         you provide.
 
@@ -3616,7 +3563,7 @@ class KVStoreCollection(Entity):
         :return: Result of POST request
         """
         kwargs = {}
-        kwargs['index.' + name] = value if isinstance(value, basestring) else json.dumps(value)
+        kwargs['index.' + name] = value if isinstance(value, str) else json.dumps(value)
         return self.post(**kwargs)
 
     def update_field(self, name, value):
@@ -3769,3 +3716,56 @@ class KVStoreCollectionData(object):
         data = json.dumps(documents)
 
         return json.loads(self._post('batch_save', headers=KVStoreCollectionData.JSON_HEADER, body=data).body.read().decode('utf-8'))
+
+
+
+# kwargs: scheme, host, port, app, owner, username, password
+def connect(**kwargs) -> Service:
+    """This function connects and logs in to a Splunk instance.
+
+    This function is a shorthand for :meth:`Service.login`.
+    The ``connect`` function makes one round trip to the server (for logging in).
+
+    :param host: The host name (the default is "localhost").
+    :type host: ``string``
+    :param port: The port number (the default is 8089).
+    :type port: ``integer``
+    :param scheme: The scheme for accessing the service (the default is "https").
+    :type scheme: "https" or "http"
+    :param verify: Enable (True) or disable (False) SSL verification for
+                   https connections. (optional, the default is True)
+    :type verify: ``Boolean``
+    :param `owner`: The owner context of the namespace (optional).
+    :type owner: ``string``
+    :param `app`: The app context of the namespace (optional).
+    :type app: ``string``
+    :param sharing: The sharing mode for the namespace (the default is "user").
+    :type sharing: "global", "system", "app", or "user"
+    :param `token`: The current session token (optional). Session tokens can be
+                    shared across multiple service instances.
+    :type token: ``string``
+    :param cookie: A session cookie. When provided, you don't need to call :meth:`login`.
+        This parameter is only supported for Splunk 6.2+.
+    :type cookie: ``string``
+    :param autologin: When ``True``, automatically tries to log in again if the
+        session terminates.
+    :type autologin: ``boolean``
+    :param `username`: The Splunk account username, which is used to
+                       authenticate the Splunk instance.
+    :type username: ``string``
+    :param `password`: The password for the Splunk account.
+    :type password: ``string``
+    :param `context`: The SSLContext that can be used when setting verify=True (optional)
+    :type context: ``SSLContext``
+    :return: An initialized :class:`Service` connection.
+
+    **Example**::
+
+        import splunklib.client as client
+        s = client.connect(...)
+        a = s.apps["my_app"]
+        ...
+    """
+    s = Service(**kwargs)
+    s.login()
+    return s

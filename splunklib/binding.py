@@ -28,13 +28,14 @@ from __future__ import absolute_import
 
 import io
 import logging
+from os import PathLike
 import socket
 import ssl
 from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from io import BytesIO
+from typing import Any
 from xml.etree.ElementTree import XML
 
 from splunklib import six
@@ -1042,7 +1043,7 @@ class AuthenticationError(HTTPError):
     def __init__(self, message, cause):
         # Put the body back in the response so that HTTPError's constructor can
         # read it again.
-        cause._response.body = BytesIO(cause.body)
+        cause._response.body = io.BytesIO(cause.body)
 
         HTTPError.__init__(self, cause._response, message)
 
@@ -1290,10 +1291,10 @@ class ResponseReader(io.RawIOBase):
         self._buffer = b''
 
     def __str__(self):
-        return self.read()
+        return str(self.read())
 
     @property
-    def empty(self):
+    def empty(self) -> bool:
         """Indicates whether there is any more data in the response."""
         return self.peek(1) == b""
 
@@ -1316,7 +1317,7 @@ class ResponseReader(io.RawIOBase):
             self._connection.close()
         self._response.close()
 
-    def read(self, size = None):
+    def read(self, size: int = None):
         """Reads a given number of characters from the response.
 
         :param size: The number of characters to read, or "None" to read the
@@ -1331,11 +1332,11 @@ class ResponseReader(io.RawIOBase):
         r = r + self._response.read(size)
         return r
 
-    def readable(self):
+    def readable(self) -> bool:
         """ Indicates that the response reader is readable."""
         return True
 
-    def readinto(self, byte_array):
+    def readinto(self, byte_array) -> int:
         """ Read data into a byte array, upto the size of the byte array.
 
         :param byte_array: A byte array/memory view to pour bytes into.
@@ -1349,7 +1350,12 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None):
+def handler(
+    key_file: str = None,
+    cert_file: str = None,
+    timeout: int = None,
+    verify: bool=False,
+    context: ssl.SSLContext=None):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 

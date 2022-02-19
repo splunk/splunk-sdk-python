@@ -339,11 +339,16 @@ class JSONResultsReader(object):
         """Parse results and messages out of *stream*."""
         for line in stream.readlines():
 
-            event = json_loads(line)
-            if "preview" in event:
-                self.is_preview = event["preview"]
-            if "msg" in event:
-                msg_type = event.get("type", "Unknown Message Type")
-                text = event.get("text")
+            parsed_line = json_loads(line)
+            if "preview" in parsed_line:
+                self.is_preview = parsed_line["preview"]
+            if "messages" in parsed_line:
+                for message in parsed_line["messages"]:
+                    msg_type = message.get("type", "Unknown Message Type")
+                    text = message.get("text")
                 yield Message(msg_type, text)
-            yield event
+            if "result" in parsed_line:
+                yield parsed_line["result"]
+            if "results" in parsed_line:
+                for result in parsed_line["results"]:
+                    yield result

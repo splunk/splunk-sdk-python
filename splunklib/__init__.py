@@ -18,8 +18,11 @@ from __future__ import absolute_import
 from splunklib.six.moves import map
 import logging
 
-# To enable debug logs, set the level to 'logging.DEBUG'
-logging.basicConfig(level=logging.WARNING)
+# To set the logging level of splunklib
+# ex. To enable debug logs, call this method with parameter 'logging.DEBUG'
+# default logging level is set to 'WARNING'
+def setLoggingLevel(level):
+    logging.basicConfig(level=level)
 
 __version_info__ = (1, 6, 18)
 __version__ = ".".join(map(str, __version_info__))

@@ -243,6 +243,19 @@ class GeneratorTest(GeneratingCommand):
         checkpoint_dir = inputs.metadata["checkpoint_dir"]
 ```
 
+#### Optional:Set up logging for splunklib
++ The default level is WARNING, which means that only events of this level and above will be visible
++ To change a logging level we can call setup_logging() method and pass the logging level as an argument.
++ Optional: we can also pass log format and date format string as a method argument to modify default format
+
+```python
+import logging
+from splunklib import setup_logging
+
+# To see debug and above level logs
+setup_logging(logging.DEBUG)
+```
+
 ### Changelog
 
 The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.

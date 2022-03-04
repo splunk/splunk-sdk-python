@@ -35,7 +35,7 @@ The app is tested on Splunk 5 and 6. Here is its manifest:
     └── default.meta ............. Permits the search assistant to use searchbnf.conf[6]
 ```
 **References**  
-[1] [app.conf](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Appconf app.conf)  
+[1] [app.conf](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Appconf)  
 [2] [commands.conf](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf)  
 [3] [Python Logging HOWTO](https://docs.python.org/2/howto/logging.html)  
 [4] [ConfigParser—Configuration file parser](https://docs.python.org/2/library/configparser.html)
@@ -109,6 +109,15 @@ Results:
 word_counts |
 :-----|
 4497.0 |
+
+## Optional:Set up logging using logging.conf file
++ Inside the **default** directory of our app, we have a [logging.conf](https://github.com/splunk/splunk-sdk-python/blob/master/examples/searchcommands_app/package/default/logging.conf) file.
++ In logging.conf file we can define loggers, handlers and formatters for our app. refer [this doc](https://docs.python.org/2/library/logging.config.html#configuration-file-format) for more details
++ Logs will be written in the files specified in the handlers defined for the respective loggers
+  + For **'searchcommands_app'** app logs will be written in **searchcommands_app.log** and **splunklib.log** files defined in respective handlers, and are present at $SPLUNK_HOME/etc/apps/searchcommands_app/ dir
+  + By default logs will be written in the app's root directory, but it can be overriden by specifying the absolute path for the logs file in the conf file
++ By default, logging level is set to WARNING
++ To see debug and above level logs, Set level to DEBUG in logging.conf file
 
 ## License
 

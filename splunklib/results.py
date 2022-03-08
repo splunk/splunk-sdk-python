@@ -36,7 +36,10 @@ from __future__ import absolute_import
 
 from io import BufferedReader, BytesIO
 
+import deprecation
+
 from splunklib import six
+
 try:
     import xml.etree.cElementTree as et
 except:
@@ -55,6 +58,7 @@ __all__ = [
     "Message"
 ]
 
+
 class Message(object):
     """This class represents informational messages that Splunk interleaves in the results stream.
 
@@ -65,6 +69,7 @@ class Message(object):
 
         m = Message("DEBUG", "There's something in that variable...")
     """
+
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
@@ -78,6 +83,7 @@ class Message(object):
     def __hash__(self):
         return hash((self.type, self.message))
 
+
 class _ConcatenatedStream(object):
     """Lazily concatenate zero or more streams into a stream.
 
@@ -90,6 +96,7 @@ class _ConcatenatedStream(object):
         s = _ConcatenatedStream(StringIO("abc"), StringIO("def"))
         assert s.read() == "abcdef"
     """
+
     def __init__(self, *streams):
         self.streams = list(streams)
 
@@ -108,6 +115,7 @@ class _ConcatenatedStream(object):
                 del self.streams[0]
         return response
 
+
 class _XMLDTDFilter(object):
     """Lazily remove all XML DTDs from a stream.
 
@@ -121,6 +129,7 @@ class _XMLDTDFilter(object):
         s = _XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
         assert s.read() == "<element></element>"
     """
+
     def __init__(self, stream):
         self.stream = stream
 
@@ -151,6 +160,8 @@ class _XMLDTDFilter(object):
                     n -= 1
         return response
 
+
+@deprecation.deprecated(deprecated_in="1.16.9", details="Use the JSONResultsReader function instead")
 class ResultsReader(object):
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
@@ -178,6 +189,7 @@ class ResultsReader(object):
                 print "Message: %s" % result
         print "is_preview = %s " % reader.is_preview
     """
+
     # Be sure to update the docstrings of client.Jobs.oneshot,
     # client.Job.results_preview and client.Job.results to match any
     # changes made to ResultsReader.
@@ -258,16 +270,16 @@ class ResultsReader(object):
                         # So we'll define it here
 
                         def __itertext(self):
-                          tag = self.tag
-                          if not isinstance(tag, six.string_types) and tag is not None:
-                              return
-                          if self.text:
-                              yield self.text
-                          for e in self:
-                              for s in __itertext(e):
-                                  yield s
-                              if e.tail:
-                                  yield e.tail
+                            tag = self.tag
+                            if not isinstance(tag, six.string_types) and tag is not None:
+                                return
+                            if self.text:
+                                yield self.text
+                            for e in self:
+                                for s in __itertext(e):
+                                    yield s
+                                if e.tail:
+                                    yield e.tail
 
                         text = "".join(__itertext(elem))
                     values.append(text)
@@ -287,6 +299,7 @@ class ResultsReader(object):
                 return
             else:
                 raise
+
 
 class JSONResultsReader(object):
     """This class returns dictionaries and Splunk messages from a JSON results
@@ -310,6 +323,7 @@ class JSONResultsReader(object):
                 print "Message: %s" % result
         print "is_preview = %s " % reader.is_preview
     """
+
     # Be sure to update the docstrings of client.Jobs.oneshot,
     # client.Job.results_preview and client.Job.results to match any
     # changes made to JSONResultsReader.
@@ -339,7 +353,7 @@ class JSONResultsReader(object):
         """Parse results and messages out of *stream*."""
         for line in stream.readlines():
             strip_line = line.strip()
-            if strip_line.__len__() == 0 : continue
+            if strip_line.__len__() == 0: continue
             parsed_line = json_loads(strip_line)
             if "preview" in parsed_line:
                 self.is_preview = parsed_line["preview"]

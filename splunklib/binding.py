@@ -758,7 +758,13 @@ class Context(object):
             headers = []
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
-        logger.debug("POST request to %s (body: %s)", path, repr(query))
+
+        # To avoid writing sensitive data in debug logs
+        endpoint_having_sensitive_data = ["/storage/passwords"]
+        if any(endpoint in path for endpoint in endpoint_having_sensitive_data):
+            logger.debug("POST request to %s ", path)
+        else:
+            logger.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response

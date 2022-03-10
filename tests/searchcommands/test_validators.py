@@ -208,10 +208,9 @@ class TestValidators(TestCase):
     
     def test_float(self):
         # Float validator test
-        import random
 
-        maxsize = random.random() + 1
-        minsize = random.random() - 1
+        maxsize = 1.5
+        minsize = -1.5
 
         validator = validators.Float()
 

@@ -36,9 +36,9 @@ from __future__ import absolute_import
 
 from io import BufferedReader, BytesIO
 
-import deprecation
-
 from splunklib import six
+
+from splunklib.six import deprecated
 
 try:
     import xml.etree.cElementTree as et
@@ -161,7 +161,7 @@ class _XMLDTDFilter(object):
         return response
 
 
-@deprecation.deprecated(deprecated_in="1.16.9", details="Use the JSONResultsReader function instead")
+@deprecated("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
 class ResultsReader(object):
     """This class returns dictionaries and Splunk messages from an XML results
     stream.

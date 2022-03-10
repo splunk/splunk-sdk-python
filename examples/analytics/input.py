@@ -102,7 +102,7 @@ def main():
 
     argv = sys.argv[1:]
 
-    splunk_opts = utils.parse(argv, {}, ".splunkrc", usage=usage)
+    splunk_opts = utils.parse(argv, {}, ".env", usage=usage)
     tracker = AnalyticsTracker("cli_app", splunk_opts.kwargs)
     
     #tracker.track("test_event", "abc123", foo="bar", bar="foo")

@@ -42,10 +42,7 @@ try:
 except:
     import xml.etree.ElementTree as et
 
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from .ordereddict import OrderedDict
+from collections import OrderedDict
 
 try:
     from splunklib.six.moves import cStringIO as StringIO

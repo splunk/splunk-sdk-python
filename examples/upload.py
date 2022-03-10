@@ -58,7 +58,7 @@ RULES = {
 
 def main(argv):
     usage = 'usage: %prog [options] <filename>*'
-    opts = parse(argv, RULES, ".splunkrc", usage=usage)
+    opts = parse(argv, RULES, ".env", usage=usage)
 
     kwargs_splunk = dslice(opts.kwargs, FLAGS_SPLUNK)
     service = client.connect(**kwargs_splunk)

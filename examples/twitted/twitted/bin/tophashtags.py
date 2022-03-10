@@ -19,10 +19,7 @@ import csv, sys, urllib, re
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir)))
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from splunklib.ordereddict import OrderedDict
+from collections import OrderedDict
 
 from splunklib import six
 from splunklib.six.moves import zip

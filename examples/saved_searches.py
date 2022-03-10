@@ -31,7 +31,7 @@ except ImportError:
 
 
 def main():
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    opts = parse(sys.argv[1:], {}, ".env")
     service = connect(**opts.kwargs)
 
     for saved_search in service.saved_searches:

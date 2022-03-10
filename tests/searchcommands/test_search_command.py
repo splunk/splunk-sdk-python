@@ -140,7 +140,7 @@ class TestSearchCommand(TestCase):
         result = BytesIO()
 
         self.assertRaises(SystemExit, command.process, argv, ofile=result)
-        self.assertRegexpMatches(result.getvalue().decode('UTF-8'), expected)
+        six.assertRegex(self, result.getvalue().decode('UTF-8'), expected)
 
         # TestCommand.process should return configuration settings on Getinfo probe
 
@@ -307,7 +307,8 @@ class TestSearchCommand(TestCase):
             command.process(argv, ifile, ofile=result)
         except SystemExit as error:
             self.assertNotEqual(error.code, 0)
-            self.assertRegexpMatches(
+            six.assertRegex(
+                self,
                 result.getvalue().decode('UTF-8'),
                 r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
         except BaseException as error:
@@ -331,7 +332,8 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail('Expected no exception, but caught {}: {}'.format(type(error).__name__, error))
         else:
-            self.assertRegexpMatches(
+            six.assertRegex(
+                self,
                 result.getvalue().decode('UTF-8'),
                 r'^\r\n'
                 r'('
@@ -715,7 +717,8 @@ class TestSearchCommand(TestCase):
                 r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
                 r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
-        self.assertRegexpMatches(
+        six.assertRegex(
+            self,
             result.getvalue().decode('utf-8'),
             r'^chunked 1.0,2,0\n'
             r'\{\}\n'
@@ -723,6 +726,62 @@ class TestSearchCommand(TestCase):
             r'\{(' + inspector + r',' + finished + r'|' + finished + r',' + inspector + r')\}')
 
         self.assertEqual(command.protocol_version, 2)
+
+        # 5. Different scenarios with allow_empty_input flag, default is True
+        # Test preparation
+        dispatch_dir = os.path.join(basedir, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.dispatch_dir')
+        logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'logging.conf')
+        logging_level = 'ERROR'
+        record = False
+        show_configuration = True
+
+        getinfo_metadata = metadata.format(
+            dispatch_dir=encode_string(dispatch_dir),
+            logging_configuration=encode_string(logging_configuration)[1:-1],
+            logging_level=logging_level,
+            record=('true' if record is True else 'false'),
+            show_configuration=('true' if show_configuration is True else 'false'))
+
+        execute_metadata = '{"action":"execute","finished":true}'
+        command = TestCommand()
+        result = BytesIO()
+        argv = ['some-external-search-command.py']
+
+        # Scenario a) Empty body & allow_empty_input=False ==> Assert Error
+
+        execute_body = ''  # Empty body
+        input_file = build_command_input(getinfo_metadata, execute_metadata, execute_body)
+        try:
+            command.process(argv, input_file, ofile=result, allow_empty_input=False)  # allow_empty_input=False
+        except SystemExit as error:
+            self.assertNotEqual(0, error.code)
+            self.assertTrue(result.getvalue().decode("UTF-8").__contains__("No records found to process. Set "
+                                                                           "allow_empty_input=True in dispatch "
+                                                                           "function to move forward with empty "
+                                                                           "records."))
+        else:
+            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(
+                result.getvalue().decode('utf-8')))
+
+        # Scenario b) Empty body & allow_empty_input=True ==> Assert Success
+
+        execute_body = ''  # Empty body
+        input_file = build_command_input(getinfo_metadata, execute_metadata, execute_body)
+        result = BytesIO()
+
+        try:
+            command.process(argv, input_file, ofile=result)  # By default allow_empty_input=True
+        except SystemExit as error:
+            self.fail('Unexpected exception: {}: {}'.format(type(error).__name__, error))
+
+        expected = (
+            'chunked 1.0,68,0\n'
+            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
+            'chunked 1.0,17,0\n'
+            '{"finished":true}'
+        )
+
+        self.assertEquals(result.getvalue().decode("UTF-8"), expected)
         return
 
     _package_directory = os.path.dirname(os.path.abspath(__file__))

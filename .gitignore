@@ -16,7 +16,8 @@ MANIFEST
 coverage_report
 test.log
 examples/*/local
-examples/*/metadata/local.meta
+examples/**/local.meta
+examples/**/*.log
 tests/searchcommands_data/log/
 tests/searchcommands_data/output/
 examples/searchcommands_app/searchcommand_app.log
@@ -24,7 +25,6 @@ Test Results*.html
 tests/searchcommands/data/app/app.log
 splunk_sdk.egg-info/
 dist/
-examples/searchcommands_app/package/default/commands.conf
 examples/searchcommands_app/package/lib/splunklib
 tests/searchcommands/apps/app_with_logging_configuration/*.log
 *.observed

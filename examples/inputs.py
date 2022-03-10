@@ -30,7 +30,7 @@ except ImportError:
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def main():
-    opts = parse(sys.argv[1:], {}, ".splunkrc")
+    opts = parse(sys.argv[1:], {}, ".env")
     service = connect(**opts.kwargs)
 
     for item in service.inputs:

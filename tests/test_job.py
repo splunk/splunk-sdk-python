@@ -36,7 +36,7 @@ from splunklib.binding import _log_duration, HTTPError
 
 import pytest
 
-# TODO: Determine if we should be importing ExpatError if ParseError is not avaialble (e.g., on Python 2.6)
+# TODO: Determine if we should be importing ExpatError if ParseError is not available (e.g., on Python 2.6)
 # There's code below that now catches SyntaxError instead of ParseError. Should we be catching ExpathError instead?
 
 # from xml.etree.ElementTree import ParseError
@@ -389,10 +389,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):
@@ -411,10 +408,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):

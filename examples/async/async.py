@@ -51,7 +51,7 @@ def main(argv):
     usage = "async.py <sync | async>"
 
     # Parse the command line args.
-    opts = parse(argv, {}, ".splunkrc")
+    opts = parse(argv, {}, ".env")
 
     # We have to see if we got either the "sync" or
     # "async" command line arguments.
@@ -98,7 +98,7 @@ def main(argv):
         return results
 
     # We specify many queries to get show the advantages
-    # of paralleism.
+    # of parallelism.
     queries = [
         'search * | head 100',
         'search * | head 100',

@@ -161,8 +161,8 @@ def load_value(element, nametable=None):
         text = element.text
         if text is None: 
             return None
-        text = text.strip()
-        if len(text) == 0: 
+
+        if len(text.strip()) == 0:
             return None
         return text
 

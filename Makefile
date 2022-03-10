@@ -18,15 +18,10 @@ DATE := `date "+%FT%T%z"`
 CONTAINER_NAME := 'splunk'
 
 .PHONY: all
-all: build_app test
+all: test
 
 init:
 	@echo "$(ATTN_COLOR)==> init $(NO_COLOR)"
-
-.PHONY: build_app
-build_app:
-	@echo "$(ATTN_COLOR)==> build_app $(NO_COLOR)"
-	@python setup.py build dist
 
 .PHONY: docs
 docs:
@@ -61,16 +56,16 @@ test_smoke_no_app:
 	@echo "$(ATTN_COLOR)==> test_smoke_no_app $(NO_COLOR)"
 	@tox -e py27,py37 -- -m "smoke and not app"
 
-.PHONY: splunkrc
-splunkrc:
-	@echo "$(ATTN_COLOR)==> splunkrc $(NO_COLOR)"
-	@echo "To make a .splunkrc:"
-	@echo "  [SPLUNK_INSTANCE_JSON] | python scripts/build-splunkrc.py ~/.splunkrc"
+.PHONY: env
+env:
+	@echo "$(ATTN_COLOR)==> env $(NO_COLOR)"
+	@echo "To make a .env:"
+	@echo "  [SPLUNK_INSTANCE_JSON] | python scripts/build-env.py"
 
-.PHONY: splunkrc_default
-splunkrc_default:
-	@echo "$(ATTN_COLOR)==> splunkrc_default $(NO_COLOR)"
-	@python scripts/build-splunkrc.py ~/.splunkrc
+.PHONY: env_default
+env_default:
+	@echo "$(ATTN_COLOR)==> env_default $(NO_COLOR)"
+	@python scripts/build-env.py
 
 .PHONY: up
 up:

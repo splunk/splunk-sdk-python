@@ -407,7 +407,7 @@ class Bottle(object):
 
         self.mounts = {}
         self.error_handler = {}
-        #: If true, most exceptions are catched and returned as :exc:`HTTPError`
+        #: If true, most exceptions are caught and returned as :exc:`HTTPError`
         self.catchall = catchall
         self.config = config or {}
         self.serve = True
@@ -638,8 +638,8 @@ class Bottle(object):
 
     def handle(self, path, method='GET'):
         """ (deprecated) Execute the first matching route callback and return
-            the result. :exc:`HTTPResponse` exceptions are catched and returned.
-            If :attr:`Bottle.catchall` is true, other exceptions are catched as
+            the result. :exc:`HTTPResponse` exceptions are caught and returned.
+            If :attr:`Bottle.catchall` is true, other exceptions are caught as
             well and returned as :exc:`HTTPError` instances (500).
         """
         depr("This method will change semantics in 0.10. Try to avoid it.")
@@ -1081,7 +1081,7 @@ class Response(threading.local):
             :param value: the value of the cookie.
             :param secret: required for signed cookies. (default: None)
             :param max_age: maximum age in seconds. (default: None)
-            :param expires: a datetime object or UNIX timestamp. (defaut: None)
+            :param expires: a datetime object or UNIX timestamp. (default: None)
             :param domain: the domain that is allowed to read the cookie.
               (default: current domain)
             :param path: limits the cookie to a given path (default: /)

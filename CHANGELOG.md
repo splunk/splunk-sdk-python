@@ -1,17 +1,59 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.18
+
+### Bug fixes
+* [#405](https://github.com/splunk/splunk-sdk-python/pull/405) Fix searchcommands_app example
+* [#406](https://github.com/splunk/splunk-sdk-python/pull/406) Fix mod inputs examples
+* [#407](https://github.com/splunk/splunk-sdk-python/pull/407) Fixed issue with Streaming and Generating Custom Search Commands dropping fields that aren't present in the first row of results. More details on how to opt-in to this fix can be found here: 
+https://github.com/splunk/splunk-sdk-python/blob/develop/README.md#customization [ [issue#401](https://github.com/splunk/splunk-sdk-python/issues/401) ]
+
+### Minor changes
+* [#408](https://github.com/splunk/splunk-sdk-python/pull/408) Add search mode example
+* [#409](https://github.com/splunk/splunk-sdk-python/pull/409) Add Support for authorization tokens read from .splunkrc [ [issue#388](https://github.com/splunk/splunk-sdk-python/issues/388) ]
+* [#413](https://github.com/splunk/splunk-sdk-python/pull/413) Default kvstore owner to nobody [ [issue#231](https://github.com/splunk/splunk-sdk-python/issues/231) ]
+
+## Version 1.6.17
+
+### Bug fixes
+
+* [#383](https://github.com/splunk/splunk-sdk-python/pull/383) Implemented the possibility to provide a SSLContext object to the connect method
+* [#396](https://github.com/splunk/splunk-sdk-python/pull/396) Updated KVStore Methods to support dictionaries
+* [#397](https://github.com/splunk/splunk-sdk-python/pull/397) Added code changes for encoding '/' in _key parameter in kvstore.data APIs.
+* [#398](https://github.com/splunk/splunk-sdk-python/pull/398) Added dictionary support for KVStore "query" methods.
+* [#402](https://github.com/splunk/splunk-sdk-python/pull/402) Fixed regression introduced in 1.6.15 to once again allow processing of empty input records in custom search commands (fix [#376](https://github.com/splunk/splunk-sdk-python/issues/376))
+* [#404](https://github.com/splunk/splunk-sdk-python/pull/404) Fixed test case failure for 8.0 and latest(8.2.x) splunk version
+
+### Minor changes
+
+* [#381](https://github.com/splunk/splunk-sdk-python/pull/381) Updated current year in conf.py
+* [#389](https://github.com/splunk/splunk-sdk-python/pull/389) Fixed few typos
+* [#391](https://github.com/splunk/splunk-sdk-python/pull/391) Fixed spelling error in client.py
+* [#393](https://github.com/splunk/splunk-sdk-python/pull/393) Updated development status past 3
+* [#394](https://github.com/splunk/splunk-sdk-python/pull/394) Updated Readme steps to run examples
+* [#395](https://github.com/splunk/splunk-sdk-python/pull/395) Updated random_number.py
+* [#399](https://github.com/splunk/splunk-sdk-python/pull/399) Moved CI tests to GitHub Actions
+* [#403](https://github.com/splunk/splunk-sdk-python/pull/403) Removed usage of Easy_install to install SDK
+
+## Version 1.6.16
+
+### Bug fixes
+[#312](https://github.com/splunk/splunk-sdk-python/pull/312) Fix issue [#309](https://github.com/splunk/splunk-sdk-python/issues/309), avoid catastrophic backtracking in searchcommands
+
 ## Version 1.6.15
 
 ### Bug fixes
-[#301](https://github.com/splunk/splunk-sdk-python/pull/301) Fix chunk synchronization
-[#327](https://github.com/splunk/splunk-sdk-python/pull/327) Rename and cleanup follow-up for chunk synchronization
-[#352](https://github.com/splunk/splunk-sdk-python/pull/352) Allow supplying of a key-value body when calling Context.post()
+
+* [#301](https://github.com/splunk/splunk-sdk-python/pull/301) Fix chunk synchronization
+* [#327](https://github.com/splunk/splunk-sdk-python/pull/327) Rename and cleanup follow-up for chunk synchronization
+* [#352](https://github.com/splunk/splunk-sdk-python/pull/352) Allow supplying of a key-value body when calling Context.post()
 
 ### Minor changes
-[#350](https://github.com/splunk/splunk-sdk-python/pull/350) Initial end-to-end tests for streaming, reporting, generating custom search commands
-[#348](https://github.com/splunk/splunk-sdk-python/pull/348) Update copyright years to 2020 
-[#346](https://github.com/splunk/splunk-sdk-python/pull/346) Readme updates to urls, terminology, and formatting
-[#317](https://github.com/splunk/splunk-sdk-python/pull/317) Fix deprecation warnings
+
+* [#350](https://github.com/splunk/splunk-sdk-python/pull/350) Initial end-to-end tests for streaming, reporting, generating custom search commands
+* [#348](https://github.com/splunk/splunk-sdk-python/pull/348) Update copyright years to 2020 
+* [#346](https://github.com/splunk/splunk-sdk-python/pull/346) Readme updates to urls, terminology, and formatting
+* [#317](https://github.com/splunk/splunk-sdk-python/pull/317) Fix deprecation warnings
 
 ## Version 1.6.14
 

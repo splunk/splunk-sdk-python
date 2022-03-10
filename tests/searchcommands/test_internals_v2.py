@@ -21,10 +21,7 @@ from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder,
 from splunklib.searchcommands import SearchMetric
 from splunklib import six
 from splunklib.six.moves import range
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from splunklib.ordereddict import OrderedDict
+from collections import OrderedDict
 from collections import namedtuple, deque
 from splunklib.six import BytesIO as BytesIO
 from functools import wraps
@@ -233,6 +230,8 @@ class TestInternals(TestCase):
         self.assertGreater(writer._buffer.tell(), 0)
         self.assertEqual(writer._total_record_count, 0)
         self.assertEqual(writer.committed_record_count, 0)
+        fieldnames.sort()
+        writer._fieldnames.sort()
         self.assertListEqual(writer._fieldnames, fieldnames)
         self.assertListEqual(writer._inspector['messages'], messages)
 

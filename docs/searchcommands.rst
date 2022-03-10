@@ -3,7 +3,7 @@ splunklib.searchcommands
 
 .. automodule:: splunklib.searchcommands
 
-.. autofunction:: dispatch(command_class[, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None])
+.. autofunction:: dispatch(command_class[, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None, allow_empty_input=True])
 
 .. autoclass:: EventingCommand
     :members:
@@ -31,7 +31,7 @@ splunklib.searchcommands
 
     .. automethod:: splunklib.searchcommands::GeneratingCommand.generate
 
-    .. automethod:: splunklib.searchcommands::GeneratingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
+    .. automethod:: splunklib.searchcommands::GeneratingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout, allow_empty_input=True])
 
 .. autoclass:: ReportingCommand
     :members:
@@ -59,7 +59,7 @@ splunklib.searchcommands
         :inherited-members:
         :exclude-members: configuration_settings, fix_up, items, keys
 
-    .. automethod:: splunklib.searchcommands::StreamingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout])
+    .. automethod:: splunklib.searchcommands::StreamingCommand.process(args=sys.argv[, input_file=sys.stdin, output_file=sys.stdout, allow_empty_input=True])
 
     .. automethod:: splunklib.searchcommands::StreamingCommand.stream
 
@@ -85,6 +85,10 @@ splunklib.searchcommands
     :inherited-members:
 
 .. autoclass:: Integer
+    :members:
+    :inherited-members:
+
+.. autoclass:: Float
     :members:
     :inherited-members:
 

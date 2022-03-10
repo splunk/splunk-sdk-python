@@ -3,7 +3,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.6.15
+#### Version 1.6.18
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
 
@@ -39,11 +39,7 @@ Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
 ### Install the SDK
 
-Use the following commands to install the Splunk Enterprise SDK for Python libraries in different ways. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
-
-Use `easy_install`:
-
-    [sudo] easy_install splunk-sdk
+Use the following commands to install the Splunk Enterprise SDK for Python libraries. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
 
 Use `pip`:
 
@@ -64,7 +60,6 @@ You'll need `docker` and `docker-compose` to get up and running using this metho
 ```
 make up SPLUNK_VERSION=8.0
 make wait_up
-make splunkrc_default
 make test
 make down
 ```
@@ -75,13 +70,33 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
-#### Create a .splunkrc convenience file
+### Following are the different ways to connect to Splunk Enterprise
+#### Using username/password
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, username=<username>, password=<password>, autologin=True)
+```
 
-To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a text file named **.splunkrc**. Then, the SDK examples and unit tests use the values from the **.splunkrc** file when you don't specify them.
+#### Using bearer token
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, splunkToken=<bearer_token>, autologin=True)
+```
 
->**Note**: Storing login credentials in the **.splunkrc** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
+#### Using session key
+```python
+import splunklib.client as client
+service = client.connect(host=<host_url>, token=<session_key>, autologin=True)
+```
 
-To use this convenience file, create a text file with the following format:
+###
+#### Update a .env file
+
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a **.env** file. Then, the SDK examples and unit tests use the values from the **.env** file when you don't specify them.
+
+>**Note**: Storing login credentials in the **.env** file is only for convenience during development. This file isn't part of the Splunk platform and shouldn't be used for storing user credentials for production. And, if you're at all concerned about the security of your credentials, enter them at the command line rather than saving them in this file.
+
+here is an example of .env file:
 
     # Splunk Enterprise host (default: localhost)
     host=localhost
@@ -90,35 +105,33 @@ To use this convenience file, create a text file with the following format:
     # Splunk Enterprise username
     username=admin
     # Splunk Enterprise password
-    password=changeme
+    password=changed!
     # Access scheme (default: https)
     scheme=https
     # Your version of Splunk Enterprise
     version=8.0
-
-Save the file as **.splunkrc** in the current user's home directory.
-
-*   For example on OS X, save the file as:
-
-        ~/.splunkrc
-
-*   On Windows, save the file as:
-
-        C:\Users\currentusername\.splunkrc
-
-    You might get errors in Windows when you try to name the file because ".splunkrc" appears to be a nameless file with an extension. You can use the command line to create this file by going to the **C:\Users\\&lt;currentusername&gt;** directory and entering the following command:
-
-        Notepad.exe .splunkrc
-
-    Click **Yes**, then continue creating the file.
+    # Bearer token for authentication
+    #bearerToken=<Bearer-token>
+    # Session key for authentication
+    #sessionKey=<Session-Key>
 
 #### Run the examples
 
-Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example:
+Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example. In the commands below, replace "examplename" with the name of the specific example in the directory that you want to run:
 
+Using username and Password
+    
     python examplename.py --username="admin" --password="changeme"
 
-If you saved your login credentials in the **.splunkrc** file, you can omit those arguments:
+Using Bearer token
+    
+    python examplename.py --bearerToken=<value>
+
+Using Session key
+    
+    python examplename.py --sessionKey="<value>"
+
+If you saved your login credentials in the **.env** file, you can omit those arguments:
 
     python examplename.py
 
@@ -153,6 +166,82 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 |/splunklib | Source for the Splunk library modules                      |
 |/tests     | Source for unit tests                                      |
 |/utils     | Source for utilities shared by the examples and unit tests |
+
+### Customization
+* When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, We may need to add new fields to the records based on certain conditions.
+* Structural changes like this may not be preserved.
+* Make sure to use ``add_field(record, fieldname, value)`` method from SearchCommand to add a new field and value to the record.
+* ___Note:__ Usage of ``add_field`` method is completely optional, if you are not facing any issues with field retention._
+
+Do
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                self.add_field(record, "odd_record", "true")
+            yield record
+```
+
+Don't
+```python
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+                record["odd_record"] = "true"
+            yield record
+```
+### Customization for Generating Custom Search Command
+* Generating Custom Search Command is used to generate events using SDK code.
+* Make sure to use ``gen_record()`` method from SearchCommand to add a new record and pass event data as a key=value pair separated by , (mentioned in below example).
+
+Do
+```python
+@Configuration()
+class GeneratorTest(GeneratingCommand):
+    def generate(self):
+        yield self.gen_record(_time=time.time(), one=1)
+        yield self.gen_record(_time=time.time(), two=2)
+```
+
+Don't
+```python
+@Configuration()
+class GeneratorTest(GeneratingCommand):
+    def generate(self):
+        yield {'_time': time.time(), 'one': 1}
+        yield {'_time': time.time(), 'two': 2}
+```
+
+### Access metadata of modular inputs app
+* In stream_events() method we can access modular input app metadata from InputDefinition object
+* See [GitHub Commit](https://github.com/splunk/splunk-sdk-python/blob/develop/examples/github_commits/bin/github_commits.py) Modular input App example for reference.
+```python
+    def stream_events(self, inputs, ew):
+        # other code
+        
+        # access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
+        # here inputs is a InputDefinition object
+        server_host = inputs.metadata["server_host"]
+        server_uri = inputs.metadata["server_uri"]
+        
+        # Get the checkpoint directory out of the modular input's metadata
+        checkpoint_dir = inputs.metadata["checkpoint_dir"]
+```
+
+#### Optional:Set up logging for splunklib
++ The default level is WARNING, which means that only events of this level and above will be visible
++ To change a logging level we can call setup_logging() method and pass the logging level as an argument.
++ Optional: we can also pass log format and date format string as a method argument to modify default format
+
+```python
+import logging
+from splunklib import setup_logging
+
+# To see debug and above level logs
+setup_logging(logging.DEBUG)
+```
 
 ### Changelog
 

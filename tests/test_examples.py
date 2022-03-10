@@ -36,7 +36,6 @@ from splunklib import six
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
-BUILD_PATH = os.path.join(DIR_PATH, '..', 'build')
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
@@ -96,9 +95,6 @@ class ExamplesTestCase(testlib.SDKTestCase):
         except:
             pass
 
-    def test_build_dir_exists(self):
-        self.assertTrue(os.path.exists(BUILD_PATH), 'Run setup.py build, then setup.py dist')
-
     def test_binding1(self):
         result = run("binding1.py")
         self.assertEqual(result, 0)
@@ -150,7 +146,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         result = run(
             "handlers/handlers_certs.py --ca_file=handlers/cacert.bad.pem",
             stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
         # The proxy handler example requires that there be a proxy available
         # to relay requests, so we spin up a local proxy using the proxy
@@ -171,7 +167,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Run it again without the proxy and it should fail.
         result = run(
             "handlers/handler_proxy.py --proxy=localhost:80801", stderr=PIPE)
-        self.assertNotEquals(result, 0)
+        self.assertNotEqual(result, 0)
 
     def test_index(self):
         self.check_commands(

@@ -69,6 +69,16 @@ RULES_SPLUNK = {
         'flags': ["--version"],
         'default': None,
         'help': 'Ignore. Used by JavaScript SDK.'
+    },
+    'splunkToken': {
+        'flags': ["--bearerToken"],
+        'default': None,
+        'help': 'Bearer token for authentication'
+    },
+    'token': {
+        'flags': ["--sessionKey"],
+        'default': None,
+        'help': 'Session key for authentication'
     }
 }
 
@@ -99,7 +109,8 @@ def dslice(value, *args):
 def parse(argv, rules=None, config=None, **kwargs):
     """Parse the given arg vector with the default Splunk command rules."""
     parser_ = parser(rules, **kwargs)
-    if config is not None: parser_.loadrc(config)
+    if config is not None:
+        parser_.loadenv(config)
     return parser_.parse(argv).result
 
 def parser(rules=None, **kwargs):

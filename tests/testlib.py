@@ -235,7 +235,7 @@ class SDKTestCase(unittest.TestCase):
         cls.opts = parse([], {}, ".env")
 
         # Before we start, make sure splunk doesn't need a restart.
-        service = client.connect(**cls.opts.kwargs)
+        service = client.connect(retries=5, retryBackoff=10, **cls.opts.kwargs)
         if service.restart_required:
             service.restart(timeout=120)
 

@@ -177,10 +177,16 @@ class ServiceTestCase(testlib.SDKTestCase):
         response = event_collector_endpoint.post("", body=json.dumps(msg))
         self.assertEqual(response.status, 200)
 
+
+class TestOptionalRetry(unittest.TestCase):
+
     def test_optional_retry(self):
-        service = client.connect(retries=5, retryBackoff=5, **self.opts.kwargs)
-        service.restart(timeout=20)  # less timeout so the optional retry logic is executed
-        self.assertEqual(service.get("/services").status, 200)
+        opts = testlib.parse([], {}, ".env")
+        kwargs = opts.kwargs.copy()
+        kwargs.update({'retries': 5, 'retryBackoff': 5})
+        self.service = client.connect(**kwargs)
+        self.service.restart(timeout=10)  # timeout value kept lower than actual time needed for Splunk to restart
+        self.assertEqual(self.service.get("/services").status, 200)
 
 
 class TestCookieAuthentication(unittest.TestCase):

@@ -183,7 +183,7 @@ class TestOptionalRetry(unittest.TestCase):
     def test_optional_retry(self):
         opts = testlib.parse([], {}, ".env")
         kwargs = opts.kwargs.copy()
-        kwargs.update({'retries': 5, 'retryBackoff': 5})
+        kwargs.update({'retries': 5})
         self.service = client.connect(**kwargs)
         self.service.restart(timeout=10)  # timeout value kept lower than actual time needed for Splunk to restart
         self.assertEqual(self.service.get("/services").status, 200)

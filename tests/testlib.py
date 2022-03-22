@@ -238,15 +238,15 @@ class SDKTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.opts = parse([], {}, ".env")
-
+        cls.opts.kwargs.update({'retries': 5})
         # Before we start, make sure splunk doesn't need a restart.
-        service = client.connect(retries=5, **cls.opts.kwargs)
+        service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
             service.restart(timeout=120)
 
     def setUp(self):
         unittest.TestCase.setUp(self)
-        self.service = client.connect(retries=5, **self.opts.kwargs)
+        self.service = client.connect(**self.opts.kwargs)
         # If Splunk is in a state requiring restart, go ahead
         # and restart. That way we'll be sane for the rest of
         # the test.

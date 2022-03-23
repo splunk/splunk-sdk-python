@@ -24,7 +24,7 @@ def modes(argv):
     while not job.is_ready():
         time.sleep(0.5)
         pass    
-    reader = results.ResultsReader(job.events())
+    reader = results.JSONResultsReader(job.events(output_mode='json'))
     # Events found: 0
     print('Events found with adhoc_search_level="smart": %s' % len([e for e in reader]))
 
@@ -33,7 +33,7 @@ def modes(argv):
     while not job.is_ready():
         time.sleep(0.5)
         pass
-    reader = results.ResultsReader(job.events())
+    reader = results.JSONResultsReader(job.events(output_mode='json'))
     # Events found: 10
     print('Events found with adhoc_search_level="verbose": %s' % len([e for e in reader]))
 

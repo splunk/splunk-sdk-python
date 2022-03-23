@@ -42,7 +42,7 @@ def follow(job, count, items):
             job.refresh()
             continue
         stream = items(offset+1)
-        for event in results.ResultsReader(stream):
+        for event in results.JSONResultsReader(stream):
             pprint(event)
         offset = total
 
@@ -72,10 +72,10 @@ def main():
         
     if job['reportSearch'] is not None: # Is it a transforming search?
         count = lambda: int(job['numPreviews'])
-        items = lambda _: job.preview()
+        items = lambda _: job.preview(output_mode='json')
     else:
         count = lambda: int(job['eventCount'])
-        items = lambda offset: job.events(offset=offset)
+        items = lambda offset: job.events(offset=offset, output_mode='json')
     
     try:
         follow(job, count, items)

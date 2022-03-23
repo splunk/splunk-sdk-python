@@ -2767,9 +2767,8 @@ class Job(Entity):
         return self
 
     def results(self, **query_params):
-        """Returns a streaming handle to this job's search results. To get a
-        nice, Pythonic iterator, pass the handle to :class:`splunklib.results.ResultsReader`,
-        as in::
+        """Returns a streaming handle to this job's search results. To get a nice, Pythonic iterator, pass the handle
+        to :class:`splunklib.results.JSONResultsReader` along with the query param "output_mode='json'", as in::
 
             import splunklib.client as client
             import splunklib.results as results
@@ -2778,7 +2777,7 @@ class Job(Entity):
             job = service.jobs.create("search * | head 5")
             while not job.is_done():
                 sleep(.2)
-            rr = results.ResultsReader(job.results())
+            rr = results.JSONResultsReader(job.results(output_mode='json'))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
@@ -2808,19 +2807,17 @@ class Job(Entity):
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
 
-        Unlike :class:`splunklib.results.ResultsReader`, which requires a job to
-        be finished to
-        return any results, the ``preview`` method returns any results that have
-        been generated so far, whether the job is running or not. The
-        returned search results are the raw data from the server. Pass
-        the handle returned to :class:`splunklib.results.ResultsReader` to get a
-        nice, Pythonic iterator over objects, as in::
+        Unlike :class:`splunklib.results.JSONResultsReader`along with the query param "output_mode='json'",
+        which requires a job to be finished to return any results, the ``preview`` method returns any results that
+        have been generated so far, whether the job is running or not. The returned search results are the raw data
+        from the server. Pass the handle returned to :class:`splunklib.results.JSONResultsReader` to get a nice,
+        Pythonic iterator over objects, as in::
 
             import splunklib.client as client
             import splunklib.results as results
             service = client.connect(...)
             job = service.jobs.create("search * | head 5")
-            rr = results.ResultsReader(job.preview())
+            rr = results.JSONResultsReader(job.preview(output_mode='json'))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
@@ -2975,15 +2972,15 @@ class Jobs(Collection):
         return Job(self.service, sid)
 
     def export(self, query, **params):
-        """Runs a search and immediately starts streaming preview events.
-        This method returns a streaming handle to this job's events as an XML
-        document from the server. To parse this stream into usable Python objects,
-        pass the handle to :class:`splunklib.results.ResultsReader`::
+        """Runs a search and immediately starts streaming preview events. This method returns a streaming handle to
+        this job's events as an XML document from the server. To parse this stream into usable Python objects,
+        pass the handle to :class:`splunklib.results.JSONResultsReader` along with the query param
+        "output_mode='json'"::
 
             import splunklib.client as client
             import splunklib.results as results
             service = client.connect(...)
-            rr = results.ResultsReader(service.jobs.export("search * | head 5"))
+            rr = results.JSONResultsReader(service.jobs.export("search * | head 5",output_mode='json'))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
@@ -3032,14 +3029,14 @@ class Jobs(Collection):
     def oneshot(self, query, **params):
         """Run a oneshot search and returns a streaming handle to the results.
 
-        The ``InputStream`` object streams XML fragments from the server. To
-        parse this stream into usable Python objects,
-        pass the handle to :class:`splunklib.results.ResultsReader`::
+        The ``InputStream`` object streams XML fragments from the server. To parse this stream into usable Python
+        objects, pass the handle to :class:`splunklib.results.JSONResultsReader` along with the query param
+        "output_mode='json'" ::
 
             import splunklib.client as client
             import splunklib.results as results
             service = client.connect(...)
-            rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
+            rr = results.JSONResultsReader(service.jobs.oneshot("search * | head 5",output_mode='json'))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results

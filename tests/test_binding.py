@@ -69,7 +69,7 @@ class BindingTestCase(unittest.TestCase):
     context = None
     def setUp(self):
         logging.info("%s", self.__class__.__name__)
-        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.opts = testlib.parse([], {}, ".env")
         self.context = binding.connect(**self.opts.kwargs)
         logging.debug("Connected to splunkd.")
 
@@ -512,7 +512,7 @@ class TestLogout(BindingTestCase):
 
 class TestCookieAuthentication(unittest.TestCase):
     def setUp(self):
-        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.opts = testlib.parse([], {}, ".env")
         self.context = binding.connect(**self.opts.kwargs)
 
         # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
@@ -709,7 +709,7 @@ class TestNamespace(unittest.TestCase):
 @pytest.mark.smoke
 class TestBasicAuthentication(unittest.TestCase):
     def setUp(self):
-        self.opts = testlib.parse([], {}, ".splunkrc")
+        self.opts = testlib.parse([], {}, ".env")
         opts = self.opts.kwargs.copy()
         opts["basic"] = True
         opts["username"] = self.opts.kwargs["username"]

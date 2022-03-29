@@ -54,8 +54,8 @@ class TestUtilities(testlib.SDKTestCase):
 
     def test_oneshot(self):
         jobs = self.service.jobs
-        stream = jobs.oneshot("search index=_internal earliest=-1m | head 3")
-        result = results.ResultsReader(stream)
+        stream = jobs.oneshot("search index=_internal earliest=-1m | head 3", output_mode='json')
+        result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
         self.assertTrue(isinstance(ds[0], dict) or \
@@ -69,8 +69,8 @@ class TestUtilities(testlib.SDKTestCase):
 
     def test_export(self):
         jobs = self.service.jobs
-        stream = jobs.export("search index=_internal earliest=-1m | head 3")
-        result = results.ResultsReader(stream)
+        stream = jobs.export("search index=_internal earliest=-1m | head 3", output_mode='json')
+        result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
         self.assertTrue(isinstance(ds[0], dict) or \
@@ -82,7 +82,7 @@ class TestUtilities(testlib.SDKTestCase):
         import splunklib.client as client
         import splunklib.results as results
         service = self.service # cheat
-        rr = results.ResultsReader(service.jobs.export("search * | head 5"))
+        rr = results.JSONResultsReader(service.jobs.export("search * | head 5", output_mode='json'))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
@@ -98,7 +98,7 @@ class TestUtilities(testlib.SDKTestCase):
         job = service.jobs.create("search * | head 5")
         while not job.is_done():
             sleep(0.2)
-        rr = results.ResultsReader(job.results())
+        rr = results.JSONResultsReader(job.results(output_mode='json'))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
@@ -113,7 +113,7 @@ class TestUtilities(testlib.SDKTestCase):
         import splunklib.results as results
         service = self.service # cheat
         job = service.jobs.create("search * | head 5")
-        rr = results.ResultsReader(job.preview())
+        rr = results.JSONResultsReader(job.preview(output_mode='json'))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
@@ -130,7 +130,7 @@ class TestUtilities(testlib.SDKTestCase):
         import splunklib.client as client
         import splunklib.results as results
         service = self.service # cheat
-        rr = results.ResultsReader(service.jobs.oneshot("search * | head 5"))
+        rr = results.JSONResultsReader(service.jobs.oneshot("search * | head 5", output_mode='json'))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
@@ -295,12 +295,12 @@ class TestJob(testlib.SDKTestCase):
         self.assertEventuallyTrue(self.job.is_done)
         self.assertLessEqual(int(self.job['eventCount']), 3)
 
-        preview_stream = self.job.preview()
-        preview_r = results.ResultsReader(preview_stream)
+        preview_stream = self.job.preview(output_mode='json')
+        preview_r = results.JSONResultsReader(preview_stream)
         self.assertFalse(preview_r.is_preview)
 
-        events_stream = self.job.events()
-        events_r = results.ResultsReader(events_stream)
+        events_stream = self.job.events(output_mode='json')
+        events_r = results.JSONResultsReader(events_stream)
 
         n_events = len([x for x in events_r if isinstance(x, dict)])
         n_preview = len([x for x in preview_r if isinstance(x, dict)])
@@ -389,10 +389,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):
@@ -411,10 +408,7 @@ class TestResultsReader(unittest.TestCase):
             N_results = 0
             N_messages = 0
             for r in reader:
-                try:
-                    from collections import OrderedDict
-                except:
-                    from splunklib.ordereddict import OrderedDict
+                from collections import OrderedDict
                 self.assertTrue(isinstance(r, OrderedDict)
                                 or isinstance(r, results.Message))
                 if isinstance(r, OrderedDict):

@@ -47,6 +47,7 @@ try:
 except ImportError as e:
     from xml.parsers.expat import ExpatError as ParseError
 
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "AuthenticationError",
@@ -68,7 +69,7 @@ def _log_duration(f):
         start_time = datetime.now()
         val = f(*args, **kwargs)
         end_time = datetime.now()
-        logging.debug("Operation took %s", end_time-start_time)
+        logger.debug("Operation took %s", end_time-start_time)
         return val
     return new_f
 
@@ -616,7 +617,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("DELETE request to %s (body: %s)", path, repr(query))
+        logger.debug("DELETE request to %s (body: %s)", path, repr(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
@@ -679,7 +680,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logging.debug("GET request to %s (body: %s)", path, repr(query))
+        logger.debug("GET request to %s (body: %s)", path, repr(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
         return response
@@ -757,14 +758,20 @@ class Context(object):
             headers = []
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
-        logging.debug("POST request to %s (body: %s)", path, repr(query))
+
+        # To avoid writing sensitive data in debug logs
+        endpoint_having_sensitive_data = ["/storage/passwords"]
+        if any(endpoint in path for endpoint in endpoint_having_sensitive_data):
+            logger.debug("POST request to %s ", path)
+        else:
+            logger.debug("POST request to %s (body: %s)", path, repr(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
 
     @_authentication
     @_log_duration
-    def request(self, path_segment, method="GET", headers=None, body="",
+    def request(self, path_segment, method="GET", headers=None, body={},
                 owner=None, app=None, sharing=None):
         """Issues an arbitrary HTTP request to the REST path segment.
 
@@ -824,13 +831,28 @@ class Context(object):
         path = self.authority \
             + self._abspath(path_segment, owner=owner,
                             app=app, sharing=sharing)
+
         all_headers = headers + self.additional_headers + self._auth_headers
-        logging.debug("%s request to %s (headers: %s, body: %s)",
+        logger.debug("%s request to %s (headers: %s, body: %s)",
                       method, path, str(all_headers), repr(body))
-        response = self.http.request(path,
-                                     {'method': method,
-                                     'headers': all_headers,
-                                     'body': body})
+
+        if body:
+            body = _encode(**body)
+
+            if method == "GET":
+                path = path + UrlEncoded('?' + body, skip_encode=True)
+                message = {'method': method,
+                           'headers': all_headers}
+            else:
+                message = {'method': method,
+                           'headers': all_headers,
+                           'body': body}
+        else:
+            message = {'method': method,
+                       'headers': all_headers}
+
+        response = self.http.request(path, message)
+
         return response
 
     def login(self):
@@ -1290,7 +1312,10 @@ class ResponseReader(io.RawIOBase):
         self._buffer = b''
 
     def __str__(self):
-        return self.read()
+        if six.PY2:
+            return self.read()
+        else:
+            return str(self.read(), 'UTF-8')
 
     @property
     def empty(self):
@@ -1389,7 +1414,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.18",
+            "User-Agent": "splunk-sdk-python/1.6.19",
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

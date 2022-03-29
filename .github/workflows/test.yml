@@ -1,7 +1,7 @@
 name: Python CI
 
 on:
-  [push, pull_request]
+  [ push, pull_request ]
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        python: [2.7, 3.7]
+        python: [ 2.7, 3.7 ]
         splunk-version:
           - "8.0"
           - "latest"
@@ -36,15 +36,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - name: Create .splunkrc file
-        run: |
-          cd ~
-          echo host=localhost > .splunkrc
-          echo port=8089 >> .splunkrc
-          echo username=admin >> .splunkrc
-          echo password=changed! >> .splunkrc
-          echo scheme=https >> .splunkrc
-          echo version=${{ matrix.splunk }} >> .splunkrc
       - name: Install tox
         run: pip install tox
       - name: Test Execution

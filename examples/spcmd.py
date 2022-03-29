@@ -118,7 +118,7 @@ def actions(opts):
     return len(opts.args) > 0 or 'eval' in opts.kwargs 
 
 def main():
-    opts = utils.parse(sys.argv[1:], RULES, ".splunkrc")
+    opts = utils.parse(sys.argv[1:], RULES, ".env")
 
     # Connect and initialize the command session
     session = Session(**opts.kwargs)

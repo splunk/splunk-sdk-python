@@ -48,12 +48,14 @@ class InputDefinitionTestCase(unittest.TestCase):
             "session_key": "123102983109283019283"
         }
         expectedDefinition.inputs["foobar://aaa"] = {
+            "__app": "search",
             "param1": "value1",
             "param2": "value2",
             "disabled": "0",
             "index": "default"
         }
         expectedDefinition.inputs["foobar://bbb"] = {
+            "__app": "my_app",
             "param1": "value11",
             "param2": "value22",
             "disabled": "0",

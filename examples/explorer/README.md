@@ -8,7 +8,7 @@ To run, simply execute:
 
     ./explorer.py
 
-It will pick up all relevant values from your .splunkrc, or you can pass them 
+It will pick up all relevant values from your .env, or you can pass them 
 in on the command line. You can see help by adding `--help` to the exectuion.
 
 The API Explorer will open up a browser window that will show you a drop down

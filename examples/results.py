@@ -17,18 +17,21 @@
 """A script that reads XML search results from stdin and pretty-prints them
    back to stdout. The script is designed to be used with the search.py 
    example, eg: './search.py "search 404" | ./results.py'"""
- 
+
 from __future__ import absolute_import
 from pprint import pprint
 import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import splunklib.results as results
 
+
 def pretty():
-    reader = results.ResultsReader(sys.stdin)
+    reader = results.JSONResultsReader(sys.stdin)
     for event in reader:
         pprint(event)
+
 
 if __name__ == "__main__":
     pretty()

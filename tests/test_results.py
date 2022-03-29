@@ -30,7 +30,7 @@ class ResultsTestCase(testlib.SDKTestCase):
         job = self.service.jobs.create("search index=_internal_does_not_exist | head 2")
         while not job.is_done():
             sleep(0.5)
-        self.assertEqual(0, len(list(results.ResultsReader(io.BufferedReader(job.results())))))
+        self.assertEqual(0, len(list(results.JSONResultsReader(io.BufferedReader(job.results(output_mode='json'))))))
 
     def test_read_normal_results(self):
         xml_text = """

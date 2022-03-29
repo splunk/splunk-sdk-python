@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from pprint import pprint
 
 from splunklib.client import connect
-from splunklib.results import ResultsReader
+from splunklib.results import JSONResultsReader
 
 try:
     import utils
@@ -35,7 +35,7 @@ except ImportError:
 
 def main():
     usage = "usage: %prog <search>"
-    opts = utils.parse(sys.argv[1:], {}, ".splunkrc", usage=usage)
+    opts = utils.parse(sys.argv[1:], {}, ".env", usage=usage)
 
     if len(opts.args) != 1:
         utils.error("Search expression required", 2)
@@ -49,9 +49,10 @@ def main():
             search=search,
             earliest_time="rt", 
             latest_time="rt", 
-            search_mode="realtime")
+            search_mode="realtime",
+            output_mode="json")
 
-        for result in ResultsReader(result.body):
+        for result in JSONResultsReader(result.body):
             if result is not None:
                 print(pprint(result))
 

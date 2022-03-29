@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch: {}
+  workflow_dispatch: { }
 
 jobs:
   find_version:
@@ -21,6 +21,13 @@ jobs:
       - name: Get version
         id: get-version
         run: python -c 'import splunklib; print("::set-output name=version::%s" % splunklib.__version__)'
+      - name: Install tox
+        run: pip install tox
+      - name: Generate API docs
+        run: |
+          rm -rf ./docs/_build
+          tox -e docs
+          cd ./docs/_build/html && zip -r ../docs_html.zip . -x ".*" -x "__MACOSX"
   tag_version:
     needs: find_version
     name: Tag Version
@@ -32,7 +39,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.find_version.outputs.version }}
   release:
-    needs: [find_version, tag_version]
+    needs: [ find_version, tag_version ]
     name: Create Release
     runs-on: ubuntu-latest
     steps:
@@ -52,6 +59,11 @@ jobs:
             **TODO: Insert CHANGELOG.md contents here.**
           draft: false
           prerelease: false
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: apidocs
+          path: docs/_build/docs_html.zip
   publish:
     needs: release
     name: Deploy Release to PyPI

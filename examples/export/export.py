@@ -320,7 +320,7 @@ def export(options, service):
 
 def main():
     """ main entry """
-    options = parse(sys.argv[1:], CLIRULES, ".splunkrc")
+    options = parse(sys.argv[1:], CLIRULES, ".env")
 
     if options.kwargs['omode'] not in OUTPUT_MODES:
         print("output mode must be one of %s, found %s" % (OUTPUT_MODES,

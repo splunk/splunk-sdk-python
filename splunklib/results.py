@@ -34,18 +34,19 @@ as follows:::
 
 from __future__ import absolute_import
 
-from io import BytesIO
+from io import BufferedReader, BytesIO
 
 from splunklib import six
+
+from splunklib.six import deprecated
+
 try:
     import xml.etree.cElementTree as et
 except:
     import xml.etree.ElementTree as et
 
-try:
-    from collections import OrderedDict  # must be python 2.7
-except ImportError:
-    from .ordereddict import OrderedDict
+from collections import OrderedDict
+from json import loads as json_loads
 
 try:
     from splunklib.six.moves import cStringIO as StringIO
@@ -57,6 +58,7 @@ __all__ = [
     "Message"
 ]
 
+
 class Message(object):
     """This class represents informational messages that Splunk interleaves in the results stream.
 
@@ -67,6 +69,7 @@ class Message(object):
 
         m = Message("DEBUG", "There's something in that variable...")
     """
+
     def __init__(self, type_, message):
         self.type = type_
         self.message = message
@@ -80,6 +83,7 @@ class Message(object):
     def __hash__(self):
         return hash((self.type, self.message))
 
+
 class _ConcatenatedStream(object):
     """Lazily concatenate zero or more streams into a stream.
 
@@ -92,6 +96,7 @@ class _ConcatenatedStream(object):
         s = _ConcatenatedStream(StringIO("abc"), StringIO("def"))
         assert s.read() == "abcdef"
     """
+
     def __init__(self, *streams):
         self.streams = list(streams)
 
@@ -110,6 +115,7 @@ class _ConcatenatedStream(object):
                 del self.streams[0]
         return response
 
+
 class _XMLDTDFilter(object):
     """Lazily remove all XML DTDs from a stream.
 
@@ -123,6 +129,7 @@ class _XMLDTDFilter(object):
         s = _XMLDTDFilter("<?xml abcd><element><?xml ...></element>")
         assert s.read() == "<element></element>"
     """
+
     def __init__(self, stream):
         self.stream = stream
 
@@ -153,6 +160,8 @@ class _XMLDTDFilter(object):
                     n -= 1
         return response
 
+
+@deprecated("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
 class ResultsReader(object):
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
@@ -180,6 +189,7 @@ class ResultsReader(object):
                 print "Message: %s" % result
         print "is_preview = %s " % reader.is_preview
     """
+
     # Be sure to update the docstrings of client.Jobs.oneshot,
     # client.Job.results_preview and client.Job.results to match any
     # changes made to ResultsReader.
@@ -260,16 +270,16 @@ class ResultsReader(object):
                         # So we'll define it here
 
                         def __itertext(self):
-                          tag = self.tag
-                          if not isinstance(tag, six.string_types) and tag is not None:
-                              return
-                          if self.text:
-                              yield self.text
-                          for e in self:
-                              for s in __itertext(e):
-                                  yield s
-                              if e.tail:
-                                  yield e.tail
+                            tag = self.tag
+                            if not isinstance(tag, six.string_types) and tag is not None:
+                                return
+                            if self.text:
+                                yield self.text
+                            for e in self:
+                                for s in __itertext(e):
+                                    yield s
+                                if e.tail:
+                                    yield e.tail
 
                         text = "".join(__itertext(elem))
                     values.append(text)
@@ -291,5 +301,69 @@ class ResultsReader(object):
                 raise
 
 
+class JSONResultsReader(object):
+    """This class returns dictionaries and Splunk messages from a JSON results
+    stream.
+    ``JSONResultsReader`` is iterable, and returns a ``dict`` for results, or a
+    :class:`Message` object for Splunk messages. This class has one field,
+    ``is_preview``, which is ``True`` when the results are a preview from a
+    running search, or ``False`` when the results are from a completed search.
+    This function has no network activity other than what is implicit in the
+    stream it operates on.
+    :param `stream`: The stream to read from (any object that supports
+        ``.read()``).
+    **Example**::
+        import results
+        response = ... # the body of an HTTP response
+        reader = results.JSONResultsReader(response)
+        for result in reader:
+            if isinstance(result, dict):
+                print "Result: %s" % result
+            elif isinstance(result, results.Message):
+                print "Message: %s" % result
+        print "is_preview = %s " % reader.is_preview
+    """
 
+    # Be sure to update the docstrings of client.Jobs.oneshot,
+    # client.Job.results_preview and client.Job.results to match any
+    # changes made to JSONResultsReader.
+    #
+    # This wouldn't be a class, just the _parse_results function below,
+    # except that you cannot get the current generator inside the
+    # function creating that generator. Thus it's all wrapped up for
+    # the sake of one field.
+    def __init__(self, stream):
+        # The search/jobs/exports endpoint, when run with
+        # earliest_time=rt and latest_time=rt, output_mode=json, streams a sequence of
+        # JSON documents, each containing a result, as opposed to one
+        # results element containing lots of results.
+        stream = BufferedReader(stream)
+        self.is_preview = None
+        self._gen = self._parse_results(stream)
 
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return next(self._gen)
+
+    __next__ = next
+
+    def _parse_results(self, stream):
+        """Parse results and messages out of *stream*."""
+        for line in stream.readlines():
+            strip_line = line.strip()
+            if strip_line.__len__() == 0: continue
+            parsed_line = json_loads(strip_line)
+            if "preview" in parsed_line:
+                self.is_preview = parsed_line["preview"]
+            if "messages" in parsed_line and parsed_line["messages"].__len__() > 0:
+                for message in parsed_line["messages"]:
+                    msg_type = message.get("type", "Unknown Message Type")
+                    text = message.get("text")
+                yield Message(msg_type, text)
+            if "result" in parsed_line:
+                yield parsed_line["result"]
+            if "results" in parsed_line:
+                for result in parsed_line["results"]:
+                    yield result

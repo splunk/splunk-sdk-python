@@ -1,5 +1,42 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.19
+
+### New features and APIs
+* [#441](https://github.com/splunk/splunk-sdk-python/pull/441) JSONResultsReader added and deprecated ResultsReader
+  * Pre-requisite: Query parameter 'output_mode' must be set to 'json'
+  * Improves performance by approx ~80-90%
+  * ResultsReader is deprecated and will be removed in future releases (NOTE: Please migrate to JSONResultsReader)
+* [#437](https://github.com/splunk/splunk-sdk-python/pull/437) added setup_logging() method in splunklib for logging
+* [#426](https://github.com/splunk/splunk-sdk-python/pull/426) Added new github_commit modular input example
+* [#392](https://github.com/splunk/splunk-sdk-python/pull/392) Break out search argument to option parsing for v2 custom search commands
+* [#384](https://github.com/splunk/splunk-sdk-python/pull/384) Added Float parameter validator for custom search commands
+* [#371](https://github.com/splunk/splunk-sdk-python/pull/371) Modinput preserve 'app' context
+
+### Bug fixes
+* [#439](https://github.com/splunk/splunk-sdk-python/pull/439) Modified POST method debug log to not log sensitive body/data
+* [#431](https://github.com/splunk/splunk-sdk-python/pull/431) Add distsearch.conf to Stream Search Command examples [ [issue#418](https://github.com/splunk/splunk-sdk-python/issues/418) ]
+* [#419](https://github.com/splunk/splunk-sdk-python/pull/419) Hec endpoint issue[ [issue#345](https://github.com/splunk/splunk-sdk-python/issues/345) ]
+* [#416](https://github.com/splunk/splunk-sdk-python/pull/416) Removed strip() method in load_value() method from data.py file [ [issue#400](https://github.com/splunk/splunk-sdk-python/issues/400) ]
+* [#148](https://github.com/splunk/splunk-sdk-python/pull/148) Identical entity names will cause an infinite loop
+
+### Minor changes
+* [#440](https://github.com/splunk/splunk-sdk-python/pull/440) Github release workflow modified to generate docs
+* [#430](https://github.com/splunk/splunk-sdk-python/pull/430) Fix indentation in README
+* [#429](https://github.com/splunk/splunk-sdk-python/pull/429) documented how to access modular input metadata
+* [#427](https://github.com/splunk/splunk-sdk-python/pull/427) Replace .splunkrc with .env file in test and examples
+* [#424](https://github.com/splunk/splunk-sdk-python/pull/424) Float validator test fix
+* [#423](https://github.com/splunk/splunk-sdk-python/pull/423) Python3 compatibility for ResponseReader.__str__()
+* [#422](https://github.com/splunk/splunk-sdk-python/pull/422) ordereddict and all its reference removed
+* [#421](https://github.com/splunk/splunk-sdk-python/pull/421) Update README.md
+* [#387](https://github.com/splunk/splunk-sdk-python/pull/387) Update filter.py
+* [#331](https://github.com/splunk/splunk-sdk-python/pull/331) Fix a couple of warnings spotted when running python 2.7 tests
+* [#330](https://github.com/splunk/splunk-sdk-python/pull/330) client: use six.string_types instead of basestring
+* [#329](https://github.com/splunk/splunk-sdk-python/pull/329) client: remove outdated comment in Index.submit
+* [#262](https://github.com/splunk/splunk-sdk-python/pull/262) properly add parameters to request based on the method of the request
+* [#237](https://github.com/splunk/splunk-sdk-python/pull/237) Don't output close tags if you haven't written a start tag
+* [#149](https://github.com/splunk/splunk-sdk-python/pull/149) "handlers" stanza missing in examples/searchcommands_template/default/logging.conf
+
 ## Version 1.6.18
 
 ### Bug fixes

@@ -151,7 +151,7 @@ def main():
     commands = ['create', 'delete', 'list']
 
     # parse args, connect and setup 
-    opts = parse(argv, {}, ".splunkrc", usage=usage)
+    opts = parse(argv, {}, ".env", usage=usage)
     service = connect(**opts.kwargs)
     program = Program(service)
 

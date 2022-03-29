@@ -32,21 +32,21 @@ except ImportError:
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 def pretty(response):
-    reader = results.ResultsReader(response)
+    reader = results.JSONResultsReader(response)
     for result in reader:
         if isinstance(result, dict):
             pprint(result)
 
 def main():
     usage = "usage: oneshot.py <search>"
-    opts = utils.parse(sys.argv[1:], {}, ".splunkrc", usage=usage)
+    opts = utils.parse(sys.argv[1:], {}, ".env", usage=usage)
     if len(opts.args) != 1:
         utils.error("Search expression required", 2)
 
     search = opts.args[0]
     service = connect(**opts.kwargs)
     socket.setdefaulttimeout(None)
-    response = service.jobs.oneshot(search)
+    response = service.jobs.oneshot(search, output_mode='json')
 
     pretty(response)
 

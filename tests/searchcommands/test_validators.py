@@ -205,6 +205,63 @@ class TestValidators(TestCase):
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
         return
+    
+    def test_float(self):
+        # Float validator test
+
+        maxsize = 1.5
+        minsize = -1.5
+
+        validator = validators.Float()
+
+        def test(float_val):
+            try:
+                float_val = float(float_val)
+            except ValueError:
+                assert False
+            for s in str(float_val), six.text_type(float_val):
+                value = validator.__call__(s)
+                self.assertAlmostEqual(value, float_val)
+                self.assertIsInstance(value, float)
+            self.assertEqual(validator.format(float_val), six.text_type(float_val))
+
+        test(2 * minsize)
+        test(minsize)
+        test(-1)
+        test(0)
+        test(-1.12345)
+        test(0.0001)
+        test(100101.011)
+        test(2 * maxsize)
+        test('18.32123')
+        self.assertRaises(ValueError, validator.__call__, 'Splunk!')
+
+        validator = validators.Float(minimum=0)
+        self.assertEqual(validator.__call__(0), 0)
+        self.assertEqual(validator.__call__(1.154), 1.154)
+        self.assertEqual(validator.__call__(888.51), 888.51)
+        self.assertEqual(validator.__call__(2 * maxsize), (2 * maxsize))
+        self.assertRaises(ValueError, validator.__call__, -1)
+        self.assertRaises(ValueError, validator.__call__, -1111.00578)
+        self.assertRaises(ValueError, validator.__call__, -0.005)
+
+        validator = validators.Float(minimum=1, maximum=maxsize)
+        self.assertEqual(validator.__call__(1), float(1))
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, 0)
+        self.assertRaises(ValueError, validator.__call__, 0.9999)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
+
+        validator = validators.Float(minimum=minsize, maximum=maxsize)
+        self.assertEqual(validator.__call__(minsize), minsize)
+        self.assertEqual(validator.__call__(0.123456), 0.123456)
+        self.assertEqual(validator.__call__(0), float(0))
+        self.assertEqual(validator.__call__(-0.012), -0.012)
+        self.assertEqual(validator.__call__(maxsize), maxsize)
+        self.assertRaises(ValueError, validator.__call__, minsize - 1)
+        self.assertRaises(ValueError, validator.__call__, maxsize + 1)
+
+        return
 
     def test_list(self):
 

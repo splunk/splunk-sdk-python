@@ -2714,6 +2714,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
+        kwargs.pop('search', None)
         return self.get("events", **kwargs).body
 
     def finalize(self):
@@ -2802,6 +2803,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
+        query_params.pop('search', None)
         return self.get("results", **query_params).body
 
     def preview(self, **query_params):
@@ -2843,6 +2845,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
+        query_params.pop('search', None)
         return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):

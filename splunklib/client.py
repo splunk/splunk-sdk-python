@@ -557,7 +557,7 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
-        return self.get("search/parser", q=query, **kwargs)
+        return self.post("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):
         """Restarts this Splunk instance.

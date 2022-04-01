@@ -518,23 +518,23 @@ class Context(object):
 
         :returns: A list of 2-tuples containing key and value
         """
-        if self.has_cookies():
-            return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
-        elif self.basic and (self.username and self.password):
-            token = 'Basic %s' % b64encode(("%s:%s" % (self.username, self.password)).encode('utf-8')).decode('ascii')
-            return [("Authorization", token)]
-        elif self.bearerToken:
-            token = 'Bearer %s' % self.bearerToken
-            return [("Authorization", token)]
-        elif self.token is _NoAuthenticationToken:
-            return []
-        else:
-            # Ensure the token is properly formatted
+        if self.token is not _NoAuthenticationToken:
             if self.token.startswith('Splunk '):
                 token = self.token
             else:
                 token = 'Splunk %s' % self.token
             return [("Authorization", token)]
+        elif self.bearerToken:
+            token = 'Bearer %s' % self.bearerToken
+            return [("Authorization", token)]
+        elif self.basic and (self.username and self.password):
+            token = 'Basic %s' % b64encode(("%s:%s" % (self.username, self.password)).encode('utf-8')).decode('ascii')
+            return [("Authorization", token)]
+        elif self.has_cookies():
+            return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
+        else:
+            # no Authentication token
+            return []
 
     def connect(self):
         """Returns an open connection (socket) to the Splunk instance.

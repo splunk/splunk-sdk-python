@@ -99,6 +99,7 @@ PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
+PATH_JOBS_V2 = "search/v2/jobs/"
 PATH_LOGGER = "/services/server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
@@ -2658,10 +2659,10 @@ class Inputs(Collection):
 
 
 class Job(Entity):
+
     """This class represents a search job."""
     def __init__(self, service, sid, **kwargs):
-        path = PATH_JOBS + sid
-        Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
+        Entity.__init__(self, service, '', skip_refresh=True, **kwargs)
         self.sid = sid
 
     # The Job entry record is returned at the root of the response
@@ -2714,8 +2715,13 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
-        kwargs.pop('search', None)
-        return self.get("events", **kwargs).body
+        path = "{path}{sid}/events"
+
+        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
+        if self.splunk_version < (9,) or 'search' in kwargs:
+            return self.get(path.format(PATH_JOBS, self.sid), **kwargs).body
+        else:
+            return self.get(path.format(PATH_JOBS_V2, self.sid), **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2803,8 +2809,13 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        query_params.pop('search', None)
-        return self.get("results", **query_params).body
+        path = "{path}{sid}/results"
+
+        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
+        if self.splunk_version < (9,) or 'search' in query_params:
+            return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
+        else:
+            return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2845,8 +2856,13 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        query_params.pop('search', None)
-        return self.get("results_preview", **query_params).body
+        path = "{path}{sid}/results_preview"
+
+        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
+        if self.splunk_version < (9,) or 'search' in query_params:
+            return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
+        else:
+            return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2935,7 +2951,12 @@ class Jobs(Collection):
     """This class represents a collection of search jobs. Retrieve this
     collection using :meth:`Service.jobs`."""
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_JOBS, item=Job)
+        # Splunk 9 introduces the v2 endpoint
+        if self.splunk_version >= (9,):
+            path = PATH_JOBS_V2
+        else:
+            path = PATH_JOBS
+        Collection.__init__(self, service, path, item=Job)
         # The count value to say list all the contents of this
         # Collection is 0, not -1 as it is on most.
         self.null_count = 0

@@ -2720,8 +2720,7 @@ class Job(Entity):
         # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
         if self.splunk_version < (9,) or 'search' in kwargs:
             return self.get(path.format(PATH_JOBS, self.sid), **kwargs).body
-        else:
-            return self.get(path.format(PATH_JOBS_V2, self.sid), **kwargs).body
+        return self.get(path.format(PATH_JOBS_V2, self.sid), **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2814,8 +2813,7 @@ class Job(Entity):
         # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
         if self.splunk_version < (9,) or 'search' in query_params:
             return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
-        else:
-            return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
+        return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2861,8 +2859,7 @@ class Job(Entity):
         # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
         if self.splunk_version < (9,) or 'search' in query_params:
             return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
-        else:
-            return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
+        return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.

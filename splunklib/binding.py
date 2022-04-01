@@ -504,8 +504,8 @@ class Context(object):
         :return: ``True`` if there is auth token present, else ``False``
         :rtype: ``bool``
         """
-        auth_token_key = "splunkd_8089"
-        return auth_token_key in self.get_cookies().keys()
+        auth_token_key = "splunkd_"
+        return any(auth_token_key in key for key in self.get_cookies().keys())
 
     # Shared per-context request headers
     @property

@@ -2661,9 +2661,12 @@ class Inputs(Collection):
 class Job(Entity):
 
     """This class represents a search job."""
-    def __init__(self, service, sid, **kwargs):
+    def __init__(self, service, sid, defaultPath, **kwargs):
+        
+        # Don't provide a path, allow it to be dynamically generated
         Entity.__init__(self, service, '', skip_refresh=True, **kwargs)
         self.sid = sid
+        self.defaultPath = defaultPath + sid + '/'
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -2675,7 +2678,7 @@ class Job(Entity):
         :return: The :class:`Job`.
         """
         try:
-            self.post("control", action="cancel")
+            self.post(self.defaultPath + "control", action="cancel")
         except HTTPError as he:
             if he.status == 404:
                 # The job has already been cancelled, so
@@ -2690,7 +2693,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="disablepreview")
+        self.post(self.defaultPath + "control", action="disablepreview")
         return self
 
     def enable_preview(self):
@@ -2700,7 +2703,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="enablepreview")
+        self.post(self.defaultPath + "control", action="enablepreview")
         return self
 
     def events(self, **kwargs):
@@ -2727,7 +2730,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="finalize")
+        self.post(self.defaultPath + "control", action="finalize")
         return self
 
     def is_done(self):
@@ -2748,7 +2751,7 @@ class Job(Entity):
         :rtype: ``boolean``
 
         """
-        response = self.get()
+        response = self.get(self.defaultPath)
         if response.status == 204:
             return False
         self._state = self.read(response)
@@ -2769,7 +2772,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="pause")
+        self.post(self.defaultPath + "control", action="pause")
         return self
 
     def results(self, **query_params):
@@ -2872,7 +2875,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's search log.
         """
-        return self.get("search.log", **kwargs).body
+        return self.get(self.defaultPath + "search.log", **kwargs).body
 
     def set_priority(self, value):
         """Sets this job's search priority in the range of 0-10.
@@ -2885,7 +2888,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post('control', action="setpriority", priority=value)
+        self.post(self.defaultPath + 'control', action="setpriority", priority=value)
         return self
 
     def summary(self, **kwargs):
@@ -2899,7 +2902,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's summary.
         """
-        return self.get("summary", **kwargs).body
+        return self.get(self.defaultPath + "summary", **kwargs).body
 
     def timeline(self, **kwargs):
         """Returns a streaming handle to this job's timeline results.
@@ -2912,7 +2915,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's timeline.
         """
-        return self.get("timeline", **kwargs).body
+        return self.get(self.defaultPath + "timeline", **kwargs).body
 
     def touch(self):
         """Extends the expiration time of the search to the current time (now) plus
@@ -2920,7 +2923,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="touch")
+        self.post(self.defaultPath + "control", action="touch")
         return self
 
     def set_ttl(self, value):
@@ -2932,7 +2935,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="setttl", ttl=value)
+        self.post(self.defaultPath + "control", action="setttl", ttl=value)
         return self
 
     def unpause(self):
@@ -2940,7 +2943,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post("control", action="unpause")
+        self.post(self.defaultPath + "control", action="unpause")
         return self
 
 
@@ -2990,7 +2993,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
         sid = _load_sid(response)
-        return Job(self.service, sid)
+        return Job(self.service, sid, self.path)
 
     def export(self, query, **params):
         """Runs a search and immediately starts streaming preview events. This method returns a streaming handle to

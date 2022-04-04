@@ -558,6 +558,8 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
+        if self.splunk_version >= (9,):
+            return self.get("search/v2/parser", q=query, **kwargs)
         return self.post("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):

@@ -40,10 +40,15 @@ def request(url, message, **kwargs):
     # If running Python 2.7.9+, disable SSL certificate validation
     req = urllib.request.Request(url, data, headers)
     try:
-        if sys.version_info >= (2, 7, 9):
+        if sys.version_info >= (2, 7, 9) and os.environ.get('PYTHONHTTPSVERIFY', '0') == '0':
             response = urllib.request.urlopen(req, context=ssl._create_unverified_context())
         else:
-            response = urllib.request.urlopen(req)
+            # create context with certificate and privateKey
+            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            context.load_cert_chain(certfile="<myCACertificate.pem>",
+                                    keyfile="<myCAPrivateKey.key>",
+                                    password="<password>")
+            response = urllib.request.urlopen(req, context=context)
     except urllib.error.HTTPError as response:
         pass # Propagate HTTP errors via the returned response message
     return {

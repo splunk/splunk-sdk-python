@@ -13,6 +13,8 @@ This directory contains a collection of examples that demonstrate various
 alternative HTTP request handlers.
 
 * **handler_urllib2.py** is a simple request handler implemented using urllib2.
+  * Steps for creating certificate and privateKey - https://docs.splunk.com/Documentation/Splunk/8.2.4/Security/Howtoself-signcertificates
+  * Update certfile, keyfile and password value for context.load_cert_chain() method
 
 * **handler_debug.py** wraps the default request handler and prints some
   simple request information to stdout.

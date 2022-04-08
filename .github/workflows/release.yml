@@ -1,8 +1,7 @@
 name: Release
 on:
-  push:
-    branches:
-      - release-workflow-refactor
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -19,16 +18,11 @@ jobs:
         run: pip install twine
       - name: Build package
         run: python setup.py sdist
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      - name: Publish package to PyPI
-#        uses: pypa/gh-action-pypi-publish@v1.3.1
-#        with:
-#          user: __token__
-#          password: ${{ secrets.pypi_password }}
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.3.1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
       - name: Install tox
         run: pip install tox
       - name: Generate API docs

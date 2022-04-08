@@ -246,6 +246,7 @@ class SDKTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
+        self.opts.kwargs.update({'retries': 5})
         self.service = client.connect(**self.opts.kwargs)
         # If Splunk is in a state requiring restart, go ahead
         # and restart. That way we'll be sane for the rest of

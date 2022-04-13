@@ -178,17 +178,6 @@ class ServiceTestCase(testlib.SDKTestCase):
         self.assertEqual(response.status, 200)
 
 
-# class TestOptionalRetry(unittest.TestCase):
-#
-#     def test_optional_retry(self):
-#         opts = testlib.parse([], {}, ".env")
-#         kwargs = opts.kwargs.copy()
-#         kwargs.update({'retries': 5})
-#         self.service = client.connect(**kwargs)
-#         self.service.restart(timeout=15)  # timeout value kept lower than actual time needed for Splunk to restart
-#         self.assertEqual(self.service.get("/services").status, 200)
-
-
 class TestCookieAuthentication(unittest.TestCase):
     def setUp(self):
         self.opts = testlib.parse([], {}, ".env")

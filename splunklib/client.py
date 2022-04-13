@@ -323,8 +323,8 @@ def connect(**kwargs):
     :param retires: Number of retries for each HTTP connection (optional, the default is 0).
                     NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUND TRIP CONNECTIONS TO THE SPLUNK SERVER.
     :type retries: ``int``
-    :param retryBackoff: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
-    :type retryBackoff: ``int`` (in seconds)
+    :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
+    :type retryDelay: ``int`` (in seconds)
     :param `context`: The SSLContext that can be used when setting verify=True (optional)
     :type context: ``SSLContext``
     :return: An initialized :class:`Service` connection.
@@ -396,8 +396,8 @@ class Service(_BaseService):
     :param retires: Number of retries for each HTTP connection (optional, the default is 0).
                     NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUND TRIP CONNECTIONS TO THE SPLUNK SERVER.
     :type retries: ``int``
-    :param retryBackoff: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
-    :type retryBackoff: ``int`` (in seconds)
+    :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
+    :type retryDelay: ``int`` (in seconds)
     :return: A :class:`Service` instance.
 
     **Example**::

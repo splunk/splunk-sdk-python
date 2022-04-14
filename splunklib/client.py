@@ -226,8 +226,12 @@ def _load_atom_entries(response):
 
 
 # Load the sid from the body of the given response
-def _load_sid(response):
-    return _load_atom(response).response.sid
+def _load_sid(response, output_mode):
+    if output_mode == "json":
+        json_obj = json.loads(response.body.read())
+        return json_obj.get('sid')
+    else:
+        return _load_atom(response).response.sid
 
 
 # Parse the given atom entry record into a generic entity state record
@@ -2968,7 +2972,7 @@ class Jobs(Collection):
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
-        sid = _load_sid(response)
+        sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
 
     def export(self, query, **params):
@@ -3184,7 +3188,7 @@ class SavedSearch(Entity):
         :return: The :class:`Job`.
         """
         response = self.post("dispatch", **kwargs)
-        sid = _load_sid(response)
+        sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
 
     @property

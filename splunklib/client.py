@@ -230,8 +230,7 @@ def _load_sid(response, output_mode):
     if output_mode == "json":
         json_obj = json.loads(response.body.read())
         return json_obj.get('sid')
-    else:
-        return _load_atom(response).response.sid
+    return _load_atom(response).response.sid
 
 
 # Parse the given atom entry record into a generic entity state record

@@ -559,8 +559,8 @@ class Service(_BaseService):
         :return: A semantic map of the parsed search query.
         """
         if self.splunk_version >= (9,):
-            return self.get("search/v2/parser", q=query, **kwargs)
-        return self.post("search/parser", q=query, **kwargs)
+            return self.post("search/v2/parser", q=query, **kwargs)
+        return self.get("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):
         """Restarts this Splunk instance.
@@ -793,6 +793,13 @@ class Endpoint(object):
                                          app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment).
         # That doesn't work, because self.path may be UrlEncoded.
+
+        # Search API v2 fallback to v1:
+        #   - In v2, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2 to v1 if Splunk Version is < 9.
+        if (PATH_JOBS_V2 in path and 'search' in query and path.endswith(tuple(["results_preview", "events", "results"]))) or self.service.splunk_version < (9,):
+            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
                                 **query)
@@ -845,13 +852,20 @@ class Endpoint(object):
             apps.get('nonexistant/path') # raises HTTPError
             s.logout()
             apps.get() # raises AuthenticationError
-        """
+        """       
         if path_segment.startswith('/'):
             path = path_segment
         else:
             if not self.path.endswith('/') and path_segment != "":
                 self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
+            
+        # Search API v2 fallback to v1:
+        #   - In v2, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2 to v1 if Splunk Version is < 9.
+        if (PATH_JOBS_V2 in path and 'search' in query and path.endswith(tuple(["results_preview", "events", "results"]))) or self.service.splunk_version < (9,):
+            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 
@@ -2661,14 +2675,17 @@ class Inputs(Collection):
 
 
 class Job(Entity):
-
     """This class represents a search job."""
-    def __init__(self, service, sid, defaultPath, **kwargs):
-        
-        # Don't provide a path, allow it to be dynamically generated
-        Entity.__init__(self, service, '', skip_refresh=True, **kwargs)
+    def __init__(self, service, sid, **kwargs):
+        # Default to v2 in Splunk Version 9+
+        path = "{path}{sid}"
+        path = path.format(path=PATH_JOBS_V2, sid=sid)
+        # Fallback to v1 if Splunk Version < 9
+        if service.splunk_version < (9,):
+            path = path.format(path=PATH_JOBS, sid=sid)
+
+        Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
-        self.defaultPath = defaultPath + sid + '/'
 
     # The Job entry record is returned at the root of the response
     def _load_atom_entry(self, response):
@@ -2680,7 +2697,7 @@ class Job(Entity):
         :return: The :class:`Job`.
         """
         try:
-            self.post(self.defaultPath + "control", action="cancel")
+            self.post("control", action="cancel")
         except HTTPError as he:
             if he.status == 404:
                 # The job has already been cancelled, so
@@ -2695,7 +2712,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="disablepreview")
+        self.post("control", action="disablepreview")
         return self
 
     def enable_preview(self):
@@ -2705,7 +2722,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="enablepreview")
+        self.post("control", action="enablepreview")
         return self
 
     def events(self, **kwargs):
@@ -2720,19 +2737,14 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
-        path = "{path}{sid}/events"
-
-        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
-        if self.splunk_version < (9,) or 'search' in kwargs:
-            return self.get(path.format(PATH_JOBS, self.sid), **kwargs).body
-        return self.get(path.format(PATH_JOBS_V2, self.sid), **kwargs).body
+        return self.get("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="finalize")
+        self.post("control", action="finalize")
         return self
 
     def is_done(self):
@@ -2753,7 +2765,7 @@ class Job(Entity):
         :rtype: ``boolean``
 
         """
-        response = self.get(self.defaultPath)
+        response = self.get()
         if response.status == 204:
             return False
         self._state = self.read(response)
@@ -2774,7 +2786,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="pause")
+        self.post("control", action="pause")
         return self
 
     def results(self, **query_params):
@@ -2813,12 +2825,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        path = "{path}{sid}/results"
-
-        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
-        if self.splunk_version < (9,) or 'search' in query_params:
-            return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
-        return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
+        return self.get("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2859,12 +2866,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        path = "{path}{sid}/results_preview"
-
-        # Splunk version doesn't support v2 (pre-9.0) or the 'search' arg is included (which is v1 specific)
-        if self.splunk_version < (9,) or 'search' in query_params:
-            return self.get(path.format(PATH_JOBS, self.sid), **query_params).body
-        return self.get(path.format(PATH_JOBS_V2, self.sid), **query_params).body
+        return self.get("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2877,7 +2879,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's search log.
         """
-        return self.get(self.defaultPath + "search.log", **kwargs).body
+        return self.get("search.log", **kwargs).body
 
     def set_priority(self, value):
         """Sets this job's search priority in the range of 0-10.
@@ -2890,7 +2892,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + 'control', action="setpriority", priority=value)
+        self.post('control', action="setpriority", priority=value)
         return self
 
     def summary(self, **kwargs):
@@ -2904,7 +2906,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's summary.
         """
-        return self.get(self.defaultPath + "summary", **kwargs).body
+        return self.get("summary", **kwargs).body
 
     def timeline(self, **kwargs):
         """Returns a streaming handle to this job's timeline results.
@@ -2917,7 +2919,7 @@ class Job(Entity):
 
         :return: The ``InputStream`` IO handle to this job's timeline.
         """
-        return self.get(self.defaultPath + "timeline", **kwargs).body
+        return self.get("timeline", **kwargs).body
 
     def touch(self):
         """Extends the expiration time of the search to the current time (now) plus
@@ -2925,7 +2927,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="touch")
+        self.post("control", action="touch")
         return self
 
     def set_ttl(self, value):
@@ -2937,7 +2939,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="setttl", ttl=value)
+        self.post("control", action="setttl", ttl=value)
         return self
 
     def unpause(self):
@@ -2945,7 +2947,7 @@ class Job(Entity):
 
         :return: The :class:`Job`.
         """
-        self.post(self.defaultPath + "control", action="unpause")
+        self.post("control", action="unpause")
         return self
 
 
@@ -2954,7 +2956,7 @@ class Jobs(Collection):
     collection using :meth:`Service.jobs`."""
     def __init__(self, service):
         # Splunk 9 introduces the v2 endpoint
-        if self.splunk_version >= (9,):
+        if service.splunk_version >= (9,):
             path = PATH_JOBS_V2
         else:
             path = PATH_JOBS
@@ -2995,7 +2997,7 @@ class Jobs(Collection):
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
         sid = _load_sid(response)
-        return Job(self.service, sid, self.path)
+        return Job(self.service, sid)
 
     def export(self, query, **params):
         """Runs a search and immediately starts streaming preview events. This method returns a streaming handle to

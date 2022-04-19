@@ -377,6 +377,29 @@ class TestJob(testlib.SDKTestCase):
         except Exception as e:
             self.fail("Got some unexpected error. %s" % e.message)
 
+    def test_v1_job_fallback(self):
+        self.assertEventuallyTrue(self.job.is_done)
+        self.assertLessEqual(int(self.job['eventCount']), 3)
+
+        preview_stream = self.job.preview(output_mode='json', search='| head 1')
+        preview_r = results.JSONResultsReader(preview_stream)
+        self.assertFalse(preview_r.is_preview)
+
+        events_stream = self.job.events(output_mode='json', search='| head 1')
+        events_r = results.JSONResultsReader(events_stream)
+        
+        results_stream = self.job.results(output_mode='json', search='| head 1')
+        results_r = results.JSONResultsReader(results_stream)
+        
+        n_events = len([x for x in events_r if isinstance(x, dict)])
+        n_preview = len([x for x in preview_r if isinstance(x, dict)])
+        n_results = len([x for x in results_r if isinstance(x, dict)])
+        
+        # Fallback test for Splunk Version 9+
+        if self.service.splunk_version[0] >= 9:
+            self.assertGreaterEqual(9, self.service.splunk_version[0])
+        self.assertEqual(n_events, n_preview, n_results)
+
 
 class TestResultsReader(unittest.TestCase):
     def test_results_reader(self):

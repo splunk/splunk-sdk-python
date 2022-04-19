@@ -62,6 +62,7 @@ import contextlib
 import datetime
 import json
 import logging
+import re
 import socket
 from datetime import datetime, timedelta
 from time import sleep
@@ -731,6 +732,25 @@ class Endpoint(object):
         self.service = service
         self.path = path
 
+    def get_api_version(self, path):
+        """Return the API version of the service used in the provided path.
+
+        Args:
+            path (str): A fully-qualified endpoint path (for example, "/services/search/jobs").
+
+        Returns:
+            int: Version of the API (for example, 1)
+        """
+        # Default to v1 if undefined in the path
+        # For example, "/services/search/jobs" is using API v1
+        api_version = 1
+        
+        versionSearch = re.search('(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
+        if versionSearch:
+            api_version = int(versionSearch.group(1))
+    
+        return api_version
+
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """Performs a GET operation on the path segment relative to this endpoint.
 
@@ -794,12 +814,14 @@ class Endpoint(object):
         # ^-- This was "%s%s" % (self.path, path_segment).
         # That doesn't work, because self.path may be UrlEncoded.
 
-        # Search API v2 fallback to v1:
-        #   - In v2, /results_preview, /events and /results do not support search params.
-        #   - Fallback from v2 to v1 if Splunk Version is < 9.
-        if (PATH_JOBS_V2 in path and 'search' in query and path.endswith(tuple(["results_preview", "events", "results"]))) or self.service.splunk_version < (9,):
-            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        # Get the API version from the path
+        api_version = self.get_api_version(path)
 
+        # Search API v2+ fallback to v1:
+        #   - In v2+, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2+ to v1 if Splunk Version is < 9.
+        if api_version >= 2  and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
                                 **query)
@@ -860,12 +882,14 @@ class Endpoint(object):
                 self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
             
-        # Search API v2 fallback to v1:
-        #   - In v2, /results_preview, /events and /results do not support search params.
-        #   - Fallback from v2 to v1 if Splunk Version is < 9.
-        if (PATH_JOBS_V2 in path and 'search' in query and path.endswith(tuple(["results_preview", "events", "results"]))) or self.service.splunk_version < (9,):
+        # Get the API version from the path
+        api_version = self.get_api_version(path)
+
+        # Search API v2+ fallback to v1:
+        #   - In v2+, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2+ to v1 if Splunk Version is < 9.
+        if api_version >= 2  and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
             path = path.replace(PATH_JOBS_V2, PATH_JOBS)
-        
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 

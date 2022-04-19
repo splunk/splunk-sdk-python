@@ -5,4 +5,4 @@ splunklib.results
 
 .. autoclass:: Message
 
-.. autoclass:: ResultsReader
+.. autoclass:: JSONResultsReader

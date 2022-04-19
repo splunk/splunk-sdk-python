@@ -23,7 +23,7 @@ result stream. This module also provides a friendly iterator-based interface for
 accessing search results while avoiding buffering the result set, which can be
 very large.
 
-To use the reader, instantiate :class:`ResultsReader` on a search result stream
+To use the reader, instantiate :class:`JSONResultsReader` on a search result stream
 as follows:::
 
     reader = ResultsReader(result_stream)
@@ -55,7 +55,8 @@ except:
 
 __all__ = [
     "ResultsReader",
-    "Message"
+    "Message",
+    "JSONResultsReader"
 ]
 
 
@@ -308,11 +309,14 @@ class JSONResultsReader(object):
     :class:`Message` object for Splunk messages. This class has one field,
     ``is_preview``, which is ``True`` when the results are a preview from a
     running search, or ``False`` when the results are from a completed search.
+
     This function has no network activity other than what is implicit in the
     stream it operates on.
-    :param `stream`: The stream to read from (any object that supports
-        ``.read()``).
+
+    :param `stream`: The stream to read from (any object that supports``.read()``).
+
     **Example**::
+
         import results
         response = ... # the body of an HTTP response
         reader = results.JSONResultsReader(response)

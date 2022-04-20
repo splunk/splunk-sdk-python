@@ -3018,7 +3018,7 @@ class Jobs(Collection):
     def oneshot(self, query, **params):
         """Run a oneshot search and returns a streaming handle to the results.
 
-        The ``InputStream`` object streams XML fragments from the server. To parse this stream into usable Python
+        The ``InputStream`` object streams fragments from the server. To parse this stream into usable Python
         objects, pass the handle to :class:`splunklib.results.JSONResultsReader` along with the query param
         "output_mode='json'" ::
 

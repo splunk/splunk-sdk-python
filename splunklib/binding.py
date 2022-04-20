@@ -799,9 +799,6 @@ class Context(object):
         :type app: ``string``
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
-        :param query: All other keyword arguments, which are used as query
-            parameters.
-        :type query: ``string``
         :return: The response from the server.
         :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
                 and ``status``

@@ -36,13 +36,13 @@ class ServiceTestCase(testlib.SDKTestCase):
         capabilities = self.service.capabilities
         self.assertTrue(isinstance(capabilities, list))
         self.assertTrue(all([isinstance(c, str) for c in capabilities]))
-        self.assertTrue('change_own_password' in capabilities) # This should always be there...
+        self.assertTrue('change_own_password' in capabilities)  # This should always be there...
 
     def test_info(self):
         info = self.service.info
         keys = ["build", "cpu_arch", "guid", "isFree", "isTrial", "licenseKeys",
-            "licenseSignature", "licenseState", "master_guid", "mode",
-            "os_build", "os_name", "os_version", "serverName", "version"]
+                "licenseSignature", "licenseState", "master_guid", "mode",
+                "os_build", "os_name", "os_version", "serverName", "version"]
         for key in keys:
             self.assertTrue(key in list(info.keys()))
 
@@ -74,25 +74,25 @@ class ServiceTestCase(testlib.SDKTestCase):
 
     def test_owner_wildcard(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({ 'app': "search", 'owner': "-" })
+        kwargs.update({'app': "search", 'owner': "-"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_default_app(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({ 'app': None, 'owner': "admin" })
+        kwargs.update({'app': None, 'owner': "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_app_wildcard(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({ 'app': "-", 'owner': "admin" })
+        kwargs.update({'app': "-", 'owner': "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_user_namespace(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({ 'app': "search", 'owner': "admin" })
+        kwargs.update({'app': "search", 'owner': "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
@@ -114,7 +114,7 @@ class ServiceTestCase(testlib.SDKTestCase):
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)
         self.service.restart(timeout=300)
-        service.login() # Make sure we are awake
+        service.login()  # Make sure we are awake
 
     def test_read_outputs_with_type(self):
         name = testlib.tmpname()
@@ -138,7 +138,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         for p in v:
             self.assertTrue(isinstance(p, int) and p >= 0)
 
-        for version in [(4,3,3), (5,), (5,0,1)]:
+        for version in [(4, 3, 3), (5,), (5, 0, 1)]:
             with self.fake_splunk_version(version):
                 self.assertEqual(version, self.service.splunk_version)
 
@@ -167,7 +167,7 @@ class ServiceTestCase(testlib.SDKTestCase):
             'scheme': self.opts.kwargs['scheme']
         })
 
-    #To check the HEC event endpoint using Endpoint instance
+    # To check the HEC event endpoint using Endpoint instance
     def test_hec_event(self):
         import json
         service_hec = client.connect(host='localhost', scheme='https', port=8088,
@@ -175,7 +175,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         event_collector_endpoint = client.Endpoint(service_hec, "/services/collector/event")
         msg = {"index": "main", "event": "Hello World"}
         response = event_collector_endpoint.post("", body=json.dumps(msg))
-        self.assertEqual(response.status,200)
+        self.assertEqual(response.status, 200)
 
 
 class TestCookieAuthentication(unittest.TestCase):
@@ -287,6 +287,7 @@ class TestCookieAuthentication(unittest.TestCase):
             service2.login()
             self.assertEqual(service2.apps.get().status, 200)
 
+
 class TestSettings(testlib.SDKTestCase):
     def test_read_settings(self):
         settings = self.service.settings
@@ -316,6 +317,7 @@ class TestSettings(testlib.SDKTestCase):
         self.assertEqual(updated, original)
         self.restartSplunk()
 
+
 class TestTrailing(unittest.TestCase):
     template = '/servicesNS/boris/search/another/path/segment/that runs on'
 
@@ -329,7 +331,8 @@ class TestTrailing(unittest.TestCase):
         self.assertEqual(self.template, client._trailing(self.template))
 
     def test_trailing_with_one_arg_works(self):
-        self.assertEqual('boris/search/another/path/segment/that runs on', client._trailing(self.template, 'ervicesNS/'))
+        self.assertEqual('boris/search/another/path/segment/that runs on',
+                         client._trailing(self.template, 'ervicesNS/'))
 
     def test_trailing_with_n_args_works(self):
         self.assertEqual(
@@ -337,11 +340,12 @@ class TestTrailing(unittest.TestCase):
             client._trailing(self.template, 'servicesNS/', '/', '/')
         )
 
+
 class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_arguments(self):
         entity = self.service.apps['search']
-        self.assertEqual((None,None,"global"), entity._proper_namespace(sharing="global"))
-        self.assertEqual((None,"search","app"), entity._proper_namespace(sharing="app", app="search"))
+        self.assertEqual((None, None, "global"), entity._proper_namespace(sharing="global"))
+        self.assertEqual((None, "search", "app"), entity._proper_namespace(sharing="app", app="search"))
         self.assertEqual(
             ("admin", "search", "user"),
             entity._proper_namespace(sharing="user", app="search", owner="admin")
@@ -359,6 +363,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
                      self.service.namespace.app,
                      self.service.namespace.sharing)
         self.assertEqual(namespace, entity._proper_namespace())
+
 
 if __name__ == "__main__":
     try:

@@ -30,6 +30,8 @@ import io
 import logging
 import socket
 import ssl
+import sys
+import time
 from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
@@ -452,6 +454,12 @@ class Context(object):
     :type splunkToken: ``string``
     :param headers: List of extra HTTP headers to send (optional).
     :type headers: ``list`` of 2-tuples.
+    :param retires: Number of retries for each HTTP connection (optional, the default is 0).
+                    NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUND TRIP CONNECTIONS TO THE SPLUNK SERVER AND BLOCK THE
+                    CURRENT THREAD WHILE RETRYING.
+    :type retries: ``int``
+    :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
+    :type retryDelay: ``int`` (in seconds)
     :param handler: The HTTP request handler (optional).
     :returns: A ``Context`` instance.
 
@@ -469,7 +477,8 @@ class Context(object):
     """
     def __init__(self, handler=None, **kwargs):
         self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
-                            cert_file=kwargs.get("cert_file"), context=kwargs.get("context"))  # Default to False for backward compat
+                            cert_file=kwargs.get("cert_file"),  context=kwargs.get("context"), # Default to False for backward compat
+                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10))
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None: # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -1153,12 +1162,14 @@ class HttpLib(object):
 
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
-    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None):
+    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0, retryDelay=10):
         if custom_handler is None:
             self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context)
         else:
             self.handler = custom_handler
         self._cookies = {}
+        self.retries = retries
+        self.retryDelay = retryDelay
 
     def delete(self, url, headers=None, **kwargs):
         """Sends a DELETE request to a URL.
@@ -1272,7 +1283,16 @@ class HttpLib(object):
             its structure).
         :rtype: ``dict``
         """
-        response = self.handler(url, message, **kwargs)
+        while True:
+            try:
+                response = self.handler(url, message, **kwargs)
+                break
+            except Exception:
+                if self.retries <= 0:
+                    raise
+                else:
+                    time.sleep(self.retryDelay)
+                    self.retries -= 1
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)

@@ -214,15 +214,14 @@ class TestCookieAuthentication(unittest.TestCase):
         service2 = client.Service()
         self.assertEqual(len(service2.get_cookies()), 0)
         service2.get_cookies().update(bad_cookie)
-        service2.login()
         self.assertEqual(service2.get_cookies(), {'bad': 'cookie'})
 
         # Should get an error with a bad cookie
         try:
-            service2.apps.get()
+            service2.login()
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Login failed.")
 
     def test_autologin_with_cookie(self):
         self.service.login()
@@ -264,14 +263,13 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertIsNotNone(self.service.get_cookies())
 
         service2 = client.Service(**{"cookie": bad_cookie})
-        service2.login()
 
         # Should get an error with a bad cookie
         try:
-            service2.apps.get()
+            service2.login()
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Login failed.")
 
             # Add on valid cookies, and try to use all of them
             service2.get_cookies().update(self.service.get_cookies())

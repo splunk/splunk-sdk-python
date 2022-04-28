@@ -820,7 +820,7 @@ class Endpoint(object):
         # Search API v2+ fallback to v1:
         #   - In v2+, /results_preview, /events and /results do not support search params.
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
-        if api_version >= 2  and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
             path = path.replace(PATH_JOBS_V2, PATH_JOBS)
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
@@ -888,7 +888,7 @@ class Endpoint(object):
         # Search API v2+ fallback to v1:
         #   - In v2+, /results_preview, /events and /results do not support search params.
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
-        if api_version >= 2  and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
             path = path.replace(PATH_JOBS_V2, PATH_JOBS)
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 

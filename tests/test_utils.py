@@ -4,7 +4,7 @@ from tests import testlib
 try:
     from utils import *
 except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 

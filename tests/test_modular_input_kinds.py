@@ -14,20 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-from __future__ import print_function
 from tests import testlib
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+
+from splunklib import client
 
 import pytest
 
+
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(ModularInputKindTestCase, self).setUp()
+        super().setUp()
         self.uncheckedRestartSplunk()
 
     @pytest.mark.app
@@ -40,9 +36,9 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
         test1 = self.service.modular_input_kinds['test1']
 
-        expected_args = set(["name", "resname", "key_id", "no_description", "empty_description",
-                             "arg_required_on_edit", "not_required_on_edit", "required_on_create",
-                            "not_required_on_create", "number_field", "string_field", "boolean_field"])
+        expected_args = {"name", "resname", "key_id", "no_description", "empty_description", "arg_required_on_edit",
+                         "not_required_on_edit", "required_on_create", "not_required_on_create", "number_field",
+                         "string_field", "boolean_field"}
         found_args = set(test1.arguments.keys())
 
         self.assertEqual(expected_args, found_args)
@@ -77,9 +73,8 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

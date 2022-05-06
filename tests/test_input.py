@@ -13,22 +13,13 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-from __future__ import absolute_import
-from __future__ import print_function
-
+import logging
+import pytest
 from splunklib.binding import HTTPError
 
 from tests import testlib
-import logging
-from splunklib import six
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+from splunklib import six, client
 
-import splunklib.client as client
-
-import pytest
 
 
 def highest_port(service, base_port, *kinds):
@@ -42,7 +33,7 @@ def highest_port(service, base_port, *kinds):
 
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
-        super(TestTcpInputNameHandling, self).setUp()
+        super().setUp()
         self.base_port = highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp') + 1
 
     def tearDown(self):
@@ -50,7 +41,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             port = int(input.name.split(':')[-1])
             if port >= self.base_port:
                 input.delete()
-        super(TestTcpInputNameHandling, self).tearDown()
+        super().tearDown()
 
     def create_tcp_input(self, base_port, kind, **options):
         port = base_port
@@ -149,7 +140,6 @@ class TestRead(testlib.SDKTestCase):
             self.assertTrue("HTTP 404 Not Found" in str(he))
 
     def test_inputs_list_on_one_kind_with_count(self):
-        N = 10
         expected = [x.name for x in self.service.inputs.list('monitor')[:10]]
         found = [x.name for x in self.service.inputs.list('monitor', count=10)]
         self.assertEqual(expected, found)
@@ -192,7 +182,7 @@ class TestRead(testlib.SDKTestCase):
 
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
-        super(TestInput, self).setUp()
+        super().setUp()
         inputs = self.service.inputs
         unrestricted_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp')+1)
         restricted_port = str(highest_port(self.service, int(unrestricted_port)+1, 'tcp', 'splunktcp')+1)
@@ -209,7 +199,7 @@ class TestInput(testlib.SDKTestCase):
             inputs.create(restricted_port, 'tcp', restrictToHost='boris')
 
     def tearDown(self):
-        super(TestInput, self).tearDown()
+        super().tearDown()
         for entity in six.itervalues(self._test_entities):
             try:
                 self.service.inputs.delete(
@@ -299,8 +289,5 @@ class TestInput(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

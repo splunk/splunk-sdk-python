@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from tests import testlib
 
 try:
@@ -18,7 +17,7 @@ TEST_DICT = {
 
 class TestUtils(testlib.SDKTestCase):
     def setUp(self):
-        super(TestUtils, self).setUp()
+        super().setUp()
 
     # Test dslice when a dict is passed to change key names
     def test_dslice_dict_args(self):
@@ -78,8 +77,5 @@ class TestUtils(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

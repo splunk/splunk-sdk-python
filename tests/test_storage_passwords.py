@@ -14,11 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 import logging
 
-import splunklib.client as client
+from splunklib import client
 
 
 class Tests(testlib.SDKTestCase):
@@ -153,11 +152,10 @@ class Tests(testlib.SDKTestCase):
         p = self.storage_passwords.create("changeme", username)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
-        for sp in self.storage_passwords:
-            self.assertTrue(p.name in self.storage_passwords)
-            # Name works with or without a trailing colon
-            self.assertTrue((":" + username + ":") in self.storage_passwords)
-            self.assertTrue((":" + username) in self.storage_passwords)
+        self.assertTrue(p.name in self.storage_passwords)
+        # Name works with or without a trailing colon
+        self.assertTrue((":" + username + ":") in self.storage_passwords)
+        self.assertTrue((":" + username) in self.storage_passwords)
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -233,9 +231,8 @@ class Tests(testlib.SDKTestCase):
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

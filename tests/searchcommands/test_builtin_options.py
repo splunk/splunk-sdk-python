@@ -15,19 +15,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from splunklib.six.moves import cStringIO as StringIO
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
 
 import os
 import sys
 import logging
 
 import pytest
+from unittest import main, TestCase
+from splunklib.six.moves import cStringIO as StringIO
+
 
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
@@ -117,18 +113,18 @@ class TestBuiltinOptions(TestCase):
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail(f'Expected ValueError, but {type(e)} was raised')
         else:
-            self.fail('Expected ValueError, but logging_configuration={}'.format(command.logging_configuration))
+            self.fail(f'Expected ValueError, but logging_configuration={command.logging_configuration}')
 
         try:
             command.logging_configuration = os.path.join(package_directory, 'non-existent.logging.conf')
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail(f'Expected ValueError, but {type(e)} was raised')
         else:
-            self.fail('Expected ValueError, but logging_configuration={}'.format(command.logging_configuration))
+            self.fail(f'Expected ValueError, but logging_configuration={command.logging_configuration}')
 
     def test_logging_level(self):
 
@@ -146,7 +142,7 @@ class TestBuiltinOptions(TestCase):
         self.assertEqual(warning, command.logging_level)
 
         for level in level_names():
-            if type(level) is int:
+            if isinstance(level, int):
                 command.logging_level = level
                 level_name = logging.getLevelName(level)
                 self.assertEqual(command.logging_level, warning if level_name == notset else level_name)
@@ -171,9 +167,9 @@ class TestBuiltinOptions(TestCase):
         except ValueError:
             pass
         except BaseException as e:
-            self.fail('Expected ValueError, but {} was raised'.format(type(e)))
+            self.fail(f'Expected ValueError, but {type(e)} was raised')
         else:
-            self.fail('Expected ValueError, but logging_level={}'.format(command.logging_level))
+            self.fail(f'Expected ValueError, but logging_level={command.logging_level}')
 
         self.assertEqual(command.logging_level, current_value)
 
@@ -211,13 +207,9 @@ class TestBuiltinOptions(TestCase):
             except ValueError:
                 pass
             except BaseException as error:
-                self.fail('Expected ValueError when setting {}={}, but {} was raised'.format(
-                    option.name, repr(value), type(error)))
+                self.fail(f'Expected ValueError when setting {option.name}={repr(value)}, but {type(error)} was raised')
             else:
-                self.fail('Expected ValueError, but {}={} was accepted.'.format(
-                    option.name, repr(option.fget(command))))
-
-        return
+                self.fail(f'Expected ValueError, but {option.name}={repr(option.fget(command))} was accepted.')
 
 
 if __name__ == "__main__":

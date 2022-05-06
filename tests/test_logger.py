@@ -14,12 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 
-import splunklib.client as client
+from splunklib import client
 
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
+
 
 class LoggerTestCase(testlib.SDKTestCase):
     def check_logger(self, logger):
@@ -44,9 +44,8 @@ class LoggerTestCase(testlib.SDKTestCase):
         logger.refresh()
         self.assertEqual(self.service.loggers['AuditLogger']['level'], saved)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

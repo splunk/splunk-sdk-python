@@ -14,17 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+from splunklib import client
 
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(KVStoreConfTestCase, self).setUp()
+        super().setUp()
         #self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
@@ -40,7 +35,7 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs.create('test')
         self.assertTrue('test' in self.confs)
         self.confs['test'].delete()
-        self.assertTrue(not 'test' in self.confs)
+        self.assertTrue('test' not in self.confs)
 
     def test_update_collection(self):
         self.confs.create('test')
@@ -93,8 +88,5 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
             self.confs['test'].delete()
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

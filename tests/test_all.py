@@ -16,12 +16,8 @@
 
 """Runs all the Splunk SDK for Python unit tests."""
 
-from __future__ import absolute_import
 import os
-try:
-    import unittest2 as unittest  # We must be sure to get unittest2--not unittest--on Python 2.6
-except ImportError:
-    import unittest
+import unittest
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 suite = unittest.defaultTestLoader.discover('.')

@@ -14,20 +14,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 import logging
 
-import splunklib.client as client
+from splunklib import client
+
 
 class UserTestCase(testlib.SDKTestCase):
     def check_user(self, user):
         self.check_entity(user)
         # Verify expected fields exist
         [user[f] for f in ['email', 'password', 'realname', 'roles']]
-        
+
     def setUp(self):
-        super(UserTestCase, self).setUp()
+        super().setUp()
         self.username = testlib.tmpname()
         self.user = self.service.users.create(
             self.username,
@@ -35,7 +35,7 @@ class UserTestCase(testlib.SDKTestCase):
             roles=['power', 'user'])
 
     def tearDown(self):
-        super(UserTestCase, self).tearDown()
+        super().tearDown()
         for user in self.service.users:
             if user.name.startswith('delete-me'):
                 self.service.users.delete(user.name)
@@ -84,9 +84,8 @@ class UserTestCase(testlib.SDKTestCase):
         self.assertFalse(self.username in users)
         self.assertFalse(self.username.upper() in users)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

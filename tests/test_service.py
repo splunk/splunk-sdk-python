@@ -14,12 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 import unittest
 
-import splunklib.client as client
-from splunklib.client import AuthenticationError
+from splunklib import client
+from splunklib.binding import AuthenticationError
 from splunklib.client import Service
 from splunklib.binding import HTTPError
 
@@ -364,8 +363,5 @@ class TestEntityNamespacing(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

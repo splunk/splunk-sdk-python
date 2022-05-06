@@ -14,20 +14,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 import logging
 
-import splunklib.client as client
+from splunklib import client
+
 
 class RoleTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(RoleTestCase, self).setUp()
+        super().setUp()
         self.role_name = testlib.tmpname()
         self.role = self.service.roles.create(self.role_name)
 
     def tearDown(self):
-        super(RoleTestCase, self).tearDown()
+        super().tearDown()
         for role in self.service.roles:
             if role.name.startswith('delete-me'):
                 self.service.roles.delete(role.name)
@@ -91,7 +91,6 @@ class RoleTestCase(testlib.SDKTestCase):
     def test_revoke_capability_not_granted(self):
         self.role.revoke('change_own_password')
 
-
     def test_update(self):
         kwargs = {}
         if 'user' in self.role['imported_roles']:
@@ -105,9 +104,8 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertEqual(self.role['imported_roles'], kwargs['imported_roles'])
         self.assertEqual(int(self.role['srchJobsQuota']), kwargs['srchJobsQuota'])
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

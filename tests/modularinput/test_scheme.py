@@ -13,15 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
+import xml.etree.ElementTree as ET
 from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
 from splunklib.modularinput.scheme import Scheme
 from splunklib.modularinput.argument import Argument
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
 
 class SchemeTest(unittest.TestCase):
     def test_generate_xml_from_scheme_with_default_values(self):
@@ -40,7 +36,7 @@ class SchemeTest(unittest.TestCase):
         some arguments added matches what we expect."""
 
         scheme = Scheme("abcd")
-        scheme.description = u"쎼 and 쎶 and <&> für"
+        scheme.description = "쎼 and 쎶 and <&> für"
         scheme.streaming_mode = Scheme.streaming_mode_simple
         scheme.use_external_validation = "false"
         scheme.use_single_instance = "true"
@@ -50,7 +46,7 @@ class SchemeTest(unittest.TestCase):
 
         arg2 = Argument(
             name="arg2",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_number,
             required_on_edit=True,
@@ -69,7 +65,7 @@ class SchemeTest(unittest.TestCase):
         some arguments added matches what we expect. Also sets the title on an argument."""
 
         scheme = Scheme("abcd")
-        scheme.description = u"쎼 and 쎶 and <&> für"
+        scheme.description = "쎼 and 쎶 and <&> für"
         scheme.streaming_mode = Scheme.streaming_mode_simple
         scheme.use_external_validation = "false"
         scheme.use_single_instance = "true"
@@ -79,7 +75,7 @@ class SchemeTest(unittest.TestCase):
 
         arg2 = Argument(
             name="arg2",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_number,
             required_on_edit=True,
@@ -113,7 +109,7 @@ class SchemeTest(unittest.TestCase):
 
         argument = Argument(
             name="some_name",
-            description=u"쎼 and 쎶 and <&> für",
+            description="쎼 and 쎶 and <&> für",
             validation="is_pos_int('some_name')",
             data_type=Argument.data_type_boolean,
             required_on_edit="true",

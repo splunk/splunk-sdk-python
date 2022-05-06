@@ -15,12 +15,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
+from unittest import main, TestCase
 import sys
 
 from io import TextIOWrapper
@@ -121,7 +117,7 @@ class TestSearchCommand(SearchCommand):
         **Syntax:** **integer=***<value>*
         **Description:** An integer value''',
         require=True, validate=validators.Integer())
-    
+
     float = Option(
         doc='''
         **Syntax:** **float=***<value>*
@@ -268,7 +264,7 @@ class TestDecorators(TestCase):
              (True, False),
              (None, 'anything other than a bool')),
             ('streaming_preop',
-             (u'some unicode string', b'some byte string'),
+             ('some unicode string', b'some byte string'),
              (None, 0xdead)),
             ('type',
              # TODO: Do we need to validate byte versions of these strings?
@@ -299,7 +295,6 @@ class TestDecorators(TestCase):
                 self.assertIn(backing_field_name, settings_instance.__dict__),
                 self.assertEqual(getattr(settings_instance, name), value)
                 self.assertEqual(settings_instance.__dict__[backing_field_name], value)
-                pass
 
             for value in error_values:
                 try:
@@ -313,11 +308,9 @@ class TestDecorators(TestCase):
                 settings_instance = settings_class(command=None)
                 self.assertRaises(ValueError, setattr, settings_instance, name, value)
 
-        return
-
     def test_new_configuration_setting(self):
 
-        class Test(object):
+        class Test():
             generating = ConfigurationSetting()
 
             @ConfigurationSetting(name='required_fields')
@@ -401,47 +394,46 @@ class TestDecorators(TestCase):
 
             self.assertEqual(
                 validator.format(option.value), validator.format(validator.__call__(legal_value)),
-                "{}={}".format(option.name, legal_value))
+                f"{option.name}={legal_value}")
 
             try:
                 option.value = illegal_value
             except ValueError:
                 pass
             except BaseException as error:
-                self.assertFalse('Expected ValueError for {}={}, not this {}: {}'.format(
-                    option.name, illegal_value, type(error).__name__, error))
+                self.assertFalse(f'Expected ValueError for {option.name}={illegal_value}, not this {type(error).__name__}: {error}')
             else:
-                self.assertFalse('Expected ValueError for {}={}, not a pass.'.format(option.name, illegal_value))
+                self.assertFalse(f'Expected ValueError for {option.name}={illegal_value}, not a pass.')
 
         expected = {
-            u'foo': False,
+            'foo': False,
             'boolean': False,
-            'code': u'foo == \"bar\"',
+            'code': 'foo == \"bar\"',
             'duration': 89999,
-            'fieldname': u'some.field_name',
+            'fieldname': 'some.field_name',
             'file': six.text_type(repr(__file__)),
             'integer': 100,
             'float': 99.9,
             'logging_configuration': environment.logging_configuration,
-            'logging_level': u'WARNING',
+            'logging_level': 'WARNING',
             'map': 'foo',
-            'match': u'123-45-6789',
-            'optionname': u'some_option_name',
+            'match': '123-45-6789',
+            'optionname': 'some_option_name',
             'record': False,
-            'regularexpression': u'\\s+',
+            'regularexpression': '\\s+',
             'required_boolean': False,
-            'required_code': u'foo == \"bar\"',
+            'required_code': 'foo == \"bar\"',
             'required_duration': 89999,
-            'required_fieldname': u'some.field_name',
+            'required_fieldname': 'some.field_name',
             'required_file': six.text_type(repr(__file__)),
             'required_integer': 100,
             'required_float': 99.9,
             'required_map': 'foo',
-            'required_match': u'123-45-6789',
-            'required_optionname': u'some_option_name',
-            'required_regularexpression': u'\\s+',
-            'required_set': u'bar',
-            'set': u'bar',
+            'required_match': '123-45-6789',
+            'required_optionname': 'some_option_name',
+            'required_regularexpression': '\\s+',
+            'required_set': 'bar',
+            'set': 'bar',
             'show_configuration': False,
         }
 
@@ -477,7 +469,6 @@ class TestDecorators(TestCase):
         observed = six.text_type(command.options)
 
         self.assertEqual(observed, expected)
-        return
 
 
 if __name__ == "__main__":

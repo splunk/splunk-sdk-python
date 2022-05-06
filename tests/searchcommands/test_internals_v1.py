@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from splunklib.searchcommands.internals import CommandLineParser, InputHeader, RecordWriterV1
 from splunklib.searchcommands.decorators import Configuration, Option
@@ -145,19 +144,19 @@ class TestInternals(TestCase):
             r'"Hello World!"'
         ]
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.text, expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = [string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.fieldnames[0], expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string] + strings
             CommandLineParser.parse(command, argv)
@@ -176,7 +175,6 @@ class TestInternals(TestCase):
             argv = [string]
             self.assertRaises(SyntaxError, CommandLineParser.parse, command, argv)
 
-        return
 
     def test_command_line_parser_unquote(self):
         parser = CommandLineParser
@@ -308,8 +306,6 @@ class TestInternals(TestCase):
         self.assertEqual(sorted(input_header.keys()), sorted(collection.keys()))
         self.assertEqual(sorted(input_header.values()), sorted(collection.values()))
 
-        return
-
     def test_messages_header(self):
 
         @Configuration()
@@ -346,7 +342,6 @@ class TestInternals(TestCase):
             '\r\n')
 
         self.assertEqual(output_buffer.getvalue().decode('utf-8'), expected)
-        return
 
     _package_path = os.path.dirname(__file__)
 

@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from splunklib import six
 from splunklib.searchcommands import Configuration, StreamingCommand
@@ -43,8 +42,7 @@ def build_command_input(getinfo_metadata, execute_metadata, execute_body):
 
     ifile = BytesIO(six.ensure_binary(input))
 
-    if not six.PY2:
-        ifile = TextIOWrapper(ifile)
+    ifile = TextIOWrapper(ifile)
 
     return ifile
 
@@ -57,10 +55,7 @@ class TestCommand(SearchCommand):
     def echo(self, records):
         for record in records:
             if record.get('action') == 'raise_exception':
-                if six.PY2:
-                    raise StandardError(self)
-                else:
-                    raise Exception(self)
+                raise Exception(self)
             yield record
 
     def _execute(self, ifile, process):
@@ -108,7 +103,6 @@ class TestStreamingCommand(StreamingCommand):
             value = self.search_results_info if action == 'get_search_results_info' else None
             yield {'_serial': serial_number, 'data': value}
             serial_number += 1
-        return
 
 @pytest.mark.smoke
 class TestSearchCommand(TestCase):
@@ -151,14 +145,7 @@ class TestSearchCommand(TestCase):
 
         self.assertEqual(str(command.configuration), '')
 
-        if six.PY2:
-            expected = ("[(u'clear_required_fields', None, [1]), (u'distributed', None, [2]), (u'generates_timeorder', None, [1]), "
-            "(u'generating', None, [1, 2]), (u'maxinputs', None, [2]), (u'overrides_timeorder', None, [1]), "
-            "(u'required_fields', None, [1, 2]), (u'requires_preop', None, [1]), (u'retainsevents', None, [1]), "
-            "(u'run_in_preview', None, [2]), (u'streaming', None, [1]), (u'streaming_preop', None, [1, 2]), "
-            "(u'type', None, [2])]")
-        else:
-            expected = ("[('clear_required_fields', None, [1]), ('distributed', None, [2]), ('generates_timeorder', None, [1]), "
+        expected = ("[('clear_required_fields', None, [1]), ('distributed', None, [2]), ('generates_timeorder', None, [1]), "
             "('generating', None, [1, 2]), ('maxinputs', None, [2]), ('overrides_timeorder', None, [1]), "
             "('required_fields', None, [1, 2]), ('requires_preop', None, [1]), ('retainsevents', None, [1]), "
             "('run_in_preview', None, [2]), ('streaming', None, [1]), ('streaming_preop', None, [1, 2]), "
@@ -201,24 +188,12 @@ class TestSearchCommand(TestCase):
         configuration.run_in_preview = True
         configuration.type = 'streaming'
 
-        if six.PY2:
-            expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
-                'required_fields="[u\'foo\', u\'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
-                'streaming_preop="some streaming command"')
-        else:
-            expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
+        expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
                         'required_fields="[\'foo\', \'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
                         'streaming_preop="some streaming command"')
         self.assertEqual(str(command.configuration), expected)
 
-        if six.PY2:
-            expected = ("[(u'clear_required_fields', True, [1]), (u'distributed', True, [2]), (u'generates_timeorder', True, [1]), "
-            "(u'generating', True, [1, 2]), (u'maxinputs', 50000, [2]), (u'overrides_timeorder', True, [1]), "
-            "(u'required_fields', [u'foo', u'bar'], [1, 2]), (u'requires_preop', True, [1]), "
-            "(u'retainsevents', True, [1]), (u'run_in_preview', True, [2]), (u'streaming', True, [1]), "
-            "(u'streaming_preop', u'some streaming command', [1, 2]), (u'type', u'streaming', [2])]")
-        else:
-            expected = ("[('clear_required_fields', True, [1]), ('distributed', True, [2]), ('generates_timeorder', True, [1]), "
+        expected = ("[('clear_required_fields', True, [1]), ('distributed', True, [2]), ('generates_timeorder', True, [1]), "
             "('generating', True, [1, 2]), ('maxinputs', 50000, [2]), ('overrides_timeorder', True, [1]), "
             "('required_fields', ['foo', 'bar'], [1, 2]), ('requires_preop', True, [1]), "
             "('retainsevents', True, [1]), ('run_in_preview', True, [2]), ('streaming', True, [1]), "
@@ -236,7 +211,7 @@ class TestSearchCommand(TestCase):
         result.seek(0)
         reader = csv.reader(codecs.iterdecode(result, 'UTF-8'))
         self.assertEqual([], next(reader))
-        observed = dict(izip(next(reader), next(reader)))
+        observed = dict(list(zip(next(reader), next(reader))))
         self.assertRaises(StopIteration, lambda: next(reader))
 
         expected = {
@@ -383,8 +358,6 @@ class TestSearchCommand(TestCase):
         self.assertIsNone(command.search_results_info)
         self.assertIsNone(command.service)
 
-        return
-
     def test_process_scpv2(self):
 
         # SearchCommand.process should
@@ -528,83 +501,83 @@ class TestSearchCommand(TestCase):
         self.maxDiff = None
 
         self.assertDictEqual(command.search_results_info.__dict__, {
-            u'is_summary_index': 0,
-            u'bs_thread_count': 1,
-            u'rt_backfill': 0,
-            u'rtspan': '',
-            u'search_StartTime': 1433261392.934936,
-            u'read_raw': 1,
-            u'root_sid': '',
-            u'field_rendering': '',
-            u'query_finished': 1,
-            u'optional_fields_json': {},
-            u'group_list': '',
-            u'remoteServers': '',
-            u'rt_latest': '',
-            u'remote_log_download_mode': 'disabled',
-            u'reduce_search': '',
-            u'request_finalization': 0,
-            u'auth_token': 'UQZSgWwE2f9oIKrj1QG^kVhW^T_cR4H5Z65bPtMhwlHytS5jFrFYyH^dGzjTusDjVTgoBNeR7bvIzctHF7DrLJ1ANevgDOWEWRvABNj6d_k0koqxw9Io',
-            u'indexed_realtime': 0,
-            u'ppc_bs': '$SPLUNK_HOME/etc',
-            u'drop_count': 0,
-            u'datamodel_map': '',
-            u'search_can_be_event_type': 0,
-            u'search_StartUp_Spent': 0,
-            u'realtime': 0,
-            u'splunkd_uri': 'https://127.0.0.1:8089',
-            u'columnOrder': '',
-            u'kv_store_settings': 'hosts;127.0.0.1:8191\\;;local;127.0.0.1:8191;read_preference;958513E3-8716-4ABF-9559-DA0C9678437F;replica_set_name;958513E3-8716-4ABF-9559-DA0C9678437F;status;ready;',
-            u'label': '',
-            u'summary_maxtimespan': '',
-            u'indexed_realtime_offset': 0,
-            u'sid': 1433261392.159,
-            u'msg': [],
-            u'internal_only': 0,
-            u'summary_id': '',
-            u'orig_search_head': '',
-            u'ppc_app': 'chunked_searchcommands',
-            u'countMap': {
-                u'invocations.dispatch.writeStatus': u'1',
-                u'duration.dispatch.writeStatus': u'2',
-                u'duration.startup.handoff': u'79',
-                u'duration.startup.configuration': u'34',
-                u'invocations.startup.handoff': u'1',
-                u'invocations.startup.configuration': u'1'},
-            u'is_shc_mode': 0,
-            u'shp_id': '958513E3-8716-4ABF-9559-DA0C9678437F',
-            u'timestamp': 1433261392.936374, u'is_remote_sorted': 0,
-            u'remote_search': '',
-            u'splunkd_protocol': 'https',
-            u'site': '',
-            u'maxevents': 0,
-            u'keySet': '',
-            u'summary_stopped': 0,
-            u'search_metrics': {
-                u'ConsideredEvents': 0,
-                u'ConsideredBuckets': 0,
-                u'TotalSlicesInBuckets': 0,
-                u'EliminatedBuckets': 0,
-                u'DecompressedSlices': 0},
-            u'summary_mode': 'all', u'now': 1433261392.0,
-            u'splunkd_port': 8089, u'is_saved_search': 0,
-            u'rtoptions': '',
-            u'search': '| inputlookup random_data max=50000 | sum total=total value1 record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw',
-            u'bundle_version': 0,
-            u'generation_id': 0,
-            u'bs_thread_id': 0,
-            u'is_batch_mode': 0,
-            u'scan_count': 0,
-            u'rt_earliest': '',
-            u'default_group': '*',
-            u'tstats_reduce': '',
-            u'kv_store_additional_settings': 'hosts_guids;958513E3-8716-4ABF-9559-DA0C9678437F\\;;',
-            u'enable_event_stream': 0,
-            u'is_remote': 0,
-            u'is_scheduled': 0,
-            u'sample_ratio': 1,
-            u'ppc_user': 'admin',
-            u'sample_seed': 0})
+            'is_summary_index': 0,
+            'bs_thread_count': 1,
+            'rt_backfill': 0,
+            'rtspan': '',
+            'search_StartTime': 1433261392.934936,
+            'read_raw': 1,
+            'root_sid': '',
+            'field_rendering': '',
+            'query_finished': 1,
+            'optional_fields_json': {},
+            'group_list': '',
+            'remoteServers': '',
+            'rt_latest': '',
+            'remote_log_download_mode': 'disabled',
+            'reduce_search': '',
+            'request_finalization': 0,
+            'auth_token': 'UQZSgWwE2f9oIKrj1QG^kVhW^T_cR4H5Z65bPtMhwlHytS5jFrFYyH^dGzjTusDjVTgoBNeR7bvIzctHF7DrLJ1ANevgDOWEWRvABNj6d_k0koqxw9Io',
+            'indexed_realtime': 0,
+            'ppc_bs': '$SPLUNK_HOME/etc',
+            'drop_count': 0,
+            'datamodel_map': '',
+            'search_can_be_event_type': 0,
+            'search_StartUp_Spent': 0,
+            'realtime': 0,
+            'splunkd_uri': 'https://127.0.0.1:8089',
+            'columnOrder': '',
+            'kv_store_settings': 'hosts;127.0.0.1:8191\\;;local;127.0.0.1:8191;read_preference;958513E3-8716-4ABF-9559-DA0C9678437F;replica_set_name;958513E3-8716-4ABF-9559-DA0C9678437F;status;ready;',
+            'label': '',
+            'summary_maxtimespan': '',
+            'indexed_realtime_offset': 0,
+            'sid': 1433261392.159,
+            'msg': [],
+            'internal_only': 0,
+            'summary_id': '',
+            'orig_search_head': '',
+            'ppc_app': 'chunked_searchcommands',
+            'countMap': {
+                'invocations.dispatch.writeStatus': '1',
+                'duration.dispatch.writeStatus': '2',
+                'duration.startup.handoff': '79',
+                'duration.startup.configuration': '34',
+                'invocations.startup.handoff': '1',
+                'invocations.startup.configuration': '1'},
+            'is_shc_mode': 0,
+            'shp_id': '958513E3-8716-4ABF-9559-DA0C9678437F',
+            'timestamp': 1433261392.936374, 'is_remote_sorted': 0,
+            'remote_search': '',
+            'splunkd_protocol': 'https',
+            'site': '',
+            'maxevents': 0,
+            'keySet': '',
+            'summary_stopped': 0,
+            'search_metrics': {
+                'ConsideredEvents': 0,
+                'ConsideredBuckets': 0,
+                'TotalSlicesInBuckets': 0,
+                'EliminatedBuckets': 0,
+                'DecompressedSlices': 0},
+            'summary_mode': 'all', 'now': 1433261392.0,
+            'splunkd_port': 8089, 'is_saved_search': 0,
+            'rtoptions': '',
+            'search': '| inputlookup random_data max=50000 | sum total=total value1 record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw',
+            'bundle_version': 0,
+            'generation_id': 0,
+            'bs_thread_id': 0,
+            'is_batch_mode': 0,
+            'scan_count': 0,
+            'rt_earliest': '',
+            'default_group': '*',
+            'tstats_reduce': '',
+            'kv_store_additional_settings': 'hosts_guids;958513E3-8716-4ABF-9559-DA0C9678437F\\;;',
+            'enable_event_stream': 0,
+            'is_remote': 0,
+            'is_scheduled': 0,
+            'sample_ratio': 1,
+            'ppc_user': 'admin',
+            'sample_seed': 0})
 
         self.assertIsInstance(command.service, Service)
 
@@ -706,13 +679,7 @@ class TestSearchCommand(TestCase):
 
         finished = r'\"finished\":true'
 
-        if six.PY2:
-            inspector = \
-                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"StandardError at \\\".+\\\", line \d+ : test ' \
-                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
-                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
-        else:
-            inspector = \
+        inspector = \
                 r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"Exception at \\\".+\\\", line \d+ : test ' \
                 r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
                 r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
@@ -781,8 +748,7 @@ class TestSearchCommand(TestCase):
             '{"finished":true}'
         )
 
-        self.assertEquals(result.getvalue().decode("UTF-8"), expected)
-        return
+        self.assertEqual(result.getvalue().decode("UTF-8"), expected)
 
     _package_directory = os.path.dirname(os.path.abspath(__file__))
 

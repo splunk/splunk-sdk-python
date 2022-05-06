@@ -14,20 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 import json
 from tests import testlib
 from splunklib.six.moves import range
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+
+from splunklib import client
+
 
 class KVStoreDataTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(KVStoreDataTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
+        super().setUp()
+        # self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):
@@ -74,7 +71,6 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         data = self.col.query(limit=2, skip=9)
         self.assertEqual(len(data), 1)
 
-
     def test_invalid_insert_update(self):
         self.assertRaises(client.HTTPError, lambda: self.col.insert('NOT VALID DATA'))
         id = self.col.insert(json.dumps({'foo': 'bar'}))['_key']
@@ -96,9 +92,8 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         if ('test' in self.confs):
             self.confs['test'].delete()
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

@@ -14,11 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-from tests import testlib
 import logging
-
-import splunklib.client as client
+from tests import testlib
+from splunklib import client
 
 
 class TestApp(testlib.SDKTestCase):
@@ -26,7 +24,7 @@ class TestApp(testlib.SDKTestCase):
     app_name = None
 
     def setUp(self):
-        super(TestApp, self).setUp()
+        super().setUp()
         if self.app is None:
             for app in self.service.apps:
                 if app.name.startswith('delete-me'):
@@ -37,18 +35,17 @@ class TestApp(testlib.SDKTestCase):
             # than entities like indexes, this is okay.
             self.app_name = testlib.tmpname()
             self.app = self.service.apps.create(self.app_name)
-            logging.debug("Creating app %s", self.app_name)
-        else:
-            logging.debug("App %s already exists. Skipping creation.", self.app_name)
+            logging.debug(f"Creating app {self.app_name}")
+        logging.debug(f"App {self.app_name} already exists. Skipping creation.")
         if self.service.restart_required:
             self.service.restart(120)
-        return
 
     def tearDown(self):
-        super(TestApp, self).tearDown()
+        super().tearDown()
         # The rest of this will leave Splunk in a state requiring a restart.
         # It doesn't actually matter, though.
         self.service = client.connect(**self.opts.kwargs)
+        app_name = ''
         for app in self.service.apps:
             app_name = app.name
             if app_name.startswith('delete-me'):
@@ -90,7 +87,7 @@ class TestApp(testlib.SDKTestCase):
         self.assertTrue(name in self.service.apps)
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)
-        self.clear_restart_message() # We don't actually have to restart here.
+        self.clear_restart_message()  # We don't actually have to restart here.
 
     def test_package(self):
         p = self.app.package()
@@ -103,9 +100,7 @@ class TestApp(testlib.SDKTestCase):
         p = self.app.updateInfo()
         self.assertTrue(p is not None)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

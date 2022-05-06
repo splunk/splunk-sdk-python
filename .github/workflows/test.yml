@@ -11,7 +11,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        python: [ 2.7, 3.7 ]
         splunk-version:
           - "8.0"
           - "latest"
@@ -35,7 +34,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: 3.7
       - name: Install tox
         run: pip install tox
       - name: Test Execution

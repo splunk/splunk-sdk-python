@@ -34,7 +34,7 @@ docs:
 .PHONY: test
 test:
 	@echo "$(ATTN_COLOR)==> test $(NO_COLOR)"
-	@tox -e py27,py37
+	@tox -e py37
 
 .PHONY: test_specific
 test_specific:

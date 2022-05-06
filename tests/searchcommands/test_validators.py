@@ -67,10 +67,10 @@ class TestValidators(TestCase):
             value = six.text_type(seconds)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
-            value = f'{seconds/60}:{seconds%60:02} '
+            value = '%d:%02d' % (seconds / 60, seconds % 60)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
-            value = f'{seconds/3600}:{(seconds/60)%60:02}:{seconds%60}'
+            value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
 

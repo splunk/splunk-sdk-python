@@ -25,15 +25,9 @@
 
 
 from collections import namedtuple
-from splunklib.six.moves import cStringIO as StringIO
 from datetime import datetime
 
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
-
 from subprocess import PIPE, Popen
-from splunklib import six
 
 from unittest import main, skipUnless, TestCase
 
@@ -43,14 +37,12 @@ import csv
 import io
 import os
 import sys
-
-try:
-    from tests.searchcommands import project_root
-except ImportError:
-    # Python 2.6
-    pass
-
 import pytest
+
+from splunklib.six.moves import cStringIO as StringIO
+from splunklib import six
+
+from tests.searchcommands import project_root
 
 
 def pypy():
@@ -287,8 +279,7 @@ class TestSearchCommandsApp(TestCase):
                 output_row['_time'] = expected_row['_time']
 
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row, output_row, f'Error on line {line_number}: expected {expected_row}, not {output_row}')
 
             line_number += 1
 
@@ -310,8 +301,7 @@ class TestSearchCommandsApp(TestCase):
         for expected_row in expected:
             output_row = next(output)
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row, output_row, f'Error on line {line_number}: expected {expected_row}, not {output_row}')
             line_number += 1
 
     def _get_search_command_path(self, name):

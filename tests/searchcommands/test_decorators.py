@@ -20,21 +20,17 @@ from unittest import main, TestCase
 import sys
 
 from io import TextIOWrapper
+import pytest
 
 from splunklib.searchcommands import Configuration, Option, environment, validators
 from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
 
-try:
-    from tests.searchcommands import rebase_environment
-except ImportError:
-    # Skip on Python 2.6
-    pass
+from tests.searchcommands import rebase_environment
 
 from splunklib import six
 
-import pytest
 
 
 @Configuration()
@@ -302,7 +298,7 @@ class TestDecorators(TestCase):
                 except Exception as error:
                     self.assertIsInstance(error, ValueError, 'Expected ValueError, not {}({}) for {}={}'.format(type(error).__name__, error, name, repr(value)))
                 else:
-                    self.fail('Expected ValueError, not success for {}={}'.format(name, repr(value)))
+                    self.fail(f'Expected ValueError, not success for {name}={repr(value)}')
 
                 settings_class = new_configuration_settings_class()
                 settings_instance = settings_class(command=None)
@@ -451,7 +447,7 @@ class TestDecorators(TestCase):
             elif type(x.validator).__name__ == 'RegularExpression':
                 self.assertEqual(expected[x.name], x.value.pattern)
             elif isinstance(x.value, TextIOWrapper):
-                self.assertEqual(expected[x.name], "'%s'" % x.value.name)
+                self.assertEqual(expected[x.name], f"'{x.value.name}'" )
             elif not isinstance(x.value, (bool,) + (float,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
                 self.assertEqual(expected[x.name], repr(x.value))
             else:

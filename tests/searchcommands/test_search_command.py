@@ -15,15 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from splunklib import six
-from splunklib.searchcommands import Configuration, StreamingCommand
-from splunklib.searchcommands.decorators import ConfigurationSetting, Option
-from splunklib.searchcommands.search_command import SearchCommand
-from splunklib.client import Service
-
-from splunklib.six import StringIO, BytesIO
-from splunklib.six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
@@ -36,11 +27,18 @@ from io import TextIOWrapper
 
 import pytest
 
+from splunklib import six
+from splunklib.searchcommands import Configuration, StreamingCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting, Option
+from splunklib.searchcommands.search_command import SearchCommand
+from splunklib.client import Service
+
+from splunklib.six import StringIO, BytesIO
+
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
-    input = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
-             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)),
-                                              len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
+    input = (f'chunked 1.0,{len(six.ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
+             f'chunked 1.0,{len(six.ensure_binary(execute_metadata))},{len(six.ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
 
     ifile = BytesIO(six.ensure_binary(input))
 
@@ -311,7 +309,7 @@ class TestSearchCommand(TestCase):
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
         except BaseException as error:
-            self.fail('Expected no exception, but caught {}: {}'.format(type(error).__name__, error))
+            self.fail(f'Expected no exception, but caught {type(error).__name__}: {error}')
         else:
             six.assertRegex(
                 self,

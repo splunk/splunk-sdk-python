@@ -78,7 +78,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list(count=10, sort_mode="auto")]
             if len(expected) == 0:
-                logging.debug(f"No entities in collection {coll_name}; skipping test.", coll_name)
+                logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list()][:10]
             self.assertEqual(expected, found,
                              msg=f'on {coll_name} (expected {expected}, found {found})')

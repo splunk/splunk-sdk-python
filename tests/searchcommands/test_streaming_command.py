@@ -1,7 +1,8 @@
 import io
 
-from . import chunked_data_stream as chunky
 from splunklib.searchcommands import StreamingCommand, Configuration
+from . import chunked_data_stream as chunky
+
 
 
 def test_simple_streaming_command():
@@ -57,10 +58,10 @@ def test_field_preservation_negative():
     output_records = list(next(output_iter).data)
 
     # Assert that count of records having "odd_field" is 0
-    assert len(list([r for r in output_records if "odd_field" in r])) == 0
+    assert len(list(r for r in output_records if "odd_field" in r)) == 0
 
     # Assert that count of records having "even_field" is 10
-    assert len(list([r for r in output_records if "even_field" in r])) == 10
+    assert len(list(r for r in output_records if "even_field" in r)) == 10
 
 
 def test_field_preservation_positive():
@@ -91,8 +92,7 @@ def test_field_preservation_positive():
     output_records = list(next(output_iter).data)
 
     # Assert that count of records having "odd_field" is 10
-    assert len(list([r for r in output_records if "odd_field" in r])) == 10
+    assert len(list(r for r in output_records if "odd_field" in r)) == 10
 
     # Assert that count of records having "even_field" is 10
-    assert len(list([r for r in output_records if "even_field" in r])) == 10
-
+    assert len(list(r for r in output_records if "even_field" in r)) == 10

@@ -4,7 +4,6 @@ import sys
 
 from os import path
 
-from splunklib import six
 from splunklib.searchcommands import StreamingCommand, Configuration
 
 

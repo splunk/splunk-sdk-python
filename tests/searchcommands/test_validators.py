@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.searchcommands import validators
 from random import randint
 from unittest import main, TestCase
 
@@ -23,10 +22,11 @@ import os
 import re
 import sys
 import tempfile
+import pytest
 from splunklib import six
 from splunklib.six.moves import range
+from splunklib.searchcommands import validators
 
-import pytest
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
@@ -67,10 +67,10 @@ class TestValidators(TestCase):
             value = six.text_type(seconds)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
-            value = '%d:%02d' % (seconds / 60, seconds % 60)
+            value = f'{seconds/60}:{seconds%60:02} '
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
-            value = '%d:%02d:%02d' % (seconds / 3600, (seconds / 60) % 60, seconds % 60)
+            value = f'{seconds/3600}:{(seconds/60)%60:02}:{seconds%60}'
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
 
@@ -192,7 +192,7 @@ class TestValidators(TestCase):
         self.assertEqual(validator.__call__(maxsize), maxsize)
         self.assertRaises(ValueError, validator.__call__, minsize - 1)
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
-    
+
     def test_float(self):
         # Float validator test
 

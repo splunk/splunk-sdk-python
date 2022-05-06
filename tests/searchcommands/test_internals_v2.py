@@ -15,31 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
-from splunklib.searchcommands import SearchMetric
-from splunklib import six
-from splunklib.six.moves import range
-from collections import OrderedDict
-from collections import namedtuple, deque
-from splunklib.six import BytesIO as BytesIO
-from functools import wraps
-from glob import iglob
-from itertools import chain
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
-from sys import float_info
-from tempfile import mktemp
-from time import time
-from types import MethodType
-from sys import version_info as python_version
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
-
-import splunklib.six.moves.cPickle as pickle
 import gzip
 import io
 import json
@@ -47,6 +22,24 @@ import os
 import random
 
 import pytest
+from functools import wraps
+from itertools import chain
+from sys import float_info
+from tempfile import mktemp
+from time import time
+from types import MethodType
+from unittest import main, TestCase
+
+from collections import OrderedDict
+from collections import namedtuple, deque
+
+from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
+from splunklib.searchcommands import SearchMetric
+from splunklib import six
+from splunklib.six.moves import range
+from splunklib.six import BytesIO as BytesIO
+import splunklib.six.moves.cPickle as pickle
+
 
 # region Functions for producing random apps
 
@@ -228,8 +221,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict([k_v for k_v in six.iteritems(writer._inspector) if k_v[0].startswith('metric.')]),
-            dict([('metric.' + k_v1[0], k_v1[1]) for k_v1 in six.iteritems(metrics)]))
+            dict(k_v for k_v in six.iteritems(writer._inspector) if k_v[0].startswith('metric.')),
+            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in six.iteritems(metrics)))
 
         writer.flush(finished=True)
 

@@ -149,9 +149,7 @@ class SDKTestCase(unittest.TestCase):
         try:
             self.service.delete("messages/restart_required")
         except client.HTTPError as he:
-            if he.status == 404:
-                pass
-            else:
+            if he.status != 404:
                 raise
 
     @contextlib.contextmanager

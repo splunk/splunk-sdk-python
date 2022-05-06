@@ -16,7 +16,7 @@ class Chunk:
                                    dialect=dialect)
 
 
-class ChunkedDataStreamIter(collections.Iterator):
+class ChunkedDataStreamIter(collections.abc.Iterator):
     def __init__(self, chunk_stream):
         self.chunk_stream = chunk_stream
 
@@ -30,7 +30,7 @@ class ChunkedDataStreamIter(collections.Iterator):
             raise StopIteration
 
 
-class ChunkedDataStream(collections.Iterable):
+class ChunkedDataStream(collections.abc.Iterable):
     def __iter__(self):
         return ChunkedDataStreamIter(self)
 

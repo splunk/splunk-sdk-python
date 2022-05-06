@@ -310,7 +310,7 @@ class TestDecorators(TestCase):
 
     def test_new_configuration_setting(self):
 
-        class Test():
+        class Test:
             generating = ConfigurationSetting()
 
             @ConfigurationSetting(name='required_fields')
@@ -470,6 +470,7 @@ class TestDecorators(TestCase):
 
         self.assertEqual(observed, expected)
 
+TestSearchCommand.__test__ = False
 
 if __name__ == "__main__":
     main()

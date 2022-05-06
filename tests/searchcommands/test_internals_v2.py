@@ -97,7 +97,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join([six.chr(x) for x in random.sample(list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length))])
+    return ''.join([str(x) for x in random.sample(list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length))])
 
 # endregion
 
@@ -324,7 +324,7 @@ class TestInternals(TestCase):
     _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 
 
-class TestRecorder():
+class TestRecorder:
 
     def __init__(self, test_case):
 
@@ -410,12 +410,11 @@ def recorded(method):
     return _record
 
 
-class Test():
+class Test:
 
     def __init__(self, fieldnames, data_generators):
 
         TestCase.__init__(self)
-
         self._data_generators = list(chain((lambda: self._serial_number, time), data_generators))
         self._fieldnames = list(chain(('_serial', '_time'), fieldnames))
         self._recorder = TestRecorder(self)
@@ -466,6 +465,10 @@ class Test():
 # test = Test(['random_bytes', 'random_unicode'], [random_bytes, random_unicode])
 # test.record()
 # test.playback()
+
+Test.__test__ = False
+TestRecorder.__test__ = False
+
 
 if __name__ == "__main__":
     main()

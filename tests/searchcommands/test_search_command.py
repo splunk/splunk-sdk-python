@@ -36,9 +36,11 @@ from io import TextIOWrapper
 
 import pytest
 
+
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
     input = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
-             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)), len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
+             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)),
+                                              len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
 
     ifile = BytesIO(six.ensure_binary(input))
 
@@ -46,9 +48,9 @@ def build_command_input(getinfo_metadata, execute_metadata, execute_body):
 
     return ifile
 
+
 @Configuration()
 class TestCommand(SearchCommand):
-
     required_option_1 = Option(require=True)
     required_option_2 = Option(require=True)
 
@@ -104,6 +106,7 @@ class TestStreamingCommand(StreamingCommand):
             yield {'_serial': serial_number, 'data': value}
             serial_number += 1
 
+
 @pytest.mark.smoke
 class TestSearchCommand(TestCase):
     def setUp(self):
@@ -145,7 +148,8 @@ class TestSearchCommand(TestCase):
 
         self.assertEqual(str(command.configuration), '')
 
-        expected = ("[('clear_required_fields', None, [1]), ('distributed', None, [2]), ('generates_timeorder', None, [1]), "
+        expected = (
+            "[('clear_required_fields', None, [1]), ('distributed', None, [2]), ('generates_timeorder', None, [1]), "
             "('generating', None, [1, 2]), ('maxinputs', None, [2]), ('overrides_timeorder', None, [1]), "
             "('required_fields', None, [1, 2]), ('requires_preop', None, [1]), ('retainsevents', None, [1]), "
             "('run_in_preview', None, [2]), ('streaming', None, [1]), ('streaming_preop', None, [1, 2]), "
@@ -160,7 +164,8 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('UTF-8')))
 
-        self.assertEqual('\r\n\r\n\r\n', result.getvalue().decode('UTF-8'))  # No message header and no configuration settings
+        self.assertEqual('\r\n\r\n\r\n',
+                         result.getvalue().decode('UTF-8'))  # No message header and no configuration settings
 
         ifile = StringIO('\n')
         result = BytesIO()
@@ -188,12 +193,14 @@ class TestSearchCommand(TestCase):
         configuration.run_in_preview = True
         configuration.type = 'streaming'
 
-        expected = ('clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
-                        'required_fields="[\'foo\', \'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
-                        'streaming_preop="some streaming command"')
+        expected = (
+            'clear_required_fields="True", generates_timeorder="True", generating="True", overrides_timeorder="True", '
+            'required_fields="[\'foo\', \'bar\']", requires_preop="True", retainsevents="True", streaming="True", '
+            'streaming_preop="some streaming command"')
         self.assertEqual(str(command.configuration), expected)
 
-        expected = ("[('clear_required_fields', True, [1]), ('distributed', True, [2]), ('generates_timeorder', True, [1]), "
+        expected = (
+            "[('clear_required_fields', True, [1]), ('distributed', True, [2]), ('generates_timeorder', True, [1]), "
             "('generating', True, [1, 2]), ('maxinputs', 50000, [2]), ('overrides_timeorder', True, [1]), "
             "('required_fields', ['foo', 'bar'], [1, 2]), ('requires_preop', True, [1]), "
             "('retainsevents', True, [1]), ('run_in_preview', True, [2]), ('streaming', True, [1]), "
@@ -215,21 +222,20 @@ class TestSearchCommand(TestCase):
         self.assertRaises(StopIteration, lambda: next(reader))
 
         expected = {
-            'clear_required_fields': '1',                '__mv_clear_required_fields': '',
-            'generating': '1',                           '__mv_generating': '',
-            'generates_timeorder': '1',                  '__mv_generates_timeorder': '',
-            'overrides_timeorder': '1',                  '__mv_overrides_timeorder': '',
-            'requires_preop': '1',                       '__mv_requires_preop': '',
-            'required_fields': 'foo,bar',                '__mv_required_fields': '',
-            'retainsevents': '1',                        '__mv_retainsevents': '',
-            'streaming': '1',                            '__mv_streaming': '',
+            'clear_required_fields': '1', '__mv_clear_required_fields': '',
+            'generating': '1', '__mv_generating': '',
+            'generates_timeorder': '1', '__mv_generates_timeorder': '',
+            'overrides_timeorder': '1', '__mv_overrides_timeorder': '',
+            'requires_preop': '1', '__mv_requires_preop': '',
+            'required_fields': 'foo,bar', '__mv_required_fields': '',
+            'retainsevents': '1', '__mv_retainsevents': '',
+            'streaming': '1', '__mv_streaming': '',
             'streaming_preop': 'some streaming command', '__mv_streaming_preop': '',
         }
 
         self.assertDictEqual(expected, observed)  # No message header and no configuration settings
 
         for action in '__GETINFO__', '__EXECUTE__':
-
             # TestCommand.process should produce an error record on parser errors
 
             argv = [
@@ -366,42 +372,43 @@ class TestSearchCommand(TestCase):
 
         metadata = (
             '{{'
-                '"action": "getinfo", "preview": false, "searchinfo": {{'
-                    '"latest_time": "0",'
-                    '"splunk_version": "20150522",'
-                    '"username": "admin",'
-                    '"app": "searchcommands_app",'
-                    '"args": ['
-                        '"logging_configuration={logging_configuration}",'
-                        '"logging_level={logging_level}",'
-                        '"record={record}",'
-                        '"show_configuration={show_configuration}",'
-                        '"required_option_1=value_1",'
-                        '"required_option_2=value_2"'
-                    '],'
-                    '"search": "Ａ%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
-                    '"earliest_time": "0",'
-                    '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
-                    '"owner": "admin",'
-                    '"sid": "1433261372.158",'
-                    '"splunkd_uri": "https://127.0.0.1:8089",'
-                    '"dispatch_dir": {dispatch_dir},'
-                    '"raw_args": ['
-                        '"logging_configuration={logging_configuration}",'
-                        '"logging_level={logging_level}",'
-                        '"record={record}",'
-                        '"show_configuration={show_configuration}",'
-                        '"required_option_1=value_1",'
-                        '"required_option_2=value_2"'
-                    '],'
-                    '"maxresultrows": 10,'
-                    '"command": "countmatches"'
-                '}}'
+            '"action": "getinfo", "preview": false, "searchinfo": {{'
+            '"latest_time": "0",'
+            '"splunk_version": "20150522",'
+            '"username": "admin",'
+            '"app": "searchcommands_app",'
+            '"args": ['
+            '"logging_configuration={logging_configuration}",'
+            '"logging_level={logging_level}",'
+            '"record={record}",'
+            '"show_configuration={show_configuration}",'
+            '"required_option_1=value_1",'
+            '"required_option_2=value_2"'
+            '],'
+            '"search": "Ａ%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
+            '"earliest_time": "0",'
+            '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
+            '"owner": "admin",'
+            '"sid": "1433261372.158",'
+            '"splunkd_uri": "https://127.0.0.1:8089",'
+            '"dispatch_dir": {dispatch_dir},'
+            '"raw_args": ['
+            '"logging_configuration={logging_configuration}",'
+            '"logging_level={logging_level}",'
+            '"record={record}",'
+            '"show_configuration={show_configuration}",'
+            '"required_option_1=value_1",'
+            '"required_option_2=value_2"'
+            '],'
+            '"maxresultrows": 10,'
+            '"command": "countmatches"'
+            '}}'
             '}}')
 
         basedir = self._package_directory
 
-        default_logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'default', 'logging.conf')
+        default_logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'default',
+                                                     'logging.conf')
         dispatch_dir = os.path.join(basedir, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.dispatch_dir')
         logging_configuration = os.path.join(basedir, 'apps', 'app_with_logging_configuration', 'logging.conf')
         logging_level = 'ERROR'
@@ -480,14 +487,18 @@ class TestSearchCommand(TestCase):
 
         self.assertEqual(command_metadata.preview, input_header['preview'])
         self.assertEqual(command_metadata.searchinfo.app, 'searchcommands_app')
-        self.assertEqual(command_metadata.searchinfo.args, ['logging_configuration=' + logging_configuration, 'logging_level=ERROR', 'record=false', 'show_configuration=true', 'required_option_1=value_1', 'required_option_2=value_2'])
+        self.assertEqual(command_metadata.searchinfo.args,
+                         ['logging_configuration=' + logging_configuration, 'logging_level=ERROR', 'record=false',
+                          'show_configuration=true', 'required_option_1=value_1', 'required_option_2=value_2'])
         self.assertEqual(command_metadata.searchinfo.dispatch_dir, os.path.dirname(input_header['infoPath']))
         self.assertEqual(command_metadata.searchinfo.earliest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.owner, 'admin')
         self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
-        self.assertEqual(command_metadata.searchinfo.search, 'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
-        self.assertEqual(command_metadata.searchinfo.session_key, '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
+        self.assertEqual(command_metadata.searchinfo.search,
+                         'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
+        self.assertEqual(command_metadata.searchinfo.session_key,
+                         '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
         self.assertEqual(command_metadata.searchinfo.sid, '1433261372.158')
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')
         self.assertEqual(command_metadata.searchinfo.splunkd_uri, 'https://127.0.0.1:8089')
@@ -668,7 +679,8 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail('{0}: {1}: {2}\n'.format(type(error).__name__, error, result.getvalue().decode('utf-8')))
         else:
-            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(result.getvalue().decode('utf-8')))
+            self.fail('Expected SystemExit, not a return from TestCommand.process: {}\n'.format(
+                result.getvalue().decode('utf-8')))
 
         self.assertEqual(command.logging_configuration, logging_configuration)
         self.assertEqual(command.logging_level, logging_level)
@@ -680,9 +692,9 @@ class TestSearchCommand(TestCase):
         finished = r'\"finished\":true'
 
         inspector = \
-                r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"Exception at \\\".+\\\", line \d+ : test ' \
-                r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
-                r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
+            r'\"inspector\":\{\"messages\":\[\[\"ERROR\",\"Exception at \\\".+\\\", line \d+ : test ' \
+            r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
+            r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
         six.assertRegex(
             self,
@@ -752,6 +764,9 @@ class TestSearchCommand(TestCase):
 
     _package_directory = os.path.dirname(os.path.abspath(__file__))
 
+
+TestCommand.__test__ = False
+TestStreamingCommand.__test__ = False
 
 if __name__ == "__main__":
     main()

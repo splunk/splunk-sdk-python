@@ -17,7 +17,6 @@
 from tests import testlib
 
 from splunklib import client
-from splunklib import six
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
@@ -88,7 +87,7 @@ class TestConfs(testlib.SDKTestCase):
                   testlib.tmpname(): testlib.tmpname()}
         stanza.submit(values)
         stanza.refresh()
-        for key, value in six.iteritems(values):
+        for key, value in values.items():
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 

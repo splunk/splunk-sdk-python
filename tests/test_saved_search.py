@@ -21,7 +21,6 @@ import logging
 from time import sleep
 
 from splunklib import client
-from splunklib.six.moves import zip
 
 import pytest
 

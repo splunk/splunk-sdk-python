@@ -16,7 +16,6 @@
 
 import json
 from tests import testlib
-from splunklib.six.moves import range
 
 from splunklib import client
 

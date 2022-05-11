@@ -15,7 +15,6 @@
 # under the License.
 
 from tests import testlib
-from splunklib.six.moves import range
 
 from splunklib import client
 
@@ -26,7 +25,7 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
         # self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         confs = self.service.kvstore
-        if ('test' in confs):
+        if 'test' in confs:
             confs['test'].delete()
         confs.create('test')
 

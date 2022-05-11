@@ -15,7 +15,6 @@
 # under the License.
 
 from tests import testlib
-import logging
 
 from splunklib import client
 

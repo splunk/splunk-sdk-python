@@ -14,40 +14,33 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 import os
 from subprocess import PIPE, Popen
-import time
+
 import sys
-
-import io
-
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
 
 import pytest
 
 from tests import testlib
 
-import splunklib.client as client
+from splunklib import client
 from splunklib import six
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
 
+
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
     testcase.assertTrue(isinstance(first, six.string_types),
-        'First argument is not a string')
+                        'First argument is not a string')
     testcase.assertTrue(isinstance(second, six.string_types),
-        'Second argument is not a string')
+                        'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
     second = second.replace("\r", "")
     if first != second:
-        testcase.fail("Multiline strings are not equal: %s" % message)
+        testcase.fail(f"Multiline strings are not equal: {message}")
 
 
 # Run the given python script and return its exit code.
@@ -72,11 +65,11 @@ class ExamplesTestCase(testlib.SDKTestCase):
     def check_commands(self, *args):
         for arg in args:
             result = run(arg)
-            self.assertEqual(result, 0, '"{0}" run failed with result code {1}'.format(arg, result))
+            self.assertEqual(result, 0, f'"{arg}" run failed with result code {result}')
         self.service.login()  # Because a Splunk restart invalidates our session
 
     def setUp(self):
-        super(ExamplesTestCase, self).setUp()
+        super().setUp()
 
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
@@ -104,7 +97,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
             conf = self.service.confs['server']
             if 'SDK-STANZA' in conf:
                 conf.delete("SDK-STANZA")
-        except Exception as e:
+        except Exception:
             pass
 
         try:
@@ -154,7 +147,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Assumes that tiny-proxy.py is in the same directory as the sample
 
-        #This test seems to be flaky
+        # This test seems to be flaky
         # if six.PY2:  # Needs to be fixed PY3
         #     process = start("handlers/tiny-proxy.py -p 8080", stderr=PIPE)
         #     try:
@@ -178,7 +171,6 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "index.py disable sdk-tests",
             "index.py enable sdk-tests",
             "index.py clean sdk-tests")
-        return
 
     def test_info(self):
         self.check_commands(
@@ -221,10 +213,11 @@ class ExamplesTestCase(testlib.SDKTestCase):
             "saved_search/saved_search.py",
             ["saved_search/saved_search.py", "--help"],
             ["saved_search/saved_search.py", "list-all"],
-            ["saved_search/saved_search.py", "--operation", "create", "--name", temp_name, "--search", "search * | head 5"],
+            ["saved_search/saved_search.py", "--operation", "create", "--name", temp_name, "--search",
+             "search * | head 5"],
             ["saved_search/saved_search.py", "list", "--name", temp_name],
             ["saved_search/saved_search.py", "list", "--operation", "delete", "--name", temp_name],
-            ["saved_search/saved_search.py", "list", "--name",  "Errors in the last 24 hours"]
+            ["saved_search/saved_search.py", "list", "--name", "Errors in the last 24 hours"]
         )
 
     def test_search(self):
@@ -257,7 +250,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         file_to_upload = os.path.expandvars(os.environ.get("INPUT_EXAMPLE_UPLOAD", "./upload.py"))
         self.check_commands(
             "upload.py --help",
-            "upload.py --index=sdk-tests %s" % file_to_upload)
+            f"upload.py --index=sdk-tests {file_to_upload}")
 
     # The following tests are for the Analytics example
     def test_analytics(self):
@@ -268,7 +261,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Create a tracker
         tracker = analytics.input.AnalyticsTracker(
-            "sdk-test", self.opts.kwargs, index = "sdk-test")
+            "sdk-test", self.opts.kwargs, index="sdk-test")
 
         service = client.connect(**self.opts.kwargs)
 
@@ -284,7 +277,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
 
         # Now, we create a retriever to retrieve the events
         retriever = analytics.output.AnalyticsRetriever(
-            "sdk-test", self.opts.kwargs, index = "sdk-test")
+            "sdk-test", self.opts.kwargs, index="sdk-test")
 
         # Assert applications
         applications = retriever.applications()
@@ -308,7 +301,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         for prop in properties:
             name = prop["name"]
             count = prop["count"]
-            self.assertTrue(name in list(expected_properties.keys()))
+            self.assertTrue(name in list(expected_properties))
             self.assertEqual(count, expected_properties[name])
 
         # Assert property values
@@ -321,12 +314,12 @@ class ExamplesTestCase(testlib.SDKTestCase):
         for value in values:
             name = value["name"]
             count = value["count"]
-            self.assertTrue(name in list(expected_property_values.keys()))
+            self.assertTrue(name in list(expected_property_values))
             self.assertEqual(count, expected_property_values[name])
 
         # Assert event over time
         over_time = retriever.events_over_time(
-            time_range = analytics.output.TimeRange.MONTH)
+            time_range=analytics.output.TimeRange.MONTH)
         self.assertEqual(len(over_time), 1)
         self.assertEqual(len(over_time["test_event"]), 1)
         self.assertEqual(over_time["test_event"][0]["count"], 2)
@@ -334,10 +327,8 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Now that we're done, we'll clean the index
         index.clean()
 
+
 if __name__ == "__main__":
+    import unittest
     os.chdir("../examples")
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

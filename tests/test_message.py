@@ -14,10 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 
-import splunklib.client as client
+from splunklib import client
+
 
 class MessageTest(testlib.SDKTestCase):
     def setUp(self):
@@ -30,6 +30,7 @@ class MessageTest(testlib.SDKTestCase):
     def tearDown(self):
         testlib.SDKTestCase.tearDown(self)
         self.service.messages.delete(self.message_name)
+
 
 class TestCreateDelete(testlib.SDKTestCase):
     def test_create_delete(self):
@@ -46,11 +47,10 @@ class TestCreateDelete(testlib.SDKTestCase):
     def test_invalid_name(self):
         self.assertRaises(client.InvalidNameException, self.service.messages.create, None, value="What?")
         self.assertRaises(client.InvalidNameException, self.service.messages.create, 42, value="Who, me?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1,2,3], value="Who, me?")
+        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1, 2, 3], value="Who, me?")
+
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

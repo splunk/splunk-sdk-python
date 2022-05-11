@@ -7,7 +7,7 @@ import splunklib.searchcommands.internals
 from splunklib import six
 
 
-class Chunk(object):
+class Chunk:
     def __init__(self, version, meta, data):
         self.version = six.ensure_str(version)
         self.meta = json.loads(meta)
@@ -16,21 +16,21 @@ class Chunk(object):
                                    dialect=dialect)
 
 
-class ChunkedDataStreamIter(collections.Iterator):
+class ChunkedDataStreamIter(collections.abc.Iterator):
     def __init__(self, chunk_stream):
         self.chunk_stream = chunk_stream
 
     def __next__(self):
-        return self.next()
+        return next(self)
 
-    def next(self):
+    def __next__(self):
         try:
             return self.chunk_stream.read_chunk()
         except EOFError:
             raise StopIteration
 
 
-class ChunkedDataStream(collections.Iterable):
+class ChunkedDataStream(collections.abc.Iterable):
     def __iter__(self):
         return ChunkedDataStreamIter(self)
 
@@ -91,7 +91,7 @@ def _build_data_csv(data):
 
     headers = set()
     for datum in data:
-        headers.update(datum.keys())
+        headers.update(list(datum.keys()))
     writer = csv.DictWriter(csvout, headers,
                             dialect=splunklib.searchcommands.internals.CsvDialect)
     writer.writeheader()

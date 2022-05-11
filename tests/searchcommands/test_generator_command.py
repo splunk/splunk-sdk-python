@@ -1,9 +1,8 @@
 import io
 import time
 
-from . import chunked_data_stream as chunky
-
 from splunklib.searchcommands import Configuration, GeneratingCommand
+from . import chunked_data_stream as chunky
 
 
 def test_simple_generator():
@@ -24,7 +23,7 @@ def test_simple_generator():
     ds = chunky.ChunkedDataStream(out_stream)
     is_first_chunk = True
     finished_seen = False
-    expected = set(map(lambda i: str(i), range(1, 10)))
+    expected = set(str(i) for i in range(1, 10))
     seen = set()
     for chunk in ds:
         if is_first_chunk:

@@ -14,7 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from contextlib import closing
+from unittest import main, TestCase
+import os
+import pytest
+from functools import reduce
 
 from splunklib.searchcommands.internals import CommandLineParser, InputHeader, RecordWriterV1
 from splunklib.searchcommands.decorators import Configuration, Option
@@ -22,19 +26,11 @@ from splunklib.searchcommands.validators import Boolean
 
 from splunklib.searchcommands.search_command import SearchCommand
 
-from contextlib import closing
 from splunklib.six import StringIO, BytesIO
 
-from splunklib.six.moves import zip as izip
-
-from unittest import main, TestCase
-
-import os
 from splunklib import six
 from splunklib.six.moves import range
-from functools import reduce
 
-import pytest
 
 @pytest.mark.smoke
 class TestInternals(TestCase):
@@ -94,7 +90,8 @@ class TestInternals(TestCase):
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
         for option in six.itervalues(command.options):
-            if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record', 'show_configuration']:
+            if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record',
+                               'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
             self.assertTrue(option.is_set)
@@ -112,7 +109,8 @@ class TestInternals(TestCase):
 
         # Command line with unrecognized options
 
-        self.assertRaises(ValueError, CommandLineParser.parse, command, ['unrecognized_option_1=foo', 'unrecognized_option_2=bar'])
+        self.assertRaises(ValueError, CommandLineParser.parse, command,
+                          ['unrecognized_option_1=foo', 'unrecognized_option_2=bar'])
 
         # Command line with a variety of quoted/escaped text options
 
@@ -145,19 +143,19 @@ class TestInternals(TestCase):
             r'"Hello World!"'
         ]
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.text, expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = [string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.fieldnames[0], expected_value)
 
-        for string, expected_value in izip(strings, expected_values):
+        for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
             argv = ['text', '=', string] + strings
             CommandLineParser.parse(command, argv)
@@ -176,25 +174,23 @@ class TestInternals(TestCase):
             argv = [string]
             self.assertRaises(SyntaxError, CommandLineParser.parse, command, argv)
 
-        return
-
     def test_command_line_parser_unquote(self):
         parser = CommandLineParser
 
         options = [
-            r'foo',                 # unquoted string with no escaped characters
-            r'fo\o\ b\"a\\r',       # unquoted string with some escaped characters
-            r'"foo"',               # quoted string with no special characters
-            r'"""foobar1"""',       # quoted string with quotes escaped like this: ""
-            r'"\"foobar2\""',       # quoted string with quotes escaped like this: \"
-            r'"foo ""x"" bar"',     # quoted string with quotes escaped like this: ""
-            r'"foo \"x\" bar"',     # quoted string with quotes escaped like this: \"
-            r'"\\foobar"',          # quoted string with an escaped backslash
-            r'"foo \\ bar"',        # quoted string with an escaped backslash
-            r'"foobar\\"',          # quoted string with an escaped backslash
-            r'foo\\\bar',           # quoted string with an escaped backslash and an escaped 'b'
-            r'""',                  # pair of quotes
-            r'']                    # empty string
+            r'foo',  # unquoted string with no escaped characters
+            r'fo\o\ b\"a\\r',  # unquoted string with some escaped characters
+            r'"foo"',  # quoted string with no special characters
+            r'"""foobar1"""',  # quoted string with quotes escaped like this: ""
+            r'"\"foobar2\""',  # quoted string with quotes escaped like this: \"
+            r'"foo ""x"" bar"',  # quoted string with quotes escaped like this: ""
+            r'"foo \"x\" bar"',  # quoted string with quotes escaped like this: \"
+            r'"\\foobar"',  # quoted string with an escaped backslash
+            r'"foo \\ bar"',  # quoted string with an escaped backslash
+            r'"foobar\\"',  # quoted string with an escaped backslash
+            r'foo\\\bar',  # quoted string with an escaped backslash and an escaped 'b'
+            r'""',  # pair of quotes
+            r'']  # empty string
 
         expected = [
             r'foo',
@@ -288,7 +284,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + '{}:{}\n'.format(item[0], item[1]), six.iteritems(collection), '') + '\n'
+        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', six.iteritems(collection), '') + '\n'
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)
@@ -308,13 +304,10 @@ class TestInternals(TestCase):
         self.assertEqual(sorted(input_header.keys()), sorted(collection.keys()))
         self.assertEqual(sorted(input_header.values()), sorted(collection.values()))
 
-        return
-
     def test_messages_header(self):
 
         @Configuration()
         class TestMessagesHeaderCommand(SearchCommand):
-
             class ConfigurationSettings(SearchCommand.ConfigurationSettings):
 
                 @classmethod
@@ -346,7 +339,6 @@ class TestInternals(TestCase):
             '\r\n')
 
         self.assertEqual(output_buffer.getvalue().decode('utf-8'), expected)
-        return
 
     _package_path = os.path.dirname(__file__)
 

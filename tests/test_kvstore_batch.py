@@ -14,19 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 from splunklib.six.moves import range
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+
+from splunklib import client
+
 
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(KVStoreBatchTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
+        super().setUp()
+        # self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         confs = self.service.kvstore
         if ('test' in confs):
@@ -69,15 +66,13 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
             self.assertEqual(testData[x][0]['data'], '#' + str(x + 1))
             self.assertEqual(testData[x][0]['num'], x + 1)
 
-
     def tearDown(self):
         confs = self.service.kvstore
         if ('test' in confs):
             confs['test'].delete()
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

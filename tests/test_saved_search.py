@@ -14,22 +14,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 import datetime
 from tests import testlib
 import logging
 
 from time import sleep
 
-import splunklib.client as client
+from splunklib import client
 from splunklib.six.moves import zip
 
 import pytest
 
+
 @pytest.mark.smoke
 class TestSavedSearch(testlib.SDKTestCase):
     def setUp(self):
-        super(TestSavedSearch, self).setUp()
+        super().setUp()
         saved_searches = self.service.saved_searches
         logging.debug("Saved searches namespace: %s", saved_searches.service.namespace)
         self.saved_search_name = testlib.tmpname()
@@ -37,7 +37,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search = saved_searches.create(self.saved_search_name, query)
 
     def tearDown(self):
-        super(TestSavedSearch, self).setUp()
+        super().setUp()
         for saved_search in self.service.saved_searches:
             if saved_search.name.startswith('delete-me'):
                 try:
@@ -90,7 +90,6 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertFalse(self.saved_search_name in self.service.saved_searches)
         self.assertRaises(client.HTTPError,
                           self.saved_search.refresh)
-
 
     def test_update(self):
         is_visible = testlib.to_bool(self.saved_search['is_visible'])
@@ -148,7 +147,7 @@ class TestSavedSearch(testlib.SDKTestCase):
 
     def test_dispatch_with_options(self):
         try:
-            kwargs = { 'dispatch.buckets': 100 }
+            kwargs = {'dispatch.buckets': 100}
             job = self.saved_search.dispatch(**kwargs)
             while not job.is_ready():
                 sleep(0.1)
@@ -165,7 +164,7 @@ class TestSavedSearch(testlib.SDKTestCase):
             while not job.is_ready():
                 sleep(0.1)
             history = self.saved_search.history()
-            self.assertEqual(len(history), N+1)
+            self.assertEqual(len(history), N + 1)
             self.assertTrue(job.sid in [j.sid for j in history])
         finally:
             job.cancel()
@@ -178,13 +177,8 @@ class TestSavedSearch(testlib.SDKTestCase):
                              for x in scheduled_times]))
         time_pairs = list(zip(scheduled_times[:-1], scheduled_times[1:]))
         for earlier, later in time_pairs:
-            diff = later-earlier
-            # diff is an instance of datetime.timedelta, which
-            # didn't get a total_seconds() method until Python 2.7.
-            # Since we support Python 2.6, we have to calculate the
-            # total seconds ourselves.
-            total_seconds = diff.days*24*60*60 + diff.seconds
-            self.assertEqual(total_seconds/60.0, 5)
+            diff = later - earlier
+            self.assertEqual(diff.total_seconds() / 60.0, 5)
 
     def test_no_equality(self):
         self.assertRaises(client.IncomparableException,
@@ -193,7 +187,7 @@ class TestSavedSearch(testlib.SDKTestCase):
     def test_suppress(self):
         suppressed_time = self.saved_search['suppressed']
         self.assertGreaterEqual(suppressed_time, 0)
-        new_suppressed_time = suppressed_time+100
+        new_suppressed_time = suppressed_time + 100
         self.saved_search.suppress(new_suppressed_time)
         self.assertLessEqual(self.saved_search['suppressed'],
                              new_suppressed_time)
@@ -202,9 +196,8 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search.unsuppress()
         self.assertEqual(self.saved_search['suppressed'], 0)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

@@ -15,32 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
-from splunklib.searchcommands import SearchMetric
-from splunklib import six
-from splunklib.six.moves import range
-from collections import OrderedDict
-from collections import namedtuple, deque
-from splunklib.six import BytesIO as BytesIO
-from functools import wraps
-from glob import iglob
-from itertools import chain
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
-from sys import float_info
-from tempfile import mktemp
-from time import time
-from types import MethodType
-from sys import version_info as python_version
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
-
-import splunklib.six.moves.cPickle as pickle
 import gzip
 import io
 import json
@@ -48,6 +22,24 @@ import os
 import random
 
 import pytest
+from functools import wraps
+from itertools import chain
+from sys import float_info
+from tempfile import mktemp
+from time import time
+from types import MethodType
+from unittest import main, TestCase
+
+from collections import OrderedDict
+from collections import namedtuple, deque
+
+from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
+from splunklib.searchcommands import SearchMetric
+from splunklib import six
+from splunklib.six.moves import range
+from splunklib.six import BytesIO as BytesIO
+import splunklib.six.moves.cPickle as pickle
+
 
 # region Functions for producing random apps
 
@@ -98,7 +90,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join(imap(lambda x: six.unichr(x), random.sample(range(MAX_NARROW_UNICODE), random.randint(0, max_length))))
+    return ''.join([str(x) for x in random.sample(list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length))])
 
 # endregion
 
@@ -118,13 +110,8 @@ class TestInternals(TestCase):
         json_output = encoder.encode(view)
 
         self.assertEqual(self._json_input, json_output)
-        return
 
     def test_recorder(self):
-
-        if (python_version[0] == 2 and python_version[1] < 7):
-            print("Skipping test since we're on {1}".format("".join(python_version)))
-            pass
 
         # Grab an input/output recording, the results of a prior countmatches run
 
@@ -172,8 +159,6 @@ class TestInternals(TestCase):
             ifile._recording.close()
             os.remove(ifile._recording.name)
 
-        return
-
     def test_record_writer_with_random_data(self, save_recording=False):
 
         # Confirmed: [minint, maxint) covers the full range of values that xrange allows
@@ -192,7 +177,7 @@ class TestInternals(TestCase):
 
         for serial_number in range(0, 31):
             values = [serial_number, time(), random_bytes(), random_dict(), random_integers(), random_unicode()]
-            record = OrderedDict(izip(fieldnames, values))
+            record = OrderedDict(list(zip(fieldnames, values)))
             #try:
             write_record(record)
             #except Exception as error:
@@ -236,8 +221,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(ifilter(lambda k_v: k_v[0].startswith('metric.'), six.iteritems(writer._inspector))),
-            dict(imap(lambda k_v1: ('metric.' + k_v1[0], k_v1[1]), six.iteritems(metrics))))
+            dict(k_v for k_v in six.iteritems(writer._inspector) if k_v[0].startswith('metric.')),
+            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in six.iteritems(metrics)))
 
         writer.flush(finished=True)
 
@@ -267,18 +252,15 @@ class TestInternals(TestCase):
         # P2 [ ] TODO: Verify that RecordWriter gives consumers the ability to finish early by calling
         # RecordWriter.flush(finish=True).
 
-        return
-
     def _compare_chunks(self, chunks_1, chunks_2):
         self.assertEqual(len(chunks_1), len(chunks_2))
         n = 0
-        for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
+        for chunk_1, chunk_2 in zip(chunks_1, chunks_2):
             self.assertDictEqual(
                 chunk_1.metadata, chunk_2.metadata,
                 'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
             self.assertMultiLineEqual(chunk_1.body, chunk_2.body, 'Chunk {0}: data error'.format(n))
             n += 1
-        return
 
     def _load_chunks(self, ifile):
         import re
@@ -335,7 +317,7 @@ class TestInternals(TestCase):
     _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 
 
-class TestRecorder(object):
+class TestRecorder:
 
     def __init__(self, test_case):
 
@@ -348,7 +330,6 @@ class TestRecorder(object):
             raise NotImplementedError('class {} is not in playback or record mode'.format(self.__class__.__name__))
 
         self.get = self.next_part = self.stop = MethodType(_not_implemented, self, self.__class__)
-        return
 
     @property
     def output(self):
@@ -377,7 +358,6 @@ class TestRecorder(object):
             self._test_case.assertEqual(test_data['results'], self._output.getvalue())
 
         self.stop = MethodType(stop, self, self.__class__)
-        return
 
     def record(self, path):
 
@@ -412,7 +392,6 @@ class TestRecorder(object):
                 pickle.dump(test, f)
 
         self.stop = MethodType(stop, self, self.__class__)
-        return
 
 
 def recorded(method):
@@ -424,12 +403,11 @@ def recorded(method):
     return _record
 
 
-class Test(object):
+class Test:
 
     def __init__(self, fieldnames, data_generators):
 
         TestCase.__init__(self)
-
         self._data_generators = list(chain((lambda: self._serial_number, time), data_generators))
         self._fieldnames = list(chain(('_serial', '_time'), fieldnames))
         self._recorder = TestRecorder(self)
@@ -473,15 +451,17 @@ class Test(object):
         names = self.fieldnames
 
         for self._serial_number in range(0, 31):
-            record = OrderedDict(izip(names, self.row))
+            record = OrderedDict(list(zip(names, self.row)))
             write_record(record)
-
-        return
 
 
 # test = Test(['random_bytes', 'random_unicode'], [random_bytes, random_unicode])
 # test.record()
 # test.playback()
+
+Test.__test__ = False
+TestRecorder.__test__ = False
+
 
 if __name__ == "__main__":
     main()

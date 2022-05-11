@@ -14,22 +14,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
-import logging
 
-import splunklib.client as client
 
 class FiredAlertTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(FiredAlertTestCase, self).setUp()
+        super().setUp()
         self.index_name = testlib.tmpname()
         self.assertFalse(self.index_name in self.service.indexes)
         self.index = self.service.indexes.create(self.index_name)
         saved_searches = self.service.saved_searches
         self.saved_search_name = testlib.tmpname()
         self.assertFalse(self.saved_search_name in saved_searches)
-        query = "search index=%s" % self.index_name
+        query = f"search index={self.index_name}"
         kwargs = {'alert_type': 'always',
                   'alert.severity': "3",
                   'alert.suppress': "0",
@@ -43,7 +40,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
             query, **kwargs)
 
     def tearDown(self):
-        super(FiredAlertTestCase, self).tearDown()
+        super().tearDown()
         if self.service.splunk_version >= (5,):
             self.service.indexes.delete(self.index_name)
         for saved_search in self.service.saved_searches:
@@ -57,7 +54,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.assertEqual(len(self.saved_search.history()), 0)
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
         self.assertFalse(self.saved_search_name in self.service.fired_alerts)
-        
+
     def test_alerts_on_events(self):
         self.assertEqual(self.saved_search.alert_count, 0)
         self.assertEqual(len(self.saved_search.fired_alerts), 0)
@@ -71,14 +68,17 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.index.refresh()
         self.index.submit('This is a test ' + testlib.tmpname(),
                           sourcetype='sdk_use', host='boris')
+
         def f():
             self.index.refresh()
-            return int(self.index['totalEventCount']) == eventCount+1
+            return int(self.index['totalEventCount']) == eventCount + 1
+
         self.assertEventuallyTrue(f, timeout=50)
 
         def g():
             self.saved_search.refresh()
             return self.saved_search.alert_count == 1
+
         self.assertEventuallyTrue(g, timeout=200)
 
         alerts = self.saved_search.fired_alerts
@@ -90,9 +90,8 @@ class FiredAlertTestCase(testlib.SDKTestCase):
             for alert in alert_group.alerts:
                 alert.content
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

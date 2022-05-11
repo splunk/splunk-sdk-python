@@ -15,8 +15,6 @@
 # under the License.
 
 """Shared unit test utilities."""
-from __future__ import absolute_import
-from __future__ import print_function
 import contextlib
 
 import sys
@@ -26,14 +24,11 @@ from splunklib import six
 sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')
 
-import splunklib.client as client
+from splunklib import client
 from time import sleep
 from datetime import datetime, timedelta
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 try:
     from utils import parse
@@ -63,10 +58,9 @@ class WaitTimedOutError(Exception):
 def to_bool(x):
     if x == '1':
         return True
-    elif x == '0':
+    if x == '0':
         return False
-    else:
-        raise ValueError("Not a boolean value: %s", x)
+    raise ValueError("Not a boolean value: %s", x)
 
 
 def tmpname():
@@ -155,9 +149,7 @@ class SDKTestCase(unittest.TestCase):
         try:
             self.service.delete("messages/restart_required")
         except client.HTTPError as he:
-            if he.status == 404:
-                pass
-            else:
+            if he.status != 404:
                 raise
 
     @contextlib.contextmanager
@@ -269,6 +261,6 @@ class SDKTestCase(unittest.TestCase):
                 except HTTPError as error:
                     if not (os.name == 'nt' and error.status == 500):
                         raise
-                    print('Ignoring failure to delete {0} during tear down: {1}'.format(appName, error))
+                    print(f'Ignoring failure to delete {appName} during tear down: {error}')
         if self.service.restart_required:
             self.clear_restart_message()

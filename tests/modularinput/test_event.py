@@ -14,13 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 
 import sys
 
 import pytest
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
+from tests.modularinput.modularinput_testlib import xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
 
@@ -99,7 +98,7 @@ def test_writing_events_on_event_writer(capsys):
     first_out_part = captured.out
 
     with data_open("data/stream_with_one_event.xml") as data:
-        found = ET.fromstring("%s</stream>" % first_out_part)
+        found = ET.fromstring(f"{first_out_part}</stream>")
         expected = ET.parse(data).getroot()
 
         assert xml_compare(expected, found)

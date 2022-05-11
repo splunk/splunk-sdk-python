@@ -14,11 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
-import logging
 
-import splunklib.client as client
+from splunklib import client
 from splunklib import six
 
 class TestRead(testlib.SDKTestCase):
@@ -40,7 +38,7 @@ class TestRead(testlib.SDKTestCase):
 
 class TestConfs(testlib.SDKTestCase):
     def setUp(self):
-        super(TestConfs, self).setUp()
+        super().setUp()
         self.app_name = testlib.tmpname()
         self.app = self.service.apps.create(self.app_name)
         # Connect using the test app context
@@ -105,8 +103,5 @@ class TestConfs(testlib.SDKTestCase):
         self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

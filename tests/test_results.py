@@ -14,14 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-
 from io import BytesIO
 
 from splunklib.six import StringIO
 from tests import testlib
 from time import sleep
-import splunklib.results as results
+from splunklib import results
 import io
 
 
@@ -164,9 +162,8 @@ class ResultsTestCase(testlib.SDKTestCase):
         actual_results = [x for x in results_reader]
         self.assertEqual(expected_results, actual_results)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

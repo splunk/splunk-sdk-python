@@ -15,9 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from splunklib.searchcommands import validators
 from random import randint
 from unittest import main, TestCase
 
@@ -25,10 +22,11 @@ import os
 import re
 import sys
 import tempfile
+import pytest
 from splunklib import six
 from splunklib.six.moves import range
+from splunklib.searchcommands import validators
 
-import pytest
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 
@@ -57,8 +55,6 @@ class TestValidators(TestCase):
 
         self.assertIsNone(validator.__call__(None))
         self.assertRaises(ValueError, validator.__call__, 'anything-else')
-
-        return
 
     def test_duration(self):
 
@@ -96,8 +92,6 @@ class TestValidators(TestCase):
         self.assertRaises(ValueError, validator, '-1:00:00')
         self.assertRaises(ValueError, validator, '00:00:60')
         self.assertRaises(ValueError, validator, '00:60:00')
-
-        return
 
     def test_fieldname(self):
         pass
@@ -140,8 +134,6 @@ class TestValidators(TestCase):
             if os.path.exists(full_path):
                 os.unlink(full_path)
 
-        return
-
     def test_integer(self):
 
         # Point of interest:
@@ -168,10 +160,7 @@ class TestValidators(TestCase):
             for s in str(integer), six.text_type(integer):
                 value = validator.__call__(s)
                 self.assertEqual(value, integer)
-                if six.PY2:
-                    self.assertIsInstance(value, long)
-                else:
-                    self.assertIsInstance(value, int)
+                self.assertIsInstance(value, int)
             self.assertEqual(validator.format(integer), six.text_type(integer))
 
         test(2 * minsize)
@@ -204,8 +193,6 @@ class TestValidators(TestCase):
         self.assertRaises(ValueError, validator.__call__, minsize - 1)
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
 
-        return
-    
     def test_float(self):
         # Float validator test
 
@@ -260,8 +247,6 @@ class TestValidators(TestCase):
         self.assertEqual(validator.__call__(maxsize), maxsize)
         self.assertRaises(ValueError, validator.__call__, minsize - 1)
         self.assertRaises(ValueError, validator.__call__, maxsize + 1)
-
-        return
 
     def test_list(self):
 

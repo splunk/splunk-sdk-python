@@ -14,9 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 from io import BytesIO
 from time import sleep
 
@@ -24,13 +21,10 @@ import io
 
 from tests import testlib
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
-import splunklib.client as client
-import splunklib.results as results
+from splunklib import client
+from splunklib import results
 
 from splunklib.binding import _log_duration, HTTPError
 
@@ -84,8 +78,8 @@ class TestUtilities(testlib.SDKTestCase):
         self.assertTrue(len(nonmessages) <= 3)
 
     def test_export_docstring_sample(self):
-        import splunklib.client as client
-        import splunklib.results as results
+        from splunklib import client
+        from splunklib import results
         service = self.service # cheat
         rr = results.JSONResultsReader(service.jobs.export("search * | head 5", output_mode='json'))
         for result in rr:
@@ -98,7 +92,7 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
 
     def test_results_docstring_sample(self):
-        import splunklib.results as results
+        from splunklib import results
         service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
         while not job.is_done():
@@ -114,8 +108,8 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
 
     def test_preview_docstring_sample(self):
-        import splunklib.client as client
-        import splunklib.results as results
+        from splunklib import client
+        from splunklib import results
         service = self.service # cheat
         job = service.jobs.create("search * | head 5")
         rr = results.JSONResultsReader(job.preview(output_mode='json'))
@@ -132,8 +126,8 @@ class TestUtilities(testlib.SDKTestCase):
             pass #print "Job is finished. Results are final."
 
     def test_oneshot_docstring_sample(self):
-        import splunklib.client as client
-        import splunklib.results as results
+        from splunklib import client
+        from splunklib import results
         service = self.service # cheat
         rr = results.JSONResultsReader(service.jobs.oneshot("search * | head 5", output_mode='json'))
         for result in rr:
@@ -188,7 +182,6 @@ class TestUtilities(testlib.SDKTestCase):
                 'statusBuckets', 'ttl']
         for key in keys:
             self.assertTrue(key in job.content)
-        return
 
     def test_read_jobs(self):
         jobs = self.service.jobs
@@ -212,11 +205,11 @@ class TestUtilities(testlib.SDKTestCase):
 
 class TestJobWithDelayedDone(testlib.SDKTestCase):
     def setUp(self):
-        super(TestJobWithDelayedDone, self).setUp()
+        super().setUp()
         self.job = None
 
     def tearDown(self):
-        super(TestJobWithDelayedDone, self).tearDown()
+        super().tearDown()
         if self.job is not None:
             self.job.cancel()
             self.assertEventuallyTrue(lambda: self.job.sid not in self.service.jobs)
@@ -243,7 +236,6 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             return self.job.content['isPreviewEnabled'] == '1'
 
         self.assertEventuallyTrue(is_preview_enabled)
-        return
 
     @pytest.mark.app
     def test_setpriority(self):
@@ -279,12 +271,11 @@ class TestJobWithDelayedDone(testlib.SDKTestCase):
             return int(self.job.content['priority']) == new_priority
 
         self.assertEventuallyTrue(f, timeout=sleep_duration + 5)
-        return
 
 
 class TestJob(testlib.SDKTestCase):
     def setUp(self):
-        super(TestJob, self).setUp()
+        super().setUp()
         self.query = "search index=_internal | head 3"
         self.job = self.service.jobs.create(
             query=self.query,
@@ -292,7 +283,7 @@ class TestJob(testlib.SDKTestCase):
             latest_time="now")
 
     def tearDown(self):
-        super(TestJob, self).tearDown()
+        super().tearDown()
         self.job.cancel()
 
     @_log_duration

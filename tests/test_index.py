@@ -14,30 +14,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-from __future__ import print_function
-from tests import testlib
 import logging
-import os
 import time
-import splunklib.client as client
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-
 import pytest
+from tests import testlib
+from splunklib import client
+
 
 
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):
-        super(IndexTest, self).setUp()
+        super().setUp()
         self.index_name = testlib.tmpname()
         self.index = self.service.indexes.create(self.index_name)
         self.assertEventuallyTrue(lambda: self.index.refresh()['disabled'] == '0')
 
     def tearDown(self):
-        super(IndexTest, self).tearDown()
+        super().tearDown()
         # We can't delete an index with the REST API before Splunk
         # 5.0. In 4.x, we just have to leave them lying around until
         # someone cares to go clean them up. Unique naming prevents
@@ -92,14 +85,14 @@ class IndexTest(testlib.SDKTestCase):
     #     self.assertEqual(self.index['totalEventCount'], '0')
 
     def test_prefresh(self):
-        self.assertEqual(self.index['disabled'], '0') # Index is prefreshed
+        self.assertEqual(self.index['disabled'], '0')  # Index is prefreshed
 
     def test_submit(self):
         event_count = int(self.index['totalEventCount'])
         self.assertEqual(self.index['sync'], '0')
         self.assertEqual(self.index['disabled'], '0')
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
 
     def test_submit_namespaced(self):
         s = client.connect(**{
@@ -114,14 +107,14 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEqual(i['sync'], '0')
         self.assertEqual(i['disabled'], '0')
         i.submit("Hello again namespaced!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=50)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
 
     def test_submit_via_attach(self):
         event_count = int(self.index['totalEventCount'])
         cn = self.index.attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_using_token_header(self):
         # Remove the prefix from the token
@@ -133,14 +126,14 @@ class IndexTest(testlib.SDKTestCase):
         cn = i.attach()
         cn.send(b"Hello Boris 5!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attached_socket(self):
         event_count = int(self.index['totalEventCount'])
         f = self.index.attached_socket
         with f() as sock:
             sock.send(b'Hello world!\r\n')
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_with_cookie_header(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
@@ -156,7 +149,7 @@ class IndexTest(testlib.SDKTestCase):
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_with_multiple_cookie_headers(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
@@ -171,7 +164,7 @@ class IndexTest(testlib.SDKTestCase):
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+1, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     @pytest.mark.app
     def test_upload(self):
@@ -181,11 +174,10 @@ class IndexTest(testlib.SDKTestCase):
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.index.upload(path)
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+4, timeout=60)
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 4, timeout=60)
+
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

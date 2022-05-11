@@ -24,23 +24,12 @@
 # self.metadata, self.search_results_info, and self.service. Such mocks might be based on archived dispatch directories.
 
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from collections import namedtuple
-from splunklib.six.moves import cStringIO as StringIO
 from datetime import datetime
 
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
-
 from subprocess import PIPE, Popen
-from splunklib import six
 
-try:
-    from unittest2 import main, skipUnless, TestCase
-except ImportError:
-    from unittest import main, skipUnless, TestCase
+from unittest import main, skipUnless, TestCase
 
 import gzip
 import json
@@ -48,14 +37,13 @@ import csv
 import io
 import os
 import sys
-
-try:
-    from tests.searchcommands import project_root
-except ImportError:
-    # Python 2.6
-    pass
-
 import pytest
+
+from splunklib.six.moves import cStringIO as StringIO
+from splunklib import six
+
+from tests.searchcommands import project_root
+
 
 def pypy():
     try:
@@ -67,7 +55,7 @@ def pypy():
         return process.returncode == 0
 
 
-class Recording(object):
+class Recording:
 
     def __init__(self, path):
 
@@ -77,7 +65,7 @@ class Recording(object):
         if os.path.exists(self._dispatch_dir):
             with io.open(os.path.join(self._dispatch_dir, 'request.csv')) as ifile:
                 reader = csv.reader(ifile)
-                for name, value in izip(next(reader), next(reader)):
+                for name, value in zip(next(reader), next(reader)):
                     if name == 'search':
                         self._search = value
                         break
@@ -124,31 +112,29 @@ class Recording(object):
         return self._search
 
 
-class Recordings(object):
+class Recordings:
 
     def __init__(self, name, action, phase, protocol_version):
-
         basedir = Recordings._prefix + six.text_type(protocol_version)
 
         if not os.path.isdir(basedir):
-            raise ValueError('Directory "{}" containing recordings for protocol version {} does not exist'.format(
-                protocol_version, basedir))
+            raise ValueError(
+                f'Directory "{protocol_version}" containing recordings for protocol version {basedir} does not exist')
 
         self._basedir = basedir
-        self._name = '.'.join(ifilter(lambda part: part is not None, (name, action, phase)))
+        self._name = '.'.join([part for part in (name, action, phase) if part is not None])
 
     def __iter__(self):
-
         basedir = self._basedir
         name = self._name
 
-        iterator = imap(
-            lambda directory: Recording(os.path.join(basedir, directory, name)), ifilter(
-                lambda filename: os.path.isdir(os.path.join(basedir, filename)), os.listdir(basedir)))
+        iterator = [Recording(os.path.join(basedir, directory, name)) for directory in
+                    [filename for filename in os.listdir(basedir) if os.path.isdir(os.path.join(basedir, filename))]]
 
         return iterator
 
     _prefix = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'recordings', 'scpv')
+
 
 @pytest.mark.smoke
 class TestSearchCommandsApp(TestCase):
@@ -160,7 +146,8 @@ class TestSearchCommandsApp(TestCase):
             self.skipTest("You must build the searchcommands_app by running " + build_command)
         TestCase.setUp(self)
 
-    @pytest.mark.skipif(six.PY3, reason="Python 2 does not treat Unicode as words for regex, so Python 3 has broken fixtures")
+    @pytest.mark.skipif(six.PY3,
+                        reason="Python 2 does not treat Unicode as words for regex, so Python 3 has broken fixtures")
     def test_countmatches_as_unit(self):
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
@@ -178,8 +165,6 @@ class TestSearchCommandsApp(TestCase):
         self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
-        return
-
     def test_generatehello_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
@@ -196,8 +181,6 @@ class TestSearchCommandsApp(TestCase):
         self.assertEqual(0, exit_status, msg=six.text_type(errors))
         self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output, time_sensitive=False)
-
-        return
 
     def test_sum_as_unit(self):
 
@@ -231,22 +214,20 @@ class TestSearchCommandsApp(TestCase):
         self.assertEqual('', errors, msg=six.text_type(errors))
         self._compare_chunks(expected, output)
 
-        return
-
     def assertInfoEqual(self, output, expected):
         reader = csv.reader(StringIO(output))
         self.assertEqual([], next(reader))
         fields = next(reader)
         values = next(reader)
-        self.assertRaises(StopIteration, reader.next)
-        output = dict(izip(fields, values))
+        self.assertRaises(StopIteration, reader.__next__)
+        output = dict(list(zip(fields, values)))
 
         reader = csv.reader(StringIO(expected))
         self.assertEqual([], next(reader))
         fields = next(reader)
         values = next(reader)
-        self.assertRaises(StopIteration, reader.next)
-        expected = dict(izip(fields, values))
+        self.assertRaises(StopIteration, reader.__next__)
+        expected = dict(list(zip(fields, values)))
 
         self.assertDictEqual(expected, output)
 
@@ -265,14 +246,12 @@ class TestSearchCommandsApp(TestCase):
         self.assertEqual(len(chunks_1), len(chunks_2))
         n = 0
 
-        for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
+        for chunk_1, chunk_2 in zip(chunks_1, chunks_2):
             self.assertDictEqual(
                 chunk_1.metadata, chunk_2.metadata,
-                'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
+                f'Chunk {n}: metadata error: "{chunk_1.metadata}" != "{chunk_2.metadata}"')
             compare_csv_files(chunk_1.body, chunk_2.body)
             n += 1
-
-        return
 
     def _compare_csv_files_time_insensitive(self, expected, output):
 
@@ -300,15 +279,9 @@ class TestSearchCommandsApp(TestCase):
                 output_row['_time'] = expected_row['_time']
 
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row, output_row, f'Error on line {line_number}: expected {expected_row}, not {output_row}')
 
             line_number += 1
-
-        if six.PY2:
-            self.assertRaises(StopIteration, output.next)
-
-        return
 
     def _compare_csv_files_time_sensitive(self, expected, output):
         self.assertEqual(len(expected), len(output))
@@ -328,14 +301,8 @@ class TestSearchCommandsApp(TestCase):
         for expected_row in expected:
             output_row = next(output)
             self.assertDictEqual(
-                expected_row, output_row, 'Error on line {0}: expected {1}, not {2}'.format(
-                    line_number, expected_row, output_row))
+                expected_row, output_row, f'Error on line {line_number}: expected {expected_row}, not {output_row}')
             line_number += 1
-
-        if six.PY2:
-            self.assertRaises(StopIteration, output.next)
-
-        return
 
     def _get_search_command_path(self, name):
         path = os.path.join(
@@ -343,7 +310,7 @@ class TestSearchCommandsApp(TestCase):
         self.assertTrue(os.path.isfile(path))
         return path
 
-    def _load_chunks(self, ifile):
+    def _load_chunks(ifile):
         import re
 
         pattern = re.compile(r'chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)(\n)?')

@@ -32,26 +32,14 @@ as follows:::
     print "Results are a preview: %s" % reader.is_preview
 """
 
-from __future__ import absolute_import
-
 from io import BufferedReader, BytesIO
-
-from splunklib import six
 
 from splunklib.six import deprecated
 
-try:
-    import xml.etree.cElementTree as et
-except:
-    import xml.etree.ElementTree as et
+import xml.etree.ElementTree as et
 
 from collections import OrderedDict
 from json import loads as json_loads
-
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except:
-    from splunklib.six import StringIO
 
 __all__ = [
     "ResultsReader",
@@ -76,7 +64,7 @@ class Message(object):
         self.message = message
 
     def __repr__(self):
-        return "%s: %s" % (self.type, self.message)
+        return f"{self.type}: {self.message}"
 
     def __eq__(self, other):
         return (self.type, self.message) == (other.type, other.message)
@@ -264,25 +252,7 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    try:
-                        text = "".join(elem.itertext())
-                    except AttributeError:
-                        # Assume we're running in Python < 2.7, before itertext() was added
-                        # So we'll define it here
-
-                        def __itertext(self):
-                            tag = self.tag
-                            if not isinstance(tag, six.string_types) and tag is not None:
-                                return
-                            if self.text:
-                                yield self.text
-                            for e in self:
-                                for s in __itertext(e):
-                                    yield s
-                                if e.tail:
-                                    yield e.tail
-
-                        text = "".join(__itertext(elem))
+                    text = "".join(elem.itertext())
                     values.append(text)
                     elem.clear()
 
@@ -298,11 +268,10 @@ class ResultsReader(object):
             # splunk that is described in __init__.
             if 'no element found' in pe.msg:
                 return
-            else:
-                raise
+            raise
 
 
-class JSONResultsReader(object):
+class JSONResultsReader:
     """This class returns dictionaries and Splunk messages from a JSON results
     stream.
     ``JSONResultsReader`` is iterable, and returns a ``dict`` for results, or a
@@ -355,6 +324,8 @@ class JSONResultsReader(object):
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
+        msg_type = None
+        text = None
         for line in stream.readlines():
             strip_line = line.strip()
             if strip_line.__len__() == 0: continue

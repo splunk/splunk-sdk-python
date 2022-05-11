@@ -22,7 +22,7 @@ import logging
 
 from unittest import main, TestCase
 import pytest
-from splunklib.six.moves import cStringIO as StringIO
+from io import StringIO
 
 
 from splunklib.searchcommands import environment

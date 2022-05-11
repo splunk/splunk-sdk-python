@@ -28,7 +28,6 @@
 from unittest import main, TestCase
 import pytest
 from splunklib.searchcommands.decorators import Configuration
-from splunklib import six
 
 
 
@@ -48,7 +47,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 1
 
         self.assertTrue(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('generating', True)])
 
         self.assertIs(command.configuration.generates_timeorder, None)
@@ -71,7 +70,7 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('generates_timeorder', True), ('generating', True), ('local', True), ('retainsevents', True),
              ('streaming', True)])
 
@@ -79,7 +78,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 2
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('generating', True), ('type', 'stateful')])
 
         self.assertIs(command.configuration.distributed, False)
@@ -98,7 +97,7 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('generating', True), ('type', 'streaming')])
 
     def test_streaming_command(self):
@@ -115,7 +114,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 1
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('streaming', True)])
 
         self.assertIs(command.configuration.clear_required_fields, None)
@@ -139,7 +138,7 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('clear_required_fields', True), ('local', True), ('overrides_timeorder', True),
              ('required_fields', ['field_1', 'field_2', 'field_3']), ('streaming', True)])
 
@@ -147,7 +146,7 @@ class TestConfigurationSettings(TestCase):
         command._protocol_version = 2
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('type', 'streaming')])
 
         self.assertIs(command.configuration.distributed, True)
@@ -166,7 +165,7 @@ class TestConfigurationSettings(TestCase):
             self.fail('Expected AttributeError')
 
         self.assertEqual(
-            list(six.iteritems(command.configuration)),
+            list(command.configuration.items()),
             [('required_fields', ['field_1', 'field_2', 'field_3']), ('type', 'stateful')])
 
 

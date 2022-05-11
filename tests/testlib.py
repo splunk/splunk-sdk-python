@@ -17,29 +17,24 @@
 """Shared unit test utilities."""
 import contextlib
 
+import os
+import time
+import logging
 import sys
-from splunklib import six
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
 sys.path.insert(0, '../examples')
-
-from splunklib import client
 from time import sleep
 from datetime import datetime, timedelta
 
 import unittest
 
-try:
-    from utils import parse
-except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
-                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+from utils import parse
 
-import os
-import time
+from splunklib import client
 
-import logging
+
 
 logging.basicConfig(
     filename='test.log',
@@ -97,7 +92,7 @@ class SDKTestCase(unittest.TestCase):
             logging.debug("wait finished after %s seconds", datetime.now() - start)
 
     def check_content(self, entity, **kwargs):
-        for k, v in six.iteritems(kwargs):
+        for k, v in list(kwargs):
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):

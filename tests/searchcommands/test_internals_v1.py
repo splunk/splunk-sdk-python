@@ -26,10 +26,8 @@ from splunklib.searchcommands.validators import Boolean
 
 from splunklib.searchcommands.search_command import SearchCommand
 
-from splunklib.six import StringIO, BytesIO
+from io import StringIO, BytesIO
 
-from splunklib import six
-from splunklib.six.moves import range
 
 
 @pytest.mark.smoke
@@ -57,7 +55,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
-        for option in six.itervalues(command.options):
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -74,7 +72,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
-        for option in six.itervalues(command.options):
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -89,7 +87,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
-        for option in six.itervalues(command.options):
+        for option in command.options.values():
             if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record',
                                'show_configuration']:
                 self.assertFalse(option.is_set)
@@ -284,7 +282,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', six.iteritems(collection), '') + '\n'
+        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', collection.items(), '') + '\n'
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)

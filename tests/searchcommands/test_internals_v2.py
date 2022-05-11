@@ -20,6 +20,7 @@ import io
 import json
 import os
 import random
+import sys
 
 import pytest
 from functools import wraps
@@ -35,18 +36,16 @@ from collections import namedtuple, deque
 
 from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
-from splunklib import six
-from splunklib.six.moves import range
-from splunklib.six import BytesIO as BytesIO
-import splunklib.six.moves.cPickle as pickle
+from io import BytesIO
+import pickle
 
 
 # region Functions for producing random apps
 
 # Confirmed: [minint, maxint) covers the full range of values that xrange allows
 
-minint = (-six.MAXSIZE - 1) // 2
-maxint = six.MAXSIZE // 2
+minint = (-sys.maxsize - 1) // 2
+maxint = sys.maxsize // 2
 
 max_length = 1 * 1024
 
@@ -82,7 +81,7 @@ def random_integer():
 
 
 def random_integers():
-    return random_list(six.moves.range, minint, maxint)
+    return random_list(range, minint, maxint)
 
 
 def random_list(population, *args):
@@ -206,7 +205,7 @@ class TestInternals(TestCase):
 
         test_data['metrics'] = metrics
 
-        for name, metric in six.iteritems(metrics):
+        for name, metric in metrics.items():
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 0)
@@ -221,8 +220,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(k_v for k_v in six.iteritems(writer._inspector) if k_v[0].startswith('metric.')),
-            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in six.iteritems(metrics)))
+            dict(k_v for k_v in writer._inspector.items() if k_v[0].startswith('metric.')),
+            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in metrics.items()))
 
         writer.flush(finished=True)
 
@@ -312,7 +311,7 @@ class TestInternals(TestCase):
         'n': 12
     }
 
-    _json_input = six.text_type(json.dumps(_dictionary, separators=(',', ':')))
+    _json_input = str(json.dumps(_dictionary, separators=(',', ':')))
     _package_path = os.path.dirname(os.path.abspath(__file__))
     _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 

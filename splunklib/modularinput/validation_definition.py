@@ -13,16 +13,12 @@
 # under the License.
 
 
-from __future__ import absolute_import
-try:
-    import xml.etree.cElementTree as ET
-except ImportError as ie:
-    import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 from .utils import parse_xml_data
 
 
-class ValidationDefinition(object):
+class ValidationDefinition:
     """This class represents the XML sent by Splunk for external validation of a
     new modular input.
 

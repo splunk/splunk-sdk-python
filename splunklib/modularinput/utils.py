@@ -14,8 +14,7 @@
 
 # File for utility functions
 
-from __future__ import absolute_import
-from splunklib.six.moves import zip
+
 def xml_compare(expected, found):
     """Checks equality of two ``ElementTree`` objects.
 
@@ -39,7 +38,7 @@ def xml_compare(expected, found):
         return False
 
     # compare children
-    if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
+    if not all(xml_compare(a, b) for a, b in zip(expected_children, found_children)):
         return False
 
     # compare elements, if there is no text node, return True
@@ -59,7 +58,7 @@ def parse_parameters(param_node):
             parameters.append(mvp.text)
         return parameters
     else:
-        raise ValueError("Invalid configuration scheme, %s tag unexpected." % param_node.tag)
+        raise ValueError(f"Invalid configuration scheme, {param_node.tag} tag unexpected.")
 
 def parse_xml_data(parent_node, child_node_tag):
     data = {}

@@ -12,24 +12,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-from splunklib.six.moves.urllib.parse import urlsplit
 import sys
+import xml.etree.ElementTree as ET
+from urllib.parse import urlsplit
 
 from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
-from splunklib import six
-
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
 
 
-class Script(six.with_metaclass(ABCMeta, object)):
+class Script(metaclass=ABCMeta):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
@@ -165,7 +159,6 @@ class Script(six.with_metaclass(ABCMeta, object)):
 
         :param definition: The parameters for the proposed input passed by splunkd.
         """
-        pass
 
     @abstractmethod
     def stream_events(self, inputs, ew):

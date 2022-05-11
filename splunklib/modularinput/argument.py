@@ -14,8 +14,8 @@
 
 import xml.etree.ElementTree as ET
 
-
 class Argument:
+
     """Class representing an argument to a modular input kind.
 
     ``Argument`` is meant to be used with ``Scheme`` to generate an XML 

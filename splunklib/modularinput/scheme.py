@@ -12,13 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
-class Scheme(object):
+
+class Scheme:
     """Class representing the metadata for a modular input kind.
 
     A ``Scheme`` specifies a title, description, several options of how Splunk should run modular inputs of this

@@ -12,16 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from io import TextIOBase
+import xml.etree.ElementTree as ET
 from splunklib.six import ensure_text
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError as ie:
-    import xml.etree.ElementTree as ET
 
-class Event(object):
+class Event:
     """Represents an event or fragment of an event to be written by this modular input to Splunk.
 
     To write an input to a stream, call the ``write_to`` function, passing in a stream.

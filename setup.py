@@ -24,10 +24,7 @@ import splunklib
 failed = False
 
 def run_test_suite():
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
 
     def mark_failed():
         global failed

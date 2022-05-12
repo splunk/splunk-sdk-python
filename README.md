@@ -5,7 +5,7 @@
 
 #### Version 1.6.19
 
-The Splunk Enterprise Software Development Kit (SDK) for Python contains library code and examples designed to enable developers to build applications using the Splunk platform.
+The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
 
 The Splunk platform is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
 
@@ -18,7 +18,7 @@ The Splunk developer platform enables developers to take advantage of the same t
 
 ## Get started with the Splunk Enterprise SDK for Python
 
-The Splunk Enterprise SDK for Python contains library code and examples that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
+The Splunk Enterprise SDK for Python contains library code, and it's examples are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository, that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
 
 ### Requirements
 
@@ -39,7 +39,7 @@ Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
 ### Install the SDK
 
-Use the following commands to install the Splunk Enterprise SDK for Python libraries. However, it's not necessary to install the libraries to run the examples and unit tests from the SDK.
+Use the following commands to install the Splunk Enterprise SDK for Python libraries. However, it's not necessary to install the libraries to run the unit tests from the SDK.
 
 Use `pip`:
 
@@ -67,8 +67,6 @@ make down
 To run the examples and unit tests, you must put the root of the SDK on your PYTHONPATH. For example, if you downloaded the SDK to your home folder and are running OS X or Linux, add the following line to your **.bash_profile** file:
 
     export PYTHONPATH=~/splunk-sdk-python
-
-The SDK command-line examples require a common set of arguments that specify the host, port, and login credentials for Splunk Enterprise. For a full list of command-line arguments, include `--help` as an argument to any of the examples.
 
 ### Following are the different ways to connect to Splunk Enterprise
 #### Using username/password
@@ -115,29 +113,9 @@ here is an example of .env file:
     # Session key for authentication
     #sessionKey=<Session-Key>
 
-#### Run the examples
+#### SDK examples
 
-Examples are located in the **/splunk-sdk-python/examples** directory. To run the examples at the command line, use the Python interpreter and include any arguments that are required by the example. In the commands below, replace "examplename" with the name of the specific example in the directory that you want to run:
-
-Using username and Password
-    
-    python examplename.py --username="admin" --password="changeme"
-
-Using Bearer token
-    
-    python examplename.py --bearerToken=<value>
-
-Using Session key
-    
-    python examplename.py --sessionKey="<value>"
-
-If you saved your login credentials in the **.env** file, you can omit those arguments:
-
-    python examplename.py
-
-To get help for an example, use the `--help` argument with an example:
-
-    python examplename.py --help
+Examples for the Splunk Enterprise SDK for Python are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. For details, see the [Examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal.
 
 #### Run the unit tests
 
@@ -162,10 +140,9 @@ The test suite uses Python's standard library, the built-in `unittest` library, 
 | Directory | Description                                                |
 |:--------- |:---------------------------------------------------------- |
 |/docs      | Source for Sphinx-based docs and build                     |
-|/examples  | Examples demonstrating various SDK features                |
 |/splunklib | Source for the Splunk library modules                      |
 |/tests     | Source for unit tests                                      |
-|/utils     | Source for utilities shared by the examples and unit tests |
+|/utils     | Source for utilities shared by the unit tests              |
 
 ### Customization
 * When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, We may need to add new fields to the records based on certain conditions.
@@ -216,7 +193,7 @@ class GeneratorTest(GeneratingCommand):
 
 ### Access metadata of modular inputs app
 * In stream_events() method we can access modular input app metadata from InputDefinition object
-* See [GitHub Commit](https://github.com/splunk/splunk-sdk-python/blob/develop/examples/github_commits/bin/github_commits.py) Modular input App example for reference.
+* See [GitHub Commit](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) Modular input App example for reference.
 ```python
     def stream_events(self, inputs, ew):
         # other code
@@ -262,7 +239,7 @@ To learn about our branching model, see [Branching Model](https://github.com/spl
 | [REST API Reference Manual](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog) | Splunk REST API reference documentation |
 | [Splunk>Docs](https://docs.splunk.com/Documentation) | General documentation for the Splunk platform |
 | [GitHub Wiki](https://github.com/splunk/splunk-sdk-python/wiki/) | Documentation for this SDK's repository on GitHub |
-
+| [Splunk Enterprise SDK for Python Examples](https://github.com/splunk/splunk-app-examples) | Examples for this SDK's repository |
 
 ## Community
 

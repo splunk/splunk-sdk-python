@@ -24,7 +24,8 @@ import sys
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
-sys.path.insert(0, '../examples')
+
+import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
 

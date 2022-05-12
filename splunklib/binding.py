@@ -169,15 +169,14 @@ class UrlEncoded(str):
         if isinstance(val, UrlEncoded):
             # Don't urllib.quote something already URL encoded.
             return val
-        elif skip_encode:
+        if skip_encode:
             return str.__new__(self, val)
-        elif encode_slash:
+        if encode_slash:
             return str.__new__(self, parse.quote_plus(val))
-        else:
-            # When subclassing str, just call str.__new__ method
-            # with your class and the value you want to have in the
-            # new string.
-            return str.__new__(self, parse.quote(val))
+       # When subclassing str, just call str.__new__ method
+        # with your class and the value you want to have in the
+        # new string.
+        return str.__new__(self, parse.quote(val))
 
     def __add__(self, other):
         """self + other
@@ -236,8 +235,7 @@ def _handle_auth_error(msg):
     except HTTPError as he:
         if he.status == 401:
             raise AuthenticationError(msg, he)
-        else:
-            raise
+        raise
 
 
 def _authentication(request_fun):
@@ -305,8 +303,7 @@ def _authentication(request_fun):
             elif he.status == 401 and not self.autologin:
                 raise AuthenticationError(
                     "Request failed: Session is not logged in.", he)
-            else:
-                raise
+            raise
 
     return wrapper
 
@@ -533,14 +530,14 @@ class Context:
         """
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
-        elif self.basic and (self.username and self.password):
+        if self.basic and (self.username and self.password):
             encoded_username_password = b64encode(f"{self.username}:{self.password}".encode('utf-8')).decode('ascii')
             token = f'Basic {encoded_username_password}'
             return [("Authorization", token)]
-        elif self.bearerToken:
+        if self.bearerToken:
             token = f"Bearer {self.bearerToken}"
             return [("Authorization", token)]
-        elif self.token is _NoAuthenticationToken:
+        if self.token is _NoAuthenticationToken:
             return []
         else:
             # Ensure the token is properly formatted
@@ -925,8 +922,7 @@ class Context:
         except HTTPError as he:
             if he.status == 401:
                 raise AuthenticationError("Login failed.", he)
-            else:
-                raise
+            raise
 
     def logout(self):
         """Forgets the current session token, and cookies."""
@@ -1304,9 +1300,8 @@ class HttpLib:
             except Exception:
                 if self.retries <= 0:
                     raise
-                else:
-                    time.sleep(self.retryDelay)
-                    self.retries -= 1
+                time.sleep(self.retryDelay)
+                self.retries -= 1
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)

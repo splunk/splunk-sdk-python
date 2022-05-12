@@ -39,8 +39,7 @@ import os
 import sys
 import pytest
 
-from splunklib.six.moves import cStringIO as StringIO
-from splunklib import six
+from io import StringIO
 
 from tests.searchcommands import project_root
 
@@ -85,7 +84,7 @@ class Recording:
 
         self._output_file = path + '.output'
 
-        if six.PY3 and os.path.isfile(self._output_file + '.py3'):
+        if os.path.isfile(self._output_file + '.py3'):
             self._output_file = self._output_file + '.py3'
 
         # Remove the "splunk cmd" portion
@@ -115,7 +114,7 @@ class Recording:
 class Recordings:
 
     def __init__(self, name, action, phase, protocol_version):
-        basedir = Recordings._prefix + six.text_type(protocol_version)
+        basedir = Recordings._prefix + str(protocol_version)
 
         if not os.path.isdir(basedir):
             raise ValueError(
@@ -146,72 +145,72 @@ class TestSearchCommandsApp(TestCase):
             self.skipTest("You must build the searchcommands_app by running " + build_command)
         TestCase.setUp(self)
 
-    @pytest.mark.skipif(six.PY3,
+    @pytest.mark.skipif(sys.version_info=='3.9.12',
                         reason="Python 2 does not treat Unicode as words for regex, so Python 3 has broken fixtures")
     def test_countmatches_as_unit(self):
         expected, output, errors, exit_status = self._run_command('countmatches', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
 
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('countmatches')
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_chunks(expected, output)
 
     def test_generatehello_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='getinfo', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello', action='execute', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_insensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('generatehello')
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_chunks(expected, output, time_sensitive=False)
 
     def test_sum_as_unit(self):
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='getinfo', phase='map', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='map', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', action='execute', phase='reduce', protocol=1)
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_csv_files_time_sensitive(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='map')
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_chunks(expected, output)
 
         expected, output, errors, exit_status = self._run_command('sum', phase='reduce')
-        self.assertEqual(0, exit_status, msg=six.text_type(errors))
-        self.assertEqual('', errors, msg=six.text_type(errors))
+        self.assertEqual(0, exit_status, msg=str(errors))
+        self.assertEqual('', errors, msg=str(errors))
         self._compare_chunks(expected, output)
 
     def assertInfoEqual(self, output, expected):
@@ -380,7 +379,7 @@ class TestSearchCommandsApp(TestCase):
             finally:
                 os.remove(uncompressed_file)
 
-        return six.ensure_str(expected), six.ensure_str(output), six.ensure_str(errors), process.returncode
+        return expected.decode('utf-8'), output.decode('utf-8'), errors.decode('utf-8'), process.returncode
 
     _Chunk = namedtuple('Chunk', 'metadata body')
 

@@ -19,12 +19,9 @@ from random import randint
 from unittest import main, TestCase
 
 import os
-import re
 import sys
 import tempfile
 import pytest
-from splunklib import six
-from splunklib.six.moves import range
 from splunklib.searchcommands import validators
 
 
@@ -50,7 +47,7 @@ class TestValidators(TestCase):
 
         for value in truth_values:
             for variant in value, value.capitalize(), value.upper():
-                s = six.text_type(variant)
+                s = str(variant)
                 self.assertEqual(validator.__call__(s), truth_values[value])
 
         self.assertIsNone(validator.__call__(None))
@@ -64,7 +61,7 @@ class TestValidators(TestCase):
         validator = validators.Duration()
 
         for seconds in range(0, 25 * 60 * 60, 59):
-            value = six.text_type(seconds)
+            value = str(seconds)
             self.assertEqual(validator(value), seconds)
             self.assertEqual(validator(validator.format(seconds)), seconds)
             value = '%d:%02d' % (seconds / 60, seconds % 60)
@@ -157,11 +154,10 @@ class TestValidators(TestCase):
         validator = validators.Integer()
 
         def test(integer):
-            for s in str(integer), six.text_type(integer):
-                value = validator.__call__(s)
-                self.assertEqual(value, integer)
-                self.assertIsInstance(value, int)
-            self.assertEqual(validator.format(integer), six.text_type(integer))
+            value = validator.__call__(integer)
+            self.assertEqual(value, integer)
+            self.assertIsInstance(value, int)
+            self.assertEqual(validator.format(integer), str(integer))
 
         test(2 * minsize)
         test(minsize)
@@ -206,11 +202,11 @@ class TestValidators(TestCase):
                 float_val = float(float_val)
             except ValueError:
                 assert False
-            for s in str(float_val), six.text_type(float_val):
-                value = validator.__call__(s)
-                self.assertAlmostEqual(value, float_val)
-                self.assertIsInstance(value, float)
-            self.assertEqual(validator.format(float_val), six.text_type(float_val))
+
+            value = validator.__call__(float_val)
+            self.assertAlmostEqual(value, float_val)
+            self.assertIsInstance(value, float)
+            self.assertEqual(validator.format(float_val), str(float_val))
 
         test(2 * minsize)
         test(minsize)

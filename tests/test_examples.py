@@ -24,7 +24,6 @@ import pytest
 from tests import testlib
 
 from splunklib import client
-from splunklib import six
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
@@ -32,9 +31,9 @@ EXAMPLES_PATH = os.path.join(DIR_PATH, '..', 'examples')
 
 def check_multiline(testcase, first, second, message=None):
     """Assert that two multi-line strings are equal."""
-    testcase.assertTrue(isinstance(first, six.string_types),
+    testcase.assertTrue(isinstance(first, str),
                         'First argument is not a string')
-    testcase.assertTrue(isinstance(second, six.string_types),
+    testcase.assertTrue(isinstance(second, str),
                         'Second argument is not a string')
     # Unix-ize Windows EOL
     first = first.replace("\r", "")
@@ -74,7 +73,7 @@ class ExamplesTestCase(testlib.SDKTestCase):
         # Ignore result, it might already exist
         run("index.py create sdk-tests")
 
-    @pytest.mark.skipif(six.PY3, reason="Async needs work to support Python 3")
+    @pytest.mark.skip(reason="Async needs work to support Python 3")
     def test_async(self):
         result = run("async/async.py sync")
         self.assertEqual(result, 0)

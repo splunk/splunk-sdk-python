@@ -68,7 +68,7 @@ class Script(metaclass=ABCMeta):
                 event_writer.close()
                 return 0
 
-            elif str(args[1]).lower() == "--scheme":
+            if str(args[1]).lower() == "--scheme":
                 # Splunk has requested XML specifying the scheme for this
                 # modular input Return it and exit.
                 scheme = self.get_scheme()
@@ -77,9 +77,8 @@ class Script(metaclass=ABCMeta):
                         EventWriter.FATAL,
                         "Modular input script returned a null scheme.")
                     return 1
-                else:
-                    event_writer.write_xml_document(scheme.to_xml())
-                    return 0
+                event_writer.write_xml_document(scheme.to_xml())
+                return 0
 
             elif args[1].lower() == "--validate-arguments":
                 validation_definition = ValidationDefinition.parse(input_stream)

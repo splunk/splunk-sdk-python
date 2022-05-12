@@ -4,12 +4,11 @@ import io
 import json
 
 import splunklib.searchcommands.internals
-from splunklib import six
 
 
 class Chunk:
     def __init__(self, version, meta, data):
-        self.version = six.ensure_str(version)
+        self.version = version
         self.meta = json.loads(meta)
         dialect = splunklib.searchcommands.internals.CsvDialect
         self.data = csv.DictReader(io.StringIO(data.decode("utf-8")),
@@ -54,7 +53,7 @@ class ChunkedDataStream(collections.abc.Iterable):
 
 
 def build_chunk(keyval, data=None):
-    metadata = six.ensure_binary(json.dumps(keyval), 'utf-8')
+    metadata = json.dumps(keyval).encode('utf-8')
     data_output = _build_data_csv(data)
     return b"chunked 1.0,%d,%d\n%s%s" % (len(metadata), len(data_output), metadata, data_output)
 
@@ -87,7 +86,7 @@ def _build_data_csv(data):
         return b''
     if isinstance(data, bytes):
         return data
-    csvout = splunklib.six.StringIO()
+    csvout = io.StringIO()
 
     headers = set()
     for datum in data:
@@ -97,4 +96,4 @@ def _build_data_csv(data):
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)
-    return six.ensure_binary(csvout.getvalue())
+    return csvout.getvalue().encode('utf-8')

@@ -14,7 +14,8 @@
 
 from io import TextIOBase
 import xml.etree.ElementTree as ET
-from splunklib.six import ensure_text
+
+from splunklib import ensure_text
 
 
 class Event:

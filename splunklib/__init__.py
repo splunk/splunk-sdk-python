@@ -17,7 +17,7 @@
 import logging
 
 DEFAULT_LOG_FORMAT = '%(asctime)s, Level=%(levelname)s, Pid=%(process)s, Logger=%(name)s, File=%(filename)s, ' \
-                 'Line=%(lineno)s, %(message)s'
+                     'Line=%(lineno)s, %(message)s'
 DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %Z'
 
 
@@ -56,6 +56,22 @@ def ensure_str(s, encoding='utf-8', errors='strict'):
         return s
 
     raise TypeError(f"not expecting type '{type(s)}'")
+
+
+def ensure_text(s, encoding='utf-8', errors='strict'):
+    """
+      - `str` -> `str`
+      - `bytes` -> decoded to `str`
+    """
+    if isinstance(s, bytes):
+        return s.decode(encoding, errors)
+    if isinstance(s, str):
+        return s
+    raise TypeError(f"not expecting type '{type(s)}'")
+
+
+def assertRegex(self, *args, **kwargs):
+    return getattr(self, "assertRegex")(*args, **kwargs)
 
 
 __version_info__ = (1, 6, 19)

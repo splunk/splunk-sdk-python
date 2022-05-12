@@ -14,13 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from io import BytesIO
+from http import server as BaseHTTPServer
+from io import BytesIO, StringIO
 from threading import Thread
+from urllib.request import Request, urlopen
 
-from splunklib.six.moves import BaseHTTPServer
-from splunklib.six.moves.urllib.request import Request, urlopen
-from splunklib.six.moves.urllib.error import HTTPError
 from xml.etree.ElementTree import XML
 
 import json
@@ -29,12 +27,11 @@ from tests import testlib
 import unittest
 import socket
 import ssl
-import splunklib.six.moves.http_cookies
 
+import splunklib
 from splunklib import binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 from splunklib import data
-from splunklib import six
 
 import pytest
 
@@ -106,7 +103,7 @@ class TestResponseReader(BindingTestCase):
 
     def test_readable(self):
         txt = "abcd"
-        response = binding.ResponseReader(six.StringIO(txt))
+        response = binding.ResponseReader(StringIO(txt))
         self.assertTrue(response.readable())
 
     def test_readinto_bytearray(self):
@@ -310,7 +307,7 @@ class TestSocket(BindingTestCase):
 class TestUnicodeConnect(BindingTestCase):
     def test_unicode_connect(self):
         opts = self.opts.kwargs.copy()
-        opts['host'] = six.text_type(opts['host'])
+        opts['host'] = str(opts['host'])
         context = binding.connect(**opts)
         # Just check to make sure the service is alive
         response = context.get("/services")
@@ -699,7 +696,7 @@ class TestNamespace(unittest.TestCase):
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
-            for k, v in six.iteritems(expected):
+            for k, v in list(expected.items()):
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
@@ -752,11 +749,11 @@ class TestTokenAuthentication(BindingTestCase):
                       self.context._abspath("some/path/to/post/to")).encode('utf-8'))
         socket.write(("Host: %s:%s\r\n" % \
                       (self.context.host, self.context.port)).encode('utf-8'))
-        socket.write(("Accept-Encoding: identity\r\n").encode('utf-8'))
+        socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
         socket.write(("Authorization: %s\r\n" % \
                       self.context.token).encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
-        socket.write(("\r\n").encode('utf-8'))
+        socket.write("\r\n".encode('utf-8'))
         socket.close()
 
     def test_preexisting_token_sans_splunk(self):
@@ -783,8 +780,8 @@ class TestTokenAuthentication(BindingTestCase):
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
         socket.write(("Authorization: %s\r\n" % \
                       self.context.token).encode('utf-8'))
-        socket.write(("X-Splunk-Input-Mode: Streaming\r\n").encode('utf-8'))
-        socket.write(("\r\n").encode('utf-8'))
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
+        socket.write("\r\n".encode('utf-8'))
         socket.close()
 
     def test_connect_with_preexisting_token_sans_user_and_pass(self):
@@ -815,8 +812,8 @@ class TestPostWithBodyParam(unittest.TestCase):
 
     def test_post(self):
         def handler(url, message, **kwargs):
-            assert six.ensure_str(url) == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -828,7 +825,7 @@ class TestPostWithBodyParam(unittest.TestCase):
     def test_post_with_params_and_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
-            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            assert message["body"] == b"testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -840,7 +837,7 @@ class TestPostWithBodyParam(unittest.TestCase):
     def test_post_with_params_and_no_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert six.ensure_str(message["body"]) == "extrakey=extraval"
+            assert message["body"] == b"extrakey=extraval"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
@@ -899,7 +896,7 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(body) == "foo=bar"
+            assert body.decode('utf-8') == "foo=bar"
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")
@@ -909,7 +906,7 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(handler.headers['content-type']) == 'application/json'
+            assert handler.headers['content-type'] == 'application/json'
             assert json.loads(body)["baz"] == "baf"
 
         with MockServer(POST=check_response):
@@ -921,8 +918,8 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(handler.headers['content-type']) == 'application/x-www-form-urlencoded'
-            assert six.ensure_str(body) == 'baz=baf&hep=cat' or six.ensure_str(body) == 'hep=cat&baz=baf'
+            assert handler.headers['content-type'] == 'application/x-www-form-urlencoded'
+            assert body.decode('utf-8') == 'baz=baf&hep=cat' or body.decode('utf-8') == 'hep=cat&baz=baf'
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")

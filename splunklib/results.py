@@ -34,7 +34,6 @@ as follows:::
 
 from io import BufferedReader, BytesIO
 
-from splunklib.six import deprecated
 
 import xml.etree.ElementTree as et
 
@@ -48,7 +47,7 @@ __all__ = [
 ]
 
 
-class Message(object):
+class Message:
     """This class represents informational messages that Splunk interleaves in the results stream.
 
     ``Message`` takes two arguments: a string giving the message type (e.g., "DEBUG"), and
@@ -73,7 +72,7 @@ class Message(object):
         return hash((self.type, self.message))
 
 
-class _ConcatenatedStream(object):
+class _ConcatenatedStream:
     """Lazily concatenate zero or more streams into a stream.
 
     As you read from the concatenated stream, you get characters from
@@ -105,7 +104,7 @@ class _ConcatenatedStream(object):
         return response
 
 
-class _XMLDTDFilter(object):
+class _XMLDTDFilter:
     """Lazily remove all XML DTDs from a stream.
 
     All substrings matching the regular expression <?[^>]*> are
@@ -132,7 +131,7 @@ class _XMLDTDFilter(object):
             c = self.stream.read(1)
             if c == b"":
                 break
-            elif c == b"<":
+            if c == b"<":
                 c += self.stream.read(1)
                 if c == b"<?":
                     while True:
@@ -150,8 +149,8 @@ class _XMLDTDFilter(object):
         return response
 
 
-@deprecated("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
-class ResultsReader(object):
+#@deprecat("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
+class ResultsReader:
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
 

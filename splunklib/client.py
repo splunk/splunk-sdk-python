@@ -212,10 +212,9 @@ def _load_atom_entries(response):
     # its state wrapped in another element, but at the top level.
     # For example, in XML, it returns <entry>...</entry> instead of
     # <feed><entry>...</entry></feed>.
-    else:
-        entries = r.get('entry', None)
-        if entries is None: return None
-        return entries if isinstance(entries, list) else [entries]
+    entries = r.get('entry', None)
+    if entries is None: return None
+    return entries if isinstance(entries, list) else [entries]
 
 
 # Load the sid from the body of the given response
@@ -530,8 +529,7 @@ class Service(_BaseService):
         """
         if self.splunk_version >= (5,):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
-        else:
-            raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
+        raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
 
     @property
     def storage_passwords(self):
@@ -926,7 +924,6 @@ class Entity(Endpoint):
         self._state = None
         if not kwargs.get('skip_refresh', False):
             self.refresh(kwargs.get('state', None))  # "Prefresh"
-        return
 
     def __contains__(self, item):
         try:
@@ -963,10 +960,9 @@ class Entity(Endpoint):
         # case we try to find it in self.content and then self.defaults.
         if key in self.state.content:
             return self.state.content[key]
-        elif key in self.defaults:
+        if key in self.defaults:
             return self.defaults[key]
-        else:
-            raise AttributeError(key)
+        raise AttributeError(key)
 
     def __getitem__(self, key):
         # getattr attempts to find a field on the object in the normal way,
@@ -1022,8 +1018,7 @@ class Entity(Endpoint):
                 return (self._state.access.owner,
                         self._state.access.app,
                         self._state.access.sharing)
-            else:
-                return (self.service.namespace['owner'],
+            return (self.service.namespace['owner'],
                         self.service.namespace['app'],
                         self.service.namespace['sharing'])
         else:
@@ -1272,15 +1267,13 @@ class ReadOnlyCollection(Endpoint):
             if len(entries) > 1:
                 raise AmbiguousReferenceException(
                     f"Found multiple entities named '{key}'; please specify a namespace.")
-            elif len(entries) == 0:
+            if len(entries) == 0:
                 raise KeyError(key)
-            else:
-                return entries[0]
+            return entries[0]
         except HTTPError as he:
             if he.status == 404:  # No entity matching key and namespace.
                 raise KeyError(key)
-            else:
-                raise
+            raise
 
     def __iter__(self, **kwargs):
         """Iterate over the entities in the collection.
@@ -1344,10 +1337,9 @@ class ReadOnlyCollection(Endpoint):
         raw_path = parse.unquote(state.links.alternate)
         if 'servicesNS/' in raw_path:
             return _trailing(raw_path, 'servicesNS/', '/', '/')
-        elif 'services/' in raw_path:
+        if 'services/' in raw_path:
             return _trailing(raw_path, 'services/')
-        else:
-            return raw_path
+        return raw_path
 
     def _load_list(self, response):
         """Converts *response* to a list of entities.
@@ -1596,14 +1588,13 @@ class Collection(ReadOnlyCollection):
             # This endpoint doesn't return the content of the new
             # item. We have to go fetch it ourselves.
             return self[name]
-        else:
-            entry = atom.entry
-            state = _parse_atom_entry(entry)
-            entity = self.item(
-                self.service,
-                self._entity_path(state),
-                state=state)
-            return entity
+        entry = atom.entry
+        state = _parse_atom_entry(entry)
+        entity = self.item(
+            self.service,
+            self._entity_path(state),
+            state=state)
+        return entity
 
     def delete(self, name, **params):
         """Deletes a specified entity from the collection.
@@ -1644,8 +1635,7 @@ class Collection(ReadOnlyCollection):
             # KeyError.
             if he.status == 404:
                 raise KeyError(f"No such entity {name}")
-            else:
-                raise
+            raise
         return self
 
     def get(self, name="", owner=None, app=None, sharing=None, **query):
@@ -1749,8 +1739,7 @@ class Configurations(Collection):
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
                 return False
-            else:
-                raise
+            raise
 
     def create(self, name):
         """ Creates a configuration file named *name*.
@@ -1771,10 +1760,9 @@ class Configurations(Collection):
         response = self.post(__conf=name)
         if response.status == 303:
             return self[name]
-        elif response.status == 201:
+        if response.status == 201:
             return ConfigurationFile(self.service, PATH_CONF % name, item=Stanza, state={'title': name})
-        else:
-            raise ValueError(f"Unexpected status code {response.status} returned from creating a stanza")
+        raise ValueError(f"Unexpected status code {response.status} returned from creating a stanza")
 
     def delete(self, key):
         """Raises `IllegalOperationException`."""
@@ -2203,7 +2191,7 @@ class Input(Entity):
 
             if 'restrictToHost' in kwargs:
                 raise IllegalOperationException("Cannot set restrictToHost on an existing input with the SDK.")
-            elif 'restrictToHost' in self._state.content and self.kind != 'udp':
+            if 'restrictToHost' in self._state.content and self.kind != 'udp':
                 to_update['restrictToHost'] = self._state.content['restrictToHost']
 
             # Do the actual update operation.
@@ -2235,10 +2223,9 @@ class Inputs(Collection):
                 entries = self._load_list(response)
                 if len(entries) > 1:
                     raise AmbiguousReferenceException(f"Found multiple inputs of kind {kind} named {key}.")
-                elif len(entries) == 0:
+                if len(entries) == 0:
                     raise KeyError((key, kind))
-                else:
-                    return entries[0]
+                return entries[0]
             except HTTPError as he:
                 if he.status == 404:  # No entity matching kind and key
                     raise KeyError((key, kind))

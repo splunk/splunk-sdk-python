@@ -27,20 +27,20 @@ from io import TextIOWrapper
 
 import pytest
 
-from splunklib import six
+import splunklib
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from splunklib.six import StringIO, BytesIO
+from io import StringIO, BytesIO
 
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
-    input = (f'chunked 1.0,{len(six.ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
-             f'chunked 1.0,{len(six.ensure_binary(execute_metadata))},{len(six.ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
+    input = (f'chunked 1.0,{len(splunklib.ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
+             f'chunked 1.0,{len(splunklib.ensure_binary(execute_metadata))},{len(splunklib.ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
 
-    ifile = BytesIO(six.ensure_binary(input))
+    ifile = BytesIO(splunklib.ensure_binary(input))
 
     ifile = TextIOWrapper(ifile)
 
@@ -135,7 +135,8 @@ class TestSearchCommand(TestCase):
         result = BytesIO()
 
         self.assertRaises(SystemExit, command.process, argv, ofile=result)
-        six.assertRegex(self, result.getvalue().decode('UTF-8'), expected)
+
+        splunklib.assertRegex(self, result.getvalue().decode('UTF-8'), expected)
 
         # TestCommand.process should return configuration settings on Getinfo probe
 
@@ -286,7 +287,7 @@ class TestSearchCommand(TestCase):
             command.process(argv, ifile, ofile=result)
         except SystemExit as error:
             self.assertNotEqual(error.code, 0)
-            six.assertRegex(
+            splunklib.assertRegex(
                 self,
                 result.getvalue().decode('UTF-8'),
                 r'^error_message=RuntimeError at ".+", line \d+ : Testing\r\n\r\n$')
@@ -311,7 +312,7 @@ class TestSearchCommand(TestCase):
         except BaseException as error:
             self.fail(f'Expected no exception, but caught {type(error).__name__}: {error}')
         else:
-            six.assertRegex(
+            splunklib.assertRegex(
                 self,
                 result.getvalue().decode('UTF-8'),
                 r'^\r\n'
@@ -694,7 +695,7 @@ class TestSearchCommand(TestCase):
             r'logging_configuration=\\\".+\\\" logging_level=\\\"WARNING\\\" record=\\\"f\\\" ' \
             r'required_option_1=\\\"value_1\\\" required_option_2=\\\"value_2\\\" show_configuration=\\\"f\\\"\"\]\]\}'
 
-        six.assertRegex(
+        splunklib.assertRegex(
             self,
             result.getvalue().decode('utf-8'),
             r'^chunked 1.0,2,0\n'

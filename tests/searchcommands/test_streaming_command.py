@@ -4,7 +4,6 @@ from splunklib.searchcommands import StreamingCommand, Configuration
 from . import chunked_data_stream as chunky
 
 
-
 def test_simple_streaming_command():
     @Configuration()
     class TestStreamingCommand(StreamingCommand):

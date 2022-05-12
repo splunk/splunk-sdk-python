@@ -24,7 +24,6 @@ from splunklib import six
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
-sys.path.insert(0, '../examples')
 
 import splunklib.client as client
 from time import sleep
@@ -38,7 +37,7 @@ except ImportError:
 try:
     from utils import parse
 except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 import os

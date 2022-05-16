@@ -46,6 +46,8 @@ __all__ = [
     "JSONResultsReader"
 ]
 
+import deprecation
+
 
 class Message:
     """This class represents informational messages that Splunk interleaves in the results stream.
@@ -149,7 +151,7 @@ class _XMLDTDFilter:
         return response
 
 
-#@deprecat("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
+@deprecation.deprecated(details="Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
 class ResultsReader:
     """This class returns dictionaries and Splunk messages from an XML results
     stream.

@@ -701,6 +701,7 @@ class Service(_BaseService):
         kvstore is refreshed, when the owner value is changed
         """
         self._kvstore_owner = value
+        self.kvstore
 
     @property
     def kvstore(self):

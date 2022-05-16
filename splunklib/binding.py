@@ -297,8 +297,7 @@ def _authentication(request_fun):
                 # an AuthenticationError and give up.
                 with _handle_auth_error("Autologin failed."):
                     self.login()
-                with _handle_auth_error("Autologin succeeded, but there was an auth error on next request. Something "
-                                        "is very wrong."):
+                with _handle_auth_error("Authentication Failed! If session token is used, it seems to have been expired."):
                     return request_fun(self, *args, **kwargs)
             elif he.status == 401 and not self.autologin:
                 raise AuthenticationError(

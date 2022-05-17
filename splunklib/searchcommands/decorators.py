@@ -191,7 +191,7 @@ class ConfigurationSetting(property):
 
         if len(values) > 0:
             settings = sorted(list(values.items()))
-            settings = map(lambda n_v: f'{n_v[0]}={n_v[1]}', settings)
+            settings = [f'{n_v[0]}={n_v[1]}' for n_v in settings]
             raise AttributeError('Inapplicable configuration settings: ' + ', '.join(settings))
 
         cls.configuration_setting_definitions = definitions
@@ -416,21 +416,21 @@ class Option(property):
             OrderedDict.__init__(self, ((option.name, item_class(command, option)) for (name, option) in definitions))
 
         def __repr__(self):
-            text = 'Option.View([' + ','.join(map(lambda item: repr(item), self.values())) + '])'
+            text = 'Option.View([' + ','.join([repr(item) for item in list(self.values())]) + '])'
             return text
 
         def __str__(self):
-            text = ' '.join([str(item) for item in self.values() if item.is_set])
+            text = ' '.join([str(item) for item in list(self.values()) if item.is_set])
             return text
 
         # region Methods
 
         def get_missing(self):
-            missing = [item.name for item in self.values() if item.is_required and not item.is_set]
+            missing = [item.name for item in list(self.values()) if item.is_required and not item.is_set]
             return missing if len(missing) > 0 else None
 
         def reset(self):
-            for value in self.values():
+            for value in list(self.values()):
                 value.reset()
 
         # endregion

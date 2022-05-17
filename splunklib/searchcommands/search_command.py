@@ -290,7 +290,7 @@ class SearchCommand:
             except ValueError:
                 return value
 
-        info = ObjectView(dict(map(lambda f_v: (convert_field(f_v[0]), convert_value(f_v[1])), zip(fields, values))))
+        info = ObjectView(dict((convert_field(f_v[0]), convert_value(f_v[1])) for f_v in zip(fields, values)))
 
         try:
             count_map = info.countMap
@@ -299,7 +299,7 @@ class SearchCommand:
         else:
             count_map = count_map.split(';')
             n = len(count_map)
-            info.countMap = dict(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2)))
+            info.countMap = dict(list(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2))))
 
         try:
             msg_type = info.msgType
@@ -307,7 +307,7 @@ class SearchCommand:
         except AttributeError:
             pass
         else:
-            messages = filter(lambda t_m: t_m[0] or t_m[1], zip(msg_type.split('\n'), msg_text.split('\n')))
+            messages = [t_m for t_m in zip(msg_type.split('\n'), msg_text.split('\n')) if t_m[0] or t_m[1]]
             info.msg = [Message(message) for message in messages]
             del info.msgType
 
@@ -449,7 +449,7 @@ class SearchCommand:
         def _map(metadata_map):
             metadata = {}
 
-            for name, value in metadata_map.items():
+            for name, value in list(metadata_map.items()):
                 if isinstance(value, dict):
                     value = _map(value)
                 else:
@@ -587,7 +587,8 @@ class SearchCommand:
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
                 self._record_writer.write_record(dict(
-                    (n, ','.join(v) if isinstance(v, (list, tuple)) else v) for n, v in self._configuration.items()))
+                    (n, ','.join(v) if isinstance(v, (list, tuple)) else v) for n, v in
+                    list(self._configuration.items())))
                 self.finish()
 
             elif argv[1] == '__EXECUTE__':
@@ -937,7 +938,7 @@ class SearchCommand:
 
         if len(mv_fieldnames) == 0:
             for values in reader:
-                yield OrderedDict(zip(fieldnames, values))
+                yield OrderedDict(list(zip(fieldnames, values)))
             return
 
         for values in reader:
@@ -1019,8 +1020,8 @@ class SearchCommand:
 
             """
             definitions = type(self).configuration_setting_definitions
-            settings = map(
-                lambda setting: repr((setting.name, setting.__get__(self), setting.supporting_protocols)), definitions)
+            settings = [repr((setting.name, setting.__get__(self), setting.supporting_protocols)) for setting in
+                        definitions]
             return '[' + ', '.join(settings) + ']'
 
         def __str__(self):
@@ -1033,7 +1034,7 @@ class SearchCommand:
 
             """
             # text = ', '.join(imap(lambda (name, value): name + '=' + json_encode_string(unicode(value)), self.iteritems()))
-            text = ', '.join([f'{name}={json_encode_string(str(value))}' for (name, value) in self.items()])
+            text = ', '.join([f'{name}={json_encode_string(str(value))}' for (name, value) in list(self.items())])
             return text
 
         # region Methods
@@ -1057,10 +1058,10 @@ class SearchCommand:
         def iteritems(self):
             definitions = type(self).configuration_setting_definitions
             version = self.command.protocol_version
-            return filter(
-                lambda name_value1: name_value1[1] is not None, map(
-                    lambda setting: (setting.name, setting.__get__(self)), filter(
-                        lambda setting: setting.is_supported_by_protocol(version), definitions)))
+            return [name_value1 for name_value1 in [(setting.name, setting.__get__(self)) for setting in
+                                                    [setting for setting in definitions if
+                                                     setting.is_supported_by_protocol(version)]] if
+                    name_value1[1] is not None]
 
         # N.B.: Does not use Python 3 dict view semantics
 

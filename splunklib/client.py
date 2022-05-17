@@ -977,6 +977,7 @@ class Entity(Endpoint):
         elem = _load_atom(response, XNAME_ENTRY)
         if isinstance(elem, list):
             apps = [ele.entry.content.get('eai:appName') for ele in elem]
+
             raise AmbiguousReferenceException(
                 f"Fetch from server returned multiple entries for name '{elem[0].entry.title}' in apps {apps}.")
         return elem.entry
@@ -2415,8 +2416,9 @@ class Inputs(Collection):
             if 'create' in [x.rel for x in entry.link]:
                 path = '/'.join(subpath + [entry.title])
                 kinds.append(path)
-            subkinds = self._get_kind_list(subpath + [entry.title])
-            kinds.extend(subkinds)
+            else:
+                subkinds = self._get_kind_list(subpath + [entry.title])
+                kinds.extend(subkinds)
         return kinds
 
     @property

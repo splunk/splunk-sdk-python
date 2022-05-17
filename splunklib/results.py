@@ -206,10 +206,9 @@ class ResultsReader:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return next(self._gen)
 
-    __next__ = next
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
@@ -318,10 +317,8 @@ class JSONResultsReader:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return next(self._gen)
-
-    __next__ = next
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""

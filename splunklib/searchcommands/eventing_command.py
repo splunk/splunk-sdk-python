@@ -137,7 +137,7 @@ class EventingCommand(SearchCommand):
         # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
-            return map(lambda name_value: (name_value[0], 'events' if name_value[0] == 'type' else name_value[1]), iteritems)
+            return  [(name_value[0], 'events' if name_value[0] == 'type' else name_value[1]) for name_value in iteritems]
 
         # N.B.: Does not use Python 3 dict view semantics
 

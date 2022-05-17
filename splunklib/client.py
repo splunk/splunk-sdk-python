@@ -1272,7 +1272,8 @@ class ReadOnlyCollection(Endpoint):
         except HTTPError as he:
             if he.status == 404:  # No entity matching key and namespace.
                 raise KeyError(key)
-            raise
+            else:
+                raise
 
     def __iter__(self, **kwargs):
         """Iterate over the entities in the collection.
@@ -1634,7 +1635,8 @@ class Collection(ReadOnlyCollection):
             # KeyError.
             if he.status == 404:
                 raise KeyError(f"No such entity {name}")
-            raise
+            else:
+                raise
         return self
 
     def get(self, name="", owner=None, app=None, sharing=None, **query):
@@ -2228,7 +2230,8 @@ class Inputs(Collection):
             except HTTPError as he:
                 if he.status == 404:  # No entity matching kind and key
                     raise KeyError((key, kind))
-                raise
+                else:
+                    raise
         else:
             # Iterate over all the kinds looking for matches.
             kind = None

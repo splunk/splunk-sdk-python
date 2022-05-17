@@ -268,7 +268,8 @@ class ResultsReader:
             # splunk that is described in __init__.
             if 'no element found' in pe.msg:
                 return
-            raise
+            else:
+                raise
 
 
 class JSONResultsReader:

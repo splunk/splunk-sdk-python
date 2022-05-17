@@ -235,7 +235,8 @@ def _handle_auth_error(msg):
     except HTTPError as he:
         if he.status == 401:
             raise AuthenticationError(msg, he)
-        raise
+        else:
+            raise
 
 
 def _authentication(request_fun):
@@ -302,7 +303,8 @@ def _authentication(request_fun):
             elif he.status == 401 and not self.autologin:
                 raise AuthenticationError(
                     "Request failed: Session is not logged in.", he)
-            raise
+            else:
+                raise
 
     return wrapper
 
@@ -921,7 +923,8 @@ class Context:
         except HTTPError as he:
             if he.status == 401:
                 raise AuthenticationError("Login failed.", he)
-            raise
+            else:
+                raise
 
     def logout(self):
         """Forgets the current session token, and cookies."""
@@ -1299,8 +1302,9 @@ class HttpLib:
             except Exception:
                 if self.retries <= 0:
                     raise
-                time.sleep(self.retryDelay)
-                self.retries -= 1
+                else:
+                    time.sleep(self.retryDelay)
+                    self.retries -= 1
         response = record(response)
         if 400 <= response.status:
             raise HTTPError(response)

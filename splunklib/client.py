@@ -1726,7 +1726,8 @@ class Configurations(Collection):
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
                 raise KeyError(key)
-            raise
+            else:
+                raise
 
     def __contains__(self, key):
         # configs/conf-{name} never returns a 404. We have to post to properties/{name}
@@ -2248,7 +2249,8 @@ class Inputs(Collection):
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.
-                    raise
+                    else:
+                        raise
             if candidate is None:
                 raise KeyError(key)  # Never found a match.
             return candidate
@@ -2275,7 +2277,8 @@ class Inputs(Collection):
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.
-                    raise
+                    else:
+                        raise
             return False
 
     def create(self, name, kind, **kwargs):
@@ -2559,7 +2562,8 @@ class Inputs(Collection):
             except HTTPError as e:
                 if e.status == 404:
                     continue  # No inputs of this kind
-                raise
+                else:
+                    raise
 
             entries = _load_atom_entries(response)
             if entries is None: continue  # No inputs to process

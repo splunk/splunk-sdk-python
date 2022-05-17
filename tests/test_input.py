@@ -21,7 +21,6 @@ from tests import testlib
 from splunklib import client
 
 
-
 def highest_port(service, base_port, *kinds):
     """Find the first port >= base_port not in use by any input in kinds."""
     highest_port = base_port
@@ -45,7 +44,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def create_tcp_input(self, base_port, kind, **options):
         port = base_port
-        while True: # Find the next unbound port
+        while True:  # Find the next unbound port
             try:
                 input = self.service.inputs.create(str(port), kind, **options)
                 return input
@@ -66,7 +65,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
         )
 
     def test_create_tcp_ports_with_restrictToHost(self):
-        for kind in ['tcp', 'splunktcp']: # Multiplexed UDP ports are not supported
+        for kind in ['tcp', 'splunktcp']:  # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
             boris = self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
             natasha = self.service.inputs.create(str(self.base_port), kind, restrictToHost='natasha')
@@ -101,7 +100,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             unrestricted.delete()
 
     def test_update_restrictToHost_fails(self):
-        for kind in ['tcp', 'splunktcp']: # No UDP, since it's broken in Splunk
+        for kind in ['tcp', 'splunktcp']:  # No UDP, since it's broken in Splunk
             boris = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
 
             self.assertRaises(
@@ -171,21 +170,22 @@ class TestRead(testlib.SDKTestCase):
 
         def f():
             index.refresh()
-            return int(index['totalEventCount']) == eventCount+4
+            return int(index['totalEventCount']) == eventCount + 4
+
         self.assertEventuallyTrue(f, timeout=60)
 
     def test_oneshot_on_nonexistant_file(self):
         name = testlib.tmpname()
         self.assertRaises(HTTPError,
-            self.service.inputs.oneshot, name)
+                          self.service.inputs.oneshot, name)
 
 
 class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
         inputs = self.service.inputs
-        unrestricted_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp')+1)
-        restricted_port = str(highest_port(self.service, int(unrestricted_port)+1, 'tcp', 'splunktcp')+1)
+        unrestricted_port = str(highest_port(self.service, 10000, 'tcp', 'splunktcp', 'udp') + 1)
+        restricted_port = str(highest_port(self.service, int(unrestricted_port) + 1, 'tcp', 'splunktcp') + 1)
         test_inputs = [{'kind': 'tcp', 'name': unrestricted_port, 'host': 'sdk-test'},
                        {'kind': 'udp', 'name': unrestricted_port, 'host': 'sdk-test'},
                        {'kind': 'tcp', 'name': 'boris:' + restricted_port, 'host': 'sdk-test'}]
@@ -223,7 +223,7 @@ class TestInput(testlib.SDKTestCase):
         self.uncheckedRestartSplunk()
 
         inputs = self.service.inputs
-        if ('abcd','test2') not in inputs:
+        if ('abcd', 'test2') not in inputs:
             inputs.create('abcd', 'test2', field1='boris')
 
         input = inputs['abcd', 'test2']
@@ -268,19 +268,19 @@ class TestInput(testlib.SDKTestCase):
     @pytest.mark.skip('flaky')
     def test_delete(self):
         inputs = self.service.inputs
-        remaining = len(self._test_entities)-1
+        remaining = len(self._test_entities) - 1
         for input_entity in self._test_entities.values():
             name = input_entity.name
             kind = input_entity.kind
             self.assertTrue(name in inputs)
-            self.assertTrue((name,kind) in inputs)
+            self.assertTrue((name, kind) in inputs)
             if remaining == 0:
                 inputs.delete(name)
                 self.assertFalse(name in inputs)
             else:
                 if not name.startswith('boris'):
                     self.assertRaises(client.AmbiguousReferenceException,
-                        inputs.delete, name)
+                                      inputs.delete, name)
                 self.service.inputs.delete(name, kind)
                 self.assertFalse((name, kind) in inputs)
             self.assertRaises(client.HTTPError,
@@ -290,4 +290,5 @@ class TestInput(testlib.SDKTestCase):
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()

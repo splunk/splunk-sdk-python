@@ -681,7 +681,7 @@ class Service(_BaseService):
         :return: A ``tuple`` of ``integers``.
         """
         if self._splunk_version is None:
-            self._splunk_version = tuple([int(p) for p in self.info['version'].split('.')])
+            self._splunk_version = tuple(int(p) for p in self.info['version'].split('.'))
         return self._splunk_version
 
     @property
@@ -977,11 +977,9 @@ class Entity(Endpoint):
         elem = _load_atom(response, XNAME_ENTRY)
         if isinstance(elem, list):
             apps = [ele.entry.content.get('eai:appName') for ele in elem]
-
             raise AmbiguousReferenceException(
                 f"Fetch from server returned multiple entries for name '{elem[0].entry.title}' in apps {apps}.")
-        else:
-            return elem.entry
+        return elem.entry
 
     # Load the entity state record from the given response
     def _load_state(self, response):
@@ -1022,8 +1020,7 @@ class Entity(Endpoint):
             return (self.service.namespace['owner'],
                         self.service.namespace['app'],
                         self.service.namespace['sharing'])
-        else:
-            return owner, app, sharing
+        return owner, app, sharing
 
     def delete(self):
         owner, app, sharing = self._proper_namespace()
@@ -1125,8 +1122,8 @@ class Entity(Endpoint):
         # In lower layers of the SDK, we end up trying to URL encode
         # text to be dispatched via HTTP. However, these links are already
         # URL encoded when they arrive, and we need to mark them as such.
-        unquoted_links = dict([(k, UrlEncoded(v, skip_encode=True))
-                               for k, v in list(results['links'].items())])
+        unquoted_links = dict((k, UrlEncoded(v, skip_encode=True))
+                               for k, v in list(results['links'].items()))
         results['links'] = unquoted_links
         return results
 
@@ -1728,8 +1725,7 @@ class Configurations(Collection):
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
                 raise KeyError(key)
-            else:
-                raise
+            raise
 
     def __contains__(self, key):
         # configs/conf-{name} never returns a 404. We have to post to properties/{name}
@@ -2230,8 +2226,7 @@ class Inputs(Collection):
             except HTTPError as he:
                 if he.status == 404:  # No entity matching kind and key
                     raise KeyError((key, kind))
-                else:
-                    raise
+                raise
         else:
             # Iterate over all the kinds looking for matches.
             kind = None
@@ -2243,22 +2238,19 @@ class Inputs(Collection):
                     entries = self._load_list(response)
                     if len(entries) > 1:
                         raise AmbiguousReferenceException(f"Found multiple inputs of kind {kind} named {key}.")
-                    elif len(entries) == 0:
+                    if len(entries) == 0:
                         pass
-                    else:
-                        if candidate is not None:  # Already found at least one candidate
-                            raise AmbiguousReferenceException(
-                                f"Found multiple inputs named {key}, please specify a kind")
-                        candidate = entries[0]
+                    if candidate is not None:  # Already found at least one candidate
+                        raise AmbiguousReferenceException(
+                            f"Found multiple inputs named {key}, please specify a kind")
+                    candidate = entries[0]
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.
-                    else:
-                        raise
+                    raise
             if candidate is None:
                 raise KeyError(key)  # Never found a match.
-            else:
-                return candidate
+            return candidate
 
     def __contains__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
@@ -2278,13 +2270,11 @@ class Inputs(Collection):
                     entries = self._load_list(response)
                     if len(entries) > 0:
                         return True
-                    else:
-                        pass
+                    pass
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.
-                    else:
-                        raise
+                    raise
             return False
 
     def create(self, name, kind, **kwargs):
@@ -2422,12 +2412,11 @@ class Inputs(Collection):
             # The "tcp/ssl" endpoint is not a real input collection.
             if entry.title == 'all' or this_subpath == ['tcp', 'ssl']:
                 continue
-            elif 'create' in [x.rel for x in entry.link]:
+            if 'create' in [x.rel for x in entry.link]:
                 path = '/'.join(subpath + [entry.title])
                 kinds.append(path)
-            else:
-                subkinds = self._get_kind_list(subpath + [entry.title])
-                kinds.extend(subkinds)
+            subkinds = self._get_kind_list(subpath + [entry.title])
+            kinds.extend(subkinds)
         return kinds
 
     @property
@@ -2471,10 +2460,9 @@ class Inputs(Collection):
         """
         if kind == 'tcp':
             return UrlEncoded('tcp/raw', skip_encode=True)
-        elif kind == 'splunktcp':
+        if kind == 'splunktcp':
             return UrlEncoded('tcp/cooked', skip_encode=True)
-        else:
-            return UrlEncoded(kind, skip_encode=True)
+        return UrlEncoded(kind, skip_encode=True)
 
     def list(self, *kinds, **kwargs):
         """Returns a list of inputs that are in the :class:`Inputs` collection.
@@ -2569,8 +2557,7 @@ class Inputs(Collection):
             except HTTPError as e:
                 if e.status == 404:
                     continue  # No inputs of this kind
-                else:
-                    raise
+                raise
 
             entries = _load_atom_entries(response)
             if entries is None: continue  # No inputs to process
@@ -3111,15 +3098,13 @@ class ModularInputKind(Entity):
         args = self.state.content['endpoints']['args']
         if name in args:
             return True
-        else:
-            return Entity.__contains__(self, name)
+        return Entity.__contains__(self, name)
 
     def __getitem__(self, name):
         args = self.state.content['endpoint']['args']
         if name in args:
             return args['item']
-        else:
-            return Entity.__getitem__(self, name)
+        return Entity.__getitem__(self, name)
 
     @property
     def arguments(self):
@@ -3283,8 +3268,7 @@ class SavedSearch(Entity):
         r = self._run_action("suppress")
         if r.suppressed == "1":
             return int(r.expiration)
-        else:
-            return 0
+        return 0
 
     def unsuppress(self):
         """Cancels suppression and makes this search run as scheduled.

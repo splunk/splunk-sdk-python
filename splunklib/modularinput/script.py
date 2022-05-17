@@ -80,7 +80,7 @@ class Script(metaclass=ABCMeta):
                 event_writer.write_xml_document(scheme.to_xml())
                 return 0
 
-            elif args[1].lower() == "--validate-arguments":
+            if args[1].lower() == "--validate-arguments":
                 validation_definition = ValidationDefinition.parse(input_stream)
                 try:
                     self.validate_input(validation_definition)
@@ -91,11 +91,10 @@ class Script(metaclass=ABCMeta):
                     event_writer.write_xml_document(root)
 
                     return 1
-            else:
-                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
-                    args)
-                event_writer._err.write(err_string)
-                return 1
+            err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
+                args)
+            event_writer._err.write(err_string)
+            return 1
 
         except Exception as e:
             event_writer.log(EventWriter.ERROR, str(e))

@@ -56,8 +56,7 @@ def parse_parameters(param_node):
         for mvp in param_node:
             parameters.append(mvp.text)
         return parameters
-    else:
-        raise ValueError(f"Invalid configuration scheme, {param_node.tag} tag unexpected.")
+    raise ValueError(f"Invalid configuration scheme, {param_node.tag} tag unexpected.")
 
 def parse_xml_data(parent_node, child_node_tag):
     data = {}

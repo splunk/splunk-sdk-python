@@ -87,7 +87,7 @@ class TestConfs(testlib.SDKTestCase):
                   testlib.tmpname(): testlib.tmpname()}
         stanza.submit(values)
         stanza.refresh()
-        for key, value in values.items():
+        for key, value in list(values.items()):
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 

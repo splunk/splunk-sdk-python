@@ -14,7 +14,6 @@
 
 """Utility module shared by the SDK unit tests."""
 
-from __future__ import absolute_import
 from utils.cmdopts import *
 
 
@@ -96,7 +95,7 @@ def dslice(value, *args):
     result = {}
     for arg in args:
         if isinstance(arg, dict):
-            for k, v in (arg.items()):
+            for k, v in (list(arg.items())):
                 if k in value:
                     result[v] = value[k]
         elif isinstance(arg, list):

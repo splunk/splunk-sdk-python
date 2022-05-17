@@ -55,7 +55,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
-        for option in command.options.values():
+        for option in list(command.options.values()):
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -72,7 +72,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
-        for option in command.options.values():
+        for option in list(command.options.values()):
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -87,7 +87,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
-        for option in command.options.values():
+        for option in list(command.options.values()):
             if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record',
                                'show_configuration']:
                 self.assertFalse(option.is_set)
@@ -282,7 +282,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', collection.items(), '') + '\n'
+        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', list(collection.items()), '') + '\n'
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)

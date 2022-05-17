@@ -205,7 +205,7 @@ class TestInternals(TestCase):
 
         test_data['metrics'] = metrics
 
-        for name, metric in metrics.items():
+        for name, metric in list(metrics.items()):
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 0)
@@ -220,8 +220,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(k_v for k_v in writer._inspector.items() if k_v[0].startswith('metric.')),
-            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in metrics.items()))
+            dict(k_v for k_v in list(writer._inspector.items()) if k_v[0].startswith('metric.')),
+            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in list(metrics.items())))
 
         writer.flush(finished=True)
 

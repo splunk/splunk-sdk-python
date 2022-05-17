@@ -356,9 +356,9 @@ class TestDecorators(TestCase):
 
         options.reset()
         missing = options.get_missing()
-        self.assertListEqual(missing, [option.name for option in options.values() if option.is_required])
-        self.assertListEqual(presets, [str(option) for option in options.values() if option.value is not None])
-        self.assertListEqual(presets, [str(option) for option in options.values() if str(option) != option.name + '=None'])
+        self.assertListEqual(missing, [option.name for option in list(options.values()) if option.is_required])
+        self.assertListEqual(presets, [str(option) for option in list(options.values()) if option.value is not None])
+        self.assertListEqual(presets, [str(option) for option in list(options.values()) if str(option) != option.name + '=None'])
 
         test_option_values = {
             validators.Boolean: ('0', 'non-boolean value'),
@@ -375,7 +375,7 @@ class TestDecorators(TestCase):
             validators.RegularExpression: ('\\s+', '(poorly formed regular expression'),
             validators.Set: ('bar', 'non-existent set entry')}
 
-        for option in options.values():
+        for option in list(options.values()):
             validator = option.validator
 
             if validator is None:
@@ -434,9 +434,9 @@ class TestDecorators(TestCase):
         self.maxDiff = None
 
         tuplewrap = lambda x: x if isinstance(x, tuple) else (x,)
-        invert = lambda x: {v: k for k, v in x.items()}
+        invert = lambda x: {v: k for k, v in list(x.items())}
 
-        for x in command.options.values():
+        for x in list(command.options.values()):
             # isinstance doesn't work for some reason
             if type(x.value).__name__ == 'Code':
                 self.assertEqual(expected[x.name], x.value.source)

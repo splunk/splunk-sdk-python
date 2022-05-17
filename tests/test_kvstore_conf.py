@@ -20,7 +20,6 @@ from splunklib import client
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
-        #self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):

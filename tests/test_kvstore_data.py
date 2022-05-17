@@ -23,7 +23,6 @@ from splunklib import client
 class KVStoreDataTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
-        # self.service.namespace['owner'] = 'nobody'
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):
@@ -84,8 +83,8 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(data), 20)
         for x in range(20):
             self.assertEqual(data[x]['data'], 39 - x)
-            self.assertTrue(not 'ignore' in data[x])
-            self.assertTrue(not '_key' in data[x])
+            self.assertTrue('ignore' not in data[x])
+            self.assertTrue('_key' not in data[x])
 
     def tearDown(self):
         if ('test' in self.confs):

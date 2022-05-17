@@ -1,6 +1,5 @@
 from tests import testlib
-
-from utils import *
+from utils import dslice
 
 TEST_DICT = {
     'username': 'admin',

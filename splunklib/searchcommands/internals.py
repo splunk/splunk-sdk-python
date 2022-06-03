@@ -20,7 +20,7 @@ import os
 import re
 import sys
 import warnings
-import urllib
+import urllib.parse
 from io import TextIOWrapper, StringIO
 from collections import deque, namedtuple
 from collections import OrderedDict

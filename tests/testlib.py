@@ -25,7 +25,6 @@ import sys
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
 
-import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
 
@@ -168,7 +167,7 @@ class SDKTestCase(unittest.TestCase):
             self.service.post("apps/local", **kwargs)
         except client.HTTPError as he:
             if he.status == 400:
-                raise IOError("App %s not found in app collection" % name)
+                raise IOError(f"App {name} not found in app collection")
         if self.service.restart_required:
             self.service.restart(120)
         self.installedApps.append(name)

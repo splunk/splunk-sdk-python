@@ -1095,8 +1095,6 @@ class Entity(Endpoint):
     def disable(self):
         """Disables the entity at this endpoint."""
         self.post("disable")
-        if self.service.restart_required:
-            self.service.restart(120)
         return self
 
     def enable(self):

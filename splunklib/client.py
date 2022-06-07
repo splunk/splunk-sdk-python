@@ -820,8 +820,12 @@ class Endpoint(object):
         # Search API v2+ fallback to v1:
         #   - In v2+, /results_preview, /events and /results do not support search params.
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
-        if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        
+        if api_version == 1:
             path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
                                 **query)
@@ -888,8 +892,12 @@ class Endpoint(object):
         # Search API v2+ fallback to v1:
         #   - In v2+, /results_preview, /events and /results do not support search params.
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
-        if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        
+        if api_version == 1:
             path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 
@@ -2761,7 +2769,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
-        return self.get("events", **kwargs).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("events", **kwargs).body
+        return self.post("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2849,7 +2861,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        return self.get("results", **query_params).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("results", **query_params).body
+        return self.post("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2890,7 +2906,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        return self.get("results_preview", **query_params).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("results_preview", **query_params).body
+        return self.post("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.

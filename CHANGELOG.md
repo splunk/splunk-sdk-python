@@ -1,5 +1,22 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.6.20
+
+### New features and APIs
+* [#442](https://github.com/splunk/splunk-sdk-python/pull/442) Optional retries feature added
+* [#447](https://github.com/splunk/splunk-sdk-python/pull/447) Create job support for "output_mode:json" [[issue#285](https://github.com/splunk/splunk-sdk-python/issues/285)]
+
+### Bug fixes
+* [#449](https://github.com/splunk/splunk-sdk-python/pull/449) Set cookie [[issue#438](https://github.com/splunk/splunk-sdk-python/issues/438)]
+* [#460](https://github.com/splunk/splunk-sdk-python/pull/460) Remove restart from client.Entity.disable
+
+### Minor changes
+* [#444](https://github.com/splunk/splunk-sdk-python/pull/444) Update tox.ini
+* [#446](https://github.com/splunk/splunk-sdk-python/pull/446) Release workflow refactor
+* [#448](https://github.com/splunk/splunk-sdk-python/pull/448) Documentation changes
+* [#450](https://github.com/splunk/splunk-sdk-python/pull/450) Removed examples and it's references from the SDK
+
+
 ## Version 1.6.19
 
 ### New features and APIs

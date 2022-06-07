@@ -31,5 +31,5 @@ def setup_logging(level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE
                         format=log_format,
                         datefmt=date_format)
 
-__version_info__ = (1, 6, 19)
+__version_info__ = (1, 6, 20)
 __version__ = ".".join(map(str, __version_info__))

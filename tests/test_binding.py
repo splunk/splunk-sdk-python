@@ -586,23 +586,22 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertTrue(found)
 
     def test_login_fails_with_bad_cookie(self):
-        new_context = binding.connect(**{"cookie": "bad=cookie"})
         # We should get an error if using a bad cookie
         try:
-            new_context.get("apps/local")
+            new_context = binding.connect(**{"cookie": "bad=cookie"})
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Login failed.")
 
     def test_login_with_multiple_cookies(self):
-        bad_cookie = 'bad=cookie'
-        new_context = binding.connect(**{"cookie": bad_cookie})
         # We should get an error if using a bad cookie
+        new_context = binding.Context()
+        new_context.get_cookies().update({"bad": "cookie"})
         try:
-            new_context.get("apps/local")
+            new_context = new_context.login()
             self.fail()
         except AuthenticationError as ae:
-            self.assertEqual(str(ae), "Request failed: Session is not logged in.")
+            self.assertEqual(str(ae), "Login failed.")
             # Bring in a valid cookie now
             for key, value in self.context.get_cookies().items():
                 new_context.get_cookies()[key] = value

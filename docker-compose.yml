@@ -9,16 +9,6 @@ services:
             - SPLUNK_HEC_TOKEN=11111111-1111-1111-1111-1111111111113
             - SPLUNK_PASSWORD=changed!
             - SPLUNK_APPS_URL=https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
-        volumes:
-            - ./examples/github_forks:/opt/splunk/etc/apps/github_forks
-            - ./splunklib:/opt/splunk/etc/apps/github_forks/lib/splunklib
-            - ./examples/random_numbers:/opt/splunk/etc/apps/random_numbers
-            - ./splunklib:/opt/splunk/etc/apps/random_numbers/lib/splunklib
-            - ./examples/github_commits:/opt/splunk/etc/apps/github_commits
-            - ./splunklib:/opt/splunk/etc/apps/github_commits/lib/splunklib
-            - ./examples/searchcommands_app/package:/opt/splunk/etc/apps/searchcommands_app
-            - ./splunklib:/opt/splunk/etc/apps/searchcommands_app/lib/splunklib
-            - ./examples/twitted/twitted:/opt/splunk/etc/apps/twitted
         ports:
             - 8000:8000
             - 8088:8088

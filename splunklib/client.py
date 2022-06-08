@@ -1846,8 +1846,6 @@ class StoragePasswords(Collection):
     instance. Retrieve this collection using :meth:`Service.storage_passwords`.
     """
     def __init__(self, service):
-        if service.namespace.owner == '-' or service.namespace.app == '-':
-            raise ValueError("StoragePasswords cannot have wildcards in namespace.")
         super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
 
     def create(self, password, username, realm=None):
@@ -1865,6 +1863,9 @@ class StoragePasswords(Collection):
 
         :return: The :class:`StoragePassword` object created.
         """
+        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
+            raise ValueError("While creating StoragePasswords, namespace cannot have wildcards.")
+
         if not isinstance(username, six.string_types):
             raise ValueError("Invalid name: %s" % repr(username))
 
@@ -1896,6 +1897,9 @@ class StoragePasswords(Collection):
         :return: The `StoragePassword` collection.
         :rtype: ``self``
         """
+        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
+            raise ValueError("app context must be specified when removing a password.")
+
         if realm is None:
             # This case makes the username optional, so
             # the full name can be passed in as realm.

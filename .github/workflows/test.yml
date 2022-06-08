@@ -30,14 +30,14 @@ jobs:
           - 8088:8088
           - 8089:8089
         volumes:
-            - "${{GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/eventing_app:/opt/splunk/etc/apps/eventing_app"
-            - "${{GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/generating_app:/opt/splunk/etc/apps/generating_app"
-            - "${{GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/reporting_app:/opt/splunk/etc/apps/reporting_app"
-            - "${{GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app"
-            - "${{GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/eventing_app/lib/splunklib"
-            - "${{GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/generating_app/lib/splunklib"
-            - "${{GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/reporting_app/lib/splunklib"
-            - "${{GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/streaming_app/lib/splunklib"
+            - "${{env.GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/eventing_app:/opt/splunk/etc/apps/eventing_app"
+            - "${{env.GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/generating_app:/opt/splunk/etc/apps/generating_app"
+            - "${{env.GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/reporting_app:/opt/splunk/etc/apps/reporting_app"
+            - "${{env.GITHUB_WORKSPACE}}/tests/searchcommands/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app"
+            - "${{env.GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/eventing_app/lib/splunklib"
+            - "${{env.GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/generating_app/lib/splunklib"
+            - "${{env.GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/reporting_app/lib/splunklib"
+            - "${{env.GITHUB_WORKSPACE}}/splunklib:/opt/splunk/etc/apps/streaming_app/lib/splunklib"
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python

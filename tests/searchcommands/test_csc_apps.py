@@ -24,7 +24,7 @@ class TestCSC(testlib.SDKTestCase):
     def test_eventing_app(self):
         app_name = "eventing_app"
 
-        self.assertTrue(app_name in self.service.apps, msg=f"{app_name} is not installed.")
+        self.assertTrue(app_name in self.service.apps, msg="%s is not installed." % app_name)
 
         # Fetch the app
         app = self.service.apps[app_name]
@@ -73,7 +73,7 @@ class TestCSC(testlib.SDKTestCase):
     def test_generating_app(self):
         app_name = "generating_app"
 
-        self.assertTrue(app_name in self.service.apps, msg=f"{app_name} is not installed.")
+        self.assertTrue(app_name in self.service.apps, msg="%s is not installed." % app_name)
 
         # Fetch the app
         app = self.service.apps[app_name]
@@ -117,7 +117,7 @@ class TestCSC(testlib.SDKTestCase):
     def test_reporting_app(self):
         app_name = "reporting_app"
 
-        self.assertTrue(app_name in self.service.apps, msg=f"{app_name} is not installed.")
+        self.assertTrue(app_name in self.service.apps, msg="%s is not installed." % app_name)
 
         # Fetch the app
         app = self.service.apps[app_name]
@@ -185,7 +185,7 @@ class TestCSC(testlib.SDKTestCase):
     def test_streaming_app(self):
         app_name = "streaming_app"
 
-        self.assertTrue(app_name in self.service.apps, msg=f"{app_name} is not installed.")
+        self.assertTrue(app_name in self.service.apps, msg="%s is not installed." % app_name)
 
         # Fetch the app
         app = self.service.apps[app_name]

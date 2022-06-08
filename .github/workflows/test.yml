@@ -40,6 +40,8 @@ jobs:
             - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/streaming_app/lib/splunklib
     steps:
       - uses: actions/checkout@v2
+        with:
+            clean: false
       - name: Setup Python
         uses: actions/setup-python@v2
         with:

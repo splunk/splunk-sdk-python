@@ -358,7 +358,12 @@ class JSONResultsReader(object):
         for line in stream.readlines():
             strip_line = line.strip()
             if strip_line.__len__() == 0: continue
-            parsed_line = json_loads(strip_line)
+            try:
+                parsed_line = json_loads(strip_line)
+            except UnicodeDecodeError:
+                # If UnicodeDecodeError is encountered, ignoring decode errors should ensure the
+                # line can be loaded; may be beneficial to raise a warning at this point.
+                parsed_line = json_loads(strip_line.decode(encoding="utf-8", errors="ignore"))
             if "preview" in parsed_line:
                 self.is_preview = parsed_line["preview"]
             if "messages" in parsed_line and parsed_line["messages"].__len__() > 0:

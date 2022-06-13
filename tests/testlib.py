@@ -21,13 +21,14 @@ import contextlib
 
 import sys
 from splunklib import six
+
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
-sys.path.insert(0, '../examples')
 
 import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -36,23 +37,27 @@ except ImportError:
 try:
     from utils import parse
 except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the examples "
+    raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
 import os
 import time
 
 import logging
+
 logging.basicConfig(
     filename='test.log',
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 
+
 class NoRestartRequiredError(Exception):
     pass
 
+
 class WaitTimedOutError(Exception):
     pass
+
 
 def to_bool(x):
     if x == '1':
@@ -64,7 +69,7 @@ def to_bool(x):
 
 
 def tmpname():
-    name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.','-')
+    name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.', '-')
     return name
 
 
@@ -77,7 +82,7 @@ def wait(predicate, timeout=60, pause_time=0.5):
             logging.debug("wait timed out after %d seconds", timeout)
             raise WaitTimedOutError
         sleep(pause_time)
-        logging.debug("wait finished after %s seconds", datetime.now()-start)
+        logging.debug("wait finished after %s seconds", datetime.now() - start)
 
 
 class SDKTestCase(unittest.TestCase):
@@ -94,7 +99,7 @@ class SDKTestCase(unittest.TestCase):
                 logging.debug("wait timed out after %d seconds", timeout)
                 self.fail(timeout_message)
             sleep(pause_time)
-            logging.debug("wait finished after %s seconds", datetime.now()-start)
+            logging.debug("wait finished after %s seconds", datetime.now() - start)
 
     def check_content(self, entity, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -163,12 +168,11 @@ class SDKTestCase(unittest.TestCase):
         finally:
             self.service._splunk_version = original_version
 
-
     def install_app_from_collection(self, name):
         collectionName = 'sdkappcollection'
         if collectionName not in self.service.apps:
-            raise ValueError("sdkappcollection not installed in splunkd")
-        appPath = self.pathInApp(collectionName, ["build", name+".tar"])
+            raise ValueError("sdk-test-application not installed in splunkd")
+        appPath = self.pathInApp(collectionName, ["build", name + ".tar"])
         kwargs = {"update": True, "name": appPath, "filename": True}
 
         try:
@@ -233,7 +237,7 @@ class SDKTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.opts = parse([], {}, ".env")
-
+        cls.opts.kwargs.update({'retries': 3})
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
@@ -241,6 +245,7 @@ class SDKTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
+        self.opts.kwargs.update({'retries': 3})
         self.service = client.connect(**self.opts.kwargs)
         # If Splunk is in a state requiring restart, go ahead
         # and restart. That way we'll be sane for the rest of

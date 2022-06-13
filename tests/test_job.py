@@ -48,6 +48,11 @@ class TestUtilities(testlib.SDKTestCase):
         self.assertTrue(job.sid in self.service.jobs)
         job.cancel()
 
+    def test_create_job_with_output_mode_json(self):
+        job = self.service.jobs.create(query='search index=_internal earliest=-1m | head 3', output_mode='json')
+        self.assertTrue(job.sid in self.service.jobs)
+        job.cancel()
+
     def test_oneshot_with_garbage_fails(self):
         jobs = self.service.jobs
         self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")

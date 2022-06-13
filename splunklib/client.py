@@ -228,7 +228,10 @@ def _load_atom_entries(response):
 
 
 # Load the sid from the body of the given response
-def _load_sid(response):
+def _load_sid(response, output_mode):
+    if output_mode == "json":
+        json_obj = json.loads(response.body.read())
+        return json_obj.get('sid')
     return _load_atom(response).response.sid
 
 
@@ -322,6 +325,11 @@ def connect(**kwargs):
     :type username: ``string``
     :param `password`: The password for the Splunk account.
     :type password: ``string``
+    :param retires: Number of retries for each HTTP connection (optional, the default is 0).
+                    NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUND TRIP CONNECTIONS TO THE SPLUNK SERVER.
+    :type retries: ``int``
+    :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
+    :type retryDelay: ``int`` (in seconds)
     :param `context`: The SSLContext that can be used when setting verify=True (optional)
     :type context: ``SSLContext``
     :return: An initialized :class:`Service` connection.
@@ -390,6 +398,11 @@ class Service(_BaseService):
     :param `password`: The password, which is used to authenticate the Splunk
                        instance.
     :type password: ``string``
+    :param retires: Number of retries for each HTTP connection (optional, the default is 0).
+                    NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUND TRIP CONNECTIONS TO THE SPLUNK SERVER.
+    :type retries: ``int``
+    :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
+    :type retryDelay: ``int`` (in seconds)
     :return: A :class:`Service` instance.
 
     **Example**::
@@ -908,32 +921,21 @@ class Entity(Endpoint):
 
     ``Entity`` provides the majority of functionality required by entities.
     Subclasses only implement the special cases for individual entities.
-    For example for deployment serverclasses, the subclass makes whitelists and
-    blacklists into Python lists.
+    For example for saved searches, the subclass makes fields like ``action.email``,
+    ``alert_type``, and ``search`` available.
 
     An ``Entity`` is addressed like a dictionary, with a few extensions,
-    so the following all work::
+    so the following all work, for example in saved searches::
 
-        ent['email.action']
-        ent['disabled']
-        ent['whitelist']
-
-    Many endpoints have values that share a prefix, such as
-    ``email.to``, ``email.action``, and ``email.subject``. You can extract
-    the whole fields, or use the key ``email`` to get a dictionary of
-    all the subelements. That is, ``ent['email']`` returns a
-    dictionary with the keys ``to``, ``action``, ``subject``, and so on. If
-    there are multiple levels of dots, each level is made into a
-    subdictionary, so ``email.body.salutation`` can be accessed at
-    ``ent['email']['body']['salutation']`` or
-    ``ent['email.body.salutation']``.
+        ent['action.email']
+        ent['alert_type']
+        ent['search']
 
     You can also access the fields as though they were the fields of a Python
     object, as in::
 
-        ent.email.action
-        ent.disabled
-        ent.whitelist
+        ent.alert_type
+        ent.search
 
     However, because some of the field names are not valid Python identifiers,
     the dictionary-like syntax is preferable.
@@ -1142,8 +1144,6 @@ class Entity(Endpoint):
     def disable(self):
         """Disables the entity at this endpoint."""
         self.post("disable")
-        if self.service.restart_required:
-            self.service.restart(120)
         return self
 
     def enable(self):
@@ -1895,8 +1895,6 @@ class StoragePasswords(Collection):
     instance. Retrieve this collection using :meth:`Service.storage_passwords`.
     """
     def __init__(self, service):
-        if service.namespace.owner == '-' or service.namespace.app == '-':
-            raise ValueError("StoragePasswords cannot have wildcards in namespace.")
         super(StoragePasswords, self).__init__(service, PATH_STORAGE_PASSWORDS, item=StoragePassword)
 
     def create(self, password, username, realm=None):
@@ -1914,6 +1912,9 @@ class StoragePasswords(Collection):
 
         :return: The :class:`StoragePassword` object created.
         """
+        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
+            raise ValueError("While creating StoragePasswords, namespace cannot have wildcards.")
+
         if not isinstance(username, six.string_types):
             raise ValueError("Invalid name: %s" % repr(username))
 
@@ -1945,6 +1946,9 @@ class StoragePasswords(Collection):
         :return: The `StoragePassword` collection.
         :rtype: ``self``
         """
+        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
+            raise ValueError("app context must be specified when removing a password.")
+
         if realm is None:
             # This case makes the username optional, so
             # the full name can be passed in as realm.
@@ -3040,7 +3044,7 @@ class Jobs(Collection):
         if kwargs.get("exec_mode", None) == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
-        sid = _load_sid(response)
+        sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
 
     def export(self, query, **params):
@@ -3101,7 +3105,7 @@ class Jobs(Collection):
     def oneshot(self, query, **params):
         """Run a oneshot search and returns a streaming handle to the results.
 
-        The ``InputStream`` object streams XML fragments from the server. To parse this stream into usable Python
+        The ``InputStream`` object streams fragments from the server. To parse this stream into usable Python
         objects, pass the handle to :class:`splunklib.results.JSONResultsReader` along with the query param
         "output_mode='json'" ::
 
@@ -3256,7 +3260,7 @@ class SavedSearch(Entity):
         :return: The :class:`Job`.
         """
         response = self.post("dispatch", **kwargs)
-        sid = _load_sid(response)
+        sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
 
     @property

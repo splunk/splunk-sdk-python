@@ -39,14 +39,19 @@ jobs:
             - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/reporting_app/lib/splunklib
             - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/streaming_app/lib/splunklib
     steps:
-      - uses: actions/checkout@v2
-        with:
-            clean: false
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run docker-compose
+        run: docker-compose up -d
+
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+
       - name: Install tox
         run: pip install tox
+
       - name: Test Execution
         run: tox -e py

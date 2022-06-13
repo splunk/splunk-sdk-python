@@ -17,27 +17,6 @@ jobs:
           - "latest"
       fail-fast: false
 
-#    services:
-#      splunk:
-#        image: splunk/splunk:${{matrix.splunk-version}}
-#        env:
-#          SPLUNK_START_ARGS: --accept-license
-#          SPLUNK_HEC_TOKEN: 11111111-1111-1111-1111-1111111111113
-#          SPLUNK_PASSWORD: changed!
-#          SPLUNK_APPS_URL: https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
-#        ports:
-#          - 8000:8000
-#          - 8088:8088
-#          - 8089:8089
-#        volumes:
-#            - ${{ github.workspace }}/tests/searchcommands/test_apps/eventing_app:/opt/splunk/etc/apps/eventing_app
-#            - ${{ github.workspace }}/tests/searchcommands/test_apps/generating_app:/opt/splunk/etc/apps/generating_app
-#            - ${{ github.workspace }}/tests/searchcommands/test_apps/reporting_app:/opt/splunk/etc/apps/reporting_app
-#            - ${{ github.workspace }}/tests/searchcommands/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app
-#            - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/eventing_app/lib/splunklib
-#            - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/generating_app/lib/splunklib
-#            - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/reporting_app/lib/splunklib
-#            - ${{ github.workspace }}/splunklib:/opt/splunk/etc/apps/streaming_app/lib/splunklib
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

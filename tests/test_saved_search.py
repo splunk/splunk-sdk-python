@@ -170,6 +170,27 @@ class TestSavedSearch(testlib.SDKTestCase):
         finally:
             job.cancel()
 
+    def test_history_with_options(self):
+        try:
+            old_jobs = self.saved_search.history()
+            old_jobs_cnt = len(old_jobs)
+
+            curr_job_cnt = 50
+            for _ in range(curr_job_cnt):
+                job = self.saved_search.dispatch()
+                while not job.is_ready():
+                    sleep(0.1)
+
+            # fetching all the jobs
+            history = self.saved_search.history(count=0)
+            self.assertEqual(len(history), old_jobs_cnt + curr_job_cnt)
+
+            # fetching 3 jobs
+            history = self.saved_search.history(count=3)
+            self.assertEqual(len(history), 3)
+        finally:
+            job.cancel()
+
     def test_scheduled_times(self):
         self.saved_search.update(cron_schedule='*/5 * * * *', is_scheduled=True)
         scheduled_times = self.saved_search.scheduled_times()

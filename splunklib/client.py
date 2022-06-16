@@ -2721,10 +2721,11 @@ class Job(Entity):
     def __init__(self, service, sid, **kwargs):
         # Default to v2 in Splunk Version 9+
         path = "{path}{sid}"
-        path = path.format(path=PATH_JOBS_V2, sid=sid)
-        # Fallback to v1 if Splunk Version < 9
+        # Formatting path based on the Splunk Version
         if service.splunk_version < (9,):
             path = path.format(path=PATH_JOBS, sid=sid)
+        else:
+            path = path.format(path=PATH_JOBS_V2, sid=sid)
 
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid

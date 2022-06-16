@@ -62,6 +62,7 @@ import contextlib
 import datetime
 import json
 import logging
+import re
 import socket
 from datetime import datetime, timedelta
 from time import sleep
@@ -99,6 +100,7 @@ PATH_FIRED_ALERTS = "alerts/fired_alerts/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
+PATH_JOBS_V2 = "search/v2/jobs/"
 PATH_LOGGER = "/services/server/logger/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
@@ -570,6 +572,8 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
+        if self.splunk_version >= (9,):
+            return self.post("search/v2/parser", q=query, **kwargs)
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):
@@ -741,6 +745,25 @@ class Endpoint(object):
         self.service = service
         self.path = path
 
+    def get_api_version(self, path):
+        """Return the API version of the service used in the provided path.
+
+        Args:
+            path (str): A fully-qualified endpoint path (for example, "/services/search/jobs").
+
+        Returns:
+            int: Version of the API (for example, 1)
+        """
+        # Default to v1 if undefined in the path
+        # For example, "/services/search/jobs" is using API v1
+        api_version = 1
+        
+        versionSearch = re.search('(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
+        if versionSearch:
+            api_version = int(versionSearch.group(1))
+    
+        return api_version
+
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
         """Performs a GET operation on the path segment relative to this endpoint.
 
@@ -803,6 +826,22 @@ class Endpoint(object):
                                          app=app, sharing=sharing)
         # ^-- This was "%s%s" % (self.path, path_segment).
         # That doesn't work, because self.path may be UrlEncoded.
+
+        # Get the API version from the path
+        api_version = self.get_api_version(path)
+
+        # Search API v2+ fallback to v1:
+        #   - In v2+, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2+ to v1 if Splunk Version is < 9.
+        # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        
+        if api_version == 1:
+            if isinstance(path, UrlEncoded):
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
+            else:
+                path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
                                 **query)
@@ -855,13 +894,29 @@ class Endpoint(object):
             apps.get('nonexistant/path') # raises HTTPError
             s.logout()
             apps.get() # raises AuthenticationError
-        """
+        """       
         if path_segment.startswith('/'):
             path = path_segment
         else:
             if not self.path.endswith('/') and path_segment != "":
                 self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
+            
+        # Get the API version from the path
+        api_version = self.get_api_version(path)
+
+        # Search API v2+ fallback to v1:
+        #   - In v2+, /results_preview, /events and /results do not support search params.
+        #   - Fallback from v2+ to v1 if Splunk Version is < 9.
+        # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
+        #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+        
+        if api_version == 1:
+            if isinstance(path, UrlEncoded):
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
+            else:
+                path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 
 
@@ -2664,7 +2719,14 @@ class Inputs(Collection):
 class Job(Entity):
     """This class represents a search job."""
     def __init__(self, service, sid, **kwargs):
-        path = PATH_JOBS + sid
+        # Default to v2 in Splunk Version 9+
+        path = "{path}{sid}"
+        # Formatting path based on the Splunk Version
+        if service.splunk_version < (9,):
+            path = path.format(path=PATH_JOBS, sid=sid)
+        else:
+            path = path.format(path=PATH_JOBS_V2, sid=sid)
+
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
 
@@ -2718,7 +2780,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
-        return self.get("events", **kwargs).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("events", **kwargs).body
+        return self.post("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2806,7 +2872,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        return self.get("results", **query_params).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("results", **query_params).body
+        return self.post("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2847,7 +2917,11 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        return self.get("results_preview", **query_params).body
+        
+        # Search API v1(GET) and v2(POST)
+        if self.service.splunk_version < (9,):
+            return self.get("results_preview", **query_params).body
+        return self.post("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -2936,7 +3010,12 @@ class Jobs(Collection):
     """This class represents a collection of search jobs. Retrieve this
     collection using :meth:`Service.jobs`."""
     def __init__(self, service):
-        Collection.__init__(self, service, PATH_JOBS, item=Job)
+        # Splunk 9 introduces the v2 endpoint
+        if service.splunk_version >= (9,):
+            path = PATH_JOBS_V2
+        else:
+            path = PATH_JOBS
+        Collection.__init__(self, service, path, item=Job)
         # The count value to say list all the contents of this
         # Collection is 0, not -1 as it is on most.
         self.null_count = 0

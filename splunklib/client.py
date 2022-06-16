@@ -837,7 +837,10 @@ class Endpoint(object):
         #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
         
         if api_version == 1:
-            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+            if isinstance(path, UrlEncoded):
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
+            else:
+                path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
         return self.service.get(path,
                                 owner=owner, app=app, sharing=sharing,
@@ -909,7 +912,10 @@ class Endpoint(object):
         #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
         
         if api_version == 1:
-            path = path.replace(PATH_JOBS_V2, PATH_JOBS)
+            if isinstance(path, UrlEncoded):
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
+            else:
+                path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
         return self.service.post(path, owner=owner, app=app, sharing=sharing, **query)
 

@@ -58,7 +58,7 @@ Install the sources you cloned from GitHub:
 You'll need `docker` and `docker-compose` to get up and running using this method.
 
 ```
-make up SPLUNK_VERSION=8.0
+make up SPLUNK_VERSION=9.0
 make wait_up
 make test
 make down
@@ -107,7 +107,7 @@ here is an example of .env file:
     # Access scheme (default: https)
     scheme=https
     # Your version of Splunk Enterprise
-    version=8.0
+    version=9.0
     # Bearer token for authentication
     #bearerToken=<Bearer-token>
     # Session key for authentication

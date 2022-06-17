@@ -529,6 +529,7 @@ class Context:
 
         :returns: A list of 2-tuples containing key and value
         """
+        header = []
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
         if self.basic and (self.username and self.password):
@@ -1440,7 +1441,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.19",
+            "User-Agent": "splunk-sdk-python/1.6.20",
             "Accept": "*/*",
             "Connection": "Close",
         }  # defaults

@@ -1,5 +1,16 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.0
+
+### New features and APIs
+* [#468](https://github.com/splunk/splunk-sdk-python/pull/468) SDK Support for splunkd search API changes
+
+### Bug fixes
+* [#464](https://github.com/splunk/splunk-sdk-python/pull/464) updated checks for wildcards in StoragePasswords [[issue#458](https://github.com/splunk/splunk-sdk-python/issues/458)]
+
+### Minor changes
+* [#463](https://github.com/splunk/splunk-sdk-python/pull/463) Preserve thirdparty cookies
+
 ## Version 1.6.20
 
 ### New features and APIs

@@ -11,7 +11,7 @@ If you're seeing some unexpected behavior with this project, please create an [i
 1. Version of this project you're using (ex: 1.5.0)
 2. Platform version (ex: Windows Server 2012 R2)
 3. Framework version (ex: Python 3.7)
-4. Splunk Enterprise version (ex: 8.0)
+4. Splunk Enterprise version (ex: 9.0)
 5. Other relevant information (ex: local/remote environment, Splunk network configuration, standalone or distributed deployment, are load balancers used)
 
 Alternatively, if you have a Splunk question please ask on [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).

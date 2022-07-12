@@ -120,60 +120,6 @@ class TestInternals(TestCase):
         self.assertEqual(self._json_input, json_output)
         return
 
-    def test_recorder(self):
-
-        if (python_version[0] == 2 and python_version[1] < 7):
-            print("Skipping test since we're on {1}".format("".join(python_version)))
-            pass
-
-        # Grab an input/output recording, the results of a prior countmatches run
-
-        recording = os.path.join(self._package_path, 'recordings', 'scpv2', 'Splunk-6.3', 'countmatches.')
-
-        with gzip.open(recording + 'input.gz', 'rb') as file_1:
-            with io.open(recording + 'output', 'rb') as file_2:
-                ifile = BytesIO(file_1.read())
-                result = BytesIO(file_2.read())
-
-        # Set up the input/output recorders that are under test
-
-        ifile = Recorder(mktemp(), ifile)
-
-        try:
-            ofile = Recorder(mktemp(), BytesIO())
-
-            try:
-                # Read and then write a line
-                ifile.readline()
-                ofile.write(result.readline())
-
-                # Read and then write a block
-                ifile.read()
-                ofile.write(result.read())
-
-                # Verify that what we wrote is equivalent to the original recording, the result from a prior
-                # countmatches run
-                self.assertEqual(ofile.getvalue(), result.getvalue())
-
-                # Verify that we faithfully recorded the input and output files
-                ifile._recording.close()
-                ofile._recording.close()
-
-                with gzip.open(ifile._recording.name, 'rb') as file_1:
-                    with gzip.open(ofile._recording.name, 'rb') as file_2:
-                        self.assertEqual(file_1.read(), ifile._file.getvalue())
-                        self.assertEqual(file_2.read(), ofile._file.getvalue())
-
-            finally:
-                ofile._recording.close()
-                os.remove(ofile._recording.name)
-
-        finally:
-            ifile._recording.close()
-            os.remove(ifile._recording.name)
-
-        return
-
     def test_record_writer_with_random_data(self, save_recording=False):
 
         # Confirmed: [minint, maxint) covers the full range of values that xrange allows
@@ -332,7 +278,6 @@ class TestInternals(TestCase):
 
     _json_input = six.text_type(json.dumps(_dictionary, separators=(',', ':')))
     _package_path = os.path.dirname(os.path.abspath(__file__))
-    _recordings_path = os.path.join(_package_path, 'recordings', 'scpv2', 'Splunk-6.3')
 
 
 class TestRecorder(object):

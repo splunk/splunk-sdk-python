@@ -1,1 +1,0 @@
-splunk cmd python generatetext.py __EXECUTE__ count="10" text="Hello World!"

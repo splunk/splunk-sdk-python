@@ -543,8 +543,8 @@ class Context(object):
                 token = 'Splunk %s' % self.token
         if token:
             header.append(("Authorization", token))
-        if self.get_cookies().__len__() > 0:
-            header.append("Cookie", _make_cookie_header(self.get_cookies().items()))
+        if self.get_cookies():
+            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
 
         return header
 

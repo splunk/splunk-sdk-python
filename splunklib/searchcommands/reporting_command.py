@@ -222,6 +222,15 @@ class ReportingCommand(SearchCommand):
             Supported by: SCP 2
 
             ''')
+            
+        partition_fields = ConfigurationSetting(readonly=False, value=[], doc='''
+            Hash keys for parallel reduce
+
+            Default: [].
+
+            Supported by: SCP 2
+
+            ''')
 
         # endregion
 

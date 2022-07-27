@@ -347,6 +347,10 @@ class ConfigurationSettingsType(type):
         'type': specification(
             type=(bytes, six.text_type),
             constraint=lambda value: value in ('events', 'reporting', 'streaming'),
+            supporting_protocols=[2]),
+        'partition_fields': specification(
+            type=(list, set, tuple),
+            constraint=None,
             supporting_protocols=[2])}
 
 

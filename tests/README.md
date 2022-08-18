@@ -1,7 +1,7 @@
 # Splunk Test Suite
 
 The test suite uses Python's standard library and the built-in **unittest** 
-library. If you're using Python 2.7, you're all set. However, if you are using 
+library. If you're using Python 2.7 or Python 3.7, you're all set. However, if you are using 
 Python 2.6, you'll also need to install the **unittest2** library to get the 
 additional features that were added to Python 2.7 (just run `pip install 
 unittest2` or `easy_install unittest2`).

@@ -28,7 +28,9 @@ Here's what you need to get going with the Splunk Enterprise SDK for Python.
   
   The Splunk Enterprise SDK for Python has been tested with Python v2.7 and v3.7.
 
-* Splunk Enterprise
+* Splunk Enterprise 9.0 or 8.2
+
+    The Splunk Enterprise SDK for Python has been tested with Splunk Enterprise 9.0 and 8.2
 
   If you haven't already installed Splunk Enterprise, download it [here](http://www.splunk.com/download). 
   For more information, see the Splunk Enterprise [_Installation Manual_](https://docs.splunk.com/Documentation/Splunk/latest/Installation).

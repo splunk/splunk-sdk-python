@@ -1,5 +1,15 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.1
+
+### Bug fixes
+* [#471](https://github.com/splunk/splunk-sdk-python/pull/471) Fixed support of Load Balancer "sticky sessions" (persistent cookies) [[issue#438](https://github.com/splunk/splunk-sdk-python/issues/438)]
+
+### Minor changes
+* [#466](https://github.com/splunk/splunk-sdk-python/pull/466) tests for CSC apps
+* [#467](https://github.com/splunk/splunk-sdk-python/pull/467) Added 'kwargs' parameter for Saved Search History function
+* [#475](https://github.com/splunk/splunk-sdk-python/pull/475) README updates
+
 ## Version 1.7.0
 
 ### New features and APIs

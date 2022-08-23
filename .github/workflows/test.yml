@@ -17,26 +17,20 @@ jobs:
           - "latest"
       fail-fast: false
 
-    services:
-      splunk:
-        image: splunk/splunk:${{matrix.splunk-version}}
-        env:
-          SPLUNK_START_ARGS: --accept-license
-          SPLUNK_HEC_TOKEN: 11111111-1111-1111-1111-1111111111113
-          SPLUNK_PASSWORD: changed!
-          SPLUNK_APPS_URL: https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
-        ports:
-          - 8000:8000
-          - 8088:8088
-          - 8089:8089
-
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run docker-compose
+        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker-compose up -d
+
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+
       - name: Install tox
         run: pip install tox
+
       - name: Test Execution
         run: tox -e py

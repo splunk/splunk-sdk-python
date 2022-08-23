@@ -3291,12 +3291,15 @@ class SavedSearch(Entity):
             item=AlertGroup)
         return c
 
-    def history(self):
+    def history(self, **kwargs):
         """Returns a list of search jobs corresponding to this saved search.
+
+        :param `kwargs`: Additional arguments (optional).
+        :type kwargs: ``dict``
 
         :return: A list of :class:`Job` objects.
         """
-        response = self.get("history")
+        response = self.get("history", **kwargs)
         entries = _load_atom_entries(response)
         if entries is None: return []
         jobs = []

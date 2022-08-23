@@ -543,8 +543,8 @@ class Context(object):
                 token = 'Splunk %s' % self.token
         if token:
             header.append(("Authorization", token))
-        if self.get_cookies().__len__() > 0:
-            header.append("Cookie", _make_cookie_header(self.get_cookies().items()))
+        if self.get_cookies():
+            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
 
         return header
 
@@ -1434,7 +1434,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.7.0",
+            "User-Agent": "splunk-sdk-python/1.7.1",
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

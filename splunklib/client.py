@@ -572,8 +572,8 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
-        if self.splunk_version >= (9,):
-            return self.post("search/v2/parser", q=query, **kwargs)
+        # if self.splunk_version >= (9,):
+        #     return self.post("search/v2/parser", q=query, **kwargs)
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):
@@ -2722,10 +2722,10 @@ class Job(Entity):
         # Default to v2 in Splunk Version 9+
         path = "{path}{sid}"
         # Formatting path based on the Splunk Version
-        if service.splunk_version < (9,):
-            path = path.format(path=PATH_JOBS, sid=sid)
-        else:
-            path = path.format(path=PATH_JOBS_V2, sid=sid)
+        # if service.splunk_version < (9,):
+        path = path.format(path=PATH_JOBS, sid=sid)
+        # else:
+        #     path = path.format(path=PATH_JOBS_V2, sid=sid)
 
         Entity.__init__(self, service, path, skip_refresh=True, **kwargs)
         self.sid = sid
@@ -2782,9 +2782,9 @@ class Job(Entity):
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
-            return self.get("events", **kwargs).body
-        return self.post("events", **kwargs).body
+        # if self.service.splunk_version < (9,):
+        return self.get("events", **kwargs).body
+        # return self.post("events", **kwargs).body
 
     def finalize(self):
         """Stops the job and provides intermediate results for retrieval.
@@ -2874,9 +2874,9 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
-            return self.get("results", **query_params).body
-        return self.post("results", **query_params).body
+        # if self.service.splunk_version < (9,):
+        return self.get("results", **query_params).body
+        # return self.post("results", **query_params).body
 
     def preview(self, **query_params):
         """Returns a streaming handle to this job's preview search results.
@@ -2919,9 +2919,9 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
-            return self.get("results_preview", **query_params).body
-        return self.post("results_preview", **query_params).body
+        # if self.service.splunk_version < (9,):
+        return self.get("results_preview", **query_params).body
+        # return self.post("results_preview", **query_params).body
 
     def searchlog(self, **kwargs):
         """Returns a streaming handle to this job's search log.
@@ -3011,10 +3011,10 @@ class Jobs(Collection):
     collection using :meth:`Service.jobs`."""
     def __init__(self, service):
         # Splunk 9 introduces the v2 endpoint
-        if service.splunk_version >= (9,):
-            path = PATH_JOBS_V2
-        else:
-            path = PATH_JOBS
+        # if service.splunk_version >= (9,):
+        #     path = PATH_JOBS_V2
+        # else:
+        path = PATH_JOBS
         Collection.__init__(self, service, path, item=Job)
         # The count value to say list all the contents of this
         # Collection is 0, not -1 as it is on most.

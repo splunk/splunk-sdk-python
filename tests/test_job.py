@@ -401,8 +401,8 @@ class TestJob(testlib.SDKTestCase):
         n_results = len([x for x in results_r if isinstance(x, dict)])
         
         # Fallback test for Splunk Version 9+
-        if self.service.splunk_version[0] >= 9:
-            self.assertGreaterEqual(9, self.service.splunk_version[0])
+        if self.service.splunk_version >= (9,0,2):
+            self.assertGreaterEqual((9,0,2), self.service.splunk_version)
         self.assertEqual(n_events, n_preview, n_results)
 
 

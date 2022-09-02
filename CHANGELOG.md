@@ -1,5 +1,10 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.2
+
+### Minor changes
+* [#482](https://github.com/splunk/splunk-sdk-python/pull/482) updated version checks for enabling v2 search APIs
+
 ## Version 1.7.1
 
 ### Bug fixes

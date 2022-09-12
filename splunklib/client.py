@@ -573,7 +573,6 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
-        # if self.splunk_version >= (9,0,2):
         if not self.disable_v2_api:
             return self.post("search/v2/parser", q=query, **kwargs)
         return self.get("search/parser", q=query, **kwargs)
@@ -2740,7 +2739,6 @@ class Job(Entity):
         # Default to v2 in Splunk Version 9+
         path = "{path}{sid}"
         # Formatting path based on the Splunk Version
-        #if service.splunk_version < (9,0,2):
         if service.disable_v2_api:
             path = path.format(path=PATH_JOBS, sid=sid)
         else:
@@ -2801,7 +2799,6 @@ class Job(Entity):
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        # if self.service.splunk_version < (9,0,2):
         if self.service.disable_v2_api:
             return self.get("events", **kwargs).body
         return self.post("events", **kwargs).body
@@ -2894,7 +2891,6 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        # if self.service.splunk_version < (9,0,2):
         if self.service.disable_v2_api:
             return self.get("results", **query_params).body
         return self.post("results", **query_params).body
@@ -2940,7 +2936,6 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
         
         # Search API v1(GET) and v2(POST)
-        # if self.service.splunk_version < (9,0,2):
         if self.service.disable_v2_api:
             return self.get("results_preview", **query_params).body
         return self.post("results_preview", **query_params).body
@@ -3033,7 +3028,6 @@ class Jobs(Collection):
     collection using :meth:`Service.jobs`."""
     def __init__(self, service):
         # Splunk 9 introduces the v2 endpoint
-        # if service.splunk_version >= (9,0,2):
         if not service.disable_v2_api:
             path = PATH_JOBS_V2
         else:

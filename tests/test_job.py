@@ -401,7 +401,7 @@ class TestJob(testlib.SDKTestCase):
         n_results = len([x for x in results_r if isinstance(x, dict)])
 
         # Fallback test for Splunk Version 9.0.2+
-        if self.service.splunk_version >= (9, 0, 2):
+        if not self.service.disable_v2_api:
             self.assertTrue(client.PATH_JOBS_V2 in self.job.path)
         self.assertEqual(n_events, n_preview, n_results)
 

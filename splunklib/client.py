@@ -708,7 +708,7 @@ class Service(_BaseService):
 
     @property
     def disable_v2_api(self):
-        if self.splunk_instance == 'cloud':
+        if self.splunk_instance.lower() == 'cloud':
             return self.splunk_version < (9,0,2209)
         return self.splunk_version < (9,0,2)
 

@@ -102,11 +102,6 @@ class ServiceTestCase(testlib.SDKTestCase):
         # objectified form of the results, but for now there's
         # nothing to test but a good response code.
         response = self.service.parse('search * abc="def" | dedup abc')
-
-        # Splunk Version 9+ using API v2: search/v2/parser
-        if self.service.splunk_version[0] >= 9:
-            self.assertGreaterEqual(9, self.service.splunk_version[0])
-
         self.assertEqual(response.status, 200)
 
     def test_parse_fail(self):

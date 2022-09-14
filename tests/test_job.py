@@ -399,10 +399,10 @@ class TestJob(testlib.SDKTestCase):
         n_events = len([x for x in events_r if isinstance(x, dict)])
         n_preview = len([x for x in preview_r if isinstance(x, dict)])
         n_results = len([x for x in results_r if isinstance(x, dict)])
-        
-        # Fallback test for Splunk Version 9+
-        if self.service.splunk_version[0] >= 9:
-            self.assertGreaterEqual(9, self.service.splunk_version[0])
+
+        # Fallback test for Splunk Version 9.0.2+
+        if not self.service.disable_v2_api:
+            self.assertTrue(client.PATH_JOBS_V2 in self.job.path)
         self.assertEqual(n_events, n_preview, n_results)
 
 

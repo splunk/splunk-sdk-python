@@ -1216,6 +1216,36 @@ class Entity(Endpoint):
         self.post("_reload")
         return self
 
+    def acl_update(self, **kwargs):
+        """To update Access Control List (ACL) properties for an endpoint.
+
+        :param kwargs: Additional entity-specific arguments (required).
+
+            - "owner" (``string``): The Splunk username, such as "admin". A value of "nobody" means no specific user (required).
+
+            - "sharing" (``string``): A mode that indicates how the resource is shared. The sharing mode can be "user", "app", "global", or "system" (required).
+
+        :type kwargs: ``dict``
+
+        **Example**::
+
+            import splunklib.client as client
+            service = client.connect(...)
+            saved_search = service.saved_searches["name"]
+            saved_search.acl_update(sharing="app", owner="nobody", app="search", **{"perms.read": "admin, nobody"})
+        """
+        if "body" not in kwargs:
+            kwargs = {"body": {**kwargs}}
+
+        if "sharing" not in kwargs["body"]:
+            raise ValueError("Required argument 'sharing' is missing.")
+        if "owner" not in kwargs["body"]:
+            raise ValueError("Required argument 'owner' is missing.")
+
+        self.post("acl", **kwargs)
+        self.refresh()
+        return self
+
     @property
     def state(self):
         """Returns the entity's state record.

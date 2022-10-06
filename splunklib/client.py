@@ -1235,7 +1235,7 @@ class Entity(Endpoint):
             saved_search.acl_update(sharing="app", owner="nobody", app="search", **{"perms.read": "admin, nobody"})
         """
         if "body" not in kwargs:
-            kwargs = {"body": {**kwargs}}
+            kwargs = {"body": kwargs}
 
         if "sharing" not in kwargs["body"]:
             raise ValueError("Required argument 'sharing' is missing.")

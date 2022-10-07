@@ -34,7 +34,7 @@ jobs:
       - name : Docs Upload
         uses: actions/upload-artifact@v3
         with:
-          name: apidocs
+          name: python_sdk_docs
           path: docs/_build/html
       # Test upload
       # - name: Publish package to TestPyPI

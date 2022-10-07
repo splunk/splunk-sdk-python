@@ -1,7 +1,8 @@
 name: Release
 on:
-  release:
-    types: [published]
+  [push]
+#  release:
+#    types: [published]
 
 jobs:
   publish:
@@ -18,23 +19,23 @@ jobs:
         run: pip install twine
       - name: Build package
         run: python setup.py sdist
-      - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.3.1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
+#      - name: Publish package to PyPI
+#        uses: pypa/gh-action-pypi-publish@v1.3.1
+#        with:
+#          user: __token__
+#          password: ${{ secrets.pypi_password }}
       - name: Install tox
         run: pip install tox
       - name: Generate API docs
         run: |
           rm -rf ./docs/_build
           tox -e docs
-          cd ./docs/_build/html && zip -r ../docs_html.zip . -x ".*" -x "__MACOSX"
+#          cd ./docs/_build/html && zip -r ../docs_html.zip . -x ".*" -x "__MACOSX"
       - name : Docs Upload
         uses: actions/upload-artifact@v3
         with:
           name: apidocs
-          path: docs/_build/docs_html.zip
+          path: docs/_build/html
       # Test upload
       # - name: Publish package to TestPyPI
       #   uses: pypa/gh-action-pypi-publish@master

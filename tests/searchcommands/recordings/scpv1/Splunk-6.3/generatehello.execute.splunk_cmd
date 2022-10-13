@@ -1,1 +1,0 @@
-splunk cmd python generatehello.py __EXECUTE__ count="10" record="f" 

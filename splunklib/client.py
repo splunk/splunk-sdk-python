@@ -415,6 +415,7 @@ class Service(_BaseService):
         super().__init__(**kwargs)
         self._splunk_version = None
         self._kvstore_owner = None
+        self._instance_type = None
 
     @property
     def apps(self):
@@ -565,7 +566,7 @@ class Service(_BaseService):
         :type kwargs: ``dict``
         :return: A semantic map of the parsed search query.
         """
-        if self.splunk_version >= (9,):
+        if not self.disable_v2_api:
             return self.post("search/v2/parser", q=query, **kwargs)
         return self.get("search/parser", q=query, **kwargs)
 
@@ -687,6 +688,22 @@ class Service(_BaseService):
         if self._splunk_version is None:
             self._splunk_version = tuple(int(p) for p in self.info['version'].split('.'))
         return self._splunk_version
+
+    @property
+    def splunk_instance(self):
+        if self._instance_type is None :
+            splunk_info = self.info;
+            if hasattr(splunk_info, 'instance_type') :
+                self._instance_type = splunk_info['instance_type']
+            else:
+                self._instance_type = ''
+        return self._instance_type
+
+    @property
+    def disable_v2_api(self):
+        if self.splunk_instance.lower() == 'cloud':
+            return self.splunk_version < (9,0,2209)
+        return self.splunk_version < (9,0,2)
 
     @property
     def kvstore_owner(self):
@@ -1184,6 +1201,36 @@ class Entity(Endpoint):
     def reload(self):
         """Reloads the entity."""
         self.post("_reload")
+        return self
+
+    def acl_update(self, **kwargs):
+        """To update Access Control List (ACL) properties for an endpoint.
+
+        :param kwargs: Additional entity-specific arguments (required).
+
+            - "owner" (``string``): The Splunk username, such as "admin". A value of "nobody" means no specific user (required).
+
+            - "sharing" (``string``): A mode that indicates how the resource is shared. The sharing mode can be "user", "app", "global", or "system" (required).
+
+        :type kwargs: ``dict``
+
+        **Example**::
+
+            import splunklib.client as client
+            service = client.connect(...)
+            saved_search = service.saved_searches["name"]
+            saved_search.acl_update(sharing="app", owner="nobody", app="search", **{"perms.read": "admin, nobody"})
+        """
+        if "body" not in kwargs:
+            kwargs = {"body": kwargs}
+
+        if "sharing" not in kwargs["body"]:
+            raise ValueError("Required argument 'sharing' is missing.")
+        if "owner" not in kwargs["body"]:
+            raise ValueError("Required argument 'owner' is missing.")
+
+        self.post("acl", **kwargs)
+        self.refresh()
         return self
 
     @property
@@ -2704,7 +2751,7 @@ class Job(Entity):
         # Default to v2 in Splunk Version 9+
         path = "{path}{sid}"
         # Formatting path based on the Splunk Version
-        if service.splunk_version < (9,):
+        if service.disable_v2_api:
             path = path.format(path=PATH_JOBS, sid=sid)
         else:
             path = path.format(path=PATH_JOBS_V2, sid=sid)
@@ -2764,7 +2811,7 @@ class Job(Entity):
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
 
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
+        if self.service.disable_v2_api:
             return self.get("events", **kwargs).body
         return self.post("events", **kwargs).body
 
@@ -2856,7 +2903,7 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
 
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
+        if self.service.disable_v2_api:
             return self.get("results", **query_params).body
         return self.post("results", **query_params).body
 
@@ -2901,7 +2948,7 @@ class Job(Entity):
         query_params['segmentation'] = query_params.get('segmentation', 'none')
 
         # Search API v1(GET) and v2(POST)
-        if self.service.splunk_version < (9,):
+        if self.service.disable_v2_api:
             return self.get("results_preview", **query_params).body
         return self.post("results_preview", **query_params).body
 
@@ -2994,7 +3041,7 @@ class Jobs(Collection):
 
     def __init__(self, service):
         # Splunk 9 introduces the v2 endpoint
-        if service.splunk_version >= (9,):
+        if not service.disable_v2_api:
             path = PATH_JOBS_V2
         else:
             path = PATH_JOBS
@@ -3275,12 +3322,15 @@ class SavedSearch(Entity):
             item=AlertGroup)
         return c
 
-    def history(self):
+    def history(self, **kwargs):
         """Returns a list of search jobs corresponding to this saved search.
+
+        :param `kwargs`: Additional arguments (optional).
+        :type kwargs: ``dict``
 
         :return: A list of :class:`Job` objects.
         """
-        response = self.get("history")
+        response = self.get("history", **kwargs)
         entries = _load_atom_entries(response)
         if entries is None: return []
         jobs = []

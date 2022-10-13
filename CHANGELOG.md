@@ -1,5 +1,31 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.2
+
+### Minor changes
+* [#482](https://github.com/splunk/splunk-sdk-python/pull/482) Special handling related to the semantic versioning of specific Search APIs functional in Splunk Enterprise 9.0.2 and (Splunk Cloud 9.0.2209). These SDK changes will enable seamless transition between the APIs based on the version of the Splunk Enterprise in use
+
+## Version 1.7.1
+
+### Bug fixes
+* [#471](https://github.com/splunk/splunk-sdk-python/pull/471) Fixed support of Load Balancer "sticky sessions" (persistent cookies) [[issue#438](https://github.com/splunk/splunk-sdk-python/issues/438)]
+
+### Minor changes
+* [#466](https://github.com/splunk/splunk-sdk-python/pull/466) tests for CSC apps
+* [#467](https://github.com/splunk/splunk-sdk-python/pull/467) Added 'kwargs' parameter for Saved Search History function
+* [#475](https://github.com/splunk/splunk-sdk-python/pull/475) README updates
+
+## Version 1.7.0
+
+### New features and APIs
+* [#468](https://github.com/splunk/splunk-sdk-python/pull/468) SDK Support for splunkd search API changes
+
+### Bug fixes
+* [#464](https://github.com/splunk/splunk-sdk-python/pull/464) updated checks for wildcards in StoragePasswords [[issue#458](https://github.com/splunk/splunk-sdk-python/issues/458)]
+
+### Minor changes
+* [#463](https://github.com/splunk/splunk-sdk-python/pull/463) Preserve thirdparty cookies
+
 ## Version 1.6.20
 
 ### New features and APIs

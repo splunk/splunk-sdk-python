@@ -532,22 +532,24 @@ class Context:
         header = []
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
-        if self.basic and (self.username and self.password):
-            encoded_username_password = b64encode(f"{self.username}:{self.password}".encode('utf-8')).decode('ascii')
-            token = f'Basic {encoded_username_password}'
-            return [("Authorization", token)]
-        if self.bearerToken:
-            token = f"Bearer {self.bearerToken}"
-            return [("Authorization", token)]
-        if self.token is _NoAuthenticationToken:
-            return []
+        elif self.basic and (self.username and self.password):
+            token = 'Basic %s' % b64encode(("%s:%s" % (self.username, self.password)).encode('utf-8')).decode('ascii')
+        elif self.bearerToken:
+            token = 'Bearer %s' % self.bearerToken
+        elif self.token is _NoAuthenticationToken:
+            token = []
         else:
             # Ensure the token is properly formatted
             if self.token.startswith('Splunk '):
                 token = self.token
             else:
-                token = f"Splunk {self.token}"
-            return [("Authorization", token)]
+                token = 'Splunk %s' % self.token
+        if token:
+            header.append(("Authorization", token))
+        if self.get_cookies():
+            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
+
+        return header
 
     def connect(self):
         """Returns an open connection (socket) to the Splunk instance.
@@ -1441,7 +1443,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.6.20",
+            "User-Agent": "splunk-sdk-python/1.7.2",
             "Accept": "*/*",
             "Connection": "Close",
         }  # defaults

@@ -168,6 +168,27 @@ class TestSavedSearch(testlib.SDKTestCase):
         finally:
             job.cancel()
 
+    def test_history_with_options(self):
+        try:
+            old_jobs = self.saved_search.history()
+            old_jobs_cnt = len(old_jobs)
+
+            curr_job_cnt = 50
+            for _ in range(curr_job_cnt):
+                job = self.saved_search.dispatch()
+                while not job.is_ready():
+                    sleep(0.1)
+
+            # fetching all the jobs
+            history = self.saved_search.history(count=0)
+            self.assertEqual(len(history), old_jobs_cnt + curr_job_cnt)
+
+            # fetching 3 jobs
+            history = self.saved_search.history(count=3)
+            self.assertEqual(len(history), 3)
+        finally:
+            job.cancel()
+
     def test_scheduled_times(self):
         self.saved_search.update(cron_schedule='*/5 * * * *', is_scheduled=True)
         scheduled_times = self.saved_search.scheduled_times()
@@ -195,6 +216,29 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search.unsuppress()
         self.assertEqual(self.saved_search['suppressed'], 0)
 
+    def test_acl(self):
+        self.assertEqual(self.saved_search.access["perms"], None)
+        self.saved_search.acl_update(sharing="app", owner="admin", app="search", **{"perms.read": "admin, nobody"})
+        self.assertEqual(self.saved_search.access["owner"], "admin")
+        self.assertEqual(self.saved_search.access["app"], "search")
+        self.assertEqual(self.saved_search.access["sharing"], "app")
+        self.assertEqual(self.saved_search.access["perms"]["read"], ['admin', 'nobody'])
+
+    def test_acl_fails_without_sharing(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "Required argument 'sharing' is missing.",
+            self.saved_search.acl_update,
+            owner="admin", app="search", **{"perms.read": "admin, nobody"}
+        )
+
+    def test_acl_fails_without_owner(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "Required argument 'owner' is missing.",
+            self.saved_search.acl_update,
+            sharing="app", app="search", **{"perms.read": "admin, nobody"}
+        )
 
 if __name__ == "__main__":
     import unittest

@@ -533,9 +533,9 @@ class Context:
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
         elif self.basic and (self.username and self.password):
-            token = 'Basic %s' % b64encode(("%s:%s" % (self.username, self.password)).encode('utf-8')).decode('ascii')
+            token = f'Basic {b64encode(("%s:%s" % (self.username, self.password)).encode("utf-8")).decode("ascii")}'
         elif self.bearerToken:
-            token = 'Bearer %s' % self.bearerToken
+            token = f'Bearer {self.bearerToken}'
         elif self.token is _NoAuthenticationToken:
             token = []
         else:
@@ -543,7 +543,7 @@ class Context:
             if self.token.startswith('Splunk '):
                 token = self.token
             else:
-                token = 'Splunk %s' % self.token
+                token = f'Splunk {self.token}'
         if token:
             header.append(("Authorization", token))
         if self.get_cookies():

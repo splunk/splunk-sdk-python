@@ -74,6 +74,6 @@ def assertRegex(self, *args, **kwargs):
     return getattr(self, "assertRegex")(*args, **kwargs)
 
 
-__version_info__ = (1, 6, 19)
+__version_info__ = (1, 7, 2)
 
 __version__ = ".".join(map(str, __version_info__))

@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 from tests import testlib
 
+import unittest
+import os
+
 try:
     from utils import *
 except ImportError:
@@ -75,6 +78,27 @@ class TestUtils(testlib.SDKTestCase):
             'port':8089
         }
         self.assertTrue(expected == dslice(TEST_DICT, *test_args))
+
+class FilePermissionTest(unittest.TestCase):
+
+    def setUp(self):
+        super(FilePermissionTest, self).setUp()
+
+    def test_filePermissions(self):
+
+        def checkFilePermissions(dir_path):
+            for file in os.listdir(dir_path):
+                if file.__contains__('pycache'):
+                    continue
+                path = os.path.join(dir_path, file)
+                if os.path.isfile(path):
+                    permission = oct(os.stat(path).st_mode)
+                    self.assertEqual(permission, '0o100644')
+                else:
+                    checkFilePermissions(path)
+
+        dir_path = os.path.join('..', 'splunklib')
+        checkFilePermissions(dir_path)
 
 
 if __name__ == "__main__":

@@ -223,6 +223,30 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search.unsuppress()
         self.assertEqual(self.saved_search['suppressed'], 0)
 
+    def test_acl(self):
+        self.assertEqual(self.saved_search.access["perms"], None)
+        self.saved_search.acl_update(sharing="app", owner="admin", app="search", **{"perms.read": "admin, nobody"})
+        self.assertEqual(self.saved_search.access["owner"], "admin")
+        self.assertEqual(self.saved_search.access["app"], "search")
+        self.assertEqual(self.saved_search.access["sharing"], "app")
+        self.assertEqual(self.saved_search.access["perms"]["read"], ['admin', 'nobody'])
+
+    def test_acl_fails_without_sharing(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "Required argument 'sharing' is missing.",
+            self.saved_search.acl_update,
+            owner="admin", app="search", **{"perms.read": "admin, nobody"}
+        )
+
+    def test_acl_fails_without_owner(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "Required argument 'owner' is missing.",
+            self.saved_search.acl_update,
+            sharing="app", app="search", **{"perms.read": "admin, nobody"}
+        )
+
 if __name__ == "__main__":
     try:
         import unittest2 as unittest

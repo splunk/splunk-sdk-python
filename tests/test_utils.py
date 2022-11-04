@@ -3,6 +3,7 @@ from tests import testlib
 
 import unittest
 import os
+import sys
 
 try:
     from utils import *
@@ -95,7 +96,10 @@ class FilePermissionTest(unittest.TestCase):
                 path = os.path.join(dir_path, file)
                 if os.path.isfile(path):
                     permission = oct(os.stat(path).st_mode)
-                    self.assertEqual(permission, '0o100644')
+                    if sys.version_info >= (2, 7, 9):
+                        self.assertEqual(permission, '0o100644')
+                    else :
+                        self.assertEqual(permission, '0100644')
                 else:
                     checkFilePermissions(path)
 

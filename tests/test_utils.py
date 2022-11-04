@@ -96,7 +96,7 @@ class FilePermissionTest(unittest.TestCase):
                 path = os.path.join(dir_path, file)
                 if os.path.isfile(path):
                     permission = oct(os.stat(path).st_mode)
-                    if sys.version_info > (2, 7, 9):
+                    if sys.version_info >= (3, 0):
                         self.assertEqual(permission, '0o100644')
                     else :
                         self.assertEqual(permission, '0100644')

@@ -10,14 +10,14 @@ except ImportError:
     raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
                     "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
 
-
 TEST_DICT = {
-            'username':'admin',
-            'password':'changeme',
-            'port' : 8089,
-            'host' : 'localhost',
-            'scheme': 'https'
-            }
+    'username': 'admin',
+    'password': 'changeme',
+    'port': 8089,
+    'host': 'localhost',
+    'scheme': 'https'
+}
+
 
 class TestUtils(testlib.SDKTestCase):
     def setUp(self):
@@ -26,16 +26,16 @@ class TestUtils(testlib.SDKTestCase):
     # Test dslice when a dict is passed to change key names
     def test_dslice_dict_args(self):
         args = {
-            'username':'user-name', 
-            'password':'new_password', 
-            'port': 'admin_port', 
-            'foo':'bar'
-            }
+            'username': 'user-name',
+            'password': 'new_password',
+            'port': 'admin_port',
+            'foo': 'bar'
+        }
         expected = {
-            'user-name':'admin', 
-            'new_password':'changeme', 
-            'admin_port':8089
-            }
+            'user-name': 'admin',
+            'new_password': 'changeme',
+            'admin_port': 8089
+        }
         self.assertTrue(expected == dslice(TEST_DICT, args))
 
     # Test dslice when a list is passed
@@ -46,44 +46,46 @@ class TestUtils(testlib.SDKTestCase):
             'port',
             'host',
             'foo'
-            ]
+        ]
         expected = {
-            'username':'admin',
-            'password':'changeme',
-            'port':8089,
-            'host':'localhost'
-            }
+            'username': 'admin',
+            'password': 'changeme',
+            'port': 8089,
+            'host': 'localhost'
+        }
         self.assertTrue(expected == dslice(TEST_DICT, test_list))
 
     # Test dslice when a single string is passed
     def test_dslice_arg(self):
         test_arg = 'username'
         expected = {
-            'username':'admin'
-            }
+            'username': 'admin'
+        }
         self.assertTrue(expected == dslice(TEST_DICT, test_arg))
 
     # Test dslice using all three types of arguments
     def test_dslice_all_args(self):
         test_args = [
-            {'username':'new_username'},
+            {'username': 'new_username'},
             ['password',
-            'host'],
+             'host'],
             'port'
         ]
         expected = {
-            'new_username':'admin',
-            'password':'changeme',
-            'host':'localhost',
-            'port':8089
+            'new_username': 'admin',
+            'password': 'changeme',
+            'host': 'localhost',
+            'port': 8089
         }
         self.assertTrue(expected == dslice(TEST_DICT, *test_args))
+
 
 class FilePermissionTest(unittest.TestCase):
 
     def setUp(self):
         super(FilePermissionTest, self).setUp()
 
+    # Check for any change in the default file permission(i.e 644) for all files within splunklib
     def test_filePermissions(self):
 
         def checkFilePermissions(dir_path):

@@ -54,7 +54,7 @@ The individual elements of the collection, in this case *applications*,
 are subclasses of :class:`Entity`. An ``Entity`` object has fields for its
 attributes, and methods that are specific to each kind of entity. For example::
 
-    print my_app['author']  # Or: print my_app.author
+    print(my_app['author'])  # Or: print(my_app.author)
     my_app.package()  # Creates a compressed package of this application
 """
 
@@ -1393,7 +1393,7 @@ class ReadOnlyCollection(Endpoint):
             c = client.connect(...)
             saved_searches = c.saved_searches
             for entity in saved_searches:
-                print "Saved search named %s" % entity.name
+                print(f"Saved search named {entity.name}")
         """
 
         for item in self.iter(**kwargs):
@@ -2880,10 +2880,10 @@ class Job(Entity):
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print '%s: %s' % (result.type, result.message)
+                    print(f'{result.type}: {result.message}')
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
-                    print result
+                    print(result)
             assert rr.is_preview == False
 
         Results are not available until the job has finished. If called on
@@ -2924,14 +2924,14 @@ class Job(Entity):
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print '%s: %s' % (result.type, result.message)
+                    print(f'{result.type}: {result.message}')
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
-                    print result
+                    print(result)
             if rr.is_preview:
-                print "Preview of a running search job."
+                print("Preview of a running search job.")
             else:
-                print "Job is finished. Results are final."
+                print("Job is finished. Results are final.")
 
         This method makes one roundtrip to the server, plus at most
         two more if
@@ -3097,10 +3097,10 @@ class Jobs(Collection):
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print '%s: %s' % (result.type, result.message)
+                    print(f'{result.type}: {result.message}')
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
-                    print result
+                    print(result)
             assert rr.is_preview == False
 
         Running an export search is more efficient as it streams the results
@@ -3153,10 +3153,10 @@ class Jobs(Collection):
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print '%s: %s' % (result.type, result.message)
+                    print(f'{result.type}: {result.message}')
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
-                    print result
+                    print(result)
             assert rr.is_preview == False
 
         The ``oneshot`` method makes a single roundtrip to the server (as opposed

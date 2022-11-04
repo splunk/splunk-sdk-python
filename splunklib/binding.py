@@ -271,7 +271,7 @@ def _authentication(request_fun):
         def f():
             c.get("/services")
             return 42
-        print _authentication(f)
+        print(_authentication(f))
     """
 
     @wraps(request_fun)

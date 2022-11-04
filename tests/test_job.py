@@ -85,10 +85,10 @@ class TestUtilities(testlib.SDKTestCase):
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass #print(f'{result.type}: {result.message}')
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass #print(result)
         assert rr.is_preview == False
 
     def test_results_docstring_sample(self):
@@ -101,10 +101,10 @@ class TestUtilities(testlib.SDKTestCase):
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass #print(f'{result.type}: {result.message}')
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass #print(result)
         assert rr.is_preview == False
 
     def test_preview_docstring_sample(self):
@@ -116,14 +116,14 @@ class TestUtilities(testlib.SDKTestCase):
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass #print(f'{result.type}: {result.message}')
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass #print(result)
         if rr.is_preview:
-            pass #print "Preview of a running search job."
+            pass #print("Preview of a running search job.")
         else:
-            pass #print "Job is finished. Results are final."
+            pass #print("Job is finished. Results are final.")
 
     def test_oneshot_docstring_sample(self):
         from splunklib import client
@@ -133,10 +133,10 @@ class TestUtilities(testlib.SDKTestCase):
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
-                pass #print '%s: %s' % (result.type, result.message)
+                pass #print(f'{result.type}: {result.message}')
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
-                pass #print result
+                pass #print(result)
         assert rr.is_preview == False
 
     def test_normal_job_with_garbage_fails(self):

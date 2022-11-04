@@ -29,7 +29,7 @@ as follows:::
     reader = ResultsReader(result_stream)
     for item in reader:
         print(item)
-    print "Results are a preview: %s" % reader.is_preview
+    print(f"Results are a preview: {reader.is_preview}")
 """
 
 from io import BufferedReader, BytesIO
@@ -174,10 +174,10 @@ class ResultsReader:
         reader = results.ResultsReader(response)
         for result in reader:
             if isinstance(result, dict):
-                print "Result: %s" % result
+                print(f"Result: {result}")
             elif isinstance(result, results.Message):
-                print "Message: %s" % result
-        print "is_preview = %s " % reader.is_preview
+                print(f"Message: {result}")
+        print(f"is_preview = {reader.is_preview}")
     """
 
     # Be sure to update the docstrings of client.Jobs.oneshot,
@@ -292,10 +292,10 @@ class JSONResultsReader:
         reader = results.JSONResultsReader(response)
         for result in reader:
             if isinstance(result, dict):
-                print "Result: %s" % result
+                print(f"Result: {result}")
             elif isinstance(result, results.Message):
-                print "Message: %s" % result
-        print "is_preview = %s " % reader.is_preview
+                print(f"Message: {result}")
+        print(f"is_preview = {reader.is_preview}")
     """
 
     # Be sure to update the docstrings of client.Jobs.oneshot,

@@ -23,7 +23,7 @@ __all__ = [ "error", "Parser", "cmdline" ]
 
 # Print the given message to stderr, and optionally exit
 def error(message, exitcode = None):
-    print("Error: %s" % message, file=sys.stderr)
+    print(f"Error: {message}", file=sys.stderr)
     if exitcode is not None: sys.exit(exitcode)
 
 

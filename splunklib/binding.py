@@ -39,6 +39,7 @@ from functools import wraps
 from io import BytesIO
 from xml.etree.ElementTree import XML
 
+from splunklib import __version__
 from splunklib import six
 from splunklib.six.moves import urllib
 
@@ -1434,7 +1435,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.7.2",
+            "User-Agent": "splunk-sdk-python/%s" % __version__,
             "Accept": "*/*",
             "Connection": "Close",
         } # defaults

@@ -23,15 +23,11 @@ from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 
-from splunklib.six import StringIO, BytesIO
-from splunklib.six.moves import zip as izip
+from splunklib.six import BytesIO
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
-import csv
-import codecs
 import os
-import re
 
 from io import TextIOWrapper
 

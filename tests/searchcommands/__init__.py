@@ -17,8 +17,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from sys import version_info as python_version
-
 from os import path
 import logging
 

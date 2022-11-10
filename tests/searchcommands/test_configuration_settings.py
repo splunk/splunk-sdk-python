@@ -26,7 +26,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib.searchcommands.decorators import Configuration
 from unittest import main, TestCase
 from splunklib import six
 

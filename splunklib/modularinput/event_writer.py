@@ -18,11 +18,6 @@ import sys
 from splunklib.six import ensure_str
 from .event import ET
 
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except ImportError:
-    from splunklib.six import StringIO
-
 class EventWriter(object):
     """``EventWriter`` writes events and error messages to Splunk from a modular input.
     Its two important methods are ``writeEvent``, which takes an ``Event`` object,

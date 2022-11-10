@@ -18,8 +18,6 @@ from __future__ import absolute_import
 from tests import testlib
 import logging
 
-from contextlib import contextmanager
-
 import splunklib.client as client
 from splunklib.six.moves import range
 

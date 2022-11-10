@@ -71,7 +71,7 @@ from splunklib import six
 from splunklib.six.moves import urllib
 
 from . import data
-from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
+from .binding import (Context, HTTPError, UrlEncoded,
                       _encode, _make_cookie_header, _NoAuthenticationToken,
                       namespace)
 from .data import record

@@ -20,7 +20,7 @@ import sys
 
 import pytest
 
-from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
+from tests.modularinput.modularinput_testlib import xml_compare, data_open
 from splunklib.modularinput.event import Event, ET
 from splunklib.modularinput.event_writer import EventWriter
 

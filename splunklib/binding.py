@@ -30,7 +30,6 @@ import io
 import logging
 import socket
 import ssl
-import sys
 import time
 from base64 import b64encode
 from contextlib import contextmanager

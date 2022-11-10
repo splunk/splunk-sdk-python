@@ -18,7 +18,6 @@ from __future__ import absolute_import
 
 from io import BytesIO
 
-from splunklib.six import StringIO
 from tests import testlib
 from time import sleep
 import splunklib.results as results

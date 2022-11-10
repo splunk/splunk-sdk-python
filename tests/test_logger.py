@@ -17,8 +17,6 @@
 from __future__ import absolute_import
 from tests import testlib
 
-import splunklib.client as client
-
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 
 class LoggerTestCase(testlib.SDKTestCase):

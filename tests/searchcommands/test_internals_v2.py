@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
+from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, RecordWriterV2
 from splunklib.searchcommands import SearchMetric
 from splunklib import six
 from splunklib.six.moves import range
@@ -25,7 +25,6 @@ from collections import OrderedDict
 from collections import namedtuple, deque
 from splunklib.six import BytesIO as BytesIO
 from functools import wraps
-from glob import iglob
 from itertools import chain
 from splunklib.six.moves import filter as ifilter
 from splunklib.six.moves import map as imap
@@ -34,14 +33,12 @@ from sys import float_info
 from tempfile import mktemp
 from time import time
 from types import MethodType
-from sys import version_info as python_version
 try:
     from unittest2 import main, TestCase
 except ImportError:
     from unittest import main, TestCase
 
 import splunklib.six.moves.cPickle as pickle
-import gzip
 import io
 import json
 import os

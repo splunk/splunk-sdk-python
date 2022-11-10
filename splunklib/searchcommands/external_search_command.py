@@ -27,8 +27,6 @@ if sys.platform == 'win32':
     from subprocess import Popen
     import atexit
 
-from . import splunklib_logger as logger
-
 # P1 [ ] TODO: Add ExternalSearchCommand class documentation
 
 

@@ -21,7 +21,6 @@ try:
     import unittest
 except ImportError:
     import unittest2 as unittest
-import splunklib.client as client
 
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):

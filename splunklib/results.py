@@ -48,11 +48,6 @@ except:
 from collections import OrderedDict
 from json import loads as json_loads
 
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except:
-    from splunklib.six import StringIO
-
 __all__ = [
     "ResultsReader",
     "Message",

@@ -22,7 +22,6 @@ from random import randint
 from unittest import main, TestCase
 
 import os
-import re
 import sys
 import tempfile
 from splunklib import six

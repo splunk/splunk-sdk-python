@@ -16,10 +16,6 @@
 
 # Utility file for unit tests, import common functions and modules
 from __future__ import absolute_import
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
 import sys, os
 import io
 

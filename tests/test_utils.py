@@ -1,3 +1,6 @@
+import unittest
+import os
+import sys
 from tests import testlib
 from utils import dslice
 
@@ -69,6 +72,32 @@ class TestUtils(testlib.SDKTestCase):
             'port': 8089
         }
         self.assertTrue(expected == dslice(TEST_DICT, *test_args))
+
+
+class FilePermissionTest(unittest.TestCase):
+
+    def setUp(self):
+        super(FilePermissionTest, self).setUp()
+
+    # Check for any change in the default file permission(i.e 644) for all files within splunklib
+    def test_filePermissions(self):
+
+        def checkFilePermissions(dir_path):
+            for file in os.listdir(dir_path):
+                if file.__contains__('pycache'):
+                    continue
+                path = os.path.join(dir_path, file)
+                if os.path.isfile(path):
+                    permission = oct(os.stat(path).st_mode)
+                    if sys.version_info >= (3, 0):
+                        self.assertEqual(permission, '0o100644')
+                    else :
+                        self.assertEqual(permission, '0100644')
+                else:
+                    checkFilePermissions(path)
+
+        dir_path = os.path.join('..', 'splunklib')
+        checkFilePermissions(dir_path)
 
 
 if __name__ == "__main__":

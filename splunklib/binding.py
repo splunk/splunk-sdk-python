@@ -38,8 +38,9 @@ from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
 from xml.etree.ElementTree import XML, ParseError
-
 from splunklib.data import record
+from splunklib import __version__
+
 
 logger = logging.getLogger(__name__)
 
@@ -1443,7 +1444,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         head = {
             "Content-Length": str(len(body)),
             "Host": host,
-            "User-Agent": "splunk-sdk-python/1.7.2",
+            "User-Agent": "splunk-sdk-python/%s" % __version__,
             "Accept": "*/*",
             "Connection": "Close",
         }  # defaults

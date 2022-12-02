@@ -488,6 +488,54 @@ class TestPluggableHTTP(testlib.SDKTestCase):
                 self.assertTrue(isatom(body))
 
 
+def urllib2_insert_cookie_handler(url, message, **kwargs):
+    method = message['method'].lower()
+    data = message.get('body', b"") if method == 'post' else None
+    headers = dict(message.get('headers', []))
+    req = Request(url, data, headers)
+    try:
+        response = urlopen(req, context=ssl._create_unverified_context())
+    except HTTPError as response:
+        pass  # Propagate HTTP errors via the returned response message
+
+    # Mimic the insertion of 3rd party cookies into the response.
+    # An example is "sticky session"/"insert cookie" persistence
+    # of a load balancer for a SHC.
+    header_list = [(k, v) for k, v in response.info().items()]
+    header_list.append(("Set-Cookie", "BIGipServer_splunk-shc-8089=1234567890.12345.0000; path=/; Httponly; Secure"))
+    header_list.append(("Set-Cookie", "home_made=yummy"))
+
+    return {
+        'status': response.code,
+        'reason': response.msg,
+        'headers': header_list,
+        'body': BytesIO(response.read())
+    }
+
+
+class TestCookiePersistence(testlib.SDKTestCase):
+    # Verify persistence of 3rd party inserted cookies.
+    def test_3rdPartyInsertedCookiePersistence(self):
+        paths = ["/services", "authentication/users",
+                 "search/jobs"]
+        logging.debug("Connecting with urllib2_insert_cookie_handler %s", urllib2_insert_cookie_handler)
+        context = binding.connect(
+            handler=urllib2_insert_cookie_handler,
+            **self.opts.kwargs)
+
+        persisted_cookies = context.get_cookies()
+
+        splunk_token_found = False
+        for k, v in persisted_cookies.items():
+            if k[:8] == "splunkd_":
+                splunk_token_found = True
+                break
+
+        self.assertEqual(splunk_token_found, True)
+        self.assertEqual(persisted_cookies['BIGipServer_splunk-shc-8089'], "1234567890.12345.0000")
+        self.assertEqual(persisted_cookies['home_made'], "yummy")
+
+
 @pytest.mark.smoke
 class TestLogout(BindingTestCase):
     def test_logout(self):

@@ -15,6 +15,8 @@
 # under the License.
 
 from __future__ import absolute_import
+
+import json
 from tests import testlib
 try:
     import unittest
@@ -50,9 +52,10 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
 
     def test_update_collection(self):
         self.confs.create('test')
-        self.confs['test'].post(**{'accelerated_fields.ind1': '{"a": 1}', 'field.a': 'number'})
+        val = {"a": 1}
+        self.confs['test'].post(**{'accelerated_fields.ind1': json.dumps(val), 'field.a': 'number'})
         self.assertEqual(self.confs['test']['field.a'], 'number')
-        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], '{"a": 1}')
+        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], {"a": 1})
         self.confs['test'].delete()
 
     def test_update_accelerated_fields(self):

@@ -3748,7 +3748,7 @@ class KVStoreCollection(Entity):
         return KVStoreCollectionData(self)
 
     def update_accelerated_field(self, name, value):
-        """Changes the definition of a KV Store index.
+        """Changes the definition of a KV Store accelerated_field.
 
         :param name: name of accelerated_fields to change
         :type name: ``string``

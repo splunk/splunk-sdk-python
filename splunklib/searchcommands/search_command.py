@@ -967,7 +967,9 @@ class SearchCommand:
 
             self._finished = getattr(metadata, 'finished', False)
             self._record_writer.is_flushed = False
-
+            # metadata.update(self._metadata)
+            # self._metadata = metadata
+            self._metadata.update(metadata)
             self._execute_chunk_v2(process, result)
 
             self._record_writer.write_chunk(finished=self._finished)

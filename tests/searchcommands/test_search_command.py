@@ -193,7 +193,7 @@ class TestSearchCommand(TestCase):
 
         expected = (
             'chunked 1.0,68,0\n'
-            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
+            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}'
             'chunked 1.0,17,32\n'
             '{"finished":true}test,__mv_test\r\n'
             'data,\r\n'

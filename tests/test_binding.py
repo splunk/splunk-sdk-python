@@ -24,7 +24,7 @@ from xml.etree.ElementTree import XML
 import json
 import logging
 
-from splunklib.binding import utils
+from splunklib.binding import utils as butils
 from tests import testlib
 import unittest
 import socket
@@ -32,7 +32,7 @@ import ssl
 
 import splunklib
 from splunklib import binding, data
-from splunklib.data import utils
+from splunklib.data import utils as dutils
 from splunklib.binding import UrlEncoded
 from splunklib.exceptions import HTTPError, AuthenticationError
 
@@ -61,7 +61,7 @@ XNAME_TITLE = XNAMEF_ATOM % "title"
 
 
 def load(response):
-    return utils.load(response.body.read())
+    return dutils.load(response.body.read())
 
 
 class BindingTestCase(unittest.TestCase):
@@ -173,24 +173,24 @@ class TestUrlEncoded(BindingTestCase):
 
 class TestAuthority(unittest.TestCase):
     def test_authority_default(self):
-        self.assertEqual(utils._authority(),
+        self.assertEqual(butils._authority(),
                          "https://localhost:8089")
 
     def test_ipv4_host(self):
         self.assertEqual(
-            utils._authority(
+            butils._authority(
                 host="splunk.utopia.net"),
             "https://splunk.utopia.net:8089")
 
     def test_ipv6_host(self):
         self.assertEqual(
-            utils._authority(
+            butils._authority(
                 host="2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
             "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
 
     def test_all_fields(self):
         self.assertEqual(
-            utils._authority(
+            butils._authority(
                 scheme="http",
                 host="splunk.utopia.net",
                 port="471"),
@@ -626,7 +626,7 @@ class TestCookieAuthentication(unittest.TestCase):
                 self.assertEqual(value[:8], "splunkd_")
 
                 new_cookies = {}
-                utils._parse_cookies(value, new_cookies)
+                butils._parse_cookies(value, new_cookies)
                 # We're only expecting 1 in this scenario
                 self.assertEqual(len(old_cookies), 1)
                 self.assertTrue(len(list(new_cookies.values())), 1)
@@ -747,12 +747,12 @@ class TestNamespace(unittest.TestCase):
              {'sharing': 'user', 'owner': '-', 'app': '-'})]
 
         for kwargs, expected in tests:
-            namespace = utils.namespace(**kwargs)
+            namespace = butils.namespace(**kwargs)
             for k, v in list(expected.items()):
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
-        self.assertRaises(ValueError, utils.namespace, sharing="gobble")
+        self.assertRaises(ValueError, butils.namespace, sharing="gobble")
 
 
 @pytest.mark.smoke

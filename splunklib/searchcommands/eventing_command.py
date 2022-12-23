@@ -15,7 +15,6 @@
 # under the License.
 
 
-
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
 
@@ -38,6 +37,7 @@ class EventingCommand(SearchCommand):
     Splunk 6.3 or later.
 
     """
+
     # region Methods
 
     def transform(self, records):
@@ -137,7 +137,7 @@ class EventingCommand(SearchCommand):
         # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
-            return  [(name_value[0], 'events' if name_value[0] == 'type' else name_value[1]) for name_value in iteritems]
+            return [(name_value[0], 'events' if name_value[0] == 'type' else name_value[1]) for name_value in iteritems]
 
         # N.B.: Does not use Python 3 dict view semantics
 

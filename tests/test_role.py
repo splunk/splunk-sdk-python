@@ -15,9 +15,9 @@
 # under the License.
 
 from tests import testlib
-import logging
 
 from splunklib import client
+from splunklib.exceptions import NoSuchCapability, HTTPError
 
 
 class RoleTestCase(testlib.SDKTestCase):
@@ -58,7 +58,7 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertTrue(self.role_name in self.service.roles)
         self.service.roles.delete(self.role_name)
         self.assertFalse(self.role_name in self.service.roles)
-        self.assertRaises(client.HTTPError, self.role.refresh)
+        self.assertRaises(HTTPError, self.role.refresh)
 
     def test_grant_and_revoke(self):
         self.assertFalse('edit_user' in self.role.capabilities)
@@ -83,10 +83,10 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertFalse('change_own_password' in self.role.capabilities)
 
     def test_invalid_grant(self):
-        self.assertRaises(client.NoSuchCapability, self.role.grant, 'i-am-an-invalid-capability')
+        self.assertRaises(NoSuchCapability, self.role.grant, 'i-am-an-invalid-capability')
 
     def test_invalid_revoke(self):
-        self.assertRaises(client.NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
+        self.assertRaises(NoSuchCapability, self.role.revoke, 'i-am-an-invalid-capability')
 
     def test_revoke_capability_not_granted(self):
         self.role.revoke('change_own_password')

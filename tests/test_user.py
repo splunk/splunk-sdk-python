@@ -13,10 +13,9 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+from splunklib.entity import Entity
+from splunklib.exceptions import HTTPError
 from tests import testlib
-
-from splunklib import client
 
 
 class UserTestCase(testlib.SDKTestCase):
@@ -43,7 +42,7 @@ class UserTestCase(testlib.SDKTestCase):
         for user in self.service.users:
             self.check_user(user)
             for role in user.role_entities:
-                self.assertTrue(isinstance(role, client.Entity))
+                self.assertTrue(isinstance(role, Entity))
                 self.assertTrue(role.name in self.service.roles)
             self.assertEqual(user.roles,
                              [role.name for role in user.role_entities])
@@ -55,7 +54,7 @@ class UserTestCase(testlib.SDKTestCase):
     def test_delete(self):
         self.service.users.delete(self.username)
         self.assertFalse(self.username in self.service.users)
-        with self.assertRaises(client.HTTPError):
+        with self.assertRaises(HTTPError):
             self.user.refresh()
 
     def test_update(self):

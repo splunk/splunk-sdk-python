@@ -15,12 +15,10 @@
 # under the License.
 
 
-
 from logging import getLogger, root, StreamHandler
 from logging.config import fileConfig
 from os import chdir, environ, path, getcwd
 import sys
-
 
 
 def configure_logging(logger_name, filename=None):
@@ -117,6 +115,5 @@ app_file = getattr(sys.modules['__main__'], '__file__', sys.executable)
 app_root = path.dirname(path.abspath(path.dirname(app_file)))
 
 splunklib_logger, logging_configuration = configure_logging('splunklib')
-
 
 __all__ = ['app_file', 'app_root', 'logging_configuration', 'splunk_home', 'splunklib_logger']

@@ -21,69 +21,70 @@ import xml.etree.ElementTree as et
 from tests import testlib
 
 from splunklib import data
+from splunklib.data import utils
 
 
 class DataTestCase(testlib.SDKTestCase):
     def test_elems(self):
-        result = data.load("")
+        result = utils.load("")
         self.assertTrue(result is None)
 
-        result = data.load("<a></a>")
+        result = utils.load("<a></a>")
         self.assertEqual(result, {'a': None})
 
-        result = data.load("<a>1</a>")
+        result = utils.load("<a>1</a>")
         self.assertEqual(result, {'a': "1"})
 
-        result = data.load("<a><b></b></a>")
+        result = utils.load("<a><b></b></a>")
         self.assertEqual(result, {'a': {'b': None}})
 
-        result = data.load("<a><b>1</b></a>")
+        result = utils.load("<a><b>1</b></a>")
         self.assertEqual(result, {'a': {'b': '1'}})
 
-        result = data.load("<a><b></b><b></b></a>")
+        result = utils.load("<a><b></b><b></b></a>")
         self.assertEqual(result, {'a': {'b': [None, None]}})
 
-        result = data.load("<a><b>1</b><b>2</b></a>")
+        result = utils.load("<a><b>1</b><b>2</b></a>")
         self.assertEqual(result, {'a': {'b': ['1', '2']}})
 
-        result = data.load("<a><b></b><c></c></a>")
+        result = utils.load("<a><b></b><c></c></a>")
         self.assertEqual(result, {'a': {'b': None, 'c': None}})
 
-        result = data.load("<a><b>1</b><c>2</c></a>")
+        result = utils.load("<a><b>1</b><c>2</c></a>")
         self.assertEqual(result, {'a': {'b': '1', 'c': '2'}})
 
-        result = data.load("<a><b><c>1</c></b></a>")
+        result = utils.load("<a><b><c>1</c></b></a>")
         self.assertEqual(result, {'a': {'b': {'c': '1'}}})
 
-        result = data.load("<a><b><c>1</c></b><b>2</b></a>")
+        result = utils.load("<a><b><c>1</c></b><b>2</b></a>")
         self.assertEqual(result, {'a': {'b': [{'c': '1'}, '2']}})
 
-        result = data.load('<e><a1>alpha</a1><a1>beta</a1></e>')
+        result = utils.load('<e><a1>alpha</a1><a1>beta</a1></e>')
         self.assertEqual(result, {'e': {'a1': ['alpha', 'beta']}})
 
-        result = data.load("<e a1='v1'><a1>v2</a1></e>")
+        result = utils.load("<e a1='v1'><a1>v2</a1></e>")
         self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
 
     def test_attrs(self):
-        result = data.load("<e a1='v1'/>")
+        result = utils.load("<e a1='v1'/>")
         self.assertEqual(result, {'e': {'a1': 'v1'}})
 
-        result = data.load("<e a1='v1' a2='v2'/>")
+        result = utils.load("<e a1='v1' a2='v2'/>")
         self.assertEqual(result, {'e': {'a1': 'v1', 'a2': 'v2'}})
 
-        result = data.load("<e a1='v1'>v2</e>")
+        result = utils.load("<e a1='v1'>v2</e>")
         self.assertEqual(result, {'e': {'$text': 'v2', 'a1': 'v1'}})
 
-        result = data.load("<e a1='v1'><b>2</b></e>")
+        result = utils.load("<e a1='v1'><b>2</b></e>")
         self.assertEqual(result, {'e': {'a1': 'v1', 'b': '2'}})
 
-        result = data.load("<e a1='v1'>v2<b>bv2</b></e>")
+        result = utils.load("<e a1='v1'>v2<b>bv2</b></e>")
         self.assertEqual(result, {'e': {'a1': 'v1', 'b': 'bv2'}})
 
-        result = data.load("<e a1='v1'><a1>v2</a1></e>")
+        result = utils.load("<e a1='v1'><a1>v2</a1></e>")
         self.assertEqual(result, {'e': {'a1': ['v2', 'v1']}})
 
-        result = data.load("<e1 a1='v1'><e2 a1='v1'>v2</e2></e1>")
+        result = utils.load("<e1 a1='v1'><e2 a1='v1'>v2</e2></e1>")
         self.assertEqual(result,
                          {'e1': {'a1': 'v1', 'e2': {'$text': 'v2', 'a1': 'v1'}}})
 
@@ -92,7 +93,7 @@ class DataTestCase(testlib.SDKTestCase):
         testpath = path.dirname(path.abspath(__file__))
 
         fh = open(path.join(testpath, "data/services.xml"), 'r')
-        result = data.load(fh.read())
+        result = utils.load(fh.read())
         self.assertTrue('feed' in result)
         self.assertTrue('author' in result.feed)
         self.assertTrue('entry' in result.feed)
@@ -105,7 +106,7 @@ class DataTestCase(testlib.SDKTestCase):
              'masterlm'])
 
         fh = open(path.join(testpath, "data/services.server.info.xml"), 'r')
-        result = data.load(fh.read())
+        result = utils.load(fh.read())
         self.assertTrue('feed' in result)
         self.assertTrue('author' in result.feed)
         self.assertTrue('entry' in result.feed)
@@ -117,27 +118,27 @@ class DataTestCase(testlib.SDKTestCase):
 
     def test_invalid(self):
         if sys.version_info[1] >= 7:
-            self.assertRaises(et.ParseError, data.load, "<dict</dict>")
+            self.assertRaises(et.ParseError, utils.load, "<dict</dict>")
         else:
             from xml.etree.ElementTree import ParseError
-            self.assertRaises(ParseError, data.load, "<dict</dict>")
+            self.assertRaises(ParseError, utils.load, "<dict</dict>")
 
-        self.assertRaises(KeyError, data.load, "<dict><key>a</key></dict>")
+        self.assertRaises(KeyError, utils.load, "<dict><key>a</key></dict>")
 
     def test_dict(self):
-        result = data.load("""
+        result = utils.load("""
             <dict></dict>
         """)
         self.assertEqual(result, {})
 
-        result = data.load("""
+        result = utils.load("""
             <dict>
               <key name='n1'>v1</key>
               <key name='n2'>v2</key>
             </dict>""")
         self.assertEqual(result, {'n1': "v1", 'n2': "v2"})
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <dict>
                 <key name='n1'>v1</key>
@@ -146,7 +147,7 @@ class DataTestCase(testlib.SDKTestCase):
             </content>""")
         self.assertEqual(result, {'content': {'n1': "v1", 'n2': "v2"}})
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <dict>
                 <key name='n1'>
@@ -164,7 +165,7 @@ class DataTestCase(testlib.SDKTestCase):
         self.assertEqual(result,
                          {'content': {'n1': {'n1n1': "n1v1"}, 'n2': {'n2n1': "n2v1"}}})
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <dict>
                 <key name='n1'>
@@ -178,16 +179,16 @@ class DataTestCase(testlib.SDKTestCase):
                          {'content': {'n1': ['1', '2', '3', '4']}})
 
     def test_list(self):
-        result = data.load("""<list></list>""")
+        result = utils.load("""<list></list>""")
         self.assertEqual(result, [])
 
-        result = data.load("""
+        result = utils.load("""
             <list>
               <item>1</item><item>2</item><item>3</item><item>4</item>
             </list>""")
         self.assertEqual(result, ['1', '2', '3', '4'])
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <list>
                 <item>1</item><item>2</item><item>3</item><item>4</item>
@@ -195,7 +196,7 @@ class DataTestCase(testlib.SDKTestCase):
             </content>""")
         self.assertEqual(result, {'content': ['1', '2', '3', '4']})
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <list>
                 <item>
@@ -208,7 +209,7 @@ class DataTestCase(testlib.SDKTestCase):
             </content>""")
         self.assertEqual(result, {'content': [['1', '2'], ['3', '4']]})
 
-        result = data.load("""
+        result = utils.load("""
             <content>
               <list>
                 <item><dict><key name='n1'>v1</key></dict></item>
@@ -220,7 +221,7 @@ class DataTestCase(testlib.SDKTestCase):
         self.assertEqual(result,
                          {'content': [{'n1': "v1"}, {'n2': "v2"}, {'n3': "v3"}, {'n4': "v4"}]})
 
-        result = data.load("""
+        result = utils.load("""
         <ns1:dict xmlns:ns1="http://dev.splunk.com/ns/rest">
             <ns1:key name="build">101089</ns1:key>
             <ns1:key name="cpu_arch">i386</ns1:key>

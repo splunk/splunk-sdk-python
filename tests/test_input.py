@@ -15,10 +15,10 @@
 # under the License.
 import logging
 import pytest
-from splunklib.binding import HTTPError
+from splunklib.exceptions import AmbiguousReferenceException, HTTPError, IllegalOperationException
+from splunklib.entity import Input
 
 from tests import testlib
-from splunklib import client
 
 
 def highest_port(service, base_port, *kinds):
@@ -48,7 +48,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             try:
                 input = self.service.inputs.create(str(port), kind, **options)
                 return input
-            except client.HTTPError as he:
+            except HTTPError as he:
                 if he.status == 400:
                     port += 1
 
@@ -60,7 +60,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
 
     def test_cannot_create_with_restrictToHost_in_name(self):
         self.assertRaises(
-            client.HTTPError,
+            HTTPError,
             lambda: self.service.inputs.create('boris:10000', 'tcp')
         )
 
@@ -94,7 +94,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             unrestricted = self.service.inputs.create(str(self.base_port), kind)
             self.assertTrue(str(self.base_port) in self.service.inputs)
             self.assertRaises(
-                client.HTTPError,
+                HTTPError,
                 lambda: self.service.inputs.create(str(self.base_port), kind, restrictToHost='boris')
             )
             unrestricted.delete()
@@ -104,7 +104,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
             boris = self.create_tcp_input(self.base_port, kind, restrictToHost='boris')
 
             self.assertRaises(
-                client.IllegalOperationException,
+                IllegalOperationException,
                 lambda: boris.update(restrictToHost='hilda')
             )
 
@@ -233,7 +233,7 @@ class TestInput(testlib.SDKTestCase):
         inputs = self.service.inputs
         for entity in list(self._test_entities.values()):
             self.check_entity(entity)
-            self.assertTrue(isinstance(entity, client.Input))
+            self.assertTrue(isinstance(entity, Input))
 
     def test_get_kind_list(self):
         inputs = self.service.inputs
@@ -279,11 +279,11 @@ class TestInput(testlib.SDKTestCase):
                 self.assertFalse(name in inputs)
             else:
                 if not name.startswith('boris'):
-                    self.assertRaises(client.AmbiguousReferenceException,
+                    self.assertRaises(AmbiguousReferenceException,
                                       inputs.delete, name)
                 self.service.inputs.delete(name, kind)
                 self.assertFalse((name, kind) in inputs)
-            self.assertRaises(client.HTTPError,
+            self.assertRaises(HTTPError,
                               input_entity.refresh)
             remaining -= 1
 

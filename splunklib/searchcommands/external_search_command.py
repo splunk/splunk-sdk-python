@@ -20,12 +20,10 @@ import sys
 import traceback
 from . import splunklib_logger as logger
 
-
 if sys.platform == 'win32':
     from signal import signal, CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM
     from subprocess import Popen
     import atexit
-
 
 
 # P1 [ ] TODO: Add ExternalSearchCommand class documentation
@@ -34,7 +32,7 @@ if sys.platform == 'win32':
 class ExternalSearchCommand:
     def __init__(self, path, argv=None, environ=None):
 
-        if not isinstance(path, (bytes,str)):
+        if not isinstance(path, (bytes, str)):
             raise ValueError(f'Expected a string value for path, not {repr(path)}')
 
         self._logger = getLogger(self.__class__.__name__)

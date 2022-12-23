@@ -16,7 +16,7 @@
 
 from tests import testlib
 
-from splunklib import client
+from splunklib.exceptions import IllegalOperationException
 
 import pytest
 
@@ -52,7 +52,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             return
 
         test1 = self.service.modular_input_kinds['test1']
-        self.assertRaises(client.IllegalOperationException, test1.update, a="b")
+        self.assertRaises(IllegalOperationException, test1.update, a="b")
 
     def check_modular_input_kind(self, m):
         if m.name == 'test1':

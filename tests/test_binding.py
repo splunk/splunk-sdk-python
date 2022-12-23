@@ -23,15 +23,19 @@ from xml.etree.ElementTree import XML
 
 import json
 import logging
+
+from splunklib.binding import utils
 from tests import testlib
 import unittest
 import socket
 import ssl
 
 import splunklib
-from splunklib import binding
-from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
-from splunklib import data
+from splunklib import binding, data
+from splunklib.data import utils
+from splunklib.binding import UrlEncoded
+from splunklib.exceptions import HTTPError, AuthenticationError
+
 
 import pytest
 
@@ -57,7 +61,7 @@ XNAME_TITLE = XNAMEF_ATOM % "title"
 
 
 def load(response):
-    return data.load(response.body.read())
+    return utils.load(response.body.read())
 
 
 class BindingTestCase(unittest.TestCase):
@@ -169,24 +173,24 @@ class TestUrlEncoded(BindingTestCase):
 
 class TestAuthority(unittest.TestCase):
     def test_authority_default(self):
-        self.assertEqual(binding._authority(),
+        self.assertEqual(utils._authority(),
                          "https://localhost:8089")
 
     def test_ipv4_host(self):
         self.assertEqual(
-            binding._authority(
+            utils._authority(
                 host="splunk.utopia.net"),
             "https://splunk.utopia.net:8089")
 
     def test_ipv6_host(self):
         self.assertEqual(
-            binding._authority(
+            utils._authority(
                 host="2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
             "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
 
     def test_all_fields(self):
         self.assertEqual(
-            binding._authority(
+            utils._authority(
                 scheme="http",
                 host="splunk.utopia.net",
                 port="471"),
@@ -216,7 +220,7 @@ class TestUserManipulation(BindingTestCase):
                 raise
 
     def test_user_without_role_fails(self):
-        self.assertRaises(binding.HTTPError,
+        self.assertRaises(HTTPError,
                           self.context.post,
                           PATH_USERS, name=self.username,
                           password=self.password)
@@ -476,7 +480,7 @@ class TestPluggableHTTP(testlib.SDKTestCase):
     def test_handlers(self):
         paths = ["/services", "authentication/users",
                  "search/jobs"]
-        handlers = [binding.handler(),  # default handler
+        handlers = [splunklib.binding.handler(),  # default handler
                     urllib2_handler]
         for handler in handlers:
             logging.debug("Connecting with handler %s", handler)
@@ -622,7 +626,7 @@ class TestCookieAuthentication(unittest.TestCase):
                 self.assertEqual(value[:8], "splunkd_")
 
                 new_cookies = {}
-                binding._parse_cookies(value, new_cookies)
+                utils._parse_cookies(value, new_cookies)
                 # We're only expecting 1 in this scenario
                 self.assertEqual(len(old_cookies), 1)
                 self.assertTrue(len(list(new_cookies.values())), 1)
@@ -743,12 +747,12 @@ class TestNamespace(unittest.TestCase):
              {'sharing': 'user', 'owner': '-', 'app': '-'})]
 
         for kwargs, expected in tests:
-            namespace = binding.namespace(**kwargs)
+            namespace = utils.namespace(**kwargs)
             for k, v in list(expected.items()):
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
-        self.assertRaises(ValueError, binding.namespace, sharing="gobble")
+        self.assertRaises(ValueError, utils.namespace, sharing="gobble")
 
 
 @pytest.mark.smoke

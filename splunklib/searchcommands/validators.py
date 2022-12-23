@@ -23,7 +23,6 @@ from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
 
 
-
 class Validator:
     """ Base class for validators that check and format search command options.
 
@@ -36,6 +35,7 @@ class Validator:
     it receives as argument the same way :code:`str` does.
 
     """
+
     def __call__(self, value):
         raise NotImplementedError()
 
@@ -77,6 +77,7 @@ class Code(Validator):
     source, the original option value.
 
     """
+
     def __init__(self, mode='eval'):
         """
         :param mode: Specifies what kind of code must be compiled; it can be :const:`'exec'`, if source consists of a
@@ -125,6 +126,7 @@ class File(Validator):
     """ Validates file option values.
 
     """
+
     def __init__(self, mode='rt', buffering=None, directory=None):
         self.mode = mode
         self.buffering = buffering
@@ -158,6 +160,7 @@ class Integer(Validator):
     """ Validates integer option values.
 
     """
+
     def __init__(self, minimum=None, maximum=None):
         if minimum is not None and maximum is not None:
             def check_range(value):
@@ -179,7 +182,6 @@ class Integer(Validator):
 
         self.check_range = check_range
 
-
     def __call__(self, value):
         if value is None:
             return None
@@ -199,6 +201,7 @@ class Float(Validator):
     """ Validates float option values.
 
     """
+
     def __init__(self, minimum=None, maximum=None):
         if minimum is not None and maximum is not None:
             def check_range(value):
@@ -216,7 +219,6 @@ class Float(Validator):
             def check_range(value):
                 return
         self.check_range = check_range
-
 
     def __call__(self, value):
         if value is None:
@@ -237,6 +239,7 @@ class Duration(Validator):
     """ Validates duration option values.
 
     """
+
     def __call__(self, value):
 
         if value is None:
@@ -280,6 +283,7 @@ class List(Validator):
     """ Validates a list of strings
 
     """
+
     class Dialect(csv.Dialect):
         """ Describes the properties of list option values. """
         strict = True
@@ -328,6 +332,7 @@ class Map(Validator):
     """ Validates map option values.
 
     """
+
     def __init__(self, **kwargs):
         self.membership = kwargs
 
@@ -351,6 +356,7 @@ class Match(Validator):
     """ Validates that a value matches a regular expression pattern.
 
     """
+
     def __init__(self, name, pattern, flags=0):
         self.name = str(name)
         self.pattern = re.compile(pattern, flags)
@@ -388,6 +394,7 @@ class RegularExpression(Validator):
     """ Validates regular expression option values.
 
     """
+
     def __call__(self, value):
         if value is None:
             return None
@@ -405,6 +412,7 @@ class Set(Validator):
     """ Validates set option values.
 
     """
+
     def __init__(self, *args):
         self.membership = set(args)
 

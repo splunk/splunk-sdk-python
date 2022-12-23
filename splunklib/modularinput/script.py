@@ -17,7 +17,7 @@ import sys
 import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
 
-from ..client import Service
+from splunklib.client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition

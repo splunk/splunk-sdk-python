@@ -16,8 +16,6 @@
 
 from tests import testlib
 
-from splunklib import client
-
 
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):
@@ -66,7 +64,7 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
 
     def tearDown(self):
         confs = self.service.kvstore
-        if ('test' in confs):
+        if 'test' in confs:
             confs['test'].delete()
 
 

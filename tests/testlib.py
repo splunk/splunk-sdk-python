@@ -22,9 +22,6 @@ import time
 import logging
 import sys
 
-# Run the test suite on the SDK without installing it.
-sys.path.insert(0, '../')
-
 from time import sleep
 from datetime import datetime, timedelta
 
@@ -32,8 +29,12 @@ import unittest
 
 from utils import parse
 
-from splunklib import client
+from splunklib.client import connect
+from splunklib.exceptions import HTTPError
 
+# Run the test suite on the SDK without installing it.
+
+sys.path.insert(0, '../')
 
 
 logging.basicConfig(
@@ -143,7 +144,7 @@ class SDKTestCase(unittest.TestCase):
             raise ValueError("Tried to clear restart message when there was none.")
         try:
             self.service.delete("messages/restart_required")
-        except client.HTTPError as he:
+        except HTTPError as he:
             if he.status != 404:
                 raise
 
@@ -165,7 +166,7 @@ class SDKTestCase(unittest.TestCase):
 
         try:
             self.service.post("apps/local", **kwargs)
-        except client.HTTPError as he:
+        except HTTPError as he:
             if he.status == 400:
                 raise IOError(f"App {name} not found in app collection")
         if self.service.restart_required:
@@ -227,14 +228,14 @@ class SDKTestCase(unittest.TestCase):
         cls.opts = parse([], {}, ".env")
         cls.opts.kwargs.update({'retries': 3})
         # Before we start, make sure splunk doesn't need a restart.
-        service = client.connect(**cls.opts.kwargs)
+        service = connect(**cls.opts.kwargs)
         if service.restart_required:
             service.restart(timeout=120)
 
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.opts.kwargs.update({'retries': 3})
-        self.service = client.connect(**self.opts.kwargs)
+        self.service = connect(**self.opts.kwargs)
         # If Splunk is in a state requiring restart, go ahead
         # and restart. That way we'll be sane for the rest of
         # the test.
@@ -243,7 +244,6 @@ class SDKTestCase(unittest.TestCase):
         logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
 
     def tearDown(self):
-        from splunklib.binding import HTTPError
 
         if self.service.restart_required:
             self.fail("Test left Splunk in a state requiring a restart.")

@@ -15,12 +15,16 @@
 # under the License.
 
 import datetime
+
+from splunklib import client
+from splunklib.binding.utils import namespace
 from tests import testlib
 import logging
 
 from time import sleep
 
-from splunklib import client
+from splunklib.exceptions import AmbiguousReferenceException, IncomparableException, IllegalOperationException, \
+    HTTPError
 
 import pytest
 
@@ -87,7 +91,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertTrue(self.saved_search_name in self.service.saved_searches)
         self.service.saved_searches.delete(self.saved_search_name)
         self.assertFalse(self.saved_search_name in self.service.saved_searches)
-        self.assertRaises(client.HTTPError,
+        self.assertRaises(HTTPError,
                           self.saved_search.refresh)
 
     def test_update(self):
@@ -98,7 +102,7 @@ class TestSavedSearch(testlib.SDKTestCase):
 
     def test_cannot_update_name(self):
         new_name = self.saved_search_name + '-alteration'
-        self.assertRaises(client.IllegalOperationException,
+        self.assertRaises(IllegalOperationException,
                           self.saved_search.update, name=new_name)
 
     def test_name_collision(self):
@@ -113,8 +117,8 @@ class TestSavedSearch(testlib.SDKTestCase):
 
         query1 = '* earliest=-1m | head 1'
         query2 = '* earliest=-2m | head 2'
-        namespace1 = client.namespace(app='search', sharing='app')
-        namespace2 = client.namespace(owner='admin', app='search', sharing='user')
+        namespace1 = namespace(app='search', sharing='app')
+        namespace2 = namespace(owner='admin', app='search', sharing='user')
         saved_search2 = saved_searches.create(
             name, query2,
             namespace=namespace1)
@@ -122,7 +126,7 @@ class TestSavedSearch(testlib.SDKTestCase):
             name, query1,
             namespace=namespace2)
 
-        self.assertRaises(client.AmbiguousReferenceException,
+        self.assertRaises(AmbiguousReferenceException,
                           saved_searches.__getitem__, name)
         search1 = saved_searches[name, namespace1]
         self.check_saved_search(search1)
@@ -201,7 +205,7 @@ class TestSavedSearch(testlib.SDKTestCase):
             self.assertEqual(diff.total_seconds() / 60.0, 5)
 
     def test_no_equality(self):
-        self.assertRaises(client.IncomparableException,
+        self.assertRaises(IncomparableException,
                           self.saved_search.__eq__, self.saved_search)
 
     def test_suppress(self):
@@ -239,6 +243,7 @@ class TestSavedSearch(testlib.SDKTestCase):
             self.saved_search.acl_update,
             sharing="app", app="search", **{"perms.read": "admin, nobody"}
         )
+
 
 if __name__ == "__main__":
     import unittest

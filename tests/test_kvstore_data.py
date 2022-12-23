@@ -18,6 +18,7 @@ import json
 from tests import testlib
 
 from splunklib import client
+from splunklib.exceptions import HTTPError
 
 
 class KVStoreDataTestCase(testlib.SDKTestCase):
@@ -25,7 +26,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         super().setUp()
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
         self.confs.create('test')
 
@@ -55,7 +56,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(self.col.query(query='{"num": 50}')), 0)
 
     def test_query_data(self):
-        if ('test1' in self.confs):
+        if 'test1' in self.confs:
             self.confs['test1'].delete()
         self.confs.create('test1')
         self.col = self.confs['test1'].data
@@ -70,9 +71,9 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(data), 1)
 
     def test_invalid_insert_update(self):
-        self.assertRaises(client.HTTPError, lambda: self.col.insert('NOT VALID DATA'))
+        self.assertRaises(HTTPError, lambda: self.col.insert('NOT VALID DATA'))
         id = self.col.insert(json.dumps({'foo': 'bar'}))['_key']
-        self.assertRaises(client.HTTPError, lambda: self.col.update(id, 'NOT VALID DATA'))
+        self.assertRaises(HTTPError, lambda: self.col.update(id, 'NOT VALID DATA'))
         self.assertEqual(self.col.query_by_id(id)['foo'], 'bar')
 
     def test_params_data_type_conversion(self):
@@ -87,7 +88,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
             self.assertTrue('_key' not in data[x])
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
 
 

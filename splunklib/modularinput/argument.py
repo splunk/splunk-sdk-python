@@ -14,6 +14,7 @@
 
 import xml.etree.ElementTree as ET
 
+
 class Argument:
 
     """Class representing an argument to a modular input kind.

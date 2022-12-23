@@ -13,7 +13,8 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+from splunklib.binding import utils as cutils
+from splunklib.exceptions import NotSupportedError
 from tests import testlib
 import logging
 
@@ -55,8 +56,8 @@ class CollectionTestCase(testlib.SDKTestCase):
                     pass
 
     def test_metadata(self):
-        self.assertRaises(client.NotSupportedError, self.service.jobs.itemmeta)
-        self.assertRaises(client.NotSupportedError, self.service.loggers.itemmeta)
+        self.assertRaises(NotSupportedError, self.service.jobs.itemmeta)
+        self.assertRaises(NotSupportedError, self.service.loggers.itemmeta)
         self.assertRaises(TypeError, self.service.inputs.itemmeta)
         for c in collections:
             if c in ['jobs', 'loggers', 'inputs', 'modular_input_kinds']:
@@ -228,7 +229,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             self.assertRaises(KeyError, coll.__getitem__, name)
 
     def test_getitem_with_namespace_sample_in_changelog(self):
-        ns = client.namespace(owner='nobody', app='search')
+        ns = cutils.namespace(owner='nobody', app='search')
         result = self.service.saved_searches['Errors in the last 24 hours', ns]
 
     def test_collection_search_get(self):

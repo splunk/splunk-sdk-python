@@ -15,19 +15,20 @@
 # under the License.
 
 from tests import testlib
-from splunklib import client
+from splunklib.exceptions import HTTPError
+
 
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
 
     def test_owner_restriction(self):
         self.service.kvstore_owner = 'admin'
-        self.assertRaises(client.HTTPError, lambda: self.confs.list())
+        self.assertRaises(HTTPError, lambda: self.confs.list())
         self.service.kvstore_owner = 'nobody'
 
     def test_create_delete_collection(self):
@@ -43,7 +44,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.assertEqual(self.confs['test']['accelerated_fields.ind1'], '{"a": 1}')
         self.confs['test'].delete()
 
-
     def test_update_fields(self):
         self.confs.create('test')
         self.confs['test'].post(**{'field.a': 'number'})
@@ -52,11 +52,10 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.assertEqual(self.confs['test']['field.a'], 'string')
         self.confs['test'].delete()
 
-
     def test_create_unique_collection(self):
         self.confs.create('test')
         self.assertTrue('test' in self.confs)
-        self.assertRaises(client.HTTPError, lambda: self.confs.create('test'))
+        self.assertRaises(HTTPError, lambda: self.confs.create('test'))
         self.confs['test'].delete()
 
     def test_overlapping_collections(self):
@@ -83,9 +82,11 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
     """
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
+
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()

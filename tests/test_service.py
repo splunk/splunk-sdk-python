@@ -15,12 +15,15 @@
 # under the License.
 
 import unittest
+
+from splunklib.client.utils import _trailing
+from splunklib.constants import PATH_APPS
+from splunklib.entity import Entity
 from tests import testlib
 
 from splunklib import client
-from splunklib.binding import AuthenticationError
 from splunklib.client import Service
-from splunklib.binding import HTTPError
+from splunklib.exceptions import AuthenticationError,HTTPError
 
 
 class ServiceTestCase(testlib.SDKTestCase):
@@ -119,13 +122,13 @@ class ServiceTestCase(testlib.SDKTestCase):
         name = testlib.tmpname()
         service = client.connect(**self.opts.kwargs)
         service.post('data/outputs/tcp/syslog', name=name, type='tcp')
-        entity = client.Entity(service, 'data/outputs/tcp/syslog/' + name)
+        entity = Entity(service, 'data/outputs/tcp/syslog/' + name)
         self.assertTrue('tcp', entity.content.type)
 
         if service.restart_required:
             self.restartSplunk()
         service = client.connect(**self.opts.kwargs)
-        client.Entity(service, 'data/outputs/tcp/syslog/' + name).delete()
+        Entity(service, 'data/outputs/tcp/syslog/' + name).delete()
         if service.restart_required:
             self.restartSplunk()
 
@@ -319,22 +322,22 @@ class TestTrailing(unittest.TestCase):
     template = '/servicesNS/boris/search/another/path/segment/that runs on'
 
     def test_raises_when_not_found_first(self):
-        self.assertRaises(ValueError, client._trailing, 'this is a test', 'boris')
+        self.assertRaises(ValueError, _trailing, 'this is a test', 'boris')
 
     def test_raises_when_not_found_second(self):
-        self.assertRaises(ValueError, client._trailing, 'this is a test', 's is', 'boris')
+        self.assertRaises(ValueError, _trailing, 'this is a test', 's is', 'boris')
 
     def test_no_args_is_identity(self):
-        self.assertEqual(self.template, client._trailing(self.template))
+        self.assertEqual(self.template, _trailing(self.template))
 
     def test_trailing_with_one_arg_works(self):
         self.assertEqual('boris/search/another/path/segment/that runs on',
-                         client._trailing(self.template, 'ervicesNS/'))
+                         _trailing(self.template, 'ervicesNS/'))
 
     def test_trailing_with_n_args_works(self):
         self.assertEqual(
             'another/path/segment/that runs on',
-            client._trailing(self.template, 'servicesNS/', '/', '/')
+            _trailing(self.template, 'servicesNS/', '/', '/')
         )
 
 
@@ -354,7 +357,7 @@ class TestEntityNamespacing(testlib.SDKTestCase):
         self.assertEqual(namespace, entity._proper_namespace())
 
     def test_proper_namespace_with_service_namespace(self):
-        entity = client.Entity(self.service, client.PATH_APPS + "search")
+        entity = Entity(self.service, PATH_APPS + "search")
         del entity._state['access']
         namespace = (self.service.namespace.owner,
                      self.service.namespace.app,

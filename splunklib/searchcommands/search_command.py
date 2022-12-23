@@ -50,7 +50,7 @@ from .internals import (
     RecordWriterV1,
     RecordWriterV2,
     json_encode_string)
-from ..client import Service
+from splunklib.client import Service
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -21,7 +21,6 @@ from tests import testlib
 from splunklib import client
 
 
-
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()

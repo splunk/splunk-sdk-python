@@ -16,7 +16,7 @@
 
 from tests import testlib
 
-from splunklib import client
+from splunklib.exceptions import InvalidNameException
 
 
 class MessageTest(testlib.SDKTestCase):
@@ -45,9 +45,9 @@ class TestCreateDelete(testlib.SDKTestCase):
         self.assertFalse(message_name in self.service.messages)
 
     def test_invalid_name(self):
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, None, value="What?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, 42, value="Who, me?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1, 2, 3], value="Who, me?")
+        self.assertRaises(InvalidNameException, self.service.messages.create, None, value="What?")
+        self.assertRaises(InvalidNameException, self.service.messages.create, 42, value="Who, me?")
+        self.assertRaises(InvalidNameException, self.service.messages.create, [1, 2, 3], value="Who, me?")
 
 
 if __name__ == "__main__":

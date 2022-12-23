@@ -16,8 +16,6 @@
 
 from tests import testlib
 
-from splunklib import client
-
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 
 

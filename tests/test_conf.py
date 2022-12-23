@@ -13,10 +13,11 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+from splunklib.exceptions import IllegalOperationException
 from tests import testlib
 
 from splunklib import client
+
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
@@ -34,6 +35,7 @@ class TestRead(testlib.SDKTestCase):
 
         for stanza in confs['indexes'].list(count=5):
             self.check_entity(stanza)
+
 
 class TestConfs(testlib.SDKTestCase):
     def setUp(self):
@@ -69,7 +71,7 @@ class TestConfs(testlib.SDKTestCase):
         count = len(conf)
         stanza_name = testlib.tmpname()
         stanza = conf.create(stanza_name)
-        self.assertEqual(len(conf), count+1)
+        self.assertEqual(len(conf), count + 1)
         self.assertTrue(stanza_name in conf)
 
         # New stanzas are empty
@@ -94,13 +96,15 @@ class TestConfs(testlib.SDKTestCase):
         count = len(conf)
         conf.delete(stanza_name)
         self.assertFalse(stanza_name in conf)
-        self.assertEqual(len(conf), count-1)
+        self.assertEqual(len(conf), count - 1)
 
         # Can't actually delete configuration files directly, at least
         # not in current versions of Splunk.
-        self.assertRaises(client.IllegalOperationException, confs.delete, conf_name)
+        self.assertRaises(IllegalOperationException, confs.delete, conf_name)
         self.assertTrue(conf_name in confs)
+
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()

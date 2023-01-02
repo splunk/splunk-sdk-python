@@ -209,7 +209,67 @@ class GeneratorTest(GeneratingCommand):
         checkpoint_dir = inputs.metadata["checkpoint_dir"]
 ```
 
-#### Optional:Set up logging for splunklib
+### Access service object in Custom Search Command & Modular Input apps
+
+#### Custom Search Commands
+* The service object is created from the Splunkd URI and session key passed to the command invocation the search results info file.
+* Generating Custom Search Command
+  ```python
+    def generate(self):
+        # other code
+        
+        # access service object that can be used to connect Splunk Service
+        service = self.service
+        # to get Splunk Service Info
+        info = service.info
+  ```
+  * Eventing Custom Search Command
+  ```python
+    def transform(self, records):
+        # other code
+        
+        # access service object that can be used to connect Splunk Service
+        service = self.service
+        # to get Splunk Service Info
+        info = service.info
+  ```
+  * Streaming Custom Search Command
+  ```python
+    def stream(self, records):
+        # other code
+        
+        # access service object that can be used to connect Splunk Service
+        service = self.service
+        # to get Splunk Service Info
+        info = service.info
+  ```
+  * Reporting Custom Search Command
+  ```python
+    def reduce(self, records):
+        # other code
+        
+        # access service object that can be used to connect Splunk Service
+        service = self.service
+        # to get Splunk Service Info
+        info = service.info
+  ```
+* Service object can be accessed using `self.service` in `generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command 
+
+#### Modular Inputs app:
+* The service object is created from the Splunkd URI and session key passed to the command invocation on the modular input stream respectively.
+* It is available as soon as the :code:`Script.stream_events` method is called.
+```python
+    def stream_events(self, inputs, ew):
+        # other code
+        
+        # access service object that can be used to connect Splunk Service
+        service = self.service
+        # to get Splunk Service Info
+        info = service.info
+```
+
+
+### Optional:Set up logging for splunklib
 + The default level is WARNING, which means that only events of this level and above will be visible
 + To change a logging level we can call setup_logging() method and pass the logging level as an argument.
 + Optional: we can also pass log format and date format string as a method argument to modify default format

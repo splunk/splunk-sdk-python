@@ -93,17 +93,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs['test'].delete()
         self.confs['test'].delete()
 
-    """
-    def test_create_accelerated_fields_fields(self):
-        self.confs.create('test', indexes={'foo': '{"foo": 1}', 'bar': {'bar': -1}}, **{'field.foo': 'string'})
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], '{"foo": 1}')
-        self.assertEqual(self.confs['test']['field.foo'], 'string')
-        self.assertRaises(client.HTTPError, lambda: self.confs['test'].post(**{'accelerated_fields.foo': 'THIS IS INVALID'}))
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], '{"foo": 1}')
-        self.confs['test'].update_accelerated_fields('foo', '')
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], None)
-    """
-
     def tearDown(self):
         if ('test' in self.confs):
             self.confs['test'].delete()

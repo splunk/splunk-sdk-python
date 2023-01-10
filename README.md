@@ -213,7 +213,8 @@ class GeneratorTest(GeneratingCommand):
 
 #### Custom Search Commands
 * The service object is created from the Splunkd URI and session key passed to the command invocation the search results info file.
-* Generating Custom Search Command
+* Service object can be accessed using `self.service` in `generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command.
+* For Generating Custom Search Command
   ```python
     def generate(self):
         # other code
@@ -223,41 +224,12 @@ class GeneratorTest(GeneratingCommand):
         # to get Splunk Service Info
         info = service.info
   ```
-  * Eventing Custom Search Command
-  ```python
-    def transform(self, records):
-        # other code
-        
-        # access service object that can be used to connect Splunk Service
-        service = self.service
-        # to get Splunk Service Info
-        info = service.info
-  ```
-  * Streaming Custom Search Command
-  ```python
-    def stream(self, records):
-        # other code
-        
-        # access service object that can be used to connect Splunk Service
-        service = self.service
-        # to get Splunk Service Info
-        info = service.info
-  ```
-  * Reporting Custom Search Command
-  ```python
-    def reduce(self, records):
-        # other code
-        
-        # access service object that can be used to connect Splunk Service
-        service = self.service
-        # to get Splunk Service Info
-        info = service.info
-  ```
-* Service object can be accessed using `self.service` in `generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command 
+
+ 
 
 #### Modular Inputs app:
 * The service object is created from the Splunkd URI and session key passed to the command invocation on the modular input stream respectively.
-* It is available as soon as the :code:`Script.stream_events` method is called.
+* It is available as soon as the `Script.stream_events` method is called.
 ```python
     def stream_events(self, inputs, ew):
         # other code

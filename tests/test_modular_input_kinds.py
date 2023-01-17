@@ -14,11 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import pytest
+
 from tests import testlib
 
 from splunklib import client
-
-import pytest
 
 
 class ModularInputKindTestCase(testlib.SDKTestCase):

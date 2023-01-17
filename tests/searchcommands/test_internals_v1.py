@@ -17,17 +17,15 @@
 from contextlib import closing
 from unittest import main, TestCase
 import os
-import pytest
+from io import StringIO, BytesIO
 from functools import reduce
+import pytest
 
 from splunklib.searchcommands.internals import CommandLineParser, InputHeader, RecordWriterV1
 from splunklib.searchcommands.decorators import Configuration, Option
 from splunklib.searchcommands.validators import Boolean
 
 from splunklib.searchcommands.search_command import SearchCommand
-
-from io import StringIO, BytesIO
-
 
 
 @pytest.mark.smoke

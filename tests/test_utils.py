@@ -1,6 +1,5 @@
 import unittest
 import os
-import sys
 from tests import testlib
 from utils import dslice
 
@@ -77,7 +76,7 @@ class TestUtils(testlib.SDKTestCase):
 class FilePermissionTest(unittest.TestCase):
 
     def setUp(self):
-        super(FilePermissionTest, self).setUp()
+        super().setUp()
 
     # Check for any change in the default file permission(i.e 644) for all files within splunklib
     def test_filePermissions(self):

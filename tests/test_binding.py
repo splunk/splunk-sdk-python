@@ -501,7 +501,7 @@ def urllib2_insert_cookie_handler(url, message, **kwargs):
     # Mimic the insertion of 3rd party cookies into the response.
     # An example is "sticky session"/"insert cookie" persistence
     # of a load balancer for a SHC.
-    header_list = [(k, v) for k, v in response.info().items()]
+    header_list = list(response.info().items())
     header_list.append(("Set-Cookie", "BIGipServer_splunk-shc-8089=1234567890.12345.0000; path=/; Httponly; Secure"))
     header_list.append(("Set-Cookie", "home_made=yummy"))
 
@@ -633,7 +633,7 @@ class TestCookieAuthentication(unittest.TestCase):
     def test_login_fails_with_bad_cookie(self):
         # We should get an error if using a bad cookie
         try:
-            new_context = binding.connect(**{"cookie": "bad=cookie"})
+            binding.connect(**{"cookie": "bad=cookie"})
             self.fail()
         except AuthenticationError as ae:
             self.assertEqual(str(ae), "Login failed.")

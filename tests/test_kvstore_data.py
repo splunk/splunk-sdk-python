@@ -55,7 +55,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(self.col.query(query='{"num": 50}')), 0)
 
     def test_query_data(self):
-        if ('test1' in self.confs):
+        if 'test1' in self.confs:
             self.confs['test1'].delete()
         self.confs.create('test1')
         self.col = self.confs['test1'].data
@@ -87,7 +87,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
             self.assertTrue('_key' not in data[x])
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
 
 

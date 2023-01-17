@@ -15,6 +15,7 @@
 # under the License.
 
 import datetime
+import pytest
 from tests import testlib
 import logging
 
@@ -22,7 +23,6 @@ from time import sleep
 
 from splunklib import client
 
-import pytest
 
 
 @pytest.mark.smoke
@@ -75,9 +75,9 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertGreaterEqual(saved_search.suppressed, 0)
         self.assertGreaterEqual(saved_search['suppressed'], 0)
         is_scheduled = saved_search.content['is_scheduled']
-        self.assertTrue(is_scheduled == '1' or is_scheduled == '0')
+        self.assertTrue(is_scheduled in ('1', '0'))
         is_visible = saved_search.content['is_visible']
-        self.assertTrue(is_visible == '1' or is_visible == '0')
+        self.assertTrue(is_visible in ('1', '0'))
 
     def test_create(self):
         self.assertTrue(self.saved_search_name in self.service.saved_searches)
@@ -157,13 +157,13 @@ class TestSavedSearch(testlib.SDKTestCase):
     def test_history(self):
         try:
             old_jobs = self.saved_search.history()
-            N = len(old_jobs)
-            logging.debug("Found %d jobs in saved search history", N)
+            num = len(old_jobs)
+            logging.debug("Found %d jobs in saved search history", num)
             job = self.saved_search.dispatch()
             while not job.is_ready():
                 sleep(0.1)
             history = self.saved_search.history()
-            self.assertEqual(len(history), N + 1)
+            self.assertEqual(len(history), num + 1)
             self.assertTrue(job.sid in [j.sid for j in history])
         finally:
             job.cancel()

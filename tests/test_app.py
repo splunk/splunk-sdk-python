@@ -83,7 +83,7 @@ class TestApp(testlib.SDKTestCase):
 
     def test_delete(self):
         name = testlib.tmpname()
-        app = self.service.apps.create(name)
+        self.service.apps.create(name)
         self.assertTrue(name in self.service.apps)
         self.service.apps.delete(name)
         self.assertFalse(name in self.service.apps)

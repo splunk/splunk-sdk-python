@@ -14,10 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Utility file for unit tests, import common functions and modules
-import unittest
-import sys, os
 import io
+import os
+import sys
+import unittest
 
 sys.path.insert(0, os.path.join('../../splunklib', '..'))
 

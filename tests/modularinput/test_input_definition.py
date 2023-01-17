@@ -70,7 +70,7 @@ class InputDefinitionTestCase(unittest.TestCase):
         """Does malformed XML cause the expected exception."""
 
         with self.assertRaises(ValueError):
-            found = InputDefinition.parse(data_open("data/conf_with_invalid_inputs.xml"))
+            InputDefinition.parse(data_open("data/conf_with_invalid_inputs.xml"))
 
 
 if __name__ == "__main__":

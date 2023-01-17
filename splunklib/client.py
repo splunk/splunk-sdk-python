@@ -692,7 +692,7 @@ class Service(_BaseService):
     @property
     def splunk_instance(self):
         if self._instance_type is None :
-            splunk_info = self.info;
+            splunk_info = self.info
             if hasattr(splunk_info, 'instance_type') :
                 self._instance_type = splunk_info['instance_type']
             else:
@@ -1823,7 +1823,7 @@ class Configurations(Collection):
         # This screws up the default implementation of __getitem__ from Collection, which thinks
         # that multiple entities means a name collision, so we have to override it here.
         try:
-            response = self.get(key)
+            self.get(key)
             return ConfigurationFile(self.service, PATH_CONF % key, state={'title': key})
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
@@ -1835,7 +1835,7 @@ class Configurations(Collection):
         # configs/conf-{name} never returns a 404. We have to post to properties/{name}
         # in order to find out if a configuration exists.
         try:
-            response = self.get(key)
+            self.get(key)
             return True
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
@@ -3617,7 +3617,7 @@ class Roles(Collection):
     Retrieve this collection using :meth:`Service.roles`."""
 
     def __init__(self, service):
-        return Collection.__init__(self, service, PATH_ROLES, item=Role)
+        Collection.__init__(self, service, PATH_ROLES, item=Role)
 
     def __getitem__(self, key):
         return Collection.__getitem__(self, key.lower())

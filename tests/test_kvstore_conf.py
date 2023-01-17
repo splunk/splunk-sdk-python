@@ -17,6 +17,7 @@
 from tests import testlib
 from splunklib import client
 
+
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
@@ -43,7 +44,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.assertEqual(self.confs['test']['accelerated_fields.ind1'], '{"a": 1}')
         self.confs['test'].delete()
 
-
     def test_update_fields(self):
         self.confs.create('test')
         self.confs['test'].post(**{'field.a': 'number'})
@@ -51,7 +51,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs['test'].update_field('a', 'string')
         self.assertEqual(self.confs['test']['field.a'], 'string')
         self.confs['test'].delete()
-
 
     def test_create_unique_collection(self):
         self.confs.create('test')
@@ -83,9 +82,11 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
     """
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
+
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()

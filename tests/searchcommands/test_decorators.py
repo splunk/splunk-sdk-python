@@ -283,7 +283,7 @@ class TestDecorators(TestCase):
 
                 setattr(settings_instance, name, value)
 
-                self.assertIn(backing_field_name, settings_instance.__dict__),
+                self.assertIn(backing_field_name, settings_instance.__dict__)
                 self.assertEqual(getattr(settings_instance, name), value)
                 self.assertEqual(settings_instance.__dict__[backing_field_name], value)
 

@@ -27,6 +27,7 @@ If you want a friendlier interface to the Splunk REST API, use the
 from __future__ import absolute_import
 
 import io
+import json
 import logging
 import socket
 import ssl
@@ -60,11 +61,13 @@ __all__ = [
     "HTTPError"
 ]
 
+SENSITIVE_KEYS = ["password", "token", "Authorization"]
 # If you change these, update the docstring
 # on _authority as well.
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "8089"
 DEFAULT_SCHEME = "https"
+
 
 def _log_duration(f):
     @wraps(f)
@@ -75,6 +78,27 @@ def _log_duration(f):
         logger.debug("Operation took %s", end_time-start_time)
         return val
     return new_f
+
+
+def _get_masked_data(data):
+    '''
+    Masked sensitive fields data for logging purpose
+    '''
+    if not isinstance(data, dict):
+        try:
+            data = json.loads(data)
+        except Exception as ex:
+            return data
+
+    if not isinstance(data, dict):
+        return data
+    mdata = {}
+    for k, v in data.items():
+        if k in SENSITIVE_KEYS:
+            mdata[k] = "******"
+        else:
+            mdata[k] = _get_masked_data(v)
+    return mdata
 
 
 def _parse_cookies(cookie_str, dictionary):
@@ -630,7 +654,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logger.debug("DELETE request to %s (body: %s)", path, repr(query))
+        logger.debug("DELETE request to %s (body: %s)", path, _get_masked_data(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
@@ -693,7 +717,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logger.debug("GET request to %s (body: %s)", path, repr(query))
+        logger.debug("GET request to %s (body: %s)", path, _get_masked_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
         return response
@@ -772,12 +796,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
-        # To avoid writing sensitive data in debug logs
-        endpoint_having_sensitive_data = ["/storage/passwords"]
-        if any(endpoint in path for endpoint in endpoint_having_sensitive_data):
-            logger.debug("POST request to %s ", path)
-        else:
-            logger.debug("POST request to %s (body: %s)", path, repr(query))
+        logger.debug("POST request to %s (body: %s)", path, _get_masked_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
@@ -844,7 +863,7 @@ class Context(object):
 
         all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug("%s request to %s (headers: %s, body: %s)",
-                      method, path, str(all_headers), repr(body))
+                      method, path, str(all_headers), _get_masked_data(body))
 
         if body:
             body = _encode(**body)

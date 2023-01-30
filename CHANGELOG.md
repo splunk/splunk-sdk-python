@@ -4,13 +4,15 @@
 
 ### Bug fixes
 * [#493](https://github.com/splunk/splunk-sdk-python/pull/493) Fixed file permission for event_writer.py file [[issue#487](https://github.com/splunk/splunk-sdk-python/issues/487)]
+* [#502](https://github.com/splunk/splunk-sdk-python/pull/502) Updated check for IPv6 addresses
+* [#500](https://github.com/splunk/splunk-sdk-python/pull/500) Replaced index_field with accelerated_field for kvstore
 
 ### Minor changes
 * [#490](https://github.com/splunk/splunk-sdk-python/pull/490) Added ACL properties update feature
-* [#500](https://github.com/splunk/splunk-sdk-python/pull/500) Replaced index_field with accelerated_field for kvstore
 * [#495](https://github.com/splunk/splunk-sdk-python/pull/495) Added Splunk 8.1 in GitHub Actions Matrix
 * [#485](https://github.com/splunk/splunk-sdk-python/pull/485) Added test case for cookie persistence
-* []() README updates on accessing "service" instance in CSC and ModularInput apps
+* [#503](https://github.com/splunk/splunk-sdk-python/pull/503) README updates on accessing "service" instance in CSC and ModularInput apps
+* [#504](https://github.com/splunk/splunk-sdk-python/pull/504) Updated authentication token names in docs to reduce confusion
 
 ## Version 1.7.2
 

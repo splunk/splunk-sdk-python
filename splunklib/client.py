@@ -3709,13 +3709,20 @@ class KVStoreCollections(Collection):
     def __init__(self, service):
         Collection.__init__(self, service, 'storage/collections/config', item=KVStoreCollection)
 
-    def create(self, name, indexes = {}, fields = {}, **kwargs):
+    def __getitem__(self, item):
+        res = Collection.__getitem__(self, item)
+        for k, v in res.content.items():
+            if "accelerated_fields" in k:
+                res.content[k] = json.loads(v)
+        return res
+
+    def create(self, name, accelerated_fields={}, fields={}, **kwargs):
         """Creates a KV Store Collection.
 
         :param name: name of collection to create
         :type name: ``string``
-        :param indexes: dictionary of index definitions
-        :type indexes: ``dict``
+        :param accelerated_fields: dictionary of accelerated_fields definitions
+        :type accelerated_fields: ``dict``
         :param fields: dictionary of field definitions
         :type fields: ``dict``
         :param kwargs: a dictionary of additional parameters specifying indexes and field definitions
@@ -3723,10 +3730,10 @@ class KVStoreCollections(Collection):
 
         :return: Result of POST request
         """
-        for k, v in six.iteritems(indexes):
+        for k, v in six.iteritems(accelerated_fields):
             if isinstance(v, dict):
                 v = json.dumps(v)
-            kwargs['index.' + k] = v
+            kwargs['accelerated_fields.' + k] = v
         for k, v in six.iteritems(fields):
             kwargs['field.' + k] = v
         return self.post(name=name, **kwargs)
@@ -3740,18 +3747,20 @@ class KVStoreCollection(Entity):
         """
         return KVStoreCollectionData(self)
 
-    def update_index(self, name, value):
-        """Changes the definition of a KV Store index.
+    def update_accelerated_field(self, name, value):
+        """Changes the definition of a KV Store accelerated_field.
 
-        :param name: name of index to change
+        :param name: name of accelerated_fields to change
         :type name: ``string``
-        :param value: new index definition
-        :type value: ``dict`` or ``string``
+        :param value: new accelerated_fields definition
+        :type value: ``dict``
 
         :return: Result of POST request
         """
         kwargs = {}
-        kwargs['index.' + name] = value if isinstance(value, six.string_types) else json.dumps(value)
+        if isinstance(value, dict):
+            value = json.dumps(value)
+        kwargs['accelerated_fields.' + name] = value
         return self.post(**kwargs)
 
     def update_field(self, name, value):

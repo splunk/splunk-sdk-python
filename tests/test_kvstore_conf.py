@@ -15,6 +15,8 @@
 # under the License.
 
 from __future__ import absolute_import
+
+import json
 from tests import testlib
 try:
     import unittest
@@ -42,13 +44,27 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs['test'].delete()
         self.assertTrue(not 'test' in self.confs)
 
-    def test_update_collection(self):
-        self.confs.create('test')
-        self.confs['test'].post(**{'accelerated_fields.ind1': '{"a": 1}', 'field.a': 'number'})
-        self.assertEqual(self.confs['test']['field.a'], 'number')
-        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], '{"a": 1}')
+    def test_create_fields(self):
+        self.confs.create('test', accelerated_fields={'ind1':{'a':1}}, fields={'a':'number1'})
+        self.assertEqual(self.confs['test']['field.a'], 'number1')
+        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], {"a": 1})
         self.confs['test'].delete()
 
+    def test_update_collection(self):
+        self.confs.create('test')
+        val = {"a": 1}
+        self.confs['test'].post(**{'accelerated_fields.ind1': json.dumps(val), 'field.a': 'number'})
+        self.assertEqual(self.confs['test']['field.a'], 'number')
+        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], {"a": 1})
+        self.confs['test'].delete()
+
+    def test_update_accelerated_fields(self):
+        self.confs.create('test', accelerated_fields={'ind1':{'a':1}})
+        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], {'a': 1})
+        # update accelerated_field value
+        self.confs['test'].update_accelerated_field('ind1', {'a': -1})
+        self.assertEqual(self.confs['test']['accelerated_fields.ind1'], {'a': -1})
+        self.confs['test'].delete()
 
     def test_update_fields(self):
         self.confs.create('test')
@@ -76,17 +92,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.service.namespace['app'] = 'search'
         self.confs['test'].delete()
         self.confs['test'].delete()
-
-    """
-    def test_create_accelerated_fields_fields(self):
-        self.confs.create('test', indexes={'foo': '{"foo": 1}', 'bar': {'bar': -1}}, **{'field.foo': 'string'})
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], '{"foo": 1}')
-        self.assertEqual(self.confs['test']['field.foo'], 'string')
-        self.assertRaises(client.HTTPError, lambda: self.confs['test'].post(**{'accelerated_fields.foo': 'THIS IS INVALID'}))
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], '{"foo": 1}')
-        self.confs['test'].update_accelerated_fields('foo', '')
-        self.assertEqual(self.confs['test']['accelerated_fields.foo'], None)
-    """
 
     def tearDown(self):
         if ('test' in self.confs):

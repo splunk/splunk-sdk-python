@@ -80,7 +80,7 @@ def _log_duration(f):
     return new_f
 
 
-def _get_masked_data(data):
+def mask_sensitive_data(data):
     '''
     Masked sensitive fields data for logging purpose
     '''
@@ -97,7 +97,7 @@ def _get_masked_data(data):
         if k in SENSITIVE_KEYS:
             mdata[k] = "******"
         else:
-            mdata[k] = _get_masked_data(v)
+            mdata[k] = mask_sensitive_data(v)
     return mdata
 
 
@@ -654,7 +654,7 @@ class Context(object):
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logger.debug("DELETE request to %s (body: %s)", path, _get_masked_data(query))
+        logger.debug("DELETE request to %s (body: %s)", path, mask_sensitive_data(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
@@ -717,7 +717,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
-        logger.debug("GET request to %s (body: %s)", path, _get_masked_data(query))
+        logger.debug("GET request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
         return response
@@ -796,7 +796,7 @@ class Context(object):
 
         path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
-        logger.debug("POST request to %s (body: %s)", path, _get_masked_data(query))
+        logger.debug("POST request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.post(path, all_headers, **query)
         return response
@@ -863,7 +863,7 @@ class Context(object):
 
         all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug("%s request to %s (headers: %s, body: %s)",
-                      method, path, str(all_headers), _get_masked_data(body))
+                     method, path, str(all_headers), mask_sensitive_data(body))
 
         if body:
             body = _encode(**body)

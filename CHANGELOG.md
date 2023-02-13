@@ -1,5 +1,20 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.3
+
+### Bug fixes
+* [#493](https://github.com/splunk/splunk-sdk-python/pull/493) Fixed file permission for event_writer.py file [[issue#487](https://github.com/splunk/splunk-sdk-python/issues/487)]
+* [#500](https://github.com/splunk/splunk-sdk-python/pull/500) Replaced index_field with accelerated_field for kvstore [[issue#497](https://github.com/splunk/splunk-sdk-python/issues/497)]
+* [#502](https://github.com/splunk/splunk-sdk-python/pull/502) Updated check for IPv6 addresses
+
+### Minor changes
+* [#490](https://github.com/splunk/splunk-sdk-python/pull/490) Added ACL properties update feature
+* [#495](https://github.com/splunk/splunk-sdk-python/pull/495) Added Splunk 8.1 in GitHub Actions Matrix
+* [#485](https://github.com/splunk/splunk-sdk-python/pull/485) Added test case for cookie persistence
+* [#503](https://github.com/splunk/splunk-sdk-python/pull/503) README updates on accessing "service" instance in CSC and ModularInput apps
+* [#504](https://github.com/splunk/splunk-sdk-python/pull/504) Updated authentication token names in docs to reduce confusion
+* [#494](https://github.com/splunk/splunk-sdk-python/pull/494) Reuse splunklib.__version__ in handler.request 
+
 ## Version 1.7.2
 
 ### Minor changes

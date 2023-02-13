@@ -102,6 +102,7 @@ PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
 PATH_JOBS_V2 = "search/v2/jobs/"
 PATH_LOGGER = "/services/server/logger/"
+PATH_MACROS = "configs/conf-macros/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
 PATH_ROLES = "authorization/roles/"
@@ -675,6 +676,15 @@ class Service(_BaseService):
         return SavedSearches(self)
 
     @property
+    def macros(self):
+        """Returns the collection of macros.
+
+        :return: A :class:`Macros` collection of :class:`Macro`
+            entities.
+        """
+        return Macros(self)
+
+    @property
     def settings(self):
         """Returns the configuration settings for this instance of Splunk.
 
@@ -774,11 +784,11 @@ class Endpoint(object):
         # Default to v1 if undefined in the path
         # For example, "/services/search/jobs" is using API v1
         api_version = 1
-        
+
         versionSearch = re.search('(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
         if versionSearch:
             api_version = int(versionSearch.group(1))
-    
+
         return api_version
 
     def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
@@ -852,7 +862,7 @@ class Endpoint(object):
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
         # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
         #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
-        
+
         if api_version == 1:
             if isinstance(path, UrlEncoded):
                 path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
@@ -911,14 +921,14 @@ class Endpoint(object):
             apps.get('nonexistant/path') # raises HTTPError
             s.logout()
             apps.get() # raises AuthenticationError
-        """       
+        """
         if path_segment.startswith('/'):
             path = path_segment
         else:
             if not self.path.endswith('/') and path_segment != "":
                 self.path = self.path + '/'
             path = self.service._abspath(self.path + path_segment, owner=owner, app=app, sharing=sharing)
-            
+
         # Get the API version from the path
         api_version = self.get_api_version(path)
 
@@ -927,7 +937,7 @@ class Endpoint(object):
         #   - Fallback from v2+ to v1 if Splunk Version is < 9.
         # if api_version >= 2 and ('search' in query and path.endswith(tuple(["results_preview", "events", "results"])) or self.service.splunk_version < (9,)):
         #     path = path.replace(PATH_JOBS_V2, PATH_JOBS)
-        
+
         if api_version == 1:
             if isinstance(path, UrlEncoded):
                 path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
@@ -2827,7 +2837,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's events.
         """
         kwargs['segmentation'] = kwargs.get('segmentation', 'none')
-        
+
         # Search API v1(GET) and v2(POST)
         if self.service.disable_v2_api:
             return self.get("events", **kwargs).body
@@ -2919,7 +2929,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        
+
         # Search API v1(GET) and v2(POST)
         if self.service.disable_v2_api:
             return self.get("results", **query_params).body
@@ -2964,7 +2974,7 @@ class Job(Entity):
         :return: The ``InputStream`` IO handle to this job's preview results.
         """
         query_params['segmentation'] = query_params.get('segmentation', 'none')
-        
+
         # Search API v1(GET) and v2(POST)
         if self.service.disable_v2_api:
             return self.get("results_preview", **query_params).body
@@ -3457,6 +3467,90 @@ class SavedSearches(Collection):
         :return: The :class:`SavedSearches` collection.
         """
         return Collection.create(self, name, search=search, **kwargs)
+
+
+class Macro(Entity):
+    """This class represents a search macro."""
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+
+    @property
+    def args(self):
+        """Returns the macro arguments.
+        :return: The macro arguments.
+        :rtype: ``string``
+        """
+        return self._state.content.get('args', '')
+
+    @property
+    def definition(self):
+        """Returns the macro definition.
+        :return: The macro definition.
+        :rtype: ``string``
+        """
+        return self._state.content.get('definition', '')
+
+    @property
+    def errormsg(self):
+        """Returns the validation error message for the macro.
+        :return: The validation error message for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('errormsg', '')
+
+    @property
+    def iseval(self):
+        """Returns the eval-based definition status of the macro.
+        :return: The iseval value for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('iseval', '0')
+
+    def update(self, definition=None, **kwargs):
+        """Updates the server with any changes you've made to the current macro
+        along with any additional arguments you specify.
+        :param `definition`: The macro definition (optional).
+        :type definition: ``string``
+        :param `kwargs`: Additional arguments (optional). Available parameters are:
+            'disabled', 'iseval', 'validation', and 'errormsg'.
+        :type kwargs: ``dict``
+        :return: The :class:`Macro`.
+        """
+        # Updates to a macro *require* that the definition be
+        # passed, so we pass the current definition if a value wasn't
+        # provided by the caller.
+        if definition is None: definition = self.content.definition
+        Entity.update(self, definition=definition, **kwargs)
+        return self
+
+    @property
+    def validation(self):
+        """Returns the validation expression for the macro.
+        :return: The validation expression for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('validation', '')
+
+
+class Macros(Collection):
+    """This class represents a collection of macros. Retrieve this
+    collection using :meth:`Service.macros`."""
+    def __init__(self, service):
+        Collection.__init__(
+            self, service, PATH_MACROS, item=Macro)
+
+    def create(self, name, definition, **kwargs):
+        """ Creates a macro.
+        :param name: The name for the macro.
+        :type name: ``string``
+        :param definition: The macro definition.
+        :type definition: ``string``
+        :param kwargs: Additional arguments (optional). Available parameters are:
+            'disabled', 'iseval', 'validation', and 'errormsg'.
+        :type kwargs: ``dict``
+        :return: The :class:`Macros` collection.
+        """
+        return Collection.create(self, name, definition=definition, **kwargs)
 
 
 class Settings(Entity):

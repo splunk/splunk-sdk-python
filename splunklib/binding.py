@@ -348,8 +348,10 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
             "http://splunk.utopia.net:471"
 
     """
-    if ':' in host:
-        # IPv6 addresses must be enclosed in [ ] in order to be well-formed.
+    # check if host is an IPv6 address and not enclosed in [ ]
+    if ':' in host and not (host.startswith('[') and host.endswith(']')):
+        # IPv6 addresses must be enclosed in [ ] in order to be well
+        # formed.
         host = '[' + host + ']'
     return UrlEncoded(f"{scheme}://{host}:{port}", skip_encode=True)
 

@@ -184,6 +184,12 @@ class TestAuthority(unittest.TestCase):
                 host="2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
             "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
 
+    def test_ipv6_host_enclosed(self):
+        self.assertEqual(
+            binding._authority(
+                host="[2001:0db8:85a3:0000:0000:8a2e:0370:7334]"),
+            "https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8089")
+
     def test_all_fields(self):
         self.assertEqual(
             binding._authority(

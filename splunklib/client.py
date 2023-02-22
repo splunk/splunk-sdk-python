@@ -3724,7 +3724,7 @@ class KVStoreCollections(Collection):
         for k, v in list(accelerated_fields.items()):
             if isinstance(v, dict):
                 v = json.dumps(v)
-            kwargs['index.' + k] = v
+            kwargs['accelerated_fields.' + k] = v
         for k, v in list(fields.items()):
             kwargs['field.' + k] = v
         return self.post(name=name, **kwargs)

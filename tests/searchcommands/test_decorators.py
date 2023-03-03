@@ -292,8 +292,7 @@ class TestDecorators(TestCase):
                     new_configuration_settings_class(name, value)
                 except Exception as error:
                     self.assertIsInstance(error, ValueError,
-                                          'Expected ValueError, not {}({}) for {}={}'.format(type(error).__name__,
-                                                                                             error, name, repr(value)))
+                                          f'Expected ValueError, not {type(error).__name__}({error}) for {name}={repr(value)}')
                 else:
                     self.fail(f'Expected ValueError, not success for {name}={repr(value)}')
 
@@ -351,8 +350,6 @@ class TestDecorators(TestCase):
 
         command = TestSearchCommand()
         options = command.options
-
-        #itervalues = lambda: options.values()
 
         options.reset()
         missing = options.get_missing()
@@ -452,14 +449,13 @@ class TestDecorators(TestCase):
                 self.assertEqual(expected[x.name], x.value)
 
         expected = (
-                'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
-                'file=' + json_encode_string(__file__) + ' float="99.9" integer="100" map="foo" match="123-45-6789" '
-                                                         'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
-                                                         'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
-                                                         'required_file=' + json_encode_string(
-            __file__) + ' required_float="99.9" required_integer="100" required_map="foo" '
-                        'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
-                        'required_set="bar" set="bar" show_configuration="f"')
+            'foo="f" boolean="f" code="foo == \\"bar\\"" duration="24:59:59" fieldname="some.field_name" '
+            'file=' + json_encode_string(__file__) + ' float="99.9" integer="100" map="foo" match="123-45-6789" '
+            'optionname="some_option_name" record="f" regularexpression="\\\\s+" required_boolean="f" '
+            'required_code="foo == \\"bar\\"" required_duration="24:59:59" required_fieldname="some.field_name" '
+            'required_file=' + json_encode_string(__file__) + ' required_float="99.9" required_integer="100" required_map="foo" '
+            'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
+            'required_set="bar" set="bar" show_configuration="f"')
 
         observed = str(command.options)
 

@@ -278,13 +278,10 @@ class TestUserManipulation(BindingTestCase):
 class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                      self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                      (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                      self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -799,13 +796,10 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                      self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                      (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                      self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -827,13 +821,10 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                      self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                      (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                      self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -850,13 +841,10 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                      self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                      (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                      self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -973,7 +961,7 @@ class TestFullPost(unittest.TestCase):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
             assert handler.headers['content-type'] == 'application/x-www-form-urlencoded'
-            assert body.decode('utf-8') == 'baz=baf&hep=cat' or body.decode('utf-8') == 'hep=cat&baz=baf'
+            assert body.decode('utf-8') in ['baz=baf&hep=cat', 'hep=cat&baz=baf']
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")

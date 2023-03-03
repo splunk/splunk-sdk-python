@@ -36,7 +36,8 @@ class TestApp(testlib.SDKTestCase):
             self.app_name = testlib.tmpname()
             self.app = self.service.apps.create(self.app_name)
             logging.debug(f"Creating app {self.app_name}")
-        logging.debug(f"App {self.app_name} already exists. Skipping creation.")
+        else:
+            logging.debug(f"App {self.app_name} already exists. Skipping creation.")
         if self.service.restart_required:
             self.service.restart(120)
 

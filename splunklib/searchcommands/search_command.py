@@ -1,6 +1,6 @@
 # coding=utf-8
 #
-# Copyright © 2011-2015 Splunk, Inc.
+# Copyright © 2011-2023 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -967,8 +967,6 @@ class SearchCommand:
 
             self._finished = getattr(metadata, 'finished', False)
             self._record_writer.is_flushed = False
-            # metadata.update(self._metadata)
-            # self._metadata = metadata
             self._metadata.update(metadata)
             self._execute_chunk_v2(process, result)
 

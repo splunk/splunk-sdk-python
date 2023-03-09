@@ -1,6 +1,6 @@
 # coding=utf-8
 #
-# Copyright © 2011-2015 Splunk, Inc.
+# Copyright © 2011-2023 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -632,7 +632,7 @@ class RecordWriter:
                             if value_t is bool:
                                 value = str(value.real)
                             elif value_t is str:
-                                value = str(value)
+                                value = value
                             elif isinstance(value, int) or value_t is float or value_t is complex:
                                 value = str(value)
                             elif issubclass(value_t, (dict, list, tuple)):

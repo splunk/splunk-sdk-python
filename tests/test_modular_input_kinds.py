@@ -17,10 +17,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from tests import testlib
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 import splunklib.client as client
 
 import pytest
@@ -78,8 +75,5 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             self.check_modular_input_kind(m)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

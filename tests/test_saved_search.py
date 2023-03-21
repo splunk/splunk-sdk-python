@@ -248,8 +248,5 @@ class TestSavedSearch(testlib.SDKTestCase):
         )
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

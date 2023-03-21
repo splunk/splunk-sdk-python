@@ -17,11 +17,9 @@
 from __future__ import absolute_import
 from tests import testlib
 from splunklib.six.moves import range
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 import splunklib.client as client
+
 
 class KVStoreBatchTestCase(testlib.SDKTestCase):
     def setUp(self):
@@ -76,8 +74,5 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
             confs['test'].delete()
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

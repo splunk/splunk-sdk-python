@@ -105,8 +105,5 @@ class TestConfs(testlib.SDKTestCase):
         self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

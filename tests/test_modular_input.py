@@ -16,10 +16,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 from tests import testlib
 import pytest
 

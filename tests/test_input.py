@@ -21,10 +21,7 @@ from splunklib.binding import HTTPError
 from tests import testlib
 import logging
 from splunklib import six
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 
 import splunklib.client as client
 
@@ -299,8 +296,5 @@ class TestInput(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

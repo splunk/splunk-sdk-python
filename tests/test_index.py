@@ -21,10 +21,7 @@ import logging
 import os
 import time
 import splunklib.client as client
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 
 import pytest
 
@@ -184,8 +181,5 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count+4, timeout=60)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

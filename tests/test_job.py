@@ -24,10 +24,7 @@ import io
 
 from tests import testlib
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import splunklib.client as client
 import splunklib.results as results

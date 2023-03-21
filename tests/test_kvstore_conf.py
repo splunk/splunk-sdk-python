@@ -18,10 +18,7 @@ from __future__ import absolute_import
 
 import json
 from tests import testlib
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 import splunklib.client as client
 
 class KVStoreConfTestCase(testlib.SDKTestCase):
@@ -98,8 +95,5 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
             self.confs['test'].delete()
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

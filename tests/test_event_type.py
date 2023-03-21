@@ -89,8 +89,5 @@ class TestEventType(testlib.SDKTestCase):
         self.assertEqual(self.event_type['disabled'], '0')
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

@@ -165,8 +165,5 @@ class ResultsTestCase(testlib.SDKTestCase):
         self.assertEqual(expected_results, actual_results)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

@@ -234,8 +234,5 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(start_count, len(self.storage_passwords))
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

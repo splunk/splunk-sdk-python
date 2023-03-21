@@ -29,10 +29,7 @@ import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 try:
     from utils import parse

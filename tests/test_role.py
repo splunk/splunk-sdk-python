@@ -106,8 +106,5 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertEqual(int(self.role['srchJobsQuota']), kwargs['srchJobsQuota'])
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

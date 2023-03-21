@@ -17,10 +17,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
+from unittest import main, TestCase
 import sys
 
 from io import TextIOWrapper

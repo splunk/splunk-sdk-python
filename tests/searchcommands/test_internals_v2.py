@@ -35,10 +35,7 @@ from tempfile import mktemp
 from time import time
 from types import MethodType
 from sys import version_info as python_version
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
+from unittest import main, TestCase
 
 import splunklib.six.moves.cPickle as pickle
 import gzip

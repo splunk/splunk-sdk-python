@@ -1,2 +1,2 @@
 echo "To run a specific test:"
-echo "  tox -e py27,py37 [test_file_path]::[test_name]"
+echo "  tox -e py37 -- tests/[test_file_name].py::[TestClassName]::[test_method]

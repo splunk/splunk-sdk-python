@@ -15,6 +15,8 @@
 # under the License.
 
 from __future__ import absolute_import
+import pytest
+
 from tests import testlib
 import unittest
 
@@ -168,6 +170,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         })
 
     # To check the HEC event endpoint using Endpoint instance
+    @pytest.mark.smoke
     def test_hec_event(self):
         import json
         service_hec = client.connect(host='localhost', scheme='https', port=8088,

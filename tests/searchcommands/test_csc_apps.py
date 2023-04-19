@@ -15,10 +15,12 @@
 # under the License.
 
 import unittest
+import pytest
+
 from tests import testlib
 from splunklib import results
 
-
+@pytest.mark.smoke
 class TestCSC(testlib.SDKTestCase):
 
     def test_eventing_app(self):

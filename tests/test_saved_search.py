@@ -223,7 +223,6 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search.unsuppress()
         self.assertEqual(self.saved_search['suppressed'], 0)
 
-    @pytest.mark.smoke
     def test_acl(self):
         self.assertEqual(self.saved_search.access["perms"], None)
         self.saved_search.acl_update(sharing="app", owner="admin", app="search", **{"perms.read": "admin, nobody"})
@@ -232,7 +231,6 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.assertEqual(self.saved_search.access["sharing"], "app")
         self.assertEqual(self.saved_search.access["perms"]["read"], ['admin', 'nobody'])
 
-    @pytest.mark.smoke
     def test_acl_fails_without_sharing(self):
         self.assertRaisesRegex(
             ValueError,
@@ -241,7 +239,6 @@ class TestSavedSearch(testlib.SDKTestCase):
             owner="admin", app="search", **{"perms.read": "admin, nobody"}
         )
 
-    @pytest.mark.smoke
     def test_acl_fails_without_owner(self):
         self.assertRaisesRegex(
             ValueError,

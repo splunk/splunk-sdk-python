@@ -641,6 +641,7 @@ class TestCookieAuthentication(unittest.TestCase):
                 self.assertEqual(list(new_cookies.values())[0], list(old_cookies.values())[0])
         self.assertTrue(found)
 
+    @pytest.mark.smoke
     def test_login_fails_with_bad_cookie(self):
         # We should get an error if using a bad cookie
         try:
@@ -649,6 +650,7 @@ class TestCookieAuthentication(unittest.TestCase):
         except AuthenticationError as ae:
             self.assertEqual(str(ae), "Login failed.")
 
+    @pytest.mark.smoke
     def test_login_with_multiple_cookies(self):
         # We should get an error if using a bad cookie
         new_context = binding.Context()

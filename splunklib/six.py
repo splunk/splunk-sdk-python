@@ -898,7 +898,7 @@ def ensure_binary(s, encoding='utf-8', errors='strict'):
         raise TypeError("not expecting type '%s'" % type(s))
 
 
-def ensure_str(s, encoding='utf-8', errors='strict'):
+def ensure_str(s, encoding='utf-8', errors='replace'):
     """Coerce *s* to `str`.
 
     For Python 2:

@@ -934,7 +934,7 @@ class SearchCommand(object):
         except Exception as error:
             raise RuntimeError('Failed to read body of length {}: {}'.format(body_length, error))
 
-        return metadata, six.ensure_str(body)
+        return metadata, six.ensure_str(body, errors="replace")
 
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 

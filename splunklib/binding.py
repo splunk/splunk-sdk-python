@@ -93,8 +93,8 @@ def mask_sensitive_data(data):
         except Exception as ex:
             return data
 
-    # json.loads will return "123"(str) as 123(int), so return the data
-    if isinstance(data, int):
+    # json.loads will return "123"(str) as 123(int), so return the data if it's not 'dict' type
+    if not isinstance(data, dict):
         return data
     mdata = {}
     for k, v in data.items():

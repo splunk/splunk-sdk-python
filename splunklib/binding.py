@@ -61,7 +61,10 @@ __all__ = [
     "HTTPError"
 ]
 
-SENSITIVE_KEYS = ["password", "token", "Authorization"]
+SENSITIVE_KEYS = ['Authorization', 'Cookie', 'action.email.auth_password', 'auth', 'auth_password', 'clear_password', 'clientId',
+                  'crc-salt', 'encr_password', 'oldpassword', 'passAuth', 'password', 'session', 'suppressionKey',
+                  'token']
+
 # If you change these, update the docstring
 # on _authority as well.
 DEFAULT_HOST = "localhost"
@@ -90,7 +93,8 @@ def mask_sensitive_data(data):
         except Exception as ex:
             return data
 
-    if not isinstance(data, dict):
+    # json.loads will return "123"(str) as 123(int), so return the data
+    if isinstance(data, int):
         return data
     mdata = {}
     for k, v in data.items():
@@ -863,8 +867,7 @@ class Context(object):
 
         all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug("%s request to %s (headers: %s, body: %s)",
-                     method, path, str(all_headers), mask_sensitive_data(body))
-
+                     method, path, str(mask_sensitive_data(dict(all_headers))), mask_sensitive_data(body))
         if body:
             body = _encode(**body)
 

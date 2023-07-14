@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2.3.2
+        uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7
       - name: Install dependencies
@@ -19,7 +19,7 @@ jobs:
       - name: Build package
         run: python setup.py sdist
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.3.1
+        uses: pypa/gh-action-pypi-publish@v1.8.7
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}

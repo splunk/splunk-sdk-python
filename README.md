@@ -4,7 +4,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.7.3
+#### Version 1.7.4
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
 
@@ -128,7 +128,7 @@ The Splunk Enterprise SDK for Python contains a collection of unit tests. To run
 
 You can also run individual test files, which are located in **/splunk-sdk-python/tests**. To run a specific test, enter:
 
-    make specific_test_name
+    make test_specific
 
 The test suite uses Python's standard library, the built-in `unittest` library, `pytest`, and `tox`.
 

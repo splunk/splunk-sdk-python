@@ -57,6 +57,7 @@ class TestUtilities(testlib.SDKTestCase):
         jobs = self.service.jobs
         self.assertRaises(TypeError, jobs.create, "abcd", exec_mode="oneshot")
 
+    @pytest.mark.smoke
     def test_oneshot(self):
         jobs = self.service.jobs
         stream = jobs.oneshot("search index=_internal earliest=-1m | head 3", output_mode='json')
@@ -382,6 +383,7 @@ class TestJob(testlib.SDKTestCase):
         except Exception as e:
             self.fail("Got some unexpected error. %s" % e.message)
 
+    @pytest.mark.smoke
     def test_v1_job_fallback(self):
         self.assertEventuallyTrue(self.job.is_done)
         self.assertLessEqual(int(self.job['eventCount']), 3)

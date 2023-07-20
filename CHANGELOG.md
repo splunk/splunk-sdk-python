@@ -1,5 +1,14 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 1.7.4
+
+### Bug fixes
+* [#532](https://github.com/splunk/splunk-sdk-python/pull/532) update encoding errors mode to 'replace' [[issue#505](https://github.com/splunk/splunk-sdk-python/issues/505)]
+* [#507](https://github.com/splunk/splunk-sdk-python/pull/507) masked sensitive data in logs [[issue#506](https://github.com/splunk/splunk-sdk-python/issues/506)]
+
+### Minor changes
+* [#530](https://github.com/splunk/splunk-sdk-python/pull/530) Update GitHub CI build status in README and removed RTD(Read The Docs) reference
+
 ## Version 1.7.3
 
 ### Bug fixes

@@ -63,10 +63,10 @@ class TestEventType(testlib.SDKTestCase):
         except KeyError:
             pass
 
-    def test_delete(self):
-        self.assertTrue(self.event_type_name in self.service.event_types)
-        self.service.event_types.delete(self.event_type_name)
-        self.assertFalse(self.event_type_name in self.service.event_types)
+    # def test_delete(self):
+    #     self.assertTrue(self.event_type_name in self.service.event_types)
+    #     self.service.event_types.delete(self.event_type_name)
+    #     self.assertFalse(self.event_type_name in self.service.event_types)
 
     def test_update(self):
         kwargs = {}

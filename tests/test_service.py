@@ -15,6 +15,7 @@
 # under the License.
 
 import unittest
+import pytest
 from tests import testlib
 
 from splunklib import client

@@ -72,7 +72,7 @@ class EventWriter:
 
         :param document: An ``ElementTree`` object.
         """
-        self._out.write(ensure_str(ET.tostring(document)))
+        self._out.write(ensure_str(ET.tostring(document), errors="replace"))
         self._out.flush()
 
     def close(self):

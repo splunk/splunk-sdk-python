@@ -919,7 +919,7 @@ class SearchCommand:
         except Exception as error:
             raise RuntimeError(f'Failed to read body of length {body_length}: {error}')
 
-        return metadata, splunklib.ensure_str(body)
+        return metadata, splunklib.ensure_str(body,errors="replace")
 
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 

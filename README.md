@@ -1,9 +1,10 @@
-[![Build Status](https://travis-ci.org/splunk/splunk-sdk-python.svg?branch=master)](https://travis-ci.org/splunk/splunk-sdk-python)
-[![Documentation Status](https://readthedocs.org/projects/splunk-python-sdk/badge/?version=latest)](https://splunk-python-sdk.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml)
+
+[Reference Docs](https://dev.splunk.com/enterprise/reference)
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.7.3
+#### Version 1.7.4
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
 
@@ -127,7 +128,7 @@ The Splunk Enterprise SDK for Python contains a collection of unit tests. To run
 
 You can also run individual test files, which are located in **/splunk-sdk-python/tests**. To run a specific test, enter:
 
-    make specific_test_name
+    make test_specific
 
 The test suite uses Python's standard library, the built-in `unittest` library, `pytest`, and `tox`.
 

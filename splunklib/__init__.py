@@ -30,49 +30,5 @@ def setup_logging(level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE
                         datefmt=date_format)
 
 
-def ensure_binary(s, encoding='utf-8', errors='strict'):
-    """
-      - `str` -> encoded to `bytes`
-      - `bytes` -> `bytes`
-    """
-    if isinstance(s, str):
-        return s.encode(encoding, errors)
-
-    if isinstance(s, bytes):
-        return s
-
-    raise TypeError(f"not expecting type '{type(s)}'")
-
-
-def ensure_str(s, encoding='utf-8', errors='strict'):
-    """
-      - `str` -> `str`
-      - `bytes` -> decoded to `str`
-    """
-    if isinstance(s, bytes):
-        return s.decode(encoding, errors)
-
-    if isinstance(s, str):
-        return s
-
-    raise TypeError(f"not expecting type '{type(s)}'")
-
-
-def ensure_text(s, encoding='utf-8', errors='strict'):
-    """
-      - `str` -> `str`
-      - `bytes` -> decoded to `str`
-    """
-    if isinstance(s, bytes):
-        return s.decode(encoding, errors)
-    if isinstance(s, str):
-        return s
-    raise TypeError(f"not expecting type '{type(s)}'")
-
-
-def assertRegex(self, *args, **kwargs):
-    return getattr(self, "assertRegex")(*args, **kwargs)
-
-
 __version_info__ = (2, 0, 0)
 __version__ = ".".join(map(str, __version_info__))

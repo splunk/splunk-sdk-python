@@ -32,15 +32,16 @@ from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
+from splunklib.utils import ensure_binary
 
 from io import StringIO, BytesIO
 
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
-    input = (f'chunked 1.0,{len(splunklib.ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
-             f'chunked 1.0,{len(splunklib.ensure_binary(execute_metadata))},{len(splunklib.ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
+    input = (f'chunked 1.0,{len(ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
+             f'chunked 1.0,{len(ensure_binary(execute_metadata))},{len(ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
 
-    ifile = BytesIO(splunklib.ensure_binary(input))
+    ifile = BytesIO(ensure_binary(input))
 
     ifile = TextIOWrapper(ifile)
 

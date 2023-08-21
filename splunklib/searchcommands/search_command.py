@@ -34,6 +34,8 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
+from splunklib.utils import ensure_str
+
 
 # Relative imports
 import splunklib
@@ -888,7 +890,7 @@ class SearchCommand:
         if not header:
             return None
 
-        match = SearchCommand._header.match(splunklib.ensure_str(header))
+        match = SearchCommand._header.match(ensure_str(header))
 
         if match is None:
             raise RuntimeError(f'Failed to parse transport header: {header}')
@@ -905,7 +907,7 @@ class SearchCommand:
         decoder = MetadataDecoder()
 
         try:
-            metadata = decoder.decode(splunklib.ensure_str(metadata))
+            metadata = decoder.decode(ensure_str(metadata))
         except Exception as error:
             raise RuntimeError(f'Failed to parse metadata of length {metadata_length}: {error}')
 
@@ -919,7 +921,7 @@ class SearchCommand:
         except Exception as error:
             raise RuntimeError(f'Failed to read body of length {body_length}: {error}')
 
-        return metadata, splunklib.ensure_str(body,errors="replace")
+        return metadata, ensure_str(body,errors="replace")
 
     _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
 

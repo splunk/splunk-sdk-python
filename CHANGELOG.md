@@ -3,7 +3,7 @@
 ## Version 2.0.0-beta
 
 ### Feature updates
-* `ensure_binary`, `ensure_str`, `ensure_text` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/__init__.py`
+* `ensure_binary`, `ensure_str`, `ensure_text` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/utils.py`
 
 ### Major changes
 * Removed Code specific to Python2

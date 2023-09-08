@@ -14,7 +14,7 @@
 
 import sys
 
-from splunklib import ensure_str
+from splunklib.utils import ensure_str
 from .event import ET
 
 

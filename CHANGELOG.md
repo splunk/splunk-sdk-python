@@ -10,7 +10,7 @@
 * Removed six.py dependency
 * Removed `__future__` imports
 * Refactored & Updated `splunklib` and `tests` to utilise Python3 features
-* Updated CI test matrix to run with Python versions - 3.7, 3.9 and 3.10.7
+* Updated CI test matrix to run with Python versions - 3.7 and 3.9
 * Refactored Code throwing `deprecation` warnings
 * Refactored Code violating Pylint rules
 ## Version 1.7.4

@@ -1,7 +1,0 @@
-name: OSS Scan
-on:
-  [push, pull_request]
-jobs:
-  fossa-scan:
-    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-    secrets: inherit

@@ -35,3 +35,6 @@ jobs:
 
       - name: Test Execution
         run: tox -e py
+  fossa-scan:
+    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+    secrets: inherit

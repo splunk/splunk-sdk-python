@@ -358,7 +358,7 @@ class JSONResultsReader(object):
         for line in stream.readlines():
             strip_line = line.strip()
             if strip_line.__len__() == 0: continue
-            parsed_line = json_loads(strip_line)
+            parsed_line = json_loads(six.ensure_str(strip_line, errors="replace"))
             if "preview" in parsed_line:
                 self.is_preview = parsed_line["preview"]
             if "messages" in parsed_line and parsed_line["messages"].__len__() > 0:

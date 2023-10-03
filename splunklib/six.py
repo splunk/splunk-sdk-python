@@ -28,6 +28,11 @@ import operator
 import sys
 import types
 
+try:
+    import importlib.machinery
+except ImportError:
+    pass
+
 __author__ = "Benjamin Peterson <benjamin@python.org>"
 __version__ = "1.14.0"
 
@@ -184,6 +189,13 @@ class _SixMetaPathImporter(object):
     def find_module(self, fullname, path=None):
         if fullname in self.known_modules:
             return self
+        return None
+
+    def find_spec(self, fullname, path, target=None):
+        # the "find_module" method of "importlib.abc.MetaPathFinder"
+        # has been removed as of Python 3.12 and "find_spec" is a replacement
+        if fullname in self.known_modules:
+            return importlib.machinery.ModuleSpec(fullname, self)
         return None
 
     def __get_module(self, fullname):

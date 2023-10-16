@@ -48,7 +48,7 @@ class Argument(object):
     data_type_number = "NUMBER"
     data_type_string = "STRING"
 
-    def __init__(self, name, description=None, validation=None,
+    def __init__(self, name=None, description=None, validation=None,
                  data_type=data_type_string, required_on_edit=False, required_on_create=False, title=None):
         """
         :param name: ``string``, identifier for this argument in Splunk.

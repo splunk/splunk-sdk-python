@@ -772,14 +772,18 @@ class RecordWriterV2(RecordWriter):
     def flush(self, finished=None, partial=None):
 
         RecordWriter.flush(self, finished, partial)  # validates arguments and the state of this instance
+ 
+        if partial:
+            finished = False
 
-        if partial or not finished:
-            # Don't flush partial chunks, since the SCP v2 protocol does not
-            # provide a way to send partial chunks yet.
-            return
+        # self.write_chunk(finished)
 
+        # Note: when the stdout buffer is flushed, it does not mean we are "finished"
         if not self.is_flushed:
-            self.write_chunk(finished=True)
+            self.write_chunk(finished)
+        elif finished:
+            self._write_chunk((('finished', True),), '')
+            # self.write_chunk(finished)
 
     def write_chunk(self, finished=None):
         inspector = self._inspector
@@ -841,4 +845,4 @@ class RecordWriterV2(RecordWriter):
         self.write(metadata)
         self.write(body)
         self._ofile.flush()
-        self._flushed = True
+        self._flushed = False

@@ -136,7 +136,7 @@ class TestInternals(TestCase):
 
         write_record = writer.write_record
 
-        for serial_number in range(0, 31):
+        for serial_number in range(0, 502):
             values = [serial_number, time(), random_bytes(), random_dict(), random_integers(), random_unicode()]
             record = OrderedDict(izip(fieldnames, values))
             #try:
@@ -170,12 +170,12 @@ class TestInternals(TestCase):
         for name, metric in six.iteritems(metrics):
             writer.write_metric(name, metric)
 
-        self.assertEqual(writer._chunk_count, 0)
-        self.assertEqual(writer._record_count, 31)
-        self.assertEqual(writer.pending_record_count, 31)
+        self.assertEqual(writer._chunk_count, 50)
+        self.assertEqual(writer._record_count, 2)
+        self.assertEqual(writer.pending_record_count, 2)
         self.assertGreater(writer._buffer.tell(), 0)
-        self.assertEqual(writer._total_record_count, 0)
-        self.assertEqual(writer.committed_record_count, 0)
+        self.assertEqual(writer._total_record_count, 500)
+        self.assertEqual(writer.committed_record_count, 500)
         fieldnames.sort()
         writer._fieldnames.sort()
         self.assertListEqual(writer._fieldnames, fieldnames)
@@ -185,15 +185,15 @@ class TestInternals(TestCase):
             dict(ifilter(lambda k_v: k_v[0].startswith('metric.'), six.iteritems(writer._inspector))),
             dict(imap(lambda k_v1: ('metric.' + k_v1[0], k_v1[1]), six.iteritems(metrics))))
 
-        writer.flush(finished=True)
+        writer.flush(partial=True)
 
-        self.assertEqual(writer._chunk_count, 1)
+        self.assertEqual(writer._chunk_count, 51)
         self.assertEqual(writer._record_count, 0)
         self.assertEqual(writer.pending_record_count, 0)
         self.assertEqual(writer._buffer.tell(), 0)
         self.assertEqual(writer._buffer.getvalue(), '')
-        self.assertEqual(writer._total_record_count, 31)
-        self.assertEqual(writer.committed_record_count, 31)
+        self.assertEqual(writer._total_record_count, 502)
+        self.assertEqual(writer.committed_record_count, 502)
 
         self.assertRaises(AssertionError, writer.flush, finished=True, partial=True)
         self.assertRaises(AssertionError, writer.flush, finished='non-boolean')

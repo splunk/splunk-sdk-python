@@ -26,3 +26,6 @@ tests/searchcommands/apps/app_with_logging_configuration/*.log
 venv/
 .tox
 test-reports/
+.venv/
+orca.json
+__pycache__/

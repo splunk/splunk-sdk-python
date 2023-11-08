@@ -3476,7 +3476,8 @@ class User(Entity):
         :return: The list of roles.
         :rtype: ``list``
         """
-        return [self.service.roles[name] for name in self.content.roles]
+        all_role_names = [r.name for r in self.service.roles.list()]
+        return [self.service.roles[name] for name in self.content.roles if name in all_role_names]
 
 
 # Splunk automatically lowercases new user names so we need to match that

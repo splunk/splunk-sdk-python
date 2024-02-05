@@ -266,8 +266,5 @@ class TestSearchCommand(TestCase):
     _package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
-TestCommand.__test__ = False
-TestStreamingCommand.__test__ = False
-
 if __name__ == "__main__":
     main()

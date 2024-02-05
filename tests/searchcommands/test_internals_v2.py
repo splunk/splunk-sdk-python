@@ -409,9 +409,6 @@ class Test:
 # test.record()
 # test.playback()
 
-Test.__test__ = False
-TestRecorder.__test__ = False
-
 
 if __name__ == "__main__":
     main()

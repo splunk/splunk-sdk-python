@@ -462,7 +462,5 @@ class TestDecorators(TestCase):
         self.assertEqual(observed, expected)
 
 
-TestSearchCommand.__test__ = False
-
 if __name__ == "__main__":
     main()

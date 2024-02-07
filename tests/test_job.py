@@ -30,11 +30,6 @@ from splunklib.binding import _log_duration, HTTPError
 
 import pytest
 
-# TODO: Determine if we should be importing ExpatError if ParseError is not available (e.g., on Python 2.6)
-# There's code below that now catches SyntaxError instead of ParseError. Should we be catching ExpathError instead?
-
-# from xml.etree.ElementTree import ParseError
-
 
 class TestUtilities(testlib.SDKTestCase):
     def test_service_search(self):

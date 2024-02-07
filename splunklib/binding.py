@@ -201,7 +201,7 @@ class UrlEncoded(str):
             return str.__new__(self, val)
         if encode_slash:
             return str.__new__(self, parse.quote_plus(val))
-       # When subclassing str, just call str.__new__ method
+        # When subclassing str, just call str.__new__ method
         # with your class and the value you want to have in the
         # new string.
         return str.__new__(self, parse.quote(val))

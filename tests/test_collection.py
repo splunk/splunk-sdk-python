@@ -80,7 +80,7 @@ class CollectionTestCase(testlib.SDKTestCase):
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list()][:10]
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_list_with_count(self):
         N = 5
@@ -111,7 +111,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             # TODO: DVPL-5868 - This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_list_with_sort_dir(self):
         for coll_name in collections:
@@ -127,7 +127,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             found = [ent.name for ent in coll.list(**found_kwargs)]
 
             self.assertEqual(sorted(expected), sorted(found),
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_list_with_sort_mode_auto(self):
         # The jobs collection requires special handling. The sort_dir kwarg is
@@ -151,7 +151,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             else:
                 found = [ent.name for ent in coll.list()]
 
-            self.assertEqual(expected, found, msg=f'on {coll_name} (expected {expected}, found {found})')
+            self.assertEqual(expected, found, msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_list_with_sort_mode_alpha_case(self):
         for coll_name in collections:
@@ -166,7 +166,7 @@ class CollectionTestCase(testlib.SDKTestCase):
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             expected = sorted(found)
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_list_with_sort_mode_alpha(self):
         for coll_name in collections:
@@ -184,7 +184,7 @@ class CollectionTestCase(testlib.SDKTestCase):
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             expected = sorted(found, key=str.lower)
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_iteration(self):
         for coll_name in collections:
@@ -197,7 +197,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             for ent in coll.iter(pagesize=max(int(total / 5.0), 1), count=10):
                 found.append(ent.name)
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_paging(self):
         for coll_name in collections:
@@ -218,7 +218,7 @@ class CollectionTestCase(testlib.SDKTestCase):
                 found.extend([ent.name for ent in page])
                 logging.debug("Iterate: offset=%d/%d", offset, total)
             self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
 
     def test_getitem_with_nonsense(self):
         for coll_name in collections:

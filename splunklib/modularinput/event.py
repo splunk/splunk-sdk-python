@@ -15,7 +15,7 @@
 from io import TextIOBase
 import xml.etree.ElementTree as ET
 
-from splunklib.utils import ensure_text
+from splunklib.utils import ensure_str
 
 
 class Event:
@@ -105,7 +105,7 @@ class Event:
             ET.SubElement(event, "done")
 
         if isinstance(stream, TextIOBase):
-            stream.write(ensure_text(ET.tostring(event)))
+            stream.write(ensure_str(ET.tostring(event)))
         else:
             stream.write(ET.tostring(event))
         stream.flush()

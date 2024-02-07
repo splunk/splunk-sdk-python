@@ -55,7 +55,7 @@ def to_bool(x):
         return True
     if x == '0':
         return False
-    raise ValueError("Not a boolean value: %s", x)
+    raise ValueError(f"Not a boolean value: {x}")
 
 
 def tmpname():

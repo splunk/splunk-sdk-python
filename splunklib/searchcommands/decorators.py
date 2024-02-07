@@ -15,7 +15,7 @@
 # under the License.
 
 
-from collections import OrderedDict  # must be python 2.7
+from collections import OrderedDict
 from inspect import getmembers, isclass, isfunction
 
 

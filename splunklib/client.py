@@ -1982,9 +1982,6 @@ class StoragePasswords(Collection):
         :return: The `StoragePassword` collection.
         :rtype: ``self``
         """
-        if self.service.namespace.owner == '-' or self.service.namespace.app == '-':
-            raise ValueError("app context must be specified when removing a password.")
-
         if realm is None:
             # This case makes the username optional, so
             # the full name can be passed in as realm.
@@ -3751,7 +3748,7 @@ class KVStoreCollection(Entity):
         :return: Result of POST request
         """
         kwargs = {}
-        kwargs['accelerated_fields.' + name] = value if isinstance(value, str) else json.dumps(value)
+        kwargs['accelerated_fields.' + name] = json.dumps(value) if isinstance(value, dict) else value
         return self.post(**kwargs)
 
     def update_field(self, name, value):

@@ -40,30 +40,15 @@ def set_binary_mode(fh):
     """ Helper method to set up binary mode for file handles.
     Emphasis being sys.stdin, sys.stdout, sys.stderr.
     For python3, we want to return .buffer
-    For python2+windows we want to set os.O_BINARY
     """
-    typefile = TextIOWrapper if sys.version_info >= (3, 0) else file
+    typefile = TextIOWrapper
     # check for file handle
     if not isinstance(fh, typefile):
         return fh
 
-    # check for python3 and buffer
-    if sys.version_info >= (3, 0) and hasattr(fh, 'buffer'):
+    # check for buffer
+    if hasattr(fh, 'buffer'):
         return fh.buffer
-    # check for python3
-    if sys.version_info >= (3, 0):
-        pass
-    # check for windows python2. SPL-175233 -- python3 stdout is already binary
-    elif sys.platform == 'win32':
-        # Work around the fact that on Windows '\n' is mapped to '\r\n'. The typical solution is to simply open files in
-        # binary mode, but stdout is already open, thus this hack. 'CPython' and 'PyPy' work differently. We assume that
-        # all other Python implementations are compatible with 'CPython'. This might or might not be a valid assumption.
-        from platform import python_implementation
-        implementation = python_implementation()
-        if implementation == 'PyPy':
-            return os.fdopen(fh.fileno(), 'wb', 0)
-        import msvcrt
-        msvcrt.setmode(fh.fileno(), os.O_BINARY)
     return fh
 
 
@@ -684,7 +669,6 @@ class RecordWriter:
         # We may be running under PyPy 2.5 which does not include the _json module
         _iterencode_json = JSONEncoder(separators=(',', ':')).iterencode
     else:
-        # Creating _iterencode_json this way yields a two-fold performance improvement on Python 2.7.9 and 2.7.10
         from json.encoder import encode_basestring_ascii
 
         @staticmethod

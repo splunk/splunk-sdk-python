@@ -44,17 +44,5 @@ def ensure_str(s, encoding='utf-8', errors='strict'):
     raise TypeError(f"not expecting type '{type(s)}'")
 
 
-def ensure_text(s, encoding='utf-8', errors='strict'):
-    """
-      - `str` -> `str`
-      - `bytes` -> decoded to `str`
-    """
-    if isinstance(s, bytes):
-        return s.decode(encoding, errors)
-    if isinstance(s, str):
-        return s
-    raise TypeError(f"not expecting type '{type(s)}'")
-
-
 def assertRegex(self, *args, **kwargs):
     return getattr(self, "assertRegex")(*args, **kwargs)

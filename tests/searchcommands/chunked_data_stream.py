@@ -4,11 +4,12 @@ import io
 import json
 
 import splunklib.searchcommands.internals
+from splunklib.utils import ensure_binary, ensure_str
 
 
 class Chunk:
     def __init__(self, version, meta, data):
-        self.version = version
+        self.version = ensure_str(version)
         self.meta = json.loads(meta)
         dialect = splunklib.searchcommands.internals.CsvDialect
         self.data = csv.DictReader(io.StringIO(data.decode("utf-8")),
@@ -20,9 +21,9 @@ class ChunkedDataStreamIter(collections.abc.Iterator):
         self.chunk_stream = chunk_stream
 
     def __next__(self):
-        return next(self)
+        return self.next()
 
-    def __next__(self):
+    def next(self):
         try:
             return self.chunk_stream.read_chunk()
         except EOFError:
@@ -53,7 +54,7 @@ class ChunkedDataStream(collections.abc.Iterable):
 
 
 def build_chunk(keyval, data=None):
-    metadata = json.dumps(keyval).encode('utf-8')
+    metadata = ensure_binary(json.dumps(keyval))
     data_output = _build_data_csv(data)
     return b"chunked 1.0,%d,%d\n%s%s" % (len(metadata), len(data_output), metadata, data_output)
 
@@ -96,4 +97,4 @@ def _build_data_csv(data):
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)
-    return csvout.getvalue().encode('utf-8')
+    return ensure_binary(csvout.getvalue())

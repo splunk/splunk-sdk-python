@@ -32,6 +32,7 @@ import splunklib
 from splunklib import binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
 from splunklib import data
+from splunklib.utils import ensure_str
 
 import pytest
 
@@ -963,7 +964,7 @@ class TestFullPost(unittest.TestCase):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
             assert handler.headers['content-type'] == 'application/x-www-form-urlencoded'
-            assert body.decode('utf-8') in ['baz=baf&hep=cat', 'hep=cat&baz=baf']
+            assert ensure_str(body) in ['baz=baf&hep=cat', 'hep=cat&baz=baf']
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")

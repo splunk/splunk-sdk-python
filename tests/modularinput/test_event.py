@@ -16,7 +16,9 @@
 
 from __future__ import absolute_import
 
+import re
 import sys
+from io import StringIO
 
 import pytest
 
@@ -151,3 +153,29 @@ def test_write_xml_is_sane(capsys):
         found_xml = ET.fromstring(captured.out)
 
         assert xml_compare(expected_xml, found_xml)
+
+
+def test_log_exception():
+    out, err = StringIO(), StringIO()
+    ew = EventWriter(out, err)
+
+    exc = Exception("Something happened!")
+
+    try:
+        raise exc
+    except:
+        ew.log_exception("ex1")
+
+    assert out.getvalue() == ""
+
+    # Remove paths and line
+    err = re.sub(r'File "[^"]+', 'File "...', err.getvalue())
+    err = re.sub(r'line \d+', 'line 123', err)
+
+    # One line
+    assert err == (
+        'ERROR ex1 - Traceback (most recent call last): '
+        '  File "...", line 123, in test_log_exception '
+        '    raise exc '
+        'Exception: Something happened! '
+    )

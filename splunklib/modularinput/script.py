@@ -99,13 +99,12 @@ class Script(six.with_metaclass(ABCMeta, object)):
 
                     return 1
             else:
-                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
-                    args)
-                event_writer._err.write(err_string)
+                event_writer.log(EventWriter.ERROR, "Invalid arguments to modular input script:" + ' '.join(
+                    args))
                 return 1
 
         except Exception as e:
-            event_writer.log(EventWriter.ERROR, str(e))
+            event_writer.log_exception(str(e))
             return 1
 
     @property

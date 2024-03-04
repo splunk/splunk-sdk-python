@@ -2376,7 +2376,6 @@ class Inputs(Collection):
                     entries = self._load_list(response)
                     if len(entries) > 0:
                         return True
-                    pass
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.

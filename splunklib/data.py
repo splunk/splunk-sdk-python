@@ -97,7 +97,7 @@ def load(text, match=None):
 def load_attrs(element):
     if not hasattrs(element): return None
     attrs = record()
-    for key, value in list(element.attrib.items()):
+    for key, value in element.attrib.items():
         attrs[key] = value
     return attrs
 
@@ -126,7 +126,7 @@ def load_elem(element, nametable=None):
         return name, attrs
     # Both attrs & value are complex, so merge the two dicts, resolving collisions.
     collision_keys = []
-    for key, val in list(attrs.items()):
+    for key, val in attrs.items():
         if key in value and key in collision_keys:
             value[key].append(val)
         elif key in value and key not in collision_keys:
@@ -242,7 +242,7 @@ class Record(dict):
             return dict.__getitem__(self, key)
         key += self.sep
         result = record()
-        for k, v in list(self.items()):
+        for k, v in self.items():
             if not k.startswith(key):
                 continue
             suffix = k[len(key):]

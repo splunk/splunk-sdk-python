@@ -53,7 +53,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
-        for option in list(command.options.values()):
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -70,7 +70,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
-        for option in list(command.options.values()):
+        for option in command.options.values():
             if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
                 self.assertFalse(option.is_set)
                 continue
@@ -85,7 +85,7 @@ class TestInternals(TestCase):
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
 
-        for option in list(command.options.values()):
+        for option in command.options.values():
             if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record',
                                'show_configuration']:
                 self.assertFalse(option.is_set)

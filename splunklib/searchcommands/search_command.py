@@ -739,7 +739,7 @@ class SearchCommand:
 
             if missing is not None:
                 if len(missing) == 1:
-                    self.write_error(f'A value for "{missing[0]}" is required'.format())
+                    self.write_error(f'A value for "{missing[0]}" is required')
                 else:
                     self.write_error(f'Values for these required options are missing: {", ".join(missing)}')
                 error_count += 1

@@ -120,7 +120,7 @@ class ExternalSearchCommand:
                 raise ValueError(f'Cannot find command on path: {path}')
 
             path = found
-            logger.debug(f'starting command="{path}", arguments={path}')
+            logger.debug(f'starting command="{path}", arguments={argv}')
 
             def terminate(signal_number):
                 sys.exit(f'External search command is terminating on receipt of signal={signal_number}.')

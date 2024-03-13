@@ -789,8 +789,6 @@ class RecordWriterV2(RecordWriter):
 
         metadata = chain(configuration.items(), (('inspector', self._inspector if self._inspector else None),))
         self._write_chunk(metadata, '')
-        # Removed additional new line 
-        # self.write('\n')
         self._clear()
 
     def write_metric(self, name, value):

@@ -654,14 +654,14 @@ class TestCookieAuthentication(unittest.TestCase):
         except AuthenticationError as ae:
             self.assertEqual(str(ae), "Login failed.")
             # Bring in a valid cookie now
-            for key, value in list(self.context.get_cookies().items()):
+            for key, value in self.context.get_cookies().items():
                 new_context.get_cookies()[key] = value
 
             self.assertEqual(len(new_context.get_cookies()), 2)
             self.assertTrue('bad' in list(new_context.get_cookies().keys()))
             self.assertTrue('cookie' in list(new_context.get_cookies().values()))
 
-            for k, v in list(self.context.get_cookies().items()):
+            for k, v in self.context.get_cookies().items():
                 self.assertEqual(new_context.get_cookies()[k], v)
 
             self.assertEqual(new_context.get("apps/local").status, 200)
@@ -750,7 +750,7 @@ class TestNamespace(unittest.TestCase):
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
-            for k, v in list(expected.items()):
+            for k, v in expected.items():
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
@@ -905,7 +905,7 @@ def _wrap_handler(func, response_code=200, body=""):
 
 class MockServer:
     def __init__(self, port=9093, **handlers):
-        methods = {"do_" + k: _wrap_handler(v) for (k, v) in list(handlers.items())}
+        methods = {"do_" + k: _wrap_handler(v) for (k, v) in handlers.items()}
 
         def init(handler_self, socket, address, server):
             BaseHTTPServer.BaseHTTPRequestHandler.__init__(handler_self, socket, address, server)

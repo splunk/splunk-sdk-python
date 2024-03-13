@@ -92,7 +92,7 @@ class SDKTestCase(unittest.TestCase):
             logging.debug("wait finished after %s seconds", datetime.now() - start)
 
     def check_content(self, entity, **kwargs):
-        for k, v in list(kwargs):
+        for k, v in kwargs:
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):

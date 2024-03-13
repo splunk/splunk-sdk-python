@@ -120,7 +120,7 @@ def _parse_cookies(cookie_str, dictionary):
     :type dictionary: ``dict``
     """
     parsed_cookie = SimpleCookie(cookie_str)
-    for cookie in list(parsed_cookie.values()):
+    for cookie in parsed_cookie.values():
         dictionary[cookie.key] = cookie.coded_value
 
 
@@ -546,7 +546,7 @@ class Context:
         :rtype: ``bool``
         """
         auth_token_key = "splunkd_"
-        return any(auth_token_key in key for key in list(self.get_cookies().keys()))
+        return any(auth_token_key in key for key in self.get_cookies().keys())
 
     # Shared per-context request headers
     @property
@@ -1135,7 +1135,7 @@ class AuthenticationError(HTTPError):
 # 'foo=1&foo=2&foo=3'.
 def _encode(**kwargs):
     items = []
-    for key, value in list(kwargs.items()):
+    for key, value in kwargs.items():
         if isinstance(value, list):
             items.extend([(key, item) for item in value])
         else:

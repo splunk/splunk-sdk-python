@@ -451,7 +451,7 @@ class SearchCommand:
         def _map(metadata_map):
             metadata = {}
 
-            for name, value in list(metadata_map.items()):
+            for name, value in metadata_map.items():
                 if isinstance(value, dict):
                     value = _map(value)
                 else:
@@ -590,7 +590,7 @@ class SearchCommand:
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
                 self._record_writer.write_record(dict(
                     (n, ','.join(v) if isinstance(v, (list, tuple)) else v) for n, v in
-                    list(self._configuration.items())))
+                    self._configuration.items()))
                 self.finish()
 
             elif argv[1] == '__EXECUTE__':
@@ -1036,7 +1036,7 @@ class SearchCommand:
 
             """
             # text = ', '.join(imap(lambda (name, value): name + '=' + json_encode_string(unicode(value)), self.iteritems()))
-            text = ', '.join([f'{name}={json_encode_string(str(value))}' for (name, value) in list(self.items())])
+            text = ', '.join([f'{name}={json_encode_string(str(value))}' for (name, value) in self.items()])
             return text
 
         # region Methods

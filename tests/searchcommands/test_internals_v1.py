@@ -280,7 +280,7 @@ class TestInternals(TestCase):
             'sentence': 'hello world!'}
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', list(collection.items()), '') + '\n'
+        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', collection.items(), '') + '\n'
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)

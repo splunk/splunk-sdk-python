@@ -182,7 +182,7 @@ def _trailing(template, *targets):
 def _filter_content(content, *args):
     if len(args) > 0:
         return record((k, content[k]) for k in args)
-    return record((k, v) for k, v in list(content.items())
+    return record((k, v) for k, v in content.items()
                   if k not in ['eai:acl', 'eai:attributes', 'type'])
 
 
@@ -242,7 +242,7 @@ def _parse_atom_entry(entry):
     metadata = _parse_atom_metadata(content)
 
     # Filter some of the noise out of the content record
-    content = record((k, v) for k, v in list(content.items())
+    content = record((k, v) for k, v in content.items()
                      if k not in ['eai:acl', 'eai:attributes'])
 
     if 'type' in content:
@@ -1194,7 +1194,7 @@ class Entity(Endpoint):
         # text to be dispatched via HTTP. However, these links are already
         # URL encoded when they arrive, and we need to mark them as such.
         unquoted_links = dict((k, UrlEncoded(v, skip_encode=True))
-                               for k, v in list(results['links'].items()))
+                               for k, v in results['links'].items())
         results['links'] = unquoted_links
         return results
 
@@ -1895,7 +1895,7 @@ class Stanza(Entity):
         # The stanza endpoint returns all the keys at the same level in the XML as the eai information
         # and 'disabled', so to get an accurate length, we have to filter those out and have just
         # the stanza keys.
-        return len([x for x in list(self._state.content.keys())
+        return len([x for x in self._state.content.keys()
                     if not x.startswith('eai') and x != 'disabled'])
 
 
@@ -2085,7 +2085,7 @@ class Index(Entity):
 
         # If we have cookie(s), use them instead of "Authorization: ..."
         if self.service.has_cookies():
-            cookie_header = _make_cookie_header(list(self.service.get_cookies().items()))
+            cookie_header = _make_cookie_header(self.service.get_cookies().items())
             cookie_or_auth_header = f"Cookie: {cookie_header}\r\n"
 
         # Since we need to stream to the index connection, we have to keep
@@ -2345,10 +2345,11 @@ class Inputs(Collection):
                         raise AmbiguousReferenceException(f"Found multiple inputs of kind {kind} named {key}.")
                     if len(entries) == 0:
                         pass
-                    if candidate is not None:  # Already found at least one candidate
-                        raise AmbiguousReferenceException(
-                            f"Found multiple inputs named {key}, please specify a kind")
-                    candidate = entries[0]
+                    else:
+                        if candidate is not None:  # Already found at least one candidate
+                            raise AmbiguousReferenceException(
+                                f"Found multiple inputs named {key}, please specify a kind")
+                        candidate = entries[0]
                 except HTTPError as he:
                     if he.status == 404:
                         pass  # Just carry on to the next kind.
@@ -3718,11 +3719,11 @@ class KVStoreCollections(Collection):
 
         :return: Result of POST request
         """
-        for k, v in list(accelerated_fields.items()):
+        for k, v in accelerated_fields.items():
             if isinstance(v, dict):
                 v = json.dumps(v)
             kwargs['accelerated_fields.' + k] = v
-        for k, v in list(fields.items()):
+        for k, v in fields.items():
             kwargs['field.' + k] = v
         return self.post(name=name, **kwargs)
 
@@ -3798,7 +3799,7 @@ class KVStoreCollectionData:
         :rtype: ``array``
         """
 
-        for key, value in list(query.items()):
+        for key, value in query.items():
             if isinstance(query[key], dict):
                 query[key] = json.dumps(value)
 

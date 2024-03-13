@@ -664,8 +664,8 @@ class RecordWriter:
 
     @staticmethod
     def _iterencode_json(obj, indent_level=0):
-        def _default():
-            raise TypeError(repr(obj) + ' is not JSON serializable')
+        def _default(serialized_obj):
+            raise TypeError(repr(serialized_obj) + ' is not JSON serializable')
 
         return dumps(
             obj,

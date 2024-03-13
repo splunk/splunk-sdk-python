@@ -669,6 +669,7 @@ class RecordWriter:
         # We may be running under PyPy 2.5 which does not include the _json module
         _iterencode_json = JSONEncoder(separators=(',', ':')).iterencode
     else:
+        # Creating _iterencode_json this way yields a two-fold performance improvement on Python 2.7.9 and 2.7.10
         from json.encoder import encode_basestring_ascii
 
         @staticmethod

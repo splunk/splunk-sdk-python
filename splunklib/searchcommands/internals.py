@@ -25,7 +25,7 @@ from io import TextIOWrapper, StringIO
 from collections import deque, namedtuple
 from collections import OrderedDict
 from itertools import chain
-from json import JSONDecoder, JSONEncoder
+from json import JSONDecoder, JSONEncoder, dumps
 from json.encoder import encode_basestring_ascii as json_encode_string
 
 
@@ -662,31 +662,18 @@ class RecordWriter:
         if self.pending_record_count >= self._maxresultrows:
             self.flush(partial=True)
 
-    try:
-        # noinspection PyUnresolvedReferences
-        from _json import make_encoder
-    except ImportError:
-        # We may be running under PyPy 2.5 which does not include the _json module
-        _iterencode_json = JSONEncoder(separators=(',', ':')).iterencode
-    else:
-        from json.encoder import encode_basestring_ascii
+    @staticmethod
+    def _iterencode_json(obj, indent_level=0):
+        def _default():
+            raise TypeError(repr(obj) + ' is not JSON serializable')
 
-        @staticmethod
-        def _default(o):
-            raise TypeError(repr(o) + ' is not JSON serializable')
-
-        _iterencode_json = make_encoder(
-            {},                       # markers (for detecting circular references)
-            _default,                 # object_encoder
-            encode_basestring_ascii,  # string_encoder
-            None,                     # indent
-            ':', ',',                 # separators
-            False,                    # sort_keys
-            False,                    # skip_keys
-            True                      # allow_nan
+        return dumps(
+            obj,
+            separators=(',', ':'),
+            default=_default,
+            ensure_ascii=True,
+            indent=indent_level
         )
-
-        del make_encoder
 
 
 class RecordWriterV1(RecordWriter):

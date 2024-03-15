@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 #
-# Copyright © 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,35 +15,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
+from unittest import main, TestCase
 import sys
 
 from io import TextIOWrapper
+import pytest
 
 from splunklib.searchcommands import Configuration, Option, environment, validators
 from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
 
-try:
-    from tests.searchcommands import rebase_environment
-except ImportError:
-    # Skip on Python 2.6
-    pass
-
-from splunklib import six
-
-import pytest
+from tests.searchcommands import rebase_environment
 
 
 @Configuration()
 class TestSearchCommand(SearchCommand):
-
     boolean = Option(
         doc='''
         **Syntax:** **boolean=***<value>*
@@ -121,7 +109,7 @@ class TestSearchCommand(SearchCommand):
         **Syntax:** **integer=***<value>*
         **Description:** An integer value''',
         require=True, validate=validators.Integer())
-    
+
     float = Option(
         doc='''
         **Syntax:** **float=***<value>*
@@ -234,49 +222,48 @@ class TestDecorators(TestCase):
             return ConfiguredSearchCommand.ConfigurationSettings
 
         for name, values, error_values in (
-            ('clear_required_fields',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('distributed',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('generates_timeorder',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('generating',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('maxinputs',
-             (0, 50000, sys.maxsize),
-             (None, -1, sys.maxsize + 1, 'anything other than an int')),
-            ('overrides_timeorder',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('required_fields',
-             (['field_1', 'field_2'], set(['field_1', 'field_2']), ('field_1', 'field_2')),
-             (None, 0xdead, {'foo': 1, 'bar': 2})),
-            ('requires_preop',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('retainsevents',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('run_in_preview',
-              (True, False),
-             (None, 'anything other than a bool')),
-            ('streaming',
-             (True, False),
-             (None, 'anything other than a bool')),
-            ('streaming_preop',
-             (u'some unicode string', b'some byte string'),
-             (None, 0xdead)),
-            ('type',
-             # TODO: Do we need to validate byte versions of these strings?
-             ('events', 'reporting', 'streaming'),
-             ('eventing', 0xdead))):
+                ('clear_required_fields',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('distributed',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('generates_timeorder',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('generating',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('maxinputs',
+                 (0, 50000, sys.maxsize),
+                 (None, -1, sys.maxsize + 1, 'anything other than an int')),
+                ('overrides_timeorder',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('required_fields',
+                 (['field_1', 'field_2'], set(['field_1', 'field_2']), ('field_1', 'field_2')),
+                 (None, 0xdead, {'foo': 1, 'bar': 2})),
+                ('requires_preop',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('retainsevents',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('run_in_preview',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('streaming',
+                 (True, False),
+                 (None, 'anything other than a bool')),
+                ('streaming_preop',
+                 ('some unicode string', b'some byte string'),
+                 (None, 0xdead)),
+                ('type',
+                 # TODO: Do we need to validate byte versions of these strings?
+                 ('events', 'reporting', 'streaming'),
+                 ('eventing', 0xdead))):
 
             for value in values:
-
                 settings_class = new_configuration_settings_class(name, value)
 
                 # Setting property exists
@@ -296,28 +283,26 @@ class TestDecorators(TestCase):
 
                 setattr(settings_instance, name, value)
 
-                self.assertIn(backing_field_name, settings_instance.__dict__),
+                self.assertIn(backing_field_name, settings_instance.__dict__)
                 self.assertEqual(getattr(settings_instance, name), value)
                 self.assertEqual(settings_instance.__dict__[backing_field_name], value)
-                pass
 
             for value in error_values:
                 try:
                     new_configuration_settings_class(name, value)
                 except Exception as error:
-                    self.assertIsInstance(error, ValueError, 'Expected ValueError, not {}({}) for {}={}'.format(type(error).__name__, error, name, repr(value)))
+                    self.assertIsInstance(error, ValueError,
+                                          f'Expected ValueError, not {type(error).__name__}({error}) for {name}={repr(value)}')
                 else:
-                    self.fail('Expected ValueError, not success for {}={}'.format(name, repr(value)))
+                    self.fail(f'Expected ValueError, not success for {name}={repr(value)}')
 
                 settings_class = new_configuration_settings_class()
                 settings_instance = settings_class(command=None)
                 self.assertRaises(ValueError, setattr, settings_instance, name, value)
 
-        return
-
     def test_new_configuration_setting(self):
 
-        class Test(object):
+        class Test:
             generating = ConfigurationSetting()
 
             @ConfigurationSetting(name='required_fields')
@@ -366,13 +351,11 @@ class TestDecorators(TestCase):
         command = TestSearchCommand()
         options = command.options
 
-        itervalues = lambda: six.itervalues(options)
-
         options.reset()
         missing = options.get_missing()
-        self.assertListEqual(missing, [option.name for option in itervalues() if option.is_required])
-        self.assertListEqual(presets, [six.text_type(option) for option in itervalues() if option.value is not None])
-        self.assertListEqual(presets, [six.text_type(option) for option in itervalues() if six.text_type(option) != option.name + '=None'])
+        self.assertListEqual(missing, [option.name for option in options.values() if option.is_required])
+        self.assertListEqual(presets, [str(option) for option in options.values() if option.value is not None])
+        self.assertListEqual(presets, [str(option) for option in options.values() if str(option) != option.name + '=None'])
 
         test_option_values = {
             validators.Boolean: ('0', 'non-boolean value'),
@@ -389,7 +372,7 @@ class TestDecorators(TestCase):
             validators.RegularExpression: ('\\s+', '(poorly formed regular expression'),
             validators.Set: ('bar', 'non-existent set entry')}
 
-        for option in itervalues():
+        for option in options.values():
             validator = option.validator
 
             if validator is None:
@@ -401,57 +384,57 @@ class TestDecorators(TestCase):
 
             self.assertEqual(
                 validator.format(option.value), validator.format(validator.__call__(legal_value)),
-                "{}={}".format(option.name, legal_value))
+                f"{option.name}={legal_value}")
 
             try:
                 option.value = illegal_value
             except ValueError:
                 pass
             except BaseException as error:
-                self.assertFalse('Expected ValueError for {}={}, not this {}: {}'.format(
-                    option.name, illegal_value, type(error).__name__, error))
+                self.assertFalse(
+                    f'Expected ValueError for {option.name}={illegal_value}, not this {type(error).__name__}: {error}')
             else:
-                self.assertFalse('Expected ValueError for {}={}, not a pass.'.format(option.name, illegal_value))
+                self.assertFalse(f'Expected ValueError for {option.name}={illegal_value}, not a pass.')
 
         expected = {
-            u'foo': False,
+            'foo': False,
             'boolean': False,
-            'code': u'foo == \"bar\"',
+            'code': 'foo == \"bar\"',
             'duration': 89999,
-            'fieldname': u'some.field_name',
-            'file': six.text_type(repr(__file__)),
+            'fieldname': 'some.field_name',
+            'file': str(repr(__file__)),
             'integer': 100,
             'float': 99.9,
             'logging_configuration': environment.logging_configuration,
-            'logging_level': u'WARNING',
+            'logging_level': 'WARNING',
             'map': 'foo',
-            'match': u'123-45-6789',
-            'optionname': u'some_option_name',
+            'match': '123-45-6789',
+            'optionname': 'some_option_name',
             'record': False,
-            'regularexpression': u'\\s+',
+            'regularexpression': '\\s+',
             'required_boolean': False,
-            'required_code': u'foo == \"bar\"',
+            'required_code': 'foo == \"bar\"',
             'required_duration': 89999,
-            'required_fieldname': u'some.field_name',
-            'required_file': six.text_type(repr(__file__)),
+            'required_fieldname': 'some.field_name',
+            'required_file': str(repr(__file__)),
             'required_integer': 100,
             'required_float': 99.9,
             'required_map': 'foo',
-            'required_match': u'123-45-6789',
-            'required_optionname': u'some_option_name',
-            'required_regularexpression': u'\\s+',
-            'required_set': u'bar',
-            'set': u'bar',
+            'required_match': '123-45-6789',
+            'required_optionname': 'some_option_name',
+            'required_regularexpression': '\\s+',
+            'required_set': 'bar',
+            'set': 'bar',
             'show_configuration': False,
         }
 
         self.maxDiff = None
 
         tuplewrap = lambda x: x if isinstance(x, tuple) else (x,)
-        invert = lambda x: {v: k for k, v in six.iteritems(x)}
+        invert = lambda x: {v: k for k, v in x.items()}
 
-        for x in six.itervalues(command.options):
-             # isinstance doesn't work for some reason
+        for x in command.options.values():
+            # isinstance doesn't work for some reason
             if type(x.value).__name__ == 'Code':
                 self.assertEqual(expected[x.name], x.value.source)
             elif type(x.validator).__name__ == 'Map':
@@ -459,8 +442,8 @@ class TestDecorators(TestCase):
             elif type(x.validator).__name__ == 'RegularExpression':
                 self.assertEqual(expected[x.name], x.value.pattern)
             elif isinstance(x.value, TextIOWrapper):
-                self.assertEqual(expected[x.name], "'%s'" % x.value.name)
-            elif not isinstance(x.value, (bool,) + (float,) + (six.text_type,) + (six.binary_type,) + tuplewrap(six.integer_types)):
+                self.assertEqual(expected[x.name], f"'{x.value.name}'")
+            elif not isinstance(x.value, (bool,) + (float,) + (str,) + (bytes,) + tuplewrap(int)):
                 self.assertEqual(expected[x.name], repr(x.value))
             else:
                 self.assertEqual(expected[x.name], x.value)
@@ -474,10 +457,9 @@ class TestDecorators(TestCase):
             'required_match="123-45-6789" required_optionname="some_option_name" required_regularexpression="\\\\s+" '
             'required_set="bar" set="bar" show_configuration="f"')
 
-        observed = six.text_type(command.options)
+        observed = str(command.options)
 
         self.assertEqual(observed, expected)
-        return
 
 
 if __name__ == "__main__":

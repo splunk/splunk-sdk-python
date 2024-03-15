@@ -1,4 +1,4 @@
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,8 +14,7 @@
 
 # File for utility functions
 
-from __future__ import absolute_import
-from splunklib.six.moves import zip
+
 def xml_compare(expected, found):
     """Checks equality of two ``ElementTree`` objects.
 
@@ -39,27 +38,25 @@ def xml_compare(expected, found):
         return False
 
     # compare children
-    if not all([xml_compare(a, b) for a, b in zip(expected_children, found_children)]):
+    if not all(xml_compare(a, b) for a, b in zip(expected_children, found_children)):
         return False
 
     # compare elements, if there is no text node, return True
     if (expected.text is None or expected.text.strip() == "") \
         and (found.text is None or found.text.strip() == ""):
         return True
-    else:
-        return expected.tag == found.tag and expected.text == found.text \
+    return expected.tag == found.tag and expected.text == found.text \
             and expected.attrib == found.attrib
 
 def parse_parameters(param_node):
     if param_node.tag == "param":
         return param_node.text
-    elif param_node.tag == "param_list":
+    if param_node.tag == "param_list":
         parameters = []
         for mvp in param_node:
             parameters.append(mvp.text)
         return parameters
-    else:
-        raise ValueError("Invalid configuration scheme, %s tag unexpected." % param_node.tag)
+    raise ValueError(f"Invalid configuration scheme, {param_node.tag} tag unexpected.")
 
 def parse_xml_data(parent_node, child_node_tag):
     data = {}

@@ -1,5 +1,18 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 2.0.0-beta
+
+### Feature updates
+* `ensure_binary`, `ensure_str` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/utils.py`
+
+### Major changes
+* Removed Code specific to Python2
+* Removed six.py dependency
+* Removed `__future__` imports
+* Refactored & Updated `splunklib` and `tests` to utilise Python3 features
+* Updated CI test matrix to run with Python versions - 3.7 and 3.9
+* Refactored Code throwing `deprecation` warnings
+* Refactored Code violating Pylint rules
 ## Version 1.7.4
 
 ### Bug fixes

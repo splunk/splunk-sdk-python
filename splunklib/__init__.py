@@ -1,4 +1,4 @@
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,12 +14,10 @@
 
 """Python library for Splunk."""
 
-from __future__ import absolute_import
-from splunklib.six.moves import map
 import logging
 
 DEFAULT_LOG_FORMAT = '%(asctime)s, Level=%(levelname)s, Pid=%(process)s, Logger=%(name)s, File=%(filename)s, ' \
-                 'Line=%(lineno)s, %(message)s'
+                     'Line=%(lineno)s, %(message)s'
 DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %Z'
 
 
@@ -31,5 +29,6 @@ def setup_logging(level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE
                         format=log_format,
                         datefmt=date_format)
 
-__version_info__ = (1, 7, 4)
+
+__version_info__ = (2, 0, 0)
 __version__ = ".".join(map(str, __version_info__))

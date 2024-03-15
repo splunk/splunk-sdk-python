@@ -25,13 +25,13 @@ The Splunk Enterprise SDK for Python contains library code, and it's examples ar
 
 Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
-* Python 2.7+ or Python 3.7. 
+* Python 3.7 or Python 3.9. 
   
-  The Splunk Enterprise SDK for Python has been tested with Python v2.7 and v3.7.
+  The Splunk Enterprise SDK for Python is compatible with python3 and has been tested with Python v3.7 and v3.9.
 
-* Splunk Enterprise 9.0 or 8.2
+* Splunk Enterprise 9.2 or 8.2
 
-    The Splunk Enterprise SDK for Python has been tested with Splunk Enterprise 9.0, 8.2 and 8.1
+    The Splunk Enterprise SDK for Python has been tested with Splunk Enterprise 9.2, 8.2 and 8.1
 
   If you haven't already installed Splunk Enterprise, download it [here](http://www.splunk.com/download). 
   For more information, see the Splunk Enterprise [_Installation Manual_](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
@@ -61,7 +61,7 @@ Install the sources you cloned from GitHub:
 You'll need `docker` and `docker-compose` to get up and running using this method.
 
 ```
-make up SPLUNK_VERSION=9.0
+make up SPLUNK_VERSION=9.2
 make wait_up
 make test
 make down
@@ -110,7 +110,7 @@ here is an example of .env file:
     # Access scheme (default: https)
     scheme=https
     # Your version of Splunk Enterprise
-    version=9.0
+    version=9.2
     # Bearer token for authentication
     #splunkToken=<Bearer-token>
     # Session key for authentication

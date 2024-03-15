@@ -1,4 +1,4 @@
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -29,29 +29,16 @@ as follows:::
     reader = ResultsReader(result_stream)
     for item in reader:
         print(item)
-    print "Results are a preview: %s" % reader.is_preview
+    print(f"Results are a preview: {reader.is_preview}")
 """
-
-from __future__ import absolute_import
 
 from io import BufferedReader, BytesIO
 
-from splunklib import six
 
-from splunklib.six import deprecated
-
-try:
-    import xml.etree.cElementTree as et
-except:
-    import xml.etree.ElementTree as et
+import xml.etree.ElementTree as et
 
 from collections import OrderedDict
 from json import loads as json_loads
-
-try:
-    from splunklib.six.moves import cStringIO as StringIO
-except:
-    from splunklib.six import StringIO
 
 __all__ = [
     "ResultsReader",
@@ -59,8 +46,10 @@ __all__ = [
     "JSONResultsReader"
 ]
 
+import deprecation
 
-class Message(object):
+
+class Message:
     """This class represents informational messages that Splunk interleaves in the results stream.
 
     ``Message`` takes two arguments: a string giving the message type (e.g., "DEBUG"), and
@@ -76,7 +65,7 @@ class Message(object):
         self.message = message
 
     def __repr__(self):
-        return "%s: %s" % (self.type, self.message)
+        return f"{self.type}: {self.message}"
 
     def __eq__(self, other):
         return (self.type, self.message) == (other.type, other.message)
@@ -85,7 +74,7 @@ class Message(object):
         return hash((self.type, self.message))
 
 
-class _ConcatenatedStream(object):
+class _ConcatenatedStream:
     """Lazily concatenate zero or more streams into a stream.
 
     As you read from the concatenated stream, you get characters from
@@ -117,7 +106,7 @@ class _ConcatenatedStream(object):
         return response
 
 
-class _XMLDTDFilter(object):
+class _XMLDTDFilter:
     """Lazily remove all XML DTDs from a stream.
 
     All substrings matching the regular expression <?[^>]*> are
@@ -144,7 +133,7 @@ class _XMLDTDFilter(object):
             c = self.stream.read(1)
             if c == b"":
                 break
-            elif c == b"<":
+            if c == b"<":
                 c += self.stream.read(1)
                 if c == b"<?":
                     while True:
@@ -162,8 +151,8 @@ class _XMLDTDFilter(object):
         return response
 
 
-@deprecated("Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
-class ResultsReader(object):
+@deprecation.deprecated(details="Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
+class ResultsReader:
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
 
@@ -185,10 +174,10 @@ class ResultsReader(object):
         reader = results.ResultsReader(response)
         for result in reader:
             if isinstance(result, dict):
-                print "Result: %s" % result
+                print(f"Result: {result}")
             elif isinstance(result, results.Message):
-                print "Message: %s" % result
-        print "is_preview = %s " % reader.is_preview
+                print(f"Message: {result}")
+        print(f"is_preview = {reader.is_preview}")
     """
 
     # Be sure to update the docstrings of client.Jobs.oneshot,
@@ -217,10 +206,9 @@ class ResultsReader(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return next(self._gen)
 
-    __next__ = next
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
@@ -264,25 +252,7 @@ class ResultsReader(object):
                         elem.clear()
 
                 elif elem.tag in ('text', 'v') and event == 'end':
-                    try:
-                        text = "".join(elem.itertext())
-                    except AttributeError:
-                        # Assume we're running in Python < 2.7, before itertext() was added
-                        # So we'll define it here
-
-                        def __itertext(self):
-                            tag = self.tag
-                            if not isinstance(tag, six.string_types) and tag is not None:
-                                return
-                            if self.text:
-                                yield self.text
-                            for e in self:
-                                for s in __itertext(e):
-                                    yield s
-                                if e.tail:
-                                    yield e.tail
-
-                        text = "".join(__itertext(elem))
+                    text = "".join(elem.itertext())
                     values.append(text)
                     elem.clear()
 
@@ -302,7 +272,7 @@ class ResultsReader(object):
                 raise
 
 
-class JSONResultsReader(object):
+class JSONResultsReader:
     """This class returns dictionaries and Splunk messages from a JSON results
     stream.
     ``JSONResultsReader`` is iterable, and returns a ``dict`` for results, or a
@@ -322,10 +292,10 @@ class JSONResultsReader(object):
         reader = results.JSONResultsReader(response)
         for result in reader:
             if isinstance(result, dict):
-                print "Result: %s" % result
+                print(f"Result: {result}")
             elif isinstance(result, results.Message):
-                print "Message: %s" % result
-        print "is_preview = %s " % reader.is_preview
+                print(f"Message: {result}")
+        print(f"is_preview = {reader.is_preview}")
     """
 
     # Be sure to update the docstrings of client.Jobs.oneshot,
@@ -348,13 +318,13 @@ class JSONResultsReader(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return next(self._gen)
-
-    __next__ = next
 
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
+        msg_type = None
+        text = None
         for line in stream.readlines():
             strip_line = line.strip()
             if strip_line.__len__() == 0: continue

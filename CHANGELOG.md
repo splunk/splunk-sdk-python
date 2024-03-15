@@ -1,6 +1,6 @@
 # Splunk Enterprise SDK for Python Changelog
 
-## Version 2.0.0-beta
+## Version 2.0.0
 
 ### Feature updates
 * `ensure_binary`, `ensure_str` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/utils.py`
@@ -13,6 +13,13 @@
 * Updated CI test matrix to run with Python versions - 3.7 and 3.9
 * Refactored Code throwing `deprecation` warnings
 * Refactored Code violating Pylint rules
+
+### Bug fixes
+* [#527](https://github.com/splunk/splunk-sdk-python/issues/527) Added check for user roles 
+* Fix to access the metadata "finished" field in search commands using the v2 protocol.
+* Fix for error messages about ChunkedExternProcessor in splunkd.log for Custom Search Commands.
+
+
 ## Version 1.7.4
 
 ### Bug fixes

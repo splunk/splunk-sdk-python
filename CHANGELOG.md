@@ -6,25 +6,25 @@
 * `ensure_binary`, `ensure_str` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/utils.py`
 
 ### Major changes
-* Removed Code specific to Python2
+* Removed code specific to Python 2
 * Removed six.py dependency
 * Removed `__future__` imports
-* Refactored & Updated `splunklib` and `tests` to utilise Python3 features
+* Refactored and Updated `splunklib` and `tests` to utilize Python 3 features
 * Updated CI test matrix to run with Python versions - 3.7 and 3.9
 * Refactored Code throwing `deprecation` warnings
 * Refactored Code violating Pylint rules
 
 ### Bug fixes
 * [#527](https://github.com/splunk/splunk-sdk-python/issues/527) Added check for user roles 
-* Fix to access the metadata "finished" field in search commands using the v2 protocol.
-* Fix for error messages about ChunkedExternProcessor in splunkd.log for Custom Search Commands.
+* Fix to access the metadata "finished" field in search commands using the v2 protocol
+* Fix for error messages about ChunkedExternProcessor in splunkd.log for Custom Search Commands
 
 
 ## Version 1.7.4
 
 ### Bug fixes
-* [#532](https://github.com/splunk/splunk-sdk-python/pull/532) update encoding errors mode to 'replace' [[issue#505](https://github.com/splunk/splunk-sdk-python/issues/505)]
-* [#507](https://github.com/splunk/splunk-sdk-python/pull/507) masked sensitive data in logs [[issue#506](https://github.com/splunk/splunk-sdk-python/issues/506)]
+* [#532](https://github.com/splunk/splunk-sdk-python/pull/532) Update encoding errors mode to 'replace' [[issue#505](https://github.com/splunk/splunk-sdk-python/issues/505)]
+* [#507](https://github.com/splunk/splunk-sdk-python/pull/507) Masked sensitive data in logs [[issue#506](https://github.com/splunk/splunk-sdk-python/issues/506)]
 
 ### Minor changes
 * [#530](https://github.com/splunk/splunk-sdk-python/pull/530) Update GitHub CI build status in README and removed RTD(Read The Docs) reference
@@ -55,7 +55,7 @@
 * [#471](https://github.com/splunk/splunk-sdk-python/pull/471) Fixed support of Load Balancer "sticky sessions" (persistent cookies) [[issue#438](https://github.com/splunk/splunk-sdk-python/issues/438)]
 
 ### Minor changes
-* [#466](https://github.com/splunk/splunk-sdk-python/pull/466) tests for CSC apps
+* [#466](https://github.com/splunk/splunk-sdk-python/pull/466) Tests for CSC apps
 * [#467](https://github.com/splunk/splunk-sdk-python/pull/467) Added 'kwargs' parameter for Saved Search History function
 * [#475](https://github.com/splunk/splunk-sdk-python/pull/475) README updates
 
@@ -65,10 +65,10 @@
 * [#468](https://github.com/splunk/splunk-sdk-python/pull/468) SDK Support for splunkd search API changes
 
 ### Bug fixes
-* [#464](https://github.com/splunk/splunk-sdk-python/pull/464) updated checks for wildcards in StoragePasswords [[issue#458](https://github.com/splunk/splunk-sdk-python/issues/458)]
+* [#464](https://github.com/splunk/splunk-sdk-python/pull/464) Updated checks for wildcards in StoragePasswords [[issue#458](https://github.com/splunk/splunk-sdk-python/issues/458)]
 
 ### Minor changes
-* [#463](https://github.com/splunk/splunk-sdk-python/pull/463) Preserve thirdparty cookies
+* [#463](https://github.com/splunk/splunk-sdk-python/pull/463) Preserve third-party cookies
 
 ## Version 1.6.20
 
@@ -94,7 +94,7 @@
   * Pre-requisite: Query parameter 'output_mode' must be set to 'json'
   * Improves performance by approx ~80-90%
   * ResultsReader is deprecated and will be removed in future releases (NOTE: Please migrate to JSONResultsReader)
-* [#437](https://github.com/splunk/splunk-sdk-python/pull/437) added setup_logging() method in splunklib for logging
+* [#437](https://github.com/splunk/splunk-sdk-python/pull/437) Added setup_logging() method in splunklib for logging
 * [#426](https://github.com/splunk/splunk-sdk-python/pull/426) Added new github_commit modular input example
 * [#392](https://github.com/splunk/splunk-sdk-python/pull/392) Break out search argument to option parsing for v2 custom search commands
 * [#384](https://github.com/splunk/splunk-sdk-python/pull/384) Added Float parameter validator for custom search commands
@@ -110,17 +110,17 @@
 ### Minor changes
 * [#440](https://github.com/splunk/splunk-sdk-python/pull/440) Github release workflow modified to generate docs
 * [#430](https://github.com/splunk/splunk-sdk-python/pull/430) Fix indentation in README
-* [#429](https://github.com/splunk/splunk-sdk-python/pull/429) documented how to access modular input metadata
+* [#429](https://github.com/splunk/splunk-sdk-python/pull/429) Documented how to access modular input metadata
 * [#427](https://github.com/splunk/splunk-sdk-python/pull/427) Replace .splunkrc with .env file in test and examples
 * [#424](https://github.com/splunk/splunk-sdk-python/pull/424) Float validator test fix
-* [#423](https://github.com/splunk/splunk-sdk-python/pull/423) Python3 compatibility for ResponseReader.__str__()
+* [#423](https://github.com/splunk/splunk-sdk-python/pull/423) Python 3 compatibility for ResponseReader.__str__()
 * [#422](https://github.com/splunk/splunk-sdk-python/pull/422) ordereddict and all its reference removed
 * [#421](https://github.com/splunk/splunk-sdk-python/pull/421) Update README.md
 * [#387](https://github.com/splunk/splunk-sdk-python/pull/387) Update filter.py
 * [#331](https://github.com/splunk/splunk-sdk-python/pull/331) Fix a couple of warnings spotted when running python 2.7 tests
 * [#330](https://github.com/splunk/splunk-sdk-python/pull/330) client: use six.string_types instead of basestring
 * [#329](https://github.com/splunk/splunk-sdk-python/pull/329) client: remove outdated comment in Index.submit
-* [#262](https://github.com/splunk/splunk-sdk-python/pull/262) properly add parameters to request based on the method of the request
+* [#262](https://github.com/splunk/splunk-sdk-python/pull/262) Properly add parameters to request based on the method of the request
 * [#237](https://github.com/splunk/splunk-sdk-python/pull/237) Don't output close tags if you haven't written a start tag
 * [#149](https://github.com/splunk/splunk-sdk-python/pull/149) "handlers" stanza missing in examples/searchcommands_template/default/logging.conf
 
@@ -190,7 +190,7 @@ https://github.com/splunk/splunk-sdk-python/blob/develop/README.md#customization
 * Fixed regression in mod inputs which resulted in error ’file' object has no attribute 'readable’, by not forcing to text/bytes in mod inputs event writer any longer.
 
 ### Minor changes
-* Minor updates to the splunklib search commands to support Python3
+* Minor updates to the splunklib search commands to support Python 3
 
 ## Version 1.6.12
 
@@ -199,32 +199,32 @@ https://github.com/splunk/splunk-sdk-python/blob/develop/README.md#customization
 * Made modinput text consistent
 
 ### Bug fixes
-* Changed permissions from 755 to 644 for python files to pass appinspect checks
+* Changed permissions from 755 to 644 for Python files to pass Appinspect checks
 * Removed version check on ssl verify toggle
 
 ## Version 1.6.11
 
 ### Bug Fix
 
-* Fix custom search command V2 failures on Windows for Python3
+* Fix custom search command V2 failures on Windows for Python 3
 
 ## Version 1.6.10
 
 ### Bug Fix
 
-* Fix long type gets wrong values on windows for python 2
+* Fix long type gets wrong values on Windows for Python 2
 
 ## Version 1.6.9
 
 ### Bug Fix
 
-* Fix buffered input in python 3
+* Fix buffered input in Python 3
 
 ## Version 1.6.8
 
 ### Bug Fix
 
-* Fix custom search command on python 3 on windows
+* Fix custom search command on Python 3 on Windows
 
 ## Version 1.6.7
 
@@ -298,7 +298,7 @@ The following bugs have been fixed:
 
 ### Minor changes
 
-* Use relative imports throughout the the SDK.
+* Use relative imports throughout the SDK.
 
 * Performance improvement when constructing `Input` entity paths.
 
@@ -437,7 +437,7 @@ The following bugs have been fixed:
 
 * Added a script (GenerateHelloCommand) to the searchcommand_app to generate a custom search command.
 
-* Added a human readable argument titles to modular input examples.
+* Added a human-readable argument titles to modular input examples.
 
 * Renamed the searchcommand `csv` module to `splunk_csv`.
 
@@ -445,7 +445,7 @@ The following bugs have been fixed:
 
 * Now entities that contain slashes in their name can be created, accessed and deleted correctly.
 
-* Fixed a perfomance issue with connecting to Splunk on Windows.
+* Fixed a performance issue with connecting to Splunk on Windows.
 
 * Improved the `service.restart()` function.
 
@@ -539,7 +539,7 @@ The following bugs have been fixed:
 ### Bug fixes
 
 * When running `setup.py dist` without running `setup.py build`, there is no
-  longer an `No such file or directory` error on the command line, and the
+  longer a `No such file or directory` error on the command line, and the
   command behaves as expected.
 
 * When setting the sourcetype of a modular input event, events are indexed
@@ -561,7 +561,7 @@ The following bugs have been fixed:
 ### Bug fix
 
 * When running `setup.py dist` without running `setup.py build`, there is no
-  longer an `No such file or directory` error on the command line, and the
+  longer a `No such file or directory` error on the command line, and the
   command behaves as expected.
 
 * When setting the sourcetype of a modular input event, events are indexed properly.

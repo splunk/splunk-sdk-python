@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,14 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Utility file for unit tests, import common functions and modules
-from __future__ import absolute_import
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-import sys, os
 import io
+import os
+import sys
+import unittest
 
 sys.path.insert(0, os.path.join('../../splunklib', '..'))
 

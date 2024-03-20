@@ -1,15 +1,7 @@
-from __future__ import absolute_import
-from tests import testlib
-
 import unittest
 import os
-import sys
-
-try:
-    from utils import *
-except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
-                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+from tests import testlib
+from utils import dslice
 
 TEST_DICT = {
     'username': 'admin',
@@ -22,7 +14,7 @@ TEST_DICT = {
 
 class TestUtils(testlib.SDKTestCase):
     def setUp(self):
-        super(TestUtils, self).setUp()
+        super().setUp()
 
     # Test dslice when a dict is passed to change key names
     def test_dslice_dict_args(self):
@@ -84,7 +76,7 @@ class TestUtils(testlib.SDKTestCase):
 class FilePermissionTest(unittest.TestCase):
 
     def setUp(self):
-        super(FilePermissionTest, self).setUp()
+        super().setUp()
 
     # Check for any change in the default file permission(i.e 644) for all files within splunklib
     def test_filePermissions(self):
@@ -96,10 +88,7 @@ class FilePermissionTest(unittest.TestCase):
                 path = os.path.join(dir_path, file)
                 if os.path.isfile(path):
                     permission = oct(os.stat(path).st_mode)
-                    if sys.version_info >= (3, 0):
-                        self.assertEqual(permission, '0o100644')
-                    else :
-                        self.assertEqual(permission, '0100644')
+                    self.assertEqual(permission, '0o100644')
                 else:
                     checkFilePermissions(path)
 
@@ -108,8 +97,6 @@ class FilePermissionTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

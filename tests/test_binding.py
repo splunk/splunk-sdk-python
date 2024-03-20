@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,15 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from __future__ import absolute_import
-from io import BytesIO
+from http import server as BaseHTTPServer
+from io import BytesIO, StringIO
 from threading import Thread
+from urllib.request import Request, urlopen
 
-from splunklib.six.moves import BaseHTTPServer
-from splunklib.six.moves.urllib.request import Request, urlopen
-from splunklib.six.moves.urllib.error import HTTPError
-import splunklib.six as six
 from xml.etree.ElementTree import XML
 
 import json
@@ -30,14 +26,13 @@ import logging
 from tests import testlib
 import unittest
 import socket
-import sys
 import ssl
-import  splunklib.six.moves.http_cookies
 
-import splunklib.binding as binding
+import splunklib
+from splunklib import binding
 from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
-import splunklib.data as data
-from splunklib import six
+from splunklib import data
+from splunklib.utils import ensure_str
 
 import pytest
 
@@ -65,13 +60,16 @@ XNAME_TITLE = XNAMEF_ATOM % "title"
 def load(response):
     return data.load(response.body.read())
 
+
 class BindingTestCase(unittest.TestCase):
     context = None
+
     def setUp(self):
         logging.info("%s", self.__class__.__name__)
         self.opts = testlib.parse([], {}, ".env")
         self.context = binding.connect(**self.opts.kwargs)
         logging.debug("Connected to splunkd.")
+
 
 class TestResponseReader(BindingTestCase):
     def test_empty(self):
@@ -106,7 +104,7 @@ class TestResponseReader(BindingTestCase):
 
     def test_readable(self):
         txt = "abcd"
-        response = binding.ResponseReader(six.StringIO(txt))
+        response = binding.ResponseReader(StringIO(txt))
         self.assertTrue(response.readable())
 
     def test_readinto_bytearray(self):
@@ -124,9 +122,6 @@ class TestResponseReader(BindingTestCase):
         self.assertTrue(response.empty)
 
     def test_readinto_memoryview(self):
-        import sys
-        if sys.version_info < (2, 7, 0):
-            return  # memoryview is new to Python 2.7
         txt = b"Checking readinto works as expected"
         response = binding.ResponseReader(BytesIO(txt))
         arr = bytearray(10)
@@ -140,7 +135,6 @@ class TestResponseReader(BindingTestCase):
         self.assertEqual(response.readinto(mv), 5)
         self.assertEqual(arr[:5], b"ected")
         self.assertTrue(response.empty)
-
 
 
 class TestUrlEncoded(BindingTestCase):
@@ -173,6 +167,7 @@ class TestUrlEncoded(BindingTestCase):
     def test_repr(self):
         self.assertEqual(repr(UrlEncoded('% %')), "UrlEncoded('% %')")
 
+
 class TestAuthority(unittest.TestCase):
     def test_authority_default(self):
         self.assertEqual(binding._authority(),
@@ -203,6 +198,7 @@ class TestAuthority(unittest.TestCase):
                 host="splunk.utopia.net",
                 port="471"),
             "http://splunk.utopia.net:471")
+
 
 class TestUserManipulation(BindingTestCase):
     def setUp(self):
@@ -283,13 +279,10 @@ class TestUserManipulation(BindingTestCase):
 class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                         self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                         (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                         self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -314,14 +307,16 @@ class TestSocket(BindingTestCase):
         self.context.host = socket.gethostbyname(self.context.host)
         self.assertTrue(self.context.connect())
 
+
 class TestUnicodeConnect(BindingTestCase):
     def test_unicode_connect(self):
         opts = self.opts.kwargs.copy()
-        opts['host'] = six.text_type(opts['host'])
+        opts['host'] = str(opts['host'])
         context = binding.connect(**opts)
         # Just check to make sure the service is alive
         response = context.get("/services")
         self.assertEqual(response.status, 200)
+
 
 @pytest.mark.smoke
 class TestAutologin(BindingTestCase):
@@ -338,13 +333,13 @@ class TestAutologin(BindingTestCase):
         self.assertRaises(AuthenticationError,
                           self.context.get, "/services")
 
+
 class TestAbspath(BindingTestCase):
     def setUp(self):
         BindingTestCase.setUp(self)
         self.kwargs = self.opts.kwargs.copy()
         if 'app' in self.kwargs: del self.kwargs['app']
         if 'owner' in self.kwargs: del self.kwargs['owner']
-
 
     def test_default(self):
         path = self.context._abspath("foo", owner=None, app=None)
@@ -377,12 +372,12 @@ class TestAbspath(BindingTestCase):
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_sharing_global(self):
-        path = self.context._abspath("foo", owner="me", app="MyApp",sharing="global")
+        path = self.context._abspath("foo", owner="me", app="MyApp", sharing="global")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_sharing_system(self):
-        path = self.context._abspath("foo bar", owner="me", app="MyApp",sharing="system")
+        path = self.context._abspath("foo bar", owner="me", app="MyApp", sharing="system")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo%20bar")
 
@@ -450,6 +445,7 @@ class TestAbspath(BindingTestCase):
         self.assertEqual(path, "/servicesNS/me%40me.com/system/foo")
         self.assertEqual(path, UrlEncoded("/servicesNS/me@me.com/system/foo"))
 
+
 # An urllib2 based HTTP request handler, used to test the binding layers
 # support for pluggable request handlers.
 def urllib2_handler(url, message, **kwargs):
@@ -458,19 +454,16 @@ def urllib2_handler(url, message, **kwargs):
     headers = dict(message.get('headers', []))
     req = Request(url, data, headers)
     try:
-        # If running Python 2.7.9+, disable SSL certificate validation
-        if sys.version_info >= (2, 7, 9):
-            response = urlopen(req, context=ssl._create_unverified_context())
-        else:
-            response = urlopen(req)
+        response = urlopen(req, context=ssl._create_unverified_context())
     except HTTPError as response:
-        pass # Propagate HTTP errors via the returned response message
+        pass  # Propagate HTTP errors via the returned response message
     return {
         'status': response.code,
         'reason': response.msg,
         'headers': dict(response.info()),
         'body': BytesIO(response.read())
     }
+
 
 def isatom(body):
     """Answers if the given response body looks like ATOM."""
@@ -480,6 +473,7 @@ def isatom(body):
         root.find(XNAME_AUTHOR) is not None and \
         root.find(XNAME_ID) is not None and \
         root.find(XNAME_TITLE) is not None
+
 
 class TestPluggableHTTP(testlib.SDKTestCase):
     # Verify pluggable HTTP reqeust handlers.
@@ -497,33 +491,31 @@ class TestPluggableHTTP(testlib.SDKTestCase):
                 body = context.get(path).body.read()
                 self.assertTrue(isatom(body))
 
+
 def urllib2_insert_cookie_handler(url, message, **kwargs):
     method = message['method'].lower()
     data = message.get('body', b"") if method == 'post' else None
     headers = dict(message.get('headers', []))
     req = Request(url, data, headers)
     try:
-        # If running Python 2.7.9+, disable SSL certificate validation
-        if sys.version_info >= (2, 7, 9):
-            response = urlopen(req, context=ssl._create_unverified_context())
-        else:
-            response = urlopen(req)
+        response = urlopen(req, context=ssl._create_unverified_context())
     except HTTPError as response:
-        pass # Propagate HTTP errors via the returned response message
+        pass  # Propagate HTTP errors via the returned response message
 
     # Mimic the insertion of 3rd party cookies into the response.
     # An example is "sticky session"/"insert cookie" persistence
     # of a load balancer for a SHC.
-    header_list = [(k, v) for k, v in response.info().items()] 
+    header_list = list(response.info().items())
     header_list.append(("Set-Cookie", "BIGipServer_splunk-shc-8089=1234567890.12345.0000; path=/; Httponly; Secure"))
     header_list.append(("Set-Cookie", "home_made=yummy"))
-    
+
     return {
         'status': response.code,
         'reason': response.msg,
         'headers': header_list,
         'body': BytesIO(response.read())
     }
+
 
 class TestCookiePersistence(testlib.SDKTestCase):
     # Verify persistence of 3rd party inserted cookies.
@@ -546,6 +538,7 @@ class TestCookiePersistence(testlib.SDKTestCase):
         self.assertEqual(splunk_token_found, True)
         self.assertEqual(persisted_cookies['BIGipServer_splunk-shc-8089'], "1234567890.12345.0000")
         self.assertEqual(persisted_cookies['home_made'], "yummy")
+
 
 @pytest.mark.smoke
 class TestLogout(BindingTestCase):
@@ -572,7 +565,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.context = binding.connect(**self.opts.kwargs)
 
         # Skip these tests if running below Splunk 6.2, cookie-auth didn't exist before
-        import splunklib.client as client
+        from splunklib import client
         service = client.Service(**self.opts.kwargs)
         # TODO: Workaround the fact that skipTest is not defined by unittest2.TestCase
         service.login()
@@ -645,7 +638,7 @@ class TestCookieAuthentication(unittest.TestCase):
     def test_login_fails_with_bad_cookie(self):
         # We should get an error if using a bad cookie
         try:
-            new_context = binding.connect(**{"cookie": "bad=cookie"})
+            binding.connect(**{"cookie": "bad=cookie"})
             self.fail()
         except AuthenticationError as ae:
             self.assertEqual(str(ae), "Login failed.")
@@ -689,79 +682,80 @@ class TestCookieAuthentication(unittest.TestCase):
 class TestNamespace(unittest.TestCase):
     def test_namespace(self):
         tests = [
-            ({ },
-             { 'sharing': None, 'owner': None, 'app': None }),
+            ({},
+             {'sharing': None, 'owner': None, 'app': None}),
 
-            ({ 'owner': "Bob" },
-             { 'sharing': None, 'owner': "Bob", 'app': None }),
+            ({'owner': "Bob"},
+             {'sharing': None, 'owner': "Bob", 'app': None}),
 
-            ({ 'app': "search" },
-             { 'sharing': None, 'owner': None, 'app': "search" }),
+            ({'app': "search"},
+             {'sharing': None, 'owner': None, 'app': "search"}),
 
-            ({ 'owner': "Bob", 'app': "search" },
-             { 'sharing': None, 'owner': "Bob", 'app': "search" }),
+            ({'owner': "Bob", 'app': "search"},
+             {'sharing': None, 'owner': "Bob", 'app': "search"}),
 
-            ({ 'sharing': "user", 'owner': "Bob@bob.com" },
-             { 'sharing': "user", 'owner': "Bob@bob.com", 'app': None }),
+            ({'sharing': "user", 'owner': "Bob@bob.com"},
+             {'sharing': "user", 'owner': "Bob@bob.com", 'app': None}),
 
-            ({ 'sharing': "user" },
-             { 'sharing': "user", 'owner': None, 'app': None }),
+            ({'sharing': "user"},
+             {'sharing': "user", 'owner': None, 'app': None}),
 
-            ({ 'sharing': "user", 'owner': "Bob" },
-             { 'sharing': "user", 'owner': "Bob", 'app': None }),
+            ({'sharing': "user", 'owner': "Bob"},
+             {'sharing': "user", 'owner': "Bob", 'app': None}),
 
-            ({ 'sharing': "user", 'app': "search" },
-             { 'sharing': "user", 'owner': None, 'app': "search" }),
+            ({'sharing': "user", 'app': "search"},
+             {'sharing': "user", 'owner': None, 'app': "search"}),
 
-            ({ 'sharing': "user", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "user", 'owner': "Bob", 'app': "search" }),
+            ({'sharing': "user", 'owner': "Bob", 'app': "search"},
+             {'sharing': "user", 'owner': "Bob", 'app': "search"}),
 
-            ({ 'sharing': "app" },
-             { 'sharing': "app", 'owner': "nobody", 'app': None }),
+            ({'sharing': "app"},
+             {'sharing': "app", 'owner': "nobody", 'app': None}),
 
-            ({ 'sharing': "app", 'owner': "Bob" },
-             { 'sharing': "app", 'owner': "nobody", 'app': None }),
+            ({'sharing': "app", 'owner': "Bob"},
+             {'sharing': "app", 'owner': "nobody", 'app': None}),
 
-            ({ 'sharing': "app", 'app': "search" },
-             { 'sharing': "app", 'owner': "nobody", 'app': "search" }),
+            ({'sharing': "app", 'app': "search"},
+             {'sharing': "app", 'owner': "nobody", 'app': "search"}),
 
-            ({ 'sharing': "app", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "app", 'owner': "nobody", 'app': "search" }),
+            ({'sharing': "app", 'owner': "Bob", 'app': "search"},
+             {'sharing': "app", 'owner': "nobody", 'app': "search"}),
 
-            ({ 'sharing': "global" },
-             { 'sharing': "global", 'owner': "nobody", 'app': None }),
+            ({'sharing': "global"},
+             {'sharing': "global", 'owner': "nobody", 'app': None}),
 
-            ({ 'sharing': "global", 'owner': "Bob" },
-             { 'sharing': "global", 'owner': "nobody", 'app': None }),
+            ({'sharing': "global", 'owner': "Bob"},
+             {'sharing': "global", 'owner': "nobody", 'app': None}),
 
-            ({ 'sharing': "global", 'app': "search" },
-             { 'sharing': "global", 'owner': "nobody", 'app': "search" }),
+            ({'sharing': "global", 'app': "search"},
+             {'sharing': "global", 'owner': "nobody", 'app': "search"}),
 
-            ({ 'sharing': "global", 'owner': "Bob", 'app': "search" },
-             { 'sharing': "global", 'owner': "nobody", 'app': "search" }),
+            ({'sharing': "global", 'owner': "Bob", 'app': "search"},
+             {'sharing': "global", 'owner': "nobody", 'app': "search"}),
 
-            ({ 'sharing': "system" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+            ({'sharing': "system"},
+             {'sharing': "system", 'owner': "nobody", 'app': "system"}),
 
-            ({ 'sharing': "system", 'owner': "Bob" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+            ({'sharing': "system", 'owner': "Bob"},
+             {'sharing': "system", 'owner': "nobody", 'app': "system"}),
 
-            ({ 'sharing': "system", 'app': "search" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+            ({'sharing': "system", 'app': "search"},
+             {'sharing': "system", 'owner': "nobody", 'app': "system"}),
 
-            ({ 'sharing': "system", 'owner': "Bob",    'app': "search" },
-             { 'sharing': "system", 'owner': "nobody", 'app': "system" }),
+            ({'sharing': "system", 'owner': "Bob", 'app': "search"},
+             {'sharing': "system", 'owner': "nobody", 'app': "system"}),
 
-            ({ 'sharing': 'user',   'owner': '-',      'app': '-'},
-             { 'sharing': 'user',   'owner': '-',      'app': '-'})]
+            ({'sharing': 'user', 'owner': '-', 'app': '-'},
+             {'sharing': 'user', 'owner': '-', 'app': '-'})]
 
         for kwargs, expected in tests:
             namespace = binding.namespace(**kwargs)
-            for k, v in six.iteritems(expected):
+            for k, v in expected.items():
                 self.assertEqual(namespace[k], v)
 
     def test_namespace_fails(self):
         self.assertRaises(ValueError, binding.namespace, sharing="gobble")
+
 
 @pytest.mark.smoke
 class TestBasicAuthentication(unittest.TestCase):
@@ -773,13 +767,13 @@ class TestBasicAuthentication(unittest.TestCase):
         opts["password"] = self.opts.kwargs["password"]
 
         self.context = binding.connect(**opts)
-        import splunklib.client as client
+        from splunklib import client
         service = client.Service(**opts)
 
     if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
         def assertIsNotNone(self, obj, msg=None):
-           if obj is None:
-               raise self.failureException(msg or '%r is not None' % obj)
+            if obj is None:
+                raise self.failureException(msg or '%r is not None' % obj)
 
     def test_basic_in_auth_headers(self):
         self.assertIsNotNone(self.context._auth_headers)
@@ -789,6 +783,7 @@ class TestBasicAuthentication(unittest.TestCase):
         self.assertEqual(self.context._auth_headers[0][0], "Authorization")
         self.assertEqual(self.context._auth_headers[0][1][:6], "Basic ")
         self.assertEqual(self.context.get("/services").status, 200)
+
 
 @pytest.mark.smoke
 class TestTokenAuthentication(BindingTestCase):
@@ -804,15 +799,12 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                         self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                         (self.context.host, self.context.port)).encode('utf-8'))
-        socket.write(("Accept-Encoding: identity\r\n").encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                         self.context.token).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
+        socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
-        socket.write(("\r\n").encode('utf-8'))
+        socket.write("\r\n".encode('utf-8'))
         socket.close()
 
     def test_preexisting_token_sans_splunk(self):
@@ -832,17 +824,13 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" %\
-                    self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" %\
-                     (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" %\
-                     self.context.token).encode('utf-8'))
-        socket.write(("X-Splunk-Input-Mode: Streaming\r\n").encode('utf-8'))
-        socket.write(("\r\n").encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
+        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
+        socket.write("\r\n".encode('utf-8'))
         socket.close()
-
 
     def test_connect_with_preexisting_token_sans_user_and_pass(self):
         token = self.context.token
@@ -856,13 +844,10 @@ class TestTokenAuthentication(BindingTestCase):
         self.assertEqual(response.status, 200)
 
         socket = newContext.connect()
-        socket.write(("POST %s HTTP/1.1\r\n" % \
-                         self.context._abspath("some/path/to/post/to")).encode('utf-8'))
-        socket.write(("Host: %s:%s\r\n" % \
-                         (self.context.host, self.context.port)).encode('utf-8'))
+        socket.write((f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode('utf-8'))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode('utf-8'))
         socket.write("Accept-Encoding: identity\r\n".encode('utf-8'))
-        socket.write(("Authorization: %s\r\n" % \
-                         self.context.token).encode('utf-8'))
+        socket.write((f"Authorization: {self.context.token}\r\n").encode('utf-8'))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode('utf-8'))
         socket.write("\r\n".encode('utf-8'))
         socket.close()
@@ -872,34 +857,37 @@ class TestPostWithBodyParam(unittest.TestCase):
 
     def test_post(self):
         def handler(url, message, **kwargs):
-            assert six.ensure_str(url) == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
             })
+
         ctx = binding.Context(handler=handler)
         ctx.post("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
 
     def test_post_with_params_and_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
-            assert six.ensure_str(message["body"]) == "testkey=testvalue"
+            assert message["body"] == b"testkey=testvalue"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
             })
+
         ctx = binding.Context(handler=handler)
         ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp", body={"testkey": "testvalue"})
 
     def test_post_with_params_and_no_body(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
-            assert six.ensure_str(message["body"]) == "extrakey=extraval"
+            assert message["body"] == b"extrakey=extraval"
             return splunklib.data.Record({
                 "status": 200,
                 "headers": [],
             })
+
         ctx = binding.Context(handler=handler)
         ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
 
@@ -911,10 +899,11 @@ def _wrap_handler(func, response_code=200, body=""):
             handler_self.send_response(response_code)
             handler_self.end_headers()
             handler_self.wfile.write(body)
+
     return wrapped
 
 
-class MockServer(object):
+class MockServer:
     def __init__(self, port=9093, **handlers):
         methods = {"do_" + k: _wrap_handler(v) for (k, v) in handlers.items()}
 
@@ -933,6 +922,7 @@ class MockServer(object):
 
         def run():
             self._svr.handle_request()
+
         self._thread = Thread(target=run)
         self._thread.daemon = True
 
@@ -951,7 +941,7 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(body) == "foo=bar"
+            assert body.decode('utf-8') == "foo=bar"
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")
@@ -961,19 +951,20 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(handler.headers['content-type']) == 'application/json'
+            assert handler.headers['content-type'] == 'application/json'
             assert json.loads(body)["baz"] == "baf"
 
         with MockServer(POST=check_response):
-            ctx = binding.connect(port=9093, scheme='http', token="waffle", headers=[("Content-Type", "application/json")])
+            ctx = binding.connect(port=9093, scheme='http', token="waffle",
+                                  headers=[("Content-Type", "application/json")])
             ctx.post("/", foo="bar", body='{"baz": "baf"}')
 
     def test_post_with_body_dict(self):
         def check_response(handler):
             length = int(handler.headers.get('content-length', 0))
             body = handler.rfile.read(length)
-            assert six.ensure_str(handler.headers['content-type']) == 'application/x-www-form-urlencoded'
-            assert six.ensure_str(body) == 'baz=baf&hep=cat' or six.ensure_str(body) == 'hep=cat&baz=baf'
+            assert handler.headers['content-type'] == 'application/x-www-form-urlencoded'
+            assert ensure_str(body) in ['baz=baf&hep=cat', 'hep=cat&baz=baf']
 
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme='http', token="waffle")
@@ -981,8 +972,4 @@ class TestFullPost(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
     unittest.main()

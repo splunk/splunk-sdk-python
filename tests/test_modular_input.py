@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,20 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-from __future__ import print_function
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-from tests import testlib
 import pytest
+from tests import testlib
 
 
 @pytest.mark.smoke
 class ModularInputKindTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(ModularInputKindTestCase, self).setUp()
+        super().setUp()
         self.uncheckedRestartSplunk()
 
     @pytest.mark.app
@@ -38,7 +32,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.uncheckedRestartSplunk()
 
         inputs = self.service.inputs
-        if ('abcd','test2') not in inputs:
+        if ('abcd', 'test2') not in inputs:
             inputs.create('abcd', 'test2', field1='boris')
 
         input = inputs['abcd', 'test2']
@@ -55,5 +49,8 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             self.assertEqual('test2', m['title'])
             self.assertEqual('simple', m['streaming_mode'])
 
+
 if __name__ == "__main__":
+    import unittest
+
     unittest.main()

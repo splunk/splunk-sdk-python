@@ -1,6 +1,6 @@
 # coding=utf-8
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,10 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-from splunklib import six
-from splunklib.six.moves import map as imap
 
 from .decorators import ConfigurationSetting
 from .search_command import SearchCommand
@@ -140,10 +137,10 @@ class EventingCommand(SearchCommand):
         # N.B.: Does not use Python 2 dict copy semantics
         def iteritems(self):
             iteritems = SearchCommand.ConfigurationSettings.iteritems(self)
-            return imap(lambda name_value: (name_value[0], 'events' if name_value[0] == 'type' else name_value[1]), iteritems)
+            return  [(name_value[0], 'events' if name_value[0] == 'type' else name_value[1]) for name_value in iteritems]
 
         # N.B.: Does not use Python 3 dict view semantics
-        if not six.PY2:
-            items = iteritems
+
+        items = iteritems
 
         # endregion

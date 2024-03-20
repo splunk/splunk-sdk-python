@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,35 +15,26 @@
 # under the License.
 
 """Shared unit test utilities."""
-from __future__ import absolute_import
-from __future__ import print_function
 import contextlib
 
+import os
+import time
+import logging
 import sys
-from splunklib import six
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, '../')
 
-import splunklib.client as client
 from time import sleep
 from datetime import datetime, timedelta
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
-try:
-    from utils import parse
-except ImportError:
-    raise Exception("Add the SDK repository to your PYTHONPATH to run the test cases "
-                    "(e.g., export PYTHONPATH=~/splunk-sdk-python.")
+from utils import parse
 
-import os
-import time
+from splunklib import client
 
-import logging
+
 
 logging.basicConfig(
     filename='test.log',
@@ -62,10 +53,9 @@ class WaitTimedOutError(Exception):
 def to_bool(x):
     if x == '1':
         return True
-    elif x == '0':
+    if x == '0':
         return False
-    else:
-        raise ValueError("Not a boolean value: %s", x)
+    raise ValueError(f"Not a boolean value: {x}")
 
 
 def tmpname():
@@ -102,7 +92,7 @@ class SDKTestCase(unittest.TestCase):
             logging.debug("wait finished after %s seconds", datetime.now() - start)
 
     def check_content(self, entity, **kwargs):
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs:
             self.assertEqual(entity[k], str(v))
 
     def check_entity(self, entity):
@@ -154,9 +144,7 @@ class SDKTestCase(unittest.TestCase):
         try:
             self.service.delete("messages/restart_required")
         except client.HTTPError as he:
-            if he.status == 404:
-                pass
-            else:
+            if he.status != 404:
                 raise
 
     @contextlib.contextmanager
@@ -179,7 +167,7 @@ class SDKTestCase(unittest.TestCase):
             self.service.post("apps/local", **kwargs)
         except client.HTTPError as he:
             if he.status == 400:
-                raise IOError("App %s not found in app collection" % name)
+                raise IOError(f"App {name} not found in app collection")
         if self.service.restart_required:
             self.service.restart(120)
         self.installedApps.append(name)
@@ -268,6 +256,6 @@ class SDKTestCase(unittest.TestCase):
                 except HTTPError as error:
                     if not (os.name == 'nt' and error.status == 500):
                         raise
-                    print('Ignoring failure to delete {0} during tear down: {1}'.format(appName, error))
+                    print(f'Ignoring failure to delete {appName} during tear down: {error}')
         if self.service.restart_required:
             self.clear_restart_message()

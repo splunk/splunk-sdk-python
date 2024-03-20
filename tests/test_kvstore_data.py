@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2020 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,20 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 import json
 from tests import testlib
-from splunklib.six.moves import range
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+
+from splunklib import client
+
 
 class KVStoreDataTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(KVStoreDataTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
+        super().setUp()
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):
@@ -60,7 +55,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(self.col.query(query='{"num": 50}')), 0)
 
     def test_query_data(self):
-        if ('test1' in self.confs):
+        if 'test1' in self.confs:
             self.confs['test1'].delete()
         self.confs.create('test1')
         self.col = self.confs['test1'].data
@@ -73,7 +68,6 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(data[0]['data'], '#0')
         data = self.col.query(limit=2, skip=9)
         self.assertEqual(len(data), 1)
-
 
     def test_invalid_insert_update(self):
         self.assertRaises(client.HTTPError, lambda: self.col.insert('NOT VALID DATA'))
@@ -89,16 +83,15 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.assertEqual(len(data), 20)
         for x in range(20):
             self.assertEqual(data[x]['data'], 39 - x)
-            self.assertTrue(not 'ignore' in data[x])
-            self.assertTrue(not '_key' in data[x])
+            self.assertTrue('ignore' not in data[x])
+            self.assertTrue('_key' not in data[x])
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,16 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from splunklib import six
-from splunklib.searchcommands import Configuration, StreamingCommand
-from splunklib.searchcommands.decorators import ConfigurationSetting, Option
-from splunklib.searchcommands.search_command import SearchCommand
-from splunklib.client import Service
-
-from splunklib.six import StringIO, BytesIO
-from splunklib.six.moves import zip as izip
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
@@ -37,30 +27,36 @@ from io import TextIOWrapper
 
 import pytest
 
+import splunklib
+from splunklib.searchcommands import Configuration, StreamingCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting, Option
+from splunklib.searchcommands.search_command import SearchCommand
+from splunklib.client import Service
+from splunklib.utils import ensure_binary
+
+from io import StringIO, BytesIO
+
+
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
-    input = ('chunked 1.0,{},0\n{}'.format(len(six.ensure_binary(getinfo_metadata)), getinfo_metadata) +
-             'chunked 1.0,{},{}\n{}{}'.format(len(six.ensure_binary(execute_metadata)), len(six.ensure_binary(execute_body)), execute_metadata, execute_body))
+    input = (f'chunked 1.0,{len(ensure_binary(getinfo_metadata))},0\n{getinfo_metadata}' +
+             f'chunked 1.0,{len(ensure_binary(execute_metadata))},{len(ensure_binary(execute_body))}\n{execute_metadata}{execute_body}')
 
-    ifile = BytesIO(six.ensure_binary(input))
+    ifile = BytesIO(ensure_binary(input))
 
-    if not six.PY2:
-        ifile = TextIOWrapper(ifile)
+    ifile = TextIOWrapper(ifile)
 
     return ifile
 
+
 @Configuration()
 class TestCommand(SearchCommand):
-
     required_option_1 = Option(require=True)
     required_option_2 = Option(require=True)
 
     def echo(self, records):
         for record in records:
             if record.get('action') == 'raise_exception':
-                if six.PY2:
-                    raise StandardError(self)
-                else:
-                    raise Exception(self)
+                raise Exception(self)
             yield record
 
     def _execute(self, ifile, process):
@@ -108,7 +104,7 @@ class TestStreamingCommand(StreamingCommand):
             value = self.search_results_info if action == 'get_search_results_info' else None
             yield {'_serial': serial_number, 'data': value}
             serial_number += 1
-        return
+
 
 @pytest.mark.smoke
 class TestSearchCommand(TestCase):
@@ -123,37 +119,37 @@ class TestSearchCommand(TestCase):
 
         metadata = (
             '{{'
-                '"action": "getinfo", "preview": false, "searchinfo": {{'
-                    '"latest_time": "0",'
-                    '"splunk_version": "20150522",'
-                    '"username": "admin",'
-                    '"app": "searchcommands_app",'
-                    '"args": ['
-                        '"logging_configuration={logging_configuration}",'
-                        '"logging_level={logging_level}",'
-                        '"record={record}",'
-                        '"show_configuration={show_configuration}",'
-                        '"required_option_1=value_1",'
-                        '"required_option_2=value_2"'
-                    '],'
-                    '"search": "Ａ%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
-                    '"earliest_time": "0",'
-                    '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
-                    '"owner": "admin",'
-                    '"sid": "1433261372.158",'
-                    '"splunkd_uri": "https://127.0.0.1:8089",'
-                    '"dispatch_dir": {dispatch_dir},'
-                    '"raw_args": ['
-                        '"logging_configuration={logging_configuration}",'
-                        '"logging_level={logging_level}",'
-                        '"record={record}",'
-                        '"show_configuration={show_configuration}",'
-                        '"required_option_1=value_1",'
-                        '"required_option_2=value_2"'
-                    '],'
-                    '"maxresultrows": 10,'
-                    '"command": "countmatches"'
-                '}}'
+            '"action": "getinfo", "preview": false, "searchinfo": {{'
+            '"latest_time": "0",'
+            '"splunk_version": "20150522",'
+            '"username": "admin",'
+            '"app": "searchcommands_app",'
+            '"args": ['
+            '"logging_configuration={logging_configuration}",'
+            '"logging_level={logging_level}",'
+            '"record={record}",'
+            '"show_configuration={show_configuration}",'
+            '"required_option_1=value_1",'
+            '"required_option_2=value_2"'
+            '],'
+            '"search": "Ａ%7C%20inputlookup%20tweets%20%7C%20countmatches%20fieldname%3Dword_count%20pattern%3D%22%5Cw%2B%22%20text%20record%3Dt%20%7C%20export%20add_timestamp%3Df%20add_offset%3Dt%20format%3Dcsv%20segmentation%3Draw",'
+            '"earliest_time": "0",'
+            '"session_key": "0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^",'
+            '"owner": "admin",'
+            '"sid": "1433261372.158",'
+            '"splunkd_uri": "https://127.0.0.1:8089",'
+            '"dispatch_dir": {dispatch_dir},'
+            '"raw_args": ['
+            '"logging_configuration={logging_configuration}",'
+            '"logging_level={logging_level}",'
+            '"record={record}",'
+            '"show_configuration={show_configuration}",'
+            '"required_option_1=value_1",'
+            '"required_option_2=value_2"'
+            '],'
+            '"maxresultrows": 10,'
+            '"command": "countmatches"'
+            '}}'
             '}}')
 
         basedir = self._package_directory
@@ -198,7 +194,7 @@ class TestSearchCommand(TestCase):
 
         expected = (
             'chunked 1.0,68,0\n'
-            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}\n'
+            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}'
             'chunked 1.0,17,32\n'
             '{"finished":true}test,__mv_test\r\n'
             'data,\r\n'
@@ -235,14 +231,18 @@ class TestSearchCommand(TestCase):
 
         self.assertEqual(command_metadata.preview, input_header['preview'])
         self.assertEqual(command_metadata.searchinfo.app, 'searchcommands_app')
-        self.assertEqual(command_metadata.searchinfo.args, ['logging_configuration=' + logging_configuration, 'logging_level=ERROR', 'record=false', 'show_configuration=true', 'required_option_1=value_1', 'required_option_2=value_2'])
+        self.assertEqual(command_metadata.searchinfo.args,
+                         ['logging_configuration=' + logging_configuration, 'logging_level=ERROR', 'record=false',
+                          'show_configuration=true', 'required_option_1=value_1', 'required_option_2=value_2'])
         self.assertEqual(command_metadata.searchinfo.dispatch_dir, os.path.dirname(input_header['infoPath']))
         self.assertEqual(command_metadata.searchinfo.earliest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.owner, 'admin')
         self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
-        self.assertEqual(command_metadata.searchinfo.search, 'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
-        self.assertEqual(command_metadata.searchinfo.session_key, '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
+        self.assertEqual(command_metadata.searchinfo.search,
+                         'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw')
+        self.assertEqual(command_metadata.searchinfo.session_key,
+                         '0JbG1fJEvXrL6iYZw9y7tmvd6nHjTKj7ggaE7a4Jv5R0UIbeYJ65kThn^3hiNeoqzMT_LOtLpVR3Y8TIJyr5bkHUElMijYZ8l14wU0L4n^Oa5QxepsZNUIIQCBm^')
         self.assertEqual(command_metadata.searchinfo.sid, '1433261372.158')
         self.assertEqual(command_metadata.searchinfo.splunk_version, '20150522')
         self.assertEqual(command_metadata.searchinfo.splunkd_uri, 'https://127.0.0.1:8089')

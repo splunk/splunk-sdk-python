@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2023 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,12 +16,8 @@
 
 """Runs all the Splunk SDK for Python unit tests."""
 
-from __future__ import absolute_import
 import os
-try:
-    import unittest2 as unittest  # We must be sure to get unittest2--not unittest--on Python 2.6
-except ImportError:
-    import unittest
+import unittest
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 suite = unittest.defaultTestLoader.discover('.')

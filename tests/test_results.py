@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,15 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-
+import io
 from io import BytesIO
 
-from splunklib.six import StringIO
-from tests import testlib
 from time import sleep
-import splunklib.results as results
-import io
+from tests import testlib
+from splunklib import results
 
 
 class ResultsTestCase(testlib.SDKTestCase):
@@ -161,12 +158,11 @@ class ResultsTestCase(testlib.SDKTestCase):
 
     def assert_parsed_results_equals(self, xml_text, expected_results):
         results_reader = results.ResultsReader(BytesIO(xml_text.encode('utf-8')))
-        actual_results = [x for x in results_reader]
+        actual_results = list(results_reader)
         self.assertEqual(expected_results, actual_results)
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

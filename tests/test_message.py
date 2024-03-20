@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,10 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
 
-import splunklib.client as client
+from splunklib import client
+
 
 class MessageTest(testlib.SDKTestCase):
     def setUp(self):
@@ -30,6 +30,7 @@ class MessageTest(testlib.SDKTestCase):
     def tearDown(self):
         testlib.SDKTestCase.tearDown(self)
         self.service.messages.delete(self.message_name)
+
 
 class TestCreateDelete(testlib.SDKTestCase):
     def test_create_delete(self):
@@ -46,11 +47,10 @@ class TestCreateDelete(testlib.SDKTestCase):
     def test_invalid_name(self):
         self.assertRaises(client.InvalidNameException, self.service.messages.create, None, value="What?")
         self.assertRaises(client.InvalidNameException, self.service.messages.create, 42, value="Who, me?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1,2,3], value="Who, me?")
+        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1, 2, 3], value="Who, me?")
+
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

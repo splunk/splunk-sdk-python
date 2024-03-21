@@ -140,7 +140,8 @@ setup(
 
     packages = ["splunklib",
                 "splunklib.modularinput",
-                "splunklib.searchcommands"],
+                "splunklib.searchcommands",
+                "splunklib.customrest"],
 
     url="http://github.com/splunk/splunk-sdk-python",
 

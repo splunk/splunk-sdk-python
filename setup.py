@@ -154,5 +154,4 @@ setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
     install_requires=["deprecation"],
-    readme=open("README.md").read(),
 )

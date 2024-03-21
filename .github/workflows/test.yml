@@ -11,7 +11,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        python: [ 2.7, 3.7 ]
+        python: [ 3.7, 3.9]
         splunk-version:
           - "8.1"
           - "8.2"
@@ -20,13 +20,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run docker-compose
         run: SPLUNK_VERSION=${{matrix.splunk-version}} docker-compose up -d
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
@@ -35,3 +35,6 @@ jobs:
 
       - name: Test Execution
         run: tox -e py
+  fossa-scan:
+    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+    secrets: inherit

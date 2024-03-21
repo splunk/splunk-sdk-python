@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,9 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
+
 from tests.modularinput.modularinput_testlib import unittest, data_open
 from splunklib.modularinput.validation_definition import ValidationDefinition
+
 
 class ValidationDefinitionTestCase(unittest.TestCase):
     def test_validation_definition_parse(self):
@@ -41,6 +42,7 @@ class ValidationDefinitionTestCase(unittest.TestCase):
         }
 
         self.assertEqual(expected, found)
+
 
 if __name__ == "__main__":
     unittest.main()

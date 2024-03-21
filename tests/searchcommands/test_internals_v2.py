@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 #
-# Copyright © 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,46 +15,37 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
-from splunklib.searchcommands import SearchMetric
-from splunklib import six
-from splunklib.six.moves import range
-from collections import OrderedDict
-from collections import namedtuple, deque
-from splunklib.six import BytesIO as BytesIO
-from functools import wraps
-from glob import iglob
-from itertools import chain
-from splunklib.six.moves import filter as ifilter
-from splunklib.six.moves import map as imap
-from splunklib.six.moves import zip as izip
-from sys import float_info
-from tempfile import mktemp
-from time import time
-from types import MethodType
-from sys import version_info as python_version
-try:
-    from unittest2 import main, TestCase
-except ImportError:
-    from unittest import main, TestCase
-
-import splunklib.six.moves.cPickle as pickle
 import gzip
 import io
 import json
 import os
 import random
+import sys
 
 import pytest
+from functools import wraps
+from itertools import chain
+from sys import float_info
+from tempfile import mktemp
+from time import time
+from types import MethodType
+from unittest import main, TestCase
+
+from collections import OrderedDict
+from collections import namedtuple, deque
+
+from splunklib.searchcommands.internals import MetadataDecoder, MetadataEncoder, Recorder, RecordWriterV2
+from splunklib.searchcommands import SearchMetric
+from io import BytesIO
+import pickle
+
 
 # region Functions for producing random apps
 
 # Confirmed: [minint, maxint) covers the full range of values that xrange allows
 
-minint = (-six.MAXSIZE - 1) // 2
-maxint = six.MAXSIZE // 2
+minint = (-sys.maxsize - 1) // 2
+maxint = sys.maxsize // 2
 
 max_length = 1 * 1024
 
@@ -90,7 +81,7 @@ def random_integer():
 
 
 def random_integers():
-    return random_list(six.moves.range, minint, maxint)
+    return random_list(range, minint, maxint)
 
 
 def random_list(population, *args):
@@ -98,7 +89,7 @@ def random_list(population, *args):
 
 
 def random_unicode():
-    return ''.join(imap(lambda x: six.unichr(x), random.sample(range(MAX_NARROW_UNICODE), random.randint(0, max_length))))
+    return ''.join([str(x) for x in random.sample(list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length))])
 
 # endregion
 
@@ -118,7 +109,6 @@ class TestInternals(TestCase):
         json_output = encoder.encode(view)
 
         self.assertEqual(self._json_input, json_output)
-        return
 
     def test_record_writer_with_random_data(self, save_recording=False):
 
@@ -138,7 +128,7 @@ class TestInternals(TestCase):
 
         for serial_number in range(0, 31):
             values = [serial_number, time(), random_bytes(), random_dict(), random_integers(), random_unicode()]
-            record = OrderedDict(izip(fieldnames, values))
+            record = OrderedDict(list(zip(fieldnames, values)))
             #try:
             write_record(record)
             #except Exception as error:
@@ -167,7 +157,7 @@ class TestInternals(TestCase):
 
         test_data['metrics'] = metrics
 
-        for name, metric in six.iteritems(metrics):
+        for name, metric in metrics.items():
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 0)
@@ -182,8 +172,8 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector['messages'], messages)
 
         self.assertDictEqual(
-            dict(ifilter(lambda k_v: k_v[0].startswith('metric.'), six.iteritems(writer._inspector))),
-            dict(imap(lambda k_v1: ('metric.' + k_v1[0], k_v1[1]), six.iteritems(metrics))))
+            dict(k_v for k_v in writer._inspector.items() if k_v[0].startswith('metric.')),
+            dict(('metric.' + k_v1[0], k_v1[1]) for k_v1 in metrics.items()))
 
         writer.flush(finished=True)
 
@@ -213,18 +203,15 @@ class TestInternals(TestCase):
         # P2 [ ] TODO: Verify that RecordWriter gives consumers the ability to finish early by calling
         # RecordWriter.flush(finish=True).
 
-        return
-
     def _compare_chunks(self, chunks_1, chunks_2):
         self.assertEqual(len(chunks_1), len(chunks_2))
         n = 0
-        for chunk_1, chunk_2 in izip(chunks_1, chunks_2):
+        for chunk_1, chunk_2 in zip(chunks_1, chunks_2):
             self.assertDictEqual(
                 chunk_1.metadata, chunk_2.metadata,
                 'Chunk {0}: metadata error: "{1}" != "{2}"'.format(n, chunk_1.metadata, chunk_2.metadata))
             self.assertMultiLineEqual(chunk_1.body, chunk_2.body, 'Chunk {0}: data error'.format(n))
             n += 1
-        return
 
     def _load_chunks(self, ifile):
         import re
@@ -276,11 +263,11 @@ class TestInternals(TestCase):
         'n': 12
     }
 
-    _json_input = six.text_type(json.dumps(_dictionary, separators=(',', ':')))
+    _json_input = str(json.dumps(_dictionary, separators=(',', ':')))
     _package_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestRecorder(object):
+class TestRecorder:
 
     def __init__(self, test_case):
 
@@ -293,7 +280,6 @@ class TestRecorder(object):
             raise NotImplementedError('class {} is not in playback or record mode'.format(self.__class__.__name__))
 
         self.get = self.next_part = self.stop = MethodType(_not_implemented, self, self.__class__)
-        return
 
     @property
     def output(self):
@@ -322,7 +308,6 @@ class TestRecorder(object):
             self._test_case.assertEqual(test_data['results'], self._output.getvalue())
 
         self.stop = MethodType(stop, self, self.__class__)
-        return
 
     def record(self, path):
 
@@ -357,7 +342,6 @@ class TestRecorder(object):
                 pickle.dump(test, f)
 
         self.stop = MethodType(stop, self, self.__class__)
-        return
 
 
 def recorded(method):
@@ -369,12 +353,11 @@ def recorded(method):
     return _record
 
 
-class Test(object):
+class Test:
 
     def __init__(self, fieldnames, data_generators):
 
         TestCase.__init__(self)
-
         self._data_generators = list(chain((lambda: self._serial_number, time), data_generators))
         self._fieldnames = list(chain(('_serial', '_time'), fieldnames))
         self._recorder = TestRecorder(self)
@@ -418,15 +401,14 @@ class Test(object):
         names = self.fieldnames
 
         for self._serial_number in range(0, 31):
-            record = OrderedDict(izip(names, self.row))
+            record = OrderedDict(list(zip(names, self.row)))
             write_record(record)
-
-        return
 
 
 # test = Test(['random_bytes', 'random_unicode'], [random_bytes, random_unicode])
 # test.record()
 # test.playback()
+
 
 if __name__ == "__main__":
     main()

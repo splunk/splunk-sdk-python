@@ -1,4 +1,4 @@
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,24 +12,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-from splunklib.six.moves.urllib.parse import urlsplit
 import sys
+import xml.etree.ElementTree as ET
+from urllib.parse import urlsplit
 
 from ..client import Service
 from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
-from splunklib import six
-
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
 
 
-class Script(six.with_metaclass(ABCMeta, object)):
+class Script(metaclass=ABCMeta):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
@@ -74,7 +68,7 @@ class Script(six.with_metaclass(ABCMeta, object)):
                 event_writer.close()
                 return 0
 
-            elif str(args[1]).lower() == "--scheme":
+            if str(args[1]).lower() == "--scheme":
                 # Splunk has requested XML specifying the scheme for this
                 # modular input Return it and exit.
                 scheme = self.get_scheme()
@@ -83,11 +77,10 @@ class Script(six.with_metaclass(ABCMeta, object)):
                         EventWriter.FATAL,
                         "Modular input script returned a null scheme.")
                     return 1
-                else:
-                    event_writer.write_xml_document(scheme.to_xml())
-                    return 0
+                event_writer.write_xml_document(scheme.to_xml())
+                return 0
 
-            elif args[1].lower() == "--validate-arguments":
+            if args[1].lower() == "--validate-arguments":
                 validation_definition = ValidationDefinition.parse(input_stream)
                 try:
                     self.validate_input(validation_definition)
@@ -98,11 +91,10 @@ class Script(six.with_metaclass(ABCMeta, object)):
                     event_writer.write_xml_document(root)
 
                     return 1
-            else:
-                err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
-                    args)
-                event_writer._err.write(err_string)
-                return 1
+            err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
+                args)
+            event_writer._err.write(err_string)
+            return 1
 
         except Exception as e:
             event_writer.log(EventWriter.ERROR, str(e))
@@ -165,7 +157,6 @@ class Script(six.with_metaclass(ABCMeta, object)):
 
         :param definition: The parameters for the proposed input passed by splunkd.
         """
-        pass
 
     @abstractmethod
     def stream_events(self, inputs, ew):

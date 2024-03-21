@@ -1,5 +1,42 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 2.0.0-beta
+
+### Feature updates
+* `ensure_binary`, `ensure_str` and `assert_regex` utility methods have been migrated from `six.py` to `splunklib/utils.py`
+
+### Major changes
+* Removed Code specific to Python2
+* Removed six.py dependency
+* Removed `__future__` imports
+* Refactored & Updated `splunklib` and `tests` to utilise Python3 features
+* Updated CI test matrix to run with Python versions - 3.7 and 3.9
+* Refactored Code throwing `deprecation` warnings
+* Refactored Code violating Pylint rules
+## Version 1.7.4
+
+### Bug fixes
+* [#532](https://github.com/splunk/splunk-sdk-python/pull/532) update encoding errors mode to 'replace' [[issue#505](https://github.com/splunk/splunk-sdk-python/issues/505)]
+* [#507](https://github.com/splunk/splunk-sdk-python/pull/507) masked sensitive data in logs [[issue#506](https://github.com/splunk/splunk-sdk-python/issues/506)]
+
+### Minor changes
+* [#530](https://github.com/splunk/splunk-sdk-python/pull/530) Update GitHub CI build status in README and removed RTD(Read The Docs) reference
+
+## Version 1.7.3
+
+### Bug fixes
+* [#493](https://github.com/splunk/splunk-sdk-python/pull/493) Fixed file permission for event_writer.py file [[issue#487](https://github.com/splunk/splunk-sdk-python/issues/487)]
+* [#500](https://github.com/splunk/splunk-sdk-python/pull/500) Replaced index_field with accelerated_field for kvstore [[issue#497](https://github.com/splunk/splunk-sdk-python/issues/497)]
+* [#502](https://github.com/splunk/splunk-sdk-python/pull/502) Updated check for IPv6 addresses
+
+### Minor changes
+* [#490](https://github.com/splunk/splunk-sdk-python/pull/490) Added ACL properties update feature
+* [#495](https://github.com/splunk/splunk-sdk-python/pull/495) Added Splunk 8.1 in GitHub Actions Matrix
+* [#485](https://github.com/splunk/splunk-sdk-python/pull/485) Added test case for cookie persistence
+* [#503](https://github.com/splunk/splunk-sdk-python/pull/503) README updates on accessing "service" instance in CSC and ModularInput apps
+* [#504](https://github.com/splunk/splunk-sdk-python/pull/504) Updated authentication token names in docs to reduce confusion
+* [#494](https://github.com/splunk/splunk-sdk-python/pull/494) Reuse splunklib.__version__ in handler.request 
+
 ## Version 1.7.2
 
 ### Minor changes

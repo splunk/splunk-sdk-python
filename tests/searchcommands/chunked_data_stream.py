@@ -4,19 +4,19 @@ import io
 import json
 
 import splunklib.searchcommands.internals
-from splunklib import six
+from splunklib.utils import ensure_binary, ensure_str
 
 
-class Chunk(object):
+class Chunk:
     def __init__(self, version, meta, data):
-        self.version = six.ensure_str(version)
+        self.version = ensure_str(version)
         self.meta = json.loads(meta)
         dialect = splunklib.searchcommands.internals.CsvDialect
         self.data = csv.DictReader(io.StringIO(data.decode("utf-8")),
                                    dialect=dialect)
 
 
-class ChunkedDataStreamIter(collections.Iterator):
+class ChunkedDataStreamIter(collections.abc.Iterator):
     def __init__(self, chunk_stream):
         self.chunk_stream = chunk_stream
 
@@ -30,7 +30,7 @@ class ChunkedDataStreamIter(collections.Iterator):
             raise StopIteration
 
 
-class ChunkedDataStream(collections.Iterable):
+class ChunkedDataStream(collections.abc.Iterable):
     def __iter__(self):
         return ChunkedDataStreamIter(self)
 
@@ -54,7 +54,7 @@ class ChunkedDataStream(collections.Iterable):
 
 
 def build_chunk(keyval, data=None):
-    metadata = six.ensure_binary(json.dumps(keyval), 'utf-8')
+    metadata = ensure_binary(json.dumps(keyval))
     data_output = _build_data_csv(data)
     return b"chunked 1.0,%d,%d\n%s%s" % (len(metadata), len(data_output), metadata, data_output)
 
@@ -87,7 +87,7 @@ def _build_data_csv(data):
         return b''
     if isinstance(data, bytes):
         return data
-    csvout = splunklib.six.StringIO()
+    csvout = io.StringIO()
 
     headers = set()
     for datum in data:
@@ -97,4 +97,4 @@ def _build_data_csv(data):
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)
-    return six.ensure_binary(csvout.getvalue())
+    return ensure_binary(csvout.getvalue())

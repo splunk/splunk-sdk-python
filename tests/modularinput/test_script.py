@@ -1,16 +1,13 @@
 import sys
 
+import io
+import xml.etree.ElementTree as ET
 from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
-import io
 
 from splunklib.modularinput.utils import xml_compare
 from tests.modularinput.modularinput_testlib import data_open
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
 
 TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__"
 
@@ -51,7 +48,7 @@ def test_scheme_properly_generated_by_script(capsys):
     class NewScript(Script):
         def get_scheme(self):
             scheme = Scheme("abcd")
-            scheme.description = u"\uC3BC and \uC3B6 and <&> f\u00FCr"
+            scheme.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
             scheme.streaming_mode = scheme.streaming_mode_simple
             scheme.use_external_validation = False
             scheme.use_single_instance = True
@@ -60,7 +57,7 @@ def test_scheme_properly_generated_by_script(capsys):
             scheme.add_argument(arg1)
 
             arg2 = Argument("arg2")
-            arg2.description = u"\uC3BC and \uC3B6 and <&> f\u00FCr"
+            arg2.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
             arg2.data_type = Argument.data_type_number
             arg2.required_on_create = True
             arg2.required_on_edit = True
@@ -208,7 +205,7 @@ def test_service_property(capsys):
     # Override abstract methods
     class NewScript(Script):
         def __init__(self):
-            super(NewScript, self).__init__()
+            super().__init__()
             self.authority_uri = None
 
         def get_scheme(self):

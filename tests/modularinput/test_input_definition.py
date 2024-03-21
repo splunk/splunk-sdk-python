@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,9 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests.modularinput.modularinput_testlib import unittest, data_open
 from splunklib.modularinput.input_definition import InputDefinition
+
 
 class InputDefinitionTestCase(unittest.TestCase):
 
@@ -70,7 +70,8 @@ class InputDefinitionTestCase(unittest.TestCase):
         """Does malformed XML cause the expected exception."""
 
         with self.assertRaises(ValueError):
-            found = InputDefinition.parse(data_open("data/conf_with_invalid_inputs.xml"))
+            InputDefinition.parse(data_open("data/conf_with_invalid_inputs.xml"))
+
 
 if __name__ == "__main__":
     unittest.main()

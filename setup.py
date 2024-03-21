@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,10 +24,7 @@ import splunklib
 failed = False
 
 def run_test_suite():
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
 
     def mark_failed():
         global failed

@@ -142,6 +142,10 @@ setup(
                 "splunklib.modularinput",
                 "splunklib.searchcommands"],
 
+    install_requires=[
+        "deprecation",
+    ],
+
     url="http://github.com/splunk/splunk-sdk-python",
 
     version=splunklib.__version__,

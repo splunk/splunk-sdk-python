@@ -1,5 +1,11 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 2.0.1
+
+### Bug fixes
+* [#567](https://github.com/splunk/splunk-sdk-python/issues/567) Moved "deprecation" dependency
+
+
 ## Version 2.0.0
 
 ### Feature updates

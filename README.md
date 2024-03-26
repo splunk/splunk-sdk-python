@@ -4,7 +4,7 @@
 
 # The Splunk Enterprise Software Development Kit for Python
 
-#### Version 1.7.4
+#### Version 2.0.0
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
 
@@ -19,13 +19,13 @@ The Splunk developer platform enables developers to take advantage of the same t
 
 ## Get started with the Splunk Enterprise SDK for Python
 
-The Splunk Enterprise SDK for Python contains library code, and it's examples are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository, that show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
+The Splunk Enterprise SDK for Python contains library code, and its examples are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
 
 ### Requirements
 
 Here's what you need to get going with the Splunk Enterprise SDK for Python.
 
-* Python 3.7 or Python 3.9. 
+* Python 3.7 or Python 3.9 
   
   The Splunk Enterprise SDK for Python is compatible with python3 and has been tested with Python v3.7 and v3.9.
 

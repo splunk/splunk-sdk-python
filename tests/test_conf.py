@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,12 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from tests import testlib
-import logging
 
-import splunklib.client as client
-from splunklib import six
+from splunklib import client
 
 class TestRead(testlib.SDKTestCase):
     def test_read(self):
@@ -40,7 +37,7 @@ class TestRead(testlib.SDKTestCase):
 
 class TestConfs(testlib.SDKTestCase):
     def setUp(self):
-        super(TestConfs, self).setUp()
+        super().setUp()
         self.app_name = testlib.tmpname()
         self.app = self.service.apps.create(self.app_name)
         # Connect using the test app context
@@ -90,7 +87,7 @@ class TestConfs(testlib.SDKTestCase):
                   testlib.tmpname(): testlib.tmpname()}
         stanza.submit(values)
         stanza.refresh()
-        for key, value in six.iteritems(values):
+        for key, value in values.items():
             self.assertTrue(key in stanza)
             self.assertEqual(value, stanza[key])
 
@@ -105,8 +102,5 @@ class TestConfs(testlib.SDKTestCase):
         self.assertTrue(conf_name in confs)
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
     unittest.main()

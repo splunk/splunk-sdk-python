@@ -1,4 +1,4 @@
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,16 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 from io import TextIOBase
-from splunklib.six import ensure_text
+import xml.etree.ElementTree as ET
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError as ie:
-    import xml.etree.ElementTree as ET
+from splunklib.utils import ensure_str
 
-class Event(object):
+
+class Event:
     """Represents an event or fragment of an event to be written by this modular input to Splunk.
 
     To write an input to a stream, call the ``write_to`` function, passing in a stream.
@@ -108,7 +105,7 @@ class Event(object):
             ET.SubElement(event, "done")
 
         if isinstance(stream, TextIOBase):
-            stream.write(ensure_text(ET.tostring(event)))
+            stream.write(ensure_str(ET.tostring(event)))
         else:
             stream.write(ET.tostring(event))
         stream.flush()

@@ -14,20 +14,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-
 import json
 from tests import testlib
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
-import splunklib.client as client
+from splunklib import client
+
 
 class KVStoreConfTestCase(testlib.SDKTestCase):
     def setUp(self):
-        super(KVStoreConfTestCase, self).setUp()
-        #self.service.namespace['owner'] = 'nobody'
+        super().setUp()
         self.service.namespace['app'] = 'search'
         self.confs = self.service.kvstore
         if ('test' in self.confs):
@@ -42,7 +36,7 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs.create('test')
         self.assertTrue('test' in self.confs)
         self.confs['test'].delete()
-        self.assertTrue(not 'test' in self.confs)
+        self.assertTrue('test' not in self.confs)
 
     def test_create_fields(self):
         self.confs.create('test', accelerated_fields={'ind1':{'a':1}}, fields={'a':'number1'})
@@ -74,7 +68,6 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.assertEqual(self.confs['test']['field.a'], 'string')
         self.confs['test'].delete()
 
-
     def test_create_unique_collection(self):
         self.confs.create('test')
         self.assertTrue('test' in self.confs)
@@ -94,12 +87,11 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.confs['test'].delete()
 
     def tearDown(self):
-        if ('test' in self.confs):
+        if 'test' in self.confs:
             self.confs['test'].delete()
 
+
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+    import unittest
+
     unittest.main()

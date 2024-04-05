@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011-2015 Splunk, Inc.
+# Copyright © 2011-2024 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,14 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
-import pytest
-
-from tests import testlib
 import unittest
+import pytest
+from tests import testlib
 
-import splunklib.client as client
-from splunklib.client import AuthenticationError
+from splunklib import client
+from splunklib.binding import AuthenticationError
 from splunklib.client import Service
 from splunklib.binding import HTTPError
 
@@ -59,7 +57,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         try:
             self.assertEqual(self.service.info.licenseState, 'OK')
         except HTTPError as he:
-            self.fail("Couldn't get the server info, probably got a 403! %s" % he.message)
+            self.fail(f"Couldn't get the server info, probably got a 403! {he.message}")
 
         self.service.namespace["owner"] = owner
         self.service.namespace["app"] = app
@@ -190,7 +188,7 @@ class TestCookieAuthentication(unittest.TestCase):
 
         def assertIsNotNone(self, obj, msg=None):
             if obj is None:
-                raise self.failureException(msg or '%r is not None' % obj)
+                raise self.failureException(msg or f'{obj} is not None')
 
     def test_login_and_store_cookie(self):
         self.assertIsNotNone(self.service.get_cookies())
@@ -367,8 +365,5 @@ class TestEntityNamespacing(testlib.SDKTestCase):
 
 
 if __name__ == "__main__":
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
+
     unittest.main()

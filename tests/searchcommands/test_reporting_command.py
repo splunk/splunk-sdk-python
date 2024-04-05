@@ -1,6 +1,6 @@
 import io
 
-import splunklib.searchcommands as searchcommands
+from splunklib import searchcommands
 from . import chunked_data_stream as chunky
 
 
@@ -15,7 +15,7 @@ def test_simple_reporting_command():
 
     cmd = TestReportingCommand()
     ifile = io.BytesIO()
-    data = list()
+    data = []
     for i in range(0, 10):
         data.append({"value": str(i)})
     ifile.write(chunky.build_getinfo_chunk())

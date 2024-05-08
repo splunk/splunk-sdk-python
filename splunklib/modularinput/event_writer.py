@@ -73,7 +73,7 @@ class EventWriter:
 
         :param message: ``string``, message to log.
         :param exception: ``Exception``, exception thrown by this modular input; if none, sys.exc_info() is used
-        :param severity: ``string``, severity of message, see severities defined as class constants. Default: ERROR
+        :param severity: ``string``, severity of message, see severities defined as class constants. Default severity: ERROR
         """
         if exception is not None:
             tb_str = traceback.format_exception(type(exception), exception, exception.__traceback__)

@@ -662,8 +662,9 @@ class Context:
         """
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
+        all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug("DELETE request to %s (body: %s)", path, mask_sensitive_data(query))
-        response = self.http.delete(path, self._auth_headers, **query)
+        response = self.http.delete(path, all_headers, **query)
         return response
 
     @_authentication

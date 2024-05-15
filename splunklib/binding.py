@@ -610,7 +610,7 @@ class Context:
 
     @_authentication
     @_log_duration
-    def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def delete(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a DELETE operation at the REST path segment with the given
         namespace and query.
 
@@ -633,6 +633,8 @@ class Context:
         :type owner: ``string``
         :param app: The app context of the namespace (optional).
         :type app: ``string``
+        :param app: The additional headers to pass to the delete request (optional).
+        :type app: ``list``
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :param query: All other keyword arguments, which are used as query

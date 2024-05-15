@@ -661,7 +661,10 @@ class Context:
             c.delete('nonexistant/path') # raises HTTPError
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
-        """
+        """        
+        if headers is None:
+            headers = []
+        
         path = self.authority + self._abspath(path_segment, owner=owner,
                                               app=app, sharing=sharing)
         all_headers = headers + self.additional_headers + self._auth_headers

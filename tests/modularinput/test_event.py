@@ -162,7 +162,7 @@ def test_log_exception():
 
     try:
         raise exc
-    except:
+    except Exception:
         ew.log_exception("ex1")
 
     assert out.getvalue() == ""

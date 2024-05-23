@@ -1,6 +1,7 @@
 import sys
 
 import io
+import re
 import xml.etree.ElementTree as ET
 from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
@@ -228,3 +229,37 @@ def test_service_property(capsys):
         assert output.err == ""
         assert isinstance(script.service, Service)
         assert script.service.authority == script.authority_uri
+
+
+def test_log_script_exception(monkeypatch):
+    out, err = io.StringIO(), io.StringIO()
+
+    # Override abstract methods
+    class NewScript(Script):
+        def get_scheme(self):
+            return None
+
+        def stream_events(self, inputs, ew):
+            raise RuntimeError("Some error")
+
+    script = NewScript()
+    input_configuration = data_open("data/conf_with_2_inputs.xml")
+
+    ew = EventWriter(out, err)
+
+    assert script.run_script([TEST_SCRIPT_PATH], ew, input_configuration) == 1
+
+    # Remove paths and line numbers
+    err = re.sub(r'File "[^"]+', 'File "...', err.getvalue())
+    err = re.sub(r'line \d+', 'line 123', err)
+
+    assert out.getvalue() == ""
+    assert err == (
+        'ERROR Some error - '
+        'Traceback (most recent call last): '
+        '  File "...", line 123, in run_script '
+        '    self.stream_events(self._input_definition, event_writer) '
+        '  File "...", line 123, in stream_events '
+        '    raise RuntimeError("Some error") '
+        'RuntimeError: Some error '
+    )

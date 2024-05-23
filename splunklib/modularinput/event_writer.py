@@ -13,6 +13,7 @@
 # under the License.
 
 import sys
+import traceback
 
 from splunklib.utils import ensure_str
 from .event import ET
@@ -64,6 +65,25 @@ class EventWriter:
         """
 
         self._err.write(f"{severity} {message}\n")
+        self._err.flush()
+
+    def log_exception(self, message, exception=None, severity=None):
+        """Logs messages about the exception thrown by this modular input to Splunk.
+        These messages will show up in Splunk's internal logs.
+
+        :param message: ``string``, message to log.
+        :param exception: ``Exception``, exception thrown by this modular input; if none, sys.exc_info() is used
+        :param severity: ``string``, severity of message, see severities defined as class constants. Default severity: ERROR
+        """
+        if exception is not None:
+            tb_str = traceback.format_exception(type(exception), exception, exception.__traceback__)
+        else:
+            tb_str = traceback.format_exc()
+
+        if severity is None:
+            severity = EventWriter.ERROR
+
+        self._err.write(("%s %s - %s" % (severity, message, tb_str)).replace("\n", " "))
         self._err.flush()
 
     def write_xml_document(self, document):

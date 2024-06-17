@@ -140,7 +140,8 @@ setup(
 
     packages = ["splunklib",
                 "splunklib.modularinput",
-                "splunklib.searchcommands"],
+                "splunklib.searchcommands",
+                "splunklib.customrest"],
 
     install_requires=[
             "deprecation",

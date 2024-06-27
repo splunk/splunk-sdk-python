@@ -1,5 +1,11 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 2.0.2
+
+### Minor changes
+* Added six.py file back
+
+
 ## Version 2.0.1
 
 ### Bug fixes

@@ -769,7 +769,7 @@ class Endpoint:
         # For example, "/services/search/jobs" is using API v1
         api_version = 1
 
-        versionSearch = re.search('(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
+        versionSearch = re.search(r'(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
         if versionSearch:
             api_version = int(versionSearch.group(1))
 

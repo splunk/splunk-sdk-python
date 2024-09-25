@@ -465,6 +465,8 @@ class Context:
     :type scheme: "https" or "http"
     :param verify: Enable (True) or disable (False) SSL verification for https connections.
     :type verify: ``Boolean``
+    :param self_signed_certificate: Specifies if self signed certificate is used
+    :type self_signed_certificate: ``Boolean``
     :param sharing: The sharing mode for the namespace (the default is "user").
     :type sharing: "global", "system", "app", or "user"
     :param owner: The owner context of the namespace (optional, the default is "None").
@@ -526,6 +528,7 @@ class Context:
         self.bearerToken = kwargs.get("splunkToken", "")
         self.autologin = kwargs.get("autologin", False)
         self.additional_headers = kwargs.get("headers", [])
+        self._self_signed_certificate = kwargs.get("self_signed_certificate", True)
 
         # Store any cookies in the self.http._cookies dict
         if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
@@ -604,7 +607,11 @@ class Context:
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.scheme == "https":
-            sock = ssl.wrap_socket(sock)
+            context = ssl.create_default_context()
+            context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+            context.check_hostname = not self._self_signed_certificate
+            context.verify_mode = ssl.CERT_NONE if self._self_signed_certificate else ssl.CERT_REQUIRED
+            sock = context.wrap_socket(sock, server_hostname=self.host)
         sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
 

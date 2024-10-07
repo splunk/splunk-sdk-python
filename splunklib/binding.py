@@ -809,6 +809,171 @@ class Context:
         response = self.http.post(path, all_headers, **query)
         return response
 
+
+    @_authentication
+    @_log_duration
+    def put(self, path_segment, object, owner=None, app=None, sharing=None, headers=None, **query):
+        """Performs a PUT operation from the REST path segment with the given object,
+        namespace and query.
+
+        This method is named to match the HTTP method. ``put`` makes at least
+        one round trip to the server, one additional round trip for each 303
+        status returned, and at most two additional round trips if
+        the ``autologin`` field of :func:`connect` is set to ``True``.
+
+        If *owner*, *app*, and *sharing* are omitted, this method uses the
+        default :class:`Context` namespace. All other keyword arguments are
+        included in the URL as query parameters.
+
+        Some of Splunk's endpoints, such as ``receivers/simple`` and
+        ``receivers/stream``, require unstructured data in the PUT body
+        and all metadata passed as GET-style arguments. If you provide
+        a ``body`` argument to ``put``, it will be used as the PUT
+        body, and all other keyword arguments will be passed as
+        GET-style arguments in the URL.
+
+        :raises AuthenticationError: Raised when the ``Context`` object is not
+             logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from
+             *path_segment*.
+        :param path_segment: A REST path segment.
+        :type path_segment: ``string``
+        :param object: The object to be PUT.
+        :type object: ``string``
+        :param owner: The owner context of the namespace (optional).
+        :type owner: ``string``
+        :param app: The app context of the namespace (optional).
+        :type app: ``string``
+        :param sharing: The sharing mode of the namespace (optional).
+        :type sharing: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
+        :param query: All other keyword arguments, which are used as query
+            parameters.
+        :param body: Parameters to be used in the post body. If specified,
+            any parameters in the query will be applied to the URL instead of
+            the body. If a dict is supplied, the key-value pairs will be form
+            encoded. If a string is supplied, the body will be passed through
+            in the request unchanged.
+        :type body: ``dict`` or ``str``
+        :return: The response from the server.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.post('saved/searches', name='boris',
+                   search='search * earliest=-1m | head 1') == \\
+                {'body': ...a response reader object...,
+                 'headers': [('content-length', '10455'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:46:06 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'Created',
+                 'status': 201}
+            c.post('nonexistant/path') # raises HTTPError
+            c.logout()
+            # raises AuthenticationError:
+            c.put('saved/searches/boris',
+                   search='search * earliest=-1m | head 1')
+        """
+        if headers is None:
+            headers = []
+
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing) + f"/{object}"
+
+        logger.debug("PUT request to %s (body: %s)", path, mask_sensitive_data(query))
+        all_headers = headers + self.additional_headers + self._auth_headers
+        response = self.http.put(path, all_headers, **query)
+        return response
+
+
+    @_authentication
+    @_log_duration
+    def patch(self, path_segment, object, owner=None, app=None, sharing=None, headers=None, **query):
+        """Performs a PATCH operation from the REST path segment with the given object,
+        namespace and query.
+
+        This method is named to match the HTTP method. ``patch`` makes at least
+        one round trip to the server, one additional round trip for each 303
+        status returned, and at most two additional round trips if
+        the ``autologin`` field of :func:`connect` is set to ``True``.
+
+        If *owner*, *app*, and *sharing* are omitted, this method uses the
+        default :class:`Context` namespace. All other keyword arguments are
+        included in the URL as query parameters.
+
+        Some of Splunk's endpoints, such as ``receivers/simple`` and
+        ``receivers/stream``, require unstructured data in the PATCH body
+        and all metadata passed as GET-style arguments. If you provide
+        a ``body`` argument to ``patch``, it will be used as the PATCH
+        body, and all other keyword arguments will be passed as
+        GET-style arguments in the URL.
+
+        :raises AuthenticationError: Raised when the ``Context`` object is not
+             logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from
+             *path_segment*.
+        :param path_segment: A REST path segment.
+        :type path_segment: ``string``
+        :param object: The object to be PUT.
+        :type object: ``string``
+        :param owner: The owner context of the namespace (optional).
+        :type owner: ``string``
+        :param app: The app context of the namespace (optional).
+        :type app: ``string``
+        :param sharing: The sharing mode of the namespace (optional).
+        :type sharing: ``string``
+        :param headers: List of extra HTTP headers to send (optional).
+        :type headers: ``list`` of 2-tuples.
+        :param query: All other keyword arguments, which are used as query
+            parameters.
+        :param body: Parameters to be used in the post body. If specified,
+            any parameters in the query will be applied to the URL instead of
+            the body. If a dict is supplied, the key-value pairs will be form
+            encoded. If a string is supplied, the body will be passed through
+            in the request unchanged.
+        :type body: ``dict`` or ``str``
+        :return: The response from the server.
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
+                and ``status``
+
+        **Example**::
+
+            c = binding.connect(...)
+            c.post('saved/searches', name='boris',
+                   search='search * earliest=-1m | head 1') == \\
+                {'body': ...a response reader object...,
+                 'headers': [('content-length', '10455'),
+                             ('expires', 'Fri, 30 Oct 1998 00:00:00 GMT'),
+                             ('server', 'Splunkd'),
+                             ('connection', 'close'),
+                             ('cache-control', 'no-store, max-age=0, must-revalidate, no-cache'),
+                             ('date', 'Fri, 11 May 2012 16:46:06 GMT'),
+                             ('content-type', 'text/xml; charset=utf-8')],
+                 'reason': 'Created',
+                 'status': 201}
+            c.post('nonexistant/path') # raises HTTPError
+            c.logout()
+            # raises AuthenticationError:
+            c.patch('saved/searches/boris',
+                   search='search * earliest=-1m | head 1')
+        """
+        if headers is None:
+            headers = []
+
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing) + f"/{object}"
+
+        logger.debug("PATCH request to %s (body: %s)", path, mask_sensitive_data(query))
+        all_headers = headers + self.additional_headers + self._auth_headers
+        response = self.http.patch(path, all_headers, **query)
+        return response
+
+
     @_authentication
     @_log_duration
     def request(self, path_segment, method="GET", headers=None, body={},
@@ -873,9 +1038,8 @@ class Context:
         logger.debug("%s request to %s (headers: %s, body: %s)",
                      method, path, str(mask_sensitive_data(dict(all_headers))), mask_sensitive_data(body))
         if body:
-            body = _encode(**body)
-
             if method == "GET":
+                body = _encode(**body)
                 path = path + UrlEncoded('?' + body, skip_encode=True)
                 message = {'method': method,
                            'headers': all_headers}
@@ -1210,6 +1374,40 @@ class HttpLib:
         self.retries = retries
         self.retryDelay = retryDelay
 
+    def _prepare_request_body_and_url(self, url, headers, **kwargs):
+        """Helper function to prepare the request body and URL.
+
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP request.
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional).
+        :type kwargs: ``dict``
+        :returns: A tuple containing the updated URL, headers, and body.
+        :rtype: ``tuple``
+        """
+        if headers is None:
+            headers = []
+
+        # We handle GET-style arguments and an unstructured body. This is here
+        # to support the receivers/stream endpoint.
+        if 'body' in kwargs:
+            # We only use application/x-www-form-urlencoded if there is no other
+            # Content-Type header present. This can happen in cases where we
+            # send requests as application/json, e.g. for KV Store.
+            if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
+                headers.append(("Content-Type", "application/x-www-form-urlencoded"))
+
+            body = kwargs.pop('body')
+            if isinstance(body, dict):
+                body = _encode(**body).encode('utf-8')
+            if len(kwargs) > 0:
+                url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
+        else:
+            body = _encode(**kwargs).encode('utf-8')
+
+        return url, headers, body
+
     def delete(self, url, headers=None, **kwargs):
         """Sends a DELETE request to a URL.
 
@@ -1282,24 +1480,7 @@ class HttpLib:
             its structure).
         :rtype: ``dict``
         """
-        if headers is None: headers = []
-
-        # We handle GET-style arguments and an unstructured body. This is here
-        # to support the receivers/stream endpoint.
-        if 'body' in kwargs:
-            # We only use application/x-www-form-urlencoded if there is no other
-            # Content-Type header present. This can happen in cases where we
-            # send requests as application/json, e.g. for KV Store.
-            if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
-                headers.append(("Content-Type", "application/x-www-form-urlencoded"))
-
-            body = kwargs.pop('body')
-            if isinstance(body, dict):
-                body = _encode(**body).encode('utf-8')
-            if len(kwargs) > 0:
-                url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
-        else:
-            body = _encode(**kwargs).encode('utf-8')
+        url, headers, body = self._prepare_request_body_and_url(url, headers, **kwargs)
         message = {
             'method': "POST",
             'headers': headers,
@@ -1307,6 +1488,58 @@ class HttpLib:
         }
         return self.request(url, message)
 
+    def put(self, url, headers=None, **kwargs):
+        """Sends a PUT request to a URL.
+
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP
+            response (for example, ``[('Content-Type': 'text/cthulhu'), ('Token': 'boris')]``).
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional). If the argument
+            is ``body``, the value is used as the body for the request, and the
+            keywords and their arguments will be URL encoded. If there is no
+            ``body`` keyword argument, all the keyword arguments are encoded
+            into the body of the request in the format ``x-www-form-urlencoded``.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
+        """
+        url, headers, body = self._prepare_request_body_and_url(url, headers, **kwargs)
+        message = {
+            'method': "PUT",
+            'headers': headers,
+            'body': body
+        }
+        return self.request(url, message)
+    
+    def patch(self, url, headers=None, **kwargs):
+        """Sends a PATCH request to a URL.
+
+        :param url: The URL.
+        :type url: ``string``
+        :param headers: A list of pairs specifying the headers for the HTTP
+            response (for example, ``[('Content-Type': 'text/cthulhu'), ('Token': 'boris')]``).
+        :type headers: ``list``
+        :param kwargs: Additional keyword arguments (optional). If the argument
+            is ``body``, the value is used as the body for the request, and the
+            keywords and their arguments will be URL encoded. If there is no
+            ``body`` keyword argument, all the keyword arguments are encoded
+            into the body of the request in the format ``x-www-form-urlencoded``.
+        :type kwargs: ``dict``
+        :returns: A dictionary describing the response (see :class:`HttpLib` for
+            its structure).
+        :rtype: ``dict``
+        """
+        url, headers, body = self._prepare_request_body_and_url(url, headers, **kwargs)
+        message = {
+            'method': "PATCH",
+            'headers': headers,
+            'body': body
+        }
+        return self.request(url, message)
+    
     def request(self, url, message, **kwargs):
         """Issues an HTTP request to a URL.
 

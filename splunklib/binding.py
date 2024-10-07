@@ -1038,8 +1038,9 @@ class Context:
         logger.debug("%s request to %s (headers: %s, body: %s)",
                      method, path, str(mask_sensitive_data(dict(all_headers))), mask_sensitive_data(body))
         if body:
+            body = _encode(**body)
+
             if method == "GET":
-                body = _encode(**body)
                 path = path + UrlEncoded('?' + body, skip_encode=True)
                 message = {'method': method,
                            'headers': all_headers}

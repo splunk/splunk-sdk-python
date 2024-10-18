@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run docker-compose
-        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker compose up -d
+        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker-compose up -d
 
       - name: Setup Python
         uses: actions/setup-python@v4

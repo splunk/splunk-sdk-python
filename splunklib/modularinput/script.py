@@ -91,13 +91,12 @@ class Script(metaclass=ABCMeta):
                     event_writer.write_xml_document(root)
 
                     return 1
-            err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
-                args)
-            event_writer._err.write(err_string)
+            event_writer.log(EventWriter.ERROR, "Invalid arguments to modular input script:" + ' '.join(
+                args))
             return 1
 
         except Exception as e:
-            event_writer.log(EventWriter.ERROR, str(e))
+            event_writer.log_exception(str(e))
             return 1
 
     @property

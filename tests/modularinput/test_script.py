@@ -252,6 +252,7 @@ def test_log_script_exception(monkeypatch):
     # Remove paths and line numbers
     err = re.sub(r'File "[^"]+', 'File "...', err.getvalue())
     err = re.sub(r'line \d+', 'line 123', err)
+    err = re.sub(r' +~+\^+', '', err)
 
     assert out.getvalue() == ""
     assert err == (

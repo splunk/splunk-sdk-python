@@ -101,6 +101,7 @@ PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
 PATH_JOBS_V2 = "search/v2/jobs/"
 PATH_LOGGER = "/services/server/logger/"
+PATH_MACROS = "configs/conf-macros/"
 PATH_MESSAGES = "messages/"
 PATH_MODULAR_INPUTS = "data/modular-inputs"
 PATH_ROLES = "authorization/roles/"
@@ -666,6 +667,15 @@ class Service(_BaseService):
             entities.
         """
         return SavedSearches(self)
+
+    @property
+    def macros(self):
+        """Returns the collection of macros.
+
+        :return: A :class:`Macros` collection of :class:`Macro`
+            entities.
+        """
+        return Macros(self)
 
     @property
     def settings(self):
@@ -3438,6 +3448,90 @@ class SavedSearches(Collection):
         :return: The :class:`SavedSearches` collection.
         """
         return Collection.create(self, name, search=search, **kwargs)
+
+
+class Macro(Entity):
+    """This class represents a search macro."""
+    def __init__(self, service, path, **kwargs):
+        Entity.__init__(self, service, path, **kwargs)
+
+    @property
+    def args(self):
+        """Returns the macro arguments.
+        :return: The macro arguments.
+        :rtype: ``string``
+        """
+        return self._state.content.get('args', '')
+
+    @property
+    def definition(self):
+        """Returns the macro definition.
+        :return: The macro definition.
+        :rtype: ``string``
+        """
+        return self._state.content.get('definition', '')
+
+    @property
+    def errormsg(self):
+        """Returns the validation error message for the macro.
+        :return: The validation error message for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('errormsg', '')
+
+    @property
+    def iseval(self):
+        """Returns the eval-based definition status of the macro.
+        :return: The iseval value for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('iseval', '0')
+
+    def update(self, definition=None, **kwargs):
+        """Updates the server with any changes you've made to the current macro
+        along with any additional arguments you specify.
+        :param `definition`: The macro definition (optional).
+        :type definition: ``string``
+        :param `kwargs`: Additional arguments (optional). Available parameters are:
+            'disabled', 'iseval', 'validation', and 'errormsg'.
+        :type kwargs: ``dict``
+        :return: The :class:`Macro`.
+        """
+        # Updates to a macro *require* that the definition be
+        # passed, so we pass the current definition if a value wasn't
+        # provided by the caller.
+        if definition is None: definition = self.content.definition
+        Entity.update(self, definition=definition, **kwargs)
+        return self
+
+    @property
+    def validation(self):
+        """Returns the validation expression for the macro.
+        :return: The validation expression for the macro.
+        :rtype: ``string``
+        """
+        return self._state.content.get('validation', '')
+
+
+class Macros(Collection):
+    """This class represents a collection of macros. Retrieve this
+    collection using :meth:`Service.macros`."""
+    def __init__(self, service):
+        Collection.__init__(
+            self, service, PATH_MACROS, item=Macro)
+
+    def create(self, name, definition, **kwargs):
+        """ Creates a macro.
+        :param name: The name for the macro.
+        :type name: ``string``
+        :param definition: The macro definition.
+        :type definition: ``string``
+        :param kwargs: Additional arguments (optional). Available parameters are:
+            'disabled', 'iseval', 'validation', and 'errormsg'.
+        :type kwargs: ``dict``
+        :return: The :class:`Macros` collection.
+        """
+        return Collection.create(self, name, definition=definition, **kwargs)
 
 
 class Settings(Entity):

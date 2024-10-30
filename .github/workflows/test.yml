@@ -1,7 +1,7 @@
 name: Python CI
 
 on:
-  [ push, pull_request ]
+  [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        python: [ 3.7, 3.9]
+        python: [ 3.7, 3.9, 3.13]
         splunk-version:
           - "8.1"
           - "8.2"
@@ -22,8 +22,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run docker-compose
-        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker-compose up -d
+      - name: Run docker compose
+        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker compose up -d
 
       - name: Setup Python
         uses: actions/setup-python@v4

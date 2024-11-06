@@ -390,7 +390,7 @@ class SearchCommand:
         :return: :const:`None`
 
         """
-        self._record_writer.flush(finished=False)
+        self._record_writer.flush(partial=True)
 
     def prepare(self):
         """ Prepare for execution.
@@ -788,6 +788,7 @@ class SearchCommand:
         # noinspection PyBroadException
         try:
             debug('Executing under protocol_version=2')
+            self._records = self._records_protocol_v2
             self._metadata.action = 'execute'
             self._execute(ifile, None)
         except SystemExit:
@@ -859,12 +860,18 @@ class SearchCommand:
         :rtype: NoneType
 
         """
-        if self.protocol_version == 1:
-            self._record_writer.write_records(process(self._records(ifile)))
-            self.finish()
-        else:
-            assert self._protocol_version == 2
-            self._execute_v2(ifile, process)
+        # TODO: refactor and account for DVPL-12129 
+        # if self.protocol_version == 1:
+        #     self._record_writer.write_records(process(self._records(ifile)))
+        # else:
+        #     assert self._protocol_version == 2
+        #     self._execute_v2(ifile, process)
+
+        # DVPL-12129
+        # Must process the all the records via self._records prior to writing
+        # See self._records_protocol_v1 and self._records_protocol_v2
+        self._record_writer.write_records(process(self._records(ifile)))
+        self.finish()
 
     @staticmethod
     def _as_binary_stream(ifile):
@@ -927,6 +934,57 @@ class SearchCommand:
 
     def _records_protocol_v1(self, ifile):
         return self._read_csv_records(ifile)
+    
+    def _records_protocol_v2(self, ifile):
+        istream = self._as_binary_stream(ifile)
+
+        while True:
+            result = self._read_chunk(istream)
+
+            if not result:
+                return
+
+            metadata, body = result
+            action = getattr(metadata, 'action', None)
+
+            if action != 'execute':
+                raise RuntimeError('Expected execute action, not {}'.format(action))
+
+            finished = getattr(metadata, 'finished', False)
+            self._record_writer.is_flushed = False
+
+            # DVPL-12129
+            # Read records from here and must not write the records (self._record_writer.write_records) right away
+            # so that in can be processed in batch as per maxresultrows. Otherwise we are writing smaller chunks of results,
+            # hence inneffective for streaming commands.
+            if len(body) > 0:
+                reader = csv.reader(StringIO(body), dialect=CsvDialect)
+
+                try:
+                    fieldnames = next(reader)
+                except StopIteration:
+                    return
+
+                mv_fieldnames = dict([(name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_')])
+
+                if len(mv_fieldnames) == 0:
+                    for values in reader:
+                        yield OrderedDict(izip(fieldnames, values))
+                else:
+                    for values in reader:
+                        record = OrderedDict()
+                        for fieldname, value in izip(fieldnames, values):
+                            if fieldname.startswith('__mv_'):
+                                if len(value) > 0:
+                                    record[mv_fieldnames[fieldname]] = self._decode_list(value)
+                            elif fieldname not in record:
+                                record[fieldname] = value
+                        yield record
+
+            if finished:
+                return
+
+            self.flush()
 
     def _read_csv_records(self, ifile):
         reader = csv.reader(ifile, dialect=CsvDialect)
@@ -953,6 +1011,8 @@ class SearchCommand:
                     record[fieldname] = value
             yield record
 
+    # Leaving this method here for generating_command.py for the time being
+    # TODO: refactor and account for DVPL-12129 
     def _execute_v2(self, ifile, process):
         istream = self._as_binary_stream(ifile)
 

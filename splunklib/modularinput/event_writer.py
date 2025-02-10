@@ -15,7 +15,7 @@
 import sys
 import traceback
 
-from splunklib.utils import ensure_str
+from ..utils import ensure_str
 from .event import ET
 
 

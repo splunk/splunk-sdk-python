@@ -9,31 +9,24 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os:
+          - ubuntu-latest
+        python: [ 3.7, 3.9, 3.13 ]
         splunk-version:
           - "8.1"
           - "8.2"
           - "latest"
         include:
-          - os: ubuntu-22.04  # Only for Python 3.7
-            python: 3.7
           - os: ubuntu-22.04
             python: 3.7
+            splunk-version: "8.1"
           - os: ubuntu-22.04
             python: 3.7
+            splunk-version: "8.2"
+          - os: ubuntu-22.04
+            python: 3.7
+            splunk-version: "latest"
 
-          - os: ubuntu-latest  # For newer Python versions
-            python: 3.9
-          - os: ubuntu-latest
-            python: 3.9
-          - os: ubuntu-latest
-            python: 3.9
-
-          - os: ubuntu-latest
-            python: 3.13
-          - os: ubuntu-latest
-            python: 3.13
-          - os: ubuntu-latest
-            python: 3.13
       fail-fast: false
 
     steps:

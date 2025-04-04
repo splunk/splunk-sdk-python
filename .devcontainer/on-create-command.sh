@@ -13,3 +13,7 @@ sudo apt update && sudo apt install -y python3.7 python3.7-venv python3.9 python
 
 # Install pip and tox for Python 3.7
 python3.7 -m ensurepip && python3.7 -m pip --disable-pip-version-check --no-cache-dir install tox
+
+# Set permissions on splunklib/ for
+# tests/test_utils.py::FilePermissionTest::test_filePermissions
+sudo find splunklib/ -type f -iname "*.py" -exec chmod 0644 {} \;

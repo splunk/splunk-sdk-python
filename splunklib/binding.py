@@ -39,8 +39,8 @@ from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
 from xml.etree.ElementTree import XML, ParseError
-from splunklib.data import record
-from splunklib import __version__
+from .data import record
+from . import __version__
 
 
 logger = logging.getLogger(__name__)

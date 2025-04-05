@@ -39,8 +39,8 @@ from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
 from xml.etree.ElementTree import XML, ParseError
-from splunklib.data import record
-from splunklib import __version__
+from .data import record
+from . import __version__
 
 
 logger = logging.getLogger(__name__)
@@ -1208,9 +1208,9 @@ class HttpLib:
     """
 
     def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,
-                 retryDelay=10):
+                 retryDelay=10, proxies=None):
         if custom_handler is None:
-            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context)
+            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context, proxies=proxies)
         else:
             self.handler = custom_handler
         self._cookies = {}
@@ -1434,7 +1434,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None):
+def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None, proxies=None):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
@@ -1447,7 +1447,9 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
     :param `verify`: Set to False to disable SSL verification on https connections.
     :type verify: ``Boolean``
     :param `context`: The SSLContext that can is used with the HTTPSConnection when verify=True is enabled and context is specified
-    :type context: ``SSLContext`
+    :type context: ``SSLContext``
+    :param `proxies`: A dictionary of possible proxies the handler can leverage
+    :type proxies: ``dict``
     """
 
     def connect(scheme, host, port):
@@ -1481,8 +1483,13 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         for key, value in message["headers"]:
             head[key] = value
         method = message.get("method", "GET")
-
-        connection = connect(scheme, host, port)
+        
+        # have a proxy entry for the current scheme
+        if proxies.get(scheme):
+            connection = connect(scheme, *(proxies.get(scheme).split(":")))
+            connection.set_tunnel("www.python.org")
+        else:
+            connection = connect(scheme, host, port)
         is_keepalive = False
         try:
             connection.request(method, path, body, head)

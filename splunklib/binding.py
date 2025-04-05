@@ -1487,7 +1487,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         # have a proxy entry for the current scheme
         if proxies.get(scheme):
             connection = connect(scheme, *(proxies.get(scheme).split(":")))
-            connection.set_tunnel("www.python.org")
+            connection.set_tunnel("%s:%s" % (host,port))
         else:
             connection = connect(scheme, host, port)
         is_keepalive = False

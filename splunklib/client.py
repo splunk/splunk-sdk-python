@@ -68,9 +68,9 @@ from datetime import datetime, timedelta
 from time import sleep
 from urllib import parse
 
-from . import data
-from .data import record
-from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
+from splunklib import data
+from splunklib.data import record
+from splunklib.binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
                                _encode, _make_cookie_header, _NoAuthenticationToken,
                                namespace)
 

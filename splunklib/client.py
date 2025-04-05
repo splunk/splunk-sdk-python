@@ -418,7 +418,7 @@ class Service(_BaseService):
         s = client.Service(cookie="splunkd_8089=...")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):        
         super().__init__(**kwargs)
         self._splunk_version = None
         self._kvstore_owner = None

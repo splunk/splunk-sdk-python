@@ -513,7 +513,8 @@ class Context:
         self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
                             cert_file=kwargs.get("cert_file"), context=kwargs.get("context"),
                             # Default to False for backward compat
-                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10))
+                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10),
+                            proxies=kwargs.get("proxies"))
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None:  # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -1207,8 +1208,7 @@ class HttpLib:
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
 
-    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,
-                 retryDelay=10, proxies=None):
+    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,retryDelay=10, proxies={}):
         if custom_handler is None:
             self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context, proxies=proxies)
         else:
@@ -1434,7 +1434,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None, proxies=None):
+def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None, proxies={}):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
@@ -1488,6 +1488,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         if proxies.get(scheme):
             connection = connect(scheme, *(proxies.get(scheme).split(":")))
             connection.set_tunnel("%s:%s" % (host,port))
+            path = "%s://%s:%s%s" % (scheme, host, port, path)
         else:
             connection = connect(scheme, host, port)
         is_keepalive = False

@@ -34,11 +34,8 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
-from splunklib.utils import ensure_str
-
 
 # Relative imports
-import splunklib
 from . import Boolean, Option, environment
 from .internals import (
     CommandLineParser,
@@ -53,6 +50,7 @@ from .internals import (
     RecordWriterV2,
     json_encode_string)
 from ..client import Service
+from ..utils import ensure_str
 
 
 # ----------------------------------------------------------------------------------------------------------------------

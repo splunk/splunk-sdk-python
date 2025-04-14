@@ -1,0 +1,26 @@
+{
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/bin/python3.9"
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "azureDnsAutoDetection": false,
+            "dockerDefaultAddressPool": "base=192.168.0.0/16,size=24"
+        }
+    },
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "16gb",
+        "storage": "32gb"
+    },
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "onCreateCommand": ".devcontainer/on-create-command.sh"
+}

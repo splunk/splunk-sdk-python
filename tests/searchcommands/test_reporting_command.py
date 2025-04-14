@@ -10,7 +10,7 @@ def test_simple_reporting_command():
         def reduce(self, records):
             value = 0
             for record in records:
-                value += int(record["value"])
+                value += int(record.get("value"))
             yield {'sum': value}
 
     cmd = TestReportingCommand()

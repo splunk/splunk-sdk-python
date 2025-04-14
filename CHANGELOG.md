@@ -1,5 +1,27 @@
 # Splunk Enterprise SDK for Python Changelog
 
+## Version 2.1.0
+
+### Changes
+* [#516](https://github.com/splunk/splunk-sdk-python/pull/516) Added support for macros
+* Remove deprecated `wrap_socket` in `Contex` class.
+* Added explicit support for self signed certificates in https
+* Enforce minimal required tls version in https connection
+* Add support for python 3.13
+* [#559](https://github.com/splunk/splunk-sdk-python/pull/559/) Add exception logging 
+
+## Version 2.0.2
+
+### Minor changes
+* Added six.py file back
+
+
+## Version 2.0.1
+
+### Bug fixes
+* [#567](https://github.com/splunk/splunk-sdk-python/issues/567) Moved "deprecation" dependency
+
+
 ## Version 2.0.0
 
 ### Feature updates

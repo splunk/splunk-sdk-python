@@ -77,21 +77,26 @@ class ReportingCommand(SearchCommand):
         """
         return NotImplemented
 
+    def _has_custom_method(self, method_name):
+        method = getattr(self.__class__, method_name, None)
+        base_method = getattr(ReportingCommand, method_name, None)
+        return callable(method) and (method is not base_method)
+
     def prepare(self):
-
-        phase = self.phase
-
-        if phase == 'map':
-            # noinspection PyUnresolvedReferences
-            self._configuration = self.map.ConfigurationSettings(self)
+        if self.phase == 'map':
+            if self._has_custom_method('map'):
+                phase_method = getattr(self.__class__, 'map')
+                self._configuration = phase_method.ConfigurationSettings(self)
+            else:
+                self._configuration = self.ConfigurationSettings(self)
             return
 
-        if phase == 'reduce':
+        if self.phase == 'reduce':
             streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
             self._configuration.streaming_preop = ' '.join(streaming_preop)
             return
 
-        raise RuntimeError(f'Unrecognized reporting command phase: {json_encode_string(str(phase))}')
+        raise RuntimeError(f'Unrecognized reporting command phase: {json_encode_string(str(self.phase))}')
 
     def reduce(self, records):
         """ Override this method to produce a reporting data structure.

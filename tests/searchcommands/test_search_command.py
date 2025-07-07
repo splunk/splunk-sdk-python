@@ -22,14 +22,17 @@ import csv
 import codecs
 import os
 import re
+import logging
 
 from io import TextIOWrapper
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 import splunklib
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
+from splunklib.searchcommands.internals import ObjectView
 from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 from splunklib.utils import ensure_binary
@@ -264,6 +267,52 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.protocol_version, 2)
 
     _package_directory = os.path.dirname(os.path.abspath(__file__))
+
+class TestSearchCommandService(TestCase):
+    def setUp(self):
+        TestCase.setUp(self)
+        self.command = SearchCommand()
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
+        self.command.logger.addHandler(console_handler)
+
+    def test_service_exists(self):
+        self.command._service = Service()
+        self.assertIsNotNone(self.command.service)
+
+    def test_service_not_exists(self):
+        self.assertIsNone(self.command.service)
+
+    def test_missing_metadata(self):
+        with self.assertLogs(self.command.logger, level='WARNING') as log:
+            service = self.command.service
+            self.assertIsNone(service)
+        self.assertTrue(any("Missing metadata for service creation." in message for message in log.output))
+
+    def test_missing_searchinfo(self):
+        with self.assertLogs(self.command.logger, level='WARNING') as log:
+            self.command._metadata = ObjectView({})
+            self.assertIsNone(self.command.service)
+        self.assertTrue(any("Missing searchinfo in metadata for service creation." in message for message in log.output))
+
+
+    def test_missing_splunkd_uri(self):
+        with self.assertLogs(self.command.logger, level='WARNING') as log:
+            metadata = ObjectView({"searchinfo": ObjectView({"splunkd_uri": ""})})
+            self.command._metadata = metadata
+            self.assertIsNone(self.command.service)
+        self.assertTrue(any("Incorrect value for Splunkd URI: '' in metadata" in message for message in log.output))
+
+
+
+    def test_service_returns_valid_service_object(self):
+        metadata = ObjectView({"searchinfo":ObjectView({"splunkd_uri":"https://127.0.0.1:8089",
+                                                        "session_key":"mock_session_key",
+                                                        "app":"search",
+                                                        })})
+        self.command._metadata = metadata
+        self.assertIsInstance(self.command.service, Service)
+
 
 
 if __name__ == "__main__":

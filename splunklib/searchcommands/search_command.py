@@ -340,23 +340,28 @@ class SearchCommand:
             of :code:`None` is returned.
 
         """
+
         if self._service is not None:
             return self._service
 
         metadata = self._metadata
 
         if metadata is None:
+            self.logger.warning("Missing metadata for service creation.")
             return None
 
         try:
             searchinfo = self._metadata.searchinfo
         except AttributeError:
+            self.logger.warning("Missing searchinfo in metadata for service creation.")
             return None
 
         splunkd_uri = searchinfo.splunkd_uri
 
-        if splunkd_uri is None:
+        if splunkd_uri is None or splunkd_uri == "" or splunkd_uri == " ":
+            self.logger.warning(f"Incorrect value for Splunkd URI: {splunkd_uri!r} in metadata")
             return None
+
 
         uri = urlsplit(splunkd_uri, allow_fragments=False)
 

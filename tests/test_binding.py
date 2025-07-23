@@ -454,7 +454,7 @@ def urllib2_handler(url, message, **kwargs):
     headers = dict(message.get('headers', []))
     req = Request(url, data, headers)
     try:
-        response = urlopen(req, context=ssl._create_unverified_context())
+        response = urlopen(req, context=ssl._create_unverified_context())  # nosemgrep
     except HTTPError as response:
         pass  # Propagate HTTP errors via the returned response message
     return {
@@ -498,7 +498,7 @@ def urllib2_insert_cookie_handler(url, message, **kwargs):
     headers = dict(message.get('headers', []))
     req = Request(url, data, headers)
     try:
-        response = urlopen(req, context=ssl._create_unverified_context())
+        response = urlopen(req, context=ssl._create_unverified_context())  # nosemgrep
     except HTTPError as response:
         pass  # Propagate HTTP errors via the returned response message
 

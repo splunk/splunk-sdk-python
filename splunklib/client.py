@@ -68,9 +68,9 @@ from datetime import datetime, timedelta
 from time import sleep
 from urllib import parse
 
-from splunklib import data
-from splunklib.data import record
-from splunklib.binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
+from . import data
+from .data import record
+from .binding import (AuthenticationError, Context, HTTPError, UrlEncoded,
                                _encode, _make_cookie_header, _NoAuthenticationToken,
                                namespace)
 
@@ -779,7 +779,7 @@ class Endpoint:
         # For example, "/services/search/jobs" is using API v1
         api_version = 1
 
-        versionSearch = re.search('(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
+        versionSearch = re.search(r'(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/', path)
         if versionSearch:
             api_version = int(versionSearch.group(1))
 

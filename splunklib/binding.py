@@ -1460,7 +1460,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
             if cert_file is not None: kwargs['cert_file'] = cert_file
 
             if not verify:
-                kwargs['context'] = ssl._create_unverified_context()
+                kwargs['context'] = ssl._create_unverified_context()  # nosemgrep
             elif context:
                 # verify is True in elif branch and context is not None
                 kwargs['context'] = context

@@ -16,39 +16,12 @@
 
 from setuptools import setup
 
-import splunklib
 
-setup(
-    author="Splunk, Inc.",
+def get_version():
+    with open("splunklib/__init__.py") as f:
+        for line in f:
+            if line.startswith("__version__"):
+                return line.split("=")[1].strip().strip('"').strip("'")
 
-    author_email="devinfo@splunk.com",
 
-    description="The Splunk Software Development Kit for Python.",
-
-    license="http://www.apache.org/licenses/LICENSE-2.0",
-
-    name="splunk-sdk",
-
-    packages = ["splunklib",
-                "splunklib.modularinput",
-                "splunklib.searchcommands"],
-
-    install_requires=[
-            "deprecation",
-        ],
-
-    url="http://github.com/splunk/splunk-sdk-python",
-
-    version=splunklib.__version__,
-
-    classifiers = [
-        "Programming Language :: Python",
-        "Development Status :: 6 - Mature",
-        "Environment :: Other Environment",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: Apache Software License",
-        "Operating System :: OS Independent",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Software Development :: Libraries :: Application Frameworks",
-    ],
-)
+setup(version=get_version())

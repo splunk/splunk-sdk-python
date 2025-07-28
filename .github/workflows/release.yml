@@ -22,14 +22,14 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           user: __token__
-          password: ${{ secrets.pypi_password }}
+          password: ${{ secrets.PYPI_PASSWORD }}
       - name: Install tox
         run: pip install tox
       - name: Generate API docs
         run: |
           rm -rf ./docs/_build
           tox -e docs
-      - name : Docs Upload
+      - name: Docs Upload
         uses: actions/upload-artifact@v3
         with:
           name: python_sdk_docs

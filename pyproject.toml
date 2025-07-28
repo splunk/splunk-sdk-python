@@ -23,8 +23,15 @@ classifiers = [
 
 dependencies = [
   "deprecation>=2.1.0",
-  "mypy>=1.4.1",
-  "ruff>=0.12.5",
+  "flake8>=3.9.2",
+  "flake8-blind-except>=0.2.1",
+  "flake8-builtins>=2.1.0",
+  "flake8-docstrings>=1.7.0",
+  "flake8-import-order>=0.19.2",
+  "flake8-logging-format>=2024.24.12",
+  "flake8-rst-docstrings>=0.3.0",
+  "pylint>=2.13.9",
+  "six>=1.17.0",
   "tox>=4.8.0",
   "types-setuptools>=69.0.0.0",
 ]
@@ -34,7 +41,7 @@ HOMEPAGE = "https://pypi.org/project/splunk-sdk"
 DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.0.0"
 REPO = "http://github.com/splunk/splunk-sdk-python.git"
 
-# [tool.setuptools.package-dir]
-# "splunklib" = "splunklib"
-# "splunklib.modularinput" = "splunklib/modularinput"
-# "splunklib.searchcommands" = "splunklib/searchcommands"
+[tool.setuptools.package-dir]
+"splunklib" = "splunklib"
+"splunklib.modularinput" = "splunklib/modularinput"
+"splunklib.searchcommands" = "splunklib/searchcommands"

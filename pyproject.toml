@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "splunk-sdk-python"
+name = "splunk-sdk"
 version = "2.1.0"
 description = "The Splunk Software Development Kit for Python."
 readme = "README.md"
@@ -31,6 +31,7 @@ dependencies = [
   "flake8-logging-format>=2024.24.12",
   "flake8-rst-docstrings>=0.3.0",
   "pylint>=2.13.9",
+  "python-dotenv>=0.21.1",
   "six>=1.17.0",
   "tox>=4.8.0",
   "types-setuptools>=69.0.0.0",
@@ -41,7 +42,6 @@ HOMEPAGE = "https://pypi.org/project/splunk-sdk"
 DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.0.0"
 REPO = "http://github.com/splunk/splunk-sdk-python.git"
 
-[tool.setuptools.package-dir]
-"splunklib" = "splunklib"
-"splunklib.modularinput" = "splunklib/modularinput"
-"splunklib.searchcommands" = "splunklib/searchcommands"
+
+[tool.setuptools]
+packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]

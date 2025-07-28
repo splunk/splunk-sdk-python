@@ -946,6 +946,44 @@ wheels = [
 ]
 
 [[package]]
+name = "python-dotenv"
+version = "0.21.1"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+resolution-markers = [
+    "python_full_version >= '3.7.2' and python_full_version < '3.8'",
+    "python_full_version < '3.7.2'",
+]
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/f5/d7/d548e0d5a68b328a8d69af833a861be415a17cb15ce3d8f0cd850073d2e1/python-dotenv-0.21.1.tar.gz", hash = "sha256:1c93de8f636cde3ce377292818d0e440b6e45a82f215c3744979151fa8151c49" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/64/62/f19d1e9023aacb47241de3ab5a5d5fedf32c78a71a9e365bb2153378c141/python_dotenv-0.21.1-py3-none-any.whl", hash = "sha256:41e12e0318bebc859fcc4d97d4db8d20ad21721a6aa5047dd59f090391cb549a" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.0.1"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+resolution-markers = [
+    "python_full_version >= '3.8.1' and python_full_version < '3.9'",
+    "python_full_version >= '3.8' and python_full_version < '3.8.1'",
+]
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/bc/57/e84d88dfe0aec03b7a2d4327012c1627ab5f03652216c63d49846d7a6c58/python-dotenv-1.0.1.tar.gz", hash = "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/6a/3e/b68c118422ec867fa7ab88444e1274aa40681c606d59ac27de5a5588f082/python_dotenv-1.0.1-py3-none-any.whl", hash = "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.1.1"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+resolution-markers = [
+    "python_full_version >= '3.9'",
+]
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/f6/b0/4bc07ccd3572a2f9df7e6782f52b0c6c90dcbb803ac4a167702d7d0dfe1e/python_dotenv-1.1.1.tar.gz", hash = "sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl", hash = "sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc" },
+]
+
+[[package]]
 name = "restructuredtext-lint"
 version = "1.4.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -1012,7 +1050,7 @@ wheels = [
 ]
 
 [[package]]
-name = "splunk-sdk-python"
+name = "splunk-sdk"
 version = "2.1.0"
 source = { editable = "." }
 dependencies = [
@@ -1033,6 +1071,9 @@ dependencies = [
     { name = "pylint", version = "2.17.7", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.7.2' and python_full_version < '3.8'" },
     { name = "pylint", version = "3.2.7", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
     { name = "pylint", version = "3.3.7", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.9'" },
+    { name = "python-dotenv", version = "0.21.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
+    { name = "python-dotenv", version = "1.0.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
+    { name = "python-dotenv", version = "1.1.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "six" },
     { name = "tox", version = "4.8.0", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
     { name = "tox", version = "4.25.0", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
@@ -1053,6 +1094,7 @@ requires-dist = [
     { name = "flake8-logging-format", specifier = ">=2024.24.12" },
     { name = "flake8-rst-docstrings", specifier = ">=0.3.0" },
     { name = "pylint", specifier = ">=2.13.9" },
+    { name = "python-dotenv", specifier = ">=0.21.1" },
     { name = "six", specifier = ">=1.17.0" },
     { name = "tox", specifier = ">=4.8.0" },
     { name = "types-setuptools", specifier = ">=69.0.0.0" },

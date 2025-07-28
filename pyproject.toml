@@ -30,8 +30,8 @@ dependencies = [
 ]
 
 [project.urls]
-HOMEPAGE = "https://example.com"
-DOCS = "https://readthedocs.org"
+HOMEPAGE = "https://pypi.org/project/splunk-sdk"
+DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.0.0"
 REPO = "http://github.com/splunk/splunk-sdk-python.git"
 
 # [tool.setuptools.package-dir]

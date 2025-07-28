@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "splunk-sdk-python"
+version = "2.1.0"
+description = "The Splunk Software Development Kit for Python."
+readme = "README.md"
+requires-python = ">=3.7, <3.10"
+license = "Apache-2.0"
+license-files = ["LICEN[CS]E.*"]
+authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
+classifiers = [
+  "Programming Language :: Python",
+  "Development Status :: 6 - Mature",
+  "Environment :: Other Environment",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+dependencies = [
+  "deprecation>=2.1.0",
+  "mypy>=1.4.1",
+  "ruff>=0.12.5",
+  "tox>=4.8.0",
+  "types-setuptools>=69.0.0.0",
+]
+
+[project.urls]
+HOMEPAGE = "https://example.com"
+DOCS = "https://readthedocs.org"
+REPO = "http://github.com/splunk/splunk-sdk-python.git"
+
+# [tool.setuptools.package-dir]
+# "splunklib" = "splunklib"
+# "splunklib.modularinput" = "splunklib/modularinput"
+# "splunklib.searchcommands" = "splunklib/searchcommands"

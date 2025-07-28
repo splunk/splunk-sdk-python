@@ -5,7 +5,6 @@
 *coverage_html_report*
 .coverage
 .coverage.*
-.python-version
 .vscode
 __stdout__
 docs/_build
@@ -17,12 +16,16 @@ coverage_report
 test.log
 tests/searchcommands_data/log/
 tests/searchcommands_data/output/
-Test Results*.html
 tests/searchcommands/data/app/app.log
-splunk_sdk.egg-info/
-dist/
 tests/searchcommands/apps/app_with_logging_configuration/*.log
+Test Results*.html
+splunk_sdk.egg-info/
+splunk_sdk_python.egg-info/
+dist/
 *.observed
 venv/
+.venv/
+.mypy_cache/
 .tox
 test-reports/
+*.code-workspace

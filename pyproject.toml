@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "splunk-sdk"
 version = "2.1.0"
-description = "The Splunk Software Development Kit for Python."
+description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.7, <3.10"
 license = "Apache-2.0"
-license-files = ["LICEN[CS]E.*"]
+# license-files = ["LICEN[CS]E.*"]
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
   "Programming Language :: Python",

@@ -48,13 +48,9 @@ Use `pip`:
 
     [sudo] pip install splunk-sdk
 
-Install the Python egg:
-
-    [sudo] pip install --egg splunk-sdk
-
 Install the sources you cloned from GitHub:
 
-    [sudo] python setup.py install
+    [sudo] python -m pip install .
 
 ## Testing Quickstart
 

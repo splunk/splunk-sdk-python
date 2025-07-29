@@ -5,7 +5,6 @@
 *coverage_html_report*
 .coverage
 .coverage.*
-.python-version
 .vscode
 __stdout__
 docs/_build
@@ -24,5 +23,6 @@ dist/
 tests/searchcommands/apps/app_with_logging_configuration/*.log
 *.observed
 venv/
+.venv/
 .tox
 test-reports/

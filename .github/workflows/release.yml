@@ -13,11 +13,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7
-      - name: Install dependencies
-        run: pip install twine
+          python-version: 3.9
+      - name: Install build and twine
+        run: pip install build twine
       - name: Build package
-        run: python setup.py sdist
+        run: python -m build
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.10
         with:

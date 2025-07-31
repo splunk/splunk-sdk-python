@@ -10,7 +10,7 @@ If you're seeing some unexpected behavior with this project, please create an [i
 
 1. Version of this project you're using (ex: 1.5.0)
 2. Platform version (ex: Windows Server 2012 R2)
-3. Framework version (ex: Python 3.7)
+3. Framework version (ex: Python 3.13.\*)
 4. Splunk Enterprise version (ex: 9.0)
 5. Other relevant information (ex: local/remote environment, Splunk network configuration, standalone or distributed deployment, are load balancers used)
 
@@ -32,4 +32,3 @@ To create a pull request:
 If you have a paid Splunk Enterprise or Splunk Cloud license, you can contact [Support](https://www.splunk.com/en_us/support-and-services.html) with questions.
 
 You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
-

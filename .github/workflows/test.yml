@@ -40,7 +40,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install tox
-        run: pip install tox
+        run: pip install .[dev]
 
       - name: Test Execution
         run: tox -e py

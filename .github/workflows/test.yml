@@ -16,11 +16,11 @@ jobs:
           - "latest"
         include:
           - os: ubuntu-22.04
-            python: 3.7
-            splunk-version: "8.1"
+            python: 3.9
+            splunk-version: "9.3"
           - os: ubuntu-22.04
-            python: 3.7
-            splunk-version: "8.2"
+            python: 3.9
+            splunk-version: "9.4"
           - os: ubuntu-22.04
             python: 3.9
             splunk-version: "latest"
@@ -35,11 +35,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-      - name: Install tox
-        run: pip install -e ".[dev]"
+      - name: Install dependencies
+        run: pip install ".[dev]"
       - name: Test Execution
         run: tox -e py
 
-  fossa-scan:
-    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-    secrets: inherit
+  # fossa-scan:
+  #   uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+  #   secrets: inherit

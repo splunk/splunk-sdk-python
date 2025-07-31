@@ -9,7 +9,6 @@ description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.7, <4"
 license = "Apache-2.0"
-# license-files = ["LICEN[CS]E.*"]
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
   "Programming Language :: Python",
@@ -21,7 +20,11 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["deprecation>=2.1.0", "python-dotenv>=0.21.1"]
+dependencies = [
+  "deprecation>=2.1.0",
+  "importlib-metadata>=6.7.0",
+  "python-dotenv>=0.21.1",
+]
 
 [dependency-groups]
 dev = [
@@ -33,6 +36,8 @@ dev = [
   "flake8-logging-format>=2024.24.12",
   "flake8-rst-docstrings>=0.3.0",
   "pylint>=2.13.9",
+  "pytest>=7.4.4",
+  "pytest-cov>=4.1.0",
   "six>=1.17.0",
   "tox>=4.8.0",
   "twine>=4.0.2",

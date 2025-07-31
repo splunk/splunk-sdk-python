@@ -29,15 +29,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Run docker compose
+      - name: Set up .env
+        run: cp ./.env.template ./.env
+      - name: Run docker-compose
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Install dependencies
-        run: pip install ".[dev]"
-      - name: Test Execution
+        run: pip install .
+      - name: Run test suite
         run: tox -e py
 
   # fossa-scan:

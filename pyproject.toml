@@ -7,9 +7,13 @@ name = "splunk-sdk"
 version = "2.1.0"
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 license.file = "LICENSE"
+requires-python = ">=3.7, <=3.13"
 description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
-dependencies = ["deprecation>=2.1.0"]
+dependencies = [
+    "deprecation>=2.1.0",
+    "importlib-metadata>=6.7.0",
+]
 classifiers = [
     "Programming Language :: Python",
     "Development Status :: 6 - Mature",
@@ -25,7 +29,12 @@ Homepage = "http://github.com/splunk/splunk-sdk-python"
 
 
 [project.optional-dependencies]
-dev = ["tox>=4.8.0"]
+dev = ["tox>=4.8.0", "pytest>=7.4.4"]
+build = ["twine", "build"]
 
 [tool.setuptools]
 packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
+
+
+[tool.setuptools.exclude-package-data]
+"*" = ["tests/*"]

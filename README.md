@@ -60,7 +60,7 @@ Install the sources you cloned from GitHub:
 You'll need `docker` and `docker-compose` to get up and running using this method.
 
     ```shell
-    make up SPLUNK_VERSION=9.4
+    make up SPLUNK_VERSION=latest # also available: 10, 9.4
     make wait_up
     make test
     make down
@@ -213,18 +213,18 @@ Don't
 - In stream_events() method we can access modular input app metadata from InputDefinition object
 - See [GitHub Commit](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) Modular input App example for reference.
 
-  ```python
-  def stream_events(self, inputs, ew):
-      # other code
+```python
+def stream_events(self, inputs, ew):
+    # other code
 
-      # access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
-      # here inputs is a InputDefinition object
-      server_host = inputs.metadata["server_host"]
-      server_uri = inputs.metadata["server_uri"]
+    # access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
+    # here inputs is a InputDefinition object
+    server_host = inputs.metadata["server_host"]
+    server_uri = inputs.metadata["server_uri"]
 
-      # Get the checkpoint directory out of the modular input's metadata
-      checkpoint_dir = inputs.metadata["checkpoint_dir"]
-  ```
+    # Get the checkpoint directory out of the modular input's metadata
+    checkpoint_dir = inputs.metadata["checkpoint_dir"]
+```
 
 ### Access service object in Custom Search Command & Modular Input apps
 

@@ -18,6 +18,8 @@
 
 try:
     import coverage
+
     coverage.process_startup()
 except:
+    # TODO: Add logging
     pass

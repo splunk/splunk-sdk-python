@@ -27,4 +27,4 @@ venv/
 .mypy_cache/
 .tox
 test-reports/
-*.code-workspace
+.env

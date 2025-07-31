@@ -11,8 +11,8 @@ jobs:
           - ubuntu-latest
         python: [3.9, 3.13]
         splunk-version:
-          - "8.1"
-          - "8.2"
+          - "9.3"
+          - "9.4"
           - "latest"
         include:
           - os: ubuntu-22.04
@@ -22,28 +22,24 @@ jobs:
             python: 3.7
             splunk-version: "8.2"
           - os: ubuntu-22.04
-            python: 3.7
+            python: 3.9
             splunk-version: "latest"
-
       fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Run docker compose
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-
       - name: Install tox
-        run: pip install .[dev]
-
+        run: pip install -e ".[dev]"
       - name: Test Execution
         run: tox -e py
+
   fossa-scan:
     uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
     secrets: inherit

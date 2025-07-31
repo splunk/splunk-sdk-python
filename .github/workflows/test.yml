@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v3
       - name: Set up .env
         run: cp ./.env.template ./.env
@@ -41,7 +41,7 @@ jobs:
         run: pip install .
       - name: Run test suite
         run: tox -e py
-
-  # fossa-scan:
-  #   uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-  #   secrets: inherit
+# [BJ] I'll obviously uncomment this step after I finish fiddling
+# fossa-scan:
+#   uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+#   secrets: inherit

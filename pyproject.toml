@@ -8,7 +8,7 @@ version = "2.1.0"
 description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.9, <4"
-license = "Apache-2.0"
+license = { file = "LICENSE" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
   "Programming Language :: Python",

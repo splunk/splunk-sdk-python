@@ -1260,11 +1260,9 @@ wheels = [
 
 [[package]]
 name = "splunk-sdk"
-version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "deprecation" },
-    { name = "importlib-metadata" },
 ]
 
 [package.optional-dependencies]
@@ -1274,7 +1272,7 @@ build = [
     { name = "twine", version = "4.0.2", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
     { name = "twine", version = "6.1.0", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.8'" },
 ]
-dev = [
+test = [
     { name = "pytest", version = "7.4.4", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
     { name = "pytest", version = "8.3.5", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
     { name = "pytest", version = "8.4.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.9'" },
@@ -1287,12 +1285,11 @@ dev = [
 requires-dist = [
     { name = "build", marker = "extra == 'build'" },
     { name = "deprecation", specifier = ">=2.1.0" },
-    { name = "importlib-metadata", specifier = ">=6.7.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.4" },
-    { name = "tox", marker = "extra == 'dev'", specifier = ">=4.8.0" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.4.4" },
+    { name = "tox", marker = "extra == 'test'", specifier = ">=4.8.0" },
     { name = "twine", marker = "extra == 'build'" },
 ]
-provides-extras = ["dev", "build"]
+provides-extras = ["test", "build"]
 
 [[package]]
 name = "tomli"

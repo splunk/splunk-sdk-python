@@ -16,11 +16,6 @@
 
 import logging
 
-try:
-    import importlib.metadata as importlib
-except (ImportError, ModuleNotFoundError):
-    # For Python < 3.8, use importlib_metadata backport
-    import importlib_metadata as importlib
 
 DEFAULT_LOG_FORMAT = (
     "%(asctime)s, Level=%(levelname)s, Pid=%(process)s, Logger=%(name)s, File=%(filename)s, "
@@ -38,4 +33,4 @@ def setup_logging(
     logging.basicConfig(level=level, format=log_format, datefmt=date_format)
 
 
-__version__ = importlib.version("splunk-sdk")
+__version__ = "2.1.0"

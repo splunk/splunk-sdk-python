@@ -14,12 +14,6 @@
 
 """Python library for Splunk."""
 
-# Assure backport for Python <3.9
-try:
-    from importlib.metadata import version as importlib_metadata_version
-except (ImportError, ModuleNotFoundError):
-    from importlib_metadata import version as importlib_metadata_version
-
 import logging
 
 DEFAULT_LOG_FORMAT = (
@@ -38,5 +32,5 @@ def setup_logging(
     logging.basicConfig(level=level, format=log_format, datefmt=date_format)
 
 
-# Extract current package version from pyproject.toml
-__version__: str = importlib_metadata_version("splunk-sdk")
+__version_info__ = (2, 1, 0)
+__version__ = ".".join(map(str, __version_info__))

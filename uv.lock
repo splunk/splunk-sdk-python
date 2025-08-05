@@ -1,22 +1,10 @@
 version = 1
 revision = 2
-requires-python = ">=3.9, <4"
+requires-python = ">=3.9.23"
 resolution-markers = [
     "python_full_version >= '3.12'",
     "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
-]
-
-[[package]]
-name = "astroid"
-version = "3.3.11"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/18/74/dfb75f9ccd592bbedb175d4a32fc643cf569d7c218508bfbd6ea7ef9c091/astroid-3.3.11.tar.gz", hash = "sha256:1e5a5011af2920c7c67a53f65d536d65bfa7116feeaf2354d8b94f29573bb0ce" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/af/0f/3b8fdc946b4d9cc8cc1e8af42c4e409468c84441b933d037e101b3d72d86/astroid-3.3.11-py3-none-any.whl", hash = "sha256:54c760ae8322ece1abd213057c4b5bba7c49818853fc901ef09719a60dbf9dec" },
 ]
 
 [[package]]
@@ -337,15 +325,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dill"
-version = "0.4.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/12/80/630b4b88364e9a8c8c5797f4602d0f76ef820909ee32f0bacb9f90654042/dill-0.4.0.tar.gz", hash = "sha256:0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/50/3d/9373ad9c56321fdab5b41197068e1d8c25883b3fea29dd361f9b55116869/dill-0.4.0-py3-none-any.whl", hash = "sha256:44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049" },
-]
-
-[[package]]
 name = "distlib"
 version = "0.4.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -385,86 +364,6 @@ wheels = [
 ]
 
 [[package]]
-name = "flake8"
-version = "7.3.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "mccabe" },
-    { name = "pycodestyle" },
-    { name = "pyflakes" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/9b/af/fbfe3c4b5a657d79e5c47a2827a362f9e1b763336a52f926126aa6dc7123/flake8-7.3.0.tar.gz", hash = "sha256:fe044858146b9fc69b551a4b490d69cf960fcb78ad1edcb84e7fbb1b4a8e3872" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/9f/56/13ab06b4f93ca7cac71078fbe37fcea175d3216f31f85c3168a6bbd0bb9a/flake8-7.3.0-py2.py3-none-any.whl", hash = "sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e" },
-]
-
-[[package]]
-name = "flake8-blind-except"
-version = "0.2.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/be/f8/cb5e0b8c948cb347b8942cb7ce73292a77ec8f9eafb8d5db999c5c1ac62f/flake8-blind-except-0.2.1.tar.gz", hash = "sha256:f25a575a9dcb3eeb3c760bf9c22db60b8b5a23120224ed1faa9a43f75dd7dd16" }
-
-[[package]]
-name = "flake8-builtins"
-version = "2.5.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "flake8" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/7a/33/fdfe44695094124e0e518fdd4fed0c7a34a5920de7063babd4b2bbdc8a7f/flake8_builtins-2.5.0.tar.gz", hash = "sha256:bdaa3dd823e4f5308c5e712d19fa5f69daa52781ea874f5ea9c3637bcf56faa6" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/14/33/e423d57dbe2a2ad664d166aeceac58b469510d6c763fada32afd47ffc9ef/flake8_builtins-2.5.0-py3-none-any.whl", hash = "sha256:8cac7c52c6f0708c0902b46b385bc7e368a9068965083796f1431c0d2e6550cf" },
-]
-
-[[package]]
-name = "flake8-docstrings"
-version = "1.7.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "flake8" },
-    { name = "pydocstyle" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/93/24/f839e3a06e18f4643ccb81370909a497297909f15106e6af2fecdef46894/flake8_docstrings-1.7.0.tar.gz", hash = "sha256:4c8cc748dc16e6869728699e5d0d685da9a10b0ea718e090b1ba088e67a941af" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/3f/7d/76a278fa43250441ed9300c344f889c7fb1817080c8fb8996b840bf421c2/flake8_docstrings-1.7.0-py2.py3-none-any.whl", hash = "sha256:51f2344026da083fc084166a9353f5082b01f72901df422f74b4d953ae88ac75" },
-]
-
-[[package]]
-name = "flake8-import-order"
-version = "0.19.2"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "pycodestyle" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/d6/2f/5d2095e2f63b5fabe2d4a7e97c28bfcf901dcd9335650d9e582283bb02b5/flake8_import_order-0.19.2.tar.gz", hash = "sha256:133b3c55497631e4235074fc98a95078bba817832379f22a31f0ad2455bcb0b2" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/18/d4/3d067f1c4a429e82ec9ae54a346ef50e4d317c6cdfba6bd1443c162ff39f/flake8_import_order-0.19.2-py3-none-any.whl", hash = "sha256:2dfe60175e7195cf36d4c573861fd2e3258cd6650cbd7616da3c6b8193b29b7c" },
-]
-
-[[package]]
-name = "flake8-logging-format"
-version = "2024.24.12"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/70/08/15fa53eea2c9569d4b19d8bbe9d87c87d7bb153cf1dee24ceb28343bd51b/flake8_logging_format-2024.24.12-py3-none-any.whl", hash = "sha256:7d93c2107354b10a05b1a0d8ccd3a9bfb793aee108007765114c958a7541d674" },
-]
-
-[[package]]
-name = "flake8-rst-docstrings"
-version = "0.3.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "flake8" },
-    { name = "pygments" },
-    { name = "restructuredtext-lint" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/18/d6/a3e5f86f984d6d8caa1705deffdae84c710e594ab5c1985e26c5e1bb05db/flake8_rst_docstrings-0.3.1.tar.gz", hash = "sha256:26dcc1338caf985990677696a8a6a274f73a0c6845b85f567befd3b648db78e2" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/f3/a7/ef9a2b35987d4d4b2b6213891915d0d7242ccc034861dec63540b81f3a13/flake8_rst_docstrings-0.3.1-py3-none-any.whl", hash = "sha256:ed831afca7ee47851e2162d5fa726b823b446fd46085c2164d7979ae5d9a96d7" },
-]
-
-[[package]]
 name = "id"
 version = "1.5.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -490,7 +389,7 @@ name = "importlib-metadata"
 version = "6.7.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
 dependencies = [
-    { name = "zipp" },
+    { name = "zipp", marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a3/82/f6e29c8d5c098b6be61460371c2c5591f4a335923639edec43b3830650a4/importlib_metadata-6.7.0.tar.gz", hash = "sha256:1aaf550d4f73e5d6783e7acb77aec43d49da8017410afae93822cc9cca98c4d4" }
 wheels = [
@@ -504,15 +403,6 @@ source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test
 sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/f2/97/ebf4da567aa6827c909642694d71c9fcf53e5b504f2d96afea02718862f3/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7" }
 wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760" },
-]
-
-[[package]]
-name = "isort"
-version = "6.0.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/b8/21/1e2a441f74a653a144224d7d21afe8f4169e6c7c20bb13aec3a2dc3815e0/isort-6.0.1.tar.gz", hash = "sha256:1cb5df28dfbc742e490c5e41bad6da41b805b0a8be7bc93cd0fb2a8a890ac450" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/c1/11/114d0a5f4dabbdcedc1125dee0888514c3c3b16d3e9facad87ed96fad97c/isort-6.0.1-py3-none-any.whl", hash = "sha256:2dc5d7f65c9678d94c88dfc29161a320eec67328bc97aad576874cb4be1e9615" },
 ]
 
 [[package]]
@@ -591,15 +481,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mccabe"
-version = "0.7.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e7/ff/0ffefdcac38932a54d2b5eed4e0ba8a408f215002cd178ad1df0f2806ff8/mccabe-0.7.0.tar.gz", hash = "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/27/1a/1f68f9ba0c207934b35b86a8ca3aad8395a3d6dd7921c0686e23853ff5a9/mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e" },
-]
-
-[[package]]
 name = "mdurl"
 version = "0.1.2"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -615,6 +496,66 @@ source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test
 sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/ce/a0/834b0cebabbfc7e311f30b46c8188790a37f89fc8d756660346fe5abfd09/more_itertools-10.7.0.tar.gz", hash = "sha256:9fddd5403be01a94b204faadcff459ec3568cf110265d3c54323e1e866ad29d3" }
 wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/2b/9f/7ba6f94fc1e9ac3d2b853fdff3035fb2fa5afbed898c4a72b8a020610594/more_itertools-10.7.0-py3-none-any.whl", hash = "sha256:d43980384673cb07d2f7d2d918c616b30c659c089ee23953f601d6609c67510e" },
+]
+
+[[package]]
+name = "mypy"
+version = "1.17.1"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+dependencies = [
+    { name = "mypy-extensions" },
+    { name = "pathspec" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/8e/22/ea637422dedf0bf36f3ef238eab4e455e2a0dcc3082b5cc067615347ab8e/mypy-1.17.1.tar.gz", hash = "sha256:25e01ec741ab5bb3eec8ba9cdb0f769230368a22c959c4937360efb89b7e9f01" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/77/a9/3d7aa83955617cdf02f94e50aab5c830d205cfa4320cf124ff64acce3a8e/mypy-1.17.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:3fbe6d5555bf608c47203baa3e72dbc6ec9965b3d7c318aa9a4ca76f465bd972" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/83/e8/72e62ff837dd5caaac2b4a5c07ce769c8e808a00a65e5d8f94ea9c6f20ab/mypy-1.17.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:80ef5c058b7bce08c83cac668158cb7edea692e458d21098c7d3bce35a5d43e7" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/7d/10/f3f3543f6448db11881776f26a0ed079865926b0c841818ee22de2c6bbab/mypy-1.17.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c4a580f8a70c69e4a75587bd925d298434057fe2a428faaf927ffe6e4b9a98df" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/06/bf/63e83ed551282d67bb3f7fea2cd5561b08d2bb6eb287c096539feb5ddbc5/mypy-1.17.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:dd86bb649299f09d987a2eebb4d52d10603224500792e1bee18303bbcc1ce390" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/69/66/68f2eeef11facf597143e85b694a161868b3b006a5fbad50e09ea117ef24/mypy-1.17.1-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:a76906f26bd8d51ea9504966a9c25419f2e668f012e0bdf3da4ea1526c534d94" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a3/87/8e3e9c2c8bd0d7e071a89c71be28ad088aaecbadf0454f46a540bda7bca6/mypy-1.17.1-cp310-cp310-win_amd64.whl", hash = "sha256:e79311f2d904ccb59787477b7bd5d26f3347789c06fcd7656fa500875290264b" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/46/cf/eadc80c4e0a70db1c08921dcc220357ba8ab2faecb4392e3cebeb10edbfa/mypy-1.17.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:ad37544be07c5d7fba814eb370e006df58fed8ad1ef33ed1649cb1889ba6ff58" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5d/c1/c869d8c067829ad30d9bdae051046561552516cfb3a14f7f0347b7d973ee/mypy-1.17.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:064e2ff508e5464b4bd807a7c1625bc5047c5022b85c70f030680e18f37273a5" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/98/b9/803672bab3fe03cee2e14786ca056efda4bb511ea02dadcedde6176d06d0/mypy-1.17.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:70401bbabd2fa1aa7c43bb358f54037baf0586f41e83b0ae67dd0534fc64edfd" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/88/fb/fcdac695beca66800918c18697b48833a9a6701de288452b6715a98cfee1/mypy-1.17.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e92bdc656b7757c438660f775f872a669b8ff374edc4d18277d86b63edba6b8b" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/7f/37/a932da3d3dace99ee8eb2043b6ab03b6768c36eb29a02f98f46c18c0da0e/mypy-1.17.1-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:c1fdf4abb29ed1cb091cf432979e162c208a5ac676ce35010373ff29247bcad5" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/8c/cf/6438a429e0f2f5cab8bc83e53dbebfa666476f40ee322e13cac5e64b79e7/mypy-1.17.1-cp311-cp311-win_amd64.whl", hash = "sha256:ff2933428516ab63f961644bc49bc4cbe42bbffb2cd3b71cc7277c07d16b1a8b" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/17/a2/7034d0d61af8098ec47902108553122baa0f438df8a713be860f7407c9e6/mypy-1.17.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:69e83ea6553a3ba79c08c6e15dbd9bfa912ec1e493bf75489ef93beb65209aeb" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/14/1f/19e7e44b594d4b12f6ba8064dbe136505cec813549ca3e5191e40b1d3cc2/mypy-1.17.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1b16708a66d38abb1e6b5702f5c2c87e133289da36f6a1d15f6a5221085c6403" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5b/69/baa33927e29e6b4c55d798a9d44db5d394072eef2bdc18c3e2048c9ed1e9/mypy-1.17.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:89e972c0035e9e05823907ad5398c5a73b9f47a002b22359b177d40bdaee7056" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/90/13/f3a89c76b0a41e19490b01e7069713a30949d9a6c147289ee1521bcea245/mypy-1.17.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:03b6d0ed2b188e35ee6d5c36b5580cffd6da23319991c49ab5556c023ccf1341" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/23/a1/c4ee79ac484241301564072e6476c5a5be2590bc2e7bfd28220033d2ef8f/mypy-1.17.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:c837b896b37cd103570d776bda106eabb8737aa6dd4f248451aecf53030cdbeb" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/89/b8/7409477be7919a0608900e6320b155c72caab4fef46427c5cc75f85edadd/mypy-1.17.1-cp312-cp312-win_amd64.whl", hash = "sha256:665afab0963a4b39dff7c1fa563cc8b11ecff7910206db4b2e64dd1ba25aed19" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5b/82/aec2fc9b9b149f372850291827537a508d6c4d3664b1750a324b91f71355/mypy-1.17.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:93378d3203a5c0800c6b6d850ad2f19f7a3cdf1a3701d3416dbf128805c6a6a7" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/07/ac/ee93fbde9d2242657128af8c86f5d917cd2887584cf948a8e3663d0cd737/mypy-1.17.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:15d54056f7fe7a826d897789f53dd6377ec2ea8ba6f776dc83c2902b899fee81" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5a/68/946a1e0be93f17f7caa56c45844ec691ca153ee8b62f21eddda336a2d203/mypy-1.17.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:209a58fed9987eccc20f2ca94afe7257a8f46eb5df1fb69958650973230f91e6" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/9f/0f/478b4dce1cb4f43cf0f0d00fba3030b21ca04a01b74d1cd272a528cf446f/mypy-1.17.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:099b9a5da47de9e2cb5165e581f158e854d9e19d2e96b6698c0d64de911dd849" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/ca/70/afa5850176379d1b303f992a828de95fc14487429a7139a4e0bdd17a8279/mypy-1.17.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:fa6ffadfbe6994d724c5a1bb6123a7d27dd68fc9c059561cd33b664a79578e14" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/53/f9/4a83e1c856a3d9c8f6edaa4749a4864ee98486e9b9dbfbc93842891029c2/mypy-1.17.1-cp313-cp313-win_amd64.whl", hash = "sha256:9a2b7d9180aed171f033c9f2fc6c204c1245cf60b0cb61cf2e7acc24eea78e0a" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/38/56/79c2fac86da57c7d8c48622a05873eaab40b905096c33597462713f5af90/mypy-1.17.1-cp314-cp314-macosx_10_13_x86_64.whl", hash = "sha256:15a83369400454c41ed3a118e0cc58bd8123921a602f385cb6d6ea5df050c733" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/4d/c3/adabe6ff53638e3cad19e3547268482408323b1e68bf082c9119000cd049/mypy-1.17.1-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:55b918670f692fc9fba55c3298d8a3beae295c5cded0a55dccdc5bbead814acd" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/b8/c5/2e234c22c3bdeb23a7817af57a58865a39753bde52c74e2c661ee0cfc640/mypy-1.17.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:62761474061feef6f720149d7ba876122007ddc64adff5ba6f374fda35a018a0" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/ab/26/c13c130f35ca8caa5f2ceab68a247775648fdcd6c9a18f158825f2bc2410/mypy-1.17.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c49562d3d908fd49ed0938e5423daed8d407774a479b595b143a3d7f87cdae6a" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/82/df/c7d79d09f6de8383fe800521d066d877e54d30b4fb94281c262be2df84ef/mypy-1.17.1-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:397fba5d7616a5bc60b45c7ed204717eaddc38f826e3645402c426057ead9a91" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/b8/98/3d5a48978b4f708c55ae832619addc66d677f6dc59f3ebad71bae8285ca6/mypy-1.17.1-cp314-cp314-win_amd64.whl", hash = "sha256:9d6b20b97d373f41617bd0708fd46aa656059af57f2ef72aa8c7d6a2b73b74ed" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/29/cb/673e3d34e5d8de60b3a61f44f80150a738bff568cd6b7efb55742a605e98/mypy-1.17.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:5d1092694f166a7e56c805caaf794e0585cabdbf1df36911c414e4e9abb62ae9" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/0c/d0/fe1895836eea3a33ab801561987a10569df92f2d3d4715abf2cfeaa29cb2/mypy-1.17.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:79d44f9bfb004941ebb0abe8eff6504223a9c1ac51ef967d1263c6572bbebc99" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/97/f3/514aa5532303aafb95b9ca400a31054a2bd9489de166558c2baaeea9c522/mypy-1.17.1-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b01586eed696ec905e61bd2568f48740f7ac4a45b3a468e6423a03d3788a51a8" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/ab/c3/c0805f0edec96fe8e2c048b03769a6291523d509be8ee7f56ae922fa3882/mypy-1.17.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:43808d9476c36b927fbcd0b0255ce75efe1b68a080154a38ae68a7e62de8f0f8" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/45/3e/d646b5a298ada21a8512fa7e5531f664535a495efa672601702398cea2b4/mypy-1.17.1-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:feb8cc32d319edd5859da2cc084493b3e2ce5e49a946377663cc90f6c15fb259" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/14/55/e13d0dcd276975927d1f4e9e2ec4fd409e199f01bdc671717e673cc63a22/mypy-1.17.1-cp39-cp39-win_amd64.whl", hash = "sha256:d7598cf74c3e16539d4e2f0b8d8c318e00041553d83d4861f87c7a72e95ac24d" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/1d/f3/8fcd2af0f5b806f6cf463efaffd3c9548a28f84220493ecd38d127b6b66d/mypy-1.17.1-py3-none-any.whl", hash = "sha256:a9f52c0351c21fe24c21d8c0eb1f62967b262d6729393397b6f443c3b773c3b9" },
+]
+
+[[package]]
+name = "mypy-extensions"
+version = "1.1.0"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a2/6e/371856a3fb9d31ca8dac321cda606860fa4548858c0cc45d9d1d4ca2628b/mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505" },
 ]
 
 [[package]]
@@ -660,6 +601,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pathspec"
+version = "0.12.1"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/ca/bc/f35b8446f4531a7cb215605d100cd88b7ac6f44ab3fc94870c120ab3adbf/pathspec-0.12.1.tar.gz", hash = "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl", hash = "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08" },
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.3.8"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -678,15 +628,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pycodestyle"
-version = "2.14.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/11/e0/abfd2a0d2efe47670df87f3e3a0e2edda42f055053c85361f19c0e2c1ca8/pycodestyle-2.14.0.tar.gz", hash = "sha256:c4b5b517d278089ff9d0abdec919cd97262a3367449ea1c8b49b91529167b783" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/d7/27/a58ddaf8c588a3ef080db9d0b7e0b97215cee3a45df74f3a94dbbf5c893a/pycodestyle-2.14.0-py2.py3-none-any.whl", hash = "sha256:dd6bf7cb4ee77f8e016f9c8e74a35ddd9f67e1d5fd4184d86c3b98e07099f42d" },
-]
-
-[[package]]
 name = "pycparser"
 version = "2.22"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -696,53 +637,12 @@ wheels = [
 ]
 
 [[package]]
-name = "pydocstyle"
-version = "6.3.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "snowballstemmer" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e9/5c/d5385ca59fd065e3c6a5fe19f9bc9d5ea7f2509fa8c9c22fb6b2031dd953/pydocstyle-6.3.0.tar.gz", hash = "sha256:7ce43f0c0ac87b07494eb9c0b462c0b73e6ff276807f204d6b53edc72b7e44e1" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/36/ea/99ddefac41971acad68f14114f38261c1f27dac0b3ec529824ebc739bdaa/pydocstyle-6.3.0-py3-none-any.whl", hash = "sha256:118762d452a49d6b05e194ef344a55822987a462831ade91ec5c06fd2169d019" },
-]
-
-[[package]]
-name = "pyflakes"
-version = "3.4.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/45/dc/fd034dc20b4b264b3d015808458391acbf9df40b1e54750ef175d39180b1/pyflakes-3.4.0.tar.gz", hash = "sha256:b24f96fafb7d2ab0ec5075b7350b3d2d2218eab42003821c06344973d3ea2f58" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/pyflakes-3.4.0-py2.py3-none-any.whl", hash = "sha256:f742a7dbd0d9cb9ea41e9a24a918996e8170c799fa528688d40dd582c8265f4f" },
-]
-
-[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
 sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887" }
 wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b" },
-]
-
-[[package]]
-name = "pylint"
-version = "3.3.7"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "astroid" },
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "dill" },
-    { name = "isort" },
-    { name = "mccabe" },
-    { name = "platformdirs" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
-    { name = "tomlkit" },
-    { name = "typing-extensions", marker = "python_full_version < '3.10'" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/1c/e4/83e487d3ddd64ab27749b66137b26dc0c5b5c161be680e6beffdc99070b3/pylint-3.3.7.tar.gz", hash = "sha256:2b11de8bde49f9c5059452e0c310c079c746a0a8eeaa789e5aa966ecc23e4559" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e8/83/bff755d09e31b5d25cc7fdc4bf3915d1a404e181f1abf0359af376845c24/pylint-3.3.7-py3-none-any.whl", hash = "sha256:43860aafefce92fca4cf6b61fe199cdc5ae54ea28f9bf4cd49de267b5195803d" },
 ]
 
 [[package]]
@@ -850,15 +750,6 @@ wheels = [
 ]
 
 [[package]]
-name = "restructuredtext-lint"
-version = "1.4.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "docutils" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/48/9c/6d8035cafa2d2d314f34e6cd9313a299de095b26e96f1c7312878f988eec/restructuredtext_lint-1.4.0.tar.gz", hash = "sha256:1b235c0c922341ab6c530390892eb9e92f90b9b75046063e047cacfb0f050c45" }
-
-[[package]]
 name = "rfc3986"
 version = "2.0.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -878,6 +769,31 @@ dependencies = [
 sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/fe/75/af448d8e52bf1d8fa6a9d089ca6c07ff4453d86c65c145d0a300bb073b9b/rich-14.1.0.tar.gz", hash = "sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8" }
 wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e3/30/3c4d035596d3cf444529e0b2953ad0466f6049528a879d27534700580395/rich-14.1.0-py3-none-any.whl", hash = "sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f" },
+]
+
+[[package]]
+name = "ruff"
+version = "0.12.7"
+source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a1/81/0bd3594fa0f690466e41bd033bdcdf86cba8288345ac77ad4afbe5ec743a/ruff-0.12.7.tar.gz", hash = "sha256:1fc3193f238bc2d7968772c82831a4ff69252f673be371fb49663f0068b7ec71" }
+wheels = [
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e1/d2/6cb35e9c85e7a91e8d22ab32ae07ac39cc34a71f1009a6f9e4a2a019e602/ruff-0.12.7-py3-none-linux_armv6l.whl", hash = "sha256:76e4f31529899b8c434c3c1dede98c4483b89590e15fb49f2d46183801565303" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/63/5b/a4136b9921aa84638f1a6be7fb086f8cad0fde538ba76bda3682f2599a2f/ruff-0.12.7-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:789b7a03e72507c54fb3ba6209e4bb36517b90f1a3569ea17084e3fd295500fb" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a8/c9/3e24a8472484269b6b1821794141f879c54645a111ded4b6f58f9ab0705f/ruff-0.12.7-py3-none-macosx_11_0_arm64.whl", hash = "sha256:2e1c2a3b8626339bb6369116e7030a4cf194ea48f49b64bb505732a7fce4f4e3" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/26/7c/458dd25deeb3452c43eaee853c0b17a1e84169f8021a26d500ead77964fd/ruff-0.12.7-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:32dec41817623d388e645612ec70d5757a6d9c035f3744a52c7b195a57e03860" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/7f/8b/658798472ef260ca050e400ab96ef7e85c366c39cf3dfbef4d0a46a528b6/ruff-0.12.7-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:47ef751f722053a5df5fa48d412dbb54d41ab9b17875c6840a58ec63ff0c247c" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/a8/86/9c2336f13b2a3326d06d39178fd3448dcc7025f82514d1b15816fe42bfe8/ruff-0.12.7-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a828a5fc25a3efd3e1ff7b241fd392686c9386f20e5ac90aa9234a5faa12c423" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/76/69/df73f65f53d6c463b19b6b312fd2391dc36425d926ec237a7ed028a90fc1/ruff-0.12.7-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:5726f59b171111fa6a69d82aef48f00b56598b03a22f0f4170664ff4d8298efb" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/58/1e/de6cda406d99fea84b66811c189b5ea139814b98125b052424b55d28a41c/ruff-0.12.7-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:74e6f5c04c4dd4aba223f4fe6e7104f79e0eebf7d307e4f9b18c18362124bccd" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/6f/ae/625d46d5164a6cc9261945a5e89df24457dc8262539ace3ac36c40f0b51e/ruff-0.12.7-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:5d0bfe4e77fba61bf2ccadf8cf005d6133e3ce08793bbe870dd1c734f2699a3e" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/55/bf/9cb1ea5e3066779e42ade8d0cd3d3b0582a5720a814ae1586f85014656b6/ruff-0.12.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:06bfb01e1623bf7f59ea749a841da56f8f653d641bfd046edee32ede7ff6c606" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/55/7f/7ead2663be5627c04be83754c4f3096603bf5e99ed856c7cd29618c691bd/ruff-0.12.7-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:e41df94a957d50083fd09b916d6e89e497246698c3f3d5c681c8b3e7b9bb4ac8" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/17/40/a95352ea16edf78cd3a938085dccc55df692a4d8ba1b3af7accbe2c806b0/ruff-0.12.7-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:4000623300563c709458d0ce170c3d0d788c23a058912f28bbadc6f905d67afa" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/4d/74/633b04871c669e23b8917877e812376827c06df866e1677f15abfadc95cb/ruff-0.12.7-py3-none-musllinux_1_2_i686.whl", hash = "sha256:69ffe0e5f9b2cf2b8e289a3f8945b402a1b19eff24ec389f45f23c42a3dd6fb5" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/be/34/c3ef2d7799c9778b835a76189c6f53c179d3bdebc8c65288c29032e03613/ruff-0.12.7-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:a07a5c8ffa2611a52732bdc67bf88e243abd84fe2d7f6daef3826b59abbfeda4" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/77/ab/aca2e756ad7b09b3d662a41773f3edcbd262872a4fc81f920dc1ffa44541/ruff-0.12.7-py3-none-win32.whl", hash = "sha256:c928f1b2ec59fb77dfdf70e0419408898b63998789cc98197e15f560b9e77f77" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/b4/71/26d45a5042bc71db22ddd8252ca9d01e9ca454f230e2996bb04f16d72799/ruff-0.12.7-py3-none-win_amd64.whl", hash = "sha256:9c18f3d707ee9edf89da76131956aba1270c6348bfee8f6c647de841eac7194f" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/4c/9b/0b8aa09817b63e78d94b4977f18b1fcaead3165a5ee49251c5d5c245bb2d/ruff-0.12.7-py3-none-win_arm64.whl", hash = "sha256:dfce05101dbd11833a0776716d5d1578641b7fddb537fe7fa956ab85d1769b69" },
 ]
 
 [[package]]
@@ -912,32 +828,16 @@ wheels = [
 ]
 
 [[package]]
-name = "snowballstemmer"
-version = "3.0.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/75/a7/9810d872919697c9d01295633f5d574fb416d47e535f258272ca1f01f447/snowballstemmer-3.0.1.tar.gz", hash = "sha256:6d5eeeec8e9f84d4d56b847692bacf79bc2c8e90c7f80ca4444ff8b6f2e52895" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/c8/78/3565d011c61f5a43488987ee32b6f3f656e7f107ac2782dd57bdd7d91d9a/snowballstemmer-3.0.1-py3-none-any.whl", hash = "sha256:6cd7b3897da8d6c9ffb968a6781fa6532dce9c3618a4b127d920dab764a19064" },
-]
-
-[[package]]
 name = "splunk-sdk"
-version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "deprecation" },
-    { name = "flake8" },
-    { name = "flake8-blind-except" },
-    { name = "flake8-builtins" },
-    { name = "flake8-docstrings" },
-    { name = "flake8-import-order" },
-    { name = "flake8-logging-format" },
-    { name = "flake8-rst-docstrings" },
-    { name = "importlib-metadata" },
-    { name = "pylint" },
+    { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "python-dotenv" },
+    { name = "ruff" },
+    { name = "setuptools" },
     { name = "six" },
     { name = "tox" },
     { name = "twine" },
@@ -947,22 +847,16 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "deprecation", specifier = ">=2.1.0" },
-    { name = "flake8", specifier = ">=3.9.2" },
-    { name = "flake8-blind-except", specifier = ">=0.2.1" },
-    { name = "flake8-builtins", specifier = ">=2.1.0" },
-    { name = "flake8-docstrings", specifier = ">=1.7.0" },
-    { name = "flake8-import-order", specifier = ">=0.19.2" },
-    { name = "flake8-logging-format", specifier = ">=2024.24.12" },
-    { name = "flake8-rst-docstrings", specifier = ">=0.3.0" },
-    { name = "importlib-metadata", specifier = ">=6.7.0" },
-    { name = "pylint", specifier = ">=2.13.9" },
-    { name = "pytest", specifier = ">=7.4.4" },
-    { name = "pytest-cov", specifier = ">=4.1.0" },
-    { name = "python-dotenv", specifier = ">=0.21.1" },
+    { name = "mypy", specifier = ">=1.17.1" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
+    { name = "ruff", specifier = ">=0.12.7" },
+    { name = "setuptools", specifier = ">=80.9.0" },
     { name = "six", specifier = ">=1.17.0" },
-    { name = "tox", specifier = ">=4.8.0" },
-    { name = "twine", specifier = ">=4.0.2" },
-    { name = "types-setuptools", specifier = ">=69.0.0.0" },
+    { name = "tox", specifier = ">=4.28.3" },
+    { name = "twine", specifier = ">=6.1.0" },
+    { name = "types-setuptools", specifier = ">=80.9.0.20250529" },
 ]
 
 [[package]]
@@ -1002,15 +896,6 @@ wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5b/b9/1ed31d167be802da0fc95020d04cd27b7d7065cc6fbefdd2f9186f60d7bd/tomli-2.2.1-cp313-cp313-win32.whl", hash = "sha256:d3f5614314d758649ab2ab3a62d4f2004c825922f9e370b29416484086b264ec" },
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/c7/32/b0963458706accd9afcfeb867c0f9175a741bf7b19cd424230714d722198/tomli-2.2.1-cp313-cp313-win_amd64.whl", hash = "sha256:a38aa0308e754b0e3c67e344754dff64999ff9b513e691d0e786265c93583c69" },
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl", hash = "sha256:cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc" },
-]
-
-[[package]]
-name = "tomlkit"
-version = "0.13.3"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/cc/18/0bbf3884e9eaa38819ebe46a7bd25dcd56b67434402b66a58c4b8e552575/tomlkit-0.13.3.tar.gz", hash = "sha256:430cf247ee57df2b94ee3fbe588e71d362a941ebb545dec29b53961d61add2a1" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/bd/75/8539d011f6be8e29f339c42e633aae3cb73bffa95dd0f9adec09b9c58e85/tomlkit-0.13.3-py3-none-any.whl", hash = "sha256:c89c649d79ee40629a9fda55f8ace8c6a1b42deb912b2a8fd8d942ddadb606b0" },
 ]
 
 [[package]]

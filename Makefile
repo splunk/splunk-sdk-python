@@ -34,7 +34,7 @@ docs:
 .PHONY: test
 test:
 	@echo "$(ATTN_COLOR)==> test $(NO_COLOR)"
-	@tox -e py37,py39
+	@tox -e py39,py313
 
 .PHONY: test_specific
 test_specific:
@@ -44,17 +44,17 @@ test_specific:
 .PHONY: test_smoke
 test_smoke:
 	@echo "$(ATTN_COLOR)==> test_smoke $(NO_COLOR)"
-	@tox -e py37,py39 -- -m smoke
+	@tox -e py39,py313 -- -m smoke
 
 .PHONY: test_no_app
 test_no_app:
 	@echo "$(ATTN_COLOR)==> test_no_app $(NO_COLOR)"
-	@tox -e py37,py39 -- -m "not app"
+	@tox -e py39,py313 -- -m "not app"
 
 .PHONY: test_smoke_no_app
 test_smoke_no_app:
 	@echo "$(ATTN_COLOR)==> test_smoke_no_app $(NO_COLOR)"
-	@tox -e py37,py39 -- -m "smoke and not app"
+	@tox -e py39,py313 -- -m "smoke and not app"
 
 .PHONY: env
 env:

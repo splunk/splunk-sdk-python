@@ -2,7 +2,7 @@ services:
   splunk:
     image: "splunk/splunk:${SPLUNK_VERSION}"
     container_name: splunk
-    # platform: linux/amd64
+    platform: linux/amd64
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_HEC_TOKEN=11111111-1111-1111-1111-1111111111113

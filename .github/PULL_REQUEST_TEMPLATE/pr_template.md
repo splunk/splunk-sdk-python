@@ -1,15 +1,14 @@
 ---
 name: Pull Request Template
 about: Create a Pull Request to contribute to the SDK
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 ## Description of PR
 
-Provide the **context and motivation** for this PR. 
+Provide the **context and motivation** for this PR.
 Briefly explain the **type of changes** (bug fix, feature request, doc update, etc.) made in this PR. Provide reference to issue # fixed, if applicable.
 
 Describe the approach to the solution, the changes made, and any resulting change in behavior or impact to the user.

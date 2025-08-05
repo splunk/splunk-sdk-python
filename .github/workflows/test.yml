@@ -15,13 +15,13 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Set up environment variables
         run: cp ./.env.template ./.env
       - name: Run docker-compose with Splunk ${{ matrix.splunk-version }}
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Python dependencies to venv

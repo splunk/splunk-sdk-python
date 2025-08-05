@@ -20,6 +20,6 @@ try:
     import coverage
 
     coverage.process_startup()
-except:
+except:  # noqa: E722
     # TODO: Add logging
     pass

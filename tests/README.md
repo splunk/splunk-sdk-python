@@ -1,8 +1,7 @@
 # Splunk Test Suite
 
 The test suite uses Python's standard library and the built-in **unittest**
-library. The Splunk Enterprise SDK for Python has been tested with Python v3.7
-and v3.9.
+library. The Splunk Enterprise SDK for Python has been tested with Python 3.9.23 and 3.13.5.
 
 To run the unit tests, open a command prompt in the **/splunk-sdk-python**
 directory and enter:

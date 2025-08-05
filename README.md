@@ -59,7 +59,10 @@ Install the sources you cloned from GitHub:
 
 You'll need `docker` and `docker-compose` to get up and running using this method.
 
+Also see: [Updating the .env file](#updating-the-env-file)
+
     ```shell
+    cp ./.env.template ./.env
     make up SPLUNK_VERSION=latest # also available: 10, 9.4
     make wait_up
     make test
@@ -95,7 +98,7 @@ To run the examples and unit tests, you must put the root of the SDK on your PYT
 
 ###
 
-#### Update a .env file
+#### Updating the .env file
 
 To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and login credentials for Splunk Enterprise. For convenience during development, you can store these arguments as key-value pairs in a **.env** file. Then, the SDK examples and unit tests use the values from the **.env** file when you don't specify them.
 
@@ -115,7 +118,7 @@ Here is an example of .env file:
     # Access scheme (default: https)
     scheme=https
     # Your version of Splunk Enterprise
-    version=9.2
+    version=10
     # Bearer token for authentication
     #splunkToken=<Bearer-token>
     # Session key for authentication

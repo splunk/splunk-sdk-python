@@ -13,6 +13,7 @@
       "envname",
       "eventingcsc",
       "healthcheck",
+      "isort",
       "junitxml",
       "levelname",
       "LICEN",
@@ -20,8 +21,11 @@
       "mypy",
       "passenv",
       "posargs",
+      "pycodestyle",
+      "pyflakes",
       "pypa",
       "pypi",
+      "pyproject",
       "pytest",
       "PYTHONPATH",
       "sdist",
@@ -31,7 +35,9 @@
       "Splunkd",
       "splunklib",
       "testlib",
-      "TOXBUILD"
+      "TOXBUILD",
+      "venv",
+      "virtualenv"
     ]
   },
   "extensions": {

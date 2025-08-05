@@ -23,9 +23,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: where python && python --version && python -m pip install . --group dev
+        run: type -a python && python --version && python -m pip install . --group dev
       - name: Run test suite
-        run: where python && python --version && python -m tox -e py
+        run: type -a python && python --version && python -m tox -e py
 # [BJ] I'll uncomment this step after I finish fiddling
 #  fossa-scan:
 #    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main

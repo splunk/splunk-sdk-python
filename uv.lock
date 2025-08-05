@@ -257,25 +257,44 @@ wheels = [
 name = "splunk-sdk"
 source = { editable = "." }
 dependencies = [
-    { name = "build" },
     { name = "deprecation" },
-    { name = "mypy" },
     { name = "python-dotenv" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "build" },
+    { name = "mypy" },
     { name = "ruff" },
     { name = "setuptools" },
+    { name = "tox" },
+]
+build = [
+    { name = "build" },
+    { name = "setuptools" },
+    { name = "tox" },
+]
+lint = [
+    { name = "mypy" },
+    { name = "ruff" },
+]
+test = [
     { name = "tox" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "build", specifier = ">=1.3.0" },
-    { name = "deprecation", specifier = ">=2.1.0" },
-    { name = "mypy", specifier = ">=1.17.1" },
-    { name = "python-dotenv", specifier = ">=1.1.1" },
-    { name = "ruff", specifier = ">=0.12.7" },
-    { name = "setuptools", specifier = ">=80.9.0" },
-    { name = "tox", specifier = ">=4.28.3" },
+    { name = "build", marker = "extra == 'build'" },
+    { name = "deprecation" },
+    { name = "mypy", marker = "extra == 'lint'" },
+    { name = "python-dotenv" },
+    { name = "ruff", marker = "extra == 'lint'" },
+    { name = "setuptools", marker = "extra == 'build'" },
+    { name = "splunk-sdk", extras = ["build", "lint", "test"], marker = "extra == 'all'" },
+    { name = "splunk-sdk", extras = ["test"], marker = "extra == 'build'" },
+    { name = "tox", marker = "extra == 'test'" },
 ]
+provides-extras = ["test", "lint", "build", "all"]
 
 [[package]]
 name = "tomli"
@@ -318,7 +337,7 @@ wheels = [
 
 [[package]]
 name = "tox"
-version = "4.28.3"
+version = "4.28.4"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -333,9 +352,9 @@ dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/22/ca/9114e959d8b18f891327b58346a7b6ed6fc71815504fb2f3773dd5950b14/tox-4.28.3.tar.gz", hash = "sha256:b91db7219e5242002cf4040a299c8852026d6af35fcd21274d456fb62dafee7b" }
+sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/cf/01/321c98e3cc584fd101d869c85be2a8236a41a84842bc6af5c078b10c2126/tox-4.28.4.tar.gz", hash = "sha256:b5b14c6307bd8994ff1eba5074275826620325ee1a4f61316959d562bfd70b9d" }
 wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/51/14/bc4935af126b676334ace4c44f451fa4f4a8b2dcfec75b11929d0aff8b3f/tox-4.28.3-py3-none-any.whl", hash = "sha256:1debe9daf0b7e64d425ef99a17292b0792385686b1d541df34c7298211e99269" },
+    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/fe/54/564a33093e41a585e2e997220986182c037bc998abf03a0eb4a7a67c4eff/tox-4.28.4-py3-none-any.whl", hash = "sha256:8d4ad9ee916ebbb59272bb045e154a10fa12e3bbdcf94cc5185cbdaf9b241f99" },
 ]
 
 [[package]]

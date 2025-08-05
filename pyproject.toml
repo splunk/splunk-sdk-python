@@ -2,45 +2,42 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.dynamic]
+version = { attr = "splunklib.__version__" }
+
 [project.urls]
 HOMEPAGE = "https://pypi.org/project/splunk-sdk"
-DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.0.0"
+DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.1.0"
 REPO = "http://github.com/splunk/splunk-sdk-python.git"
 
 [project]
 name = "splunk-sdk"
+dynamic = ["version"]
 description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.9.23"
 license = { file = "LICENSE" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
-dynamic = ["version"]
 classifiers = [
-  "Programming Language :: Python",
-  "Development Status :: 6 - Mature",
-  "Environment :: Other Environment",
-  "Intended Audience :: Developers",
-  "Operating System :: OS Independent",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Software Development :: Libraries :: Application Frameworks",
+       "Programming Language :: Python",
+       "Development Status :: 6 - Mature",
+       "Environment :: Other Environment",
+       "Intended Audience :: Developers",
+       "Operating System :: OS Independent",
+       "Topic :: Software Development :: Libraries :: Python Modules",
+       "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = [
-  "build>=1.3.0",
-  "deprecation>=2.1.0",
-  "mypy>=1.17.1",
-  "python-dotenv>=1.1.1",
-  "ruff>=0.12.7",
-  "setuptools>=80.9.0",
-  "tox>=4.28.3",
-]
+dependencies = ["deprecation", "python-dotenv"]
 
-# TODO :(
-# [dependency-groups]
-# dev = []
+[project.optional-dependencies]
+test = ["tox"]
+lint = ["mypy", "ruff"]
+build = ["build", "setuptools", "splunk-sdk[test]"]
+all = ["splunk-sdk[test, lint, build]"]
 
-[tool.setuptools.dynamic]
-version = { attr = "splunklib.__version__" }
+[tool.uv]
+# default-groups = ["test", "lint", "build"]
 
 # https://docs.astral.sh/ruff/configuration/
 [tool.ruff]
@@ -53,13 +50,14 @@ indent-style = "space"
 line-ending = "auto"
 
 [tool.ruff.lint]
+pydocstyle.convention = "google"
 fixable = ["ALL"]
 select = [
-  "F",   # pyflakes
-  "E",   # pycodestyle
-  "I",   # isort
-  "ANN", # flake8 type annotations
-  "RUF", # ruff-specific rules
+       "F",   # pyflakes
+       "E",   # pycodestyle
+       "I",   # isort
+       "ANN", # flake8 type annotations
+       "RUF", # ruff-specific rules
 ]
 
 [tool.tox]
@@ -70,6 +68,7 @@ envlist = clean,docs,py39,313
 skipsdist = {env:TOXBUILD:false}
 
 # TODO: Replace with ruff
+# https://docs.astral.sh/ruff/settings/
 [testenv:pep8]
 deps = flake8
        flake8-import-order

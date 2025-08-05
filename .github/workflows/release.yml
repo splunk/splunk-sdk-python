@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Install dependencies
-        run: pip install .
+        run: pip install ".[build]"
       - name: Build package
         run: python -m build
       - name: Publish package to PyPI

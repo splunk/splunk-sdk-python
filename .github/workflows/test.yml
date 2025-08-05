@@ -49,9 +49,9 @@ jobs:
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         run: |
           python -m venv ./venv
-          ./venv/bin/python -m pip install .
+          python -m pip install .
       - name: Run test suite
-        run: tox -e py
+        run: ./venv/bin/python -m tox -e py
       - name: Cache virtualenv
         uses: actions/cache/save@v4
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'

@@ -35,7 +35,7 @@ jobs:
       - name: Generate API docs
         run: |
           rm -rf ./docs/_build
-          tox -e docs
+          ./venv/bin/python -m tox -e docs
       - name: Upload docs
         uses: actions/upload-artifact@v4
         with:

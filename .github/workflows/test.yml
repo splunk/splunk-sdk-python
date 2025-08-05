@@ -33,7 +33,7 @@ jobs:
         run: cp ./.env.template ./.env
       - name: Run docker-compose with Splunk v${{ matrix.splunk-version }}
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Restore cached venv and .tox
+      - name: Restore cached `venv` and `.tox`
         id: restore-venv-cache
         uses: actions/cache/restore@v4
         with:
@@ -41,11 +41,12 @@ jobs:
             ./venv
             ./.tox
           key: ${{ runner.os }}-3.9-venv-${{ hashFiles('**/pyproject.toml') }}
-      - name: Build venv
+      - name: Build venv if there's no cache
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         run: |
           python -m venv ./venv
-          ./venv/bin/python -m pip install .
+      - name: Install package
+        run: ./venv/bin/python -m pip install .
       - name: Run test suite
         run: ./venv/bin/python -m tox -e py
       - name: Cache venv and .tox

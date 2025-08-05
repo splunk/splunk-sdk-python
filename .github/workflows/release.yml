@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Restore cached venv and .tox
+      - name: Restore cached `venv` and `.tox`
         id: restore-venv-cache
         uses: actions/cache/restore@v4
         with:
@@ -18,12 +18,12 @@ jobs:
             ./venv
             ./.tox
           key: ${{ runner.os }}-3.9-venv-${{ hashFiles('**/pyproject.toml') }}
-      - name: Build venv
+      - name: Build venv if there's no cache
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         run: |
           python -m venv ./venv
-          ./venv/bin/python -m pip install .
-
+      - name: Install package
+        run: ./venv/bin/python -m pip install .
         # [BJ] Shouldn't we run tests here to prevent an easily preventable catastrophe?
         #      Or is test.yml being ran when we publish a package?
       - name: Build package

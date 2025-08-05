@@ -30,14 +30,15 @@ classifiers = [
 
 dependencies = ["deprecation", "python-dotenv"]
 
-[project.optional-dependencies]
+[dependency-groups]
 test = ["tox"]
 lint = ["mypy", "ruff"]
-build = ["build", "setuptools", "splunk-sdk[test]"]
-all = ["splunk-sdk[test, lint, build]"]
-
-[tool.uv]
-# default-groups = ["test", "lint", "build"]
+build = ["build", "setuptools", { include-group = "test" }]
+dev = [
+       { include-group = "test" },
+       { include-group = "lint" },
+       { include-group = "build" },
+]
 
 # https://docs.astral.sh/ruff/configuration/
 [tool.ruff]

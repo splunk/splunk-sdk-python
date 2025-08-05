@@ -261,16 +261,16 @@ dependencies = [
     { name = "python-dotenv" },
 ]
 
-[package.optional-dependencies]
-all = [
+[package.dev-dependencies]
+build = [
     { name = "build" },
-    { name = "mypy" },
-    { name = "ruff" },
     { name = "setuptools" },
     { name = "tox" },
 ]
-build = [
+dev = [
     { name = "build" },
+    { name = "mypy" },
+    { name = "ruff" },
     { name = "setuptools" },
     { name = "tox" },
 ]
@@ -284,17 +284,28 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "build", marker = "extra == 'build'" },
     { name = "deprecation" },
-    { name = "mypy", marker = "extra == 'lint'" },
     { name = "python-dotenv" },
-    { name = "ruff", marker = "extra == 'lint'" },
-    { name = "setuptools", marker = "extra == 'build'" },
-    { name = "splunk-sdk", extras = ["build", "lint", "test"], marker = "extra == 'all'" },
-    { name = "splunk-sdk", extras = ["test"], marker = "extra == 'build'" },
-    { name = "tox", marker = "extra == 'test'" },
 ]
-provides-extras = ["test", "lint", "build", "all"]
+
+[package.metadata.requires-dev]
+build = [
+    { name = "build" },
+    { name = "setuptools" },
+    { name = "tox" },
+]
+dev = [
+    { name = "build" },
+    { name = "mypy" },
+    { name = "ruff" },
+    { name = "setuptools" },
+    { name = "tox" },
+]
+lint = [
+    { name = "mypy" },
+    { name = "ruff" },
+]
+test = [{ name = "tox" }]
 
 [[package]]
 name = "tomli"

@@ -20,6 +20,7 @@ tests/searchcommands/data/app/app.log
 tests/searchcommands/apps/app_with_logging_configuration/*.log
 Test Results*.html
 splunk_sdk.egg-info/
+.splunkrc
 dist/
 *.observed
 venv/

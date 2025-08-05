@@ -27,36 +27,34 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout source code
+      - name: Checkout repo
         uses: actions/checkout@v4
       - name: Set up .env
         run: cp ./.env.template ./.env
       - name: Run docker-compose with Splunk v${{ matrix.splunk-version }}
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Restore cached virtualenv
+      - name: Restore cached venv and .tox
         id: restore-venv-cache
         uses: actions/cache/restore@v4
         with:
-          path: ./venv
-          key: ${{ runner.os }}-${{ matrix.python }}-venv-${{ hashFiles('**/pyproject.toml') }}
-      - name: Setup Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
-        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
-        with:
-          python-version: ${{ matrix.python }}
-
+          path: |
+            ./venv
+            ./.tox
+          key: ${{ runner.os }}-3.9-venv-${{ hashFiles('**/pyproject.toml') }}
       - name: Build venv
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         run: |
           python -m venv ./venv
-          python -m pip install .
+          ./venv/bin/python -m pip install .
       - name: Run test suite
         run: ./venv/bin/python -m tox -e py
-      - name: Cache virtualenv
+      - name: Cache venv and .tox
         uses: actions/cache/save@v4
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         with:
-          path: ./venv
+          path: |
+            ./venv
+            ./.tox
           key: ${{ steps.restore-venv-cache.outputs.cache-primary-key }}
 # [BJ] I'll obviously uncomment this step after I finish fiddling
 #  fossa-scan:

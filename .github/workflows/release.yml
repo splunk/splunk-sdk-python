@@ -8,13 +8,15 @@ jobs:
     name: Publish release to PyPI
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
+      - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Restore cached virtualenv
+      - name: Restore cached venv and .tox
         id: restore-venv-cache
         uses: actions/cache/restore@v4
         with:
-          path: ./venv
+          path: |
+            ./venv
+            ./.tox
           key: ${{ runner.os }}-3.9-venv-${{ hashFiles('**/pyproject.toml') }}
       - name: Build venv
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
@@ -41,9 +43,11 @@ jobs:
         with:
           name: python_sdk_docs
           path: docs/_build/html
-      - name: Cache virtualenv
+      - name: Cache venv and .tox
         uses: actions/cache/save@v4
         if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         with:
-          path: ./venv
+          path: |
+            ./venv
+            ./.tox
           key: ${{ steps.restore-venv-cache.outputs.cache-primary-key }}

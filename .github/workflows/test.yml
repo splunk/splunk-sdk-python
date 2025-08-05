@@ -16,32 +16,49 @@ jobs:
           - "latest"
         include:
           - os: ubuntu-22.04
-            python: 3.7
+            python: 3.9
             splunk-version: "9.3"
           - os: ubuntu-22.04
-            python: 3.7
+            python: 3.9
             splunk-version: "9.4"
           - os: ubuntu-22.04
-            python: 3.7
+            python: 3.9
             splunk-version: "latest"
       fail-fast: false
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up .env
         run: cp ./.env.template ./.env
-      - name: Run docker-compose
+      - name: Run docker-compose with Splunk v${{ matrix.splunk-version }}
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
+      - name: Restore cached virtualenv
+        id: restore-venv-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./venv
+          key: ${{ runner.os }}-${{ matrix.python }}-venv-${{ hashFiles('**/pyproject.toml') }}
       - name: Setup Python ${{ matrix.python }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
+        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
         with:
           python-version: ${{ matrix.python }}
-      - name: Install dependencies
-        run: pip install .
+
+      - name: Build venv
+        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m venv ./venv
+          ./venv/bin/python -m pip install .
       - name: Run test suite
         run: tox -e py
+      - name: Cache virtualenv
+        uses: actions/cache/save@v4
+        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
+        with:
+          path: ./venv
+          key: ${{ steps.restore-venv-cache.outputs.cache-primary-key }}
 # [BJ] I'll obviously uncomment this step after I finish fiddling
-# fossa-scan:
-#   uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-#   secrets: inherit
+#  fossa-scan:
+#    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+#    secrets: inherit

@@ -5,24 +5,30 @@ on:
 
 jobs:
   publish:
-    name: Deploy release to PyPI
+    name: Publish release to PyPI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/checkout@v4
+      - name: Restore cached virtualenv
+        id: restore-venv-cache
+        uses: actions/cache/restore@v4
         with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: pip install .
+          path: ./venv
+          key: ${{ runner.os }}-3.9-venv-${{ hashFiles('**/pyproject.toml') }}
+      - name: Build venv
+        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m venv ./venv
+          ./venv/bin/python -m pip install .
+
         # [BJ] Shouldn't we run tests here to prevent an easily preventable catastrophe?
         #      Or is test.yml being ran when we publish a package?
       - name: Build package
         # [TODO] We need to confirm this produces the same exact result as `python setup.py sdist`
         run: python -m build
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.10
+        uses: pypa/gh-action-pypi-publish@v1.12.4
         with:
           user: __token__
           password: ${{ secrets.PYPI_PASSWORD }}
@@ -31,14 +37,13 @@ jobs:
           rm -rf ./docs/_build
           tox -e docs
       - name: Upload docs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python_sdk_docs
           path: docs/_build/html
-      # Test upload
-      # - name: Publish package to TestPyPI
-      #   uses: pypa/gh-action-pypi-publish@master
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.TEST_PYPI_PASSWORD }}
-      #     repository_url: https://test.pypi.org/legacy/
+      - name: Cache virtualenv
+        uses: actions/cache/save@v4
+        if: steps.restore-venv-cache.outputs.cache-hit != 'true'
+        with:
+          path: ./venv
+          key: ${{ steps.restore-venv-cache.outputs.cache-primary-key }}

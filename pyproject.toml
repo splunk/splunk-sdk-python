@@ -65,7 +65,7 @@ select = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = clean,docs,py39,313
+envlist = clean,docs,py37,py39,313
 skipsdist = {env:TOXBUILD:false}
 
 # TODO: Replace with ruff

@@ -326,7 +326,11 @@ def connect(**kwargs):
     :type retryDelay: ``int`` (in seconds)
     :param `context`: The SSLContext that can be used when setting verify=True (optional)
     :type context: ``SSLContext``
+    :param proxies: Optional proxies, formatted { "<scheme>" : "<host>:<port>" }
+    :type proxies: ``dict``
+
     :return: An initialized :class:`Service` connection.
+    
 
     **Example**::
 
@@ -398,6 +402,8 @@ class Service(_BaseService):
     :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
     :type retryDelay: ``int`` (in seconds)
     :return: A :class:`Service` instance.
+    :param proxies: Optional proxies, formatted { "<scheme>" : "<host>:<port>" }
+    :type proxies: ``dict``
 
     **Example**::
 

@@ -513,7 +513,8 @@ class Context:
         self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
                             cert_file=kwargs.get("cert_file"), context=kwargs.get("context"),
                             # Default to False for backward compat
-                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10))
+                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10),
+                            proxies=kwargs.get("proxies"))
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None:  # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -1207,10 +1208,9 @@ class HttpLib:
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
 
-    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,
-                 retryDelay=10):
+    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,retryDelay=10, proxies={}):
         if custom_handler is None:
-            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context)
+            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context, proxies=proxies)
         else:
             self.handler = custom_handler
         self._cookies = {}
@@ -1434,7 +1434,7 @@ class ResponseReader(io.RawIOBase):
         return bytes_read
 
 
-def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None):
+def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=None, proxies={}):
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
@@ -1447,7 +1447,9 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
     :param `verify`: Set to False to disable SSL verification on https connections.
     :type verify: ``Boolean``
     :param `context`: The SSLContext that can is used with the HTTPSConnection when verify=True is enabled and context is specified
-    :type context: ``SSLContext`
+    :type context: ``SSLContext``
+    :param `proxies`: A dictionary of possible proxies the handler can leverage
+    :type proxies: ``dict``
     """
 
     def connect(scheme, host, port):
@@ -1481,8 +1483,14 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         for key, value in message["headers"]:
             head[key] = value
         method = message.get("method", "GET")
-
-        connection = connect(scheme, host, port)
+        
+        # have a proxy entry for the current scheme
+        if proxies.get(scheme):
+            connection = connect(scheme, *(proxies.get(scheme).split(":")))
+            connection.set_tunnel("%s:%s" % (host,port))
+            path = "%s://%s:%s%s" % (scheme, host, port, path)
+        else:
+            connection = connect(scheme, host, port)
         is_keepalive = False
         try:
             connection.request(method, path, body, head)

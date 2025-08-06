@@ -1,17 +1,16 @@
-name: Release
+name: Publish release
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       dry-run:
         type: boolean
         required: true
         default: true
-  release:
-    types: [published]
 
 jobs:
-  publish:
-    name: Publish release to PyPI
+  release:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

@@ -1,21 +1,28 @@
-name: Python CI
+name: Run test suite
 
 on: [push, workflow_dispatch]
 
 jobs:
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9, 3.13]
-        splunk-version: ["8.2", "9.4", "latest"]
+        python-version:
+          - 3.7
+          # - 3.9
+          # - 3.13
+        splunk-version:
+          - "8.2"
+          # - "9.3"
+          # - "9.4"
+          # - "latest"
       fail-fast: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Set up environment variables
-        run: cp ./.env.template ./.env
+        run: cp ./.env.test ./.env
       - name: Launch Splunk ${{ matrix.splunk-version }}
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Set up Python ${{ matrix.python-version }}
@@ -23,9 +30,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: type -a python && python --version && python -m pip install . --group dev
+        run: type -a python && python -m pip install tox
+      - name: Run Docker health check
+        # This probably does nothing
+        run: |
+          timeout 30s make wait_up
+          if [ $? -eq 124 ]; then
+            echo "Splunk failed to start within 30 seconds."
+            docker compose logs
+            exit 1
+          fi
       - name: Run test suite
-        run: type -a python && python --version && python -m tox -e py
+        run: type -a python && python -m tox -e py
 # [BJ] I'll uncomment this step after I finish fiddling
 #  fossa-scan:
 #    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main

@@ -8,7 +8,7 @@ name = "splunk-sdk"
 dynamic = ["version"]
 description = "The Splunk Software Development Kit for Python"
 readme = "README.md"
-requires-python = ">=3.9.23"
+requires-python = ">=3.7.17"
 license = { file = "LICENSE" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [

@@ -25,7 +25,6 @@ from splunklib.binding import HTTPError
 
 
 class ServiceTestCase(testlib.SDKTestCase):
-
     def test_autologin(self):
         service = client.connect(autologin=True, **self.opts.kwargs)
         self.service.restart(timeout=120)
@@ -36,13 +35,29 @@ class ServiceTestCase(testlib.SDKTestCase):
         capabilities = self.service.capabilities
         self.assertTrue(isinstance(capabilities, list))
         self.assertTrue(all([isinstance(c, str) for c in capabilities]))
-        self.assertTrue('change_own_password' in capabilities)  # This should always be there...
+        self.assertTrue(
+            "change_own_password" in capabilities
+        )  # This should always be there...
 
     def test_info(self):
         info = self.service.info
-        keys = ["build", "cpu_arch", "guid", "isFree", "isTrial", "licenseKeys",
-                "licenseSignature", "licenseState", "master_guid", "mode",
-                "os_build", "os_name", "os_version", "serverName", "version"]
+        keys = [
+            "build",
+            "cpu_arch",
+            "guid",
+            "isFree",
+            "isTrial",
+            "licenseKeys",
+            "licenseSignature",
+            "licenseState",
+            "master_guid",
+            "mode",
+            "os_build",
+            "os_name",
+            "os_version",
+            "serverName",
+            "version",
+        ]
         for key in keys:
             self.assertTrue(key in list(info.keys()))
 
@@ -55,7 +70,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         self.service.namespace["owner"] = self.service.username
         self.service.namespace["app"] = "search"
         try:
-            self.assertEqual(self.service.info.licenseState, 'OK')
+            self.assertEqual(self.service.info.licenseState, "OK")
         except HTTPError as he:
             self.fail(f"Couldn't get the server info, probably got a 403! {he.message}")
 
@@ -68,31 +83,31 @@ class ServiceTestCase(testlib.SDKTestCase):
 
     def test_app_namespace(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': "search", 'owner': None})
+        kwargs.update({"app": "search", "owner": None})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_owner_wildcard(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': "search", 'owner': "-"})
+        kwargs.update({"app": "search", "owner": "-"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_default_app(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': None, 'owner': "admin"})
+        kwargs.update({"app": None, "owner": "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_app_wildcard(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': "-", 'owner': "admin"})
+        kwargs.update({"app": "-", "owner": "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
     def test_user_namespace(self):
         kwargs = self.opts.kwargs.copy()
-        kwargs.update({'app': "search", 'owner': "admin"})
+        kwargs.update({"app": "search", "owner": "admin"})
         service_ns = client.connect(**kwargs)
         service_ns.apps.list()
 
@@ -107,7 +122,7 @@ class ServiceTestCase(testlib.SDKTestCase):
     def test_parse_fail(self):
         try:
             self.service.parse("xyzzy")
-            self.fail('Parse on nonsense did not fail')
+            self.fail("Parse on nonsense did not fail")
         except HTTPError as e:
             self.assertEqual(e.status, 400)
 
@@ -119,14 +134,14 @@ class ServiceTestCase(testlib.SDKTestCase):
     def test_read_outputs_with_type(self):
         name = testlib.tmpname()
         service = client.connect(**self.opts.kwargs)
-        service.post('data/outputs/tcp/syslog', name=name, type='tcp')
-        entity = client.Entity(service, 'data/outputs/tcp/syslog/' + name)
-        self.assertTrue('tcp', entity.content.type)
+        service.post("data/outputs/tcp/syslog", name=name, type="tcp")
+        entity = client.Entity(service, "data/outputs/tcp/syslog/" + name)
+        self.assertTrue("tcp", entity.content.type)
 
         if service.restart_required:
             self.restartSplunk()
         service = client.connect(**self.opts.kwargs)
-        client.Entity(service, 'data/outputs/tcp/syslog/' + name).delete()
+        client.Entity(service, "data/outputs/tcp/syslog/" + name).delete()
         if service.restart_required:
             self.restartSplunk()
 
@@ -152,7 +167,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         service = self._create_unauthenticated_service()
         try:
             service.indexes.list()
-            self.fail('Expected HTTP 401.')
+            self.fail("Expected HTTP 401.")
         except HTTPError as he:
             if he.status == 401:
                 # Good
@@ -161,19 +176,28 @@ class ServiceTestCase(testlib.SDKTestCase):
                 raise
 
     def _create_unauthenticated_service(self):
-        return Service(**{
-            'host': self.opts.kwargs['host'],
-            'port': self.opts.kwargs['port'],
-            'scheme': self.opts.kwargs['scheme']
-        })
+        return Service(
+            **{
+                "host": self.opts.kwargs["host"],
+                "port": self.opts.kwargs["port"],
+                "scheme": self.opts.kwargs["scheme"],
+            }
+        )
 
     # To check the HEC event endpoint using Endpoint instance
     @pytest.mark.smoke
     def test_hec_event(self):
         import json
-        service_hec = client.connect(host='localhost', scheme='https', port=8088,
-                                     token="11111111-1111-1111-1111-1111111111113")
-        event_collector_endpoint = client.Endpoint(service_hec, "/services/collector/event")
+
+        service_hec = client.connect(
+            host="localhost",
+            scheme="https",
+            port=8088,
+            token="11111111-1111-1111-1111-1111111111113",
+        )
+        event_collector_endpoint = client.Endpoint(
+            service_hec, "/services/collector/event"
+        )
         msg = {"index": "main", "event": "Hello World"}
         response = event_collector_endpoint.post("", body=json.dumps(msg))
         self.assertEqual(response.status, 200)
@@ -184,11 +208,11 @@ class TestCookieAuthentication(unittest.TestCase):
         self.opts = testlib.parse([], {}, ".env")
         self.service = client.Service(**self.opts.kwargs)
 
-    if getattr(unittest.TestCase, 'assertIsNotNone', None) is None:
+    if getattr(unittest.TestCase, "assertIsNotNone", None) is None:
 
         def assertIsNotNone(self, obj, msg=None):
             if obj is None:
-                raise self.failureException(msg or f'{obj} is not None')
+                raise self.failureException(msg or f"{obj} is not None")
 
     def test_login_and_store_cookie(self):
         self.assertIsNotNone(self.service.get_cookies())
@@ -202,7 +226,9 @@ class TestCookieAuthentication(unittest.TestCase):
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
         # Use the cookie from the other service as the only auth param (don't need user/password)
-        service2 = client.Service(**{"cookie": "%s=%s" % list(self.service.get_cookies().items())[0]})
+        service2 = client.Service(
+            **{"cookie": "%s=%s" % list(self.service.get_cookies().items())[0]}
+        )
         service2.login()
         self.assertEqual(len(service2.get_cookies()), 1)
         self.assertEqual(service2.get_cookies(), self.service.get_cookies())
@@ -211,11 +237,11 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(service2.apps.get().status, 200)
 
     def test_login_fails_with_bad_cookie(self):
-        bad_cookie = {'bad': 'cookie'}
+        bad_cookie = {"bad": "cookie"}
         service2 = client.Service()
         self.assertEqual(len(service2.get_cookies()), 0)
         service2.get_cookies().update(bad_cookie)
-        self.assertEqual(service2.get_cookies(), {'bad': 'cookie'})
+        self.assertEqual(service2.get_cookies(), {"bad": "cookie"})
 
         # Should get an error with a bad cookie
         try:
@@ -230,7 +256,8 @@ class TestCookieAuthentication(unittest.TestCase):
         service = client.connect(
             autologin=True,
             cookie="%s=%s" % list(self.service.get_cookies().items())[0],
-            **self.opts.kwargs)
+            **self.opts.kwargs,
+        )
         self.assertTrue(service.has_cookies())
         self.service.restart(timeout=120)
         reader = service.jobs.oneshot("search index=internal | head 1")
@@ -248,10 +275,7 @@ class TestCookieAuthentication(unittest.TestCase):
             self.assertEqual(str(ae), "Login failed.")
 
     def test_login_with_multiple_cookie_headers(self):
-        cookies = {
-            'bad': 'cookie',
-            'something_else': 'bad'
-        }
+        cookies = {"bad": "cookie", "something_else": "bad"}
         self.service.logout()
         self.service.get_cookies().update(cookies)
 
@@ -259,7 +283,7 @@ class TestCookieAuthentication(unittest.TestCase):
         self.assertEqual(self.service.apps.get().status, 200)
 
     def test_login_with_multiple_cookies(self):
-        bad_cookie = 'bad=cookie'
+        bad_cookie = "bad=cookie"
         self.service.login()
         self.assertIsNotNone(self.service.get_cookies())
 
@@ -276,13 +300,17 @@ class TestCookieAuthentication(unittest.TestCase):
             service2.get_cookies().update(self.service.get_cookies())
 
             self.assertEqual(len(service2.get_cookies()), 2)
-            self.service.get_cookies().update({'bad': 'cookie'})
+            self.service.get_cookies().update({"bad": "cookie"})
             self.assertEqual(service2.get_cookies(), self.service.get_cookies())
             self.assertEqual(len(service2.get_cookies()), 2)
-            self.assertTrue([cookie for cookie in service2.get_cookies() if "splunkd_" in cookie])
-            self.assertTrue('bad' in service2.get_cookies())
-            self.assertEqual(service2.get_cookies()['bad'], 'cookie')
-            self.assertEqual(set(self.service.get_cookies()), set(service2.get_cookies()))
+            self.assertTrue(
+                [cookie for cookie in service2.get_cookies() if "splunkd_" in cookie]
+            )
+            self.assertTrue("bad" in service2.get_cookies())
+            self.assertEqual(service2.get_cookies()["bad"], "cookie")
+            self.assertEqual(
+                set(self.service.get_cookies()), set(service2.get_cookies())
+            )
             service2.login()
             self.assertEqual(service2.apps.get().status, 200)
 
@@ -292,9 +320,18 @@ class TestSettings(testlib.SDKTestCase):
         settings = self.service.settings
         # Verify that settings contains the keys we expect
         keys = [
-            "SPLUNK_DB", "SPLUNK_HOME", "enableSplunkWebSSL", "host",
-            "httpport", "mgmtHostPort", "minFreeSpace", "pass4SymmKey",
-            "serverName", "sessionTimeout", "startwebserver", "trustedIP"
+            "SPLUNK_DB",
+            "SPLUNK_HOME",
+            "enableSplunkWebSSL",
+            "host",
+            "httpport",
+            "mgmtHostPort",
+            "minFreeSpace",
+            "pass4SymmKey",
+            "serverName",
+            "sessionTimeout",
+            "startwebserver",
+            "trustedIP",
         ]
         for key in keys:
             self.assertTrue(key in settings)
@@ -302,68 +339,78 @@ class TestSettings(testlib.SDKTestCase):
     def test_update_settings(self):
         settings = self.service.settings
         # Verify that we can update the settings
-        original = settings['sessionTimeout']
+        original = settings["sessionTimeout"]
         self.assertTrue(original != "42h")
         settings.update(sessionTimeout="42h")
         settings.refresh()
-        updated = settings['sessionTimeout']
+        updated = settings["sessionTimeout"]
         self.assertEqual(updated, "42h")
 
         # Restore (and verify) original value
         settings.update(sessionTimeout=original)
         settings.refresh()
-        updated = settings['sessionTimeout']
+        updated = settings["sessionTimeout"]
         self.assertEqual(updated, original)
         self.restartSplunk()
 
 
 class TestTrailing(unittest.TestCase):
-    template = '/servicesNS/boris/search/another/path/segment/that runs on'
+    template = "/servicesNS/boris/search/another/path/segment/that runs on"
 
     def test_raises_when_not_found_first(self):
-        self.assertRaises(ValueError, client._trailing, 'this is a test', 'boris')
+        self.assertRaises(ValueError, client._trailing, "this is a test", "boris")
 
     def test_raises_when_not_found_second(self):
-        self.assertRaises(ValueError, client._trailing, 'this is a test', 's is', 'boris')
+        self.assertRaises(
+            ValueError, client._trailing, "this is a test", "s is", "boris"
+        )
 
     def test_no_args_is_identity(self):
         self.assertEqual(self.template, client._trailing(self.template))
 
     def test_trailing_with_one_arg_works(self):
-        self.assertEqual('boris/search/another/path/segment/that runs on',
-                         client._trailing(self.template, 'ervicesNS/'))
+        self.assertEqual(
+            "boris/search/another/path/segment/that runs on",
+            client._trailing(self.template, "ervicesNS/"),
+        )
 
     def test_trailing_with_n_args_works(self):
         self.assertEqual(
-            'another/path/segment/that runs on',
-            client._trailing(self.template, 'servicesNS/', '/', '/')
+            "another/path/segment/that runs on",
+            client._trailing(self.template, "servicesNS/", "/", "/"),
         )
 
 
 class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_arguments(self):
-        entity = self.service.apps['search']
-        self.assertEqual((None, None, "global"), entity._proper_namespace(sharing="global"))
-        self.assertEqual((None, "search", "app"), entity._proper_namespace(sharing="app", app="search"))
+        entity = self.service.apps["search"]
+        self.assertEqual(
+            (None, None, "global"), entity._proper_namespace(sharing="global")
+        )
+        self.assertEqual(
+            (None, "search", "app"),
+            entity._proper_namespace(sharing="app", app="search"),
+        )
         self.assertEqual(
             ("admin", "search", "user"),
-            entity._proper_namespace(sharing="user", app="search", owner="admin")
+            entity._proper_namespace(sharing="user", app="search", owner="admin"),
         )
 
     def test_proper_namespace_with_entity_namespace(self):
-        entity = self.service.apps['search']
+        entity = self.service.apps["search"]
         namespace = (entity.access.owner, entity.access.app, entity.access.sharing)
         self.assertEqual(namespace, entity._proper_namespace())
 
     def test_proper_namespace_with_service_namespace(self):
         entity = client.Entity(self.service, client.PATH_APPS + "search")
-        del entity._state['access']
-        namespace = (self.service.namespace.owner,
-                     self.service.namespace.app,
-                     self.service.namespace.sharing)
+        del entity._state["access"]
+        namespace = (
+            self.service.namespace.owner,
+            self.service.namespace.app,
+            self.service.namespace.sharing,
+        )
         self.assertEqual(namespace, entity._proper_namespace())
 
 
 if __name__ == "__main__":
-
     unittest.main()

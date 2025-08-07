@@ -75,7 +75,8 @@ class Script(metaclass=ABCMeta):
                 if scheme is None:
                     event_writer.log(
                         EventWriter.FATAL,
-                        "Modular input script returned a null scheme.")
+                        "Modular input script returned a null scheme.",
+                    )
                     return 1
                 event_writer.write_xml_document(scheme.to_xml())
                 return 0
@@ -91,8 +92,10 @@ class Script(metaclass=ABCMeta):
                     event_writer.write_xml_document(root)
 
                     return 1
-            event_writer.log(EventWriter.ERROR, "Invalid arguments to modular input script:" + ' '.join(
-                args))
+            event_writer.log(
+                EventWriter.ERROR,
+                "Invalid arguments to modular input script:" + " ".join(args),
+            )
             return 1
 
         except Exception as e:
@@ -101,7 +104,7 @@ class Script(metaclass=ABCMeta):
 
     @property
     def service(self):
-        """ Returns a Splunk service object for this script invocation.
+        """Returns a Splunk service object for this script invocation.
 
         The service object is created from the Splunkd URI and session key
         passed to the command invocation on the modular input stream. It is

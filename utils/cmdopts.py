@@ -19,19 +19,21 @@ from optparse import OptionParser
 import sys
 from dotenv import dotenv_values
 
-__all__ = [ "error", "Parser", "cmdline" ]
+__all__ = ["error", "Parser", "cmdline"]
+
 
 # Print the given message to stderr, and optionally exit
-def error(message, exitcode = None):
+def error(message, exitcode=None):
     print(f"Error: {message}", file=sys.stderr)
-    if exitcode is not None: sys.exit(exitcode)
+    if exitcode is not None:
+        sys.exit(exitcode)
 
 
 class record(dict):
     def __getattr__(self, name):
-        try: 
-            return self[name] 
-        except KeyError: 
+        try:
+            return self[name]
+        except KeyError:
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
@@ -39,11 +41,12 @@ class record(dict):
 
 
 class Parser(OptionParser):
-    def __init__(self, rules = None, **kwargs):
+    def __init__(self, rules=None, **kwargs):
         OptionParser.__init__(self, **kwargs)
         self.dests = set({})
-        self.result = record({ 'args': [], 'kwargs': record() })
-        if rules is not None: self.init(rules)
+        self.result = record({"args": [], "kwargs": record()})
+        if rules is not None:
+            self.init(rules)
 
     def init(self, rules):
         """Initialize the parser with the given command rules."""
@@ -54,14 +57,15 @@ class Parser(OptionParser):
             # Assign defaults ourselves here, instead of in the option parser
             # itself in order to allow for multiple calls to parse (dont want
             # subsequent calls to override previous values with default vals).
-            if 'default' in rule:
-                self.result['kwargs'][dest] = rule['default']
+            if "default" in rule:
+                self.result["kwargs"][dest] = rule["default"]
 
-            flags = rule['flags']
-            kwargs = { 'action': rule.get('action', "store") }
+            flags = rule["flags"]
+            kwargs = {"action": rule.get("action", "store")}
             # NOTE: Don't provision the parser with defaults here, per above.
-            for key in ['callback', 'help', 'metavar', 'type']:
-                if key in rule: kwargs[key] = rule[key]
+            for key in ["callback", "help", "metavar", "type"]:
+                if key in rule:
+                    kwargs[key] = rule[key]
             self.add_option(*flags, dest=dest, **kwargs)
 
             # Remember the dest vars that we see, so that we can merge results
@@ -78,9 +82,10 @@ class Parser(OptionParser):
         # update result kwargs value with .env file data
         for key, value in filedata.items():
             value = value.strip()
-            if len(value) == 0 or value is None: continue  # Skip blank value
+            if len(value) == 0 or value is None:
+                continue  # Skip blank value
             elif key in self.dests:
-                self.result['kwargs'][key] = value
+                self.result["kwargs"][key] = value
             else:
                 raise NameError("No such option --" + key)
 
@@ -88,24 +93,25 @@ class Parser(OptionParser):
 
     def loadif(self, filepath):
         """Load the given filepath if it exists, otherwise ignore."""
-        if path.isfile(filepath): self.load(filepath)
+        if path.isfile(filepath):
+            self.load(filepath)
         return self
 
     def loadenv(self, filename):
         dir_path = path.dirname(path.realpath(__file__))
-        filepath = path.join(dir_path, '..', filename)
+        filepath = path.join(dir_path, "..", filename)
         self.loadif(filepath)
         return self
 
     def parse(self, argv):
         """Parse the given argument vector."""
         kwargs, args = self.parse_args(argv)
-        self.result['args'] += args
+        self.result["args"] += args
         # Annoying that parse_args doesn't just return a dict
         for dest in self.dests:
             value = getattr(kwargs, dest)
             if value is not None:
-                self.result['kwargs'][dest] = value
+                self.result["kwargs"][dest] = value
         return self
 
     def format_epilog(self, formatter):
@@ -114,8 +120,8 @@ class Parser(OptionParser):
 
 def cmdline(argv, rules=None, config=None, **kwargs):
     """Simplified cmdopts interface that does not default any parsing rules
-       and that does not allow compounding calls to the parser."""
+    and that does not allow compounding calls to the parser."""
     parser = Parser(rules, **kwargs)
-    if config is not None: parser.loadenv(config)
+    if config is not None:
+        parser.loadenv(config)
     return parser.parse(argv).result
-

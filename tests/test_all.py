@@ -20,7 +20,7 @@ import os
 import unittest
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-suite = unittest.defaultTestLoader.discover('.')
+suite = unittest.defaultTestLoader.discover(".")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner().run(suite)

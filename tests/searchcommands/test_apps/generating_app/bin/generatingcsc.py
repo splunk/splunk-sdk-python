@@ -19,7 +19,13 @@ import os, sys
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
-from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
+from splunklib.searchcommands import (
+    dispatch,
+    GeneratingCommand,
+    Configuration,
+    Option,
+    validators,
+)
 
 
 @Configuration()
@@ -39,8 +45,8 @@ class GeneratingCSC(GeneratingCommand):
     def generate(self):
         self.logger.debug("Generating %s events" % self.count)
         for i in range(1, self.count + 1):
-            text = f'Test Event {i}'
-            yield {'_time': time.time(), 'event_no': i, '_raw': text}
+            text = f"Test Event {i}"
+            yield {"_time": time.time(), "event_no": i, "_raw": text}
 
 
 dispatch(GeneratingCSC, sys.argv, sys.stdin, sys.stdout, __name__)

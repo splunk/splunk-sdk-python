@@ -22,31 +22,36 @@ from contextlib import contextmanager
 from splunklib import client
 
 collections = [
-    'apps',
-    'event_types',
-    'indexes',
-    'inputs',
-    'jobs',
-    'loggers',
-    'messages',
-    'roles',
-    'users'
+    "apps",
+    "event_types",
+    "indexes",
+    "inputs",
+    "jobs",
+    "loggers",
+    "messages",
+    "roles",
+    "users",
 ]
 
-expected_access_keys = set(['sharing', 'app', 'owner'])
-expected_fields_keys = set(['required', 'optional', 'wildcard'])
+expected_access_keys = set(["sharing", "app", "owner"])
+expected_fields_keys = set(["required", "optional", "wildcard"])
 
 
 class CollectionTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
-        if self.service.splunk_version[0] >= 5 and 'modular_input_kinds' not in collections:
-            collections.append('modular_input_kinds')  # Not supported before Splunk 5.0
+        if (
+            self.service.splunk_version[0] >= 5
+            and "modular_input_kinds" not in collections
+        ):
+            collections.append("modular_input_kinds")  # Not supported before Splunk 5.0
         else:
-            logging.info("Skipping modular_input_kinds; not supported by Splunk %s" % \
-                         '.'.join(str(x) for x in self.service.splunk_version))
+            logging.info(
+                "Skipping modular_input_kinds; not supported by Splunk %s"
+                % ".".join(str(x) for x in self.service.splunk_version)
+            )
         for saved_search in self.service.saved_searches:
-            if saved_search.name.startswith('delete-me'):
+            if saved_search.name.startswith("delete-me"):
                 try:
                     for job in saved_search.history():
                         job.cancel()
@@ -59,18 +64,22 @@ class CollectionTestCase(testlib.SDKTestCase):
         self.assertRaises(client.NotSupportedError, self.service.loggers.itemmeta)
         self.assertRaises(TypeError, self.service.inputs.itemmeta)
         for c in collections:
-            if c in ['jobs', 'loggers', 'inputs', 'modular_input_kinds']:
+            if c in ["jobs", "loggers", "inputs", "modular_input_kinds"]:
                 continue
             coll = getattr(self.service, c)
             metadata = coll.itemmeta()
             found_access_keys = set(metadata.access.keys())
             found_fields_keys = set(metadata.fields.keys())
-            self.assertTrue(found_access_keys >= expected_access_keys,
-                            msg='metadata.access is missing keys on ' + \
-                                f'{coll} (found: {found_access_keys}, expected: {expected_access_keys})')
-            self.assertTrue(found_fields_keys >= expected_fields_keys,
-                            msg='metadata.fields is missing keys on ' + \
-                                f'{coll} (found: {found_fields_keys}, expected: {expected_fields_keys})')
+            self.assertTrue(
+                found_access_keys >= expected_access_keys,
+                msg="metadata.access is missing keys on "
+                + f"{coll} (found: {found_access_keys}, expected: {expected_access_keys})",
+            )
+            self.assertTrue(
+                found_fields_keys >= expected_fields_keys,
+                msg="metadata.fields is missing keys on "
+                + f"{coll} (found: {found_fields_keys}, expected: {expected_fields_keys})",
+            )
 
     def test_list(self):
         for coll_name in collections:
@@ -79,8 +88,11 @@ class CollectionTestCase(testlib.SDKTestCase):
             if len(expected) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list()][:10]
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_list_with_count(self):
         N = 5
@@ -89,18 +101,25 @@ class CollectionTestCase(testlib.SDKTestCase):
             expected = [ent.name for ent in coll.list(count=N + 5)][:N]
             N = len(expected)  # in case there are <N elements
             found = [ent.name for ent in coll.list(count=N)]
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected {expected}, found {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected {expected}, found {found})",
+            )
 
     def test_list_with_offset(self):
         import random
+
         for offset in [random.randint(3, 50) for x in range(5)]:
             for coll_name in collections:
                 coll = getattr(self.service, coll_name)
                 expected = [ent.name for ent in coll.list(count=offset + 10)][offset:]
                 found = [ent.name for ent in coll.list(offset=offset, count=10)]
-                self.assertEqual(expected, found,
-                                 msg=f'on {coll_name} (expected {expected}, found {found})')
+                self.assertEqual(
+                    expected,
+                    found,
+                    msg=f"on {coll_name} (expected {expected}, found {found})",
+                )
 
     def test_list_with_search(self):
         for coll_name in collections:
@@ -110,24 +129,32 @@ class CollectionTestCase(testlib.SDKTestCase):
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             # TODO: DVPL-5868 - This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_list_with_sort_dir(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            expected_kwargs = {'sort_dir': 'desc'}
-            found_kwargs = {'sort_dir': 'asc'}
-            if coll_name == 'jobs':
-                expected_kwargs['sort_key'] = 'sid'
-                found_kwargs['sort_key'] = 'sid'
-            expected = list(reversed([ent.name for ent in coll.list(**expected_kwargs)]))
+            expected_kwargs = {"sort_dir": "desc"}
+            found_kwargs = {"sort_dir": "asc"}
+            if coll_name == "jobs":
+                expected_kwargs["sort_key"] = "sid"
+                found_kwargs["sort_key"] = "sid"
+            expected = list(
+                reversed([ent.name for ent in coll.list(**expected_kwargs)])
+            )
             if len(expected) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list(**found_kwargs)]
 
-            self.assertEqual(sorted(expected), sorted(found),
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                sorted(expected),
+                sorted(found),
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_list_with_sort_mode_auto(self):
         # The jobs collection requires special handling. The sort_dir kwarg is
@@ -136,37 +163,47 @@ class CollectionTestCase(testlib.SDKTestCase):
         # sort_key for jobs in Splunk 6.
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
-            if coll_name == 'jobs':
-                expected = [ent.name for ent in coll.list(
-                    sort_mode="auto", sort_dir="asc", sort_key="sid")]
+            if coll_name == "jobs":
+                expected = [
+                    ent.name
+                    for ent in coll.list(
+                        sort_mode="auto", sort_dir="asc", sort_key="sid"
+                    )
+                ]
             else:
                 expected = [ent.name for ent in coll.list(sort_mode="auto")]
 
             if len(expected) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
 
-            if coll_name == 'jobs':
-                found = [ent.name for ent in coll.list(
-                    sort_dir="asc", sort_key="sid")]
+            if coll_name == "jobs":
+                found = [ent.name for ent in coll.list(sort_dir="asc", sort_key="sid")]
             else:
                 found = [ent.name for ent in coll.list()]
 
-            self.assertEqual(expected, found, msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_list_with_sort_mode_alpha_case(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)
             # sort_dir is needed because the default sorting direction
             # for jobs is "desc", not "asc", so we have to set it explicitly or our tests break.
-            kwargs = {'sort_mode': 'alpha_case', 'sort_dir': 'asc', 'count': 30}
-            if coll_name == 'jobs':
-                kwargs['sort_key'] = 'sid'
+            kwargs = {"sort_mode": "alpha_case", "sort_dir": "asc", "count": 30}
+            if coll_name == "jobs":
+                kwargs["sort_key"] = "sid"
             found = [ent.name for ent in coll.list(**kwargs)]
             if len(found) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             expected = sorted(found)
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_list_with_sort_mode_alpha(self):
         for coll_name in collections:
@@ -176,15 +213,18 @@ class CollectionTestCase(testlib.SDKTestCase):
             # or our tests break. We also need to specify "sid" as sort_key
             # for jobs, or things are sorted by submission time and ties go
             # the same way in either sort direction.
-            kwargs = {'sort_mode': 'alpha', 'sort_dir': 'asc', 'count': 30}
-            if coll_name == 'jobs':
-                kwargs['sort_key'] = 'sid'
+            kwargs = {"sort_mode": "alpha", "sort_dir": "asc", "count": 30}
+            if coll_name == "jobs":
+                kwargs["sort_key"] = "sid"
             found = [ent.name for ent in coll.list(**kwargs)]
             if len(found) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             expected = sorted(found, key=str.lower)
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_iteration(self):
         for coll_name in collections:
@@ -196,8 +236,11 @@ class CollectionTestCase(testlib.SDKTestCase):
             found = []
             for ent in coll.iter(pagesize=max(int(total / 5.0), 1), count=10):
                 found.append(ent.name)
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_paging(self):
         for coll_name in collections:
@@ -213,12 +256,16 @@ class CollectionTestCase(testlib.SDKTestCase):
                 page = coll.list(offset=offset, count=page_size)
                 count = len(page)
                 offset += count
-                self.assertTrue(count == page_size or offset == total,
-                                msg=f'on {coll_name}')
+                self.assertTrue(
+                    count == page_size or offset == total, msg=f"on {coll_name}"
+                )
                 found.extend([ent.name for ent in page])
                 logging.debug("Iterate: offset=%d/%d", offset, total)
-            self.assertEqual(expected, found,
-                             msg=f'on {coll_name} (expected: {expected}, found: {found})')
+            self.assertEqual(
+                expected,
+                found,
+                msg=f"on {coll_name} (expected: {expected}, found: {found})",
+            )
 
     def test_getitem_with_nonsense(self):
         for coll_name in collections:
@@ -228,8 +275,8 @@ class CollectionTestCase(testlib.SDKTestCase):
             self.assertRaises(KeyError, coll.__getitem__, name)
 
     def test_getitem_with_namespace_sample_in_changelog(self):
-        ns = client.namespace(owner='nobody', app='search')
-        result = self.service.saved_searches['Errors in the last 24 hours', ns]
+        ns = client.namespace(owner="nobody", app="search")
+        result = self.service.saved_searches["Errors in the last 24 hours", ns]
 
     def test_collection_search_get(self):
         for search in self.service.saved_searches:

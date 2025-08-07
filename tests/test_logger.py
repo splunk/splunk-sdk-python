@@ -24,25 +24,25 @@ LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 class LoggerTestCase(testlib.SDKTestCase):
     def check_logger(self, logger):
         self.check_entity(logger)
-        self.assertTrue(logger['level'] in LEVELS)
+        self.assertTrue(logger["level"] in LEVELS)
 
     def test_read(self):
         for logger in self.service.loggers.list(count=10):
             self.check_logger(logger)
 
     def test_crud(self):
-        self.assertTrue('AuditLogger' in self.service.loggers)
-        logger = self.service.loggers['AuditLogger']
+        self.assertTrue("AuditLogger" in self.service.loggers)
+        logger = self.service.loggers["AuditLogger"]
 
-        saved = logger['level']
+        saved = logger["level"]
         for level in LEVELS:
             logger.update(level=level)
             logger.refresh()
-            self.assertEqual(self.service.loggers['AuditLogger']['level'], level)
+            self.assertEqual(self.service.loggers["AuditLogger"]["level"], level)
 
         logger.update(level=saved)
         logger.refresh()
-        self.assertEqual(self.service.loggers['AuditLogger']['level'], saved)
+        self.assertEqual(self.service.loggers["AuditLogger"]["level"], saved)
 
 
 if __name__ == "__main__":

@@ -26,11 +26,13 @@ project_root = path.dirname(path.dirname(package_directory))
 
 
 def rebase_environment(name):
-    environment.app_root = path.join(package_directory, 'apps', name)
+    environment.app_root = path.join(package_directory, "apps", name)
     logging.Logger.manager.loggerDict.clear()
     del logging.root.handlers[:]
 
-    environment.splunklib_logger, environment.logging_configuration = environment.configure_logging('splunklib')
+    environment.splunklib_logger, environment.logging_configuration = (
+        environment.configure_logging("splunklib")
+    )
     searchcommands.logging_configuration = environment.logging_configuration
     searchcommands.splunklib_logger = environment.splunklib_logger
     searchcommands.app_root = environment.app_root

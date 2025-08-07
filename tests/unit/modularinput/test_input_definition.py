@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests.modularinput.modularinput_testlib import unittest, data_open
+from tests.unit.modularinput.modularinput_testlib import unittest, data_open
 from splunklib.modularinput.input_definition import InputDefinition
 
 

@@ -29,7 +29,7 @@ from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
 
-from tests.searchcommands import rebase_environment, package_directory
+from tests.unit.searchcommands import rebase_environment, package_directory
 
 # portable log level names
 # https://stackoverflow.com/a/49724281

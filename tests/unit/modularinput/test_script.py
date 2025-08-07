@@ -7,7 +7,7 @@ from splunklib.client import Service
 from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
 
 from splunklib.modularinput.utils import xml_compare
-from tests.modularinput.modularinput_testlib import data_open
+from tests.unit.modularinput.modularinput_testlib import data_open
 
 
 TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__"

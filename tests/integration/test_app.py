@@ -14,6 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# integration test - tests SDK usage as communication with splunk over http api to create and manage apps
+
 import logging
 from tests import testlib
 from splunklib import client

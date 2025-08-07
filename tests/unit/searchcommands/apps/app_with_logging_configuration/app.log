@@ -1,0 +1,9 @@
+2025-07-29 11:22:46,641, Level=WARNING, Pid=74394, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-07-30 09:39:03,387, Level=WARNING, Pid=17670, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-07-31 15:58:07,275, Level=WARNING, Pid=76649, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:32:52,268, Level=WARNING, Pid=99541, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:40:09,926, Level=WARNING, Pid=4064, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:40:37,027, Level=WARNING, Pid=4441, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:47:17,168, Level=WARNING, Pid=8853, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:47:22,006, Level=WARNING, Pid=8872, File=search_command.py, Line=350, Missing metadata for service creation.
+2025-08-07 11:47:26,296, Level=WARNING, Pid=8905, File=search_command.py, Line=350, Missing metadata for service creation.

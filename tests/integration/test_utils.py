@@ -1,3 +1,4 @@
+from pathlib import Path
 import unittest
 import os
 from tests import testlib
@@ -92,8 +93,10 @@ class FilePermissionTest(unittest.TestCase):
                 else:
                     checkFilePermissions(path)
 
-        dir_path = os.path.join('..', 'splunklib')
-        checkFilePermissions(dir_path)
+        test_file_path = Path(__file__)
+        # From tests/integration/test_job.py, go up 2 levels to project root, then to splunklib
+        splunklib_path = test_file_path.parent.parent.parent / 'splunklib'
+        checkFilePermissions(str(splunklib_path))
 
 
 if __name__ == "__main__":

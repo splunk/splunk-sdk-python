@@ -7,16 +7,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os:
+          - ubuntu-22.04
+          # - ubuntu-latest
         python-version:
           - 3.7
-          - 3.9
+          # - 3.9
           # - 3.13
         splunk-version:
-          - "8.2"
           - "9.3"
           # - "9.4"
           # - "latest"
+
       fail-fast: false
     steps:
       - name: Checkout repo
@@ -31,17 +33,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: type -a python && python -m pip install tox
-      # - name: Run Docker health check
-      #   # This probably solves nothing
-      #   run: |
-      #     timeout 30s make wait_up
-      #     if [ $? -eq 124 ]; then
-      #       echo "Splunk failed to start within 30 seconds."
-      #       docker compose logs
-      #       exit 1
-      #     fi
+      - name: Run Docker health check
+        # This probably solves nothing
+        run: |
+          timeout 30s make wait_up
+          if [ $? -eq 124 ]; then
+            echo "Splunk failed to start within 30 seconds."
+            docker compose logs
+            exit 1
+          fi
       - name: Run test suite
         run: type -a python && python -m tox -e py
+      - name: Print docker logs for optional inspection
+        run: docker compose logs
 # [BJ] I'll uncomment this step after I finish fiddling
 #  fossa-scan:
 #    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main

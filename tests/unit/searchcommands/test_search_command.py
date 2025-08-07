@@ -18,18 +18,13 @@
 from json.encoder import encode_basestring as encode_string
 from unittest import main, TestCase
 
-import csv
-import codecs
 import os
-import re
 import logging
 
 from io import TextIOWrapper
-from unittest.mock import MagicMock, patch
 
 import pytest
 
-import splunklib
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.internals import ObjectView
@@ -37,7 +32,7 @@ from splunklib.searchcommands.search_command import SearchCommand
 from splunklib.client import Service
 from splunklib.utils import ensure_binary
 
-from io import StringIO, BytesIO
+from io import BytesIO
 
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):

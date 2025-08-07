@@ -18,12 +18,12 @@ import sys
 from os import path
 import xml.etree.ElementTree as et
 
-from tests import testlib
+import unittest
 
 from splunklib import data
 
 
-class DataTestCase(testlib.SDKTestCase):
+class DataTestCase(unittest.TestCase):
     def test_elems(self):
         result = data.load("")
         self.assertTrue(result is None)
@@ -143,28 +143,35 @@ class DataTestCase(testlib.SDKTestCase):
         self.assertRaises(KeyError, data.load, "<dict><key>a</key></dict>")
 
     def test_dict(self):
-        result = data.load("""
+        result = data.load(
+            """
             <dict></dict>
-        """)
+        """
+        )
         self.assertEqual(result, {})
 
-        result = data.load("""
+        result = data.load(
+            """
             <dict>
               <key name='n1'>v1</key>
               <key name='n2'>v2</key>
-            </dict>""")
+            </dict>"""
+        )
         self.assertEqual(result, {"n1": "v1", "n2": "v2"})
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <dict>
                 <key name='n1'>v1</key>
                 <key name='n2'>v2</key>
               </dict>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(result, {"content": {"n1": "v1", "n2": "v2"}})
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <dict>
                 <key name='n1'>
@@ -178,12 +185,14 @@ class DataTestCase(testlib.SDKTestCase):
                   </dict>
                 </key>
               </dict>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(
             result, {"content": {"n1": {"n1n1": "n1v1"}, "n2": {"n2n1": "n2v1"}}}
         )
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <dict>
                 <key name='n1'>
@@ -192,28 +201,34 @@ class DataTestCase(testlib.SDKTestCase):
                   </list>
                 </key>
               </dict>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(result, {"content": {"n1": ["1", "2", "3", "4"]}})
 
     def test_list(self):
         result = data.load("""<list></list>""")
         self.assertEqual(result, [])
 
-        result = data.load("""
+        result = data.load(
+            """
             <list>
               <item>1</item><item>2</item><item>3</item><item>4</item>
-            </list>""")
+            </list>"""
+        )
         self.assertEqual(result, ["1", "2", "3", "4"])
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <list>
                 <item>1</item><item>2</item><item>3</item><item>4</item>
               </list>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(result, {"content": ["1", "2", "3", "4"]})
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <list>
                 <item>
@@ -223,10 +238,12 @@ class DataTestCase(testlib.SDKTestCase):
                   <list><item>3</item><item>4</item></list>
                 </item>
               </list>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(result, {"content": [["1", "2"], ["3", "4"]]})
 
-        result = data.load("""
+        result = data.load(
+            """
             <content>
               <list>
                 <item><dict><key name='n1'>v1</key></dict></item>
@@ -234,19 +251,22 @@ class DataTestCase(testlib.SDKTestCase):
                 <item><dict><key name='n3'>v3</key></dict></item>
                 <item><dict><key name='n4'>v4</key></dict></item>
               </list>
-            </content>""")
+            </content>"""
+        )
         self.assertEqual(
             result,
             {"content": [{"n1": "v1"}, {"n2": "v2"}, {"n3": "v3"}, {"n4": "v4"}]},
         )
 
-        result = data.load("""
+        result = data.load(
+            """
         <ns1:dict xmlns:ns1="http://dev.splunk.com/ns/rest">
             <ns1:key name="build">101089</ns1:key>
             <ns1:key name="cpu_arch">i386</ns1:key>
             <ns1:key name="isFree">0</ns1:key>
         </ns1:dict>
-        """)
+        """
+        )
         self.assertEqual(result, {"build": "101089", "cpu_arch": "i386", "isFree": "0"})
 
     def test_record(self):

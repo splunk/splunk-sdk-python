@@ -21,6 +21,7 @@ from splunklib import client
 
 class Tests(testlib.SDKTestCase):
     def setUp(self):
+        # TODO: why not use super.setUp() ?
         self.service = client.connect(**self.opts.kwargs)
         self.storage_passwords = self.service.storage_passwords
 

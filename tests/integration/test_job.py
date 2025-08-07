@@ -15,6 +15,7 @@
 # under the License.
 
 from io import BytesIO
+from pathlib import Path
 from time import sleep
 
 import io
@@ -442,7 +443,9 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with io.open("data/results.xml", mode="br") as input:
+        test_dir = Path(__file__).parent
+        data_file = test_dir / "data" / "results.xml"
+        with io.open(str(data_file), mode="br") as input:
             reader = results.ResultsReader(input)
             self.assertFalse(reader.is_preview)
             N_results = 0
@@ -464,7 +467,9 @@ class TestResultsReader(unittest.TestCase):
         # Run jobs.export("search index=_internal | stats count",
         # earliest_time="rt", latest_time="rt") and you get a
         # streaming sequence of XML fragments containing results.
-        with io.open("data/streaming_results.xml", "br") as input:
+        test_dir = Path(__file__).parent
+        data_file = test_dir / "data" / "streaming_results.xml"
+        with io.open(str(data_file), "br") as input:
             reader = results.ResultsReader(input)
             N_results = 0
             N_messages = 0

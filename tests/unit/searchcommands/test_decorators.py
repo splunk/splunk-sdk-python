@@ -27,7 +27,7 @@ from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
 
-from tests.searchcommands import rebase_environment
+from tests.unit.searchcommands import rebase_environment
 
 
 @Configuration()

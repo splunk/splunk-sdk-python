@@ -56,7 +56,10 @@ class TestUtilities(testlib.SDKTestCase):
         )
         result = results.JSONResultsReader(stream)
         ds = list(result)
-        self.assertEqual(result.is_preview, False)
+
+        if self.service.splunk_version < (10,):
+            self.assertEqual(result.is_preview, False)
+
         self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 3)
@@ -72,7 +75,10 @@ class TestUtilities(testlib.SDKTestCase):
         )
         result = results.JSONResultsReader(stream)
         ds = list(result)
-        self.assertEqual(result.is_preview, False)
+
+        if self.service.splunk_version < (10,):
+            self.assertEqual(result.is_preview, False)
+
         self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 3)
@@ -92,7 +98,9 @@ class TestUtilities(testlib.SDKTestCase):
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
                 pass  # print(result)
-        assert rr.is_preview == False
+
+        if self.service.splunk_version < (10,):
+            self.assertFalse(rr.is_preview)
 
     def test_results_docstring_sample(self):
         from splunklib import results
@@ -109,7 +117,9 @@ class TestUtilities(testlib.SDKTestCase):
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
                 pass  # print(result)
-        assert rr.is_preview == False
+
+        if self.service.splunk_version < (10,):
+            self.assertFalse(rr.is_preview)
 
     def test_preview_docstring_sample(self):
         from splunklib import client
@@ -125,13 +135,14 @@ class TestUtilities(testlib.SDKTestCase):
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
                 pass  # print(result)
-        if rr.is_preview:
-            pass  # print("Preview of a running search job.")
-        else:
-            pass  # print("Job is finished. Results are final.")
+
+        if self.service.splunk_version < (10,):
+            if rr.is_preview:
+                pass  # print("Preview of a running search job.")
+            else:
+                pass  # print("Job is finished. Results are final.")
 
     def test_oneshot_docstring_sample(self):
-        from splunklib import client
         from splunklib import results
 
         service = self.service  # cheat
@@ -145,7 +156,9 @@ class TestUtilities(testlib.SDKTestCase):
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
                 pass  # print(result)
-        assert rr.is_preview == False
+
+        if self.service.splunk_version < (10,):
+            self.assertFalse(rr.is_preview)
 
     def test_normal_job_with_garbage_fails(self):
         jobs = self.service.jobs

@@ -15,10 +15,11 @@
 # under the License.
 
 import unittest
+
 import pytest
 
-from tests import testlib
 from splunklib import results
+from tests import testlib
 
 
 @pytest.mark.smoke
@@ -71,7 +72,9 @@ class TestCSC(testlib.SDKTestCase):
         result = results.JSONResultsReader(stream)
         ds = list(result)
 
-        self.assertEqual(result.is_preview, False)
+        if self.service.splunk_version < (10,):
+            self.assertEqual(result.is_preview, False)
+
         self.assertTrue(isinstance(ds[0], (dict, results.Message)))
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 10)

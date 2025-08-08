@@ -1,4 +1,4 @@
-name: Run test suite
+name: Python CI
 
 on: [push, workflow_dispatch]
 
@@ -6,6 +6,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
@@ -18,8 +19,6 @@ jobs:
           - "9.3"
           # - "9.4"
           # - "latest"
-
-      fail-fast: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

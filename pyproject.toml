@@ -41,14 +41,7 @@ build-backend = "setuptools.build_meta"
 version = { attr = "splunklib.__version__" }
 
 # https://docs.astral.sh/ruff/configuration/
-[tool.ruff]
-line-length = 120
-indent-width = 4
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
+# [tool.ruff]
 
 [tool.ruff.lint]
 pydocstyle.convention = "google"

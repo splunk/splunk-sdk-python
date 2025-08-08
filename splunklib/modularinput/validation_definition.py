@@ -27,6 +27,7 @@ class ValidationDefinition:
         v = ValidationDefinition()
 
     """
+
     def __init__(self):
         self.metadata = {}
         self.parameters = {}

@@ -66,7 +66,7 @@ class Scheme:
         subelements = [
             ("use_external_validation", self.use_external_validation),
             ("use_single_instance", self.use_single_instance),
-            ("streaming_mode", self.streaming_mode)
+            ("streaming_mode", self.streaming_mode),
         ]
         for name, value in subelements:
             ET.SubElement(root, name).text = str(value).lower()

@@ -49,7 +49,7 @@ def test_scheme_properly_generated_by_script(capsys):
     class NewScript(Script):
         def get_scheme(self):
             scheme = Scheme("abcd")
-            scheme.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
+            scheme.description = "\uc3bc and \uc3b6 and <&> f\u00fcr"
             scheme.streaming_mode = scheme.streaming_mode_simple
             scheme.use_external_validation = False
             scheme.use_single_instance = True
@@ -58,7 +58,7 @@ def test_scheme_properly_generated_by_script(capsys):
             scheme.add_argument(arg1)
 
             arg2 = Argument("arg2")
-            arg2.description = "\uC3BC and \uC3B6 and <&> f\u00FCr"
+            arg2.description = "\uc3bc and \uc3b6 and <&> f\u00fcr"
             arg2.data_type = Argument.data_type_number
             arg2.required_on_create = True
             arg2.required_on_edit = True
@@ -173,7 +173,7 @@ def test_write_events(capsys):
                 source="hilda",
                 sourcetype="misc",
                 done=True,
-                unbroken=True
+                unbroken=True,
             )
 
             ew.write_event(event)
@@ -198,7 +198,7 @@ def test_write_events(capsys):
 
 
 def test_service_property(capsys):
-    """ Check that Script.service returns a valid Service instance as soon
+    """Check that Script.service returns a valid Service instance as soon
     as the stream_events method is called, but not before.
 
     """
@@ -213,7 +213,7 @@ def test_service_property(capsys):
             return None
 
         def stream_events(self, inputs, ew):
-            self.authority_uri = inputs.metadata['server_uri']
+            self.authority_uri = inputs.metadata["server_uri"]
 
     script = NewScript()
     with data_open("data/conf_with_2_inputs.xml") as input_configuration:
@@ -221,8 +221,7 @@ def test_service_property(capsys):
 
         assert script.service is None
 
-        return_value = script.run_script(
-            [TEST_SCRIPT_PATH], ew, input_configuration)
+        return_value = script.run_script([TEST_SCRIPT_PATH], ew, input_configuration)
 
         output = capsys.readouterr()
         assert return_value == 0
@@ -251,16 +250,16 @@ def test_log_script_exception(monkeypatch):
 
     # Remove paths and line numbers
     err = re.sub(r'File "[^"]+', 'File "...', err.getvalue())
-    err = re.sub(r'line \d+', 'line 123', err)
-    err = re.sub(r' +~+\^+', '', err)
+    err = re.sub(r"line \d+", "line 123", err)
+    err = re.sub(r" +~+\^+", "", err)
 
     assert out.getvalue() == ""
     assert err == (
-        'ERROR Some error - '
-        'Traceback (most recent call last): '
+        "ERROR Some error - "
+        "Traceback (most recent call last): "
         '  File "...", line 123, in run_script '
-        '    self.stream_events(self._input_definition, event_writer) '
+        "    self.stream_events(self._input_definition, event_writer) "
         '  File "...", line 123, in stream_events '
         '    raise RuntimeError("Some error") '
-        'RuntimeError: Some error '
+        "RuntimeError: Some error "
     )

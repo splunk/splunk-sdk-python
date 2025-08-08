@@ -24,8 +24,8 @@ class MessageTest(testlib.SDKTestCase):
         testlib.SDKTestCase.setUp(self)
         self.message_name = testlib.tmpname()
         self.message = self.service.messages.create(
-            self.message_name,
-            value='Test message created by the SDK')
+            self.message_name, value="Test message created by the SDK"
+        )
 
     def tearDown(self):
         testlib.SDKTestCase.tearDown(self)
@@ -35,9 +35,8 @@ class MessageTest(testlib.SDKTestCase):
 class TestCreateDelete(testlib.SDKTestCase):
     def test_create_delete(self):
         message_name = testlib.tmpname()
-        message_value = 'Test message'
-        message = self.service.messages.create(
-            message_name, value=message_value)
+        message_value = "Test message"
+        message = self.service.messages.create(message_name, value=message_value)
         self.assertTrue(message_name in self.service.messages)
         self.assertEqual(message.value, message_value)
         self.check_entity(message)
@@ -45,9 +44,24 @@ class TestCreateDelete(testlib.SDKTestCase):
         self.assertFalse(message_name in self.service.messages)
 
     def test_invalid_name(self):
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, None, value="What?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, 42, value="Who, me?")
-        self.assertRaises(client.InvalidNameException, self.service.messages.create, [1, 2, 3], value="Who, me?")
+        self.assertRaises(
+            client.InvalidNameException,
+            self.service.messages.create,
+            None,
+            value="What?",
+        )
+        self.assertRaises(
+            client.InvalidNameException,
+            self.service.messages.create,
+            42,
+            value="Who, me?",
+        )
+        self.assertRaises(
+            client.InvalidNameException,
+            self.service.messages.create,
+            [1, 2, 3],
+            value="Who, me?",
+        )
 
 
 if __name__ == "__main__":

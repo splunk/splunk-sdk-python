@@ -32,22 +32,22 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.uncheckedRestartSplunk()
 
         inputs = self.service.inputs
-        if ('abcd', 'test2') not in inputs:
-            inputs.create('abcd', 'test2', field1='boris')
+        if ("abcd", "test2") not in inputs:
+            inputs.create("abcd", "test2", field1="boris")
 
-        input = inputs['abcd', 'test2']
-        self.assertEqual(input.field1, 'boris')
+        input = inputs["abcd", "test2"]
+        self.assertEqual(input.field1, "boris")
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)
 
     def check_modular_input_kind(self, m):
         print(m.name)
-        if m.name == 'test1':
-            self.assertEqual('Test "Input" - 1', m['title'])
-            self.assertEqual("xml", m['streaming_mode'])
-        elif m.name == 'test2':
-            self.assertEqual('test2', m['title'])
-            self.assertEqual('simple', m['streaming_mode'])
+        if m.name == "test1":
+            self.assertEqual('Test "Input" - 1', m["title"])
+            self.assertEqual("xml", m["streaming_mode"])
+        elif m.name == "test2":
+            self.assertEqual("test2", m["title"])
+            self.assertEqual("simple", m["streaming_mode"])
 
 
 if __name__ == "__main__":

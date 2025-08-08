@@ -21,7 +21,11 @@ from io import StringIO, BytesIO
 from functools import reduce
 import pytest
 
-from splunklib.searchcommands.internals import CommandLineParser, InputHeader, RecordWriterV1
+from splunklib.searchcommands.internals import (
+    CommandLineParser,
+    InputHeader,
+    RecordWriterV1,
+)
 from splunklib.searchcommands.decorators import Configuration, Option
 from splunklib.searchcommands.validators import Boolean
 
@@ -34,27 +38,30 @@ class TestInternals(TestCase):
         TestCase.setUp(self)
 
     def test_command_line_parser(self):
-
         @Configuration()
         class TestCommandLineParserCommand(SearchCommand):
-
             required_option = Option(validate=Boolean(), require=True)
             unnecessary_option = Option(validate=Boolean(), default=True, require=False)
 
             class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-
                 @classmethod
-                def fix_up(cls, command_class): pass
+                def fix_up(cls, command_class):
+                    pass
 
         # Command line without fieldnames
 
-        options = ['required_option=true', 'unnecessary_option=false']
+        options = ["required_option=true", "unnecessary_option=false"]
 
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options)
 
         for option in command.options.values():
-            if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
+            if option.name in [
+                "logging_configuration",
+                "logging_level",
+                "record",
+                "show_configuration",
+            ]:
                 self.assertFalse(option.is_set)
                 continue
             self.assertTrue(option.is_set)
@@ -65,13 +72,18 @@ class TestInternals(TestCase):
 
         # Command line with fieldnames
 
-        fieldnames = ['field_1', 'field_2', 'field_3']
+        fieldnames = ["field_1", "field_2", "field_3"]
 
         command = TestCommandLineParserCommand()
         CommandLineParser.parse(command, options + fieldnames)
 
         for option in command.options.values():
-            if option.name in ['logging_configuration', 'logging_level', 'record', 'show_configuration']:
+            if option.name in [
+                "logging_configuration",
+                "logging_level",
+                "record",
+                "show_configuration",
+            ]:
                 self.assertFalse(option.is_set)
                 continue
             self.assertTrue(option.is_set)
@@ -83,11 +95,16 @@ class TestInternals(TestCase):
         # Command line without any unnecessary options
 
         command = TestCommandLineParserCommand()
-        CommandLineParser.parse(command, ['required_option=true'] + fieldnames)
+        CommandLineParser.parse(command, ["required_option=true"] + fieldnames)
 
         for option in command.options.values():
-            if option.name in ['unnecessary_option', 'logging_configuration', 'logging_level', 'record',
-                               'show_configuration']:
+            if option.name in [
+                "unnecessary_option",
+                "logging_configuration",
+                "logging_level",
+                "record",
+                "show_configuration",
+            ]:
                 self.assertFalse(option.is_set)
                 continue
             self.assertTrue(option.is_set)
@@ -98,27 +115,32 @@ class TestInternals(TestCase):
 
         # Command line with missing required options, with or without fieldnames or unnecessary options
 
-        options = ['unnecessary_option=true']
-        self.assertRaises(ValueError, CommandLineParser.parse, command, options + fieldnames)
+        options = ["unnecessary_option=true"]
+        self.assertRaises(
+            ValueError, CommandLineParser.parse, command, options + fieldnames
+        )
         self.assertRaises(ValueError, CommandLineParser.parse, command, options)
         self.assertRaises(ValueError, CommandLineParser.parse, command, [])
 
         # Command line with unrecognized options
 
-        self.assertRaises(ValueError, CommandLineParser.parse, command,
-                          ['unrecognized_option_1=foo', 'unrecognized_option_2=bar'])
+        self.assertRaises(
+            ValueError,
+            CommandLineParser.parse,
+            command,
+            ["unrecognized_option_1=foo", "unrecognized_option_2=bar"],
+        )
 
         # Command line with a variety of quoted/escaped text options
 
         @Configuration()
         class TestCommandLineParserCommand(SearchCommand):
-
             text = Option()
 
             class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-
                 @classmethod
-                def fix_up(cls, command_class): pass
+                def fix_up(cls, command_class):
+                    pass
 
         strings = [
             r'"foo bar"',
@@ -126,22 +148,23 @@ class TestInternals(TestCase):
             r'"foo\\bar"',
             r'"""foo bar"""',
             r'"\"foo bar\""',
-            r'Hello\ World!',
-            r'\"Hello\ World!\"']
+            r"Hello\ World!",
+            r"\"Hello\ World!\"",
+        ]
 
         expected_values = [
-            r'foo bar',
-            r'foo/bar',
-            r'foo\bar',
+            r"foo bar",
+            r"foo/bar",
+            r"foo\bar",
             r'"foo bar"',
             r'"foo bar"',
-            r'Hello World!',
-            r'"Hello World!"'
+            r"Hello World!",
+            r'"Hello World!"',
         ]
 
         for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
-            argv = ['text', '=', string]
+            argv = ["text", "=", string]
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.text, expected_value)
 
@@ -153,17 +176,12 @@ class TestInternals(TestCase):
 
         for string, expected_value in zip(strings, expected_values):
             command = TestCommandLineParserCommand()
-            argv = ['text', '=', string] + strings
+            argv = ["text", "=", string] + strings
             CommandLineParser.parse(command, argv)
             self.assertEqual(command.text, expected_value)
             self.assertEqual(command.fieldnames, expected_values)
 
-        strings = [
-            'some\\ string\\',
-            r'some\ string"',
-            r'"some string',
-            r'some"string'
-        ]
+        strings = ["some\\ string\\", r'some\ string"', r'"some string', r'some"string']
 
         for string in strings:
             command = TestCommandLineParserCommand()
@@ -174,8 +192,8 @@ class TestInternals(TestCase):
         parser = CommandLineParser
 
         options = [
-            r'foo',  # unquoted string with no escaped characters
-            r'fo\o\ b\"a\\r',  # unquoted string with some escaped characters
+            r"foo",  # unquoted string with no escaped characters
+            r"fo\o\ b\"a\\r",  # unquoted string with some escaped characters
             r'"foo"',  # quoted string with no special characters
             r'"""foobar1"""',  # quoted string with quotes escaped like this: ""
             r'"\"foobar2\""',  # quoted string with quotes escaped like this: \"
@@ -184,24 +202,26 @@ class TestInternals(TestCase):
             r'"\\foobar"',  # quoted string with an escaped backslash
             r'"foo \\ bar"',  # quoted string with an escaped backslash
             r'"foobar\\"',  # quoted string with an escaped backslash
-            r'foo\\\bar',  # quoted string with an escaped backslash and an escaped 'b'
+            r"foo\\\bar",  # quoted string with an escaped backslash and an escaped 'b'
             r'""',  # pair of quotes
-            r'']  # empty string
+            r"",
+        ]  # empty string
 
         expected = [
-            r'foo',
+            r"foo",
             r'foo b"a\r',
-            r'foo',
+            r"foo",
             r'"foobar1"',
             r'"foobar2"',
             r'foo "x" bar',
             r'foo "x" bar',
-            '\\foobar',
-            r'foo \ bar',
-            'foobar\\',
-            r'foo\bar',
-            r'',
-            r'']
+            "\\foobar",
+            r"foo \ bar",
+            "foobar\\",
+            r"foo\bar",
+            r"",
+            r"",
+        ]
 
         # Command line with an assortment of string values
 
@@ -213,15 +233,14 @@ class TestInternals(TestCase):
         self.assertRaises(SyntaxError, parser.unquote, '"')
         self.assertRaises(SyntaxError, parser.unquote, '"foo')
         self.assertRaises(SyntaxError, parser.unquote, 'foo"')
-        self.assertRaises(SyntaxError, parser.unquote, 'foo\\')
+        self.assertRaises(SyntaxError, parser.unquote, "foo\\")
 
     def test_input_header(self):
-
         # No items
 
         input_header = InputHeader()
 
-        with closing(StringIO('\r\n')) as input_file:
+        with closing(StringIO("\r\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -230,14 +249,18 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed%20single-line%20item\n\n')) as input_file:
+        with closing(
+            StringIO("this%20is%20an%20unnamed%20single-line%20item\n\n")
+        ) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
-        with closing(StringIO('this%20is%20an%20unnamed\nmulti-\nline%20item\n\n')) as input_file:
+        with closing(
+            StringIO("this%20is%20an%20unnamed\nmulti-\nline%20item\n\n")
+        ) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -246,41 +269,51 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(StringIO('Foo:this%20is%20a%20single-line%20item\n\n')) as input_file:
+        with closing(
+            StringIO("Foo:this%20is%20a%20single-line%20item\n\n")
+        ) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
-        self.assertEqual(input_header['Foo'], 'this is a single-line item')
+        self.assertEqual(input_header["Foo"], "this is a single-line item")
 
         input_header = InputHeader()
 
-        with closing(StringIO('Bar:this is a\nmulti-\nline item\n\n')) as input_file:
+        with closing(StringIO("Bar:this is a\nmulti-\nline item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
-        self.assertEqual(input_header['Bar'], 'this is a\nmulti-\nline item')
+        self.assertEqual(input_header["Bar"], "this is a\nmulti-\nline item")
 
         # The infoPath item (which is the path to a file that we open for reads)
 
         input_header = InputHeader()
 
-        with closing(StringIO('infoPath:non-existent.csv\n\n')) as input_file:
+        with closing(StringIO("infoPath:non-existent.csv\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)
-        self.assertEqual(input_header['infoPath'], 'non-existent.csv')
+        self.assertEqual(input_header["infoPath"], "non-existent.csv")
 
         # Set of named items
 
         collection = {
-            'word_list': 'hello\nworld\n!',
-            'word_1': 'hello',
-            'word_2': 'world',
-            'word_3': '!',
-            'sentence': 'hello world!'}
+            "word_list": "hello\nworld\n!",
+            "word_1": "hello",
+            "word_2": "world",
+            "word_3": "!",
+            "sentence": "hello world!",
+        }
 
         input_header = InputHeader()
-        text = reduce(lambda value, item: value + f'{item[0]}:{item[1]}\n', collection.items(), '') + '\n'
+        text = (
+            reduce(
+                lambda value, item: value + f"{item[0]}:{item[1]}\n",
+                collection.items(),
+                "",
+            )
+            + "\n"
+        )
 
         with closing(StringIO(text)) as input_file:
             input_header.read(input_file)
@@ -289,7 +322,7 @@ class TestInternals(TestCase):
 
         # Set of named items with an unnamed item at the beginning (the only place that an unnamed item can appear)
 
-        with closing(StringIO('unnamed item\n' + text)) as input_file:
+        with closing(StringIO("unnamed item\n" + text)) as input_file:
             input_header.read(input_file)
 
         self.assertDictEqual(input_header, collection)
@@ -301,13 +334,12 @@ class TestInternals(TestCase):
         self.assertEqual(sorted(input_header.values()), sorted(collection.values()))
 
     def test_messages_header(self):
-
         @Configuration()
         class TestMessagesHeaderCommand(SearchCommand):
             class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-
                 @classmethod
-                def fix_up(cls, command_class): pass
+                def fix_up(cls, command_class):
+                    pass
 
         command = TestMessagesHeaderCommand()
         command._protocol_version = 1
@@ -315,11 +347,12 @@ class TestInternals(TestCase):
         command._record_writer = RecordWriterV1(output_buffer)
 
         messages = [
-            (command.write_debug, 'debug_message'),
-            (command.write_error, 'error_message'),
-            (command.write_fatal, 'fatal_message'),
-            (command.write_info, 'info_message'),
-            (command.write_warning, 'warning_message')]
+            (command.write_debug, "debug_message"),
+            (command.write_error, "error_message"),
+            (command.write_fatal, "fatal_message"),
+            (command.write_info, "info_message"),
+            (command.write_warning, "warning_message"),
+        ]
 
         for write, message in messages:
             write(message)
@@ -327,14 +360,15 @@ class TestInternals(TestCase):
         command.finish()
 
         expected = (
-            'debug_message=debug_message\r\n'
-            'error_message=error_message\r\n'
-            'error_message=fatal_message\r\n'
-            'info_message=info_message\r\n'
-            'warn_message=warning_message\r\n'
-            '\r\n')
+            "debug_message=debug_message\r\n"
+            "error_message=error_message\r\n"
+            "error_message=fatal_message\r\n"
+            "info_message=info_message\r\n"
+            "warn_message=warning_message\r\n"
+            "\r\n"
+        )
 
-        self.assertEqual(output_buffer.getvalue().decode('utf-8'), expected)
+        self.assertEqual(output_buffer.getvalue().decode("utf-8"), expected)
 
     _package_path = os.path.dirname(__file__)
 

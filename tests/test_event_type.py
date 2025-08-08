@@ -30,10 +30,10 @@ class TestCreate(testlib.SDKTestCase):
         self.assertFalse(self.event_type_name in event_types)
 
         kwargs = {}
-        kwargs['search'] = "index=_internal *"
-        kwargs['description'] = "An internal event"
-        kwargs['disabled'] = 1
-        kwargs['priority'] = 2
+        kwargs["search"] = "index=_internal *"
+        kwargs["description"] = "An internal event"
+        kwargs["disabled"] = 1
+        kwargs["priority"] = 2
 
         event_type = event_types.create(self.event_type_name, **kwargs)
         self.assertTrue(self.event_type_name in event_types)
@@ -52,8 +52,8 @@ class TestEventType(testlib.SDKTestCase):
         super().setUp()
         self.event_type_name = testlib.tmpname()
         self.event_type = self.service.event_types.create(
-            self.event_type_name,
-            search="index=_internal *")
+            self.event_type_name, search="index=_internal *"
+        )
 
     def tearDown(self):
         super().setUp()
@@ -68,21 +68,25 @@ class TestEventType(testlib.SDKTestCase):
     #     self.assertFalse(self.event_type_name in self.service.event_types)
 
     def test_update(self):
-        kwargs = {'search': "index=_audit *", 'description': "An audit event", 'priority': '3'}
+        kwargs = {
+            "search": "index=_audit *",
+            "description": "An audit event",
+            "priority": "3",
+        }
         self.event_type.update(**kwargs)
         self.event_type.refresh()
-        self.assertEqual(self.event_type['search'], kwargs['search'])
-        self.assertEqual(self.event_type['description'], kwargs['description'])
-        self.assertEqual(self.event_type['priority'], kwargs['priority'])
+        self.assertEqual(self.event_type["search"], kwargs["search"])
+        self.assertEqual(self.event_type["description"], kwargs["description"])
+        self.assertEqual(self.event_type["priority"], kwargs["priority"])
 
     def test_enable_disable(self):
-        self.assertEqual(self.event_type['disabled'], '0')
+        self.assertEqual(self.event_type["disabled"], "0")
         self.event_type.disable()
         self.event_type.refresh()
-        self.assertEqual(self.event_type['disabled'], '1')
+        self.assertEqual(self.event_type["disabled"], "1")
         self.event_type.enable()
         self.event_type.refresh()
-        self.assertEqual(self.event_type['disabled'], '0')
+        self.assertEqual(self.event_type["disabled"], "0")
 
 
 if __name__ == "__main__":

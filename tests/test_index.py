@@ -21,13 +21,12 @@ from tests import testlib
 from splunklib import client
 
 
-
 class IndexTest(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
         self.index_name = testlib.tmpname()
         self.index = self.service.indexes.create(self.index_name)
-        self.assertEventuallyTrue(lambda: self.index.refresh()['disabled'] == '0')
+        self.assertEventuallyTrue(lambda: self.index.refresh()["disabled"] == "0")
 
     def tearDown(self):
         super().tearDown()
@@ -39,21 +38,27 @@ class IndexTest(testlib.SDKTestCase):
             if self.index_name in self.service.indexes:
                 time.sleep(5)
                 self.service.indexes.delete(self.index_name)
-                self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
+                self.assertEventuallyTrue(
+                    lambda: self.index_name not in self.service.indexes
+                )
         else:
-            logging.warning("test_index.py:TestDeleteIndex: Skipped: cannot "
-                            "delete indexes via the REST API in Splunk 4.x")
+            logging.warning(
+                "test_index.py:TestDeleteIndex: Skipped: cannot "
+                "delete indexes via the REST API in Splunk 4.x"
+            )
 
     def totalEventCount(self):
         self.index.refresh()
-        return int(self.index['totalEventCount'])
+        return int(self.index["totalEventCount"])
 
     def test_delete(self):
         if self.service.splunk_version >= (5,):
             self.assertTrue(self.index_name in self.service.indexes)
             time.sleep(5)
             self.service.indexes.delete(self.index_name)
-            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
+            self.assertEventuallyTrue(
+                lambda: self.index_name not in self.service.indexes
+            )
 
     def test_integrity(self):
         self.check_entity(self.index)
@@ -65,10 +70,10 @@ class IndexTest(testlib.SDKTestCase):
     def test_disable_enable(self):
         self.index.disable()
         self.index.refresh()
-        self.assertEqual(self.index['disabled'], '1')
+        self.assertEqual(self.index["disabled"], "1")
         self.index.enable()
         self.index.refresh()
-        self.assertEqual(self.index['disabled'], '0')
+        self.assertEqual(self.index["disabled"], "0")
 
     # def test_submit_and_clean(self):
     #     self.index.refresh()
@@ -85,63 +90,78 @@ class IndexTest(testlib.SDKTestCase):
     #     self.assertEqual(self.index['totalEventCount'], '0')
 
     def test_prefresh(self):
-        self.assertEqual(self.index['disabled'], '0')  # Index is prefreshed
+        self.assertEqual(self.index["disabled"], "0")  # Index is prefreshed
 
     def test_submit(self):
-        event_count = int(self.index['totalEventCount'])
-        self.assertEqual(self.index['sync'], '0')
-        self.assertEqual(self.index['disabled'], '0')
+        event_count = int(self.index["totalEventCount"])
+        self.assertEqual(self.index["sync"], "0")
+        self.assertEqual(self.index["disabled"], "0")
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=50
+        )
 
     def test_submit_namespaced(self):
-        s = client.connect(**{
-            "username": self.service.username,
-            "password": self.service.password,
-            "owner": "nobody",
-            "app": "search"
-        })
+        s = client.connect(
+            **{
+                "username": self.service.username,
+                "password": self.service.password,
+                "owner": "nobody",
+                "app": "search",
+            }
+        )
         i = s.indexes[self.index_name]
 
-        event_count = int(i['totalEventCount'])
-        self.assertEqual(i['sync'], '0')
-        self.assertEqual(i['disabled'], '0')
+        event_count = int(i["totalEventCount"])
+        self.assertEqual(i["sync"], "0")
+        self.assertEqual(i["disabled"], "0")
         i.submit("Hello again namespaced!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=50
+        )
 
     def test_submit_via_attach(self):
-        event_count = int(self.index['totalEventCount'])
+        event_count = int(self.index["totalEventCount"])
         cn = self.index.attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=60
+        )
 
     def test_submit_via_attach_using_token_header(self):
         # Remove the prefix from the token
-        s = client.connect(**{'token': self.service.token.replace("Splunk ", "")})
+        s = client.connect(**{"token": self.service.token.replace("Splunk ", "")})
         i = s.indexes[self.index_name]
-        event_count = int(i['totalEventCount'])
+        event_count = int(i["totalEventCount"])
         if s.has_cookies():
             del s.http._cookies
         cn = i.attach()
         cn.send(b"Hello Boris 5!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=60
+        )
 
     def test_submit_via_attached_socket(self):
-        event_count = int(self.index['totalEventCount'])
+        event_count = int(self.index["totalEventCount"])
         f = self.index.attached_socket
         with f() as sock:
-            sock.send(b'Hello world!\r\n')
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
+            sock.send(b"Hello world!\r\n")
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=60
+        )
 
     def test_submit_via_attach_with_cookie_header(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
         splver = self.service.splunk_version
         if splver[:2] < (6, 2):
-            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+            self.skipTest(
+                "Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+"
+                % splver
+            )
 
-        event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
+        event_count = int(self.service.indexes[self.index_name]["totalEventCount"])
 
         cookie = "%s=%s" % (list(self.service.http._cookies.items())[0])
         service = client.Service(**{"cookie": cookie})
@@ -149,32 +169,41 @@ class IndexTest(testlib.SDKTestCase):
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=60
+        )
 
     def test_submit_via_attach_with_multiple_cookie_headers(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
         splver = self.service.splunk_version
         if splver[:2] < (6, 2):
-            self.skipTest("Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+" % splver)
+            self.skipTest(
+                "Skipping cookie-auth tests, running in %d.%d.%d, this feature was added in 6.2+"
+                % splver
+            )
 
-        event_count = int(self.service.indexes[self.index_name]['totalEventCount'])
-        service = client.Service(**{"cookie": 'a bad cookie'})
+        event_count = int(self.service.indexes[self.index_name]["totalEventCount"])
+        service = client.Service(**{"cookie": "a bad cookie"})
         service.http._cookies.update(self.service.http._cookies)
         service.login()
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 1, timeout=60
+        )
 
     @pytest.mark.app
     def test_upload(self):
         self.install_app_from_collection("file_to_upload")
 
-        event_count = int(self.index['totalEventCount'])
+        event_count = int(self.index["totalEventCount"])
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.index.upload(path)
-        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 4, timeout=60)
+        self.assertEventuallyTrue(
+            lambda: self.totalEventCount() == event_count + 4, timeout=60
+        )
 
 
 if __name__ == "__main__":

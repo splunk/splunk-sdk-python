@@ -34,11 +34,22 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             # Not implemented before 5.0
             return
 
-        test1 = self.service.modular_input_kinds['test1']
+        test1 = self.service.modular_input_kinds["test1"]
 
-        expected_args = {"name", "resname", "key_id", "no_description", "empty_description", "arg_required_on_edit",
-                         "not_required_on_edit", "required_on_create", "not_required_on_create", "number_field",
-                         "string_field", "boolean_field"}
+        expected_args = {
+            "name",
+            "resname",
+            "key_id",
+            "no_description",
+            "empty_description",
+            "arg_required_on_edit",
+            "not_required_on_edit",
+            "required_on_create",
+            "not_required_on_create",
+            "number_field",
+            "string_field",
+            "boolean_field",
+        }
         found_args = set(test1.arguments.keys())
 
         self.assertEqual(expected_args, found_args)
@@ -51,16 +62,16 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             # Not implemented before 5.0
             return
 
-        test1 = self.service.modular_input_kinds['test1']
+        test1 = self.service.modular_input_kinds["test1"]
         self.assertRaises(client.IllegalOperationException, test1.update, a="b")
 
     def check_modular_input_kind(self, m):
-        if m.name == 'test1':
-            self.assertEqual('Test "Input" - 1', m['title'])
-            self.assertEqual("xml", m['streaming_mode'])
-        elif m.name == 'test2':
-            self.assertEqual('test2', m['title'])
-            self.assertEqual('simple', m['streaming_mode'])
+        if m.name == "test1":
+            self.assertEqual('Test "Input" - 1', m["title"])
+            self.assertEqual("xml", m["streaming_mode"])
+        elif m.name == "test2":
+            self.assertEqual("test2", m["title"])
+            self.assertEqual("simple", m["streaming_mode"])
 
     @pytest.mark.app
     def test_list_modular_inputs(self):

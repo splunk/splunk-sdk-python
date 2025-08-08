@@ -15,10 +15,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import os,sys
+import os, sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
-from splunklib.searchcommands import dispatch, EventingCommand, Configuration, Option, validators
+from splunklib.searchcommands import (
+    dispatch,
+    EventingCommand,
+    Configuration,
+    Option,
+    validators,
+)
 
 
 @Configuration()
@@ -35,9 +41,10 @@ class EventingCSC(EventingCommand):
     """
 
     status = Option(
-        doc='''**Syntax:** **status=***<value>*
-        **Description:** record having same status value will be returned.''',
-        require=True)
+        doc="""**Syntax:** **status=***<value>*
+        **Description:** record having same status value will be returned.""",
+        require=True,
+    )
 
     def transform(self, records):
         for record in records:

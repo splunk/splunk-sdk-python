@@ -15,6 +15,7 @@
 # under the License.
 
 """Shared unit test utilities."""
+
 import contextlib
 
 import os
@@ -23,7 +24,7 @@ import logging
 import sys
 
 # Run the test suite on the SDK without installing it.
-sys.path.insert(0, '../')
+sys.path.insert(0, "../")
 
 from time import sleep
 from datetime import datetime, timedelta
@@ -35,11 +36,11 @@ from utils import parse
 from splunklib import client
 
 
-
 logging.basicConfig(
-    filename='test.log',
+    filename="test.log",
     level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s")
+    format="%(asctime)s:%(levelname)s:%(message)s",
+)
 
 
 class NoRestartRequiredError(Exception):
@@ -51,15 +52,15 @@ class WaitTimedOutError(Exception):
 
 
 def to_bool(x):
-    if x == '1':
+    if x == "1":
         return True
-    if x == '0':
+    if x == "0":
         return False
     raise ValueError(f"Not a boolean value: {x}")
 
 
 def tmpname():
-    name = 'delete-me-' + str(os.getpid()) + str(time.time()).replace('.', '-')
+    name = "delete-me-" + str(os.getpid()) + str(time.time()).replace(".", "-")
     return name
 
 
@@ -79,8 +80,13 @@ class SDKTestCase(unittest.TestCase):
     restart_already_required = False
     installedApps = []
 
-    def assertEventuallyTrue(self, predicate, timeout=30, pause_time=0.5,
-                             timeout_message="Operation timed out."):
+    def assertEventuallyTrue(
+        self,
+        predicate,
+        timeout=30,
+        pause_time=0.5,
+        timeout_message="Operation timed out.",
+    ):
         assert pause_time < timeout
         start = datetime.now()
         diff = timedelta(seconds=timeout)
@@ -157,7 +163,7 @@ class SDKTestCase(unittest.TestCase):
             self.service._splunk_version = original_version
 
     def install_app_from_collection(self, name):
-        collectionName = 'sdkappcollection'
+        collectionName = "sdkappcollection"
         if collectionName not in self.service.apps:
             raise ValueError("sdk-test-application not installed in splunkd")
         appPath = self.pathInApp(collectionName, ["build", name + ".tar"])
@@ -173,7 +179,7 @@ class SDKTestCase(unittest.TestCase):
         self.installedApps.append(name)
 
     def app_collection_installed(self):
-        collectionName = 'sdkappcollection'
+        collectionName = "sdkappcollection"
         return collectionName in self.service.apps
 
     def pathInApp(self, appName, pathComponents):
@@ -201,7 +207,7 @@ class SDKTestCase(unittest.TestCase):
 
         :return: A string giving the path.
         """
-        splunkHome = self.service.settings['SPLUNK_HOME']
+        splunkHome = self.service.settings["SPLUNK_HOME"]
         if "\\" in splunkHome:
             # This clause must come first, since Windows machines may
             # have mixed \ and / in their paths.
@@ -209,7 +215,9 @@ class SDKTestCase(unittest.TestCase):
         elif "/" in splunkHome:
             separator = "/"
         else:
-            raise ValueError("No separators in $SPLUNK_HOME. Can't determine what file separator to use.")
+            raise ValueError(
+                "No separators in $SPLUNK_HOME. Can't determine what file separator to use."
+            )
         appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
         return appPath
 
@@ -225,7 +233,7 @@ class SDKTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.opts = parse([], {}, ".env")
-        cls.opts.kwargs.update({'retries': 3})
+        cls.opts.kwargs.update({"retries": 3})
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
@@ -233,14 +241,17 @@ class SDKTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
-        self.opts.kwargs.update({'retries': 3})
+        self.opts.kwargs.update({"retries": 3})
         self.service = client.connect(**self.opts.kwargs)
         # If Splunk is in a state requiring restart, go ahead
         # and restart. That way we'll be sane for the rest of
         # the test.
         if self.service.restart_required:
             self.restartSplunk()
-        logging.debug("Connected to splunkd version %s", '.'.join(str(x) for x in self.service.splunk_version))
+        logging.debug(
+            "Connected to splunkd version %s",
+            ".".join(str(x) for x in self.service.splunk_version),
+        )
 
     def tearDown(self):
         from splunklib.binding import HTTPError
@@ -254,8 +265,10 @@ class SDKTestCase(unittest.TestCase):
                     self.service.apps.delete(appName)
                     wait(lambda: appName not in self.service.apps)
                 except HTTPError as error:
-                    if not (os.name == 'nt' and error.status == 500):
+                    if not (os.name == "nt" and error.status == 500):
                         raise
-                    print(f'Ignoring failure to delete {appName} during tear down: {error}')
+                    print(
+                        f"Ignoring failure to delete {appName} during tear down: {error}"
+                    )
         if self.service.restart_required:
             self.clear_restart_message()

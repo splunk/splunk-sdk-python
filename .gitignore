@@ -6,6 +6,7 @@
 .coverage
 .coverage.*
 .vscode
+# *.code-workspace
 __stdout__
 docs/_build
 build/

@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: type -a python && python -m pip install tox
       - name: Run Docker health check
-        # This probably solves nothing
+        # Probably solves nothing, worth trying regardless
         run: |
           timeout 30s make wait_up
           if [ $? -eq 124 ]; then

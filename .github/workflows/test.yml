@@ -14,11 +14,11 @@ jobs:
         python-version:
           - 3.7
           # - 3.9
-          # - 3.13
+          - 3.13
         splunk-version:
           - "9.3"
           # - "9.4"
-          # - "latest"
+          - "latest"
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

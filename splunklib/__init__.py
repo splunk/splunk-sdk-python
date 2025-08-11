@@ -29,7 +29,13 @@ DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 def setup_logging(
     level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE_FORMAT
 ):
-    logging.basicConfig(level=level, format=log_format, datefmt=date_format)
+    logging.basicConfig(
+        filename="sdk.log",
+        level=level,
+        format=log_format,
+        datefmt=date_format,
+        force=True,
+    )
 
 
 __version_info__ = (2, 1, 0)

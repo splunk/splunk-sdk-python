@@ -11,10 +11,9 @@ __stdout__
 docs/_build
 build/
 proxypid
-proxy.log
 MANIFEST
 coverage_report
-test.log
+*.log
 tests/searchcommands_data/log/
 tests/searchcommands_data/output/
 tests/searchcommands/data/app/app.log

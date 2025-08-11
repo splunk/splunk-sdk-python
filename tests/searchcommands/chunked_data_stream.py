@@ -1,4 +1,4 @@
-import collections
+import collections.abc
 import csv
 import io
 import json
@@ -15,7 +15,7 @@ class Chunk:
         self.data = csv.DictReader(io.StringIO(data.decode("utf-8")), dialect=dialect)
 
 
-class ChunkedDataStreamIter(collections.Iterator):
+class ChunkedDataStreamIter(collections.abc.Iterator):
     def __init__(self, chunk_stream):
         self.chunk_stream = chunk_stream
 
@@ -29,7 +29,7 @@ class ChunkedDataStreamIter(collections.Iterator):
             raise StopIteration
 
 
-class ChunkedDataStream(collections.Iterable):
+class ChunkedDataStream(collections.abc.Iterable):
     def __iter__(self):
         return ChunkedDataStreamIter(self)
 

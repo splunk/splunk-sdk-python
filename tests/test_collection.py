@@ -81,6 +81,8 @@ class CollectionTestCase(testlib.SDKTestCase):
                 + f"{coll} (found: {found_fields_keys}, expected: {expected_fields_keys})",
             )
 
+    # FIXME: Flaky for reasons yet undiscovered
+    #        Splunk sometimes returns different list than expected
     def test_list(self):
         for coll_name in collections:
             coll = getattr(self.service, coll_name)

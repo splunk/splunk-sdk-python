@@ -14,7 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import logging
+
 import pytest
+
 from tests import testlib
 
 
@@ -37,17 +40,17 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
 
         input = inputs["abcd", "test2"]
         self.assertEqual(input.field1, "boris")
-        for m in self.service.modular_input_kinds:
-            self.check_modular_input_kind(m)
+        for kind in self.service.modular_input_kinds:
+            self.check_modular_input_kind(kind)
 
-    def check_modular_input_kind(self, m):
-        print(m.name)
-        if m.name == "test1":
-            self.assertEqual('Test "Input" - 1', m["title"])
-            self.assertEqual("xml", m["streaming_mode"])
-        elif m.name == "test2":
-            self.assertEqual("test2", m["title"])
-            self.assertEqual("simple", m["streaming_mode"])
+    def check_modular_input_kind(self, kind):
+        logging.debug(kind.name)
+        if kind.name == "test1":
+            self.assertEqual('Test "Input" - 1', kind["title"])
+            self.assertEqual("xml", kind["streaming_mode"])
+        elif kind.name == "test2":
+            self.assertEqual("test2", kind["title"])
+            self.assertEqual("simple", kind["streaming_mode"])
 
 
 if __name__ == "__main__":

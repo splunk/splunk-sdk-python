@@ -621,6 +621,7 @@ class Service(_BaseService):
                 if not self.restart_required:
                     return result
             except Exception as e:
+                logging.error(e)
                 sleep(1)
         raise Exception("Operation time out.")
 

@@ -231,20 +231,6 @@ class TestInput(testlib.SDKTestCase):
         for input in input_list:
             self.assertTrue(input.name is not None)
 
-    @pytest.mark.app
-    def test_lists_modular_inputs(self):
-        # Install modular inputs to list, and restart
-        # so they'll show up.
-        self.install_app_from_collection("modular_inputs")
-        self.uncheckedRestartSplunk()
-
-        inputs = self.service.inputs
-        if ("abcd", "test2") not in inputs:
-            inputs.create("abcd", "test2", field1="boris")
-
-        input = inputs["abcd", "test2"]
-        self.assertEqual(input.field1, "boris")
-
     def test_create(self):
         inputs = self.service.inputs
         for entity in self._test_entities.values():
@@ -282,7 +268,7 @@ class TestInput(testlib.SDKTestCase):
             entity.refresh()
             self.assertEqual(entity.host, kwargs["host"])
 
-    @pytest.mark.skip("flaky")
+    @pytest.mark.skip("flaky") # Why?
     def test_delete(self):
         inputs = self.service.inputs
         remaining = len(self._test_entities) - 1

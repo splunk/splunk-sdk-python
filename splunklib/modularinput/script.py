@@ -13,6 +13,7 @@
 # under the License.
 
 from abc import ABCMeta, abstractmethod
+import logging
 import sys
 import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
@@ -87,6 +88,7 @@ class Script(metaclass=ABCMeta):
                     self.validate_input(validation_definition)
                     return 0
                 except Exception as e:
+                    logging.error(e)
                     root = ET.Element("error")
                     ET.SubElement(root, "message").text = str(e)
                     event_writer.write_xml_document(root)
@@ -99,6 +101,7 @@ class Script(metaclass=ABCMeta):
             return 1
 
         except Exception as e:
+            logging.error(e)
             event_writer.log_exception(str(e))
             return 1
 

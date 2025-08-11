@@ -15,6 +15,7 @@
 # under the License.
 
 from io import BytesIO
+import logging
 from time import sleep
 
 import io
@@ -416,13 +417,16 @@ class TestJob(testlib.SDKTestCase):
         try:
             self.service.jobs.create("invalid query", **args)
         except SyntaxError as pe:
+            logging.error(pe)
             self.fail(
                 "Something went wrong with parsing the REST API response. %s"
                 % pe.message
             )
         except HTTPError as he:
+            logging.error(he)
             self.assertEqual(he.status, 400)
         except Exception as e:
+            logging.error(e)
             self.fail("Got some unexpected error. %s" % e.message)
 
     @pytest.mark.smoke

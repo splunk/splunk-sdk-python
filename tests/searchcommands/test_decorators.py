@@ -16,6 +16,7 @@
 # under the License.
 
 
+import logging
 from unittest import main, TestCase
 import sys
 
@@ -335,6 +336,7 @@ class TestDecorators(TestCase):
                 try:
                     new_configuration_settings_class(name, value)
                 except Exception as error:
+                    logging.error(error)
                     self.assertIsInstance(
                         error,
                         ValueError,

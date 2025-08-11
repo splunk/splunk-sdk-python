@@ -102,7 +102,8 @@ def mask_sensitive_data(data):
     if not isinstance(data, dict):
         try:
             data = json.loads(data)
-        except Exception as ex:
+        except Exception as e:
+            logging.error(e)
             return data
 
     # json.loads will return "123"(str) as 123(int), so return the data if it's not 'dict' type
@@ -1400,7 +1401,8 @@ class HttpLib:
             try:
                 response = self.handler(url, message, **kwargs)
                 break
-            except Exception:
+            except Exception as e:
+                logging.error(e)
                 if self.retries <= 0:
                     raise
                 else:
@@ -1408,6 +1410,7 @@ class HttpLib:
                     self.retries -= 1
         response = record(response)
         if 400 <= response.status:
+            logging.error(response)
             raise HTTPError(response)
 
         # Update the cookie with any HTTP request

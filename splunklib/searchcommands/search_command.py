@@ -18,6 +18,7 @@
 
 import csv
 import io
+import logging
 import os
 import re
 import sys
@@ -971,6 +972,7 @@ class SearchCommand:
         try:
             header = istream.readline()
         except Exception as error:
+            logging.error(error)
             raise RuntimeError(f"Failed to read transport header: {error}")
 
         if not header:
@@ -988,6 +990,7 @@ class SearchCommand:
         try:
             metadata = istream.read(metadata_length)
         except Exception as error:
+            logging.error(error)
             raise RuntimeError(
                 f"Failed to read metadata of length {metadata_length}: {error}"
             )
@@ -997,6 +1000,7 @@ class SearchCommand:
         try:
             metadata = decoder.decode(ensure_str(metadata))
         except Exception as error:
+            logging.error(error)
             raise RuntimeError(
                 f"Failed to parse metadata of length {metadata_length}: {error}"
             )
@@ -1009,6 +1013,7 @@ class SearchCommand:
             if body_length > 0:
                 body = istream.read(body_length)
         except Exception as error:
+            logging.error(error)
             raise RuntimeError(f"Failed to read body of length {body_length}: {error}")
 
         return metadata, ensure_str(body, errors="replace")

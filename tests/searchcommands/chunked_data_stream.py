@@ -1,7 +1,7 @@
-import collections
 import csv
 import io
 import json
+from collections import Iterable, Iterator
 
 import splunklib.searchcommands.internals
 from splunklib.utils import ensure_binary, ensure_str
@@ -15,7 +15,7 @@ class Chunk:
         self.data = csv.DictReader(io.StringIO(data.decode("utf-8")), dialect=dialect)
 
 
-class ChunkedDataStreamIter(collections.abc.Iterator):
+class ChunkedDataStreamIter(Iterator):
     def __init__(self, chunk_stream):
         self.chunk_stream = chunk_stream
 
@@ -29,7 +29,7 @@ class ChunkedDataStreamIter(collections.abc.Iterator):
             raise StopIteration
 
 
-class ChunkedDataStream(collections.abc.Iterable):
+class ChunkedDataStream(Iterable):
     def __iter__(self):
         return ChunkedDataStreamIter(self)
 

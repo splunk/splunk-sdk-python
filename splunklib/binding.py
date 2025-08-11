@@ -549,7 +549,7 @@ class Context:
         self.password = kwargs.get("password", "")
         self.basic = kwargs.get("basic", False)
         self.bearerToken = kwargs.get("splunkToken", "")
-        self.autologin = kwargs.get("autologin", False)
+        self.autologin = kwargs.get("autologin", True)
         self.additional_headers = kwargs.get("headers", [])
         self._self_signed_certificate = kwargs.get("self_signed_certificate", True)
 

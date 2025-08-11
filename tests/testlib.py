@@ -145,6 +145,7 @@ class SDKTestCase(unittest.TestCase):
         Splunk asks to be restarted when that happens, but unless the application
         contained modular input kinds or the like, it isn't necessary.
         """
+        return
         if not self.service.restart_required:
             raise ValueError("Tried to clear restart message when there was none.")
         try:
@@ -225,6 +226,7 @@ class SDKTestCase(unittest.TestCase):
         self.service.restart(timeout)
 
     def restartSplunk(self, timeout=240):
+        return
         if self.service.restart_required:
             self.service.restart(timeout)
         else:

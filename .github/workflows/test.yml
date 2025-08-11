@@ -45,7 +45,7 @@ jobs:
         run: pip install tox
 
       - name: Test Execution
-        run: tox -e py
+        run: tox -e py -- --verbose
   fossa-scan:
     uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
     secrets: inherit

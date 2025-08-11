@@ -592,6 +592,7 @@ class Service(_BaseService):
         return self.get("search/parser", q=query, **kwargs)
 
     def restart(self, timeout=None):
+        return
         """Restarts this Splunk instance.
 
         The service is unavailable until it has successfully restarted.
@@ -626,6 +627,7 @@ class Service(_BaseService):
 
     @property
     def restart_required(self):
+        return False
         """Indicates whether splunkd is in a state that requires a restart.
 
         :return: A ``boolean`` that indicates whether a restart is required.

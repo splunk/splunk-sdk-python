@@ -24,6 +24,8 @@ from tests import testlib
 
 @pytest.mark.smoke
 class TestCSC(testlib.SDKTestCase):
+    # FIXME: Flaky - Splunk sometimes crashes, thus the test fails.
+    #        Not sure whose fault it is yet.
     def test_eventing_app(self):
         app_name = "eventing_app"
 

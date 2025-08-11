@@ -26,7 +26,8 @@ from splunklib.binding import HTTPError
 
 class ServiceTestCase(testlib.SDKTestCase):
     def test_autologin(self):
-        service = client.connect(autologin=True, **self.opts.kwargs)
+        self.assertTrue(self.opts.kwargs.get("autologin"))
+        service = client.connect(**self.opts.kwargs)
         self.service.restart(timeout=120)
         reader = service.jobs.oneshot("search index=internal | head 1")
         self.assertIsNotNone(reader)

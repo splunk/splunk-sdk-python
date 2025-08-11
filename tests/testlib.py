@@ -233,7 +233,7 @@ class SDKTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.opts = parse([], {}, ".env")
-        cls.opts.kwargs.update({"retries": 3})
+        cls.opts.kwargs.update({"retries": 3, "autologin": True})
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:

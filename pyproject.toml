@@ -62,7 +62,6 @@ envlist = clean,docs,py37,py39,313
 skipsdist = {env:TOXBUILD:false}
 
 # TODO: Replace with ruff
-# https://docs.astral.sh/ruff/settings/
 [testenv:pep8]
 deps = flake8
        flake8-import-order

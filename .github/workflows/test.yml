@@ -9,17 +9,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version:
-          - 3.9
-          - 3.13
-        splunk-version:
-          - 9.3
-          - latest
+        python-version: [3.9, 3.13]
+        splunk-version: [9.3, 9.4, latest]
         include:
           # Ubuntu 22.04 is the last version we can get pre-built Python 3.7 binaries for
           - os: ubuntu-22.04
             python-version: 3.7
             splunk-version: 9.3
+          - os: ubuntu-22.04
+            python-version: 3.7
+            splunk-version: 9.4
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -32,7 +31,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: python -m pip install tox
+        run: python --version && python -m pip --version && python -m pip install tox
       - name: Run Docker health check
         # Probably solves nothing, worth trying regardless
         run: |
@@ -45,9 +44,7 @@ jobs:
       - name: Run test suite
         run: python -m tox -e py
       - name: Print docker logs for optional inspection
-        if: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: docker compose logs
-# [BJ] I'll uncomment this step after I finish fiddling
-#  fossa-scan:
-#    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-#    secrets: inherit
+  fossa-scan:
+    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
+    secrets: inherit

@@ -59,6 +59,7 @@ class TestUtilities(testlib.SDKTestCase):
         ds = list(result)
 
         if self.service.splunk_version < (10,):
+            # TODO: Why is this assert here?
             self.assertEqual(result.is_preview, False)
 
         self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
@@ -78,6 +79,7 @@ class TestUtilities(testlib.SDKTestCase):
         ds = list(result)
 
         if self.service.splunk_version < (10,):
+            # TODO: Why is this assert here?
             self.assertEqual(result.is_preview, False)
 
         self.assertTrue(isinstance(ds[0], dict) or isinstance(ds[0], results.Message))
@@ -101,6 +103,7 @@ class TestUtilities(testlib.SDKTestCase):
                 pass  # print(result)
 
         if self.service.splunk_version < (10,):
+            # TODO: Why is this assert here?
             self.assertFalse(rr.is_preview)
 
     def test_results_docstring_sample(self):
@@ -120,11 +123,11 @@ class TestUtilities(testlib.SDKTestCase):
                 pass  # print(result)
 
         if self.service.splunk_version < (10,):
+            # TODO: Why is this assert here?
             self.assertFalse(rr.is_preview)
 
     def test_preview_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
@@ -136,12 +139,6 @@ class TestUtilities(testlib.SDKTestCase):
             elif isinstance(result, dict):
                 # Normal events are returned as dicts
                 pass  # print(result)
-
-        if self.service.splunk_version < (10,):
-            if rr.is_preview:
-                pass  # print("Preview of a running search job.")
-            else:
-                pass  # print("Job is finished. Results are final.")
 
     def test_oneshot_docstring_sample(self):
         from splunklib import results
@@ -159,6 +156,7 @@ class TestUtilities(testlib.SDKTestCase):
                 pass  # print(result)
 
         if self.service.splunk_version < (10,):
+            # TODO: Why is this assert here?
             self.assertFalse(rr.is_preview)
 
     def test_normal_job_with_garbage_fails(self):

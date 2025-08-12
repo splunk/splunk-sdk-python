@@ -22,15 +22,14 @@ from splunklib import results
 from tests import testlib
 
 
+# FIXME: Flaky. Splunk sometimes crashes, thus tests fail with timeouts,
+#        reset/refused connection errors etc. Doesn't seem to be our fault.
 @pytest.mark.smoke
 class TestCSC(testlib.SDKTestCase):
-    # FIXME: Flaky - Splunk sometimes crashes, thus the test fails.
-    #        Not sure whose fault it is yet.
     def test_eventing_app(self):
         app_name = "eventing_app"
-
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            app_name in self.service.apps, msg=f"{app_name} is not installed."
         )
 
         # Fetch the app
@@ -67,27 +66,26 @@ class TestCSC(testlib.SDKTestCase):
         self.assertEqual(state.title, "eventing_app")
 
         jobs = self.service.jobs
+        # TODO: Add debug logging for query waiting time
         stream = jobs.oneshot(
             'search index="_internal" | head 4000 | eventingcsc status=200 | head 10',
             output_mode="json",
         )
         result = results.JSONResultsReader(stream)
-        ds = list(result)
+        msgs = list(result)
 
+        # TODO: Why is this assert here?
         if self.service.splunk_version < (10,):
             self.assertEqual(result.is_preview, False)
 
-        self.assertTrue(isinstance(ds[0], (dict, results.Message)))
-        nonmessages = [d for d in ds if isinstance(d, dict)]
+        self.assertTrue(isinstance(msgs[0], (dict, results.Message)))
+        nonmessages = [msg for msg in msgs if isinstance(msg, dict)]
         self.assertTrue(len(nonmessages) <= 10)
 
-    # FIXME: Flaky - Splunk sometimes crashes, thus the test fails.
-    #        Not sure whose fault it is yet.
     def test_generating_app(self):
         app_name = "generating_app"
-
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            app_name in self.service.apps, msg=f"{app_name} is not installed."
         )
 
         # Fetch the app
@@ -133,9 +131,8 @@ class TestCSC(testlib.SDKTestCase):
 
     def test_reporting_app(self):
         app_name = "reporting_app"
-
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            app_name in self.service.apps, msg=f"{app_name} is not installed."
         )
 
         # Fetch the app

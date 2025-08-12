@@ -15,7 +15,7 @@
 # under the License.
 
 import pytest
-
+import unittest
 from tests import testlib
 
 from splunklib import client
@@ -31,8 +31,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
-            # Not implemented before 5.0
-            return
+            self.skipTest("Not implemented before 5.0")
 
         test1 = self.service.modular_input_kinds["test1"]
 
@@ -59,8 +58,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
-            # Not implemented before 5.0
-            return
+            self.skipTest("Not implemented before 5.0")
 
         test1 = self.service.modular_input_kinds["test1"]
         self.assertRaises(client.IllegalOperationException, test1.update, a="b")
@@ -78,8 +76,7 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
         self.install_app_from_collection("modular_inputs")
 
         if self.service.splunk_version[0] < 5:
-            # Not implemented before 5.0
-            return
+            self.skipTest("Not implemented before 5.0")
 
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)

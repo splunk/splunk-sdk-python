@@ -309,7 +309,8 @@ class JSONResultsReader:
         # JSON documents, each containing a result, as opposed to one
         # results element containing lots of results.
         stream = BufferedReader(stream)
-        self.is_preview = None
+        # Removed in Splunk 10
+        self.is_preview = False
         self._gen = self._parse_results(stream)
 
     def __iter__(self):

@@ -6,6 +6,7 @@ services:
         container_name: splunk
         environment:
             - SPLUNK_START_ARGS=--accept-license
+            - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
             - SPLUNK_HEC_TOKEN=11111111-1111-1111-1111-1111111111113
             - SPLUNK_PASSWORD=changed!
             - SPLUNK_APPS_URL=https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz

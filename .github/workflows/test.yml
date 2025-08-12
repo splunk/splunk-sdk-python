@@ -8,17 +8,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-22.04
-          # - ubuntu-latest
+        os: [ubuntu-latest]
         python-version:
-          - 3.7
-          # - 3.9
+          - 3.9
           - 3.13
         splunk-version:
-          - "9.3"
-          # - "9.4"
-          - "latest"
+          - 9.4
+          - latest
+        include:
+          - os: ubuntu-22.04
+            python-version: 3.7
+            splunk-version: 8.2
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

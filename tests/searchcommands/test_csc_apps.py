@@ -81,6 +81,8 @@ class TestCSC(testlib.SDKTestCase):
         nonmessages = [d for d in ds if isinstance(d, dict)]
         self.assertTrue(len(nonmessages) <= 10)
 
+    # FIXME: Flaky - Splunk sometimes crashes, thus the test fails.
+    #        Not sure whose fault it is yet.
     def test_generating_app(self):
         app_name = "generating_app"
 

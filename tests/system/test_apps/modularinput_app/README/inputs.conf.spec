@@ -1,0 +1,3 @@
+[modularinput://<name>]
+
+endpoint = <value>

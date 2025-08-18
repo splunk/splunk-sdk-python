@@ -32,6 +32,8 @@ from tests.searchcommands import rebase_environment
 
 @Configuration()
 class TestSearchCommand(SearchCommand):
+    __test__ = False
+
     boolean = Option(
         doc="""
         **Syntax:** **boolean=***<value>*

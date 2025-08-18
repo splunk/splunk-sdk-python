@@ -55,6 +55,8 @@ def build_command_input(getinfo_metadata, execute_metadata, execute_body):
 
 @Configuration()
 class TestCommand(SearchCommand):
+    __test__ = False
+
     required_option_1 = Option(require=True)
     required_option_2 = Option(require=True)
 
@@ -99,6 +101,8 @@ class TestCommand(SearchCommand):
 
 @Configuration()
 class TestStreamingCommand(StreamingCommand):
+    __test__ = False
+
     def stream(self, records):
         serial_number = 0
         for record in records:

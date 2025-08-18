@@ -22,16 +22,17 @@ from splunklib import results
 
 
 @pytest.mark.smoke
-class TestCSC(testlib.SDKTestCase):
-    def test_eventing_app(self):
-        app_name = "eventing_app"
+class TestEventingApp(testlib.SDKTestCase):
+    app_name = "eventing_app"
 
+    def test_metadata(self):
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            TestEventingApp.app_name in self.service.apps,
+            msg=f"{TestEventingApp.app_name} is not installed.",
         )
 
         # Fetch the app
-        app = self.service.apps[app_name]
+        app = self.service.apps[TestEventingApp.app_name]
         app.refresh()
 
         # Extract app info
@@ -40,6 +41,8 @@ class TestCSC(testlib.SDKTestCase):
         state = app.state
 
         # App info assertions
+        self.assertEqual(state.title, TestEventingApp.app_name)
+
         self.assertEqual(access.app, "system")
         self.assertEqual(access.can_change_perms, "1")
         self.assertEqual(access.can_list, "1")
@@ -61,8 +64,7 @@ class TestCSC(testlib.SDKTestCase):
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
-        self.assertEqual(state.title, "eventing_app")
-
+    def test_behavior(self):
         makeresults_count = 20
         expected_results_count = 10
         expected_status = "200"
@@ -94,15 +96,19 @@ class TestCSC(testlib.SDKTestCase):
             self.assertIn("status", res)
             self.assertEqual(res["status"], expected_status)
 
-    def test_generating_app(self):
-        app_name = "generating_app"
 
+@pytest.mark.smoke
+class TestGeneratingApp(testlib.SDKTestCase):
+    app_name = "generating_app"
+
+    def test_metadata(self):
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            TestGeneratingApp.app_name in self.service.apps,
+            msg=f"{TestGeneratingApp.app_name} is not installed.",
         )
 
         # Fetch the app
-        app = self.service.apps[app_name]
+        app = self.service.apps[TestGeneratingApp.app_name]
         app.refresh()
 
         # Extract app info
@@ -111,6 +117,8 @@ class TestCSC(testlib.SDKTestCase):
         state = app.state
 
         # App info assertions
+        self.assertEqual(state.title, TestGeneratingApp.app_name)
+
         self.assertEqual(access.app, "system")
         self.assertEqual(access.can_change_perms, "1")
         self.assertEqual(access.can_list, "1")
@@ -134,23 +142,27 @@ class TestCSC(testlib.SDKTestCase):
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
-        self.assertEqual(state.title, "generating_app")
-
-        jobs = self.service.jobs
-        stream = jobs.oneshot("| generatingcsc count=4", output_mode="json")
+    def test_behavior(self):
+        stream = self.service.jobs.oneshot(
+            "| generatingcsc count=4", output_mode="json"
+        )
         result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertTrue(len(ds) == 4)
 
-    def test_reporting_app(self):
-        app_name = "reporting_app"
 
+@pytest.mark.smoke
+class TestReportingApp(testlib.SDKTestCase):
+    app_name = "reporting_app"
+
+    def test_metadata(self):
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            TestReportingApp.app_name in self.service.apps,
+            msg=f"{TestReportingApp.app_name} is not installed.",
         )
 
         # Fetch the app
-        app = self.service.apps[app_name]
+        app = self.service.apps[TestReportingApp.app_name]
         app.refresh()
 
         # Extract app info
@@ -159,6 +171,8 @@ class TestCSC(testlib.SDKTestCase):
         state = app.state
 
         # App info assertions
+        self.assertEqual(state.title, TestReportingApp.app_name)
+
         self.assertEqual(access.app, "system")
         self.assertEqual(access.can_change_perms, "1")
         self.assertEqual(access.can_list, "1")
@@ -182,11 +196,9 @@ class TestCSC(testlib.SDKTestCase):
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
-        self.assertEqual(state.title, "reporting_app")
-
+    def test_behavior_all_entries_above_cutoff(self):
         jobs = self.service.jobs
 
-        # All above 150
         stream = jobs.oneshot(
             "| makeresults count=10 | eval math=100, eng=100, cs=100 | reportingcsc cutoff=150 math eng cs",
             output_mode="json",
@@ -201,8 +213,8 @@ class TestCSC(testlib.SDKTestCase):
         no_of_students = int(list(ds[0].values())[0])
         self.assertTrue(no_of_students == 10)
 
-        # All below 150
-        stream = jobs.oneshot(
+    def test_behavior_all_entries_below_cutoff(self):
+        stream = self.service.jobs.oneshot(
             "| makeresults count=10 | eval math=45, eng=45, cs=45 | reportingcsc cutoff=150 math eng cs",
             output_mode="json",
         )
@@ -216,15 +228,19 @@ class TestCSC(testlib.SDKTestCase):
         no_of_students = int(list(ds[0].values())[0])
         self.assertTrue(no_of_students == 0)
 
-    def test_streaming_app(self):
-        app_name = "streaming_app"
 
+@pytest.mark.smoke
+class TestStreamingApp(testlib.SDKTestCase):
+    app_name = "streaming_app"
+
+    def test_metadata(self):
         self.assertTrue(
-            app_name in self.service.apps, msg="%s is not installed." % app_name
+            TestStreamingApp.app_name in self.service.apps,
+            msg=f"{TestStreamingApp.app_name} is not installed.",
         )
 
         # Fetch the app
-        app = self.service.apps[app_name]
+        app = self.service.apps[TestStreamingApp.app_name]
         app.refresh()
 
         # Extract app info
@@ -233,6 +249,8 @@ class TestCSC(testlib.SDKTestCase):
         state = app.state
 
         # App info assertions
+        self.assertEqual(state.title, TestStreamingApp.app_name)
+
         self.assertEqual(access.app, "system")
         self.assertEqual(access.can_change_perms, "1")
         self.assertEqual(access.can_list, "1")
@@ -256,11 +274,8 @@ class TestCSC(testlib.SDKTestCase):
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
-        self.assertEqual(state.title, "streaming_app")
-
-        jobs = self.service.jobs
-
-        stream = jobs.oneshot(
+    def test_behavior(self):
+        stream = self.service.jobs.oneshot(
             "| makeresults count=5 | eval celsius = 35 | streamingcsc",
             output_mode="json",
         )

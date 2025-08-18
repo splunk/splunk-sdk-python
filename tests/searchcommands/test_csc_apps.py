@@ -63,42 +63,36 @@ class TestCSC(testlib.SDKTestCase):
 
         self.assertEqual(state.title, "eventing_app")
 
-        jobs = self.service.jobs
+        makeresults_count = 20
+        expected_results_count = 10
+        expected_status = "200"
 
-        base_search = self._create_test_data_search(count=100)
-        full_search = (
-            base_search
-            + """
-        | eventingcsc status=200
-        | head 10
+        search_query = f"""
+        | makeresults count={makeresults_count}
+        | streamstats count as row_num
+        | eval status=case(
+            (row_num % 2) == 1, 200,
+            1=1, 500
+        )
+        | eventingcsc status={expected_status}
         """
-        )
-        stream = jobs.oneshot(full_search, output_mode="json")
+        stream = self.service.jobs.oneshot(search_query, output_mode="json")
 
-        reader = results.JSONResultsReader(stream)
-        items = list(reader)
+        results_reader = results.JSONResultsReader(stream)
+        items = list(results_reader)
 
-        self.assertEqual(reader.is_preview, False)
+        self.assertFalse(results_reader.is_preview)
 
-        actual_results = [item for item in items if isinstance(item, dict)]
-        informational_messages = [
-            item for item in items if isinstance(item, results.Message)
+        # filter out informational messages and keep only search results
+        actual_results = [
+            item for item in items if not isinstance(item, results.Message)
         ]
 
-        self.assertTrue(len(actual_results) > 0)
-
-        fatal_messages = [
-            msg for msg in informational_messages if msg.type in ["FATAL", "ERROR"]
-        ]
-        self.assertEqual(
-            len(fatal_messages),
-            0,
-            f"Should not have FATAL/ERROR messages, but got: {[msg.message for msg in fatal_messages]}",
-        )
+        self.assertTrue(len(actual_results) == expected_results_count)
 
         for res in actual_results:
             self.assertIn("status", res)
-            self.assertEqual(res["status"], "200")
+            self.assertEqual(res["status"], expected_status)
 
     def test_generating_app(self):
         app_name = "generating_app"
@@ -280,22 +274,6 @@ class TestCSC(testlib.SDKTestCase):
         self.assertTrue(ds[0]["celsius"] == "35")
         self.assertTrue(ds[0]["fahrenheit"] == "95.0")
         self.assertTrue(len(ds) == 5)
-
-    def _create_test_data_search(self, count=100):
-        """Helper to create deterministic test data using Splunk search commands."""
-        return f"""
-        | makeresults count={count}
-        | streamstats count as row_num
-        | eval _time=_time - (row_num * 60)
-        | eval status=case(
-            (row_num % 10) < 7, 200,
-            (row_num % 10) < 9, 404,
-            1=1, 500
-        )
-        | eval response_time=100 + ((row_num * 37) % 1000)
-        | eval user_id="user" + tostring(row_num % 50)
-        | eval _raw=strftime(_time, "%Y-%m-%d %H:%M:%S") + " status=" + tostring(status) + " response_time=" + tostring(response_time) + "ms user=" + user_id
-        """
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ from unittest import main, TestCase
 
 import os
 import logging
+import warnings
 
 from io import TextIOWrapper
 
@@ -49,7 +50,7 @@ def build_command_input(getinfo_metadata, execute_metadata, execute_body):
 
 
 @Configuration()
-class TestCommand(SearchCommand):
+class CommandForTests(SearchCommand):
     required_option_1 = Option(require=True)
     required_option_2 = Option(require=True)
 
@@ -160,7 +161,7 @@ class TestSearchCommand(TestCase):
 
         ifile = build_command_input(getinfo_metadata, execute_metadata, execute_body)
 
-        command = TestCommand()
+        command = CommandForTests()
         result = BytesIO()
         argv = ["some-external-search-command.py"]
 
@@ -184,8 +185,8 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command.required_option_2, "value_2")
 
         expected = (
-            "chunked 1.0,68,0\n"
-            '{"inspector":{"messages":[["INFO","test command configuration: "]]}}'
+            "chunked 1.0,79,0\n"
+            '{"inspector":{"messages":[["INFO","commandfortests command configuration: "]]}}'
             "chunked 1.0,17,32\n"
             '{"finished":true}test,__mv_test\r\n'
             "data,\r\n"
@@ -206,7 +207,10 @@ class TestSearchCommand(TestCase):
         self.assertEqual([], command.fieldnames)
 
         command_metadata = command.metadata
-        input_header = command.input_header
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            input_header = command.input_header
 
         self.assertIsNone(input_header["allowStream"])
         self.assertEqual(

@@ -19,6 +19,7 @@ import json
 import os
 import random
 import sys
+import warnings
 
 import pytest
 from sys import float_info
@@ -185,10 +186,14 @@ class TestInternals(TestCase):
             writer.write_metric(name, metric)
 
         self.assertEqual(writer._chunk_count, 0)
-        self.assertEqual(writer._record_count, 31)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", PendingDeprecationWarning)
+            self.assertEqual(writer._total_record_count, 0)
+            self.assertEqual(writer._record_count, 31)
+
         self.assertEqual(writer.pending_record_count, 31)
         self.assertGreater(writer._buffer.tell(), 0)
-        self.assertEqual(writer._total_record_count, 0)
         self.assertEqual(writer.committed_record_count, 0)
         fieldnames.sort()
         writer._fieldnames.sort()
@@ -204,12 +209,15 @@ class TestInternals(TestCase):
 
         writer.flush(finished=True)
 
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", PendingDeprecationWarning)
+            self.assertEqual(writer._record_count, 0)
+            self.assertEqual(writer._total_record_count, 31)
+
         self.assertEqual(writer._chunk_count, 1)
-        self.assertEqual(writer._record_count, 0)
         self.assertEqual(writer.pending_record_count, 0)
         self.assertEqual(writer._buffer.tell(), 0)
         self.assertEqual(writer._buffer.getvalue(), "")
-        self.assertEqual(writer._total_record_count, 31)
         self.assertEqual(writer.committed_record_count, 31)
 
         self.assertRaises(AssertionError, writer.flush, finished=True, partial=True)

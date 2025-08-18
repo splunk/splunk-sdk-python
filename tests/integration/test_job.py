@@ -30,6 +30,7 @@ from splunklib import results
 from splunklib.binding import _log_duration, HTTPError
 
 import pytest
+import warnings
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -446,22 +447,25 @@ class TestResultsReader(unittest.TestCase):
         test_dir = Path(__file__).parent
         data_file = test_dir / "data" / "results.xml"
         with io.open(str(data_file), mode="br") as input:
-            reader = results.ResultsReader(input)
-            self.assertFalse(reader.is_preview)
-            N_results = 0
-            N_messages = 0
-            for r in reader:
-                from collections import OrderedDict
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
 
-                self.assertTrue(
-                    isinstance(r, OrderedDict) or isinstance(r, results.Message)
-                )
-                if isinstance(r, OrderedDict):
-                    N_results += 1
-                elif isinstance(r, results.Message):
-                    N_messages += 1
-            self.assertEqual(N_results, 4999)
-            self.assertEqual(N_messages, 2)
+                reader = results.ResultsReader(input)
+                self.assertFalse(reader.is_preview)
+                N_results = 0
+                N_messages = 0
+                for r in reader:
+                    from collections import OrderedDict
+
+                    self.assertTrue(
+                        isinstance(r, OrderedDict) or isinstance(r, results.Message)
+                    )
+                    if isinstance(r, OrderedDict):
+                        N_results += 1
+                    elif isinstance(r, results.Message):
+                        N_messages += 1
+                self.assertEqual(N_results, 4999)
+                self.assertEqual(N_messages, 2)
 
     def test_results_reader_with_streaming_results(self):
         # Run jobs.export("search index=_internal | stats count",
@@ -470,21 +474,24 @@ class TestResultsReader(unittest.TestCase):
         test_dir = Path(__file__).parent
         data_file = test_dir / "data" / "streaming_results.xml"
         with io.open(str(data_file), "br") as input:
-            reader = results.ResultsReader(input)
-            N_results = 0
-            N_messages = 0
-            for r in reader:
-                from collections import OrderedDict
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
 
-                self.assertTrue(
-                    isinstance(r, OrderedDict) or isinstance(r, results.Message)
-                )
-                if isinstance(r, OrderedDict):
-                    N_results += 1
-                elif isinstance(r, results.Message):
-                    N_messages += 1
-            self.assertEqual(N_results, 3)
-            self.assertEqual(N_messages, 3)
+                reader = results.ResultsReader(input)
+                N_results = 0
+                N_messages = 0
+                for r in reader:
+                    from collections import OrderedDict
+
+                    self.assertTrue(
+                        isinstance(r, OrderedDict) or isinstance(r, results.Message)
+                    )
+                    if isinstance(r, OrderedDict):
+                        N_results += 1
+                    elif isinstance(r, results.Message):
+                        N_messages += 1
+                self.assertEqual(N_results, 3)
+                self.assertEqual(N_messages, 3)
 
     def test_xmldtd_filter(self):
         s = results._XMLDTDFilter(

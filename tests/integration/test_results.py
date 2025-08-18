@@ -20,6 +20,7 @@ from io import BytesIO
 from time import sleep
 from tests import testlib
 from splunklib import results
+import warnings
 
 
 class ResultsTestCase(testlib.SDKTestCase):
@@ -169,9 +170,11 @@ class ResultsTestCase(testlib.SDKTestCase):
         self.assert_parsed_results_equals(xml_text, expected_results)
 
     def assert_parsed_results_equals(self, xml_text, expected_results):
-        results_reader = results.ResultsReader(BytesIO(xml_text.encode("utf-8")))
-        actual_results = list(results_reader)
-        self.assertEqual(expected_results, actual_results)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            results_reader = results.ResultsReader(BytesIO(xml_text.encode("utf-8")))
+            actual_results = list(results_reader)
+            self.assertEqual(expected_results, actual_results)
 
 
 if __name__ == "__main__":

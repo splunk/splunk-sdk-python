@@ -31,7 +31,7 @@ from tests.unit.searchcommands import rebase_environment
 
 
 @Configuration()
-class TestSearchCommand(SearchCommand):
+class SearchCommandForTests(SearchCommand):
     boolean = Option(
         doc="""
         **Syntax:** **boolean=***<value>*
@@ -399,7 +399,7 @@ class TestDecorators(TestCase):
             'show_configuration="f"',
         ]
 
-        command = TestSearchCommand()
+        command = SearchCommandForTests()
         options = command.options
 
         options.reset()

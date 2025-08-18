@@ -1,50 +1,90 @@
-# Splunk Test Suite
+# Python SDK tests
 
-The test suite uses Python's standard library and the built-in **unittest** 
-library. The Splunk Enterprise SDK for Python has been tested with Python v3.7 
-and v3.9.
+The tests use both Python's standard **unittest** library and **pytest**, and have been tested with Python 3.7, 3.9, and 3.13. The test suite can be executed across all supported Python versions using **tox**.
 
-To run the unit tests, open a command prompt in the **/splunk-sdk-python** 
-directory and enter:
+## Test Types
 
-    python setup.py test
+The SDK test suite is divided into three main types:
 
-You can also run individual test files, which are located in 
-**/splunk-sdk-python/tests**. Each distinct area of the SDK is tested in a 
-single file. For example, roles are tested
-in `test_role.py`. To run this test, open a command prompt in
-the **/splunk-sdk-python/tests** subdirectory and enter:
+1. [Unit Tests](./unit/)
 
-    python test_role.py
+   - Fast and isolated, do not require a running Splunk instance
 
-NOTE: Before running the test suite, make sure the instance of Splunk you
-are testing against doesn't have new events being dumped continuously
-into it. Several of the tests rely on a stable event count. It's best
-to test against a clean install of Splunk, but if you can't, you
-should at least disable the *NIX and Windows apps. Do not run the test
-suite against a production instance of Splunk! It will run just fine
-with the free Splunk license.
+2. [Integration Tests](./integration/)
 
+   - **Require a running Splunk instance**
+   - Test SDK being used to communicate with a real Splunk instance via API
+
+3. [System Tests](./system/)
+   - **Require a running Splunk instance**
+   - Test SDK being used inside Splunk apps (SDK bundeled with apps inside Splunk instance)
+
+## Setting up Splunk in Docker
+
+Integration and system require a running test Splunk instance, which can be set up with Docker. Make sure Docker is installed and then start Splunk with:
+
+```bash
+ make up SPLUNK_VERSION=latest # runs docker compose up -d
+ make wait_up # wait until the Splunk is ready
+```
+
+If running on Mac, add this line to docker-compose:
+
+```yaml
+architecture: linux/amd64
+```
+
+> **NOTE**: Before running the test suite, make sure the instance of Splunk you
+> are testing against doesn't have new events being dumped continuously
+> into it. Several of the tests rely on a stable event count. It's best
+> to test against a clean install of Splunk, but if you can't, you
+> should at least disable the \*NIX and Windows apps. **Do not run the test
+> suite against a production instance of Splunk!** It will run just fine
+> with the free Splunk license.
+
+## Running tests with tox
+
+**tox** allows running tests across multiple Python versions and environments.  
+The configurations are defined in the `tox.ini` file.
+
+- Run all tests (unit, integration, and system) on all Python versions:
+
+  ```bash
+  tox
+  ```
+
+- Run all tests (unit, integration, and system) on a specific Python versions:
+
+  ```bash
+  tox -e py39 # example for Python 3.9
+  ```
+
+- Run a specific type of tests on Python version currently active in your shell:
+
+  ```bash
+  tox -e py -- tests/unit # example for unit tests
+  ```
+
+- Run a specific type of tests on a single Python version:
+
+  ```bash
+  tox -e py37 -- tests/unit  # example for Python 3.7 unit tests
+  ```
+
+- Run a specific test file and Python version:
+  ```
+  tox -e py39 -- tests/unit/test_utils.py
+  ```
+- Run a specific test method from a specific file and Python version:
+  ```
+  tox -e py313 -- tests/system/test_csc_apps.py::TestEventingApp::test_metadata
+  ```
 
 ## Code Coverage
 
-Coverage.py is an excellent tool for measuring code coverage of Python programs.
+Code coverage is provided via `pytest-cov`, which uses `Coverage.py` under the hood.
+Coverage statistics are displayed at the end of each tox or pytest run.
 
-To install it, use easy_install:
+## Test reports
 
-    easy_install coverage
-
-Or use pip:
-
-    pip install coverage
-
-To generate a report of the code coverage of the unit test suite, open a command
-prompt in the **/splunk-sdk-python** directory and enter:
-
-    python setup.py coverage
-
-This command runs the entire test suite and writes an HTML coverage report to 
-the **/splunk-sdk-python/coverage_report** directory.
-
-For more information about Coverage.py, see the author's website 
-([http://nedbatchelder.com/code/coverage/](http://nedbatchelder.com/code/coverage/)).
+Test reports are generated in JUnit XML format. For each tox environment, the reports are saved in: `test-reports/junit-{test-env}.xml`

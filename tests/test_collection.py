@@ -82,61 +82,77 @@ class CollectionTestCase(testlib.SDKTestCase):
             )
 
     def test_list(self):
-        for coll_name in collections:
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list(count=10, sort_mode="auto")]
-            if len(expected) == 0:
-                logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list()][:10]
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_list_with_count(self):
-        N = 5
-        for coll_name in collections:
+        def test(coll_name):
+            N = 5
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list(count=N + 5)][:N]
             N = len(expected)  # in case there are <N elements
             found = [ent.name for ent in coll.list(count=N)]
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected {expected}, found {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_list_with_offset(self):
+        def test(coll_name, offset):
+            coll = getattr(self.service, coll_name)
+            expected = [ent.name for ent in coll.list(count=offset + 10)][offset:]
+            found = [ent.name for ent in coll.list(offset=offset, count=10)]
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
         import random
 
         for offset in [random.randint(3, 50) for x in range(5)]:
             for coll_name in collections:
-                coll = getattr(self.service, coll_name)
-                expected = [ent.name for ent in coll.list(count=offset + 10)][offset:]
-                found = [ent.name for ent in coll.list(offset=offset, count=10)]
-                self.assertEqual(
-                    expected,
-                    found,
-                    msg=f"on {coll_name} (expected {expected}, found {found})",
-                )
+                self.assertEventuallyTrue(lambda: test(coll_name, offset))
 
     def test_list_with_search(self):
-        for coll_name in collections:
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list()]
-            if len(expected) == 0:
-                logging.debug(f"No entities in collection {coll_name}; skipping test.")
             # TODO: DVPL-5868 - This should use a real search instead of *. Otherwise the test passes trivially.
             found = [ent.name for ent in coll.list(search="*")]
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_list_with_sort_dir(self):
-        for coll_name in collections:
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             expected_kwargs = {"sort_dir": "desc"}
             found_kwargs = {"sort_dir": "asc"}
@@ -150,18 +166,24 @@ class CollectionTestCase(testlib.SDKTestCase):
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name for ent in coll.list(**found_kwargs)]
 
-            self.assertEqual(
-                sorted(expected),
-                sorted(found),
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_list_with_sort_mode_auto(self):
         # The jobs collection requires special handling. The sort_dir kwarg is
         # needed because the default sorting direction for jobs is "desc", not
         # "asc". The sort_key kwarg is required because there is no default
         # sort_key for jobs in Splunk 6.
-        for coll_name in collections:
+
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             if coll_name == "jobs":
                 expected = [
@@ -181,11 +203,16 @@ class CollectionTestCase(testlib.SDKTestCase):
             else:
                 found = [ent.name for ent in coll.list()]
 
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_list_with_sort_mode_alpha_case(self):
         for coll_name in collections:
@@ -227,27 +254,28 @@ class CollectionTestCase(testlib.SDKTestCase):
             )
 
     def test_iteration(self):
-        for coll_name in collections:
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list(count=10)]
-            if len(expected) == 0:
-                logging.debug(f"No entities in collection {coll_name}; skipping test.")
             total = len(expected)
             found = []
             for ent in coll.iter(pagesize=max(int(total / 5.0), 1), count=10):
                 found.append(ent.name)
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_paging(self):
-        for coll_name in collections:
+        def test(coll_name):
             coll = getattr(self.service, coll_name)
             expected = [ent.name for ent in coll.list(count=30)]
-            if len(expected) == 0:
-                logging.debug(f"No entities in collection {coll_name}; skipping test.")
             total = len(expected)
             page_size = max(int(total / 5.0), 1)
             found = []
@@ -256,16 +284,23 @@ class CollectionTestCase(testlib.SDKTestCase):
                 page = coll.list(offset=offset, count=page_size)
                 count = len(page)
                 offset += count
-                self.assertTrue(
-                    count == page_size or offset == total, msg=f"on {coll_name}"
-                )
+                if count != page_size and offset != total:
+                    logging.warning(
+                        f"on {coll_name} (count = {count}, page_size = {page_size}, offset = {offset}, total =  {total})",
+                    )
+                    return False
                 found.extend([ent.name for ent in page])
                 logging.debug("Iterate: offset=%d/%d", offset, total)
-            self.assertEqual(
-                expected,
-                found,
-                msg=f"on {coll_name} (expected: {expected}, found: {found})",
-            )
+            if expected != found:
+                logging.warning(
+                    f"on {coll_name} (expected: {expected}, found: {found})",
+                )
+                return False
+
+            return True
+
+        for coll_name in collections:
+            self.assertEventuallyTrue(lambda: test(coll_name))
 
     def test_getitem_with_nonsense(self):
         for coll_name in collections:

@@ -14,7 +14,11 @@
 # under the License.
 
 import xml.etree.ElementTree as ET
-from tests.modularinput.modularinput_testlib import unittest, xml_compare, data_open
+from tests.unit.modularinput.modularinput_testlib import (
+    unittest,
+    xml_compare,
+    data_open,
+)
 from splunklib.modularinput.scheme import Scheme
 from splunklib.modularinput.argument import Argument
 

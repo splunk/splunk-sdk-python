@@ -11,18 +11,14 @@ __stdout__
 docs/_build
 build/
 proxypid
-proxy.log
 MANIFEST
 coverage_report
-test.log
-tests/searchcommands_data/log/
-tests/searchcommands_data/output/
 Test Results*.html
-tests/searchcommands/data/app/app.log
+*.log
 splunk_sdk.egg-info/
 dist/
-tests/searchcommands/apps/app_with_logging_configuration/*.log
 *.observed
 venv/
+.venv/
 .tox
 test-reports/

@@ -20,10 +20,10 @@ services:
             timeout: 5s
             retries: 20
         volumes:
-            - "./tests/searchcommands/test_apps/eventing_app:/opt/splunk/etc/apps/eventing_app"
-            - "./tests/searchcommands/test_apps/generating_app:/opt/splunk/etc/apps/generating_app"
-            - "./tests/searchcommands/test_apps/reporting_app:/opt/splunk/etc/apps/reporting_app"
-            - "./tests/searchcommands/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app"
+            - "./tests/system/test_apps/eventing_app:/opt/splunk/etc/apps/eventing_app"
+            - "./tests/system/test_apps/generating_app:/opt/splunk/etc/apps/generating_app"
+            - "./tests/system/test_apps/reporting_app:/opt/splunk/etc/apps/reporting_app"
+            - "./tests/system/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app"
             - "./splunklib:/opt/splunk/etc/apps/eventing_app/lib/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/generating_app/lib/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/reporting_app/lib/splunklib"

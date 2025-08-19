@@ -300,6 +300,8 @@ class TestInternals(TestCase):
 
 
 class TestRecorder:
+    __test__ = False
+
     def __init__(self, test_case):
         self._test_case = test_case
         self._output = None
@@ -389,6 +391,8 @@ def recorded(method):
 
 
 class Test:
+    __test__ = False
+
     def __init__(self, fieldnames, data_generators):
         TestCase.__init__(self)
         self._data_generators = list(

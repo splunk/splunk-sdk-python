@@ -92,23 +92,6 @@ class TestCommand(SearchCommand):
         # endregion
 
 
-@Configuration()
-class TestStreamingCommand(StreamingCommand):
-    def stream(self, records):
-        serial_number = 0
-        for record in records:
-            action = record["action"]
-            if action == "raise_error":
-                raise RuntimeError("Testing")
-            value = (
-                self.search_results_info
-                if action == "get_search_results_info"
-                else None
-            )
-            yield {"_serial": serial_number, "data": value}
-            serial_number += 1
-
-
 @pytest.mark.smoke
 class TestSearchCommand(TestCase):
     def setUp(self):

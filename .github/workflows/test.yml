@@ -13,7 +13,7 @@ jobs:
         include:
           # Oldest possible configuration
           - os: ubuntu-22.04
-          # Ubuntu 22.04 is the last version with Python 3.7 binaries available
+            # Ubuntu 22.04 is the last version with Python 3.7 binaries available
             python-version: 3.7
             splunk-version: 9.1
           # Latest possible configuration
@@ -37,6 +37,3 @@ jobs:
 
       - name: Test Execution
         run: tox -e py
-  fossa-scan:
-    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-    secrets: inherit

@@ -1,32 +1,20 @@
 name: Python CI
-
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-        python: [3.9, 3.13]
-        splunk-version:
-          - "8.1"
-          - "8.2"
-          - "latest"
-        include:
-          - os: ubuntu-22.04
-            python: 3.7
-            splunk-version: "8.1"
-          - os: ubuntu-22.04
-            python: 3.7
-            splunk-version: "8.2"
-          - os: ubuntu-22.04
-            python: 3.7
-            splunk-version: "latest"
-
       fail-fast: false
-
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.9, 3.13]
+        splunk-version: [9.4, latest]
+        include:
+          # Ubuntu 22.04 is the last version with Python 3.7 binaries available
+          - os: ubuntu-22.04
+            python-version: 3.7
+            splunk-version: 9.1
     steps:
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493

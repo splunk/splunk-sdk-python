@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: 3.7
       - name: Install dependencies
@@ -19,7 +19,7 @@ jobs:
       - name: Build package
         run: python setup.py sdist
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.10
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
@@ -29,14 +29,14 @@ jobs:
         run: |
           rm -rf ./docs/_build
           tox -e docs
-      - name : Docs Upload
-        uses: actions/upload-artifact@v3
+      - name: Docs Upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: python_sdk_docs
           path: docs/_build/html
       # Test upload
       # - name: Publish package to TestPyPI
-      #   uses: pypa/gh-action-pypi-publish@master
+      #   uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
       #   with:
       #     user: __token__
       #     password: ${{ secrets.test_pypi_password }}

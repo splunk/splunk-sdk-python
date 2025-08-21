@@ -1,5 +1,5 @@
 name: Fossa OSS Scan
-on: [push, pull_request]
+on: [push]
 jobs:
   fossa-scan:
     uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main

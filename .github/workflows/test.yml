@@ -8,13 +8,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9, 3.13]
+        python-version: [3.9]
         splunk-version: [9.4, latest]
         include:
-          # Ubuntu 22.04 is the last version with Python 3.7 binaries available
+          # Oldest possible configuration
           - os: ubuntu-22.04
+          # Ubuntu 22.04 is the last version with Python 3.7 binaries available
             python-version: 3.7
             splunk-version: 9.1
+          # Latest possible configuration
+          - os: ubuntu-latest
+            python-version: 3.13
+            splunk-version: latest
     steps:
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493

@@ -1,5 +1,3 @@
-version: '3.6'
-
 services:
     splunk:
         image: "splunk/splunk:${SPLUNK_VERSION}"
@@ -11,9 +9,9 @@ services:
             - SPLUNK_PASSWORD=changed!
             - SPLUNK_APPS_URL=https://github.com/splunk/sdk-app-collection/releases/download/v1.1.0/sdkappcollection.tgz
         ports:
-            - 8000:8000
-            - 8088:8088
-            - 8089:8089
+            - "8000:8000"
+            - "8088:8088"
+            - "8089:8089"
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:8000']
             interval: 5s

@@ -12,8 +12,8 @@ jobs:
         splunk-version: [9.4, latest]
         include:
           # Oldest possible configuration
+          # Last Ubuntu version with Python 3.7 binaries available
           - os: ubuntu-22.04
-            # Ubuntu 22.04 is the last version with Python 3.7 binaries available
             python-version: 3.7
             splunk-version: 9.1
           # Latest possible configuration
@@ -23,17 +23,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-
       - name: Run docker compose
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-
       - name: Setup Python
         uses: actions/setup-python@9322b3ca74000aeb2c01eb777b646334015ddd72
         with:
-          python-version: ${{ matrix.python }}
-
+          python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: pip install tox
-
       - name: Test Execution
         run: tox -e py

@@ -282,27 +282,35 @@ class TestInput(testlib.SDKTestCase):
             entity.refresh()
             self.assertEqual(entity.host, kwargs["host"])
 
-    @pytest.mark.skip("flaky")
     def test_delete(self):
-        inputs = self.service.inputs
-        remaining = len(self._test_entities) - 1
-        for input_entity in self._test_entities.values():
-            name = input_entity.name
-            kind = input_entity.kind
-            self.assertTrue(name in inputs)
-            self.assertTrue((name, kind) in inputs)
-            if remaining == 0:
-                inputs.delete(name)
-                self.assertFalse(name in inputs)
-            else:
-                if not name.startswith("boris"):
-                    self.assertRaises(
-                        client.AmbiguousReferenceException, inputs.delete, name
-                    )
-                self.service.inputs.delete(name, kind)
-                self.assertFalse((name, kind) in inputs)
-            self.assertRaises(client.HTTPError, input_entity.refresh)
-            remaining -= 1
+        udpName, udpKind = (
+            self._test_entities["udp"].name,
+            self._test_entities["udp"].kind,
+        )
+        tcpName, tcpKind = (
+            self._test_entities["tcp"].name,
+            self._test_entities["tcp"].kind,
+        )
+
+        # Delete via the Input entity itself.
+        self._test_entities["tcp"].delete()
+
+        # Delete via the Inputs collection.
+        self.service.inputs.delete(udpName, udpKind)
+
+        for input in self.service.inputs:
+            if input.name == tcpName and input.kind == tcpKind:
+                self.fail(f"{tcpName} {tcpKind} still exists")
+            if input.name == udpName and input.kind == udpKind:
+                self.fail(f"{udpName} {udpKind} still exists")
+
+    def test_delete_ambiguous_reference(self):
+        # _test_entities["udp"] and _test_entities["tcp"] share the same input name, thus
+        # deletion only with the name, without specifying the input kind, should fail.
+        name = self._test_entities["udp"].name
+        self.assertRaises(
+            client.AmbiguousReferenceException, lambda: self.service.inputs.delete(name)
+        )
 
 
 if __name__ == "__main__":

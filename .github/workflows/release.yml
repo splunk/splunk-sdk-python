@@ -6,7 +6,7 @@ on:
 jobs:
   publish:
     name: Deploy Release to PyPI
-    # Ubuntu 22.04 is the last version with Python 3.7 binaries available
+    # Last version with Python 3.7 binaries available
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout source

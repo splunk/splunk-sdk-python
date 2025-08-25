@@ -81,6 +81,13 @@ class ModularInputKindTestCase(testlib.SDKTestCase):
             # Not implemented before 5.0
             return
 
+        inputs = self.service.inputs
+        if ("abcd", "test2") not in inputs:
+            inputs.create("abcd", "test2", field1="boris")
+
+        input = inputs["abcd", "test2"]
+        self.assertEqual(input.field1, "boris")
+
         for m in self.service.modular_input_kinds:
             self.check_modular_input_kind(m)
 

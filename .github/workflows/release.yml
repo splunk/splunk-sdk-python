@@ -10,17 +10,15 @@ on:
         default: true
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.9]
+  publish:
+    name: Deploy Release to PyPI
+    # Last version with Python 3.7 binaries available
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      - name: Checkout source
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Set up Python
+        uses: actions/setup-python@9322b3ca74000aeb2c01eb777b646334015ddd72
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -28,18 +26,23 @@ jobs:
       - name: Build package
         run: python -m build
       - name: Publish package to PyPI
-        if: ${{ inputs.dry-run == 'false' }}
-        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+        uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
         with:
           user: __token__
           password: ${{ secrets.PYPI_PASSWORD }}
       - name: Generate API reference docs
         run: |
           rm -rf ./docs/_build
-          python -m tox -e docs
-      - name: Upload API reference docs
-        if: ${{ inputs.dry-run == 'false' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+          tox -e docs
+      - name: Docs Upload
+        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
           name: python_sdk_docs
           path: docs/_build/html
+      # Test upload
+      # - name: Publish package to TestPyPI
+      #   uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.test_pypi_password }}
+      #     repository_url: https://test.pypi.org/legacy/

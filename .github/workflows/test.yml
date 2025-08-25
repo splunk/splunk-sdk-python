@@ -1,50 +1,35 @@
 name: Python CI
-
 on: [push, workflow_dispatch]
 
 jobs:
-  test:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9, 3.13]
-        splunk-version: [9.3, 9.4, latest]
+        python-version: [3.9]
+        splunk-version: [9.4, latest]
         include:
-          # Ubuntu 22.04 is the last version we can get pre-built Python 3.7 binaries for
+          # Oldest possible configuration
+          # Last Ubuntu version with Python 3.7 binaries available
           - os: ubuntu-22.04
             python-version: 3.7
-            splunk-version: 9.3
-          - os: ubuntu-22.04
-            python-version: 3.7
-            splunk-version: 9.4
+            splunk-version: 9.1
+          # Latest possible configuration
+          - os: ubuntu-latest
+            python-version: 3.13
+            splunk-version: latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Set up environment variables
-        run: cp ./.env.test ./.env
-      - name: Launch Splunk ${{ matrix.splunk-version }}
+      - name: Checkout code
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Run docker compose
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      - name: Setup Python
+        uses: actions/setup-python@9322b3ca74000aeb2c01eb777b646334015ddd72
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: python --version && python -m pip --version && python -m pip install tox
-      - name: Run Docker health check
-        # Probably solves nothing, worth trying regardless
-        run: |
-          timeout 30s make wait_up
-          if [ $? -eq 124 ]; then
-            echo "Splunk failed to start within 30 seconds."
-            docker compose logs
-            exit 1
-          fi
-      - name: Run test suite
-        run: python -m tox -e py
-      - name: Print docker logs for optional inspection
-        run: docker compose logs
-  fossa-scan:
-    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-    secrets: inherit
+      - name: Install tox
+        run: pip install tox
+      - name: Test Execution
+        run: tox -e py

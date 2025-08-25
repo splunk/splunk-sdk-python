@@ -13,19 +13,14 @@ build/
 proxypid
 MANIFEST
 coverage_report
-*.log
-tests/searchcommands_data/log/
-tests/searchcommands_data/output/
-tests/searchcommands/data/app/app.log
-tests/searchcommands/apps/app_with_logging_configuration/*.log
 Test Results*.html
+*.log
 splunk_sdk.egg-info/
 .splunkrc
 dist/
 *.observed
 venv/
 .venv/
-.mypy_cache/
 .tox
 test-reports/
 .env

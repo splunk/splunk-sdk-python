@@ -24,7 +24,7 @@ from .validators import Set
 
 
 class ReportingCommand(SearchCommand):
-    """ Processes search result records and generates a reporting data structure.
+    """Processes search result records and generates a reporting data structure.
 
     Reporting search commands run as either reduce or map/reduce operations. The reduce part runs on a search head and
     is responsible for processing a single chunk of search results to produce the command's reporting data structure.
@@ -46,6 +46,7 @@ class ReportingCommand(SearchCommand):
     Splunk 6.3 or later.
 
     """
+
     # region Special methods
 
     def __init__(self):
@@ -55,19 +56,23 @@ class ReportingCommand(SearchCommand):
 
     # region Options
 
-    phase = Option(doc='''
+    phase = Option(
+        doc="""
         **Syntax:** phase=[map|reduce]
 
         **Description:** Identifies the phase of the current map-reduce operation.
 
-    ''', default='reduce', validate=Set('map', 'reduce'))
+    """,
+        default="reduce",
+        validate=Set("map", "reduce"),
+    )
 
     # endregion
 
     # region Methods
 
     def map(self, records):
-        """ Override this method to compute partial results.
+        """Override this method to compute partial results.
 
         :param records:
         :type records:
@@ -77,29 +82,38 @@ class ReportingCommand(SearchCommand):
         """
         return NotImplemented
 
+    def _has_custom_method(self, method_name):
+        method = getattr(self.__class__, method_name, None)
+        base_method = getattr(ReportingCommand, method_name, None)
+        return callable(method) and (method is not base_method)
+
     def prepare(self):
-
-        phase = self.phase
-
-        if phase == 'map':
-            # noinspection PyUnresolvedReferences
-            self._configuration = self.map.ConfigurationSettings(self)
+        if self.phase == "map":
+            if self._has_custom_method("map"):
+                phase_method = getattr(self.__class__, "map")
+                self._configuration = phase_method.ConfigurationSettings(self)
+            else:
+                self._configuration = self.ConfigurationSettings(self)
             return
 
-        if phase == 'reduce':
-            streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
-            self._configuration.streaming_preop = ' '.join(streaming_preop)
+        if self.phase == "reduce":
+            streaming_preop = chain(
+                (self.name, 'phase="map"', str(self._options)), self.fieldnames
+            )
+            self._configuration.streaming_preop = " ".join(streaming_preop)
             return
 
-        raise RuntimeError(f'Unrecognized reporting command phase: {json_encode_string(str(phase))}')
+        raise RuntimeError(
+            f"Unrecognized reporting command phase: {json_encode_string(str(self.phase))}"
+        )
 
     def reduce(self, records):
-        """ Override this method to produce a reporting data structure.
+        """Override this method to produce a reporting data structure.
 
         You must override this method.
 
         """
-        raise NotImplementedError('reduce(self, records)')
+        raise NotImplementedError("reduce(self, records)")
 
     def _execute(self, ifile, process):
         SearchCommand._execute(self, ifile, getattr(self, self.phase))
@@ -109,12 +123,12 @@ class ReportingCommand(SearchCommand):
     # region Types
 
     class ConfigurationSettings(SearchCommand.ConfigurationSettings):
-        """ Represents the configuration settings for a :code:`ReportingCommand`.
+        """Represents the configuration settings for a :code:`ReportingCommand`."""
 
-        """
         # region SCP v1/v2 Properties
 
-        required_fields = ConfigurationSetting(doc='''
+        required_fields = ConfigurationSetting(
+            doc="""
             List of required fields for this search which back-propagates to the generating search.
 
             Setting this value enables selected fields mode under SCP 2. Under SCP 1 you must also specify
@@ -125,9 +139,11 @@ class ReportingCommand(SearchCommand):
 
             Supported by: SCP 1, SCP 2
 
-            ''')
+            """
+        )
 
-        requires_preop = ConfigurationSetting(doc='''
+        requires_preop = ConfigurationSetting(
+            doc="""
             Indicates whether :meth:`ReportingCommand.map` is required for proper command execution.
 
             If :const:`True`, :meth:`ReportingCommand.map` is guaranteed to be called. If :const:`False`, Splunk
@@ -137,22 +153,26 @@ class ReportingCommand(SearchCommand):
 
             Supported by: SCP 1, SCP 2
 
-            ''')
+            """
+        )
 
-        streaming_preop = ConfigurationSetting(doc='''
+        streaming_preop = ConfigurationSetting(
+            doc="""
             Denotes the requested streaming preop search string.
 
             Computed.
 
             Supported by: SCP 1, SCP 2
 
-            ''')
+            """
+        )
 
         # endregion
 
         # region SCP v1 Properties
 
-        clear_required_fields = ConfigurationSetting(doc='''
+        clear_required_fields = ConfigurationSetting(
+            doc="""
             :const:`True`, if required_fields represent the *only* fields required.
 
             If :const:`False`, required_fields are additive to any fields that may be required by subsequent commands.
@@ -162,31 +182,41 @@ class ReportingCommand(SearchCommand):
 
             Supported by: SCP 1
 
-            ''')
+            """
+        )
 
-        retainsevents = ConfigurationSetting(readonly=True, value=False, doc='''
+        retainsevents = ConfigurationSetting(
+            readonly=True,
+            value=False,
+            doc="""
             Signals that :meth:`ReportingCommand.reduce` transforms _raw events to produce a reporting data structure.
 
             Fixed: :const:`False`
 
             Supported by: SCP 1
 
-            ''')
+            """,
+        )
 
-        streaming = ConfigurationSetting(readonly=True, value=False, doc='''
+        streaming = ConfigurationSetting(
+            readonly=True,
+            value=False,
+            doc="""
             Signals that :meth:`ReportingCommand.reduce` runs on the search head.
 
             Fixed: :const:`False`
 
             Supported by: SCP 1
 
-            ''')
+            """,
+        )
 
         # endregion
 
         # region SCP v2 Properties
 
-        maxinputs = ConfigurationSetting(doc='''
+        maxinputs = ConfigurationSetting(
+            doc="""
             Specifies the maximum number of events that can be passed to the command for each invocation.
 
             This limit cannot exceed the value of `maxresultrows` in limits.conf_. Under SCP 1 you must specify this
@@ -198,9 +228,11 @@ class ReportingCommand(SearchCommand):
 
             .. _limits.conf: http://docs.splunk.com/Documentation/Splunk/latest/admin/Limitsconf
 
-            ''')
+            """
+        )
 
-        run_in_preview = ConfigurationSetting(doc='''
+        run_in_preview = ConfigurationSetting(
+            doc="""
             :const:`True`, if this command should be run to generate results for preview; not wait for final output.
 
             This may be important for commands that have side effects (e.g., outputlookup).
@@ -209,16 +241,21 @@ class ReportingCommand(SearchCommand):
 
             Supported by: SCP 2
 
-            ''')
+            """
+        )
 
-        type = ConfigurationSetting(readonly=True, value='reporting', doc='''
+        type = ConfigurationSetting(
+            readonly=True,
+            value="reporting",
+            doc="""
             Command type name.
 
             Fixed: :const:`'reporting'`.
 
             Supported by: SCP 2
 
-            ''')
+            """,
+        )
 
         # endregion
 
@@ -226,7 +263,7 @@ class ReportingCommand(SearchCommand):
 
         @classmethod
         def fix_up(cls, command):
-            """ Verifies :code:`command` class structure and configures the :code:`command.map` method.
+            """Verifies :code:`command` class structure and configures the :code:`command.map` method.
 
             Verifies that :code:`command` derives from :class:`ReportingCommand` and overrides
             :code:`ReportingCommand.reduce`. It then configures :code:`command.reduce`, if an overriding implementation
@@ -241,16 +278,16 @@ class ReportingCommand(SearchCommand):
 
             """
             if not issubclass(command, ReportingCommand):
-                raise TypeError(f'{command} is not a ReportingCommand')
+                raise TypeError(f"{command} is not a ReportingCommand")
 
             if command.reduce == ReportingCommand.reduce:
-                raise AttributeError('No ReportingCommand.reduce override')
+                raise AttributeError("No ReportingCommand.reduce override")
 
             if command.map == ReportingCommand.map:
                 cls._requires_preop = False
                 return
 
-            f = vars(command)['map']   # Function backing the map method
+            f = vars(command)["map"]  # Function backing the map method
 
             # EXPLANATION OF PREVIOUS STATEMENT: There is no way to add custom attributes to methods. See [Why does
             # setattr fail on a method](http://stackoverflow.com/questions/7891277/why-does-setattr-fail-on-a-bound-method) for a discussion of this issue.
@@ -263,14 +300,13 @@ class ReportingCommand(SearchCommand):
 
             # Create new StreamingCommand.ConfigurationSettings class
 
-            module = command.__module__ + '.' + command.__name__ + '.map'
-            name = b'ConfigurationSettings'
+            module = command.__module__ + "." + command.__name__ + ".map"
+            name = b"ConfigurationSettings"
             bases = (StreamingCommand.ConfigurationSettings,)
 
             f.ConfigurationSettings = ConfigurationSettingsType(module, name, bases)
             ConfigurationSetting.fix_up(f.ConfigurationSettings, settings)
             del f._settings
-
 
         # endregion
 

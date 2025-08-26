@@ -15,7 +15,7 @@
 import sys
 import traceback
 
-from splunklib.utils import ensure_str
+from ..utils import ensure_str
 from .event import ET
 
 
@@ -33,7 +33,7 @@ class EventWriter:
     ERROR = "ERROR"
     FATAL = "FATAL"
 
-    def __init__(self, output = sys.stdout, error = sys.stderr):
+    def __init__(self, output=sys.stdout, error=sys.stderr):
         """
         :param output: Where to write the output; defaults to sys.stdout.
         :param error: Where to write any errors; defaults to sys.stderr.
@@ -76,7 +76,9 @@ class EventWriter:
         :param severity: ``string``, severity of message, see severities defined as class constants. Default severity: ERROR
         """
         if exception is not None:
-            tb_str = traceback.format_exception(type(exception), exception, exception.__traceback__)
+            tb_str = traceback.format_exception(
+                type(exception), exception, exception.__traceback__
+            )
         else:
             tb_str = traceback.format_exc()
 

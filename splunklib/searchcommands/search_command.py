@@ -34,11 +34,8 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
-from splunklib.utils import ensure_str
-
 
 # Relative imports
-import splunklib
 from . import Boolean, Option, environment
 from .internals import (
     CommandLineParser,
@@ -51,8 +48,10 @@ from .internals import (
     Recorder,
     RecordWriterV1,
     RecordWriterV2,
-    json_encode_string)
+    json_encode_string,
+)
 from ..client import Service
+from ..utils import ensure_str
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -78,17 +77,17 @@ from ..client import Service
 
 
 class SearchCommand:
-    """ Represents a custom search command.
-
-    """
+    """Represents a custom search command."""
 
     def __init__(self):
-
         # Variables that may be used, but not altered by derived classes
 
         class_name = self.__class__.__name__
 
-        self._logger, self._logging_configuration = getLogger(class_name), environment.logging_configuration
+        self._logger, self._logging_configuration = (
+            getLogger(class_name),
+            environment.logging_configuration,
+        )
 
         # Variables backing option/property values
 
@@ -110,14 +109,19 @@ class SearchCommand:
         self._allow_empty_input = True
 
     def __str__(self):
-        text = ' '.join(chain((type(self).name, str(self.options)), [] if self.fieldnames is None else self.fieldnames))
+        text = " ".join(
+            chain(
+                (type(self).name, str(self.options)),
+                [] if self.fieldnames is None else self.fieldnames,
+            )
+        )
         return text
 
     # region Options
 
     @Option
     def logging_configuration(self):
-        """ **Syntax:** logging_configuration=<path>
+        """**Syntax:** logging_configuration=<path>
 
         **Description:** Loads an alternative logging configuration file for
         a command invocation. The logging configuration file must be in Python
@@ -128,11 +132,13 @@ class SearchCommand:
 
     @logging_configuration.setter
     def logging_configuration(self, value):
-        self._logger, self._logging_configuration = environment.configure_logging(self.__class__.__name__, value)
+        self._logger, self._logging_configuration = environment.configure_logging(
+            self.__class__.__name__, value
+        )
 
     @Option
     def logging_level(self):
-        """ **Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
+        """**Syntax:** logging_level=[CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
 
         **Description:** Sets the threshold for the logger of this command invocation. Logging messages less severe than
         `logging_level` will be ignored.
@@ -148,12 +154,12 @@ class SearchCommand:
             try:
                 level = _levelNames[value.upper()]
             except KeyError:
-                raise ValueError(f'Unrecognized logging level: {value}')
+                raise ValueError(f"Unrecognized logging level: {value}")
         else:
             try:
                 level = int(value)
             except ValueError:
-                raise ValueError(f'Unrecognized logging level: {value}')
+                raise ValueError(f"Unrecognized logging level: {value}")
         self._logger.setLevel(level)
 
     def add_field(self, current_record, field_name, field_value):
@@ -164,19 +170,27 @@ class SearchCommand:
         self._record_writer.custom_fields |= set(record.keys())
         return record
 
-    record = Option(doc='''
+    record = Option(
+        doc="""
         **Syntax: record=<bool>
 
         **Description:** When `true`, records the interaction between the command and splunkd. Defaults to `false`.
 
-        ''', default=False, validate=Boolean())
+        """,
+        default=False,
+        validate=Boolean(),
+    )
 
-    show_configuration = Option(doc='''
+    show_configuration = Option(
+        doc="""
         **Syntax:** show_configuration=<bool>
 
         **Description:** When `true`, reports command configuration as an informational message. Defaults to `false`.
 
-        ''', default=False, validate=Boolean())
+        """,
+        default=False,
+        validate=Boolean(),
+    )
 
     # endregion
 
@@ -184,16 +198,12 @@ class SearchCommand:
 
     @property
     def configuration(self):
-        """ Returns the configuration settings for this command.
-
-        """
+        """Returns the configuration settings for this command."""
         return self._configuration
 
     @property
     def fieldnames(self):
-        """ Returns the fieldnames specified as argument to this command.
-
-        """
+        """Returns the fieldnames specified as argument to this command."""
         return self._fieldnames
 
     @fieldnames.setter
@@ -202,20 +212,23 @@ class SearchCommand:
 
     @property
     def input_header(self):
-        """ Returns the input header for this command.
+        """Returns the input header for this command.
 
         :return: The input header for this command.
         :rtype: InputHeader
 
         """
         warn(
-            'SearchCommand.input_header is deprecated and will be removed in a future release. '
-            'Please use SearchCommand.metadata instead.', DeprecationWarning, 2)
+            "SearchCommand.input_header is deprecated and will be removed in a future release. "
+            "Please use SearchCommand.metadata instead.",
+            DeprecationWarning,
+            2,
+        )
         return self._input_header
 
     @property
     def logger(self):
-        """ Returns the logger for this command.
+        """Returns the logger for this command.
 
         :return: The logger for this command.
         :rtype:
@@ -229,9 +242,7 @@ class SearchCommand:
 
     @property
     def options(self):
-        """ Returns the options specified as argument to this command.
-
-        """
+        """Returns the options specified as argument to this command."""
         if self._options is None:
             self._options = Option.View(self)
         return self._options
@@ -242,7 +253,7 @@ class SearchCommand:
 
     @property
     def search_results_info(self):
-        """ Returns the search results info for this command invocation.
+        """Returns the search results info for this command invocation.
 
         The search results info object is created from the search results info file associated with the command
         invocation.
@@ -257,7 +268,7 @@ class SearchCommand:
 
         if self._protocol_version == 1:
             try:
-                path = self._input_header['infoPath']
+                path = self._input_header["infoPath"]
             except KeyError:
                 return None
         else:
@@ -268,21 +279,23 @@ class SearchCommand:
             except AttributeError:
                 return None
 
-            path = os.path.join(dispatch_dir, 'info.csv')
+            path = os.path.join(dispatch_dir, "info.csv")
 
         try:
-            with io.open(path, 'r') as f:
+            with io.open(path, "r") as f:
                 reader = csv.reader(f, dialect=CsvDialect)
                 fields = next(reader)
                 values = next(reader)
         except IOError as error:
             if error.errno == 2:
-                self.logger.error(f'Search results info file {json_encode_string(path)} does not exist.')
+                self.logger.error(
+                    f"Search results info file {json_encode_string(path)} does not exist."
+                )
                 return
             raise
 
         def convert_field(field):
-            return (field[1:] if field[0] == '_' else field).replace('.', '_')
+            return (field[1:] if field[0] == "_" else field).replace(".", "_")
 
         decode = MetadataDecoder().decode
 
@@ -292,16 +305,23 @@ class SearchCommand:
             except ValueError:
                 return value
 
-        info = ObjectView(dict((convert_field(f_v[0]), convert_value(f_v[1])) for f_v in zip(fields, values)))
+        info = ObjectView(
+            dict(
+                (convert_field(f_v[0]), convert_value(f_v[1]))
+                for f_v in zip(fields, values)
+            )
+        )
 
         try:
             count_map = info.countMap
         except AttributeError:
             pass
         else:
-            count_map = count_map.split(';')
+            count_map = count_map.split(";")
             n = len(count_map)
-            info.countMap = dict(list(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2))))
+            info.countMap = dict(
+                list(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2)))
+            )
 
         try:
             msg_type = info.msgType
@@ -309,7 +329,11 @@ class SearchCommand:
         except AttributeError:
             pass
         else:
-            messages = [t_m for t_m in zip(msg_type.split('\n'), msg_text.split('\n')) if t_m[0] or t_m[1]]
+            messages = [
+                t_m
+                for t_m in zip(msg_type.split("\n"), msg_text.split("\n"))
+                if t_m[0] or t_m[1]
+            ]
             info.msg = [Message(message) for message in messages]
             del info.msgType
 
@@ -323,7 +347,7 @@ class SearchCommand:
 
     @property
     def service(self):
-        """ Returns a Splunk service object for this command invocation or None.
+        """Returns a Splunk service object for this command invocation or None.
 
         The service object is created from the Splunkd URI and authentication token passed to the command invocation in
         the search results info file. This data is not passed to a command invocation by default. You must request it by
@@ -342,28 +366,39 @@ class SearchCommand:
             of :code:`None` is returned.
 
         """
+
         if self._service is not None:
             return self._service
 
         metadata = self._metadata
 
         if metadata is None:
+            self.logger.warning("Missing metadata for service creation.")
             return None
 
         try:
             searchinfo = self._metadata.searchinfo
         except AttributeError:
+            self.logger.warning("Missing searchinfo in metadata for service creation.")
             return None
 
         splunkd_uri = searchinfo.splunkd_uri
 
-        if splunkd_uri is None:
+        if splunkd_uri is None or splunkd_uri == "" or splunkd_uri == " ":
+            self.logger.warning(
+                f"Incorrect value for Splunkd URI: {splunkd_uri!r} in metadata"
+            )
             return None
 
         uri = urlsplit(splunkd_uri, allow_fragments=False)
 
         self._service = Service(
-            scheme=uri.scheme, host=uri.hostname, port=uri.port, app=searchinfo.app, token=searchinfo.session_key)
+            scheme=uri.scheme,
+            host=uri.hostname,
+            port=uri.port,
+            app=searchinfo.app,
+            token=searchinfo.session_key,
+        )
 
         return self._service
 
@@ -373,11 +408,11 @@ class SearchCommand:
 
     def error_exit(self, error, message=None):
         self.write_error(error.message if message is None else message)
-        self.logger.error('Abnormal exit: %s', error)
+        self.logger.error("Abnormal exit: %s", error)
         exit(1)
 
     def finish(self):
-        """ Flushes the output buffer and signals that this command has finished processing data.
+        """Flushes the output buffer and signals that this command has finished processing data.
 
         :return: :const:`None`
 
@@ -385,7 +420,7 @@ class SearchCommand:
         self._record_writer.flush(finished=True)
 
     def flush(self):
-        """ Flushes the output buffer.
+        """Flushes the output buffer.
 
         :return: :const:`None`
 
@@ -393,7 +428,7 @@ class SearchCommand:
         self._record_writer.flush(finished=False)
 
     def prepare(self):
-        """ Prepare for execution.
+        """Prepare for execution.
 
         This method should be overridden in search command classes that wish to examine and update their configuration
         or option settings prior to execution. It is called during the getinfo exchange before command metadata is sent
@@ -404,8 +439,10 @@ class SearchCommand:
 
         """
 
-    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
-        """ Process data.
+    def process(
+        self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True
+    ):
+        """Process data.
 
         :param argv: Command line arguments.
         :type argv: list or tuple
@@ -436,17 +473,20 @@ class SearchCommand:
         searchinfo = metadata.searchinfo
         self._input_header.update(
             allowStream=None,
-            infoPath=os.path.join(searchinfo.dispatch_dir, 'info.csv'),
+            infoPath=os.path.join(searchinfo.dispatch_dir, "info.csv"),
             keywords=None,
             preview=metadata.preview,
             realtime=searchinfo.earliest_time != 0 and searchinfo.latest_time != 0,
             search=searchinfo.search,
             sid=searchinfo.sid,
             splunkVersion=searchinfo.splunk_version,
-            truncated=None)
+            truncated=None,
+        )
 
     def _map_metadata(self, argv):
-        source = SearchCommand._MetadataSource(argv, self._input_header, self.search_results_info)
+        source = SearchCommand._MetadataSource(
+            argv, self._input_header, self.search_results_info
+        )
 
         def _map(metadata_map):
             metadata = {}
@@ -469,43 +509,43 @@ class SearchCommand:
         self._metadata = _map(SearchCommand._metadata_map)
 
     _metadata_map = {
-        'action':
-            (lambda v: 'getinfo' if v == '__GETINFO__' else 'execute' if v == '__EXECUTE__' else None,
-             lambda s: s.argv[1]),
-        'preview':
-            (bool, lambda s: s.input_header.get('preview')),
-        'searchinfo': {
-            'app':
-                (lambda v: v.ppc_app, lambda s: s.search_results_info),
-            'args':
-                (None, lambda s: s.argv),
-            'dispatch_dir':
-                (os.path.dirname, lambda s: s.input_header.get('infoPath')),
-            'earliest_time':
-                (lambda v: float(v.rt_earliest) if len(v.rt_earliest) > 0 else 0.0, lambda s: s.search_results_info),
-            'latest_time':
-                (lambda v: float(v.rt_latest) if len(v.rt_latest) > 0 else 0.0, lambda s: s.search_results_info),
-            'owner':
-                (None, None),
-            'raw_args':
-                (None, lambda s: s.argv),
-            'search':
-                (unquote, lambda s: s.input_header.get('search')),
-            'session_key':
-                (lambda v: v.auth_token, lambda s: s.search_results_info),
-            'sid':
-                (None, lambda s: s.input_header.get('sid')),
-            'splunk_version':
-                (None, lambda s: s.input_header.get('splunkVersion')),
-            'splunkd_uri':
-                (lambda v: v.splunkd_uri, lambda s: s.search_results_info),
-            'username':
-                (lambda v: v.ppc_user, lambda s: s.search_results_info)}}
+        "action": (
+            lambda v: "getinfo"
+            if v == "__GETINFO__"
+            else "execute"
+            if v == "__EXECUTE__"
+            else None,
+            lambda s: s.argv[1],
+        ),
+        "preview": (bool, lambda s: s.input_header.get("preview")),
+        "searchinfo": {
+            "app": (lambda v: v.ppc_app, lambda s: s.search_results_info),
+            "args": (None, lambda s: s.argv),
+            "dispatch_dir": (os.path.dirname, lambda s: s.input_header.get("infoPath")),
+            "earliest_time": (
+                lambda v: float(v.rt_earliest) if len(v.rt_earliest) > 0 else 0.0,
+                lambda s: s.search_results_info,
+            ),
+            "latest_time": (
+                lambda v: float(v.rt_latest) if len(v.rt_latest) > 0 else 0.0,
+                lambda s: s.search_results_info,
+            ),
+            "owner": (None, None),
+            "raw_args": (None, lambda s: s.argv),
+            "search": (unquote, lambda s: s.input_header.get("search")),
+            "session_key": (lambda v: v.auth_token, lambda s: s.search_results_info),
+            "sid": (None, lambda s: s.input_header.get("sid")),
+            "splunk_version": (None, lambda s: s.input_header.get("splunkVersion")),
+            "splunkd_uri": (lambda v: v.splunkd_uri, lambda s: s.search_results_info),
+            "username": (lambda v: v.ppc_user, lambda s: s.search_results_info),
+        },
+    }
 
-    _MetadataSource = namedtuple('Source', ('argv', 'input_header', 'search_results_info'))
+    _MetadataSource = namedtuple(
+        "Source", ("argv", "input_header", "search_results_info")
+    )
 
     def _prepare_protocol_v1(self, argv, ifile, ofile):
-
         debug = environment.splunklib_logger.debug
 
         # Provide as much context as possible in advance of parsing the command line and preparing for execution
@@ -514,14 +554,16 @@ class SearchCommand:
         self._protocol_version = 1
         self._map_metadata(argv)
 
-        debug('  metadata=%r, input_header=%r', self._metadata, self._input_header)
+        debug("  metadata=%r, input_header=%r", self._metadata, self._input_header)
 
         try:
             tempfile.tempdir = self._metadata.searchinfo.dispatch_dir
         except AttributeError:
-            raise RuntimeError(f'{self.__class__.__name__}.metadata.searchinfo.dispatch_dir is undefined')
+            raise RuntimeError(
+                f"{self.__class__.__name__}.metadata.searchinfo.dispatch_dir is undefined"
+            )
 
-        debug('  tempfile.tempdir=%r', tempfile.tempdir)
+        debug("  tempfile.tempdir=%r", tempfile.tempdir)
 
         CommandLineParser.parse(self, argv[2:])
         self.prepare()
@@ -529,92 +571,116 @@ class SearchCommand:
         if self.record:
             self.record = False
 
-            record_argv = [argv[0], argv[1], str(self._options), ' '.join(self.fieldnames)]
+            record_argv = [
+                argv[0],
+                argv[1],
+                str(self._options),
+                " ".join(self.fieldnames),
+            ]
             ifile, ofile = self._prepare_recording(record_argv, ifile, ofile)
             self._record_writer.ofile = ofile
-            ifile.record(str(self._input_header), '\n\n')
+            ifile.record(str(self._input_header), "\n\n")
 
         if self.show_configuration:
-            self.write_info(self.name + ' command configuration: ' + str(self._configuration))
+            self.write_info(
+                self.name + " command configuration: " + str(self._configuration)
+            )
 
         return ifile  # wrapped, if self.record is True
 
     def _prepare_recording(self, argv, ifile, ofile):
-
         # Create the recordings directory, if it doesn't already exist
 
-        recordings = os.path.join(environment.splunk_home, 'var', 'run', 'splunklib.searchcommands', 'recordings')
+        recordings = os.path.join(
+            environment.splunk_home,
+            "var",
+            "run",
+            "splunklib.searchcommands",
+            "recordings",
+        )
 
         if not os.path.isdir(recordings):
             os.makedirs(recordings)
 
         # Create input/output recorders from ifile and ofile
 
-        recording = os.path.join(recordings, self.__class__.__name__ + '-' + repr(time()) + '.' + self._metadata.action)
-        ifile = Recorder(recording + '.input', ifile)
-        ofile = Recorder(recording + '.output', ofile)
+        recording = os.path.join(
+            recordings,
+            self.__class__.__name__ + "-" + repr(time()) + "." + self._metadata.action,
+        )
+        ifile = Recorder(recording + ".input", ifile)
+        ofile = Recorder(recording + ".output", ofile)
 
         # Archive the dispatch directory--if it exists--so that it can be used as a baseline in mocks)
 
         dispatch_dir = self._metadata.searchinfo.dispatch_dir
 
-        if dispatch_dir is not None:  # __GETINFO__ action does not include a dispatch_dir
+        if (
+            dispatch_dir is not None
+        ):  # __GETINFO__ action does not include a dispatch_dir
             root_dir, base_dir = os.path.split(dispatch_dir)
-            make_archive(recording + '.dispatch_dir', 'gztar', root_dir, base_dir, logger=self.logger)
+            make_archive(
+                recording + ".dispatch_dir",
+                "gztar",
+                root_dir,
+                base_dir,
+                logger=self.logger,
+            )
 
         # Save a splunk command line because it is useful for developing tests
 
-        with open(recording + '.splunk_cmd', 'wb') as f:
-            f.write('splunk cmd python '.encode())
+        with open(recording + ".splunk_cmd", "wb") as f:
+            f.write("splunk cmd python ".encode())
             f.write(os.path.basename(argv[0]).encode())
             for arg in islice(argv, 1, len(argv)):
-                f.write(' '.encode())
+                f.write(" ".encode())
                 f.write(arg.encode())
 
         return ifile, ofile
 
     def _process_protocol_v1(self, argv, ifile, ofile):
-
         debug = environment.splunklib_logger.debug
         class_name = self.__class__.__name__
 
-        debug('%s.process started under protocol_version=1', class_name)
+        debug("%s.process started under protocol_version=1", class_name)
         self._record_writer = RecordWriterV1(ofile)
 
         # noinspection PyBroadException
         try:
-            if argv[1] == '__GETINFO__':
-
-                debug('Writing configuration settings')
+            if argv[1] == "__GETINFO__":
+                debug("Writing configuration settings")
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
-                self._record_writer.write_record(dict(
-                    (n, ','.join(v) if isinstance(v, (list, tuple)) else v) for n, v in
-                    self._configuration.items()))
+                self._record_writer.write_record(
+                    dict(
+                        (n, ",".join(v) if isinstance(v, (list, tuple)) else v)
+                        for n, v in self._configuration.items()
+                    )
+                )
                 self.finish()
 
-            elif argv[1] == '__EXECUTE__':
-
-                debug('Executing')
+            elif argv[1] == "__EXECUTE__":
+                debug("Executing")
 
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
                 self._records = self._records_protocol_v1
-                self._metadata.action = 'execute'
+                self._metadata.action = "execute"
                 self._execute(ifile, None)
 
             else:
                 message = (
-                    f'Command {self.name} appears to be statically configured for search command protocol version 1 and static '
-                    'configuration is unsupported by splunklib.searchcommands. Please ensure that '
-                    'default/commands.conf contains this stanza:\n'
-                    f'[{self.name}]\n'
-                    f'filename = {os.path.basename(argv[0])}\n'
-                    'enableheader = true\n'
-                    'outputheader = true\n'
-                    'requires_srinfo = true\n'
-                    'supports_getinfo = true\n'
-                    'supports_multivalues = true\n'
-                    'supports_rawargs = true')
+                    f"Command {self.name} appears to be statically configured for search command protocol version 1 and static "
+                    "configuration is unsupported by splunklib.searchcommands. Please ensure that "
+                    "default/commands.conf contains this stanza:\n"
+                    f"[{self.name}]\n"
+                    f"filename = {os.path.basename(argv[0])}\n"
+                    "enableheader = true\n"
+                    "outputheader = true\n"
+                    "requires_srinfo = true\n"
+                    "supports_getinfo = true\n"
+                    "supports_multivalues = true\n"
+                    "supports_rawargs = true"
+                )
                 raise RuntimeError(message)
 
         except (SyntaxError, ValueError) as error:
@@ -631,23 +697,23 @@ class SearchCommand:
             self.flush()
             exit(1)
 
-        debug('%s.process finished under protocol_version=1', class_name)
+        debug("%s.process finished under protocol_version=1", class_name)
 
     def _protocol_v2_option_parser(self, arg):
-        """ Determines if an argument is an Option/Value pair, or just a Positional Argument.
-            Method so different search commands can handle parsing of arguments differently.
+        """Determines if an argument is an Option/Value pair, or just a Positional Argument.
+        Method so different search commands can handle parsing of arguments differently.
 
-            :param arg: A single argument provided to the command from SPL
-            :type arg: str
+        :param arg: A single argument provided to the command from SPL
+        :type arg: str
 
-            :return: [OptionName, OptionValue] OR [PositionalArgument]
-            :rtype: List[str]
+        :return: [OptionName, OptionValue] OR [PositionalArgument]
+        :rtype: List[str]
 
         """
-        return arg.split('=', 1)
+        return arg.split("=", 1)
 
     def _process_protocol_v2(self, argv, ifile, ofile):
-        """ Processes records on the `input stream optionally writing records to the output stream.
+        """Processes records on the `input stream optionally writing records to the output stream.
 
         :param ifile: Input file object.
         :type ifile: file or InputType
@@ -661,22 +727,22 @@ class SearchCommand:
         debug = environment.splunklib_logger.debug
         class_name = self.__class__.__name__
 
-        debug('%s.process started under protocol_version=2', class_name)
+        debug("%s.process started under protocol_version=2", class_name)
         self._protocol_version = 2
 
         # Read search command metadata from splunkd
         # noinspection PyBroadException
         try:
-            debug('Reading metadata')
+            debug("Reading metadata")
             metadata, body = self._read_chunk(self._as_binary_stream(ifile))
 
-            action = getattr(metadata, 'action', None)
+            action = getattr(metadata, "action", None)
 
-            if action != 'getinfo':
-                raise RuntimeError(f'Expected getinfo action, not {action}')
+            if action != "getinfo":
+                raise RuntimeError(f"Expected getinfo action, not {action}")
 
             if len(body) > 0:
-                raise RuntimeError('Did not expect data for getinfo action')
+                raise RuntimeError("Did not expect data for getinfo action")
 
             self._metadata = deepcopy(metadata)
 
@@ -688,14 +754,16 @@ class SearchCommand:
 
             self._map_input_header()
 
-            debug('  metadata=%r, input_header=%r', self._metadata, self._input_header)
+            debug("  metadata=%r, input_header=%r", self._metadata, self._input_header)
 
             try:
                 tempfile.tempdir = self._metadata.searchinfo.dispatch_dir
             except AttributeError:
-                raise RuntimeError(f'{class_name}.metadata.searchinfo.dispatch_dir is undefined')
+                raise RuntimeError(
+                    f"{class_name}.metadata.searchinfo.dispatch_dir is undefined"
+                )
 
-            debug('  tempfile.tempdir=%r', tempfile.tempdir)
+            debug("  tempfile.tempdir=%r", tempfile.tempdir)
         except:
             self._record_writer = RecordWriterV2(ofile)
             self._report_unexpected_error()
@@ -705,14 +773,16 @@ class SearchCommand:
         # Write search command configuration for consumption by splunkd
         # noinspection PyBroadException
         try:
-            self._record_writer = RecordWriterV2(ofile, getattr(self._metadata.searchinfo, 'maxresultrows', None))
+            self._record_writer = RecordWriterV2(
+                ofile, getattr(self._metadata.searchinfo, "maxresultrows", None)
+            )
             self.fieldnames = []
             self.options.reset()
 
             args = self.metadata.searchinfo.args
             error_count = 0
 
-            debug('Parsing arguments')
+            debug("Parsing arguments")
 
             if args and isinstance(args, list):
                 for arg in args:
@@ -725,13 +795,13 @@ class SearchCommand:
                         try:
                             option = self.options[name]
                         except KeyError:
-                            self.write_error(f'Unrecognized option: {name}={value}')
+                            self.write_error(f"Unrecognized option: {name}={value}")
                             error_count += 1
                             continue
                         try:
                             option.value = value
                         except ValueError:
-                            self.write_error(f'Illegal value: {name}={value}')
+                            self.write_error(f"Illegal value: {name}={value}")
                             error_count += 1
                             continue
 
@@ -741,19 +811,20 @@ class SearchCommand:
                 if len(missing) == 1:
                     self.write_error(f'A value for "{missing[0]}" is required')
                 else:
-                    self.write_error(f'Values for these required options are missing: {", ".join(missing)}')
+                    self.write_error(
+                        f"Values for these required options are missing: {', '.join(missing)}"
+                    )
                 error_count += 1
 
             if error_count > 0:
                 exit(1)
 
-            debug('  command: %s', str(self))
+            debug("  command: %s", str(self))
 
-            debug('Preparing for execution')
+            debug("Preparing for execution")
             self.prepare()
 
             if self.record:
-
                 ifile, ofile = self._prepare_recording(argv, ifile, ofile)
                 self._record_writer.ofile = ofile
 
@@ -761,16 +832,26 @@ class SearchCommand:
 
                 info = self._metadata.searchinfo
 
-                for attr in 'args', 'raw_args':
-                    setattr(info, attr, [arg for arg in getattr(info, attr) if not arg.startswith('record=')])
+                for attr in "args", "raw_args":
+                    setattr(
+                        info,
+                        attr,
+                        [
+                            arg
+                            for arg in getattr(info, attr)
+                            if not arg.startswith("record=")
+                        ],
+                    )
 
                 metadata = MetadataEncoder().encode(self._metadata)
-                ifile.record('chunked 1.0,', str(len(metadata)), ',0\n', metadata)
+                ifile.record("chunked 1.0,", str(len(metadata)), ",0\n", metadata)
 
             if self.show_configuration:
-                self.write_info(self.name + ' command configuration: ' + str(self._configuration))
+                self.write_info(
+                    self.name + " command configuration: " + str(self._configuration)
+                )
 
-            debug('  command configuration: %s', self._configuration)
+            debug("  command configuration: %s", self._configuration)
 
         except SystemExit:
             self._record_writer.write_metadata(self._configuration)
@@ -787,8 +868,8 @@ class SearchCommand:
         # Execute search command on data passing through the pipeline
         # noinspection PyBroadException
         try:
-            debug('Executing under protocol_version=2')
-            self._metadata.action = 'execute'
+            debug("Executing under protocol_version=2")
+            self._metadata.action = "execute"
             self._execute(ifile, None)
         except SystemExit:
             self.finish()
@@ -798,25 +879,25 @@ class SearchCommand:
             self.finish()
             exit(1)
 
-        debug('%s.process completed', class_name)
+        debug("%s.process completed", class_name)
 
     def write_debug(self, message, *args):
-        self._record_writer.write_message('DEBUG', message, *args)
+        self._record_writer.write_message("DEBUG", message, *args)
 
     def write_error(self, message, *args):
-        self._record_writer.write_message('ERROR', message, *args)
+        self._record_writer.write_message("ERROR", message, *args)
 
     def write_fatal(self, message, *args):
-        self._record_writer.write_message('FATAL', message, *args)
+        self._record_writer.write_message("FATAL", message, *args)
 
     def write_info(self, message, *args):
-        self._record_writer.write_message('INFO', message, *args)
+        self._record_writer.write_message("INFO", message, *args)
 
     def write_warning(self, message, *args):
-        self._record_writer.write_message('WARN', message, *args)
+        self._record_writer.write_message("WARN", message, *args)
 
     def write_metric(self, name, value):
-        """ Writes a metric that will be added to the search inspector.
+        """Writes a metric that will be added to the search inspector.
 
         :param name: Name of the metric.
         :type name: basestring
@@ -840,14 +921,19 @@ class SearchCommand:
 
     @staticmethod
     def _decode_list(mv):
-        return [match.replace('$$', '$') for match in SearchCommand._encoded_value.findall(mv)]
+        return [
+            match.replace("$$", "$")
+            for match in SearchCommand._encoded_value.findall(mv)
+        ]
 
-    _encoded_value = re.compile(r'\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)')  # matches a single value in an encoded list
+    _encoded_value = re.compile(
+        r"\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)"
+    )  # matches a single value in an encoded list
 
     # Note: Subclasses must override this method so that it can be called
     # called as self._execute(ifile, None)
     def _execute(self, ifile, process):
-        """ Default processing loop
+        """Default processing loop
 
         :param ifile: Input file object.
         :type ifile: file
@@ -875,17 +961,17 @@ class SearchCommand:
         try:
             return ifile.buffer
         except AttributeError as error:
-            raise RuntimeError(f'Failed to get underlying buffer: {error}')
+            raise RuntimeError(f"Failed to get underlying buffer: {error}")
 
     @staticmethod
     def _read_chunk(istream):
         # noinspection PyBroadException
-        assert isinstance(istream.read(0), bytes), 'Stream must be binary'
+        assert isinstance(istream.read(0), bytes), "Stream must be binary"
 
         try:
             header = istream.readline()
         except Exception as error:
-            raise RuntimeError(f'Failed to read transport header: {error}')
+            raise RuntimeError(f"Failed to read transport header: {error}")
 
         if not header:
             return None
@@ -893,7 +979,7 @@ class SearchCommand:
         match = SearchCommand._header.match(ensure_str(header))
 
         if match is None:
-            raise RuntimeError(f'Failed to parse transport header: {header}')
+            raise RuntimeError(f"Failed to parse transport header: {header}")
 
         metadata_length, body_length = match.groups()
         metadata_length = int(metadata_length)
@@ -902,14 +988,18 @@ class SearchCommand:
         try:
             metadata = istream.read(metadata_length)
         except Exception as error:
-            raise RuntimeError(f'Failed to read metadata of length {metadata_length}: {error}')
+            raise RuntimeError(
+                f"Failed to read metadata of length {metadata_length}: {error}"
+            )
 
         decoder = MetadataDecoder()
 
         try:
             metadata = decoder.decode(ensure_str(metadata))
         except Exception as error:
-            raise RuntimeError(f'Failed to parse metadata of length {metadata_length}: {error}')
+            raise RuntimeError(
+                f"Failed to parse metadata of length {metadata_length}: {error}"
+            )
 
         # if body_length <= 0:
         #     return metadata, ''
@@ -919,11 +1009,11 @@ class SearchCommand:
             if body_length > 0:
                 body = istream.read(body_length)
         except Exception as error:
-            raise RuntimeError(f'Failed to read body of length {body_length}: {error}')
+            raise RuntimeError(f"Failed to read body of length {body_length}: {error}")
 
-        return metadata, ensure_str(body,errors="replace")
+        return metadata, ensure_str(body, errors="replace")
 
-    _header = re.compile(r'chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n')
+    _header = re.compile(r"chunked\s+1.0\s*,\s*(\d+)\s*,\s*(\d+)\s*\n")
 
     def _records_protocol_v1(self, ifile):
         return self._read_csv_records(ifile)
@@ -936,7 +1026,11 @@ class SearchCommand:
         except StopIteration:
             return
 
-        mv_fieldnames = dict((name, name[len('__mv_'):]) for name in fieldnames if name.startswith('__mv_'))
+        mv_fieldnames = dict(
+            (name, name[len("__mv_") :])
+            for name in fieldnames
+            if name.startswith("__mv_")
+        )
 
         if len(mv_fieldnames) == 0:
             for values in reader:
@@ -946,7 +1040,7 @@ class SearchCommand:
         for values in reader:
             record = OrderedDict()
             for fieldname, value in zip(fieldnames, values):
-                if fieldname.startswith('__mv_'):
+                if fieldname.startswith("__mv_"):
                     if len(value) > 0:
                         record[mv_fieldnames[fieldname]] = self._decode_list(value)
                 elif fieldname not in record:
@@ -963,11 +1057,11 @@ class SearchCommand:
                 return
 
             metadata, body = result
-            action = getattr(metadata, 'action', None)
-            if action != 'execute':
-                raise RuntimeError(f'Expected execute action, not {action}')
+            action = getattr(metadata, "action", None)
+            if action != "execute":
+                raise RuntimeError(f"Expected execute action, not {action}")
 
-            self._finished = getattr(metadata, 'finished', False)
+            self._finished = getattr(metadata, "finished", False)
             self._record_writer.is_flushed = False
             self._metadata.update(metadata)
             self._execute_chunk_v2(process, result)
@@ -980,13 +1074,13 @@ class SearchCommand:
         if len(body) <= 0 and not self._allow_empty_input:
             raise ValueError(
                 "No records found to process. Set allow_empty_input=True in dispatch function to move forward "
-                "with empty records.")
+                "with empty records."
+            )
 
         records = self._read_csv_records(StringIO(body))
         self._record_writer.write_records(process(records))
 
     def _report_unexpected_error(self):
-
         error_type, error, tb = sys.exc_info()
         origin = tb
 
@@ -997,7 +1091,9 @@ class SearchCommand:
         lineno = origin.tb_lineno
         message = f'{error_type.__name__} at "{filename}", line {str(lineno)} : {error}'
 
-        environment.splunklib_logger.error(message + '\nTraceback:\n' + ''.join(traceback.format_tb(tb)))
+        environment.splunklib_logger.error(
+            message + "\nTraceback:\n" + "".join(traceback.format_tb(tb))
+        )
         self.write_error(message)
 
     # endregion
@@ -1005,15 +1101,13 @@ class SearchCommand:
     # region Types
 
     class ConfigurationSettings:
-        """ Represents the configuration settings common to all :class:`SearchCommand` classes.
-
-        """
+        """Represents the configuration settings common to all :class:`SearchCommand` classes."""
 
         def __init__(self, command):
             self.command = command
 
         def __repr__(self):
-            """ Converts the value of this instance to its string representation.
+            """Converts the value of this instance to its string representation.
 
             The value of this ConfigurationSettings instance is represented as a string of comma-separated
             :code:`(name, value)` pairs.
@@ -1022,12 +1116,16 @@ class SearchCommand:
 
             """
             definitions = type(self).configuration_setting_definitions
-            settings = [repr((setting.name, setting.__get__(self), setting.supporting_protocols)) for setting in
-                        definitions]
-            return '[' + ', '.join(settings) + ']'
+            settings = [
+                repr(
+                    (setting.name, setting.__get__(self), setting.supporting_protocols)
+                )
+                for setting in definitions
+            ]
+            return "[" + ", ".join(settings) + "]"
 
         def __str__(self):
-            """ Converts the value of this instance to its string representation.
+            """Converts the value of this instance to its string representation.
 
             The value of this ConfigurationSettings instance is represented as a string of comma-separated
             :code:`name=value` pairs. Items with values of :const:`None` are filtered from the list.
@@ -1036,14 +1134,19 @@ class SearchCommand:
 
             """
             # text = ', '.join(imap(lambda (name, value): name + '=' + json_encode_string(unicode(value)), self.iteritems()))
-            text = ', '.join([f'{name}={json_encode_string(str(value))}' for (name, value) in self.items()])
+            text = ", ".join(
+                [
+                    f"{name}={json_encode_string(str(value))}"
+                    for (name, value) in self.items()
+                ]
+            )
             return text
 
         # region Methods
 
         @classmethod
         def fix_up(cls, command_class):
-            """ Adjusts and checks this class and its search command class.
+            """Adjusts and checks this class and its search command class.
 
             Derived classes typically override this method. It is used by the :decorator:`Configuration` decorator to
             fix up the :class:`SearchCommand` class it adorns. This method is overridden by :class:`EventingCommand`,
@@ -1060,10 +1163,18 @@ class SearchCommand:
         def iteritems(self):
             definitions = type(self).configuration_setting_definitions
             version = self.command.protocol_version
-            return [name_value1 for name_value1 in [(setting.name, setting.__get__(self)) for setting in
-                                                    [setting for setting in definitions if
-                                                     setting.is_supported_by_protocol(version)]] if
-                    name_value1[1] is not None]
+            return [
+                name_value1
+                for name_value1 in [
+                    (setting.name, setting.__get__(self))
+                    for setting in [
+                        setting
+                        for setting in definitions
+                        if setting.is_supported_by_protocol(version)
+                    ]
+                ]
+                if name_value1[1] is not None
+            ]
 
         # N.B.: Does not use Python 3 dict view semantics
 
@@ -1074,12 +1185,21 @@ class SearchCommand:
     # endregion
 
 
-SearchMetric = namedtuple('SearchMetric', ('elapsed_seconds', 'invocation_count', 'input_count', 'output_count'))
+SearchMetric = namedtuple(
+    "SearchMetric",
+    ("elapsed_seconds", "invocation_count", "input_count", "output_count"),
+)
 
 
-def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys.stdout, module_name=None,
-             allow_empty_input=True):
-    """ Instantiates and executes a search command class
+def dispatch(
+    command_class,
+    argv=sys.argv,
+    input_file=sys.stdin,
+    output_file=sys.stdout,
+    module_name=None,
+    allow_empty_input=True,
+):
+    """Instantiates and executes a search command class
 
     This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of
     :code:`module_name`::
@@ -1139,5 +1259,5 @@ def dispatch(command_class, argv=sys.argv, input_file=sys.stdin, output_file=sys
     """
     assert issubclass(command_class, SearchCommand)
 
-    if module_name is None or module_name == '__main__':
+    if module_name is None or module_name == "__main__":
         command_class().process(argv, input_file, output_file, allow_empty_input)

@@ -40,11 +40,7 @@ import xml.etree.ElementTree as et
 from collections import OrderedDict
 from json import loads as json_loads
 
-__all__ = [
-    "ResultsReader",
-    "Message",
-    "JSONResultsReader"
-]
+__all__ = ["ResultsReader", "Message", "JSONResultsReader"]
 
 import deprecation
 
@@ -151,7 +147,9 @@ class _XMLDTDFilter:
         return response
 
 
-@deprecation.deprecated(details="Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'")
+@deprecation.deprecated(
+    details="Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'"
+)
 class ResultsReader:
     """This class returns dictionaries and Splunk messages from an XML results
     stream.
@@ -209,37 +207,36 @@ class ResultsReader:
     def __next__(self):
         return next(self._gen)
 
-
     def _parse_results(self, stream):
         """Parse results and messages out of *stream*."""
         result = None
         values = None
         try:
-            for event, elem in et.iterparse(stream, events=('start', 'end')):
-                if elem.tag == 'results' and event == 'start':
+            for event, elem in et.iterparse(stream, events=("start", "end")):
+                if elem.tag == "results" and event == "start":
                     # The wrapper element is a <results preview="0|1">. We
                     # don't care about it except to tell is whether these
                     # are preview results, or the final results from the
                     # search.
-                    is_preview = elem.attrib['preview'] == '1'
+                    is_preview = elem.attrib["preview"] == "1"
                     self.is_preview = is_preview
-                if elem.tag == 'result':
-                    if event == 'start':
+                if elem.tag == "result":
+                    if event == "start":
                         result = OrderedDict()
-                    elif event == 'end':
+                    elif event == "end":
                         yield result
                         result = None
                         elem.clear()
 
-                elif elem.tag == 'field' and result is not None:
+                elif elem.tag == "field" and result is not None:
                     # We need the 'result is not None' check because
                     # 'field' is also the element name in the <meta>
                     # header that gives field order, which is not what we
                     # want at all.
-                    if event == 'start':
+                    if event == "start":
                         values = []
-                    elif event == 'end':
-                        field_name = elem.attrib['k']
+                    elif event == "end":
+                        field_name = elem.attrib["k"]
                         if len(values) == 1:
                             result[field_name] = values[0]
                         else:
@@ -251,22 +248,22 @@ class ResultsReader:
                         # streaming.
                         elem.clear()
 
-                elif elem.tag in ('text', 'v') and event == 'end':
+                elif elem.tag in ("text", "v") and event == "end":
                     text = "".join(elem.itertext())
                     values.append(text)
                     elem.clear()
 
-                elif elem.tag == 'msg':
-                    if event == 'start':
-                        msg_type = elem.attrib['type']
-                    elif event == 'end':
+                elif elem.tag == "msg":
+                    if event == "start":
+                        msg_type = elem.attrib["type"]
+                    elif event == "end":
                         text = elem.text if elem.text is not None else ""
                         yield Message(msg_type, text)
                         elem.clear()
         except SyntaxError as pe:
             # This is here to handle the same incorrect return from
             # splunk that is described in __init__.
-            if 'no element found' in pe.msg:
+            if "no element found" in pe.msg:
                 return
             else:
                 raise
@@ -327,7 +324,8 @@ class JSONResultsReader:
         text = None
         for line in stream.readlines():
             strip_line = line.strip()
-            if strip_line.__len__() == 0: continue
+            if strip_line.__len__() == 0:
+                continue
             parsed_line = json_loads(strip_line)
             if "preview" in parsed_line:
                 self.is_preview = parsed_line["preview"]

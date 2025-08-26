@@ -12,14 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""The **splunklib.utils** File for utility functions.
-"""
+"""The **splunklib.utils** File for utility functions."""
 
 
-def ensure_binary(s, encoding='utf-8', errors='strict'):
+def ensure_binary(s, encoding="utf-8", errors="strict"):
     """
-      - `str` -> encoded to `bytes`
-      - `bytes` -> `bytes`
+    - `str` -> encoded to `bytes`
+    - `bytes` -> `bytes`
     """
     if isinstance(s, str):
         return s.encode(encoding, errors)
@@ -30,10 +29,10 @@ def ensure_binary(s, encoding='utf-8', errors='strict'):
     raise TypeError(f"not expecting type '{type(s)}'")
 
 
-def ensure_str(s, encoding='utf-8', errors='strict'):
+def ensure_str(s, encoding="utf-8", errors="strict"):
     """
-      - `str` -> `str`
-      - `bytes` -> decoded to `str`
+    - `str` -> `str`
+    - `bytes` -> decoded to `str`
     """
     if isinstance(s, bytes):
         return s.decode(encoding, errors)

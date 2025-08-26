@@ -1,40 +1,35 @@
 name: Python CI
-
-on:
-  [ push, pull_request, workflow_dispatch ]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-        python: [ 3.7, 3.9, 3.13]
-        splunk-version:
-          - "8.1"
-          - "8.2"
-          - "latest"
       fail-fast: false
-
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.9]
+        splunk-version: [9.4, latest]
+        include:
+          # Oldest possible configuration
+          # Last Ubuntu version with Python 3.7 binaries available
+          - os: ubuntu-22.04
+            python-version: 3.7
+            splunk-version: 9.1
+          # Latest possible configuration
+          - os: ubuntu-latest
+            python-version: 3.13
+            splunk-version: latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
       - name: Run docker compose
-        run: SPLUNK_VERSION=${{matrix.splunk-version}} docker compose up -d
-
+        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@9322b3ca74000aeb2c01eb777b646334015ddd72
         with:
-          python-version: ${{ matrix.python }}
-
+          python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: pip install tox
-
       - name: Test Execution
         run: tox -e py
-  fossa-scan:
-    uses: splunk/oss-scanning-public/.github/workflows/oss-scan.yml@main
-    secrets: inherit

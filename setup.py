@@ -20,28 +20,17 @@ import splunklib
 
 setup(
     author="Splunk, Inc.",
-
     author_email="devinfo@splunk.com",
-
     description="The Splunk Software Development Kit for Python.",
-
     license="http://www.apache.org/licenses/LICENSE-2.0",
-
     name="splunk-sdk",
-
-    packages = ["splunklib",
-                "splunklib.modularinput",
-                "splunklib.searchcommands"],
-
+    packages=["splunklib", "splunklib.modularinput", "splunklib.searchcommands"],
     install_requires=[
-            "deprecation",
-        ],
-
+        "deprecation",
+    ],
     url="http://github.com/splunk/splunk-sdk-python",
-
     version=splunklib.__version__,
-
-    classifiers = [
+    classifiers=[
         "Programming Language :: Python",
         "Development Status :: 6 - Mature",
         "Environment :: Other Environment",

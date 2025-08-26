@@ -39,8 +39,8 @@ from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
 from xml.etree.ElementTree import XML, ParseError
-from splunklib.data import record
-from splunklib import __version__
+from .data import record
+from . import __version__
 
 
 logger = logging.getLogger(__name__)
@@ -55,12 +55,26 @@ __all__ = [
     "_encode",
     "_make_cookie_header",
     "_NoAuthenticationToken",
-    "namespace"
+    "namespace",
 ]
 
-SENSITIVE_KEYS = ['Authorization', 'Cookie', 'action.email.auth_password', 'auth', 'auth_password', 'clear_password', 'clientId',
-                  'crc-salt', 'encr_password', 'oldpassword', 'passAuth', 'password', 'session', 'suppressionKey',
-                  'token']
+SENSITIVE_KEYS = [
+    "Authorization",
+    "Cookie",
+    "action.email.auth_password",
+    "auth",
+    "auth_password",
+    "clear_password",
+    "clientId",
+    "crc-salt",
+    "encr_password",
+    "oldpassword",
+    "passAuth",
+    "password",
+    "session",
+    "suppressionKey",
+    "token",
+]
 
 # If you change these, update the docstring
 # on _authority as well.
@@ -82,9 +96,9 @@ def _log_duration(f):
 
 
 def mask_sensitive_data(data):
-    '''
+    """
     Masked sensitive fields data for logging purpose
-    '''
+    """
     if not isinstance(data, dict):
         try:
             data = json.loads(data)
@@ -193,7 +207,7 @@ class UrlEncoded(str):
         'ab c' + UrlEncoded('de f') == UrlEncoded('ab cde f')
     """
 
-    def __new__(self, val='', skip_encode=False, encode_slash=False):
+    def __new__(self, val="", skip_encode=False, encode_slash=False):
         if isinstance(val, UrlEncoded):
             # Don't urllib.quote something already URL encoded.
             return val
@@ -326,11 +340,14 @@ def _authentication(request_fun):
                 # an AuthenticationError and give up.
                 with _handle_auth_error("Autologin failed."):
                     self.login()
-                with _handle_auth_error("Authentication Failed! If session token is used, it seems to have been expired."):
+                with _handle_auth_error(
+                    "Authentication Failed! If session token is used, it seems to have been expired."
+                ):
                     return request_fun(self, *args, **kwargs)
             elif he.status == 401 and not self.autologin:
                 raise AuthenticationError(
-                    "Request failed: Session is not logged in.", he)
+                    "Request failed: Session is not logged in.", he
+                )
             else:
                 raise
 
@@ -376,10 +393,10 @@ def _authority(scheme=DEFAULT_SCHEME, host=DEFAULT_HOST, port=DEFAULT_PORT):
 
     """
     # check if host is an IPv6 address and not enclosed in [ ]
-    if ':' in host and not (host.startswith('[') and host.endswith(']')):
+    if ":" in host and not (host.startswith("[") and host.endswith("]")):
         # IPv6 addresses must be enclosed in [ ] in order to be well
         # formed.
-        host = '[' + host + ']'
+        host = "[" + host + "]"
     return UrlEncoded(f"{scheme}://{host}:{port}", skip_encode=True)
 
 
@@ -436,11 +453,11 @@ def namespace(sharing=None, owner=None, app=None, **kwargs):
         n = binding.namespace(sharing="global", app="search")
     """
     if sharing in ["system"]:
-        return record({'sharing': sharing, 'owner': "nobody", 'app': "system"})
+        return record({"sharing": sharing, "owner": "nobody", "app": "system"})
     if sharing in ["global", "app"]:
-        return record({'sharing': sharing, 'owner': "nobody", 'app': app})
+        return record({"sharing": sharing, "owner": "nobody", "app": app})
     if sharing in ["user", None]:
-        return record({'sharing': sharing, 'owner': owner, 'app': app})
+        return record({"sharing": sharing, "owner": owner, "app": app})
     raise ValueError("Invalid value for argument: 'sharing'")
 
 
@@ -510,10 +527,16 @@ class Context:
     """
 
     def __init__(self, handler=None, **kwargs):
-        self.http = HttpLib(handler, kwargs.get("verify", False), key_file=kwargs.get("key_file"),
-                            cert_file=kwargs.get("cert_file"), context=kwargs.get("context"),
-                            # Default to False for backward compat
-                            retries=kwargs.get("retries", 0), retryDelay=kwargs.get("retryDelay", 10))
+        self.http = HttpLib(
+            handler,
+            kwargs.get("verify", False),
+            key_file=kwargs.get("key_file"),
+            cert_file=kwargs.get("cert_file"),
+            context=kwargs.get("context"),
+            # Default to False for backward compat
+            retries=kwargs.get("retries", 0),
+            retryDelay=kwargs.get("retryDelay", 10),
+        )
         self.token = kwargs.get("token", _NoAuthenticationToken)
         if self.token is None:  # In case someone explicitly passes token=None
             self.token = _NoAuthenticationToken
@@ -531,7 +554,10 @@ class Context:
         self._self_signed_certificate = kwargs.get("self_signed_certificate", True)
 
         # Store any cookies in the self.http._cookies dict
-        if "cookie" in kwargs and kwargs['cookie'] not in [None, _NoAuthenticationToken]:
+        if "cookie" in kwargs and kwargs["cookie"] not in [
+            None,
+            _NoAuthenticationToken,
+        ]:
             _parse_cookies(kwargs["cookie"], self.http._cookies)
 
     def get_cookies(self):
@@ -566,21 +592,23 @@ class Context:
         if self.has_cookies():
             return [("Cookie", _make_cookie_header(list(self.get_cookies().items())))]
         elif self.basic and (self.username and self.password):
-            token = f'Basic {b64encode(("%s:%s" % (self.username, self.password)).encode("utf-8")).decode("ascii")}'
+            token = f"Basic {b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8')).decode('ascii')}"
         elif self.bearerToken:
-            token = f'Bearer {self.bearerToken}'
+            token = f"Bearer {self.bearerToken}"
         elif self.token is _NoAuthenticationToken:
             token = []
         else:
             # Ensure the token is properly formatted
-            if self.token.startswith('Splunk '):
+            if self.token.startswith("Splunk "):
                 token = self.token
             else:
-                token = f'Splunk {self.token}'
+                token = f"Splunk {self.token}"
         if token:
             header.append(("Authorization", token))
         if self.get_cookies():
-            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
+            header.append(
+                ("Cookie", _make_cookie_header(list(self.get_cookies().items())))
+            )
 
         return header
 
@@ -610,7 +638,9 @@ class Context:
             context = ssl.create_default_context()
             context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
             context.check_hostname = not self._self_signed_certificate
-            context.verify_mode = ssl.CERT_NONE if self._self_signed_certificate else ssl.CERT_REQUIRED
+            context.verify_mode = (
+                ssl.CERT_NONE if self._self_signed_certificate else ssl.CERT_REQUIRED
+            )
             sock = context.wrap_socket(sock, server_hostname=self.host)
         sock.connect((socket.gethostbyname(self.host), self.port))
         return sock
@@ -667,15 +697,20 @@ class Context:
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
-        path = self.authority + self._abspath(path_segment, owner=owner,
-                                              app=app, sharing=sharing)
-        logger.debug("DELETE request to %s (body: %s)", path, mask_sensitive_data(query))
+        path = self.authority + self._abspath(
+            path_segment, owner=owner, app=app, sharing=sharing
+        )
+        logger.debug(
+            "DELETE request to %s (body: %s)", path, mask_sensitive_data(query)
+        )
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
     @_log_duration
-    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
+    def get(
+        self, path_segment, owner=None, app=None, headers=None, sharing=None, **query
+    ):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -730,8 +765,9 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(path_segment, owner=owner,
-                                              app=app, sharing=sharing)
+        path = self.authority + self._abspath(
+            path_segment, owner=owner, app=app, sharing=sharing
+        )
         logger.debug("GET request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
@@ -739,7 +775,9 @@ class Context:
 
     @_authentication
     @_log_duration
-    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
+    def post(
+        self, path_segment, owner=None, app=None, sharing=None, headers=None, **query
+    ):
         """Performs a POST operation from the REST path segment with the given
         namespace and query.
 
@@ -809,7 +847,9 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
+        path = self.authority + self._abspath(
+            path_segment, owner=owner, app=app, sharing=sharing
+        )
 
         logger.debug("POST request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
@@ -818,8 +858,16 @@ class Context:
 
     @_authentication
     @_log_duration
-    def request(self, path_segment, method="GET", headers=None, body={},
-                owner=None, app=None, sharing=None):
+    def request(
+        self,
+        path_segment,
+        method="GET",
+        headers=None,
+        body={},
+        owner=None,
+        app=None,
+        sharing=None,
+    ):
         """Issues an arbitrary HTTP request to the REST path segment.
 
         This method is named to match ``httplib.request``. This function
@@ -872,27 +920,28 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority \
-               + self._abspath(path_segment, owner=owner,
-                               app=app, sharing=sharing)
+        path = self.authority + self._abspath(
+            path_segment, owner=owner, app=app, sharing=sharing
+        )
 
         all_headers = headers + self.additional_headers + self._auth_headers
-        logger.debug("%s request to %s (headers: %s, body: %s)",
-                     method, path, str(mask_sensitive_data(dict(all_headers))), mask_sensitive_data(body))
+        logger.debug(
+            "%s request to %s (headers: %s, body: %s)",
+            method,
+            path,
+            str(mask_sensitive_data(dict(all_headers))),
+            mask_sensitive_data(body),
+        )
         if body:
             body = _encode(**body)
 
             if method == "GET":
-                path = path + UrlEncoded('?' + body, skip_encode=True)
-                message = {'method': method,
-                           'headers': all_headers}
+                path = path + UrlEncoded("?" + body, skip_encode=True)
+                message = {"method": method, "headers": all_headers}
             else:
-                message = {'method': method,
-                           'headers': all_headers,
-                           'body': body}
+                message = {"method": method, "headers": all_headers, "body": body}
         else:
-            message = {'method': method,
-                       'headers': all_headers}
+            message = {"method": method, "headers": all_headers}
 
         response = self.http.request(path, message)
 
@@ -918,15 +967,15 @@ class Context:
             # Then issue requests...
         """
 
-        if self.has_cookies() and \
-            (not self.username and not self.password):
+        if self.has_cookies() and (not self.username and not self.password):
             # If we were passed session cookie(s), but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
             return
 
-        if self.token is not _NoAuthenticationToken and \
-            (not self.username and not self.password):
+        if self.token is not _NoAuthenticationToken and (
+            not self.username and not self.password
+        ):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
@@ -948,7 +997,8 @@ class Context:
                 username=self.username,
                 password=self.password,
                 headers=self.additional_headers,
-                cookie="1")  # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
+                cookie="1",
+            )  # In Splunk 6.2+, passing "cookie=1" will return the "set-cookie" header
 
             body = response.body.read()
             session = XML(body).findtext("./sessionKey")
@@ -966,8 +1016,7 @@ class Context:
         self.http._cookies = {}
         return self
 
-    def _abspath(self, path_segment,
-                 owner=None, app=None, sharing=None):
+    def _abspath(self, path_segment, owner=None, app=None, sharing=None):
         """Qualifies *path_segment* into an absolute path for a URL.
 
         If *path_segment* is already absolute, returns it unchanged.
@@ -1004,7 +1053,7 @@ class Context:
         skip_encode = isinstance(path_segment, UrlEncoded)
         # If path_segment is absolute, escape all forbidden characters
         # in it and return it.
-        if path_segment.startswith('/'):
+        if path_segment.startswith("/"):
             return UrlEncoded(path_segment, skip_encode=skip_encode)
 
         # path_segment is relative, so we need a namespace to build an
@@ -1023,7 +1072,9 @@ class Context:
 
         oname = "nobody" if ns.owner is None else ns.owner
         aname = "system" if ns.app is None else ns.app
-        path = UrlEncoded(f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode)
+        path = UrlEncoded(
+            f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode
+        )
         return path
 
 
@@ -1136,6 +1187,7 @@ class AuthenticationError(HTTPError):
 #   }
 #
 
+
 # Encode the given kwargs as a query string. This wrapper will also _encode
 # a list value as a sequence of assignments to the corresponding arg name,
 # for example an argument such as 'foo=[1,2,3]' will be encoded as
@@ -1155,10 +1207,16 @@ def _spliturl(url):
     parsed_url = parse.urlparse(url)
     host = parsed_url.hostname
     port = parsed_url.port
-    path = '?'.join((parsed_url.path, parsed_url.query)) if parsed_url.query else parsed_url.path
+    path = (
+        "?".join((parsed_url.path, parsed_url.query))
+        if parsed_url.query
+        else parsed_url.path
+    )
     # Strip brackets if its an IPv6 address
-    if host.startswith('[') and host.endswith(']'): host = host[1:-1]
-    if port is None: port = DEFAULT_PORT
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+    if port is None:
+        port = DEFAULT_PORT
     return parsed_url.scheme, host, port, path
 
 
@@ -1207,10 +1265,20 @@ class HttpLib:
     If using the default handler, SSL verification can be disabled by passing verify=False.
     """
 
-    def __init__(self, custom_handler=None, verify=False, key_file=None, cert_file=None, context=None, retries=0,
-                 retryDelay=10):
+    def __init__(
+        self,
+        custom_handler=None,
+        verify=False,
+        key_file=None,
+        cert_file=None,
+        context=None,
+        retries=0,
+        retryDelay=10,
+    ):
         if custom_handler is None:
-            self.handler = handler(verify=verify, key_file=key_file, cert_file=cert_file, context=context)
+            self.handler = handler(
+                verify=verify, key_file=key_file, cert_file=cert_file, context=context
+            )
         else:
             self.handler = custom_handler
         self._cookies = {}
@@ -1234,15 +1302,16 @@ class HttpLib:
             its structure).
         :rtype: ``dict``
         """
-        if headers is None: headers = []
+        if headers is None:
+            headers = []
         if kwargs:
             # url is already a UrlEncoded. We have to manually declare
             # the query to be encoded or it will get automatically URL
             # encoded by being appended to url.
-            url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
+            url = url + UrlEncoded("?" + _encode(**kwargs), skip_encode=True)
         message = {
-            'method': "DELETE",
-            'headers': headers,
+            "method": "DELETE",
+            "headers": headers,
         }
         return self.request(url, message)
 
@@ -1263,13 +1332,14 @@ class HttpLib:
             its structure).
         :rtype: ``dict``
         """
-        if headers is None: headers = []
+        if headers is None:
+            headers = []
         if kwargs:
             # url is already a UrlEncoded. We have to manually declare
             # the query to be encoded or it will get automatically URL
             # encoded by being appended to url.
-            url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
-        return self.request(url, {'method': "GET", 'headers': headers})
+            url = url + UrlEncoded("?" + _encode(**kwargs), skip_encode=True)
+        return self.request(url, {"method": "GET", "headers": headers})
 
     def post(self, url, headers=None, **kwargs):
         """Sends a POST request to a URL.
@@ -1289,29 +1359,26 @@ class HttpLib:
             its structure).
         :rtype: ``dict``
         """
-        if headers is None: headers = []
+        if headers is None:
+            headers = []
 
         # We handle GET-style arguments and an unstructured body. This is here
         # to support the receivers/stream endpoint.
-        if 'body' in kwargs:
+        if "body" in kwargs:
             # We only use application/x-www-form-urlencoded if there is no other
             # Content-Type header present. This can happen in cases where we
             # send requests as application/json, e.g. for KV Store.
             if len([x for x in headers if x[0].lower() == "content-type"]) == 0:
                 headers.append(("Content-Type", "application/x-www-form-urlencoded"))
 
-            body = kwargs.pop('body')
+            body = kwargs.pop("body")
             if isinstance(body, dict):
-                body = _encode(**body).encode('utf-8')
+                body = _encode(**body).encode("utf-8")
             if len(kwargs) > 0:
-                url = url + UrlEncoded('?' + _encode(**kwargs), skip_encode=True)
+                url = url + UrlEncoded("?" + _encode(**kwargs), skip_encode=True)
         else:
-            body = _encode(**kwargs).encode('utf-8')
-        message = {
-            'method': "POST",
-            'headers': headers,
-            'body': body
-        }
+            body = _encode(**kwargs).encode("utf-8")
+        message = {"method": "POST", "headers": headers, "body": body}
         return self.request(url, message)
 
     def request(self, url, message, **kwargs):
@@ -1372,10 +1439,10 @@ class ResponseReader(io.RawIOBase):
     def __init__(self, response, connection=None):
         self._response = response
         self._connection = connection
-        self._buffer = b''
+        self._buffer = b""
 
     def __str__(self):
-        return str(self.read(), 'UTF-8')
+        return str(self.read(), "UTF-8")
 
     @property
     def empty(self):
@@ -1410,18 +1477,18 @@ class ResponseReader(io.RawIOBase):
 
         """
         r = self._buffer
-        self._buffer = b''
+        self._buffer = b""
         if size is not None:
             size -= len(r)
         r = r + self._response.read(size)
         return r
 
     def readable(self):
-        """ Indicates that the response reader is readable."""
+        """Indicates that the response reader is readable."""
         return True
 
     def readinto(self, byte_array):
-        """ Read data into a byte array, upto the size of the byte array.
+        """Read data into a byte array, upto the size of the byte array.
 
         :param byte_array: A byte array/memory view to pour bytes into.
         :type byte_array: ``bytearray`` or ``memoryview``
@@ -1452,18 +1519,21 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
 
     def connect(scheme, host, port):
         kwargs = {}
-        if timeout is not None: kwargs['timeout'] = timeout
+        if timeout is not None:
+            kwargs["timeout"] = timeout
         if scheme == "http":
             return client.HTTPConnection(host, port, **kwargs)
         if scheme == "https":
-            if key_file is not None: kwargs['key_file'] = key_file
-            if cert_file is not None: kwargs['cert_file'] = cert_file
+            if key_file is not None:
+                kwargs["key_file"] = key_file
+            if cert_file is not None:
+                kwargs["cert_file"] = cert_file
 
             if not verify:
-                kwargs['context'] = ssl._create_unverified_context()
+                kwargs["context"] = ssl._create_unverified_context()  # nosemgrep
             elif context:
                 # verify is True in elif branch and context is not None
-                kwargs['context'] = context
+                kwargs["context"] = context
 
             return client.HTTPSConnection(host, port, **kwargs)
         raise ValueError(f"unsupported scheme: {scheme}")
@@ -1489,7 +1559,10 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
             if timeout is not None:
                 connection.sock.settimeout(timeout)
             response = connection.getresponse()
-            is_keepalive = "keep-alive" in response.getheader("connection", default="close").lower()
+            is_keepalive = (
+                "keep-alive"
+                in response.getheader("connection", default="close").lower()
+            )
         finally:
             if not is_keepalive:
                 connection.close()

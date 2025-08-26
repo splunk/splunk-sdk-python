@@ -22,10 +22,6 @@ from splunklib import client
 
 
 class ModularInputKindTestCase(testlib.SDKTestCase):
-    def setUp(self):
-        super().setUp()
-        self.uncheckedRestartSplunk()
-
     @pytest.mark.app
     def test_list_arguments(self):
         self.install_app_from_collection("modular_inputs")

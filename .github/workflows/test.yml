@@ -26,7 +26,7 @@ jobs:
       - name: Run docker compose
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Setup Python
-        uses: actions/setup-python@9322b3ca74000aeb2c01eb777b646334015ddd72
+        uses: actions/setup-python@65b071217a8539818fdb8b54561bcbae40380a54
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tox

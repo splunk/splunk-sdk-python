@@ -618,7 +618,15 @@ class Service(_BaseService):
         while datetime.now() - start < diff:
             try:
                 self.login()
-                if not self.restart_required:
+                if self.restart_required:
+                    # Prevent a burst of requests from bombarding Splunk.
+                    # Splunk does not stop the API immediately when /services/server/control/restart
+                    # responds, thus the login call (above) will still succeed until the server
+                    # is actually stopped. Based on the presence of restart_required message,
+                    # that we have added before calling restart, we know that the server did not stop yet.
+                    sleep(1)
+                    continue
+                else:
                     return result
             except Exception as e:
                 sleep(1)

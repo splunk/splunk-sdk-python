@@ -604,9 +604,7 @@ class Service(_BaseService):
         :type timeout: ``integer``
         """
         msg = {
-            "value": "Restart requested by "
-            + self.username
-            + "via the Splunk SDK for Python"
+            "value": f"Restart requested by {self.username} via the Splunk SDK for Python"
         }
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)

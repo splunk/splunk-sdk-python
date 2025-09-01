@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: pip install twine
       - name: Build package
-        run: python setup.py sdist
+        run: python setup.py sdist bdist_wheel
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
         with:

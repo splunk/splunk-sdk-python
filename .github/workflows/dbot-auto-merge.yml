@@ -9,7 +9,7 @@ env:
 jobs:
   auto-merge-dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'splunk/splunk-sdk-python'
     steps:
       - name: Fetch dependency metadata
         uses: dependabot/fetch-metadata@496eb7a6d053154f00e01044ab472077386f5a35

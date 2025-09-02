@@ -1,7 +1,9 @@
 [project.urls]
-HOMEPAGE = "https://pypi.org/project/splunk-sdk"
-DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
-REPO = "https://github.com/splunk/splunk-sdk-python.git"
+Homepage = "https://pypi.org/project/splunk-sdk"
+Documentation = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
+Repository = "https://github.com/splunk/splunk-sdk-python.git"
+Issues = "https://github.com/splunk/splunk-sdk-python/issues"
+Changelog = "https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md"
 
 [project]
 name = "splunk-sdk"
@@ -12,7 +14,10 @@ requires-python = ">=3.7"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
-  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.13",
   "Development Status :: 6 - Mature",
   "Environment :: Other Environment",
   "Intended Audience :: Developers",

@@ -264,6 +264,60 @@ class TestMacroSPL(testlib.SDKTestCase):
         self.assertRaisesRegex(HTTPError, "value must be smaller that value2", query)
 
 
+# This test makes sure that the endpoint we use for macros (configs/conf-macros)
+# does not require admin privileges and can be used by normal users.
+class TestPrivileges(testlib.SDKTestCase):
+    macro_name = "SDKTestMacro"
+    username = "SDKTestMacroUser".lower()
+    password = "SDKTestMacroUserPassword!"
+
+    def setUp(self):
+        testlib.SDKTestCase.setUp(self)
+        self.cleanUsers()
+
+        self.service.users.create(
+            username=self.username, password=self.password, roles=["user"]
+        )
+
+        self.service.logout()
+        kwargs = self.opts.kwargs.copy()
+        kwargs["username"] = self.username
+        kwargs["password"] = self.password
+        self.service = client.connect(**kwargs)
+
+        self.cleanMacros()
+
+    def tearDown(self):
+        testlib.SDKTestCase.tearDown(self)
+        self.cleanMacros()
+        self.service = client.connect(**self.opts.kwargs)
+        self.cleanUsers()
+
+    def cleanUsers(self):
+        for user in self.service.users:
+            if user.name == self.username:
+                self.service.users.delete(self.username)
+
+    def cleanMacros(self):
+        for macro in self.service.macros:
+            if macro.name == self.macro_name:
+                self.service.macros.delete(self.macro_name)
+
+    def test_create_macro_no_admin(self):
+        self.service.macros.create(self.macro_name, 'eval test="123"')
+
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}`",
+            output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "123")
+
+
 if __name__ == "__main__":
     try:
         import unittest2 as unittest

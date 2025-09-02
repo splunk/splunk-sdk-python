@@ -24,9 +24,9 @@ classifiers = [
 dependencies = ["deprecation", "python-dotenv"]
 
 [dependency-groups]
-test = ["tox", "pytest"]
+test = ["tox"]
 lint = ["mypy", "ruff"]
-build = ["build", "setuptools", "twine"]
+build = ["build", "setuptools"]
 dev = [
   { include-group = "test" },
   { include-group = "lint" },

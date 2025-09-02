@@ -1,0 +1,89 @@
+[project.urls]
+homepage = "https://pypi.org/project/splunk-sdk"
+documentation = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
+issues = "https://github.com/splunk/splunk-sdk-python/issues"
+changelog = "https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md"
+source = "https://github.com/splunk/splunk-sdk-python.git"
+download = "https://github.com/splunk/splunk-sdk-python/releases/latest"
+
+[project]
+name = "splunk-sdk"
+dynamic = ["version"]
+description = "Splunk Software Development Kit for Python"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.13",
+  "Development Status :: 6 - Mature",
+  "Environment :: Other Environment",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+dependencies = ["deprecation", "python-dotenv"]
+
+[dependency-groups]
+test = ["tox"]
+lint = ["mypy", "ruff"]
+build = ["build", "twine"]
+dev = [
+  { include-group = "test" },
+  { include-group = "lint" },
+  { include-group = "build" },
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
+
+[tool.setuptools.dynamic]
+version = { attr = "splunklib.__version__" }
+
+# https://docs.astral.sh/ruff/configuration/
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = [
+  "F",   # pyflakes
+  "E",   # pycodestyle
+  "I",   # isort
+  "ANN", # flake8 type annotations
+  "RUF", # ruff-specific rules
+]
+
+# ! TODO: Migrate to new config paradigm
+# https://tox.wiki/en/latest/config.html#pyproject-toml-ini
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = docs,py{37,39,313}
+skipsdist = {env:TOXBUILD:false}
+
+[testenv]
+passenv = LANG
+setenv = SPLUNK_HOME=/opt/splunk
+allowlist_externals = make
+deps = pytest
+       pytest-cov
+       python-dotenv
+
+distdir = build
+commands =
+    {env:TOXBUILD:python -m pytest --cov --cov-config=.coveragerc} {posargs}
+
+[testenv:docs]
+description = Build the static HTML docs
+basepython = python3.9
+deps = sphinx >= 1.7.5, < 2
+       jinja2 < 3.1.0
+commands = make -C docs/ html
+"""

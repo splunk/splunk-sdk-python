@@ -15,10 +15,12 @@
 # under the License.
 
 from __future__ import absolute_import
+from splunklib.binding import HTTPError
 from tests import testlib
 import logging
 
 import splunklib.client as client
+from splunklib import results
 
 import pytest
 
@@ -151,6 +153,115 @@ class TestMacro(testlib.SDKTestCase):
             app="search",
             **{"perms.read": "admin, nobody"},
         )
+
+
+class TestMacroSPL(testlib.SDKTestCase):
+    macro_name = "SDKTestMacro"
+
+    def setUp(self):
+        testlib.SDKTestCase.setUp(self)
+        self.clean()
+
+    def tearDown(self):
+        testlib.SDKTestCase.setUp(self)
+        self.clean()
+
+    def clean(self):
+        for macro in self.service.macros:
+            if macro.name.startswith(self.macro_name):
+                self.service.macros.delete(macro.name)
+
+    def test_use_macro_in_search(self):
+        self.service.macros.create(self.macro_name, 'eval test="123"')
+
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}`",
+            output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "123")
+
+    def test_use_macro_in_search_with_single_arg(self):
+        # Macros with arguments must contain the amount of arguments in parens,
+        # otherwise a macro is not going to work.
+        macro_name = self.macro_name + "(1)"
+
+        self.service.macros.create(macro_name, 'eval test="$value$"', args="value")
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}(12)`",
+            output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "12")
+
+    def test_use_macro_in_search_with_multiple_args(self):
+        # Macros with arguments must contain the amount of arguments in parens,
+        # otherwise a macro is not going to work.
+        macro_name = self.macro_name + "(2)"
+
+        self.service.macros.create(
+            macro_name, 'eval test="$value$", test2="$value2$"', args="value,value2"
+        )
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}(12, 34)`",
+            output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "12")
+        self.assertEqual(out[0]["test2"], "34")
+
+    def test_use_macro_in_search_validation_success(self):
+        macro_name = self.macro_name + "(2)"
+
+        self.service.macros.create(
+            macro_name,
+            'eval test="$value$", test2="$value2$"',
+            args="value,value2",
+            validation="value < value2",
+        )
+
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}(12, 34)`",
+            output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "12")
+        self.assertEqual(out[0]["test2"], "34")
+
+    def test_use_macro_in_search_validation_failure(self):
+        macro_name = self.macro_name + "(2)"
+
+        self.service.macros.create(
+            macro_name,
+            'eval test="$value$", test2="$value2$"',
+            args="value,value2",
+            validation="value < value2",
+            errormsg="value must be smaller that value2",
+        )
+
+        def query():
+            self.service.jobs.oneshot(
+                f"| makeresults count=1 | `{self.macro_name}(34, 12)`",
+                output_mode="json",
+            )
+
+        self.assertRaisesRegex(HTTPError, "value must be smaller that value2", query)
 
 
 if __name__ == "__main__":

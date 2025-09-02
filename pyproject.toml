@@ -1,0 +1,111 @@
+[project.urls]
+HOMEPAGE = "https://pypi.org/project/splunk-sdk"
+DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
+REPO = "https://github.com/splunk/splunk-sdk-python.git"
+
+[project]
+name = "splunk-sdk"
+dynamic = ["version"]
+description = "Splunk Software Development Kit for Python"
+readme = "README.md"
+requires-python = ">=3.7.17"
+license = { file = "LICENSE" }
+authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
+classifiers = [
+  "Programming Language :: Python",
+  "Development Status :: 6 - Mature",
+  "Environment :: Other Environment",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+dependencies = ["deprecation", "python-dotenv"]
+
+[dependency-groups]
+test = ["tox", "pytest"]
+lint = ["mypy", "ruff"]
+build = ["build", "setuptools", { include-group = "test" }]
+dev = [
+  { include-group = "test" },
+  { include-group = "lint" },
+  { include-group = "build" },
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.dynamic]
+version = { attr = "splunklib.__version__" }
+
+# https://docs.astral.sh/ruff/configuration/
+# [tool.ruff]
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = [
+  "F",   # pyflakes
+  "E",   # pycodestyle
+  "I",   # isort
+  "ANN", # flake8 type annotations
+  "RUF", # ruff-specific rules
+]
+
+# TODO: Migrate this
+# https://tox.wiki/en/latest/config.html#pyproject-toml-ini
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = clean,docs,py37,py39,313
+skipsdist = {env:TOXBUILD:false}
+
+# TODO: Replace with ruff
+[testenv:pep8]
+deps = flake8
+       flake8-import-order
+       flake8-blind-except
+       flake8-builtins
+       flake8-docstrings
+       flake8-rst-docstrings
+       flake8-logging-format
+       six
+commands = flake8
+
+[flake8]
+exclude = .tox
+# If you need to ignore some error codes in the whole source code
+# you can write them here
+# ignore = D100,D101
+show-source = true
+enable-extensions = G
+application-import-names = splunk-sdk-python
+
+[testenv]
+passenv = LANG
+setenv = SPLUNK_HOME=/opt/splunk
+allowlist_externals = make
+deps = pytest
+       pytest-cov
+       python-dotenv
+
+distdir = build
+commands =
+    {env:TOXBUILD:python -m pytest --junitxml=test-reports/junit-{envname}.xml --cov --cov-config=.coveragerc} {posargs}
+
+[testenv:clean]
+deps = coverage
+skip-install = true
+commands = coverage erase
+
+[testenv:docs]
+description = invoke sphinx-build to build the HTML docs
+basepython = python3.9
+deps = sphinx >= 1.7.5, < 2
+       jinja2 < 3.1.0
+commands = make -C docs/ html
+"""

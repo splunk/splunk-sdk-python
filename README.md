@@ -1,53 +1,57 @@
 # Splunk Enterprise SDK for Python
 
 [![Build Status](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml)
+![License](https://img.shields.io/badge/license-Apache%202.0-informational.svg)
 
 The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
 
-The Splunk platform is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
-
-The Splunk platform is popular with system administrators for aggregation and monitoring of IT machine data, security, compliance, and a wide variety of other scenarios that share a requirement to efficiently index, search, analyze, and generate real-time notifications from large volumes of time-series data.
-
-The Splunk developer platform enables developers to take advantage of the same technology used by the Splunk platform to build exciting new applications.
+Splunk is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
 
 ## Getting started
 
-The Splunk Enterprise SDK for Python contains library code, and its examples are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform for a variety of scenarios including searching, saved searches, data inputs, and many more, along with building complete applications.
-
 ### Requirements
 
-#### Python
+#### Python compatibility
 
-The Splunk Enterprise SDK for Python has been tested only with Python 3.7, 3.9 and 3.13.
+Splunk Enterprise SDK for Python is tested only with Python 3.7, 3.9 and 3.13. Latest version is always recommended.
 
 #### Splunk Enterprise
 
-The Splunk Enterprise SDK for Python has been tested with Splunk versions supported in the [Splunk Software Support Policy](https://www.splunk.com/en_us/legal/splunk-software-support-policy.html)
+This SDK is only tested with Splunk versions supported in the [Splunk Software Support Policy](https://www.splunk.com/en_us/legal/splunk-software-support-policy.html)
 
-If you haven't already installed Splunk Enterprise, [get it here](http://www.splunk.com/download).
-For more information, see the Splunk Enterprise [_Installation Manual_](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
+[Go here](http://www.splunk.com/download) to get Splunk Enterprise.
 
-### Install the SDK
+For more information, see the Splunk Enterprise [Installation Manual](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
 
-<!-- TODO: Remake this -->
+### Installing the SDK
 
-Refer to standard Python package installation methods. Most of the time, a local `virtualenv` is preferred over a system-wide installation.
+[uv](https://docs.astral.sh/uv/) is our tool of choice for development. Usually that means creating a project with `uv init` and installing the SDK with `uv add splunk-sdk`. When in doubt, consult `uv` docs.
+
+If you prefer not using `uv`, the standard Python package installation method still works:
 
 ```sh
+python -m venv .venv
+source .venv/bin/activate
 python -m pip install splunk-sdk
 ```
 
-### How to connect to a Splunk Enterprise instance
+#### Create an .env file (optional)
 
-#### Create an .env file
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file.
 
-To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file. SDK examples and unit tests use the values from the `.env` file if they're not specified manually.
+A file called `.env.template` exists in the root of this repository. Duplicate it as `.env`, then adjust it to your match your environment.
 
-> **NOTE:** This file isn't part of the Splunk platform. Therefore it shouldn't be used for storing production credentials. Do not use it if security is a concern - provide them in the command line instead.
+> **WARNING:** The `.env` file isn't part of the Splunk platform. This is **not** the place for production credentials!
 
-A `.env.template` exists in the root of this repository. Just duplicate it, remove `.template` from the name and adjust it to your match your environment
+### SDK usage examples
 
-#### Using username/password
+The easiest and most effective way of learning how to use this library should be reading through the apps in our test suite, as well as the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform in a variety of scenarios - from basic metadata retrieval, one-shot searching and managing saved searches to building complete applications with modular inputs and custom search commands.
+
+For details, see the [examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal, as well as the [Splunk Enterprise SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK)
+
+#### Connecting to a Splunk Enterprise instance
+
+##### Using a username/password combo
 
 ```python
 import splunklib.client as client
@@ -55,7 +59,7 @@ import splunklib.client as client
 service = client.connect(host=<HOST_URL>, username=<USERNAME>, password=<PASSWORD>, autologin=True)
 ```
 
-#### Using bearer token
+##### Using a bearer token
 
 ```python
 import splunklib.client as client
@@ -63,39 +67,12 @@ import splunklib.client as client
 service = client.connect(host=<HOST_URL>, splunkToken=<BEARER_TOKEN>, autologin=True)
 ```
 
-#### Using session key
+##### Using a session key
 
 ```python
 import splunklib.client as client
 
 service = client.connect(host=<HOST_URL>, token=<SESSION_KEY>, autologin=True)
-```
-
-#### SDK examples
-
-Examples for the Splunk Enterprise SDK for Python are located in the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. For details, see the [Examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal.
-
-#### Run test suite
-
-This repo contains a collection of unit and integration tests.
-
-##### Unit tests
-
-To run all the tests (unit and integration):
-
-```sh
-make test
-```
-
-##### Integration tests
-
-###### Prerequisites
-
-- `docker`/`podman`
-- `tox`
-
-```sh
-SPLUNK_VERSION=latest && make start
 ```
 
 ### Customization
@@ -174,13 +151,13 @@ class GeneratorTest(GeneratingCommand):
 
 #### Custom Search Commands
 
-- The service object is created from the Splunkd URI and session key passed to the command invocation the search results info file.
+- The service object is created from the `splunkd` URI and session key passed to the command invocation the search results info file.
 - Service object can be accessed using `self.service` in `generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command.
 
-##### Generating a Custom Search Command
+##### Getting Splunk instance metadata
 
 ```python
-def generate(self):
+def get_metadata(self):
     # [...] other code
 
     # Access service object that can be used to connect Splunk Service
@@ -191,7 +168,7 @@ def generate(self):
 
 #### Modular Inputs app
 
-- The service object is created from the Splunkd URI and session key passed to the command invocation on the modular input stream respectively.
+- The service object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively.
 - It is available as soon as the `Script.stream_events` method is called.
 
   ```python
@@ -204,19 +181,47 @@ def generate(self):
       info = service.info
   ```
 
+### Running the test suite
+
+This repo contains a collection of unit and integration tests.
+
+#### Unit tests
+
+To run both unit and integration tests:
+
+```sh
+make test
+```
+
+#### Integration tests
+
+> NOTE: Before running the integration tests, make sure the instance of Splunk you are testing against doesn't have new events being dumped continuously into it. Several of the tests rely on a stable event count. It's best to test against a clean install of Splunk but if you can't, you should at least disable the \*NIX and Windows apps.
+
+Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.
+
+##### Prerequisites
+
+- `docker`/`podman`
+- `tox`
+
+```sh
+SPLUNK_VERSION=latest && make start
+```
+
 ### Optional: Set up logging for splunklib
 
-- The default level is WARNING, which means that only events of this level and above will be visible
-- To change a logging level we can call setup_logging() method and pass the logging level as an argument.
-- Optional: we can also pass log format and date format string as a method argument to modify default format
+The default level is WARNING, which means that only events of this level and above will be visible
+To change a logging level we can call setup_logging() method and pass the logging level as an argument.
 
-  ```python
-  import logging
-  from splunklib import setup_logging
+> Optionally, you can also provide a custom log and date format string. When in doubt, always refer to the source code.
 
-  # To see debug and above level logs
-  setup_logging(logging.DEBUG)
-  ```
+```python
+import logging
+from splunklib import setup_logging
+
+# To see debug and above level logs
+setup_logging(logging.DEBUG)
+```
 
 ### Changelog
 
@@ -224,7 +229,7 @@ The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version
 
 ### Branches
 
-Right now, the `master` branch represents a stable and released version of the SDK.
+The `master` branch represents a stable and released version of the SDK.
 `develop` is where development between releases is happening.
 
 To learn more about our branching model, see [Branching Model](https://github.com/splunk/splunk-sdk-python/wiki/Branching-Model) on GitHub.
@@ -270,7 +275,3 @@ If you are not covered under an existing maintenance/support agreement, you can 
 ### Contact us
 
 You can reach the Splunk Developer Platform team at <mailto:devinfo@splunk.com>.
-
-## License
-
-The Splunk Enterprise Software Development Kit for Python is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

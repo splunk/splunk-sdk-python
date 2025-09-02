@@ -1,0 +1,21 @@
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions
+name: Dependabot auto-merge
+on: pull_request
+permissions:
+  pull-requests: write
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  auto-merge-dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'splunk/splunk-sdk-python'
+    steps:
+      - name: Fetch dependency metadata
+        uses: dependabot/fetch-metadata@496eb7a6d053154f00e01044ab472077386f5a35
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Approve PR
+        run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
+      - name: Merge PR
+        run: gh pr merge --auto --merge "${{ github.event.pull_request.html_url }}"

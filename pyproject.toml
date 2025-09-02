@@ -4,12 +4,12 @@ DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
 REPO = "https://github.com/splunk/splunk-sdk-python.git"
 
 [project]
-name = "splunk-sdk"
+name = "splunk-sdk-test-wheel"
 dynamic = ["version"]
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"
-requires-python = ">=3.7.17"
-license = { file = "LICENSE" }
+requires-python = ">=3.7"
+license = "Apache-2.0"
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
   "Programming Language :: Python",
@@ -26,7 +26,7 @@ dependencies = ["deprecation", "python-dotenv"]
 [dependency-groups]
 test = ["tox", "pytest"]
 lint = ["mypy", "ruff"]
-build = ["build", "setuptools", { include-group = "test" }]
+build = ["build", "setuptools", "twine"]
 dev = [
   { include-group = "test" },
   { include-group = "lint" },
@@ -37,8 +37,8 @@ dev = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools]
+packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
 
 [tool.setuptools.dynamic]
 version = { attr = "splunklib.__version__" }

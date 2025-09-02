@@ -21,7 +21,6 @@ from urllib import parse
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 from splunklib.modularinput import Scheme, Argument, Script, Event
 
-
 class ModularInput(Script):
     endpoint_arg = "endpoint"
 
@@ -47,10 +46,11 @@ class ModularInput(Script):
             raise ValueError(f"non-supported scheme {parsed.scheme}")
 
     def stream_events(self, inputs, ew):
+
         for input_name, input_item in list(inputs.inputs.items()):
             event = Event()
             event.stanza = input_name
-            event.data = "example message"
+            event.data = f"New endpoint received: {input_item[self.endpoint_arg]}"
             ew.write_event(event)
 
 

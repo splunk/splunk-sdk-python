@@ -68,6 +68,8 @@ from datetime import datetime, timedelta
 from time import sleep
 from urllib import parse
 
+from splunklib.internal.telemetry.sdk_usage import log_telemetry_sdk_usage
+
 from . import data
 from .data import record
 from .binding import (
@@ -355,6 +357,7 @@ def connect(**kwargs):
     """
     s = Service(**kwargs)
     s.login()
+    log_telemetry_sdk_usage(s, module="custom_script")
     return s
 
 

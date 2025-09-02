@@ -1,0 +1,28 @@
+name: CD
+on: [workflow_dispatch]
+
+jobs:
+  test-pypi-deploy:
+    name: Deploy to Test PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: splunk-test-pypi
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Set up Python
+        uses: actions/setup-python@3d1e2d2ca0a067f27da6fec484fce7f5256def85
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install build
+      - name: Build package
+        run: python -m build
+      - name: Publish package to Test PyPI
+        uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
+        with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_PASSWORD }}
+          repository-url: https://test.pypi.org/legacy/

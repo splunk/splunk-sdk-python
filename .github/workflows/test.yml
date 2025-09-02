@@ -32,4 +32,4 @@ jobs:
       - name: Install tox
         run: pip install tox
       - name: Test Execution
-        run: tox -e py
+        run: tox -e py -- ./tests

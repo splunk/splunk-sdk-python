@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.7"
-license = "Apache-2.0"
+license = { text = "Apache-2.0" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 classifiers = [
   "Programming Language :: Python",
@@ -56,7 +56,7 @@ select = [
   "RUF", # ruff-specific rules
 ]
 
-# TODO: Migrate this
+# ! TODO: Migrate to new config paradigm
 # https://tox.wiki/en/latest/config.html#pyproject-toml-ini
 [tool.tox]
 legacy_tox_ini = """

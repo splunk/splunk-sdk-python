@@ -1,29 +1,30 @@
 name: Release
-on:
-  release:
-    types: [published]
+on: [push]
 
 jobs:
   publish:
-    name: Deploy Release to PyPI
-    # Last version with Python 3.7 binaries available
-    runs-on: ubuntu-22.04
+    name: Deploy release to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: splunk-pypi
     steps:
       - name: Checkout source
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
       - name: Set up Python
         uses: actions/setup-python@3d1e2d2ca0a067f27da6fec484fce7f5256def85
         with:
-          python-version: 3.7
+          python-version: 3.9
       - name: Install dependencies
-        run: pip install twine
+        run: pip install build
       - name: Build package
-        run: python setup.py sdist bdist_wheel
+        run: python -m build
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
         with:
           user: __token__
-          password: ${{ secrets.pypi_password }}
+          password: ${{ secrets.PYPI_PASSWORD }}
       - name: Install tox
         run: pip install tox
       - name: Generate API docs
@@ -35,10 +36,3 @@ jobs:
         with:
           name: python_sdk_docs
           path: docs/_build/html
-      # Test upload
-      # - name: Publish package to TestPyPI
-      #   uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.test_pypi_password }}
-      #     repository_url: https://test.pypi.org/legacy/

@@ -1,9 +1,10 @@
 [project.urls]
-Homepage = "https://pypi.org/project/splunk-sdk"
-Documentation = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
-Repository = "https://github.com/splunk/splunk-sdk-python.git"
-Issues = "https://github.com/splunk/splunk-sdk-python/issues"
-Changelog = "https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md"
+homepage = "https://pypi.org/project/splunk-sdk"
+documentation = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
+issues = "https://github.com/splunk/splunk-sdk-python/issues"
+changelog = "https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md"
+source = "https://github.com/splunk/splunk-sdk-python.git"
+download = "https://github.com/splunk/splunk-sdk-python/releases/latest"
 
 [project]
 name = "splunk-sdk"

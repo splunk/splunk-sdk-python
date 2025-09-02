@@ -14,7 +14,17 @@ docs:
 .PHONY: test
 test:
 	@echo "$(GREEN_COLOR)==> test $(RESET_COLOR)"
-	@tox -e py
+	@tox -e py -- ./tests
+
+.PHONY: test-unit
+test:
+	@echo "$(GREEN_COLOR)==> test $(RESET_COLOR)"
+	@tox -e py -- ./tests/unit
+
+.PHONY: test-integration
+test:
+	@echo "$(GREEN_COLOR)==> test $(RESET_COLOR)"
+	@tox -e py -- ./tests/integration ./tests/system
 
 .PHONY: up
 up:

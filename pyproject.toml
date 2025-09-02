@@ -4,7 +4,7 @@ DOCS = "https://docs.splunk.com/Documentation/PythonSDK/2.1.1"
 REPO = "https://github.com/splunk/splunk-sdk-python.git"
 
 [project]
-name = "splunk-sdk-test-wheel"
+name = "splunk-sdk"
 dynamic = ["version"]
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"

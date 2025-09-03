@@ -15,7 +15,7 @@
 # under the License.
 
 from __future__ import absolute_import
-from splunklib.binding import HTTPError
+from splunklib.binding import HTTPError, namespace
 from tests import testlib
 import logging
 
@@ -264,7 +264,7 @@ class TestMacroSPL(testlib.SDKTestCase):
         self.assertRaisesRegex(HTTPError, "value must be smaller that value2", query)
 
 
-# This test makes sure that the endpoint we use for macros (configs/conf-macros)
+# This test makes sure that the endpoint we use for macros (data/macros/)
 # does not require admin privileges and can be used by normal users.
 class TestPrivileges(testlib.SDKTestCase):
     macro_name = "SDKTestMacro"
@@ -309,6 +309,70 @@ class TestPrivileges(testlib.SDKTestCase):
         stream = self.service.jobs.oneshot(
             f"| makeresults count=1 | `{self.macro_name}`",
             output_mode="json",
+        )
+
+        result = results.JSONResultsReader(stream)
+        out = list(result)
+
+        self.assertTrue(len(out) == 1)
+        self.assertEqual(out[0]["test"], "123")
+
+
+# This test makes sure that the endpoint we use for macros (data/macros/)
+# does not require admin privileges and can be used by normal users.
+class TestPrivilegesWithNamespace(testlib.SDKTestCase):
+    macro_name = "SDKTestMacro"
+    username = "SDKTestMacroUser".lower()
+    password = "SDKTestMacroUserPassword!"
+
+    # TODO: Would be nice to create app on-demand here and control the
+    # permissions, so that we are not dependent on default settings.
+    # namespace = namespace(owner="nobody", app="launcher")
+    namespace = namespace(owner="nobody", app="search")
+
+    def setUp(self):
+        testlib.SDKTestCase.setUp(self)
+        self.cleanUsers()
+
+        self.service.users.create(
+            username=self.username, password=self.password, roles=["power"]
+        )
+
+        self.service.logout()
+        kwargs = self.opts.kwargs.copy()
+        kwargs["username"] = self.username
+        kwargs["password"] = self.password
+        self.service = client.connect(**kwargs)
+
+        self.cleanMacros()
+
+    def tearDown(self):
+        testlib.SDKTestCase.tearDown(self)
+        self.cleanMacros()
+        self.service = client.connect(**self.opts.kwargs)
+        self.cleanUsers()
+
+    def cleanUsers(self):
+        for user in self.service.users:
+            if user.name == self.username:
+                self.service.users.delete(self.username)
+
+    def cleanMacros(self):
+        try:
+            m = self.service.macros[self.macro_name, self.namespace]
+        except KeyError:
+            return  # macro does not exist
+        m.delete()
+
+    def test_create_macro_no_admin(self):
+        self.service.macros.create(
+            self.macro_name, 'eval test="123"', namespace=self.namespace
+        )
+
+        stream = self.service.jobs.oneshot(
+            f"| makeresults count=1 | `{self.macro_name}`",
+            output_mode="json",
+            namespace=self.namespace,
         )
 
         result = results.JSONResultsReader(stream)

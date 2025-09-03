@@ -22,6 +22,8 @@ from .event_writer import EventWriter
 from .input_definition import InputDefinition
 from .validation_definition import ValidationDefinition
 
+from splunklib.internal.telemetry import log_telemetry_sdk_usage
+
 
 class Script(metaclass=ABCMeta):
     """An abstract base class for implementing modular inputs.
@@ -66,6 +68,7 @@ class Script(metaclass=ABCMeta):
                 self._input_definition = InputDefinition.parse(input_stream)
                 self.stream_events(self._input_definition, event_writer)
                 event_writer.close()
+                log_telemetry_sdk_usage(self.service, module="modularinput")
                 return 0
 
             if str(args[1]).lower() == "--scheme":

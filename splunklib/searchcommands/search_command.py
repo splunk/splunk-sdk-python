@@ -35,6 +35,8 @@ from urllib.parse import urlsplit
 from warnings import warn
 from xml.etree import ElementTree
 
+from splunklib.internal.telemetry.sdk_usage import log_telemetry_sdk_usage
+
 # Relative imports
 from . import Boolean, Option, environment
 from .internals import (
@@ -467,6 +469,9 @@ class SearchCommand:
             self._process_protocol_v1(argv, ifile, ofile)
         else:
             self._process_protocol_v2(argv, ifile, ofile)
+
+        cmd_name = self.__class__.__name__
+        log_telemetry_sdk_usage(self.service, module=cmd_name)
 
     def _map_input_header(self):
         metadata = self._metadata

@@ -32,5 +32,5 @@ def setup_logging(
     logging.basicConfig(level=level, format=log_format, datefmt=date_format)
 
 
-__version_info__ = (2, 1, 1)
+__version_info__ = (2, 2, 0, "alpha")
 __version__ = ".".join(map(str, __version_info__))

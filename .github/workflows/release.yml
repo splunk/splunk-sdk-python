@@ -23,7 +23,7 @@ jobs:
       - name: Build package
         run: python -m build
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@d417ba7e7683fa9104c42abe611c1f2c93c0727d
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
       - name: Install tox
         run: pip install tox
       - name: Generate API docs

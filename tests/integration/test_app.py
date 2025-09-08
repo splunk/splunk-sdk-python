@@ -40,7 +40,7 @@ class TestApp(testlib.SDKTestCase):
         else:
             logging.debug(f"App {self.app_name} already exists. Skipping creation.")
         if self.service.restart_required:
-            self.service.restart(120)
+            self.restart_splunk()
 
     def tearDown(self):
         super().tearDown()

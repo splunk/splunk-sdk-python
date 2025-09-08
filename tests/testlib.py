@@ -76,6 +76,14 @@ def wait(predicate, timeout=60, pause_time=0.5):
         logging.debug("wait finished after %s seconds", datetime.now() - start)
 
 
+def restart_splunk(service: client.Service):
+    service.restart(timeout=120)
+    # Give Splunk some additional time. In our test suite, a subsequent
+    # restart shortly after the initial restart can cause Splunk to crash
+    # and fail to start.
+    sleep(15)
+
+
 class SDKTestCase(unittest.TestCase):
     restart_already_required = False
     installedApps = []
@@ -138,6 +146,9 @@ class SDKTestCase(unittest.TestCase):
                         continue
                 raise
 
+    def restart_splunk(self):
+        restart_splunk(self.service)
+
     def clear_restart_message(self):
         """Tell Splunk to forget that it needs to be restarted.
 
@@ -175,7 +186,7 @@ class SDKTestCase(unittest.TestCase):
             if he.status == 400:
                 raise IOError(f"App {name} not found in app collection")
         if self.service.restart_required:
-            self.service.restart(120)
+            self.restart_splunk()
         self.installedApps.append(name)
 
     def app_collection_installed(self):
@@ -221,12 +232,6 @@ class SDKTestCase(unittest.TestCase):
         appPath = separator.join([splunkHome, "etc", "apps", appName] + pathComponents)
         return appPath
 
-    def restartSplunk(self, timeout=240):
-        if self.service.restart_required:
-            self.service.restart(timeout)
-        else:
-            raise NoRestartRequiredError()
-
     @classmethod
     def setUpClass(cls):
         cls.opts = parse([], {}, ".env")
@@ -234,7 +239,7 @@ class SDKTestCase(unittest.TestCase):
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
-            service.restart(timeout=120)
+            self.restart_splunk()
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -244,7 +249,7 @@ class SDKTestCase(unittest.TestCase):
         # and restart. That way we'll be sane for the rest of
         # the test.
         if self.service.restart_required:
-            self.restartSplunk()
+            self.restart_splunk()
         logging.debug(
             "Connected to splunkd version %s",
             ".".join(str(x) for x in self.service.splunk_version),

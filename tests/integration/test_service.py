@@ -27,7 +27,7 @@ from splunklib.binding import HTTPError
 class ServiceTestCase(testlib.SDKTestCase):
     def test_autologin(self):
         service = client.connect(autologin=True, **self.opts.kwargs)
-        self.service.restart(timeout=120)
+        self.restart_splunk()
         reader = service.jobs.oneshot("search index=internal | head 1")
         self.assertIsNotNone(reader)
 
@@ -128,7 +128,7 @@ class ServiceTestCase(testlib.SDKTestCase):
 
     def test_restart(self):
         service = client.connect(**self.opts.kwargs)
-        self.service.restart(timeout=300)
+        self.restart_splunk()
         service.login()  # Make sure we are awake
 
     def test_read_outputs_with_type(self):
@@ -139,11 +139,11 @@ class ServiceTestCase(testlib.SDKTestCase):
         self.assertTrue("tcp", entity.content.type)
 
         if service.restart_required:
-            self.restartSplunk()
+            self.restart_splunk()
         service = client.connect(**self.opts.kwargs)
         client.Entity(service, "data/outputs/tcp/syslog/" + name).delete()
         if service.restart_required:
-            self.restartSplunk()
+            self.restart_splunk()
 
     def test_splunk_version(self):
         service = client.connect(**self.opts.kwargs)
@@ -259,7 +259,7 @@ class TestCookieAuthentication(unittest.TestCase):
             **self.opts.kwargs,
         )
         self.assertTrue(service.has_cookies())
-        self.service.restart(timeout=120)
+        testlib.restart_splunk(self.service)
         reader = service.jobs.oneshot("search index=internal | head 1")
         self.assertIsNotNone(reader)
 
@@ -351,7 +351,8 @@ class TestSettings(testlib.SDKTestCase):
         settings.refresh()
         updated = settings["sessionTimeout"]
         self.assertEqual(updated, original)
-        self.restartSplunk()
+        if self.service.restart_required:
+            self.restart_splunk()
 
 
 class TestTrailing(unittest.TestCase):

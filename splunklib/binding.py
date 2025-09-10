@@ -484,6 +484,12 @@ class Context:
     :type verify: ``Boolean``
     :param self_signed_certificate: Specifies if self signed certificate is used
     :type self_signed_certificate: ``Boolean``
+    :param `key_file`: Path to a PEM-encoded private key.
+    :type key_file: ``string``
+    :param `cert_file`: Path to a PEM-encoded X509 certificate chain.
+    :type cert_file: ``string``
+    :param `context`: Custom SSLContext used with the HTTPSConnection, requires verify=True.
+    :type context: ``SSLContext``
     :param sharing: The sharing mode for the namespace (the default is "user").
     :type sharing: "global", "system", "app", or "user"
     :param owner: The owner context of the namespace (optional, the default is "None").
@@ -1093,6 +1099,16 @@ def connect(**kwargs):
     :type scheme: "https" or "http"
     :param owner: The owner context of the namespace (the default is "None").
     :type owner: ``string``
+    :param verify: Enable (True) or disable (False) SSL verification for https connections.
+    :type verify: ``Boolean``
+    :param self_signed_certificate: Specifies if self signed certificate is used
+    :type self_signed_certificate: ``Boolean``
+    :param `key_file`: Path to a PEM-encoded private key.
+    :type key_file: ``string``
+    :param `cert_file`: Path to a PEM-encoded X509 certificate chain.
+    :type cert_file: ``string``
+    :param `context`: Custom SSLContext used with the HTTPSConnection, requires verify=True.
+    :type context: ``SSLContext``
     :param app: The app context of the namespace (the default is "None").
     :type app: ``string``
     :param sharing: The sharing mode for the namespace (the default is "user").
@@ -1505,16 +1521,16 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
     """This class returns an instance of the default HTTP request handler using
     the values you provide.
 
-    :param `key_file`: A path to a PEM (Privacy Enhanced Mail) formatted file containing your private key (optional).
+    :param `verify`: Enable (True) or disable (False) SSL verification for https connections.
+    :type verify: ``Boolean``
+    :param `key_file`: Path to a PEM-encoded private key.
     :type key_file: ``string``
-    :param `cert_file`: A path to a PEM (Privacy Enhanced Mail) formatted file containing a certificate chain file (optional).
+    :param `cert_file`: Path to a PEM-encoded X509 certificate chain.
     :type cert_file: ``string``
+    :param `context`: Custom SSLContext used with the HTTPSConnection, requires verify=True.
+    :type context: ``SSLContext``
     :param `timeout`: The request time-out period, in seconds (optional).
     :type timeout: ``integer`` or "None"
-    :param `verify`: Set to False to disable SSL verification on https connections.
-    :type verify: ``Boolean``
-    :param `context`: The SSLContext that can is used with the HTTPSConnection when verify=True is enabled and context is specified
-    :type context: ``SSLContext`
     """
 
     def connect(scheme, host, port):

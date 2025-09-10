@@ -314,9 +314,16 @@ def connect(**kwargs):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verification for
-                   https connections. (optional, the default is True)
+    :param verify: Enable (True) or disable (False) SSL verification for https connections.
     :type verify: ``Boolean``
+    :param self_signed_certificate: Specifies if self signed certificate is used
+    :type self_signed_certificate: ``Boolean``
+    :param `key_file`: Path to a PEM-encoded private key.
+    :type key_file: ``string``
+    :param `cert_file`: Path to a PEM-encoded X509 certificate chain.
+    :type cert_file: ``string``
+    :param `context`: Custom SSLContext used with the HTTPSConnection, requires verify=True.
+    :type context: ``SSLContext``
     :param `owner`: The owner context of the namespace (optional).
     :type owner: ``string``
     :param `app`: The app context of the namespace (optional).
@@ -391,9 +398,16 @@ class Service(_BaseService):
     :type port: ``integer``
     :param scheme: The scheme for accessing the service (the default is "https").
     :type scheme: "https" or "http"
-    :param verify: Enable (True) or disable (False) SSL verification for
-                   https connections. (optional, the default is True)
+    :param verify: Enable (True) or disable (False) SSL verification for https connections.
     :type verify: ``Boolean``
+    :param self_signed_certificate: Specifies if self signed certificate is used
+    :type self_signed_certificate: ``Boolean``
+    :param `key_file`: Path to a PEM-encoded private key.
+    :type key_file: ``string``
+    :param `cert_file`: Path to a PEM-encoded X509 certificate chain.
+    :type cert_file: ``string``
+    :param `context`: Custom SSLContext used with the HTTPSConnection, requires verify=True.
+    :type context: ``SSLContext``
     :param `owner`: The owner context of the namespace (optional; use "-" for wildcard).
     :type owner: ``string``
     :param `app`: The app context of the namespace (optional; use "-" for wildcard).

@@ -148,7 +148,7 @@ class _XMLDTDFilter:
 
 
 @deprecation.deprecated(
-    details="Use the JSONResultsReader function instead in conjuction with the 'output_mode' query param set to 'json'"
+    details="Use the JSONResultsReader function instead in conjunction with the 'output_mode' query param set to 'json'"
 )
 class ResultsReader:
     """This class returns dictionaries and Splunk messages from an XML results

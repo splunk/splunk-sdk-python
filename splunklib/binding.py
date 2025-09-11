@@ -1559,7 +1559,6 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         body = message.get("body", "")
         head = {
             "Content-Length": str(len(body)),
-            "Host": host,
             "User-Agent": "splunk-sdk-python/%s" % __version__,
             "Accept": "*/*",
             "Connection": "Close",

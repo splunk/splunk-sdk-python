@@ -1491,6 +1491,7 @@ dependencies = [
     { name = "python-dotenv", version = "0.21.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
     { name = "python-dotenv", version = "1.0.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
     { name = "python-dotenv", version = "1.1.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.9'" },
+    { name = "six" },
 ]
 
 [package.dev-dependencies]
@@ -1528,7 +1529,10 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "python-dotenv" }]
+requires-dist = [
+    { name = "python-dotenv" },
+    { name = "six" },
+]
 
 [package.metadata.requires-dev]
 build = [

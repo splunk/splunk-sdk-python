@@ -369,19 +369,6 @@ wheels = [
 ]
 
 [[package]]
-name = "deprecation"
-version = "2.1.0"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "packaging", version = "24.0", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
-    { name = "packaging", version = "25.0", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.8'" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/5a/d3/8ae2869247df154b64c1884d7346d412fed0c49df84db635aab2d1c40e62/deprecation-2.1.0.tar.gz", hash = "sha256:72b3bde64e5d778694b0cf68178aed03d15e15477116add3fb773e581f9518ff" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/02/c3/253a89ee03fc9b9682f1541728eb66db7db22148cd94f89ab22528cd1e1b/deprecation-2.1.0-py2.py3-none-any.whl", hash = "sha256:a10811591210e1fb0e768a8c25517cabeabcba6f0bf96564f8ff45189f90b14a" },
-]
-
-[[package]]
 name = "distlib"
 version = "0.4.0"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -1501,7 +1488,6 @@ wheels = [
 name = "splunk-sdk"
 source = { editable = "." }
 dependencies = [
-    { name = "deprecation" },
     { name = "python-dotenv", version = "0.21.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version < '3.8'" },
     { name = "python-dotenv", version = "1.0.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version == '3.8.*'" },
     { name = "python-dotenv", version = "1.1.1", source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }, marker = "python_full_version >= '3.9'" },
@@ -1542,10 +1528,7 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "deprecation" },
-    { name = "python-dotenv" },
-]
+requires-dist = [{ name = "python-dotenv" }]
 
 [package.metadata.requires-dev]
 build = [

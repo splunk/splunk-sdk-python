@@ -27,7 +27,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["deprecation", "python-dotenv"]
+dependencies = ["python-dotenv"]
 
 [dependency-groups]
 test = ["tox"]

@@ -35,8 +35,6 @@ as follows:::
 from io import BufferedReader
 from json import loads as json_loads
 
-__all__ = ["JSONResultsReader", "Message"]
-
 
 class Message:
     """This class represents informational messages that Splunk interleaves in the results stream.

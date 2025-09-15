@@ -27,7 +27,8 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["python-dotenv", "six"]
+dependencies = ["python-dotenv"]
+optional-dependencies = { compat = ["six"] }
 
 [dependency-groups]
 test = ["tox"]

@@ -15,11 +15,9 @@
 # under the License.
 
 import sys
-import os
 from urllib import parse
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
-from splunklib.modularinput import Scheme, Argument, Script, Event
+from splunklib.modularinput import Argument, Event, Scheme, Script
 
 
 class ModularInput(Script):

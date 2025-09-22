@@ -25,9 +25,7 @@ For more information, see the Splunk Enterprise [Installation Manual](https://do
 
 ### Installing the SDK
 
-[uv](https://docs.astral.sh/uv/) is our tool of choice for development. Usually that means creating a project with `uv init` and installing the SDK with `uv add splunk-sdk`. When in doubt, consult `uv` docs.
-
-If you prefer not using `uv`, the standard Python package installation method still works:
+Refer to standard Python package installation methods.
 
 ```sh
 python -m venv .venv
@@ -35,7 +33,7 @@ source .venv/bin/activate
 python -m pip install splunk-sdk
 ```
 
-#### Create an .env file (optional)
+#### Optional: Create an `.env` file
 
 To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file.
 
@@ -80,27 +78,13 @@ service = client.connect(host=<HOST_URL>, token=<SESSION_KEY>, autologin=True)
 When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, we may need to add new fields to the records based on certain conditions. Structural changes like this may not be preserved.
 If you're having issues with field retention, make sure to use `add_field(record, fieldname, value)` method from SearchCommand to add a new field and value to the record.
 
-<!-- TODO: Change this to a diff -->
-
-#### Do
-
-```python
+```diff
 class CustomStreamingCommand(StreamingCommand):
     def stream(self, records):
         for index, record in enumerate(records):
             if index % 1 == 0:
-                self.add_field(record, "odd_record", "true")
-            yield record
-```
-
-#### Don't
-
-```python
-class CustomStreamingCommand(StreamingCommand):
-    def stream(self, records):
-        for index, record in enumerate(records):
-            if index % 1 == 0:
-                record["odd_record"] = "true"
+-                record["odd_record"] = "true"
++                self.add_field(record, "odd_record", "true")
             yield record
 ```
 
@@ -109,87 +93,74 @@ class CustomStreamingCommand(StreamingCommand):
 - Generating Custom Search Command is used to generate events using SDK code.
 - Make sure to use `gen_record()` method from SearchCommand to add a new record and pass event data as comma-separated key=value pairs (mentioned in below example).
 
-<!-- TODO: Change this to a diff -->
-
-Do
-
-```python
+```diff
 @Configuration()
 class GeneratorTest(GeneratingCommand):
     def generate(self):
-        yield self.gen_record(_time=time.time(), one=1)
-        yield self.gen_record(_time=time.time(), two=2)
-```
+-        yield {'_time': time.time(), 'one': 1}
+-        yield {'_time': time.time(), 'two': 2}
++        yield self.gen_record(_time=time.time(), one=1)
++        yield self.gen_record(_time=time.time(), two=2)
 
-Don't
-
-```python
-@Configuration()
-class GeneratorTest(GeneratingCommand):
-    def generate(self):
-        yield {'_time': time.time(), 'one': 1}
-        yield {'_time': time.time(), 'two': 2}
 ```
 
 ### Access metadata of Modular Inputs app example
 
 - In `stream_events()` one can access modular input app metadata from `InputDefinition` object
-- See [GitHub Commit](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) Modular Input App example for reference.
+- See the [Modular Input App example](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) for reference.
 
   ```python
   def stream_events(self, inputs, ew):
-    # [...] other code
+    # [...]
 
-    # Access metadata (like server_host, server_uri, etc) of modular inputs app from InputDefinition object
-    # Here, an InputDefinition`object data is used
+    # Access the modular input app's metadata (like server_host, server_uri, etc) from `InputDefinition` object
     server_host = inputs.metadata["server_host"]
     server_uri = inputs.metadata["server_uri"]
     checkpoint_dir = inputs.metadata["checkpoint_dir"]
   ```
 
-### Access service object in Custom Search Command & Modular Input apps
+### Access `service` object in Custom Search Command & Modular Input apps
 
 #### Custom Search Commands
 
-- The service object is created from the `splunkd` URI and session key passed to the command invocation the search results info file.
-- Service object can be accessed using `self.service` in `generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command.
-
-##### Getting Splunk instance metadata
+- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation the search results info file and is available in `MyCommand`.`generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command.
 
 ```python
-def get_metadata(self):
-    # [...] other code
+from splunklib.searchcommands import StreamingCommand
 
-    # Access service object that can be used to connect Splunk Service
-    service = self.service
-    # Getting Splunk Service Info
-    info = service.info
+class MyCommand(StreamingCommand):
+    def get_metadata(self):
+        # Access instance metadata
+        service = self.service
+        # Access Splunk service info
+        info = service.info
+        # [...]
 ```
 
 #### Modular Inputs app
 
-- The service object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively.
-- It is available as soon as the `Script.stream_events` method is called.
+- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively, and is available as soon as the `MyScript.stream_events` method is called.
 
-  ```python
-  def stream_events(self, inputs, ew):
-      # other code
+```python
+from splunklib.modularinput import Script
 
-      # access service object that can be used to connect Splunk Service
-      service = self.service
-      # to get Splunk Service Info
-      info = service.info
-  ```
+class MyScript(Script):
+    def stream_events(self, inputs, ew):
+        # Access instance metadata
+        service = self.service
+        # Access Splunk service info
+        info = service.info
+        # [...]
+```
 
-### Running the test suite
+### Testing
 
-This repo contains a collection of unit and integration tests.
-
-#### Unit tests
-
-To run both unit and integration tests:
+This repo contains a collection of both unit and integration tests. The latter need `docker`/`podman` to work.
 
 ```sh
+# Run the entire test suite:
+make test
+# Run only the unit tests:
 make test-unit
 ```
 
@@ -197,15 +168,15 @@ make test-unit
 
 > NOTE: Before running the integration tests, make sure the instance of Splunk you are testing against doesn't have new events being dumped continuously into it. Several of the tests rely on a stable event count. It's best to test against a clean install of Splunk but if you can't, you should at least disable the \*NIX and Windows apps.
 
-Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.
-
-##### Prerequisites
-
-- `docker`/`podman`
-
 ```sh
-SPLUNK_VERSION=latest && make docker-start
+# Make sure a local Splunk instance is running
+SPLUNK_VERSION=latest make docker-start
+
+# Run the integration tests:
+make test-integration
 ```
+
+> Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.
 
 ### Optional: Set up logging for splunklib
 
@@ -227,9 +198,6 @@ setup_logging(logging.DEBUG)
 The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
 
 ### Branches
-
-The `master` branch represents a stable and released version of the SDK.
-`develop` is where development between releases is happening.
 
 To learn more about our branching model, see [Branching Model](https://github.com/splunk/splunk-sdk-python/wiki/Branching-Model) on GitHub.
 

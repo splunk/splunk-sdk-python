@@ -1,6 +1,9 @@
 name: CD
 on: [workflow_dispatch]
 
+env:
+  PYTHON_VERSION: 3.9
+
 jobs:
   test-pypi-deploy:
     name: Deploy to Test PyPI
@@ -15,9 +18,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
-          python-version: 3.9
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: pip install build
+        run: pip install .[build]
       - name: Build package
         run: python -m build
       - name: Publish package to Test PyPI

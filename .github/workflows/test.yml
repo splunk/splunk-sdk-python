@@ -23,14 +23,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      - name: Run docker compose
+      - name: Launch Splunk Docker instance
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        # Will become `python -m pip install . --group test` when we drop Python 3.7
+      - name: (Python 3.7) Install dependencies
+        if: ${{ matrix.python-version == '3.7' }}
         run: python -m pip install python-dotenv deprecation pytest
-      - name: Test Execution
+      - name: (Python >= 3.9) Install dependencies
+        if: ${{ matrix.python-version != '3.7' }}
+        run: python -m pip install . --group test
+      - name: Run entire test suite
         run: python -m pytest ./tests

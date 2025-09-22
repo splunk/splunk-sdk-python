@@ -7,8 +7,7 @@ env:
   PYTHON_VERSION: 3.9
 
 jobs:
-  publish-sdk:
-    name: Publish SDK to PyPI
+  publish-sdk-pypi:
     runs-on: ubuntu-latest
     permissions:
       id-token: write

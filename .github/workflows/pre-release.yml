@@ -1,12 +1,11 @@
-name: CD
+name: Publish SDK to Test PyPI
 on: [workflow_dispatch]
 
 env:
   PYTHON_VERSION: 3.9
 
 jobs:
-  test-pypi-deploy:
-    name: Deploy to Test PyPI
+  publish-sdk-test-pypi:
     runs-on: ubuntu-latest
     permissions:
       id-token: write

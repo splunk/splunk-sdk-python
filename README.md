@@ -25,13 +25,17 @@ For more information, see the Splunk Enterprise [Installation Manual](https://do
 
 ### Installing the SDK
 
-Refer to standard Python package installation methods.
+Using `pip` is the easiest way to pull the SDK into your project. `poetry` and `uv` should work just as well.
+
+A project-specific virtualenv is recommended.
 
 ```sh
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install splunk-sdk
 ```
+
+[See docs](https://dev.splunk.com/enterprise/docs/developapps/createapps/appanatomy/) for how to package additional dependencies with your app.
 
 #### Optional: Create an `.env` file
 

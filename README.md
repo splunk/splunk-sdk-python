@@ -155,10 +155,10 @@ class MyScript(Script):
 
 ### Testing
 
-This repo contains a collection of both unit and integration tests. The latter need `docker`/`podman` to work.
+This repo contains both unit and integration tests. The latter need `docker`/`podman` to work.
 
 ```sh
-# Run the entire test suite:
+# Run entire test suite:
 make test
 # Run only the unit tests:
 make test-unit
@@ -235,10 +235,10 @@ If you are not covered under an existing maintenance/support agreement, you can 
 
 - Splunk will NOT provide support for SDKs if the core library (the code in the `/splunklib` directory) has been modified. If you modify an SDK and want support, you can find help through the broader community and [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 
-  We would also like to know why you modified the core library, so please send feedback to <mailto:devinfo@splunk.com>.
+  We would also like to know why you modified the core library, so please send feedback to [devinfo@splunk.com](mailto:devinfo@splunk.com).
 
 - File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
 
 ### Contact us
 
-You can reach the Splunk Developer Platform team at <mailto:devinfo@splunk.com>.
+You can reach the Splunk Developer Platform team at [devinfo@splunk.com](mailto:devinfo@splunk.com).

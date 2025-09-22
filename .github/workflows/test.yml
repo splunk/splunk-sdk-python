@@ -31,6 +31,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         # Will become `python -m pip install . --group test` when we drop Python 3.7
-        run: python -m pip install pytest
+        run: python -m pip install python-dotenv deprecation pytest
       - name: Test Execution
         run: python -m pytest ./tests

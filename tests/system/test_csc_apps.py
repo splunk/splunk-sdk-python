@@ -59,8 +59,8 @@ class TestEventingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
-        self.assertEqual(content.description, "Eventing custom search commands example")
-        self.assertEqual(content.label, "Eventing App")
+        self.assertEqual(content.label, "[EXAMPLE] Eventing CSC App")
+        self.assertEqual(content.description, "Example app for eventing Custom Search Commands")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
@@ -135,10 +135,10 @@ class TestGeneratingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
+        self.assertEqual(content.label, "[EXAMPLE] Generating CSC App")
         self.assertEqual(
-            content.description, "Generating custom search commands example"
+            content.description, "Example app for generating Custom Search Commands"
         )
-        self.assertEqual(content.label, "Generating App")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
@@ -189,10 +189,10 @@ class TestReportingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
+        self.assertEqual(content.label, "[EXAMPLE] Reporting CSC App")
         self.assertEqual(
-            content.description, "Reporting custom search commands example"
+            content.description, "Example app for reporting Custom Search Commands"
         )
-        self.assertEqual(content.label, "Reporting App")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
@@ -267,10 +267,10 @@ class TestStreamingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
+        self.assertEqual(content.label, "[EXAMPLE] Streaming CSC App")
         self.assertEqual(
-            content.description, "Streaming custom search commands example"
+            content.description, "Example app for streaming Custom Search Commands"
         )
-        self.assertEqual(content.label, "Streaming App")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 

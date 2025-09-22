@@ -21,6 +21,11 @@ from splunklib.modularinput import Argument, Event, Scheme, Script
 
 
 class ModularInput(Script):
+    """
+    This app provides an example of a modular input that 
+    can be used in Settings => Data inputs => Local inputs => modularinput
+    """
+
     endpoint_arg = "endpoint"
 
     def get_scheme(self):

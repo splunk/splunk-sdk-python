@@ -30,7 +30,7 @@ from splunklib.searchcommands import (
 @Configuration()
 class GeneratingCSC(GeneratingCommand):
     """
-    The generatingapp command generates a specific number of records.
+    The `generatingcsc` command generates a specific number of records.
 
     Example:
 

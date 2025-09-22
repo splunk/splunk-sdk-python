@@ -1,11 +1,14 @@
-name: Release
+name: Publish SDK to PyPI
 on:
   release:
     types: [published]
 
+env:
+  PYTHON_VERSION: 3.9
+
 jobs:
-  publish:
-    name: Deploy release to PyPI
+  publish-sdk:
+    name: Publish SDK to PyPI
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -14,24 +17,20 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      - name: Set up Python
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
-          python-version: 3.9
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: pip install build
-      - name: Build package
+        run: python -m pip install . --group release
+      - name: Build packages for distribution
         run: python -m build
-      - name: Publish package to PyPI
+      - name: Publish packages to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
-      - name: Install tox
-        run: pip install tox
-      - name: Generate API docs
-        run: |
-          rm -rf ./docs/_build
-          tox -e docs
-      - name: Docs Upload
+      - name: Generate API reference
+        run: make -C ./docs html
+      - name: Upload docs artifact
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: python_sdk_docs
+          name: python-sdk-docs
           path: docs/_build/html

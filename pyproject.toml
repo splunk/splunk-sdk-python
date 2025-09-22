@@ -14,6 +14,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
+keywords = ["splunk", "sdk"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.7",
@@ -31,13 +32,16 @@ dependencies = ["python-dotenv"]
 optional-dependencies = { compat = ["six"] }
 
 [dependency-groups]
-test = ["tox"]
-lint = ["mypy", "ruff"]
 build = ["build", "twine"]
+docs = ["sphinx", "jinja2"]
+lint = ["mypy", "ruff"]
+test = ["pytest", "pytest-cov"]
+release = [{ include-group = "build" }, { include-group = "docs" }]
 dev = [
   { include-group = "test" },
   { include-group = "lint" },
   { include-group = "build" },
+  { include-group = "docs" },
 ]
 
 [build-system]
@@ -60,31 +64,3 @@ select = [
   "ANN", # flake8 type annotations
   "RUF", # ruff-specific rules
 ]
-
-# ! TODO: Migrate to new config paradigm
-# https://tox.wiki/en/latest/config.html#pyproject-toml-ini
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = docs,py{37,39,313}
-skipsdist = {env:TOXBUILD:false}
-
-[testenv]
-passenv = LANG
-setenv = SPLUNK_HOME=/opt/splunk
-allowlist_externals = make
-deps = pytest
-       pytest-cov
-       python-dotenv
-
-distdir = build
-commands =
-    {env:TOXBUILD:python -m pytest --cov --cov-config=.coveragerc} {posargs}
-
-[testenv:docs]
-description = Build the static HTML docs
-basepython = python3.9
-deps = sphinx >= 1.7.5, < 2
-       jinja2 < 3.1.0
-commands = make -C docs/ html
-"""

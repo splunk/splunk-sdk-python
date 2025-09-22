@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install tox
-        run: pip install tox
+      - name: Install dependencies
+        run: pip install .[test]
       - name: Test Execution
-        run: tox -e py -- ./tests
+        run: python -m pytest ./tests

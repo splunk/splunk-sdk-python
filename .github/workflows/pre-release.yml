@@ -15,15 +15,15 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      - name: Set up Python
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: pip install .[build]
-      - name: Build package
+        run: python -m pip install . --group build
+      - name: Build packages for distribution
         run: python -m build
-      - name: Publish package to Test PyPI
+      - name: Publish packages to Test PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
         with:
           repository-url: https://test.pypi.org/legacy/

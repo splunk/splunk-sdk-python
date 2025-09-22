@@ -2,16 +2,17 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-BUILDDIR      = _build
+BUILDDIR      = ./_build
+HTMLDIR      = ${BUILDDIR}/html
 
 # Internal variables.
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(SPHINXOPTS) .
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees .
 
 .PHONY: html
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	sh munge_links.sh $(BUILDDIR)/html
+	@rm -rf $(BUILDDIR)
+	@$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(HTMLDIR)
+	@sh munge_links.sh $(HTMLDIR)
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	@echo "Build finished. HTML pages available at docs/$(HTMLDIR)."

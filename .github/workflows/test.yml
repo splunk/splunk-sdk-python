@@ -30,6 +30,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install .[test]
+        run: python -m pip install . --group test
       - name: Test Execution
         run: python -m pytest ./tests

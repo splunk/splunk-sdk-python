@@ -4,9 +4,9 @@
 
 ### Changes
 
-- [#623](https://github.com/splunk/splunk-sdk-python/pull/623/) Additional logging in custom search commands
+- [#623](https://github.com/splunk/splunk-sdk-python/pull/623/) Additional logging in Custom Search Commands
 - [#622](https://github.com/splunk/splunk-sdk-python/pull/622/) Check if developer added custom map method in reporting command
-- Code reformatting and linting, improvements to github actions
+- Code reformatting and linting, improvements to GitHub Actions
 
 ## Version 2.1.0
 

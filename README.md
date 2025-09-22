@@ -190,7 +190,7 @@ This repo contains a collection of unit and integration tests.
 To run both unit and integration tests:
 
 ```sh
-make test
+make test-unit
 ```
 
 #### Integration tests
@@ -202,10 +202,9 @@ Do not run the test suite against a production instance of Splunk! It will run j
 ##### Prerequisites
 
 - `docker`/`podman`
-- `tox`
 
 ```sh
-SPLUNK_VERSION=latest && make start
+SPLUNK_VERSION=latest && make docker-start
 ```
 
 ### Optional: Set up logging for splunklib

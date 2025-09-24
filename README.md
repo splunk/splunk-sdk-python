@@ -14,7 +14,7 @@ You may be asking:
 
 ## Getting started
 
-### Requirements
+### Pre-requirements
 
 #### Python
 
@@ -37,6 +37,7 @@ $ python -m venv .venv
 $ source .venv/bin/activate
   # Bundle all your dependencies into `bin/` before deploying!
   # Skip it if you're not building an app.
+  # Use `splunk-sdk[compat]` if you encounter issues with `six` when deploying to Splunk.
 $ python -m pip install splunk-sdk --target bin/
 ```
 
@@ -179,9 +180,9 @@ A file called `.env.template` exists in the root of this repository. Duplicate i
 
 ```sh
 # Run entire test suite:
-make test
+$ make test
 # Run only the unit tests:
-make test-unit
+$ make test-unit
 ```
 
 ##### Integration tests
@@ -191,10 +192,10 @@ make test-unit
 ```sh
 # This command starts a Splunk Docker container
 # and waits until it reaches an operational state.
-SPLUNK_VERSION=latest make docker-start
+$ SPLUNK_VERSION=latest make docker-start
 
 # Run the integration tests:
-make test-integration
+$ make test-integration
 ```
 
 > Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.

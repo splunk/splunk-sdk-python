@@ -3,49 +3,46 @@
 [![Build Status](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/splunk/splunk-sdk-python/actions/workflows/test.yml)
 ![License](https://img.shields.io/badge/license-Apache%202.0-informational.svg)
 
-The Splunk Enterprise Software Development Kit (SDK) for Python contains library code designed to enable developers to build applications using the Splunk platform.
+The [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.html) Software Development Kit (SDK) for Python is intended to be the primary way for developers to communicate with the Splunk platform's REST API.
 
-Splunk is a search engine and analytic environment that uses a distributed map-reduce architecture to efficiently index, search, and process large time-varying data sets.
+You may be asking:
+
+- [What are Splunk apps?](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.0/meet-splunk-apps/apps-and-add-ons)
+- [What can Splunk apps do?](https://dev.splunk.com/enterprise/docs/developapps/extensionpoints)
+- [How do I write Splunk apps?](https://dev.splunk.com/enterprise/docs/welcome)
+- [Where does the SDK fit in all this?](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/)
 
 ## Getting started
 
 ### Requirements
 
-#### Python compatibility
+#### Python
 
-Splunk Enterprise SDK for Python is tested only with Python 3.7, 3.9 and 3.13. Latest version is always recommended.
+Please use the latest Python version supported when developing. Splunk Enterprise SDK for Python is tested with Python 3.9 and 3.13.
 
 #### Splunk Enterprise
 
-This SDK is only tested with Splunk versions supported in the [Splunk Software Support Policy](https://www.splunk.com/en_us/legal/splunk-software-support-policy.html)
+This SDK is only tested with Splunk Enterprise versions supported in the [Splunk Software Support Policy](https://www.splunk.com/en_us/legal/splunk-software-support-policy.html).
 
 [Go here](http://www.splunk.com/download) to get Splunk Enterprise.
 
-For more information, see the Splunk Enterprise [Installation Manual](https://docs.splunk.com/Documentation/Splunk/latest/Installation).
-
 ### Installing the SDK
 
-Using `pip` is the easiest way to pull the SDK into your project. `poetry` and `uv` should work just as well.
+Using `pip` is the easiest way to pull the SDK into your project. `poetry` and `uv` should work just as well. A project-specific virtualenv is recommended.
 
-A project-specific virtualenv is recommended.
+In your app's project folder:
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install splunk-sdk
+$ python -m venv .venv
+$ source .venv/bin/activate
+  # Bundle all your dependencies into `bin/` before deploying!
+  # Skip it if you're not building an app.
+$ python -m pip install splunk-sdk --target bin/
 ```
 
-[See docs](https://dev.splunk.com/enterprise/docs/developapps/createapps/appanatomy/) for how to package additional dependencies with your app.
+[See docs](https://dev.splunk.com/enterprise/docs/developapps/createapps/appanatomy/) on more details about packaging additional dependencies with your app.
 
-#### Optional: Create an `.env` file
-
-To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file.
-
-A file called `.env.template` exists in the root of this repository. Duplicate it as `.env`, then adjust it to your match your environment.
-
-> **WARNING:** The `.env` file isn't part of the Splunk platform. This is **not** the place for production credentials!
-
-### SDK usage examples
+### Using SDK in apps
 
 The easiest and most effective way of learning how to use this library should be reading through the apps in our test suite, as well as the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform in a variety of scenarios - from basic metadata retrieval, one-shot searching and managing saved searches to building complete applications with modular inputs and custom search commands.
 
@@ -77,55 +74,11 @@ import splunklib.client as client
 service = client.connect(host=<HOST_URL>, token=<SESSION_KEY>, autologin=True)
 ```
 
-### Customization
+#### Creating Custom Search Commands
 
-When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, we may need to add new fields to the records based on certain conditions. Structural changes like this may not be preserved.
-If you're having issues with field retention, make sure to use `add_field(record, fieldname, value)` method from SearchCommand to add a new field and value to the record.
+TODO: Link docs about this
 
-```diff
-class CustomStreamingCommand(StreamingCommand):
-    def stream(self, records):
-        for index, record in enumerate(records):
-            if index % 1 == 0:
--                record["odd_record"] = "true"
-+                self.add_field(record, "odd_record", "true")
-            yield record
-```
-
-### Customization for Generating Custom Search Command
-
-- Generating Custom Search Command is used to generate events using SDK code.
-- Make sure to use `gen_record()` method from SearchCommand to add a new record and pass event data as comma-separated key=value pairs (mentioned in below example).
-
-```diff
-@Configuration()
-class GeneratorTest(GeneratingCommand):
-    def generate(self):
--        yield {'_time': time.time(), 'one': 1}
--        yield {'_time': time.time(), 'two': 2}
-+        yield self.gen_record(_time=time.time(), one=1)
-+        yield self.gen_record(_time=time.time(), two=2)
-
-```
-
-### Access metadata of Modular Inputs app example
-
-- In `stream_events()` one can access modular input app metadata from `InputDefinition` object
-- See the [Modular Input App example](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) for reference.
-
-  ```python
-  def stream_events(self, inputs, ew):
-    # [...]
-
-    # Access the modular input app's metadata (like server_host, server_uri, etc) from `InputDefinition` object
-    server_host = inputs.metadata["server_host"]
-    server_uri = inputs.metadata["server_uri"]
-    checkpoint_dir = inputs.metadata["checkpoint_dir"]
-  ```
-
-### Access `service` object in Custom Search Command & Modular Input apps
-
-#### Custom Search Commands
+##### Accessing instance metadata in CSCs
 
 - The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation the search results info file and is available in `MyCommand`.`generate`/`transform`/`stream`/`reduce` methods depending on the Custom Search Command.
 
@@ -141,9 +94,44 @@ class MyCommand(StreamingCommand):
         # [...]
 ```
 
-#### Modular Inputs app
+##### Field retention in CSC
 
-- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively, and is available as soon as the `MyScript.stream_events` method is called.
+When working with custom search commands such as Custom Streaming Commands or Custom Generating Commands, we may need to add new fields to the records based on certain conditions. Structural changes like this may not be preserved.
+If you're having issues with field retention, make sure to use `add_field(record, fieldname, value)` method from `SearchCommand` to add a new field and value to the record.
+
+```diff
+class CustomStreamingCommand(StreamingCommand):
+    def stream(self, records):
+        for index, record in enumerate(records):
+            if index % 1 == 0:
+-                record["odd_record"] = "true"
++                self.add_field(record, "odd_record", "true")
+            yield record
+```
+
+##### Using a helper method to generate events properly
+
+- Generating Custom Search Command is used to generate events using SDK code.
+- Make sure to use `gen_record()` method from `SearchCommand` to add a new record and pass event data as comma-separated key=value pairs (mentioned in below example).
+
+```diff
+@Configuration()
+class GeneratorTest(GeneratingCommand):
+    def generate(self):
+-        yield {'_time': time.time(), 'one': 1}
+-        yield {'_time': time.time(), 'two': 2}
++        yield self.gen_record(_time=time.time(), one=1)
++        yield self.gen_record(_time=time.time(), two=2)
+
+```
+
+#### Modular Inputs Example App
+
+[Go here](https://help.splunk.com/en/splunk-enterprise/developing-views-and-apps-for-splunk-web/10.0/modular-inputs/modular-inputs-basic-example) to find out more about setting up a Modular Input.
+
+#### Accessing instance metadata in scripts
+
+- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively, and is available as soon as the `<script_name>.stream_events()` method is called.
 
 ```python
 from splunklib.modularinput import Script
@@ -157,9 +145,37 @@ class MyScript(Script):
         # [...]
 ```
 
-### Testing
+#### Accessing Modular Inputs' metadata
 
-This repo contains both unit and integration tests. The latter need `docker`/`podman` to work.
+- In `stream_events()` you can access Modular Input app metadata from `InputDefinition` object
+- See the [Modular Input App example](https://github.com/splunk/splunk-app-examples/blob/master/modularinputs/python/github_commits/bin/github_commits.py) for reference.
+
+  ```python
+  def stream_events(self, inputs, ew):
+    # [...]
+
+    # Access the modular input app's metadata (like server_host, server_uri, etc) from `InputDefinition` object
+    server_host = inputs.metadata["server_host"]
+    server_uri = inputs.metadata["server_uri"]
+    checkpoint_dir = inputs.metadata["checkpoint_dir"]
+  ```
+
+### Contributions
+
+We welcome all contributions!
+If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](CONTRIBUTING.md).
+
+#### Testing
+
+This repository contains both unit and integration tests. The latter need `docker`/`podman` to work.
+
+##### Create an `.env` file
+
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file.
+
+A file called `.env.template` exists in the root of this repository. Duplicate it as `.env`, then adjust it to your match your environment.
+
+> **WARNING:** The `.env` file isn't part of the Splunk platform. This is **not** the place for production credentials!
 
 ```sh
 # Run entire test suite:
@@ -168,12 +184,13 @@ make test
 make test-unit
 ```
 
-#### Integration tests
+##### Integration tests
 
 > NOTE: Before running the integration tests, make sure the instance of Splunk you are testing against doesn't have new events being dumped continuously into it. Several of the tests rely on a stable event count. It's best to test against a clean install of Splunk but if you can't, you should at least disable the \*NIX and Windows apps.
 
 ```sh
-# Make sure a local Splunk instance is running
+# This command starts a Splunk Docker container
+# and waits until it reaches an operational state.
 SPLUNK_VERSION=latest make docker-start
 
 # Run the integration tests:
@@ -182,7 +199,7 @@ make test-integration
 
 > Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.
 
-### Optional: Set up logging for splunklib
+### Setting up logging for splunklib
 
 The default level is WARNING, which means that only events of this level and above will be visible
 To change a logging level we can call setup_logging() method and pass the logging level as an argument.
@@ -196,14 +213,6 @@ from splunklib import setup_logging
 # To see debug and above level logs
 setup_logging(logging.DEBUG)
 ```
-
-### Changelog
-
-The [CHANGELOG](CHANGELOG.md) contains a description of changes for each version of the SDK. For the latest version, see the [CHANGELOG.md](https://github.com/splunk/splunk-sdk-python/blob/master/CHANGELOG.md) on GitHub.
-
-### Branches
-
-To learn more about our branching model, see [Branching Model](https://github.com/splunk/splunk-sdk-python/wiki/Branching-Model) on GitHub.
 
 ## Documentation and resources
 
@@ -225,11 +234,6 @@ Stay connected with other developers building on the Splunk platform.
 - [Issues and pull requests](https://github.com/splunk/splunk-sdk-python/issues/)
 - [Community Slack](https://splunk-usergroups.slack.com/app_redirect?channel=appdev)
 - [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools)
-
-### Contributions
-
-We welcome all contributions!
-If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Support
 

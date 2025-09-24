@@ -1,13 +1,13 @@
-# Makefile for Sphinx documentation
+#
+# Makefile for Sphinx docs generation
 #
 
-# You can set these variables from the command line.
-SPHINXBUILD   = sphinx-build
-BUILDDIR      = ./_build
-HTMLDIR      = ${BUILDDIR}/html
+SPHINXBUILD = sphinx-build
+BUILDDIR = ./_build
+HTMLDIR = ${BUILDDIR}/html
 
-# Internal variables.
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees .
+# Internal variables
+ALLSPHINXOPTS = -d $(BUILDDIR)/doctrees .
 
 .PHONY: html
 html:

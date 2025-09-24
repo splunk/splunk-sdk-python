@@ -29,6 +29,7 @@ docker-ensure-up:
 		printf "\rWaiting for Splunk for %s seconds..." $$i; \
 		sleep 1; \
 	done
+
 .PHONY: docker-start
 docker-start: docker-up docker-ensure-up
 

@@ -29,14 +29,15 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["python-dotenv"]
-optional-dependencies = { compat = ["six"] }
+dependencies = ["python-dotenv>=0.21.1"]
+optional-dependencies = { compat = ["six>=1.17.0"] }
 
 [dependency-groups]
-build = ["build", "twine"]
-docs = ["sphinx", "jinja2"]
-lint = ["mypy", "ruff"]
-test = ["pytest", "pytest-cov"]
+build = ["build>=1.1.1", "twine>=4.0.2"]
+# Can't pin `sphinx` otherwise installation fails on python>=3.7
+docs = ["sphinx", "jinja2>=3.1.6"]
+lint = ["mypy>=1.4.1", "ruff>=0.13.1"]
+test = ["pytest>=7.4.4", "pytest-cov>=4.1.0"]
 release = [{ include-group = "build" }, { include-group = "docs" }]
 dev = [
   { include-group = "test" },

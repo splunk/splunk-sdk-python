@@ -1,4 +1,3 @@
-
 CONTAINER_NAME := "splunk"
 
 .PHONY: docs
@@ -24,7 +23,7 @@ docker-up:
 .PHONY: docker-ensure-up
 docker-ensure-up:
 	@for i in `seq 0 180`; do \
-		if docker exec -it $(CONTAINER_NAME) /sbin/checkstate.sh &> /dev/null; then \
+		if docker exec -it $(CONTAINER_NAME) /bin/bash -c "/sbin/checkstate.sh &> /dev/null"; then \
 			break; \
 		fi; \
 		printf "\rWaiting for Splunk for %s seconds..." $$i; \

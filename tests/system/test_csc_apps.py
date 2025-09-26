@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright © 2011-2024 Splunk, Inc.
+# Copyright © 2011-2025 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -61,7 +61,9 @@ class TestEventingApp(testlib.SDKTestCase):
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
         self.assertEqual(content.label, "[EXAMPLE] Eventing CSC App")
-        self.assertEqual(content.description, "Example app for eventing Custom Search Commands")
+        self.assertEqual(
+            content.description, "Example app for eventing Custom Search Commands"
+        )
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 

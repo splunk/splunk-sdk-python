@@ -14,11 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 import logging
-import pytest
-from splunklib.binding import HTTPError
 
-from tests import testlib
+import pytest
+
 from splunklib import client
+from splunklib.binding import HTTPError
+from tests import testlib
 
 
 def highest_port(service, base_port, *kinds):
@@ -33,9 +34,7 @@ def highest_port(service, base_port, *kinds):
 class TestTcpInputNameHandling(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
-        self.base_port = (
-            highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1
-        )
+        self.base_port = highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1
 
     def tearDown(self):
         for input in self.service.inputs.list("tcp", "splunktcp"):
@@ -68,9 +67,7 @@ class TestTcpInputNameHandling(testlib.SDKTestCase):
     def test_create_tcp_ports_with_restrictToHost(self):
         for kind in ["tcp", "splunktcp"]:  # Multiplexed UDP ports are not supported
             # Make sure we can create two restricted inputs on the same port
-            boris = self.service.inputs.create(
-                str(self.base_port), kind, restrictToHost="boris"
-            )
+            boris = self.service.inputs.create(str(self.base_port), kind, restrictToHost="boris")
             natasha = self.service.inputs.create(
                 str(self.base_port), kind, restrictToHost="natasha"
             )
@@ -158,9 +155,7 @@ class TestRead(testlib.SDKTestCase):
 
     def test_inputs_list_on_one_kind_with_search(self):
         search = "SPLUNK"
-        expected = [
-            x.name for x in self.service.inputs.list("monitor") if search in x.name
-        ]
+        expected = [x.name for x in self.service.inputs.list("monitor") if search in x.name]
         found = [x.name for x in self.service.inputs.list("monitor", search=search)]
         self.assertEqual(expected, found)
 
@@ -192,12 +187,9 @@ class TestInput(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
         inputs = self.service.inputs
-        unrestricted_port = str(
-            highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1
-        )
+        unrestricted_port = str(highest_port(self.service, 10000, "tcp", "splunktcp", "udp") + 1)
         restricted_port = str(
-            highest_port(self.service, int(unrestricted_port) + 1, "tcp", "splunktcp")
-            + 1
+            highest_port(self.service, int(unrestricted_port) + 1, "tcp", "splunktcp") + 1
         )
         test_inputs = [
             {"kind": "tcp", "name": unrestricted_port, "host": "sdk-test"},
@@ -206,12 +198,8 @@ class TestInput(testlib.SDKTestCase):
         ]
         self._test_entities = {}
 
-        self._test_entities["tcp"] = inputs.create(
-            unrestricted_port, "tcp", host="sdk-test"
-        )
-        self._test_entities["udp"] = inputs.create(
-            unrestricted_port, "udp", host="sdk-test"
-        )
+        self._test_entities["tcp"] = inputs.create(unrestricted_port, "tcp", host="sdk-test")
+        self._test_entities["udp"] = inputs.create(unrestricted_port, "udp", host="sdk-test")
         self._test_entities["restrictedTcp"] = inputs.create(
             restricted_port, "tcp", restrictToHost="boris"
         )

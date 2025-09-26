@@ -95,9 +95,7 @@ def _build_data_csv(data):
     headers = set()
     for datum in data:
         headers.update(datum.keys())
-    writer = csv.DictWriter(
-        csvout, headers, dialect=splunklib.searchcommands.internals.CsvDialect
-    )
+    writer = csv.DictWriter(csvout, headers, dialect=splunklib.searchcommands.internals.CsvDialect)
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)

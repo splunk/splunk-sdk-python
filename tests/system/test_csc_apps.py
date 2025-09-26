@@ -15,10 +15,11 @@
 # under the License.
 
 import unittest
+
 import pytest
 
-from tests import testlib
 from splunklib import results
+from tests import testlib
 
 
 @pytest.mark.smoke
@@ -86,9 +87,7 @@ class TestEventingApp(testlib.SDKTestCase):
         self.assertFalse(results_reader.is_preview)
 
         # filter out informational messages and keep only search results
-        actual_results = [
-            item for item in items if not isinstance(item, results.Message)
-        ]
+        actual_results = [item for item in items if not isinstance(item, results.Message)]
 
         self.assertTrue(len(actual_results) == expected_results_count)
 
@@ -136,16 +135,12 @@ class TestGeneratingApp(testlib.SDKTestCase):
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
         self.assertEqual(content.label, "[EXAMPLE] Generating CSC App")
-        self.assertEqual(
-            content.description, "Example app for generating Custom Search Commands"
-        )
+        self.assertEqual(content.description, "Example app for generating Custom Search Commands")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
     def test_behavior(self):
-        stream = self.service.jobs.oneshot(
-            "| generatingcsc count=4", output_mode="json"
-        )
+        stream = self.service.jobs.oneshot("| generatingcsc count=4", output_mode="json")
         result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertTrue(len(ds) == 4)
@@ -189,10 +184,8 @@ class TestReportingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
-        self.assertEqual(content.label, "[EXAMPLE] Reporting CSC App")
-        self.assertEqual(
-            content.description, "Example app for reporting Custom Search Commands"
-        )
+        self.assertEqual(content.description, "Reporting custom search commands example")
+        self.assertEqual(content.label, "Reporting App")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 
@@ -267,10 +260,8 @@ class TestStreamingApp(testlib.SDKTestCase):
 
         self.assertEqual(content.author, "Splunk")
         self.assertEqual(content.configured, "0")
-        self.assertEqual(content.label, "[EXAMPLE] Streaming CSC App")
-        self.assertEqual(
-            content.description, "Example app for streaming Custom Search Commands"
-        )
+        self.assertEqual(content.description, "Streaming custom search commands example")
+        self.assertEqual(content.label, "Streaming App")
         self.assertEqual(content.version, "1.0.0")
         self.assertEqual(content.visible, "1")
 

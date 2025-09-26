@@ -57,8 +57,10 @@ packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
 version = { attr = "splunklib.__version__" }
 
 # https://docs.astral.sh/ruff/configuration/
+[tool.ruff]
+line-length = 100
+
 [tool.ruff.lint]
-fixable = ["ALL"]
 select = [
   "F",   # pyflakes
   "E",   # pycodestyle

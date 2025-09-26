@@ -17,24 +17,21 @@
 """Shared unit test utilities."""
 
 import contextlib
-
-import os
-import time
 import logging
+import os
 import sys
+import time
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, "../")
 
-from time import sleep
-from datetime import datetime, timedelta
-
 import unittest
-
-from utils import parse
+from datetime import datetime, timedelta
+from time import sleep
 
 from splunklib import client
 
+from .utils import parse
 
 logging.basicConfig(
     filename="test.log",
@@ -269,8 +266,6 @@ class SDKTestCase(unittest.TestCase):
                 except HTTPError as error:
                     if not (os.name == "nt" and error.status == 500):
                         raise
-                    print(
-                        f"Ignoring failure to delete {appName} during tear down: {error}"
-                    )
+                    print(f"Ignoring failure to delete {appName} during tear down: {error}")
         if self.service.restart_required:
             self.clear_restart_message()

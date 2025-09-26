@@ -34,27 +34,27 @@ from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from io import BytesIO
-from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
+from io import BytesIO
+from urllib import parse
 from xml.etree.ElementTree import XML, ParseError
-from .data import record
-from . import __version__
 
+from . import __version__
+from .data import record
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
     "AuthenticationError",
-    "connect",
     "Context",
-    "handler",
     "HTTPError",
     "UrlEncoded",
+    "_NoAuthenticationToken",
     "_encode",
     "_make_cookie_header",
-    "_NoAuthenticationToken",
+    "connect",
+    "handler",
     "namespace",
 ]
 
@@ -102,7 +102,7 @@ def mask_sensitive_data(data):
     if not isinstance(data, dict):
         try:
             data = json.loads(data)
-        except Exception as ex:
+        except Exception:
             return data
 
     # json.loads will return "123"(str) as 123(int), so return the data if it's not 'dict' type
@@ -251,7 +251,7 @@ class UrlEncoded(str):
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
 
     def __repr__(self):
-        return f"UrlEncoded({repr(parse.unquote(str(self)))})"
+        return f"UrlEncoded({parse.unquote(str(self))!r})"
 
 
 @contextmanager
@@ -345,9 +345,7 @@ def _authentication(request_fun):
                 ):
                     return request_fun(self, *args, **kwargs)
             elif he.status == 401 and not self.autologin:
-                raise AuthenticationError(
-                    "Request failed: Session is not logged in.", he
-                )
+                raise AuthenticationError("Request failed: Session is not logged in.", he)
             else:
                 raise
 
@@ -612,9 +610,7 @@ class Context:
         if token:
             header.append(("Authorization", token))
         if self.get_cookies():
-            header.append(
-                ("Cookie", _make_cookie_header(list(self.get_cookies().items())))
-            )
+            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
 
         return header
 
@@ -666,10 +662,8 @@ class Context:
         default :class:`Context` namespace. All other keyword arguments are
         included in the URL as query parameters.
 
-        :raises AuthenticationError: Raised when the ``Context`` object is not
-             logged in.
-        :raises HTTPError: Raised when an error occurred in a GET operation from
-             *path_segment*.
+        :raises AuthenticationError: Raised when the ``Context`` object is not logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
         :param owner: The owner context of the namespace (optional).
@@ -678,12 +672,10 @@ class Context:
         :type app: ``string``
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
-        :param query: All other keyword arguments, which are used as query
-            parameters.
+        :param query: All other keyword arguments, which are used as query parameters.
         :type query: ``string``
         :return: The response from the server.
-        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
-                and ``status``
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, and ``status``
 
         **Example**::
 
@@ -699,24 +691,18 @@ class Context:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'OK',
                  'status': 200}
-            c.delete('nonexistant/path') # raises HTTPError
+            c.delete('nonexistent/path') # raises HTTPError
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
-        logger.debug(
-            "DELETE request to %s (body: %s)", path, mask_sensitive_data(query)
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
+        logger.debug("DELETE request to %s (body: %s)", path, mask_sensitive_data(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
     @_log_duration
-    def get(
-        self, path_segment, owner=None, app=None, headers=None, sharing=None, **query
-    ):
+    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -729,10 +715,8 @@ class Context:
         default :class:`Context` namespace. All other keyword arguments are
         included in the URL as query parameters.
 
-        :raises AuthenticationError: Raised when the ``Context`` object is not
-             logged in.
-        :raises HTTPError: Raised when an error occurred in a GET operation from
-             *path_segment*.
+        :raises AuthenticationError: Raised when the ``Context`` object is not logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
         :param owner: The owner context of the namespace (optional).
@@ -743,12 +727,10 @@ class Context:
         :type headers: ``list`` of 2-tuples.
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
-        :param query: All other keyword arguments, which are used as query
-            parameters.
+        :param query: All other keyword arguments, which are used as query parameters.
         :type query: ``string``
         :return: The response from the server.
-        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
-                and ``status``
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, and ``status``
 
         **Example**::
 
@@ -764,16 +746,14 @@ class Context:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'OK',
                  'status': 200}
-            c.get('nonexistant/path') # raises HTTPError
+            c.get('nonexistent/path') # raises HTTPError
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logger.debug("GET request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
@@ -781,9 +761,7 @@ class Context:
 
     @_authentication
     @_log_duration
-    def post(
-        self, path_segment, owner=None, app=None, sharing=None, headers=None, **query
-    ):
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
         """Performs a POST operation from the REST path segment with the given
         namespace and query.
 
@@ -803,10 +781,8 @@ class Context:
         body, and all other keyword arguments will be passed as
         GET-style arguments in the URL.
 
-        :raises AuthenticationError: Raised when the ``Context`` object is not
-             logged in.
-        :raises HTTPError: Raised when an error occurred in a GET operation from
-             *path_segment*.
+        :raises AuthenticationError: Raised when the ``Context`` object is not logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
         :param owner: The owner context of the namespace (optional).
@@ -817,8 +793,7 @@ class Context:
         :type sharing: ``string``
         :param headers: List of extra HTTP headers to send (optional).
         :type headers: ``list`` of 2-tuples.
-        :param query: All other keyword arguments, which are used as query
-            parameters.
+        :param query: All other keyword arguments, which are used as query parameters.
         :param body: Parameters to be used in the post body. If specified,
             any parameters in the query will be applied to the URL instead of
             the body. If a dict is supplied, the key-value pairs will be form
@@ -826,8 +801,7 @@ class Context:
             in the request unchanged.
         :type body: ``dict`` or ``str``
         :return: The response from the server.
-        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
-                and ``status``
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, and ``status``
 
         **Example**::
 
@@ -844,7 +818,7 @@ class Context:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'Created',
                  'status': 201}
-            c.post('nonexistant/path') # raises HTTPError
+            c.post('nonexistent/path') # raises HTTPError
             c.logout()
             # raises AuthenticationError:
             c.post('saved/searches', name='boris',
@@ -853,9 +827,7 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         logger.debug("POST request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
@@ -883,10 +855,8 @@ class Context:
         default :class:`Context` namespace. All other keyword arguments are
         included in the URL as query parameters.
 
-        :raises AuthenticationError: Raised when the ``Context`` object is not
-             logged in.
-        :raises HTTPError: Raised when an error occurred in a GET operation from
-             *path_segment*.
+        :raises AuthenticationError: Raised when the ``Context`` object is not logged in.
+        :raises HTTPError: Raised when an error occurred in a GET operation from *path_segment*.
         :param path_segment: A REST path segment.
         :type path_segment: ``string``
         :param method: The HTTP method to use (optional).
@@ -902,8 +872,7 @@ class Context:
         :param sharing: The sharing mode of the namespace (optional).
         :type sharing: ``string``
         :return: The response from the server.
-        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``,
-                and ``status``
+        :rtype: ``dict`` with keys ``body``, ``headers``, ``reason``, and ``status``
 
         **Example**::
 
@@ -919,16 +888,14 @@ class Context:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'OK',
                  'status': 200}
-            c.request('nonexistant/path', method='GET') # raises HTTPError
+            c.request('nonexistent/path', method='GET') # raises HTTPError
             c.logout()
             c.get('apps/local') # raises AuthenticationError
         """
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug(
@@ -979,9 +946,7 @@ class Context:
             # logged in.
             return
 
-        if self.token is not _NoAuthenticationToken and (
-            not self.username and not self.password
-        ):
+        if self.token is not _NoAuthenticationToken and (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
@@ -1078,9 +1043,7 @@ class Context:
 
         oname = "nobody" if ns.owner is None else ns.owner
         aname = "system" if ns.app is None else ns.app
-        path = UrlEncoded(
-            f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode
-        )
+        path = UrlEncoded(f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode)
         return path
 
 
@@ -1223,11 +1186,7 @@ def _spliturl(url):
     parsed_url = parse.urlparse(url)
     host = parsed_url.hostname
     port = parsed_url.port
-    path = (
-        "?".join((parsed_url.path, parsed_url.query))
-        if parsed_url.query
-        else parsed_url.path
-    )
+    path = "?".join((parsed_url.path, parsed_url.query)) if parsed_url.query else parsed_url.path
     # Strip brackets if its an IPv6 address
     if host.startswith("[") and host.endswith("]"):
         host = host[1:-1]
@@ -1574,10 +1533,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
             if timeout is not None:
                 connection.sock.settimeout(timeout)
             response = connection.getresponse()
-            is_keepalive = (
-                "keep-alive"
-                in response.getheader("connection", default="close").lower()
-            )
+            is_keepalive = "keep-alive" in response.getheader("connection", default="close").lower()
         finally:
             if not is_keepalive:
                 connection.close()

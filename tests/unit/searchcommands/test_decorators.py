@@ -16,17 +16,16 @@
 # under the License.
 
 
-from unittest import main, TestCase
 import sys
-
 from io import TextIOWrapper
+from unittest import TestCase, main
+
 import pytest
 
 from splunklib.searchcommands import Configuration, Option, environment, validators
 from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
-
 from tests.unit.searchcommands import rebase_environment
 
 
@@ -234,9 +233,7 @@ class TestDecorators(TestCase):
 
     def test_configuration(self):
         def new_configuration_settings_class(setting_name=None, setting_value=None):
-            @Configuration(
-                **{} if setting_name is None else {setting_name: setting_value}
-            )
+            @Configuration(**{} if setting_name is None else {setting_name: setting_value})
             class ConfiguredSearchCommand(SearchCommand):
                 class ConfigurationSettings(SearchCommand.ConfigurationSettings):
                     clear_required_fields = ConfigurationSetting()
@@ -338,12 +335,10 @@ class TestDecorators(TestCase):
                     self.assertIsInstance(
                         error,
                         ValueError,
-                        f"Expected ValueError, not {type(error).__name__}({error}) for {name}={repr(value)}",
+                        f"Expected ValueError, not {type(error).__name__}({error}) for {name}={value!r}",
                     )
                 else:
-                    self.fail(
-                        f"Expected ValueError, not success for {name}={repr(value)}"
-                    )
+                    self.fail(f"Expected ValueError, not success for {name}={value!r}")
 
                 settings_class = new_configuration_settings_class()
                 settings_instance = settings_class(command=None)
@@ -384,16 +379,13 @@ class TestDecorators(TestCase):
         self.assertIs(Test._generating, True)
         self.assertIs(test._generating, False)
 
-        self.assertRaises(
-            ValueError, Test.generating.fset, test, "any type other than bool"
-        )
+        self.assertRaises(ValueError, Test.generating.fset, test, "any type other than bool")
 
     def test_option(self):
         rebase_environment("app_with_logging_configuration")
 
         presets = [
-            "logging_configuration="
-            + json_encode_string(environment.logging_configuration),
+            "logging_configuration=" + json_encode_string(environment.logging_configuration),
             'logging_level="WARNING"',
             'record="f"',
             'show_configuration="f"',
@@ -413,11 +405,7 @@ class TestDecorators(TestCase):
         )
         self.assertListEqual(
             presets,
-            [
-                str(option)
-                for option in options.values()
-                if str(option) != option.name + "=None"
-            ],
+            [str(option) for option in options.values() if str(option) != option.name + "=None"],
         )
 
         test_option_values = {
@@ -507,16 +495,12 @@ class TestDecorators(TestCase):
             if type(x.value).__name__ == "Code":
                 self.assertEqual(expected[x.name], x.value.source)
             elif type(x.validator).__name__ == "Map":
-                self.assertEqual(
-                    expected[x.name], invert(x.validator.membership)[x.value]
-                )
+                self.assertEqual(expected[x.name], invert(x.validator.membership)[x.value])
             elif type(x.validator).__name__ == "RegularExpression":
                 self.assertEqual(expected[x.name], x.value.pattern)
             elif isinstance(x.value, TextIOWrapper):
                 self.assertEqual(expected[x.name], f"'{x.value.name}'")
-            elif not isinstance(
-                x.value, (bool,) + (float,) + (str,) + (bytes,) + tuplewrap(int)
-            ):
+            elif not isinstance(x.value, (bool,) + (float,) + (str,) + (bytes,) + tuplewrap(int)):
                 self.assertEqual(expected[x.name], repr(x.value))
             else:
                 self.assertEqual(expected[x.name], x.value)

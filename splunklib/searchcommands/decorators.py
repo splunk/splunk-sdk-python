@@ -18,7 +18,6 @@
 from collections import OrderedDict
 from inspect import getmembers, isclass, isfunction
 
-
 from .internals import ConfigurationSettingsType, json_encode_string
 from .validators import OptionName
 
@@ -79,9 +78,7 @@ class Configuration:
             o.ConfigurationSettings.fix_up(o)
             Option.fix_up(o)
         else:
-            raise TypeError(
-                f"Incorrect usage: Configuration decorator applied to {type(o)}"
-            )
+            raise TypeError(f"Incorrect usage: Configuration decorator applied to {type(o)}")
 
         return o
 
@@ -137,9 +134,7 @@ class ConfigurationSetting(property):
 
     @staticmethod
     def fix_up(cls, values):
-        is_configuration_setting = lambda attribute: isinstance(
-            attribute, ConfigurationSetting
-        )
+        is_configuration_setting = lambda attribute: isinstance(attribute, ConfigurationSetting)
         definitions = getmembers(cls, is_configuration_setting)
         i = 0
 
@@ -208,9 +203,7 @@ class ConfigurationSetting(property):
         if len(values) > 0:
             settings = sorted(list(values.items()))
             settings = [f"{n_v[0]}={n_v[1]}" for n_v in settings]
-            raise AttributeError(
-                "Inapplicable configuration settings: " + ", ".join(settings)
-            )
+            raise AttributeError("Inapplicable configuration settings: " + ", ".join(settings))
 
         cls.configuration_setting_definitions = definitions
 
@@ -226,9 +219,7 @@ class ConfigurationSetting(property):
         try:
             specification = ConfigurationSettingsType.specification_matrix[name]
         except KeyError:
-            raise AttributeError(
-                f"Unknown configuration setting: {name}={repr(self._value)}"
-            )
+            raise AttributeError(f"Unknown configuration setting: {name}={self._value!r}")
 
         return ConfigurationSettingsType.validate_configuration_setting, specification
 
@@ -443,18 +434,11 @@ class Option(property):
             item_class = Option.Item
             OrderedDict.__init__(
                 self,
-                (
-                    (option.name, item_class(command, option))
-                    for (name, option) in definitions
-                ),
+                ((option.name, item_class(command, option)) for (name, option) in definitions),
             )
 
         def __repr__(self):
-            text = (
-                "Option.View(["
-                + ",".join([repr(item) for item in self.values()])
-                + "])"
-            )
+            text = "Option.View([" + ",".join([repr(item) for item in self.values()]) + "])"
             return text
 
         def __str__(self):
@@ -464,11 +448,7 @@ class Option(property):
         # region Methods
 
         def get_missing(self):
-            missing = [
-                item.name
-                for item in self.values()
-                if item.is_required and not item.is_set
-            ]
+            missing = [item.name for item in self.values() if item.is_required and not item.is_set]
             return missing if len(missing) > 0 else None
 
         def reset(self):

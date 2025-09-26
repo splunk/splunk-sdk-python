@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from io import TextIOBase
 import xml.etree.ElementTree as ET
+from io import TextIOBase
 
 from ..utils import ensure_str
 
@@ -89,9 +89,7 @@ class Event:
         :param stream: stream to write XML to.
         """
         if self.data is None:
-            raise ValueError(
-                "Events must have at least the data field set to be written to XML."
-            )
+            raise ValueError("Events must have at least the data field set to be written to XML.")
 
         event = ET.Element("event")
         if self.stanza is not None:

@@ -14,17 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from logging import getLogger
 import os
 import sys
 import traceback
+from logging import getLogger
+
 from . import splunklib_logger as logger
 
-
 if sys.platform == "win32":
-    from signal import signal, CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM
-    from subprocess import Popen
     import atexit
+    from signal import CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM, signal
+    from subprocess import Popen
 
 
 # P1 [ ] TODO: Add ExternalSearchCommand class documentation
@@ -33,7 +33,7 @@ if sys.platform == "win32":
 class ExternalSearchCommand:
     def __init__(self, path, argv=None, environ=None):
         if not isinstance(path, (bytes, str)):
-            raise ValueError(f"Expected a string value for path, not {repr(path)}")
+            raise ValueError(f"Expected a string value for path, not {path!r}")
 
         self._logger = getLogger(self.__class__.__name__)
         self._path = str(path)
@@ -52,9 +52,7 @@ class ExternalSearchCommand:
     @argv.setter
     def argv(self, value):
         if not (value is None or isinstance(value, (list, tuple))):
-            raise ValueError(
-                f"Expected a list, tuple or value of None for argv, not {repr(value)}"
-            )
+            raise ValueError(f"Expected a list, tuple or value of None for argv, not {value!r}")
         self._argv = value
 
     @property
@@ -64,9 +62,7 @@ class ExternalSearchCommand:
     @environ.setter
     def environ(self, value):
         if not (value is None or isinstance(value, dict)):
-            raise ValueError(
-                f"Expected a dictionary value for environ, not {repr(value)}"
-            )
+            raise ValueError(f"Expected a dictionary value for environ, not {value!r}")
         self._environ = value
 
     @property
@@ -89,10 +85,8 @@ class ExternalSearchCommand:
             self._execute(self._path, self._argv, self._environ)
         except:
             error_type, error, tb = sys.exc_info()
-            message = f"Command execution failed: {str(error)}"
-            self._logger.error(
-                message + "\nTraceback:\n" + "".join(traceback.format_tb(tb))
-            )
+            message = f"Command execution failed: {error!s}"
+            self._logger.error(message + "\nTraceback:\n" + "".join(traceback.format_tb(tb)))
             sys.exit(1)
 
     if sys.platform == "win32":
@@ -154,9 +148,7 @@ class ExternalSearchCommand:
             signal(SIGINT, terminate)
             signal(SIGTERM, terminate)
 
-            logger.debug(
-                'started command="%s", arguments=%s, pid=%d', path, argv, p.pid
-            )
+            logger.debug('started command="%s", arguments=%s, pid=%d', path, argv, p.pid)
             p.wait()
 
             logger.debug(
@@ -200,9 +192,7 @@ class ExternalSearchCommand:
             if not paths:
                 return None
 
-            directories = [
-                directory for directory in paths.split(";") if len(directory)
-            ]
+            directories = [directory for directory in paths.split(";") if len(directory)]
 
             if len(directories) == 0:
                 return None

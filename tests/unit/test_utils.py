@@ -15,10 +15,10 @@
 # under the License.
 
 import os
-from pathlib import Path
 import unittest
+from pathlib import Path
 
-from utils import dslice
+from .utils import dslice
 
 TEST_DICT = {
     "username": "admin",

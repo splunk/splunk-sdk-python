@@ -26,9 +26,7 @@ DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 # To set the logging level of splunklib
 # ex. To enable debug logs, call this method with parameter 'logging.DEBUG'
 # default logging level is set to 'WARNING'
-def setup_logging(
-    level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE_FORMAT
-):
+def setup_logging(level, log_format=DEFAULT_LOG_FORMAT, date_format=DEFAULT_DATE_FORMAT):
     logging.basicConfig(level=level, format=log_format, datefmt=date_format)
 
 

@@ -1,10 +1,9 @@
-import io
 import gzip
+import io
 import sys
-
 from os import path
 
-from splunklib.searchcommands import StreamingCommand, Configuration
+from splunklib.searchcommands import Configuration, StreamingCommand
 
 
 def build_test_command():
@@ -18,9 +17,7 @@ def build_test_command():
 
 
 def get_input_file(name):
-    return path.join(
-        path.dirname(path.dirname(__file__)), "data", "custom_search", name + ".gz"
-    )
+    return path.join(path.dirname(path.dirname(__file__)), "data", "custom_search", name + ".gz")
 
 
 def test_multibyte_chunked():

@@ -23,17 +23,20 @@ import re
 import sys
 import tempfile
 import traceback
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict, namedtuple
 from copy import deepcopy
 from io import StringIO
 from itertools import chain, islice
-from logging import _nameToLevel as _levelNames, getLevelName, getLogger
+from logging import _nameToLevel as _levelNames
+from logging import getLevelName, getLogger
 from shutil import make_archive
 from time import time
-from urllib.parse import unquote
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 from warnings import warn
 from xml.etree import ElementTree
+
+from ..client import Service
+from ..utils import ensure_str
 
 # Relative imports
 from . import Boolean, Option, environment
@@ -50,9 +53,6 @@ from .internals import (
     RecordWriterV2,
     json_encode_string,
 )
-from ..client import Service
-from ..utils import ensure_str
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -306,10 +306,7 @@ class SearchCommand:
                 return value
 
         info = ObjectView(
-            dict(
-                (convert_field(f_v[0]), convert_value(f_v[1]))
-                for f_v in zip(fields, values)
-            )
+            dict((convert_field(f_v[0]), convert_value(f_v[1])) for f_v in zip(fields, values))
         )
 
         try:
@@ -319,9 +316,7 @@ class SearchCommand:
         else:
             count_map = count_map.split(";")
             n = len(count_map)
-            info.countMap = dict(
-                list(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2)))
-            )
+            info.countMap = dict(list(zip(islice(count_map, 0, n, 2), islice(count_map, 1, n, 2))))
 
         try:
             msg_type = info.msgType
@@ -330,9 +325,7 @@ class SearchCommand:
             pass
         else:
             messages = [
-                t_m
-                for t_m in zip(msg_type.split("\n"), msg_text.split("\n"))
-                if t_m[0] or t_m[1]
+                t_m for t_m in zip(msg_type.split("\n"), msg_text.split("\n")) if t_m[0] or t_m[1]
             ]
             info.msg = [Message(message) for message in messages]
             del info.msgType
@@ -385,9 +378,7 @@ class SearchCommand:
         splunkd_uri = searchinfo.splunkd_uri
 
         if splunkd_uri is None or splunkd_uri == "" or splunkd_uri == " ":
-            self.logger.warning(
-                f"Incorrect value for Splunkd URI: {splunkd_uri!r} in metadata"
-            )
+            self.logger.warning(f"Incorrect value for Splunkd URI: {splunkd_uri!r} in metadata")
             return None
 
         uri = urlsplit(splunkd_uri, allow_fragments=False)
@@ -439,9 +430,7 @@ class SearchCommand:
 
         """
 
-    def process(
-        self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True
-    ):
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
         """Process data.
 
         :param argv: Command line arguments.
@@ -484,9 +473,7 @@ class SearchCommand:
         )
 
     def _map_metadata(self, argv):
-        source = SearchCommand._MetadataSource(
-            argv, self._input_header, self.search_results_info
-        )
+        source = SearchCommand._MetadataSource(argv, self._input_header, self.search_results_info)
 
         def _map(metadata_map):
             metadata = {}
@@ -541,9 +528,7 @@ class SearchCommand:
         },
     }
 
-    _MetadataSource = namedtuple(
-        "Source", ("argv", "input_header", "search_results_info")
-    )
+    _MetadataSource = namedtuple("Source", ("argv", "input_header", "search_results_info"))
 
     def _prepare_protocol_v1(self, argv, ifile, ofile):
         debug = environment.splunklib_logger.debug
@@ -582,9 +567,7 @@ class SearchCommand:
             ifile.record(str(self._input_header), "\n\n")
 
         if self.show_configuration:
-            self.write_info(
-                self.name + " command configuration: " + str(self._configuration)
-            )
+            self.write_info(self.name + " command configuration: " + str(self._configuration))
 
         return ifile  # wrapped, if self.record is True
 
@@ -615,9 +598,7 @@ class SearchCommand:
 
         dispatch_dir = self._metadata.searchinfo.dispatch_dir
 
-        if (
-            dispatch_dir is not None
-        ):  # __GETINFO__ action does not include a dispatch_dir
+        if dispatch_dir is not None:  # __GETINFO__ action does not include a dispatch_dir
             root_dir, base_dir = os.path.split(dispatch_dir)
             make_archive(
                 recording + ".dispatch_dir",
@@ -759,9 +740,7 @@ class SearchCommand:
             try:
                 tempfile.tempdir = self._metadata.searchinfo.dispatch_dir
             except AttributeError:
-                raise RuntimeError(
-                    f"{class_name}.metadata.searchinfo.dispatch_dir is undefined"
-                )
+                raise RuntimeError(f"{class_name}.metadata.searchinfo.dispatch_dir is undefined")
 
             debug("  tempfile.tempdir=%r", tempfile.tempdir)
         except:
@@ -836,20 +815,14 @@ class SearchCommand:
                     setattr(
                         info,
                         attr,
-                        [
-                            arg
-                            for arg in getattr(info, attr)
-                            if not arg.startswith("record=")
-                        ],
+                        [arg for arg in getattr(info, attr) if not arg.startswith("record=")],
                     )
 
                 metadata = MetadataEncoder().encode(self._metadata)
                 ifile.record("chunked 1.0,", str(len(metadata)), ",0\n", metadata)
 
             if self.show_configuration:
-                self.write_info(
-                    self.name + " command configuration: " + str(self._configuration)
-                )
+                self.write_info(self.name + " command configuration: " + str(self._configuration))
 
             debug("  command configuration: %s", self._configuration)
 
@@ -921,10 +894,7 @@ class SearchCommand:
 
     @staticmethod
     def _decode_list(mv):
-        return [
-            match.replace("$$", "$")
-            for match in SearchCommand._encoded_value.findall(mv)
-        ]
+        return [match.replace("$$", "$") for match in SearchCommand._encoded_value.findall(mv)]
 
     _encoded_value = re.compile(
         r"\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)"
@@ -988,18 +958,14 @@ class SearchCommand:
         try:
             metadata = istream.read(metadata_length)
         except Exception as error:
-            raise RuntimeError(
-                f"Failed to read metadata of length {metadata_length}: {error}"
-            )
+            raise RuntimeError(f"Failed to read metadata of length {metadata_length}: {error}")
 
         decoder = MetadataDecoder()
 
         try:
             metadata = decoder.decode(ensure_str(metadata))
         except Exception as error:
-            raise RuntimeError(
-                f"Failed to parse metadata of length {metadata_length}: {error}"
-            )
+            raise RuntimeError(f"Failed to parse metadata of length {metadata_length}: {error}")
 
         # if body_length <= 0:
         #     return metadata, ''
@@ -1027,9 +993,7 @@ class SearchCommand:
             return
 
         mv_fieldnames = dict(
-            (name, name[len("__mv_") :])
-            for name in fieldnames
-            if name.startswith("__mv_")
+            (name, name[len("__mv_") :]) for name in fieldnames if name.startswith("__mv_")
         )
 
         if len(mv_fieldnames) == 0:
@@ -1089,7 +1053,7 @@ class SearchCommand:
 
         filename = origin.tb_frame.f_code.co_filename
         lineno = origin.tb_lineno
-        message = f'{error_type.__name__} at "{filename}", line {str(lineno)} : {error}'
+        message = f'{error_type.__name__} at "{filename}", line {lineno!s} : {error}'
 
         environment.splunklib_logger.error(
             message + "\nTraceback:\n" + "".join(traceback.format_tb(tb))
@@ -1117,9 +1081,7 @@ class SearchCommand:
             """
             definitions = type(self).configuration_setting_definitions
             settings = [
-                repr(
-                    (setting.name, setting.__get__(self), setting.supporting_protocols)
-                )
+                repr((setting.name, setting.__get__(self), setting.supporting_protocols))
                 for setting in definitions
             ]
             return "[" + ", ".join(settings) + "]"
@@ -1135,10 +1097,7 @@ class SearchCommand:
             """
             # text = ', '.join(imap(lambda (name, value): name + '=' + json_encode_string(unicode(value)), self.iteritems()))
             text = ", ".join(
-                [
-                    f"{name}={json_encode_string(str(value))}"
-                    for (name, value) in self.items()
-                ]
+                [f"{name}={json_encode_string(str(value))}" for (name, value) in self.items()]
             )
             return text
 

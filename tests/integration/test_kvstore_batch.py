@@ -40,10 +40,7 @@ class KVStoreBatchTestCase(testlib.SDKTestCase):
             self.assertEqual(testData[x]["data"], "#" + str(x))
             self.assertEqual(testData[x]["num"], x)
 
-        data = [
-            {"_key": str(x), "data": "#" + str(x + 1), "num": x + 1}
-            for x in range(1000)
-        ]
+        data = [{"_key": str(x), "data": "#" + str(x + 1), "num": x + 1} for x in range(1000)]
         self.col.batch_save(*data)
 
         testData = self.col.query(sort="num")

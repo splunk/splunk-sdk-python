@@ -15,25 +15,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from json.encoder import encode_basestring as encode_string
-from unittest import main, TestCase
-
-import os
 import logging
+import os
 import warnings
-
-from io import TextIOWrapper
+from io import BytesIO, TextIOWrapper
+from json.encoder import encode_basestring as encode_string
+from unittest import TestCase, main
 
 import pytest
 
-from splunklib.searchcommands import Configuration, StreamingCommand
+from splunklib.client import Service
+from splunklib.searchcommands import Configuration
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.internals import ObjectView
 from splunklib.searchcommands.search_command import SearchCommand
-from splunklib.client import Service
 from splunklib.utils import ensure_binary
-
-from io import BytesIO
 
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):
@@ -173,9 +169,7 @@ class TestSearchCommand(TestCase):
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
         except SystemExit as error:
-            self.fail(
-                "Unexpected exception: {}: {}".format(type(error).__name__, error)
-            )
+            self.fail("Unexpected exception: {}: {}".format(type(error).__name__, error))
 
         self.assertEqual(command.logging_configuration, logging_configuration)
         self.assertEqual(command.logging_level, "ERROR")
@@ -222,9 +216,7 @@ class TestSearchCommand(TestCase):
         self.assertIs(input_header["realtime"], False)
         self.assertEqual(input_header["search"], command_metadata.searchinfo.search)
         self.assertEqual(input_header["sid"], command_metadata.searchinfo.sid)
-        self.assertEqual(
-            input_header["splunkVersion"], command_metadata.searchinfo.splunk_version
-        )
+        self.assertEqual(input_header["splunkVersion"], command_metadata.searchinfo.splunk_version)
         self.assertIsNone(input_header["truncated"])
 
         self.assertEqual(command_metadata.preview, input_header["preview"])
@@ -247,9 +239,7 @@ class TestSearchCommand(TestCase):
         self.assertEqual(command_metadata.searchinfo.earliest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.latest_time, 0.0)
         self.assertEqual(command_metadata.searchinfo.owner, "admin")
-        self.assertEqual(
-            command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args
-        )
+        self.assertEqual(command_metadata.searchinfo.raw_args, command_metadata.searchinfo.args)
         self.assertEqual(
             command_metadata.searchinfo.search,
             'Ａ| inputlookup tweets | countmatches fieldname=word_count pattern="\\w+" text record=t | export add_timestamp=f add_offset=t format=csv segmentation=raw',
@@ -260,9 +250,7 @@ class TestSearchCommand(TestCase):
         )
         self.assertEqual(command_metadata.searchinfo.sid, "1433261372.158")
         self.assertEqual(command_metadata.searchinfo.splunk_version, "20150522")
-        self.assertEqual(
-            command_metadata.searchinfo.splunkd_uri, "https://127.0.0.1:8089"
-        )
+        self.assertEqual(command_metadata.searchinfo.splunkd_uri, "https://127.0.0.1:8089")
         self.assertEqual(command_metadata.searchinfo.username, "admin")
         self.assertEqual(command_metadata.searchinfo.maxresultrows, 10)
         self.assertEqual(command_metadata.searchinfo.command, "countmatches")
@@ -271,9 +259,7 @@ class TestSearchCommand(TestCase):
 
         self.assertIsInstance(command.service, Service)
 
-        self.assertEqual(
-            command.service.authority, command_metadata.searchinfo.splunkd_uri
-        )
+        self.assertEqual(command.service.authority, command_metadata.searchinfo.splunkd_uri)
         self.assertEqual(command.service.token, command_metadata.searchinfo.session_key)
         self.assertEqual(command.service.namespace.app, command.metadata.searchinfo.app)
         self.assertIsNone(command.service.namespace.owner)
@@ -304,10 +290,7 @@ class TestSearchCommandService(TestCase):
             service = self.command.service
             self.assertIsNone(service)
         self.assertTrue(
-            any(
-                "Missing metadata for service creation." in message
-                for message in log.output
-            )
+            any("Missing metadata for service creation." in message for message in log.output)
         )
 
     def test_missing_searchinfo(self):

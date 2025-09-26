@@ -16,7 +16,6 @@
 
 from tests import testlib
 
-
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG", "CRIT"]
 
 

@@ -14,7 +14,8 @@
 
 """Utility module shared by the SDK unit tests."""
 
-from utils.cmdopts import *
+
+from tests.utils.cmdopts import Parser
 
 
 def config(option, opt, value, parser):

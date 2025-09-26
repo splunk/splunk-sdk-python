@@ -15,15 +15,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from random import randint
-from unittest import main, TestCase
-
 import os
 import sys
 import tempfile
-import pytest
-from splunklib.searchcommands import validators
+from random import randint
+from unittest import TestCase, main
 
+import pytest
+
+from splunklib.searchcommands import validators
 
 # P2 [ ] TODO: Verify that all format methods produce 'None' when value is None
 

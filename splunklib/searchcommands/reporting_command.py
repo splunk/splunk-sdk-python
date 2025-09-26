@@ -16,10 +16,10 @@
 
 from itertools import chain
 
-from .internals import ConfigurationSettingsType, json_encode_string
 from .decorators import ConfigurationSetting, Option
-from .streaming_command import StreamingCommand
+from .internals import ConfigurationSettingsType, json_encode_string
 from .search_command import SearchCommand
+from .streaming_command import StreamingCommand
 from .validators import Set
 
 
@@ -97,9 +97,7 @@ class ReportingCommand(SearchCommand):
             return
 
         if self.phase == "reduce":
-            streaming_preop = chain(
-                (self.name, 'phase="map"', str(self._options)), self.fieldnames
-            )
+            streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
             self._configuration.streaming_preop = " ".join(streaming_preop)
             return
 

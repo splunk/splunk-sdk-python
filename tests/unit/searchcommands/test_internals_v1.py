@@ -14,22 +14,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from contextlib import closing
-from unittest import main, TestCase
 import os
-from io import StringIO, BytesIO
+from contextlib import closing
 from functools import reduce
+from io import BytesIO, StringIO
+from unittest import TestCase, main
+
 import pytest
 
+from splunklib.searchcommands.decorators import Configuration, Option
 from splunklib.searchcommands.internals import (
     CommandLineParser,
     InputHeader,
     RecordWriterV1,
 )
-from splunklib.searchcommands.decorators import Configuration, Option
-from splunklib.searchcommands.validators import Boolean
-
 from splunklib.searchcommands.search_command import SearchCommand
+from splunklib.searchcommands.validators import Boolean
 
 
 @pytest.mark.smoke
@@ -116,9 +116,7 @@ class TestInternals(TestCase):
         # Command line with missing required options, with or without fieldnames or unnecessary options
 
         options = ["unnecessary_option=true"]
-        self.assertRaises(
-            ValueError, CommandLineParser.parse, command, options + fieldnames
-        )
+        self.assertRaises(ValueError, CommandLineParser.parse, command, options + fieldnames)
         self.assertRaises(ValueError, CommandLineParser.parse, command, options)
         self.assertRaises(ValueError, CommandLineParser.parse, command, [])
 
@@ -249,18 +247,14 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("this%20is%20an%20unnamed%20single-line%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("this%20is%20an%20unnamed%20single-line%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("this%20is%20an%20unnamed\nmulti-\nline%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("this%20is%20an%20unnamed\nmulti-\nline%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -269,9 +263,7 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("Foo:this%20is%20a%20single-line%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("Foo:this%20is%20a%20single-line%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)

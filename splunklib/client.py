@@ -59,7 +59,6 @@ attributes, and methods that are specific to each kind of entity. For example::
 """
 
 import contextlib
-import datetime
 import json
 import logging
 import re
@@ -69,7 +68,6 @@ from time import sleep
 from urllib import parse
 
 from . import data
-from .data import record
 from .binding import (
     AuthenticationError,
     Context,
@@ -80,17 +78,18 @@ from .binding import (
     _NoAuthenticationToken,
     namespace,
 )
+from .data import record
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "connect",
+    "AuthenticationError",
+    "IncomparableException",
     "NotSupportedError",
     "OperationError",
-    "IncomparableException",
     "Service",
+    "connect",
     "namespace",
-    "AuthenticationError",
 ]
 
 PATH_APPS = "apps/local/"
@@ -191,9 +190,7 @@ def _filter_content(content, *args):
     if len(args) > 0:
         return record((k, content[k]) for k in args)
     return record(
-        (k, v)
-        for k, v in content.items()
-        if k not in ["eai:acl", "eai:attributes", "type"]
+        (k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes", "type"]
     )
 
 
@@ -255,9 +252,7 @@ def _parse_atom_entry(entry):
     metadata = _parse_atom_metadata(content)
 
     # Filter some of the noise out of the content record
-    content = record(
-        (k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes"]
-    )
+    content = record((k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes"])
 
     if "type" in content:
         if isinstance(content["type"], list):
@@ -565,9 +560,7 @@ class Service(_BaseService):
         """
         if self.splunk_version >= (5,):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
-        raise IllegalOperationException(
-            "Modular inputs are not supported before Splunk version 5."
-        )
+        raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
 
     @property
     def storage_passwords(self):
@@ -617,9 +610,7 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-        msg = {
-            "value": f"Restart requested by {self.username} via the Splunk SDK for Python"
-        }
+        msg = {"value": f"Restart requested by {self.username} via the Splunk SDK for Python"}
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
         result = self.post("/services/server/control/restart")
@@ -640,7 +631,7 @@ class Service(_BaseService):
                     continue
                 else:
                     return result
-            except Exception as e:
+            except Exception:
                 sleep(1)
         raise Exception("Operation time out.")
 
@@ -740,9 +731,7 @@ class Service(_BaseService):
         :return: A ``tuple`` of ``integers``.
         """
         if self._splunk_version is None:
-            self._splunk_version = tuple(
-                int(p) for p in self.info["version"].split(".")
-            )
+            self._splunk_version = tuple(int(p) for p in self.info["version"].split("."))
         return self._splunk_version
 
     @property
@@ -825,9 +814,7 @@ class Endpoint:
         # For example, "/services/search/jobs" is using API v1
         api_version = 1
 
-        versionSearch = re.search(
-            r"(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/", path
-        )
+        versionSearch = re.search(r"(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/", path)
         if versionSearch:
             api_version = int(versionSearch.group(1))
 
@@ -908,9 +895,7 @@ class Endpoint:
 
         if api_version == 1:
             if isinstance(path, UrlEncoded):
-                path = UrlEncoded(
-                    path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True
-                )
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
             else:
                 path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
@@ -985,9 +970,7 @@ class Endpoint:
 
         if api_version == 1:
             if isinstance(path, UrlEncoded):
-                path = UrlEncoded(
-                    path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True
-                )
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
             else:
                 path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
@@ -1176,9 +1159,7 @@ class Entity(Endpoint):
 
     def post(self, path_segment="", owner=None, app=None, sharing=None, **query):
         owner, app, sharing = self._proper_namespace(owner, app, sharing)
-        return super().post(
-            path_segment, owner=owner, app=app, sharing=sharing, **query
-        )
+        return super().post(path_segment, owner=owner, app=app, sharing=sharing, **query)
 
     def refresh(self, state=None):
         """Refreshes the state of this entity.
@@ -1348,9 +1329,7 @@ class Entity(Endpoint):
         # check for 'name' in kwargs and throw an error if it is
         # there.
         if "name" in kwargs:
-            raise IllegalOperationException(
-                "Cannot update the name of an Entity via the REST API."
-            )
+            raise IllegalOperationException("Cannot update the name of an Entity via the REST API.")
         self.post(**kwargs)
         return self
 
@@ -1903,9 +1882,7 @@ class Configurations(Collection):
         # that multiple entities means a name collision, so we have to override it here.
         try:
             self.get(key)
-            return ConfigurationFile(
-                self.service, PATH_CONF % key, state={"title": key}
-            )
+            return ConfigurationFile(self.service, PATH_CONF % key, state={"title": key})
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
                 raise KeyError(key)
@@ -1938,7 +1915,7 @@ class Configurations(Collection):
         # a ConfigurationFile (which is a Collection) instead of some
         # Entity.
         if not isinstance(name, str):
-            raise ValueError(f"Invalid name: {repr(name)}")
+            raise ValueError(f"Invalid name: {name!r}")
         response = self.post(__conf=name)
         if response.status == 303:
             return self[name]
@@ -1952,9 +1929,7 @@ class Configurations(Collection):
 
     def delete(self, key):
         """Raises `IllegalOperationException`."""
-        raise IllegalOperationException(
-            "Cannot delete configuration files from the REST API."
-        )
+        raise IllegalOperationException("Cannot delete configuration files from the REST API.")
 
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects
@@ -1983,11 +1958,7 @@ class Stanza(Entity):
         # and 'disabled', so to get an accurate length, we have to filter those out and have just
         # the stanza keys.
         return len(
-            [
-                x
-                for x in self._state.content.keys()
-                if not x.startswith("eai") and x != "disabled"
-            ]
+            [x for x in self._state.content.keys() if not x.startswith("eai") and x != "disabled"]
         )
 
 
@@ -2043,7 +2014,7 @@ class StoragePasswords(Collection):
         :return: The :class:`StoragePassword` object created.
         """
         if not isinstance(username, str):
-            raise ValueError(f"Invalid name: {repr(username)}")
+            raise ValueError(f"Invalid name: {username!r}")
 
         if realm is None:
             response = self.post(password=password, name=username)
@@ -2085,9 +2056,7 @@ class StoragePasswords(Collection):
         else:
             # Encode each component separately
             name = (
-                UrlEncoded(realm, encode_slash=True)
-                + ":"
-                + UrlEncoded(username, encode_slash=True)
+                UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
             )
 
         # Append the : expected at the end of the name
@@ -2150,8 +2119,7 @@ class Indexes(Collection):
             Collection.delete(self, name)
         else:
             raise IllegalOperationException(
-                "Deleting indexes via the REST API is "
-                "not supported before Splunk version 5."
+                "Deleting indexes via the REST API is not supported before Splunk version 5."
             )
 
 
@@ -2182,9 +2150,7 @@ class Index(Entity):
             args["source"] = source
         if sourcetype is not None:
             args["sourcetype"] = sourcetype
-        path = UrlEncoded(
-            PATH_RECEIVERS_STREAM + "?" + parse.urlencode(args), skip_encode=True
-        )
+        path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + parse.urlencode(args), skip_encode=True)
 
         cookie_header = (
             self.service.token
@@ -2203,7 +2169,7 @@ class Index(Entity):
         # the input mode
         sock = self.service.connect()
         headers = [
-            f"POST {str(self.service._abspath(path))} HTTP/1.1\r\n".encode("utf-8"),
+            f"POST {self.service._abspath(path)!s} HTTP/1.1\r\n".encode("utf-8"),
             f"Host: {self.service.host}:{int(self.service.port)}\r\n".encode("utf-8"),
             b"Accept-Encoding: identity\r\n",
             cookie_or_auth_header.encode("utf-8"),
@@ -2468,9 +2434,7 @@ class Inputs(Collection):
                     if len(entries) == 0:
                         pass
                     else:
-                        if (
-                            candidate is not None
-                        ):  # Already found at least one candidate
+                        if candidate is not None:  # Already found at least one candidate
                             raise AmbiguousReferenceException(
                                 f"Found multiple inputs named {key}, please specify a kind"
                             )
@@ -2556,9 +2520,7 @@ class Inputs(Collection):
         name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,
-            f"{kwargs['restrictToHost']}:{name}"
-            if "restrictToHost" in kwargs
-            else name,
+            f"{kwargs['restrictToHost']}:{name}" if "restrictToHost" in kwargs else name,
         )
         return Input(self.service, path, kind)
 
@@ -3202,9 +3164,7 @@ class Jobs(Collection):
         :return: The :class:`Job`.
         """
         if kwargs.get("exec_mode", None) == "oneshot":
-            raise TypeError(
-                "Cannot specify exec_mode=oneshot; use the oneshot method instead."
-            )
+            raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
         sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
@@ -3381,9 +3341,7 @@ class ModularInputKind(Entity):
 
     def update(self, **kwargs):
         """Raises an error. Modular input kinds are read only."""
-        raise IllegalOperationException(
-            "Modular input kinds cannot be updated via the REST API."
-        )
+        raise IllegalOperationException("Modular input kinds cannot be updated via the REST API.")
 
 
 class SavedSearch(Entity):
@@ -3435,9 +3393,7 @@ class SavedSearch(Entity):
         :rtype: :class:`AlertGroup`
         """
         if self["is_scheduled"] == "0":
-            raise IllegalOperationException(
-                "Unscheduled saved searches have no alerts."
-            )
+            raise IllegalOperationException("Unscheduled saved searches have no alerts.")
         c = Collection(
             self.service,
             self.service._abspath(
@@ -3505,9 +3461,7 @@ class SavedSearch(Entity):
 
         :return: The list of search times.
         """
-        response = self.get(
-            "scheduled_times", earliest_time=earliest_time, latest_time=latest_time
-        )
+        response = self.get("scheduled_times", earliest_time=earliest_time, latest_time=latest_time)
         data = self._load_atom_entry(response)
         rec = _parse_atom_entry(data)
         times = [datetime.fromtimestamp(int(t)) for t in rec.content.scheduled_times]
@@ -3690,11 +3644,7 @@ class User(Entity):
         :rtype: ``list``
         """
         all_role_names = [r.name for r in self.service.roles.list()]
-        return [
-            self.service.roles[name]
-            for name in self.content.roles
-            if name in all_role_names
-        ]
+        return [self.service.roles[name] for name in self.content.roles if name in all_role_names]
 
 
 # Splunk automatically lowercases new user names so we need to match that
@@ -3744,7 +3694,7 @@ class Users(Collection):
             hilda = users.create("hilda", "anotherpassword", roles=["user","power"])
         """
         if not isinstance(username, str):
-            raise ValueError(f"Invalid username: {str(username)}")
+            raise ValueError(f"Invalid username: {username!s}")
         username = username.lower()
         self.post(name=username, password=password, roles=roles, **params)
         # splunkd doesn't return the user in the POST response body,
@@ -3752,9 +3702,7 @@ class Users(Collection):
         response = self.get(username)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
-        entity = self.item(
-            self.service, parse.unquote(state.links.alternate), state=state
-        )
+        entity = self.item(self.service, parse.unquote(state.links.alternate), state=state)
         return entity
 
     def delete(self, name):
@@ -3867,7 +3815,7 @@ class Roles(Collection):
             paltry = roles.create("paltry", imported_roles="user", defaultApp="search")
         """
         if not isinstance(name, str):
-            raise ValueError(f"Invalid role name: {str(name)}")
+            raise ValueError(f"Invalid role name: {name!s}")
         name = name.lower()
         self.post(name=name, **params)
         # splunkd doesn't return the user in the POST response body,
@@ -3875,9 +3823,7 @@ class Roles(Collection):
         response = self.get(name)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
-        entity = self.item(
-            self.service, parse.unquote(state.links.alternate), state=state
-        )
+        entity = self.item(self.service, parse.unquote(state.links.alternate), state=state)
         return entity
 
     def delete(self, name):
@@ -3913,9 +3859,7 @@ class Application(Entity):
 
 class KVStoreCollections(Collection):
     def __init__(self, service):
-        Collection.__init__(
-            self, service, "storage/collections/config", item=KVStoreCollection
-        )
+        Collection.__init__(self, service, "storage/collections/config", item=KVStoreCollection)
 
     def __getitem__(self, item):
         res = Collection.__getitem__(self, item)
@@ -4000,9 +3944,7 @@ class KVStoreCollectionData:
         self.collection = collection
         self.owner, self.app, self.sharing = collection._proper_namespace()
         self.path = (
-            "storage/collections/data/"
-            + UrlEncoded(self.collection.name, encode_slash=True)
-            + "/"
+            "storage/collections/data/" + UrlEncoded(self.collection.name, encode_slash=True) + "/"
         )
 
     def _get(self, url, **kwargs):
@@ -4060,9 +4002,7 @@ class KVStoreCollectionData:
         :rtype: ``dict``
         """
         return json.loads(
-            self._get(UrlEncoded(str(id), encode_slash=True))
-            .body.read()
-            .decode("utf-8")
+            self._get(UrlEncoded(str(id), encode_slash=True)).body.read().decode("utf-8")
         )
 
     def insert(self, data):
@@ -4145,9 +4085,7 @@ class KVStoreCollectionData:
         data = json.dumps(dbqueries)
 
         return json.loads(
-            self._post(
-                "batch_find", headers=KVStoreCollectionData.JSON_HEADER, body=data
-            )
+            self._post("batch_find", headers=KVStoreCollectionData.JSON_HEADER, body=data)
             .body.read()
             .decode("utf-8")
         )
@@ -4168,9 +4106,7 @@ class KVStoreCollectionData:
         data = json.dumps(documents)
 
         return json.loads(
-            self._post(
-                "batch_save", headers=KVStoreCollectionData.JSON_HEADER, body=data
-            )
+            self._post("batch_save", headers=KVStoreCollectionData.JSON_HEADER, body=data)
             .body.read()
             .decode("utf-8")
         )

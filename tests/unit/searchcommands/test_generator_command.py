@@ -2,6 +2,7 @@ import io
 import time
 
 from splunklib.searchcommands import Configuration, GeneratingCommand
+
 from . import chunked_data_stream as chunky
 
 

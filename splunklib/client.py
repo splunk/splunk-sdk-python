@@ -345,7 +345,7 @@ def connect(**kwargs):
     :param `password`: The password for the Splunk account.
     :type password: ``string``
     :param retries: Number of retries for each HTTP connection (optional, the default is 0).
-                    NOTE THAT THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS TO THE SPLUNK SERVER.
+                    NOTE: THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS TO THE SPLUNK SERVER.
     :type retries: ``int``
     :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
     :type retryDelay: ``int`` (in seconds)

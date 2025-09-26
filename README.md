@@ -11,6 +11,8 @@ You may be asking:
 - [What can Splunk apps do?](https://dev.splunk.com/enterprise/docs/developapps/extensionpoints)
 - [How do I write Splunk apps?](https://dev.splunk.com/enterprise/docs/welcome)
 - [Where does the SDK fit in all this?](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/)
+- What's the difference between `import splunklib` and `import splunk`?
+  - This repo contains `splunklib`. `splunk` is an internal library bundled with the Splunk platform.
 
 ## Getting started
 

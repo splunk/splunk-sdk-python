@@ -28,8 +28,8 @@ from splunklib.searchcommands import (
 @Configuration()
 class EventingCSC(EventingCommand):
     """
-    The eventingapp command filters records from the events stream returning only those for which the status is same
-    as search query.
+    The `eventingcsc` command filters records from the events stream
+    returning only those for which the status is same as search query.
 
     Example:
 

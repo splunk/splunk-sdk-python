@@ -29,13 +29,17 @@ from splunklib.searchcommands import (
 @Configuration(requires_preop=True)
 class ReportingCSC(ReportingCommand):
     """
-    The reportingapp command returns a count of students having higher total marks than cutoff marks.
+    The `reportingcsc` command returns a count of students
+    having higher total marks than cutoff marks.
 
     Example:
+    ```
+    | makeresults count=10
+    | eval math=random()%100, eng=random()%100, cs=random()%100
+    | reportingcsc cutoff=150 math eng cs
+    ```
 
-    ``| makeresults count=10 | eval math=random()%100, eng=random()%100, cs=random()%100 | reportingcsc cutoff=150 math eng cs``
-
-    returns a count of students out of 10 having a higher total marks than cutoff.
+    Returns a count of students out of 10 having a higher total marks than cutoff.
     """
 
     cutoff = Option(require=True, validate=validators.Integer(0))

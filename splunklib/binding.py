@@ -1531,10 +1531,6 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
     :type context: ``SSLContext``
     :param `timeout`: The request time-out period, in seconds (optional).
     :type timeout: ``integer`` or "None"
-    :param `verify`: Set to False to disable SSL verification on https connections.
-    :type verify: ``Boolean``
-    :param `context`: The SSLContext that can is used with the HTTPSConnection when verify=True is enabled and context is specified
-    :type context: ``SSLContext``
     """
 
     def connect(scheme, host, port):

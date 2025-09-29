@@ -51,7 +51,12 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
+packages = [
+  "splunklib",
+  "splunklib.modularinput",
+  "splunklib.searchcommands",
+  "splunklib.mcp",
+]
 
 [tool.setuptools.dynamic]
 version = { attr = "splunklib.__version__" }

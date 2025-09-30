@@ -11,7 +11,7 @@ name = "splunk-sdk"
 dynamic = ["version"]
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Splunk, Inc.", email = "devinfo@splunk.com" }]
 keywords = ["splunk", "sdk"]
@@ -29,7 +29,10 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["python-dotenv>=0.21.1"]
+dependencies = [
+    "fastmcp>=2.12.4",
+    "python-dotenv>=0.21.1",
+]
 optional-dependencies = { compat = ["six>=1.17.0"] }
 
 [dependency-groups]
@@ -71,3 +74,6 @@ select = [
   "ANN", # flake8 type annotations
   "RUF", # ruff-specific rules
 ]
+
+[tool.uv.workspace]
+members = ["tests/system/test_apps/mcp_enabled_app"]

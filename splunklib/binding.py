@@ -34,14 +34,16 @@ from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from io import BytesIO
-from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
+from io import BytesIO
+from urllib import parse
 from xml.etree.ElementTree import XML, ParseError
-from .data import record
-from . import __version__
 
+from splunklib.data import Record
+
+from . import __version__
+from .data import record
 
 logger = logging.getLogger(__name__)
 
@@ -511,7 +513,7 @@ class Context:
     :param headers: List of extra HTTP headers to send (optional).
     :type headers: ``list`` of 2-tuples.
     :param retries: Number of retries for each HTTP connection (optional, the default is 0).
-                    NOTE: THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS 
+                    NOTE: THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS
                     TO THE SPLUNK SERVER AND BLOCK THE CURRENT THREAD WHILE RETRYING.
     :type retries: ``int``
     :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).
@@ -653,7 +655,9 @@ class Context:
 
     @_authentication
     @_log_duration
-    def delete(self, path_segment, owner=None, app=None, sharing=None, **query):
+    def delete(
+        self, path_segment, owner=None, app=None, sharing=None, **query
+    ) -> Record:
         """Performs a DELETE operation at the REST path segment with the given
         namespace and query.
 
@@ -716,7 +720,7 @@ class Context:
     @_log_duration
     def get(
         self, path_segment, owner=None, app=None, headers=None, sharing=None, **query
-    ):
+    ) -> Record:
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -783,7 +787,7 @@ class Context:
     @_log_duration
     def post(
         self, path_segment, owner=None, app=None, sharing=None, headers=None, **query
-    ):
+    ) -> Record:
         """Performs a POST operation from the REST path segment with the given
         namespace and query.
 
@@ -1357,7 +1361,7 @@ class HttpLib:
             url = url + UrlEncoded("?" + _encode(**kwargs), skip_encode=True)
         return self.request(url, {"method": "GET", "headers": headers})
 
-    def post(self, url, headers=None, **kwargs):
+    def post(self, url, headers=None, **kwargs) -> Record:
         """Sends a POST request to a URL.
 
         :param url: The URL.

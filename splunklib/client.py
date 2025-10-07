@@ -59,7 +59,6 @@ attributes, and methods that are specific to each kind of entity. For example::
 """
 
 import contextlib
-import datetime
 import json
 import logging
 import re
@@ -68,8 +67,9 @@ from datetime import datetime, timedelta
 from time import sleep
 from urllib import parse
 
+from splunklib.data import Record
+
 from . import data
-from .data import record
 from .binding import (
     AuthenticationError,
     Context,
@@ -80,6 +80,7 @@ from .binding import (
     _NoAuthenticationToken,
     namespace,
 )
+from .data import record
 
 logger = logging.getLogger(__name__)
 
@@ -808,7 +809,7 @@ class Endpoint:
     :class:`Entity` (essentially HTTP GET and POST methods).
     """
 
-    def __init__(self, service, path):
+    def __init__(self, service: Service, path):
         self.service = service
         self.path = path
 
@@ -833,7 +834,9 @@ class Endpoint:
 
         return api_version
 
-    def get(self, path_segment="", owner=None, app=None, sharing=None, **query):
+    def get(
+        self, path_segment="", owner=None, app=None, sharing=None, **query
+    ) -> Record:
         """Performs a GET operation on the path segment relative to this endpoint.
 
         This method is named to match the HTTP method. This method makes at least
@@ -916,7 +919,9 @@ class Endpoint:
 
         return self.service.get(path, owner=owner, app=app, sharing=sharing, **query)
 
-    def post(self, path_segment="", owner=None, app=None, sharing=None, **query):
+    def post(
+        self, path_segment="", owner=None, app=None, sharing=None, **query
+    ) -> Record:
         """Performs a POST operation on the path segment relative to this endpoint.
 
         This method is named to match the HTTP method. This method makes at least

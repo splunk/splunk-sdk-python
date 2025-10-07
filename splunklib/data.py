@@ -16,6 +16,7 @@
 format, which is the format used by most of the REST API.
 """
 
+from typing import Any
 from xml.etree.ElementTree import XML
 
 __all__ = ["load", "record"]
@@ -201,7 +202,7 @@ def load_value(element, nametable=None):
 
 
 # A generic utility that enables "dot" access to dicts
-class Record(dict):
+class Record(dict[Any, Any]):  # pyright: ignore[reportExplicitAny]
     """This generic utility class enables dot access to members of a Python
     dictionary.
 

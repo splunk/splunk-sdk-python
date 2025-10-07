@@ -31,6 +31,8 @@ classifiers = [
 
 dependencies = [
     "fastmcp>=2.12.4",
+    "httpx>=0.28.1",
+    "mcp>=1.15.0",
     "python-dotenv>=0.21.1",
 ]
 optional-dependencies = { compat = ["six>=1.17.0"] }
@@ -75,5 +77,3 @@ select = [
   "RUF", # ruff-specific rules
 ]
 
-[tool.uv.workspace]
-members = ["tests/system/test_apps/mcp_enabled_app"]

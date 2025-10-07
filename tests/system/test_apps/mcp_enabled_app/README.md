@@ -13,3 +13,7 @@ This example aspires to verify the points listed in [POC - AI with Splunk Apps](
 - Run `uv sync`
 - `source .venv/bin/activate`
 - Run the code blocks `bin/mcp_enabled_app.ipynb`
+
+## TODO
+
+- Research using server composition: <https://gofastmcp.com/servers/composition>

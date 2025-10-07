@@ -1,28 +1,14 @@
 import configparser
-import os
-from dataclasses import asdict, dataclass, field
-from typing import Any, Literal
+from dataclasses import asdict
+from typing import Literal
 
 from fastmcp.client import Client
-from fastmcp.client.transports import PythonStdioTransport
-from mcp.types import Tool
+from mcp.types import Tool as MCPTool
 
-
-@dataclass
-class SplunkMeta:
-    permissions: list[str] = field()
-    tool_type: str = field(default="")
-    schema_version: str = field(default="")
-    execution_mode: str = field(default="")
-    execution_endpoint: str = field(default="")
-
-
-@dataclass
-class McpInputOutputSchema:
-    type: Literal["object"] = "object"
-    properties: dict[str, Any] = field(default_factory=lambda: {})  # pyright: ignore[reportExplicitAny]
-    required: list[str] = field(default_factory=lambda: [])
-
+from splunklib.mcp.tools.models import (
+    McpInputOutputSchema,
+    SplunkMeta,
+)
 
 tool_reg_prefix = "app:mcp_tool"
 
@@ -48,7 +34,7 @@ def match_input_schema(input: Literal["query_string"] | Literal["other"]):
             raise NotImplementedError("We don't know what to put here lol")
 
 
-def parse_ai_conf(file_path: str) -> list[Tool]:
+def parse_ai_conf(file_path: str) -> list[MCPTool]:
     config = configparser.ConfigParser()
     all_sections_len = config.read(file_path)
     if len(all_sections_len) == 0:
@@ -88,23 +74,12 @@ def parse_ai_conf(file_path: str) -> list[Tool]:
     return ini_tools
 
 
-async def get_tools(server_path: str):
+async def get_mcp_tools(server_path: str) -> list[MCPTool]:
+    """Connects to local MCP server to get tools registered with a @tool decorator"""
     mcp_client = Client(server_path)
 
-    tools = []
+    tools: list[MCPTool] = []
     async with mcp_client:
         tools = await mcp_client.list_tools()
 
-        # TODO: Get registrations from ai.conf
-        # curr_path = os.path.join(os.getcwd(), "..", "default", "app.conf")
-        # yaml_tool_registrations: list[Tool] = parse_ai_conf(curr_path)
-
     return tools
-
-
-async def register_tools_from(file_paths: list[str]) -> None:
-    """TODO
-    1. `POST /tools` with MCP payload
-    2.
-    """
-    print(file_paths)

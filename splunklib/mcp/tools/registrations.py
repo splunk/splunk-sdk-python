@@ -5,6 +5,7 @@ from typing import Literal
 from fastmcp.client import Client
 from mcp.types import Tool as MCPTool
 
+from splunklib.mcp.mcp import send_mcp_registrations
 from splunklib.mcp.tools.models import (
     McpInputOutputSchema,
     SplunkMeta,
@@ -83,3 +84,15 @@ async def get_mcp_tools(server_path: str) -> list[MCPTool]:
         tools = await mcp_client.list_tools()
 
     return tools
+
+
+async def register_tools_to_mcp_server(
+    server_file_path: str, endpoint_url: str
+) -> None:
+    tool_registrations = await get_mcp_tools(server_file_path)
+
+    await send_mcp_registrations(
+        endpoint_url,
+        tool_registrations,
+        server_file_path,
+    )

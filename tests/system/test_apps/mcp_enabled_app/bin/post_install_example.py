@@ -1,18 +1,11 @@
 import asyncio
 import os
 
-from splunklib.mcp.mcp import send_mcp_registrations
-from splunklib.mcp.tools import registrations
+from splunklib.mcp.tools.registrations import register_tools_to_mcp_server
 
 
 async def post_install(server_file_path: str, endpoint_url: str) -> None:
-    tool_registrations = await registrations.get_mcp_tools(server_file_path)
-
-    await send_mcp_registrations(
-        endpoint_url,
-        tool_registrations,
-        server_file_path,
-    )
+    await register_tools_to_mcp_server(server_file_path, endpoint_url)
 
 
 if __name__ == "__main__":

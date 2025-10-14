@@ -1,4 +1,3 @@
-import asyncio
 import json
 import time
 
@@ -45,9 +44,7 @@ async def generating_csc(count: int, ctx: Context) -> list[str]:
         await ctx.report_progress((progress + 1) * 2, 100, "Addition in progress")
         time.sleep(0.25)
 
-    quuuuuux = [json.dumps(r) for r in list(results)]
-    print(quuuuuux)
-    return quuuuuux
+    return list(results)
 
 
 if __name__ == "__main__":
@@ -55,10 +52,3 @@ if __name__ == "__main__":
     MCP_SERVER_PORT: int = 2137
 
     app_mcp_server.run("stdio", show_banner=False)
-    # asyncio.run(
-    #     app_mcp_server.run_async(
-    #         show_banner=False,
-    #         # host=MCP_SERVER_HOST,
-    #         # port=MCP_SERVER_PORT
-    #     )
-    # )

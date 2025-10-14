@@ -38,5 +38,5 @@ def setup_logging(
 setup_logging(level=logging.DEBUG, force=True)
 
 
-__version_info__ = (2, 2, 0, "alpha")
-__version__ = ".".join(map(str, __version_info__))
+__VERSION_SEMVER__ = (2, 2, 0, "alpha")
+__VERSION__ = ".".join(map(str, __VERSION_SEMVER__))

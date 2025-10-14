@@ -42,7 +42,7 @@ from xml.etree.ElementTree import XML, ParseError
 
 from splunklib.data import Record
 
-from . import __version__
+from . import __VERSION__
 from .data import record
 
 logger = logging.getLogger(__name__)
@@ -1563,7 +1563,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
         body = message.get("body", "")
         head = {
             "Content-Length": str(len(body)),
-            "User-Agent": "splunk-sdk-python/%s" % __version__,
+            "User-Agent": f"splunk-sdk-python/{__VERSION__}",
             "Accept": "*/*",
             "Connection": "Close",
         }  # defaults

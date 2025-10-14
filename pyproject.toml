@@ -64,7 +64,7 @@ packages = [
 ]
 
 [tool.setuptools.dynamic]
-version = { attr = "splunklib.__version__" }
+version = { attr = "splunklib.__VERSION__" }
 
 # https://docs.astral.sh/ruff/configuration/
 [tool.ruff.lint]
@@ -76,4 +76,3 @@ select = [
   "ANN", # flake8 type annotations
   "RUF", # ruff-specific rules
 ]
-

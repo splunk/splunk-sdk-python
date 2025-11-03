@@ -35,7 +35,8 @@ class Script(metaclass=ABCMeta):
     """
 
     def __init__(self):
-        self._input_definition = None
+        self._server_uri = None
+        self._session_key = None
         self._service = None
 
     def run(self, args):
@@ -63,8 +64,10 @@ class Script(metaclass=ABCMeta):
                 # This script is running as an input. Input definitions will be
                 # passed on stdin as XML, and the script will write events on
                 # stdout and log entries on stderr.
-                self._input_definition = InputDefinition.parse(input_stream)
-                self.stream_events(self._input_definition, event_writer)
+                input_definition = InputDefinition.parse(input_stream)
+                self._server_uri = input_definition.metadata["server_uri"]
+                self._session_key = input_definition.metadata["session_key"]
+                self.stream_events(input_definition, event_writer)
                 event_writer.close()
                 return 0
 
@@ -83,6 +86,8 @@ class Script(metaclass=ABCMeta):
 
             if args[1].lower() == "--validate-arguments":
                 validation_definition = ValidationDefinition.parse(input_stream)
+                self._server_uri = validation_definition.metadata["server_uri"]
+                self._session_key = validation_definition.metadata["session_key"]
                 try:
                     self.validate_input(validation_definition)
                     return 0
@@ -119,19 +124,16 @@ class Script(metaclass=ABCMeta):
         if self._service is not None:
             return self._service
 
-        if self._input_definition is None:
+        if self._server_uri is None and self._session_key is None:
             return None
 
-        splunkd_uri = self._input_definition.metadata["server_uri"]
-        session_key = self._input_definition.metadata["session_key"]
-
-        splunkd = urlsplit(splunkd_uri, allow_fragments=False)
+        splunkd = urlsplit(self._server_uri, allow_fragments=False)
 
         self._service = Service(
             scheme=splunkd.scheme,
             host=splunkd.hostname,
             port=splunkd.port,
-            token=session_key,
+            token=self._session_key,
         )
 
         return self._service

@@ -17,6 +17,7 @@
 from io import BytesIO
 from pathlib import Path
 from time import sleep
+from datetime import datetime
 
 import io
 
@@ -437,6 +438,17 @@ class TestJob(testlib.SDKTestCase):
         if not self.service.disable_v2_api:
             self.assertTrue(client.PATH_JOBS_V2 in self.job.path)
         self.assertEqual(n_events, n_preview, n_results)
+
+    def test_published_author_fields(self):
+        jobs = self.service.jobs.list(name=self.job.name)
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0].state.author.name, self.service.username)
+        self.assertIsNotNone(jobs[0].state.published)
+        datetime.fromisoformat(jobs[0].state.published)  # make sure it is parsable
+
+        self.assertEqual(self.job.state.author.name, self.service.username)
+        self.assertIsNotNone(self.job.state.published)
+        datetime.fromisoformat(self.job.state.published)  # make sure it is parsable
 
 
 if __name__ == "__main__":

@@ -279,6 +279,8 @@ def _parse_atom_entry(entry):
             "fields": metadata.fields,
             "content": content,
             "updated": entry.get("updated"),
+            "published": entry.get("published"),
+            "author": entry.get("author"),
         }
     )
 

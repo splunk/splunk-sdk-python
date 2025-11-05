@@ -511,7 +511,7 @@ class Context:
     :param headers: List of extra HTTP headers to send (optional).
     :type headers: ``list`` of 2-tuples.
     :param retries: Number of retries for each HTTP connection (optional, the default is 0).
-                    NOTE: THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS 
+                    NOTE: THIS MAY INCREASE THE NUMBER OF ROUNDTRIP CONNECTIONS
                     TO THE SPLUNK SERVER AND BLOCK THE CURRENT THREAD WHILE RETRYING.
     :type retries: ``int``
     :param retryDelay: How long to wait between connection attempts if `retries` > 0 (optional, defaults to 10s).

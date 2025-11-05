@@ -440,6 +440,21 @@ class TestJob(testlib.SDKTestCase):
         self.assertEqual(n_events, n_preview, n_results)
 
     def test_published_author_fields(self):
+        def has_author():
+            jobs = self.service.jobs.list(name=self.job.name)
+            return (
+                len(jobs) == 1
+                and jobs[0].state.author is not None
+                and jobs[0].state.author.name is not None
+            )
+
+        # It takes a while until the author field becomes available after
+        # creaton of a job, wait until it is available, before running the asserts.
+        self.assertEventuallyTrue(
+            has_author,
+            timeout=5,
+        )
+
         jobs = self.service.jobs.list(name=self.job.name)
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0].state.author.name, self.service.username)

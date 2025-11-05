@@ -938,7 +938,11 @@ class Context:
             str(mask_sensitive_data(dict(all_headers))),
             mask_sensitive_data(body),
         )
-        if body:
+
+        if isinstance(body, str):
+            assert method.upper() != "GET", "Unable to set body on GET request"
+            message = {"method": method, "headers": all_headers, "body": body}
+        elif body:
             body = _encode(**body)
 
             if method == "GET":

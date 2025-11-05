@@ -21,7 +21,7 @@ from tests import testlib
 from splunklib import results
 
 
-class TestJSONCustomRestEndpointsApp(testlib.SDKTestCase):
+class TestJSONCustomRestEndpointsSpecialMethodHelpers(testlib.SDKTestCase):
     app_name = "cre_app"
 
     def test_GET(self):
@@ -73,5 +73,70 @@ class TestJSONCustomRestEndpointsApp(testlib.SDKTestCase):
                 "payload": "",
                 "headers": {},
                 "method": "DELETE",
+            },
+        )
+
+
+class TestJSONCustomRestEndpointGenericRequest(testlib.SDKTestCase):
+    app_name = "cre_app"
+
+    def test_no_str_body_GET(self):
+        def with_body():
+            self.service.request(
+                app=self.app_name, method="GET", path_segment="execute", body="str"
+            )
+
+        self.assertRaisesRegex(
+            Exception, "Unable to set body on GET request", with_body
+        )
+
+    def test_GET(self):
+        resp = self.service.request(
+            app=self.app_name,
+            method="GET",
+            path_segment="execute",
+            headers=[("x-bar", "baz")],
+        )
+        self.assertIn(("x-foo", "bar"), resp.headers)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(
+            json.loads(str(resp.body)),
+            {
+                "headers": {"x-bar": "baz"},
+                "method": "GET",
+            },
+        )
+
+    def test_POST(self):
+        self.method("POST")
+
+    def test_PUT(self):
+        self.method("PUT")
+
+    def test_PATCH(self):
+        if self.service.splunk_version[0] < 10:
+            self.skipTest("PATCH custom REST endpoints not supported on splunk < 10")
+        self.method("PATCH")
+
+    def test_DELETE(self):
+        self.method("DELETE")
+
+    def method(self, method: str):
+        body = json.dumps({"foo": "bar"})
+        resp = self.service.request(
+            app=self.app_name,
+            method=method,
+            path_segment="execute",
+            body=body,
+            headers=[("x-bar", "baz")],
+        )
+        self.assertIn(("x-foo", "bar"), resp.headers)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(
+            json.loads(str(resp.body)),
+            {
+                "payload": '{"foo": "bar"}',
+                "headers": {"x-bar": "baz"},
+                "method": method,
             },
         )

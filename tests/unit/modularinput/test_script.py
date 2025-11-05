@@ -258,7 +258,7 @@ def test_log_script_exception(monkeypatch):
         "ERROR Some error - "
         "Traceback (most recent call last): "
         '  File "...", line 123, in run_script '
-        "    self.stream_events(self._input_definition, event_writer) "
+        "    self.stream_events(input_definition, event_writer) "
         '  File "...", line 123, in stream_events '
         '    raise RuntimeError("Some error") '
         "RuntimeError: Some error "

@@ -132,7 +132,7 @@ class GeneratorTest(GeneratingCommand):
 
 #### Accessing instance metadata in scripts
 
-- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively, and is available as soon as the `<script_name>.stream_events()` method is called.
+- The `service` metadata object is created from the `splunkd` URI and session key passed to the command invocation on the modular input stream respectively, and is available as soon as the `<script_name>.stream_events()` or `<script_name>.validate_input()` method is called.
 
 ```python
 from splunklib.modularinput import Script

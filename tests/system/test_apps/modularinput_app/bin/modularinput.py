@@ -22,7 +22,7 @@ from splunklib.modularinput import Argument, Event, Scheme, Script
 
 class ModularInput(Script):
     """
-    This app provides an example of a modular input that 
+    This app provides an example of a modular input that
     can be used in Settings => Data inputs => Local inputs => modularinput
     """
 
@@ -44,17 +44,28 @@ class ModularInput(Script):
         return scheme
 
     def validate_input(self, definition):
+        self.check_service_access()
+
         url = definition.parameters[self.endpoint_arg]
         parsed = parse.urlparse(url)
         if parsed.scheme != "https":
             raise ValueError(f"non-supported scheme {parsed.scheme}")
 
     def stream_events(self, inputs, ew):
+        self.check_service_access()
+
         for input_name, input_item in list(inputs.inputs.items()):
             event = Event()
             event.stanza = input_name
             event.data = "example message"
             ew.write_event(event)
+
+    def check_service_access(self):
+        # Both validate_input and stream_events should have access to the Splunk
+        # instance that executed the modular input.
+        if self.service is None:
+            raise Exception("self.Service == None")
+        self.service.info  # make sure that we are properly authenticated and self.service works
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ jobs:
             splunk-version: latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e
       - name: Launch Splunk Docker instance
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Setup Python ${{ matrix.python-version }}

@@ -13,16 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.ai.agent import Agent
-from splunklib.ai.types import Message
-from splunklib.ai.tool import tool, Tool
-from splunklib.ai.model import OllamaModel, OpenAIModel
+from dataclasses import dataclass
+from typing import Literal
 
-__all__ = [
-    "Agent",
-    "Message",
-    "tool",
-    "Tool",
-    "OllamaModel",
-    "OpenAIModel",
-]
+Role = Literal["system", "user", "assistant", "tool"]
+
+
+@dataclass
+class Message:
+    role: Role
+    content: str

@@ -13,16 +13,36 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.ai.agent import Agent
-from splunklib.ai.types import Message
-from splunklib.ai.tool import tool, Tool
-from splunklib.ai.model import OllamaModel, OpenAIModel
+from dataclasses import dataclass
+
+
+@dataclass
+class PredefinedModel:
+    """Base class for models that are predefined in the SDK"""
+
+    model: str
+
+
+@dataclass
+class OllamaModel(PredefinedModel):
+    """Predefined Ollama Model"""
+
+    # TODO: For the MVP purposes the configuration is pretty simple.
+    # It will be extended in the future with additional fields.
+    model: str
+
+
+@dataclass
+class OpenAIModel(PredefinedModel):
+    """Predifned OpenAI Model"""
+
+    # TODO: For the MVP purposes the configuration is pretty simple.
+    # It will be extended in the future with additional fields.
+    model: str
+
 
 __all__ = [
-    "Agent",
-    "Message",
-    "tool",
-    "Tool",
+    "PredefinedModel",
     "OllamaModel",
     "OpenAIModel",
 ]

@@ -5,21 +5,10 @@ jobs:
   run-test-suite:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9]
-        splunk-version: [9.4, latest]
-        include:
-          # Oldest possible configuration
-          # Last Ubuntu version with Python 3.7 binaries available
-          - os: ubuntu-22.04
-            python-version: 3.7
-            splunk-version: 9.1
-          # Latest possible configuration
-          - os: ubuntu-latest
-            python-version: 3.13
-            splunk-version: latest
+        python-version: [3.13]
+        splunk-version: [latest]
     steps:
       - name: Checkout code
         uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e
@@ -29,11 +18,7 @@ jobs:
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: ${{ matrix.python-version }}
-      - name: (Python 3.7) Install dependencies
-        if: ${{ matrix.python-version == '3.7' }}
-        run: python -m pip install python-dotenv pytest
-      - name: (Python >= 3.9) Install dependencies
-        if: ${{ matrix.python-version != '3.7' }}
+      - name: Install dependencies
         run: python -m pip install . --group test
       - name: Run entire test suite
         run: python -m pytest ./tests

@@ -84,7 +84,7 @@ def restart_splunk(service: client.Service):
     sleep(15)
 
 
-class SDKTestCase(unittest.TestCase):
+class SDKTestCase(unittest.IsolatedAsyncioTestCase):
     restart_already_required = False
     installedApps = []
 

@@ -13,16 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.ai.agent import Agent
-from splunklib.ai.types import Message
-from splunklib.ai.tool import tool, Tool
-from splunklib.ai.model import OllamaModel, OpenAIModel
+from splunklib.ai.engines.langchain import langchain_backend_factory
+from splunklib.ai.core.backend import Backend
 
-__all__ = [
-    "Agent",
-    "Message",
-    "tool",
-    "Tool",
-    "OllamaModel",
-    "OpenAIModel",
-]
+
+def get_backend() -> Backend:
+    """Get a backend instance."""
+
+    # NOTE: For now we're just using the langchain backend implementation
+    return langchain_backend_factory()

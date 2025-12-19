@@ -15,14 +15,11 @@
 
 from splunklib.ai.agent import Agent
 from splunklib.ai.types import Message
-from splunklib.ai.tool import tool, Tool
 from splunklib.ai.model import OllamaModel, OpenAIModel
 
 __all__ = [
     "Agent",
     "Message",
-    "tool",
-    "Tool",
     "OllamaModel",
     "OpenAIModel",
 ]

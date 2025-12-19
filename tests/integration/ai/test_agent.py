@@ -15,8 +15,7 @@
 
 import pytest
 
-from splunklib.ai import Agent, Message, OllamaModel, tool
-from threading import Event
+from splunklib.ai import Agent, Message, OllamaModel
 
 
 def test_agent_with_ollama_round_trip():
@@ -38,47 +37,3 @@ def test_agent_with_ollama_round_trip():
 
     response = result[-1].content.strip().lower().replace(".", "")
     assert "stefan" in response
-
-
-def test_agent_with_tool_usage():
-    # Skip if the langchain_ollama package is not installed
-    pytest.importorskip("langchain_ollama")
-
-    adder_event = Event()
-    multiplier_event = Event()
-
-    @tool
-    def adder_tool(a: int, b: int) -> int:
-        "this tool adds two numbers together"
-        adder_event.set()
-
-        return a + b
-
-    @tool
-    def multiplier_tool(a: int, b: int) -> int:
-        "this tool multiplies two numbers together"
-        multiplier_event.set()
-
-        return a * b
-
-    model = OllamaModel(model="llama3.2:3b")
-
-    agent = Agent(
-        model=model,
-        system_prompt="You can use the available tools to perform math.",
-        tools=[adder_tool, multiplier_tool],
-    )
-
-    result = agent.invoke(
-        [
-            Message(
-                role="user",
-                content="What is 7 + 5? Then multiply the result with 5. Give me the final answer",
-            )
-        ]
-    )
-    response = result[-1].content.strip()
-
-    assert "60" in response, "Agent returned wrong response"
-    assert adder_event.is_set(), "The adder tool was not used"
-    assert multiplier_event.is_set(), "The multiplier tool was not used"

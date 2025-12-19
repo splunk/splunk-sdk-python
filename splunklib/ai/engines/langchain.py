@@ -13,20 +13,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from typing import override
 from dataclasses import dataclass
-
-from splunklib.ai.core.backend import Backend, AgentImpl
-from splunklib.ai.types import Message, Role
-from splunklib.ai.tool import Tool
-from splunklib.ai.model import PredefinedModel, OpenAIModel, OllamaModel
+from typing import override
 
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
-from langchain_core.tools import BaseTool, StructuredTool
+from langchain_core.tools import BaseTool
 from langgraph.graph.state import CompiledStateGraph
-
 from pydantic import BaseModel
+
+from splunklib.ai.core.backend import AgentImpl, Backend
+from splunklib.ai.model import OllamaModel, OpenAIModel, PredefinedModel
+from splunklib.ai.types import Message, Role
 
 
 @dataclass
@@ -79,19 +77,16 @@ class LangChainBackend(Backend):
         self,
         model: PredefinedModel,
         system_prompt: str,
-        tools: list[Tool],
+        tools: list[BaseTool],
         output_schema: BaseModel | None,
         input_schema: BaseModel | None,
     ) -> AgentImpl:
         model_impl = _create_langchain_model(model)
 
-        # NOTE: this is temporary, in the future we will use MCP even for local tools.
-        _tools = [StructuredTool.from_function(tool.func) for tool in tools]
-
         return LangChainAgentImpl(
             system_prompt=system_prompt,
             model=model_impl,
-            tools=_tools,
+            tools=tools,
         )
 
 

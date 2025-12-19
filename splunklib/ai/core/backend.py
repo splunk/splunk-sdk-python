@@ -15,10 +15,11 @@
 
 from typing import Protocol
 
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel
-from splunklib.ai.types import Message
-from splunklib.ai.tool import Tool
+
 from splunklib.ai.model import PredefinedModel
+from splunklib.ai.types import Message
 
 
 class AgentImpl(Protocol):
@@ -36,7 +37,10 @@ class Backend(Protocol):
         self,
         model: PredefinedModel,
         system_prompt: str,
-        tools: list[Tool],
+        # TODO: Backend should not be coupled to the BaseTool from langchain.
+        #       We need to come up and create an abstraction for Tools, that can be used
+        #       by backend and custom models.
+        tools: list[BaseTool],
         output_schema: BaseModel | None,
         input_schema: BaseModel | None,
     ) -> AgentImpl: ...

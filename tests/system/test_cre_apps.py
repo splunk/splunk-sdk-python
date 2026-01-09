@@ -15,10 +15,8 @@
 # under the License.
 
 import json
-import pytest
 
 from tests import testlib
-from splunklib import results
 
 
 class TestJSONCustomRestEndpointsSpecialMethodHelpers(testlib.SDKTestCase):
@@ -56,6 +54,47 @@ class TestJSONCustomRestEndpointsSpecialMethodHelpers(testlib.SDKTestCase):
                 "payload": '{"foo": "bar"}',
                 "headers": {"x-bar": "baz"},
                 "method": "POST",
+            },
+        )
+
+    def test_PUT(self):
+        body = json.dumps({"foo": "bar"})
+        resp = self.service.put(
+            app=self.app_name,
+            path_segment="execute",
+            body=body,
+            headers=[("x-bar", "baz")],
+        )
+        self.assertIn(("x-foo", "bar"), resp.headers)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(
+            json.loads(str(resp.body)),
+            {
+                "payload": '{"foo": "bar"}',
+                "headers": {"x-bar": "baz"},
+                "method": "PUT",
+            },
+        )
+
+    def test_PATCH(self):
+        if self.service.splunk_version[0] < 10:
+            self.skipTest("PATCH custom REST endpoints not supported on splunk < 10")
+
+        body = json.dumps({"foo": "bar"})
+        resp = self.service.patch(
+            app=self.app_name,
+            path_segment="execute",
+            body=body,
+            headers=[("x-bar", "baz")],
+        )
+        self.assertIn(("x-foo", "bar"), resp.headers)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(
+            json.loads(str(resp.body)),
+            {
+                "payload": '{"foo": "bar"}',
+                "headers": {"x-bar": "baz"},
+                "method": "PATCH",
             },
         )
 

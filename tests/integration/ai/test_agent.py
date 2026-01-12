@@ -14,36 +14,89 @@
 # under the License.
 
 import pytest
-
-from splunklib.ai import Agent, Message, OllamaModel
 from pydantic import BaseModel, Field
 
+from splunklib.ai import Agent, Message, OllamaModel
 
-def test_agent_with_ollama_round_trip():
+
+@pytest.mark.asyncio
+async def test_agent_with_ollama_round_trip():
     # Skip if the langchain_ollama package is not installed
     pytest.importorskip("langchain_ollama")
 
     model = OllamaModel(model="llama3.2:3b")
 
+    async with Agent(model=model, system_prompt="Your name is stefan") as agent:
+        result = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="What is your name? Answer in one word",
+                )
+            ]
+        )
+
+        response = result.messages[-1].content.strip().lower().replace(".", "")
+        assert result.structured_output is None, (
+            "The structured output should not be populated"
+        )
+        assert "stefan" in response
+
+
+@pytest.mark.asyncio
+async def test_agent_use_without_async_with():
+    pytest.importorskip("langchain_ollama")
+
+    model = OllamaModel(model="llama3.2:3b")
     agent = Agent(model=model, system_prompt="Your name is stefan")
 
-    result = agent.invoke(
-        [
-            Message(
-                role="user",
-                content="What is your name? Answer in one word",
-            )
-        ]
-    )
-
-    response = result.messages[-1].content.strip().lower().replace(".", "")
-    assert result.structured_output is None, (
-        "The structured output should not be populated"
-    )
-    assert "stefan" in response
+    with pytest.raises(Exception, match="Agent must be used inside 'async with'"):
+        _ = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="What is your name? Answer in one word",
+                )
+            ]
+        )
 
 
-def test_agent_with_structured_output():
+@pytest.mark.asyncio
+async def test_agent_use_outside_async_with():
+    pytest.importorskip("langchain_ollama")
+
+    model = OllamaModel(model="llama3.2:3b")
+    agent = Agent(model=model, system_prompt="Your name is stefan")
+
+    async with agent:
+        pass
+
+    with pytest.raises(Exception, match="Agent must be used inside 'async with'"):
+        _ = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="What is your name? Answer in one word",
+                )
+            ]
+        )
+
+
+@pytest.mark.asyncio
+async def test_agent_multiple_async_with():
+    pytest.importorskip("langchain_ollama")
+
+    model = OllamaModel(model="llama3.2:3b")
+    agent = Agent(model=model, system_prompt="Your name is stefan")
+
+    async with agent:
+        with pytest.raises(Exception, match="Agent is already in `async with` context"):
+            async with agent:
+                pass
+
+
+@pytest.mark.asyncio
+async def test_agent_with_structured_output():
     pytest.importorskip("langchain_ollama")
     model = OllamaModel(model="llama3.2:3b")
 
@@ -51,67 +104,67 @@ def test_agent_with_structured_output():
         name: str = Field(description="The person's full name", min_length=1)
         age: int = Field(description="The person's age in years", ge=0, le=150)
 
-    agent = Agent(
+    async with Agent(
         model=model,
         system_prompt="Respond with structured data",
         output_schema=Person,
-    )
+    ) as agent:
+        result = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="fill in the details for Person model",
+                )
+            ]
+        )
 
-    result = agent.invoke(
-        [
-            Message(
-                role="user",
-                content="fill in the details for Person model",
-            )
-        ]
-    )
+        response = result.structured_output
 
-    response = result.structured_output
+        last_message = result.messages[-1].content
 
-    last_message = result.messages[-1].content
+        assert type(response) == Person, "Response is not of type Person"
+        assert response.name != "", "Name field is empty"
+        assert 0 <= response.age <= 150, "Age field is out of bounds"
 
-    assert type(response) == Person, "Response is not of type Person"
-    assert response.name != "", "Name field is empty"
-    assert 0 <= response.age <= 150, "Age field is out of bounds"
-
-    # check if the last message contains the response in natural language
-    assert response.name in last_message, "Name field not found in the message"
-    assert str(response.age) in last_message, "Age field not found in the message"
+        # check if the last message contains the response in natural language
+        assert response.name in last_message, "Name field not found in the message"
+        assert str(response.age) in last_message, "Age field not found in the message"
 
 
-def test_agent_remembers_state():
+@pytest.mark.asyncio
+async def test_agent_remembers_state():
     pytest.importorskip("langchain_ollama")
     model = OllamaModel(model="llama3.2:3b")
 
-    agent = Agent(
+    async with Agent(
         model=model,
         system_prompt="You are a helpful assistant that responds in structured data.",
-    )
+    ) as agent:
+        _ = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="hi, my name is Chris",
+                )
+            ]
+        )
 
-    _ = agent.invoke(
-        [
-            Message(
-                role="user",
-                content="hi, my name is Chris",
-            )
-        ]
-    )
+        result = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="What is my name?",
+                )
+            ]
+        )
 
-    result = agent.invoke(
-        [
-            Message(
-                role="user",
-                content="What is my name?",
-            )
-        ]
-    )
+        response = result.messages[-1].content
 
-    response = result.messages[-1].content
-
-    assert "Chris" in response, "Agent did not remember the name"
+        assert "Chris" in response, "Agent did not remember the name"
 
 
-def test_agent_understands_other_agents():
+@pytest.mark.asyncio
+async def test_agent_understands_other_agents():
     pytest.importorskip("langchain_ollama")
     model = OllamaModel(
         model="devstral-small-2:24b",
@@ -130,40 +183,41 @@ def test_agent_understands_other_agents():
             description="A short description of the person", min_length=10
         )
 
-    subagent = Agent(
+    async with Agent(
         model=model,
         system_prompt="You are a helpful assistant that describes a person based on their details.",
         name="PersonDescriberAgent",
         description="Describes a person based on their details.",
         input_schema=SubagentInput,
         output_schema=SubagentOutput,
-    )
+    ) as subagent:
 
-    class SupervisorOutput(BaseModel):
-        team_name: str = Field(description="The name of the team", min_length=1)
-        member_descriptions: list[SubagentOutput] = Field(
-            description="List of member descriptions", min_items=1, max_items=10
-        )
-
-    supervisor_agent = Agent(
-        model=model,
-        agents=[subagent],
-        system_prompt="""You are a supervisor agent that manages other agents to describe multiple people.
-        Make sure you return the structured output data that matches the response format provided to you.
-        If you're unable to get the data from the sub-agent, return an appropriate message indicating the failure.
-        """,
-        output_schema=SupervisorOutput,
-    )
-
-    result = supervisor_agent.invoke(
-        [
-            Message(
-                role="user",
-                content="give me descriptions for three people. Use describer agent to generate descriptions. Provide it with all the data it needs.",
+        class SupervisorOutput(BaseModel):
+            team_name: str = Field(description="The name of the team", min_length=1)
+            member_descriptions: list[SubagentOutput] = Field(
+                description="List of member descriptions", min_items=1, max_items=10
             )
-        ]
-    )
 
-    response = result.structured_output
-    assert type(response) == SupervisorOutput, "Response is not of type Team"
-    assert len(response.member_descriptions) == 3, "Team does not have 3 members"
+        async with Agent(
+            model=model,
+            agents=[subagent],
+            system_prompt="""You are a supervisor agent that manages other agents to describe multiple people.
+            Make sure you return the structured output data that matches the response format provided to you.
+            If you're unable to get the data from the sub-agent, return an appropriate message indicating the failure.
+            """,
+            output_schema=SupervisorOutput,
+        ) as supervisor_agent:
+            result = await supervisor_agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="give me descriptions for three people. Use describer agent to generate descriptions. Provide it with all the data it needs.",
+                    )
+                ]
+            )
+
+            response = result.structured_output
+            assert type(response) == SupervisorOutput, "Response is not of type Team"
+            assert len(response.member_descriptions) == 3, (
+                "Team does not have 3 members"
+            )

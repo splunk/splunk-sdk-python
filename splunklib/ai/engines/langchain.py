@@ -66,7 +66,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         )
 
     @override
-    def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]:
+    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]:
         # translate incoming messages to langchain
         langchain_msgs = [
             {
@@ -77,7 +77,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         ]
 
         # call the langchain agent
-        result = self._agent.invoke(
+        result = await self._agent.ainvoke(
             {"messages": langchain_msgs},
             config=self._config,
         )
@@ -111,7 +111,7 @@ class LangChainBackend(Backend):
     def __init__(self): ...
 
     @override
-    def create_agent(
+    async def create_agent(
         self,
         agent: BaseAgent[OutputT],
     ) -> AgentImpl[OutputT]:
@@ -150,17 +150,17 @@ def _agent_as_tool(agent: BaseAgent[OutputT]):
 
     InputSchema = agent._input_schema
 
-    def _run(**kwargs) -> OutputT | str:
+    async def _run(**kwargs) -> OutputT | str:
         req = InputSchema(**kwargs)
         request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
 
-        result = agent.invoke([Message(role="user", content=request_text)])
+        result = await agent.invoke([Message(role="user", content=request_text)])
         if agent._output_schema:
             return result.structured_output
         return result.messages[-1].content
 
     return StructuredTool.from_function(
-        func=_run,
+        coroutine=_run,
         name=_normalize_agent_name(agent._name),
         description=agent._description,
         args_schema=InputSchema,

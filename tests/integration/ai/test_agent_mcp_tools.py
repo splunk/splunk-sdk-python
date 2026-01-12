@@ -22,33 +22,32 @@ class TestTools(testlib.SDKTestCase):
             "weather.py",
         ),
     )
-    def test_tool_execution_structured_output(self) -> None:
+    async def test_tool_execution_structured_output(self) -> None:
         # Skip if the langchain_ollama package is not installed
         pytest.importorskip("langchain_ollama")
 
         model = OllamaModel(model="llama3.2:3b")
 
-        agent = Agent(
+        async with Agent(
             model=model,
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
             use_mcp_tools=True,
-        )
+        ) as agent:
+            result = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="""
+                        What is the weather like today in Krakow? Use the provided tools to check the temperature.
+                        Return a short response, containing the tool response.
+                        """,
+                    )
+                ]
+            )
 
-        result = agent.invoke(
-            [
-                Message(
-                    role="user",
-                    content="""
-                    What is the weather like today in Krakow? Use the provided tools to check the temperature.
-                    Return a short response, containing the tool response.
-                    """,
-                )
-            ]
-        )
-
-        response = result.messages[-1].content
-        assert response.count("31.5") > 0, "Invalid LLM response"
+            response = result.messages[-1].content
+            assert response.count("31.5") > 0, "Invalid LLM response"
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
@@ -58,35 +57,34 @@ class TestTools(testlib.SDKTestCase):
             "tool_context.py",
         ),
     )
-    def test_tool_execution_service_access(self) -> None:
+    async def test_tool_execution_service_access(self) -> None:
         # Skip if the langchain_ollama package is not installed
         pytest.importorskip("langchain_ollama")
 
         model = OllamaModel(model="llama3.2:3b")
 
-        agent = Agent(
+        async with Agent(
             model=model,
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
             use_mcp_tools=True,
-        )
+        ) as agent:
+            result = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="""
+                        Using available tools, please check the startup time of the splunk instance.
+                        Return a short response, containing the tool response.
+                        """,
+                    )
+                ]
+            )
 
-        result = agent.invoke(
-            [
-                Message(
-                    role="user",
-                    content="""
-                    Using available tools, please check the startup time of the splunk instance.
-                    Return a short response, containing the tool response.
-                    """,
-                )
-            ]
-        )
+            want_startup_time = f"{self.service.info.startup_time}"
 
-        want_startup_time = f"{self.service.info.startup_time}"
-
-        response = result.messages[-1].content
-        assert response.count(want_startup_time) > 0, "Invalid LLM response"
+            response = result.messages[-1].content
+            assert response.count(want_startup_time) > 0, "Invalid LLM response"
 
 
 class TestSplunkToken(testlib.SDKTestCase):

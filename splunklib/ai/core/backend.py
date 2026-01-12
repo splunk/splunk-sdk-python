@@ -21,7 +21,7 @@ from splunklib.ai.types import BaseAgent, Message, AgentResponse, OutputT
 class AgentImpl(Protocol[OutputT]):
     """Backend-specific agent implementation used by the public `Agent` wrapper."""
 
-    def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]: ...
+    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]: ...
 
 
 class Backend(Protocol):
@@ -29,7 +29,7 @@ class Backend(Protocol):
     Abstraction layer for engine-specific agent backends.
     """
 
-    def create_agent(
+    async def create_agent(
         self,
         agent: BaseAgent[OutputT],
     ) -> AgentImpl[OutputT]: ...

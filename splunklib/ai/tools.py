@@ -1,4 +1,3 @@
-import asyncio
 import collections.abc
 import json
 import os
@@ -21,7 +20,7 @@ from mcp.types import CallToolResult, PaginatedRequestParams, TextContent
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
-from splunklib.client import Endpoint, Service, connect
+from splunklib.client import Service
 
 TOOLS_FILENAME = "tools.py"
 
@@ -166,18 +165,10 @@ def _convert_mcp_tool_to_langchain_tool(
             )
         return _convert_tool_result_to_langchain(call_tool_result)
 
-    # TODO: drop once we use the async variant of langchain.
-    def sync_call_tool(
-        **arguments: dict[str, Any],
-    ) -> tuple[list[str], dict[str, Any] | None]:
-        return asyncio.run(call_tool(**arguments))
-
     return StructuredTool(
         name=tool.name,
         description=tool.description or "",
         args_schema=tool.inputSchema,
-        # TODO: drop once we use the async variant of langchain.
-        func=sync_call_tool,
         coroutine=call_tool,
         response_format="content_and_artifact",
         handle_tool_error=True,

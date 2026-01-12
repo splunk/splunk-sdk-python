@@ -1,3 +1,4 @@
+import asyncio
 import collections.abc
 import json
 import os
@@ -93,6 +94,7 @@ async def _connect_remote_mcp(cfg: RemoteCfg):
         http_client=httpx.AsyncClient(
             auth=_MCPAuth(f"Bearer {cfg.token}"),
             verify=False,
+            follow_redirects=True,
         ),
     ) as (read, write, _):
         async with ClientSession(read, write) as session:
@@ -119,8 +121,7 @@ async def _connect(cfg: LocalCfg | RemoteCfg):
             yield remote_mcp
     else:
         async with _connect_local_mcp(cfg) as local_mcp:
-            a: ClientSession = local_mcp
-            yield a
+            yield local_mcp
 
 
 async def _list_all_tools(cfg: LocalCfg | RemoteCfg) -> list[MCPTool]:
@@ -267,7 +268,7 @@ async def load_mcp_tools(
 
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
-    token = _get_splunk_token_for_mcp(service)
+    token = await asyncio.to_thread(lambda: _get_splunk_token_for_mcp(service))
 
     # Load remote MCP tools, only if the MCP server App is available.
     client = httpx.AsyncClient(auth=_MCPAuth(f"Bearer {token}"), verify=False)

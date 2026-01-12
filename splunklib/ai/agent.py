@@ -88,14 +88,11 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
 async def _load_tools_from_mcp(
     service: Service | None,
 ) -> list[BaseTool]:
-    lc_tools: list[BaseTool] = []
-
     local_tools_path = _testing_local_tools_path
     if local_tools_path is None:
         local_tools_path = locate_tools_path_by_sdk_location()
 
-    # FIX: We should load remote tools in case local registry does not exist.
-    if os.path.exists(local_tools_path):
-        lc_tools = await load_mcp_tools(service, local_tools_path)
+    if not os.path.exists(local_tools_path):
+        local_tools_path = None
 
-    return lc_tools
+    return await load_mcp_tools(service, local_tools_path)

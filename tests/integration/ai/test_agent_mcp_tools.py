@@ -47,7 +47,7 @@ class TestTools(testlib.SDKTestCase):
             ]
         )
 
-        response = result[-1].content
+        response = result.messages[-1].content
         assert response.count("31.5") > 0, "Invalid LLM response"
 
     @patch(
@@ -85,7 +85,7 @@ class TestTools(testlib.SDKTestCase):
 
         want_startup_time = f"{self.service.info.startup_time}"
 
-        response = result[-1].content
+        response = result.messages[-1].content
         assert response.count(want_startup_time) > 0, "Invalid LLM response"
 
 

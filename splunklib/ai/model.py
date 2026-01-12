@@ -30,6 +30,7 @@ class OllamaModel(PredefinedModel):
     # TODO: For the MVP purposes the configuration is pretty simple.
     # It will be extended in the future with additional fields.
     model: str
+    base_url: str = "http://localhost:11434"
 
 
 @dataclass

@@ -13,12 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from splunklib.ai.engines.langchain import langchain_backend_factory
 from splunklib.ai.core.backend import Backend
 
 
 def get_backend() -> Backend:
     """Get a backend instance."""
+
+    from splunklib.ai.engines.langchain import langchain_backend_factory
 
     # NOTE: For now we're just using the langchain backend implementation
     return langchain_backend_factory()

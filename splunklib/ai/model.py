@@ -16,14 +16,14 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class PredefinedModel:
     """Base class for models that are predefined in the SDK"""
 
     model: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class OllamaModel(PredefinedModel):
     """Predefined Ollama Model"""
 
@@ -33,7 +33,7 @@ class OllamaModel(PredefinedModel):
     base_url: str = "http://localhost:11434"
 
 
-@dataclass
+@dataclass(frozen=True)
 class OpenAIModel(PredefinedModel):
     """Predifned OpenAI Model"""
 

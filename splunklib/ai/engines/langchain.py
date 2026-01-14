@@ -115,20 +115,20 @@ class LangChainBackend(Backend):
         self,
         agent: BaseAgent[OutputT],
     ) -> AgentImpl[OutputT]:
-        model_impl = _create_langchain_model(agent._model)
+        model_impl = _create_langchain_model(agent.model)
 
-        system_prompt = agent._system_prompt
-        tools = agent._tools.copy()
+        system_prompt = agent.system_prompt
+        tools = list(agent._tools)
 
-        if agent._agents:
-            tools.extend([_agent_as_tool(a) for a in agent._agents])
+        if agent.agents:
+            tools.extend([_agent_as_tool(a) for a in agent.agents])
             system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
         return LangChainAgentImpl(
             system_prompt=system_prompt,
             model=model_impl,
             tools=tools,
-            output_schema=agent._output_schema,
+            output_schema=agent.output_schema,
         )
 
 
@@ -143,26 +143,26 @@ def _normalize_agent_name(name: str) -> str:
 
 
 def _agent_as_tool(agent: BaseAgent[OutputT]):
-    assert agent._name, "Agent must have a name to be used by other Agents"
-    assert agent._input_schema, (
+    assert agent.name, "Agent must have a name to be used by other Agents"
+    assert agent.input_schema, (
         "Agent must have an input schema to be used by other Agents"
     )
 
-    InputSchema = agent._input_schema
+    InputSchema = agent.input_schema
 
     async def _run(**kwargs) -> OutputT | str:
         req = InputSchema(**kwargs)
         request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
 
         result = await agent.invoke([Message(role="user", content=request_text)])
-        if agent._output_schema:
+        if agent.output_schema:
             return result.structured_output
         return result.messages[-1].content
 
     return StructuredTool.from_function(
         coroutine=_run,
-        name=_normalize_agent_name(agent._name),
-        description=agent._description,
+        name=_normalize_agent_name(agent.name),
+        description=agent.description,
         args_schema=InputSchema,
     )
 

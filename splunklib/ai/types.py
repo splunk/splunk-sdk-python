@@ -27,13 +27,13 @@ Role = Literal["system", "user", "assistant", "tool"]
 OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Message:
     role: Role
     content: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT
@@ -42,10 +42,9 @@ class AgentResponse(Generic[OutputT]):
 
 
 class BaseAgent(Generic[OutputT], ABC):
-    # TODO: create getters for the fields used in backend code
     _system_prompt: str
     _model: PredefinedModel
-    _tools: list[BaseTool]
+    _tools: Sequence[BaseTool]
     _agents: Sequence["BaseAgent[BaseModel | None]"]
     _name: str = ""
     _description: str = ""
@@ -58,7 +57,7 @@ class BaseAgent(Generic[OutputT], ABC):
         model: PredefinedModel,
         description: str = "",
         name: str = "",
-        tools: list[BaseTool] | None = None,
+        tools: Sequence[BaseTool] | None = None,
         agents: Sequence["BaseAgent[BaseModel | None]"] | None = None,
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
@@ -67,10 +66,42 @@ class BaseAgent(Generic[OutputT], ABC):
         self._model = model
         self._name = name
         self._description = description
-        self._tools = tools or []
-        self._agents = agents or []
+        # TODO: Backend should not be coupled to the BaseTool from langchain.
+        #       We need to come up and create an abstraction for Tools, that can be used
+        #       by backend and custom models.
+        #       This field is now private, but should be exposed when this TODO is finished.
+        self._tools = tuple(tools) if tools else ()
+        self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
         self._output_schema = output_schema
 
     @abstractmethod
     async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]: ...
+
+    @property
+    def system_prompt(self) -> str:
+        return self._system_prompt
+
+    @property
+    def model(self) -> PredefinedModel:
+        return self._model
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def agents(self) -> Sequence["BaseAgent[BaseModel | None]"]:
+        return self._agents
+
+    @property
+    def input_schema(self) -> type[BaseModel] | None:
+        return self._input_schema
+
+    @property
+    def output_schema(self) -> type[OutputT] | None:
+        return self._output_schema

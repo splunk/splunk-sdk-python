@@ -1659,7 +1659,6 @@ dependencies = [
     { name = "langchain" },
     { name = "mcp" },
     { name = "pydantic" },
-    { name = "pytest-asyncio" },
     { name = "python-dotenv" },
 ]
 
@@ -1686,6 +1685,7 @@ dev = [
     { name = "langchain-openai" },
     { name = "mypy" },
     { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "sphinx" },
@@ -1713,6 +1713,7 @@ release = [
 ]
 test = [
     { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "pytest-cov" },
 ]
 
@@ -1723,7 +1724,6 @@ requires-dist = [
     { name = "langchain-openai", marker = "extra == 'openai'", specifier = ">=1.1.1" },
     { name = "mcp", specifier = ">=1.22.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
-    { name = "pytest-asyncio", specifier = ">=1.3.0" },
     { name = "python-dotenv", specifier = ">=0.21.1" },
     { name = "six", marker = "extra == 'compat'", specifier = ">=1.17.0" },
 ]
@@ -1741,6 +1741,7 @@ dev = [
     { name = "langchain-openai", specifier = ">=1.1.1" },
     { name = "mypy", specifier = ">=1.4.1" },
     { name = "pytest", specifier = ">=7.4.4" },
+    { name = "pytest-asyncio", specifier = ">=1.3.0" },
     { name = "pytest-cov", specifier = ">=4.1.0" },
     { name = "ruff", specifier = ">=0.13.1" },
     { name = "sphinx" },
@@ -1764,6 +1765,7 @@ release = [
 ]
 test = [
     { name = "pytest", specifier = ">=7.4.4" },
+    { name = "pytest-asyncio", specifier = ">=1.3.0" },
     { name = "pytest-cov", specifier = ">=4.1.0" },
 ]
 

@@ -25,7 +25,13 @@ from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tools import load_mcp_tools, locate_tools_path_by_sdk_location
-from splunklib.ai.types import AgentResponse, BaseAgent, Message, OutputT
+from splunklib.ai.types import (
+    BaseAgent,
+    Message,
+    AgentResponse,
+    OutputT,
+    StopConditions,
+)
 from splunklib.client import Service
 
 # For testing purposes, overrides the automatically inferred tools.py path.
@@ -45,6 +51,7 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,
+        loop_stop_conditions: StopConditions | None = None,
         name: str = "",  # Only used by Subgents
         description: str = "",  # Only used by Subagents
     ) -> None:
@@ -56,6 +63,7 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
             agents=agents,
             input_schema=input_schema,
             output_schema=output_schema,
+            loop_stop_conditions=loop_stop_conditions,
         )
 
         self._use_mcp_tools = use_mcp_tools

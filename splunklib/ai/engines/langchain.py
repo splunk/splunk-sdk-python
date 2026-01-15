@@ -13,19 +13,38 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import override, cast
+from functools import partial
+from time import monotonic
+from typing import Any, override, cast
 import uuid
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import AgentMiddleware, before_model, AgentState
+from langchain.agents.middleware.summarization import TokenCounter
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.graph.state import CompiledStateGraph, RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
+from langchain.messages import AIMessage
+from langgraph.runtime import Runtime
+from langchain_core.messages.utils import count_tokens_approximately
+
 
 from splunklib.ai.core.backend import AgentImpl, Backend
 from splunklib.ai.model import OllamaModel, OpenAIModel, PredefinedModel
-from splunklib.ai.types import Message, Role, BaseAgent, AgentResponse, OutputT
+from splunklib.ai.types import (
+    Message,
+    Role,
+    BaseAgent,
+    AgentResponse,
+    OutputT,
+    StopConditions,
+    TimeoutExceededException,
+    StepsLimitExceededException,
+    TokenLimitExceededException,
+)
 
 
 AGENT_AS_TOOLS_PROMPT = """
@@ -34,6 +53,8 @@ Agents are more advanced TOOLS, which start with "agent-" prefix.
 
 Do not call the tools if not needed.
 """
+
+ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 
 
 @dataclass
@@ -49,6 +70,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         model: BaseChatModel,
         tools: list[BaseTool],
         output_schema: type[OutputT] | None,
+        middleware: Sequence[AgentMiddleware] | None = None,
     ) -> None:
         super().__init__()
         self._output_schema = output_schema
@@ -56,6 +78,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         self._config = {"configurable": {"thread_id": self._thread_id}}
 
         checkpointer = InMemorySaver()
+        middleware = middleware or []
 
         self._agent = create_agent(
             model=model,
@@ -63,6 +86,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             system_prompt=system_prompt,
             checkpointer=checkpointer,
             response_format=output_schema,
+            middleware=middleware,
         )
 
     @override
@@ -124,11 +148,16 @@ class LangChainBackend(Backend):
             tools.extend([_agent_as_tool(a) for a in agent.agents])
             system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
+        middleware = []
+        if agent.loop_stop_conditions:
+            middleware = _create_middleware(agent.loop_stop_conditions, model_impl)
+
         return LangChainAgentImpl(
             system_prompt=system_prompt,
             model=model_impl,
             tools=tools,
             output_schema=agent.output_schema,
+            middleware=middleware,
         )
 
 
@@ -191,6 +220,74 @@ def _map_role_to_langchain(role: Role) -> str:
             return "ai"
         case "tool":
             return "tool"
+
+
+def _create_middleware(
+    stop_conditions: StopConditions, model: BaseChatModel
+) -> list[AgentMiddleware]:
+    middlewares: list[AgentMiddleware] = []
+
+    if limit := stop_conditions.steps_limit:
+        middlewares.append(_max_steps_middleware(step_limit=limit))
+
+    if limit := stop_conditions.token_limit:
+        middlewares.append(_token_count_middleware(token_limit=limit, model=model))
+
+    if seconds := stop_conditions.timeout_seconds:
+        middlewares.append(_timeout_middleware(seconds=seconds))
+
+    return middlewares
+
+
+def _timeout_middleware(seconds: float) -> AgentMiddleware:
+    # NOTE: the timeout timestamp is calculated when the Middleware is created
+    now = monotonic()
+    timeout = now + seconds
+
+    @before_model(can_jump_to=["end"])
+    def _check_timeout(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        if monotonic() >= timeout:
+            raise TimeoutExceededException(seconds)
+
+    return _check_timeout
+
+
+def _max_steps_middleware(step_limit: int) -> AgentMiddleware:
+    @before_model(can_jump_to=["end"])
+    def _check_message_limit(
+        state: AgentState, runtime: Runtime
+    ) -> dict[str, Any] | None:
+        if len(state["messages"]) >= step_limit:
+            raise StepsLimitExceededException(step_limit)
+        return None
+
+    return _check_message_limit
+
+
+def _token_count_middleware(token_limit: int, model: BaseChatModel) -> AgentMiddleware:
+    @before_model(can_jump_to=["end"])
+    def _check_token_limit(
+        state: AgentState, runtime: Runtime
+    ) -> dict[str, Any] | None:
+        messages = state["messages"]
+        total_tokens = _get_approximate_token_counter(model)
+
+        if total_tokens(messages) > token_limit:
+            raise TokenLimitExceededException(token_limit)
+        return None
+
+    return _check_token_limit
+
+
+def _get_approximate_token_counter(model: BaseChatModel) -> TokenCounter:
+    """Tune parameters of approximate token counter based on model type."""
+
+    # NOTE: this is copied from langchain library
+    if model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE:
+        # 3.3 was estimated in an offline experiment, comparing with Claude's token-counting
+        # API: https://platform.claude.com/docs/en/build-with-claude/token-counting
+        return partial(count_tokens_approximately, chars_per_token=3.3)
+    return count_tokens_approximately
 
 
 def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:

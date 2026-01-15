@@ -17,6 +17,14 @@ import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent, Message, OllamaModel
+from splunklib.ai.types import (
+    StepsLimitExceededException,
+    StopConditions,
+    TimeoutExceededException,
+    TokenLimitExceededException,
+)
+from pydantic import BaseModel, Field
+import time
 
 
 @pytest.mark.asyncio
@@ -220,4 +228,93 @@ async def test_agent_understands_other_agents():
             assert type(response) == SupervisorOutput, "Response is not of type Team"
             assert len(response.member_descriptions) == 3, (
                 "Team does not have 3 members"
+            )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_stop_conditions_token_limit():
+    pytest.importorskip("langchain_ollama")
+    model = OllamaModel(model="llama3.2:3b")
+
+    async with Agent(
+        model=model,
+        system_prompt="You are a helpful assistant that responds in structured data.",
+        loop_stop_conditions=StopConditions(token_limit=5),
+    ) as agent:
+        with pytest.raises(
+            TokenLimitExceededException, match="Token limit of 5 exceeded"
+        ):
+            _ = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="hi, my name is Chris",
+                    )
+                ]
+            )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_stop_conditions_conversation_limit():
+    pytest.importorskip("langchain_ollama")
+    model = OllamaModel(model="llama3.2:3b")
+
+    async with Agent(
+        model=model,
+        system_prompt="You are a helpful assistant that responds in structured data.",
+        loop_stop_conditions=StopConditions(steps_limit=2),
+    ) as agent:
+        _ = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="hi, my name is Chris",
+                )
+            ]
+        )
+
+        with pytest.raises(
+            StepsLimitExceededException, match="Steps limit of 2 exceeded"
+        ):
+            _ = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="What is my name?",
+                    )
+                ]
+            )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_stop_conditions_timeout():
+    pytest.importorskip("langchain_ollama")
+    model = OllamaModel(model="llama3.2:3b")
+
+    async with Agent(
+        model=model,
+        system_prompt="You are a helpful assistant that responds in structured data.",
+        loop_stop_conditions=StopConditions(timeout_seconds=0.5),
+    ) as agent:
+        _ = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="hi, my name is Chris",
+                )
+            ]
+        )
+
+        time.sleep(1)  # wait to exceed timeout
+
+        with pytest.raises(
+            TimeoutExceededException, match="Timed out after 0.5 seconds."
+        ):
+            _ = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="What is my name?",
+                    )
+                ]
             )

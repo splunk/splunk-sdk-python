@@ -17,6 +17,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent, Message, OllamaModel
+from splunklib.ai.model import OpenAIModel
 from splunklib.ai.types import (
     StepsLimitExceededException,
     StopConditions,
@@ -318,3 +319,30 @@ async def test_agent_loop_stop_conditions_timeout():
                     )
                 ]
             )
+
+
+@pytest.mark.asyncio
+async def test_agent_openai_support():
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url="http://localhost:11434/v1",
+        api_key="ollama",
+        temperature=0,
+    )
+
+    async with Agent(model=model, system_prompt="Your name is stefan") as agent:
+        result = await agent.invoke(
+            [
+                Message(
+                    role="user",
+                    content="What is your name? Answer in one word",
+                )
+            ]
+        )
+
+        response = result.messages[-1].content.strip().lower().replace(".", "")
+        assert result.structured_output is None, (
+            "The structured output should not be populated"
+        )
+        assert "stefan" in response

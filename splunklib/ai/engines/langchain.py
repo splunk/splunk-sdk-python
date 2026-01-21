@@ -298,6 +298,9 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
 
                 return ChatOpenAI(
                     model=model.model,
+                    base_url=model.base_url,
+                    api_key=model.api_key,
+                    temperature=model.temperature,
                 )
             except ImportError:
                 raise ImportError(

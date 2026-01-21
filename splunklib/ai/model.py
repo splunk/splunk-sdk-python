@@ -40,6 +40,9 @@ class OpenAIModel(PredefinedModel):
     # TODO: For the MVP purposes the configuration is pretty simple.
     # It will be extended in the future with additional fields.
     model: str
+    base_url: str
+    api_key: str
+    temperature: float | None = None
 
 
 __all__ = [

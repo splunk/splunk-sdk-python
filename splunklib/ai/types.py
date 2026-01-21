@@ -13,11 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from collections.abc import Sequence
+from collections.abc import Awaitable, Sequence
 from dataclasses import dataclass, field
-from typing import Literal, TypeVar, Generic
+from typing import Any, Callable, Literal, TypeVar, Generic
 
-from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 from splunklib.ai.model import PredefinedModel
 from abc import ABC, abstractmethod
@@ -76,10 +75,28 @@ class TimeoutExceededException(AgentStopException):
         super().__init__(f"Timed out after {timeout_seconds} seconds.")
 
 
+class ToolException(Exception):
+    """Custom exception to indicate tool execution errors."""
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    content: list[str]
+    structured_content: dict[str, Any] | None
+
+
+@dataclass(frozen=True)
+class Tool:
+    name: str
+    description: str
+    input_schema: dict[str, Any]
+    func: Callable[..., Awaitable[ToolResult]]
+
+
 class BaseAgent(Generic[OutputT], ABC):
     _system_prompt: str
     _model: PredefinedModel
-    _tools: Sequence[BaseTool]
+    _tools: Sequence[Tool]
     _agents: Sequence["BaseAgent[BaseModel | None]"]
     _name: str = ""
     _description: str = ""
@@ -93,7 +110,7 @@ class BaseAgent(Generic[OutputT], ABC):
         model: PredefinedModel,
         description: str = "",
         name: str = "",
-        tools: Sequence[BaseTool] | None = None,
+        tools: Sequence[Tool] | None = None,
         agents: Sequence["BaseAgent[BaseModel | None]"] | None = None,
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
@@ -103,10 +120,6 @@ class BaseAgent(Generic[OutputT], ABC):
         self._model = model
         self._name = name
         self._description = description
-        # TODO: Backend should not be coupled to the BaseTool from langchain.
-        #       We need to come up and create an abstraction for Tools, that can be used
-        #       by backend and custom models.
-        #       This field is now private, but should be exposed when this TODO is finished.
         self._tools = tuple(tools) if tools else ()
         self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
@@ -131,6 +144,10 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def description(self) -> str:
         return self._description
+
+    @property
+    def tools(self) -> Sequence[Tool]:
+        return self._tools
 
     @property
     def agents(self) -> Sequence["BaseAgent[BaseModel | None]"]:

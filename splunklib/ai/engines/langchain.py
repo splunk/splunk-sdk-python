@@ -21,13 +21,18 @@ from typing import Any, override, cast
 import uuid
 
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentMiddleware, before_model, AgentState
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    before_model,
+    AgentState,
+)
 from langchain.agents.middleware.summarization import TokenCounter
+from langchain.tools import ToolException as LCToolException
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.graph.state import CompiledStateGraph, RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
-from langchain.messages import AIMessage
+from langchain.messages import AIMessage, ToolMessage
 from langgraph.runtime import Runtime
 from langchain_core.messages.utils import count_tokens_approximately
 
@@ -44,6 +49,8 @@ from splunklib.ai.types import (
     TimeoutExceededException,
     StepsLimitExceededException,
     TokenLimitExceededException,
+    Tool,
+    ToolException,
 )
 
 
@@ -142,7 +149,7 @@ class LangChainBackend(Backend):
         model_impl = _create_langchain_model(agent.model)
 
         system_prompt = agent.system_prompt
-        tools = list(agent._tools)
+        tools = [_create_langchain_tool(t) for t in agent.tools]
 
         if agent.agents:
             tools.extend([_agent_as_tool(a) for a in agent.agents])
@@ -150,7 +157,9 @@ class LangChainBackend(Backend):
 
         middleware = []
         if agent.loop_stop_conditions:
-            middleware = _create_middleware(agent.loop_stop_conditions, model_impl)
+            middleware.extend(
+                _create_middleware(agent.loop_stop_conditions, model_impl)
+            )
 
         return LangChainAgentImpl(
             system_prompt=system_prompt,
@@ -159,6 +168,31 @@ class LangChainBackend(Backend):
             output_schema=agent.output_schema,
             middleware=middleware,
         )
+
+
+def _create_langchain_tool(tool: Tool) -> BaseTool:
+    async def _tool_call(
+        **kwargs: dict[str, Any],
+    ) -> tuple[list[str], dict[str, Any] | None]:
+        try:
+            result = await tool.func(**kwargs)
+        except ToolException as e:
+            raise LCToolException(*e.args) from e
+        except LCToolException as e:
+            assert False, (
+                "ToolException from langchain should not be raised in tool.func"
+            )
+
+        return result.content, result.structured_content
+
+    return StructuredTool(
+        name=tool.name,
+        description=tool.description,
+        args_schema=tool.input_schema,
+        coroutine=_tool_call,
+        response_format="content_and_artifact",
+        handle_tool_error=True,
+    )
 
 
 def langchain_backend_factory() -> LangChainBackend:

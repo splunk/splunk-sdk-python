@@ -10,17 +10,13 @@ from typing import Any, override
 import httpx
 from anyio import Path
 from httpx import Auth, Request, Response
-from langchain_core.tools import (
-    BaseTool,
-    StructuredTool,
-    ToolException,
-)
 from mcp import ClientSession, StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult, PaginatedRequestParams, TextContent
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
+from splunklib.ai.types import Tool, ToolResult, ToolException
 from splunklib.client import Service
 
 TOOLS_FILENAME = "tools.py"
@@ -139,13 +135,13 @@ async def _list_all_tools(cfg: LocalCfg | RemoteCfg) -> list[MCPTool]:
         return tools
 
 
-def _convert_mcp_tool_to_langchain_tool(
+def _convert_mcp_tool(
     cfg: LocalCfg | RemoteCfg,
     tool: MCPTool,
-) -> BaseTool:
+) -> Tool:
     async def call_tool(
         **arguments: dict[str, Any],
-    ) -> tuple[list[str], dict[str, Any] | None]:
+    ) -> ToolResult:
         # Provide access to the splunk instance in local tools.
         # No need to do anything special for remote tools, since
         # these tools are already authenticated with the token.
@@ -164,21 +160,19 @@ def _convert_mcp_tool_to_langchain_tool(
                 arguments=arguments,
                 meta=meta,
             )
-        return _convert_tool_result_to_langchain(call_tool_result)
+        return _convert_tool_result(call_tool_result)
 
-    return StructuredTool(
+    return Tool(
         name=tool.name,
         description=tool.description or "",
-        args_schema=tool.inputSchema,
-        coroutine=call_tool,
-        response_format="content_and_artifact",
-        handle_tool_error=True,
+        input_schema=tool.inputSchema,
+        func=call_tool,
     )
 
 
-def _convert_tool_result_to_langchain(
+def _convert_tool_result(
     result: CallToolResult,
-) -> tuple[list[str], dict[str, Any] | None]:
+) -> ToolResult:
     # By convention, when isError is set, the first TextContent contains the error description.
     if result.isError:
         error_message = "Tool execution failed without any concrete error message"
@@ -197,7 +191,9 @@ def _convert_tool_result_to_langchain(
     if len(text_contents) == 0:
         text_contents.append(json.dumps(result.structuredContent))
 
-    return text_contents, result.structuredContent
+    return ToolResult(
+        content=text_contents, structured_content=result.structuredContent
+    )
 
 
 def _get_splunk_username(service: Service) -> str:
@@ -250,19 +246,19 @@ def _get_splunk_token_for_mcp(service: Service) -> str:
     return body.entry[0].content.token
 
 
-async def _load_langchain_tools(cfg: LocalCfg | RemoteCfg) -> list[BaseTool]:
+async def _load_tools(cfg: LocalCfg | RemoteCfg) -> list[Tool]:
     tools = await _list_all_tools(cfg)
-    return [_convert_mcp_tool_to_langchain_tool(cfg, tool) for tool in tools]
+    return [_convert_mcp_tool(cfg, tool) for tool in tools]
 
 
 async def load_mcp_tools(
     service: Service | None = None,
     local_tools_path: str | None = None,
-) -> list[BaseTool]:
+) -> list[Tool]:
     if service is None:
         raise Exception("Service is required to use MCP tools")
 
-    tools: list[BaseTool] = []
+    tools: list[Tool] = []
 
     # TODO: tool name collision between local/remote.
 
@@ -274,14 +270,12 @@ async def load_mcp_tools(
     client = httpx.AsyncClient(auth=_MCPAuth(f"Bearer {token}"), verify=False)
     res = await client.get(mcp_url)
     if res.status_code != 404:
-        remote_tools = await _load_langchain_tools(
-            RemoteCfg(mcp_url=mcp_url, token=token)
-        )
+        remote_tools = await _load_tools(RemoteCfg(mcp_url=mcp_url, token=token))
         tools.extend(remote_tools)
 
     # Load local tools.
     if local_tools_path is not None:
-        local_tools = await _load_langchain_tools(
+        local_tools = await _load_tools(
             LocalCfg(
                 tools_path=local_tools_path,
                 management_url=management_url,

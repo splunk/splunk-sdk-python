@@ -278,6 +278,79 @@ async def test_remote_tools_mcp_app_unavail():
             assert "stefan" in response
 
 
+@patch(
+    "splunklib.ai.agent._testing_local_tools_path",
+    os.path.join(
+        os.path.dirname(__file__),
+        "testdata",
+        "non_existent.py",
+    ),
+)
+@pytest.mark.asyncio
+async def test_remote_tools_failure():
+    pytest.importorskip("langchain_ollama")
+
+    mcp = FastMCP("MCP Server", streamable_http_path="/")
+
+    @mcp.tool(description="Returns the current temperature in the city")
+    def temperature(city: str) -> str:
+        # simulate the tool guiding the llm for proper input
+        if city == "Cracow":
+            raise Exception("Use Polish name of the city")
+        if city == "Kraków":
+            return "31.5C"
+        raise Exception("No such city in DB")
+
+    @contextlib.asynccontextmanager
+    async def lifespan(app: Starlette):
+        async with mcp.session_manager.run():
+            yield
+
+    async with run_http_server(
+        Starlette(
+            routes=[
+                Mount("/services/mcp", app=mcp.streamable_http_app()),
+                Route(
+                    "/services/authorization/tokens", tokens_handler, methods=["POST"]
+                ),
+            ],
+            lifespan=lifespan,
+        )
+    ) as (host, port):
+        service = await asyncio.to_thread(
+            lambda: connect(
+                scheme="http",
+                host=host,
+                port=port,
+                splunkToken=AUTH_TOKEN,
+                autologin=True,
+                username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
+            ),
+        )
+
+        model = OllamaModel(model="ministral-3:8b")
+
+        async with Agent(
+            model=model,
+            system_prompt="You must use the available tools to perform requested operations. You MUST Retry tool calls until you receive a valid response, that's not an error",
+            service=service,
+            use_mcp_tools=True,
+        ) as agent:
+            result = await agent.invoke(
+                [
+                    Message(
+                        role="user",
+                        content="""
+                        What is the weather like today in Cracow? Use the provided tools to check the temperature.
+                        """,
+                    )
+                ]
+            )
+            response = result.messages[-1].content
+
+            assert "31.5" in response, "Invalid LLM response"
+
+
 @contextlib.asynccontextmanager
 async def run_http_server(app: Starlette):
     # Create a socket with port 0, this will cause a creation of a socket with

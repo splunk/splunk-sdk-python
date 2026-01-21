@@ -18,7 +18,6 @@ from collections.abc import Sequence
 from contextlib import AbstractAsyncContextManager
 from typing import override
 
-from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from splunklib.ai.core.backend import AgentImpl
@@ -31,6 +30,7 @@ from splunklib.ai.types import (
     AgentResponse,
     OutputT,
     StopConditions,
+    Tool,
 )
 from splunklib.client import Service
 
@@ -95,7 +95,7 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
 
 async def _load_tools_from_mcp(
     service: Service | None,
-) -> list[BaseTool]:
+) -> list[Tool]:
     local_tools_path = _testing_local_tools_path
     if local_tools_path is None:
         local_tools_path = locate_tools_path_by_sdk_location()

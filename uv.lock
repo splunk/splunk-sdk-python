@@ -604,19 +604,6 @@ wheels = [
 ]
 
 [[package]]
-name = "langchain-ollama"
-version = "1.0.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "langchain-core" },
-    { name = "ollama" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/73/51/72cd04d74278f3575f921084f34280e2f837211dc008c9671c268c578afe/langchain_ollama-1.0.1.tar.gz", hash = "sha256:e37880c2f41cdb0895e863b1cfd0c2c840a117868b3f32e44fef42569e367443" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/e3/46/f2907da16dc5a5a6c679f83b7de21176178afad8d2ca635a581429580ef6/langchain_ollama-1.0.1-py3-none-any.whl", hash = "sha256:37eb939a4718a0255fe31e19fbb0def044746c717b01b97d397606ebc3e9b440" },
-]
-
-[[package]]
 name = "langchain-openai"
 version = "1.1.3"
 source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
@@ -920,19 +907,6 @@ wheels = [
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/0d/95/2d6fc6461687d7a171f087995247dec33e8749a562bfadd85fb5dbf37a11/nh3-0.3.2-cp38-abi3-win32.whl", hash = "sha256:169db03df90da63286e0560ea0efa9b6f3b59844a9735514a1d47e6bb2c8c61b" },
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/64/9a/1a1c154f10a575d20dd634e5697805e589bbdb7673a0ad00e8da90044ba7/nh3-0.3.2-cp38-abi3-win_amd64.whl", hash = "sha256:562da3dca7a17f9077593214a9781a94b8d76de4f158f8c895e62f09573945fe" },
     { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/9e/7e/a96255f63b7aef032cbee8fc4d6e37def72e3aaedc1f72759235e8f13cb1/nh3-0.3.2-cp38-abi3-win_arm64.whl", hash = "sha256:cf5964d54edd405e68583114a7cba929468bcd7db5e676ae38ee954de1cfc104" },
-]
-
-[[package]]
-name = "ollama"
-version = "0.6.1"
-source = { registry = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/simple" }
-dependencies = [
-    { name = "httpx" },
-    { name = "pydantic" },
-]
-sdist = { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/9d/5a/652dac4b7affc2b37b95386f8ae78f22808af09d720689e3d7a86b6ed98e/ollama-0.6.1.tar.gz", hash = "sha256:478c67546836430034b415ed64fa890fd3d1ff91781a9d548b3325274e69d7c6" }
-wheels = [
-    { url = "https://repo.splunkdev.net/artifactory/api/pypi/pypi-test/packages/packages/47/4f/4a617ee93d8208d2bcf26b2d8b9402ceaed03e3853c754940e2290fed063/ollama-0.6.1-py3-none-any.whl", hash = "sha256:fc4c984b345735c5486faeee67d8a265214a31cbb828167782dc642ce0a2bf8c" },
 ]
 
 [[package]]
@@ -1666,9 +1640,6 @@ dependencies = [
 compat = [
     { name = "six" },
 ]
-ollama = [
-    { name = "langchain-ollama" },
-]
 openai = [
     { name = "langchain-openai" },
 ]
@@ -1681,7 +1652,6 @@ build = [
 dev = [
     { name = "build" },
     { name = "jinja2" },
-    { name = "langchain-ollama" },
     { name = "langchain-openai" },
     { name = "mypy" },
     { name = "pytest" },
@@ -1698,9 +1668,6 @@ docs = [
 lint = [
     { name = "mypy" },
     { name = "ruff" },
-]
-ollama = [
-    { name = "langchain-ollama" },
 ]
 openai = [
     { name = "langchain-openai" },
@@ -1720,14 +1687,13 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "langchain", specifier = ">=1.1.3" },
-    { name = "langchain-ollama", marker = "extra == 'ollama'", specifier = ">=1.0.0" },
     { name = "langchain-openai", marker = "extra == 'openai'", specifier = ">=1.1.1" },
     { name = "mcp", specifier = ">=1.22.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=0.21.1" },
     { name = "six", marker = "extra == 'compat'", specifier = ">=1.17.0" },
 ]
-provides-extras = ["compat", "openai", "ollama"]
+provides-extras = ["compat", "openai"]
 
 [package.metadata.requires-dev]
 build = [
@@ -1737,7 +1703,6 @@ build = [
 dev = [
     { name = "build", specifier = ">=1.1.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "langchain-ollama", specifier = ">=1.0.0" },
     { name = "langchain-openai", specifier = ">=1.1.1" },
     { name = "mypy", specifier = ">=1.4.1" },
     { name = "pytest", specifier = ">=7.4.4" },
@@ -1755,7 +1720,6 @@ lint = [
     { name = "mypy", specifier = ">=1.4.1" },
     { name = "ruff", specifier = ">=0.13.1" },
 ]
-ollama = [{ name = "langchain-ollama", specifier = ">=1.0.0" }]
 openai = [{ name = "langchain-openai", specifier = ">=1.1.1" }]
 release = [
     { name = "build", specifier = ">=1.1.1" },

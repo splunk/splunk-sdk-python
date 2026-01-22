@@ -279,3 +279,5 @@ $RECYCLE.BIN/
 
 .vscode/
 docs/_build/
+
+/deps

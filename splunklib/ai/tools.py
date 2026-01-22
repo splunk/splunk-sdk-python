@@ -76,7 +76,21 @@ class RemoteCfg:
 
 @asynccontextmanager
 async def _connect_local_mcp(cfg: LocalCfg):
-    server_params = StdioServerParameters(command=sys.executable, args=[cfg.tools_path])
+    server_params = StdioServerParameters(
+        command=sys.executable,
+        args=[cfg.tools_path],
+    )
+
+    # Splunk starts processes with a custom LD_LIBRARY_PATH env var, the mcp lib
+    # does not forward all env, but few restricted ones by default. If we don't do
+    # so then the shared object that python loads would fail to succeed.
+    # TODO: If needed we might in future pass all env vars, but we would have to investigate why
+    # the mcp lib did that filtering in the first place. For now we only allow additionally
+    # the LD_LIBRARY_PATH.
+    ld = os.environ.get("LD_LIBRARY_PATH")
+    if ld is not None:
+        server_params.env = {"LD_LIBRARY_PATH": ld}
+
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()

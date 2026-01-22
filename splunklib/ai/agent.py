@@ -25,9 +25,9 @@ from splunklib.ai.core.backend_registry import get_backend
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tools import load_mcp_tools, locate_tools_path_by_sdk_location
 from splunklib.ai.types import (
+    AgentResponse,
     BaseAgent,
     Message,
-    AgentResponse,
     OutputT,
     StopConditions,
     Tool,
@@ -42,11 +42,13 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
     _use_mcp_tools: bool
     _service: Service | None = None
 
+    # TODO: We should have a logger inside of an agent, debugging and such.
+
     def __init__(
         self,
         model: PredefinedModel,
         system_prompt: str,
-        use_mcp_tools: bool = False,
+        use_mcp_tools: bool = False,  # TODO: should we default to True?
         service: Service | None = None,  # TODO: make it non-optional.
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
@@ -72,6 +74,8 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
 
     @override
     async def __aenter__(self):
+        # TODO: replace these with if && raise
+        # See: https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement
         assert self._impl is None, "Agent is already in `async with` context"
 
         if self._use_mcp_tools:

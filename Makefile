@@ -18,7 +18,7 @@ test-integration:
 
 .PHONY: docker-up
 docker-up:
-	@docker-compose up -d
+	@DOCKER_BUILDKIT=0 docker-compose up -d --build
 
 .PHONY: docker-ensure-up
 docker-ensure-up:

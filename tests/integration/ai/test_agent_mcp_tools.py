@@ -13,7 +13,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
-from splunklib.ai import Agent, Message, OllamaModel
+from splunklib.ai import Agent, Message, OpenAIModel
 from splunklib.ai.tools import (
     _get_splunk_token_for_mcp,
     _get_splunk_username,
@@ -21,6 +21,9 @@ from splunklib.ai.tools import (
 )
 from splunklib.client import connect
 from tests import testlib
+
+OPENAI_BASE_URL = "http://localhost:11434/v1"
+OPENAI_API_KEY = "ollama"
 
 
 class TestTools(testlib.SDKTestCase):
@@ -33,10 +36,14 @@ class TestTools(testlib.SDKTestCase):
         ),
     )
     async def test_tool_execution_structured_output(self) -> None:
-        # Skip if the langchain_ollama package is not installed
-        pytest.importorskip("langchain_ollama")
+        # Skip if the langchain_openai package is not installed
+        pytest.importorskip("langchain_openai")
 
-        model = OllamaModel(model="llama3.2:3b")
+        model = OpenAIModel(
+            model="llama3.2:3b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
 
         async with Agent(
             model=model,
@@ -68,10 +75,14 @@ class TestTools(testlib.SDKTestCase):
         ),
     )
     async def test_tool_execution_service_access(self) -> None:
-        # Skip if the langchain_ollama package is not installed
-        pytest.importorskip("langchain_ollama")
+        # Skip if the langchain_openai package is not installed
+        pytest.importorskip("langchain_openai")
 
-        model = OllamaModel(model="llama3.2:3b")
+        model = OpenAIModel(
+            model="llama3.2:3b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
 
         async with Agent(
             model=model,
@@ -164,7 +175,7 @@ async def tokens_handler(request: Request) -> Response:
 )
 @pytest.mark.asyncio
 async def test_remote_tools():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
     mcp = FastMCP("MCP Server", streamable_http_path="/")
 
@@ -202,7 +213,11 @@ async def test_remote_tools():
             ),
         )
 
-        model = OllamaModel(model="llama3.2:3b")
+        model = OpenAIModel(
+            model="llama3.2:3b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
 
         async with Agent(
             model=model,
@@ -236,7 +251,7 @@ async def test_remote_tools():
 )
 @pytest.mark.asyncio
 async def test_remote_tools_mcp_app_unavail():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
     async with run_http_server(
         Starlette(
@@ -258,7 +273,11 @@ async def test_remote_tools_mcp_app_unavail():
             ),
         )
 
-        model = OllamaModel(model="llama3.2:3b")
+        model = OpenAIModel(
+            model="llama3.2:3b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
 
         # Make sure that we are able to run the agent, with a service provided in case
         # the MCP Server App is not installed on the instance.
@@ -288,7 +307,7 @@ async def test_remote_tools_mcp_app_unavail():
 )
 @pytest.mark.asyncio
 async def test_remote_tools_failure():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
     mcp = FastMCP("MCP Server", streamable_http_path="/")
 
@@ -328,7 +347,11 @@ async def test_remote_tools_failure():
             ),
         )
 
-        model = OllamaModel(model="ministral-3:8b")
+        model = OpenAIModel(
+            model="ministral-3:8b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
 
         async with Agent(
             model=model,

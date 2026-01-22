@@ -38,7 +38,7 @@ from langchain_core.messages.utils import count_tokens_approximately
 
 
 from splunklib.ai.core.backend import AgentImpl, Backend
-from splunklib.ai.model import OllamaModel, OpenAIModel, PredefinedModel
+from splunklib.ai.model import OpenAIModel, PredefinedModel
 from splunklib.ai.types import (
     Message,
     Role,
@@ -343,22 +343,6 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                       pip install "splunk-sdk[openai]"\n
                       # or if using uv:\n
                       uv add splunk-sdk[openai]"""
-                )
-        case OllamaModel():
-            try:
-                from langchain_ollama import ChatOllama  # noqa: F401
-
-                return ChatOllama(
-                    model=model.model,
-                    base_url=model.base_url,
-                )
-            except ImportError:
-                raise ImportError(
-                    """Ollama support is not installed.\n\n
-                    To enable Ollama models, install the optional extra:\n\n
-                      pip install "splunk-sdk[ollama]"\n
-                      # or if using uv:\n
-                      uv add splunk-sdk[ollama]"""
                 )
         case _:
             raise Exception(

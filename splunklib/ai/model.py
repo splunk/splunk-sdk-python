@@ -24,16 +24,6 @@ class PredefinedModel:
 
 
 @dataclass(frozen=True)
-class OllamaModel(PredefinedModel):
-    """Predefined Ollama Model"""
-
-    # TODO: For the MVP purposes the configuration is pretty simple.
-    # It will be extended in the future with additional fields.
-    model: str
-    base_url: str = "http://localhost:11434"
-
-
-@dataclass(frozen=True)
 class OpenAIModel(PredefinedModel):
     """Predifned OpenAI Model"""
 
@@ -47,6 +37,5 @@ class OpenAIModel(PredefinedModel):
 
 __all__ = [
     "PredefinedModel",
-    "OllamaModel",
     "OpenAIModel",
 ]

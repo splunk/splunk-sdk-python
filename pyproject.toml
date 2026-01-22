@@ -40,8 +40,6 @@ optional-dependencies = { compat = [
     "six>=1.17.0"
 ], openai = [
     "langchain-openai>=1.1.1"
-], ollama = [
-    "langchain-ollama>=1.0.0"
 ] }
 
 [dependency-groups]
@@ -54,16 +52,12 @@ release = [{ include-group = "build" }, { include-group = "docs" }]
 openai = [
     "langchain-openai>=1.1.1"
 ]
-ollama = [
-    "langchain-ollama>=1.0.0"
-]
 dev = [
   { include-group = "test" },
   { include-group = "lint" },
   { include-group = "build" },
   { include-group = "docs" },
   { include-group = "openai" },
-  { include-group = "ollama" },
 ]
 
 [build-system]

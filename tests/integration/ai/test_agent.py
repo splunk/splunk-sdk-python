@@ -16,24 +16,29 @@
 import pytest
 from pydantic import BaseModel, Field
 
-from splunklib.ai import Agent, Message, OllamaModel
-from splunklib.ai.model import OpenAIModel
+from splunklib.ai import Agent, Message, OpenAIModel
 from splunklib.ai.types import (
     StepsLimitExceededException,
     StopConditions,
     TimeoutExceededException,
     TokenLimitExceededException,
 )
-from pydantic import BaseModel, Field
 import time
+
+OPENAI_BASE_URL = "http://localhost:11434/v1"
+OPENAI_API_KEY = "ollama"
 
 
 @pytest.mark.asyncio
-async def test_agent_with_ollama_round_trip():
-    # Skip if the langchain_ollama package is not installed
-    pytest.importorskip("langchain_ollama")
+async def test_agent_with_openai_round_trip():
+    # Skip if the langchain_openai package is not installed
+    pytest.importorskip("langchain_openai")
 
-    model = OllamaModel(model="llama3.2:3b")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     async with Agent(model=model, system_prompt="Your name is stefan") as agent:
         result = await agent.invoke(
@@ -54,9 +59,13 @@ async def test_agent_with_ollama_round_trip():
 
 @pytest.mark.asyncio
 async def test_agent_use_without_async_with():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
-    model = OllamaModel(model="llama3.2:3b")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
     agent = Agent(model=model, system_prompt="Your name is stefan")
 
     with pytest.raises(Exception, match="Agent must be used inside 'async with'"):
@@ -72,9 +81,13 @@ async def test_agent_use_without_async_with():
 
 @pytest.mark.asyncio
 async def test_agent_use_outside_async_with():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
-    model = OllamaModel(model="llama3.2:3b")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
     agent = Agent(model=model, system_prompt="Your name is stefan")
 
     async with agent:
@@ -93,9 +106,13 @@ async def test_agent_use_outside_async_with():
 
 @pytest.mark.asyncio
 async def test_agent_multiple_async_with():
-    pytest.importorskip("langchain_ollama")
+    pytest.importorskip("langchain_openai")
 
-    model = OllamaModel(model="llama3.2:3b")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
     agent = Agent(model=model, system_prompt="Your name is stefan")
 
     async with agent:
@@ -106,8 +123,12 @@ async def test_agent_multiple_async_with():
 
 @pytest.mark.asyncio
 async def test_agent_with_structured_output():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(model="llama3.2:3b")
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     class Person(BaseModel):
         name: str = Field(description="The person's full name", min_length=1)
@@ -142,8 +163,12 @@ async def test_agent_with_structured_output():
 
 @pytest.mark.asyncio
 async def test_agent_remembers_state():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(model="llama3.2:3b")
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     async with Agent(
         model=model,
@@ -174,10 +199,11 @@ async def test_agent_remembers_state():
 
 @pytest.mark.asyncio
 async def test_agent_understands_other_agents():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
         model="devstral-small-2:24b",
-        base_url="http://localhost:11435",
+        base_url="http://localhost:11435/v1",
+        api_key=OPENAI_API_KEY,
     )
 
     class SubagentInput(BaseModel):
@@ -234,8 +260,12 @@ async def test_agent_understands_other_agents():
 
 @pytest.mark.asyncio
 async def test_agent_loop_stop_conditions_token_limit():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(model="llama3.2:3b")
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     async with Agent(
         model=model,
@@ -257,8 +287,12 @@ async def test_agent_loop_stop_conditions_token_limit():
 
 @pytest.mark.asyncio
 async def test_agent_loop_stop_conditions_conversation_limit():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(model="llama3.2:3b")
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     async with Agent(
         model=model,
@@ -289,8 +323,12 @@ async def test_agent_loop_stop_conditions_conversation_limit():
 
 @pytest.mark.asyncio
 async def test_agent_loop_stop_conditions_timeout():
-    pytest.importorskip("langchain_ollama")
-    model = OllamaModel(model="llama3.2:3b")
+    pytest.importorskip("langchain_openai")
+    model = OpenAIModel(
+        model="llama3.2:3b",
+        base_url=OPENAI_BASE_URL,
+        api_key=OPENAI_API_KEY,
+    )
 
     async with Agent(
         model=model,
@@ -319,30 +357,3 @@ async def test_agent_loop_stop_conditions_timeout():
                     )
                 ]
             )
-
-
-@pytest.mark.asyncio
-async def test_agent_openai_support():
-    pytest.importorskip("langchain_openai")
-    model = OpenAIModel(
-        model="llama3.2:3b",
-        base_url="http://localhost:11434/v1",
-        api_key="ollama",
-        temperature=0,
-    )
-
-    async with Agent(model=model, system_prompt="Your name is stefan") as agent:
-        result = await agent.invoke(
-            [
-                Message(
-                    role="user",
-                    content="What is your name? Answer in one word",
-                )
-            ]
-        )
-
-        response = result.messages[-1].content.strip().lower().replace(".", "")
-        assert result.structured_output is None, (
-            "The structured output should not be populated"
-        )
-        assert "stefan" in response

@@ -81,6 +81,7 @@ class AgentNameHandler(CRETestHandler):
         async with Agent(
             model=model,
             system_prompt="Your name is Stefan",
+            service=self.service,
         ) as agent:
             result = await agent.invoke(
                 [

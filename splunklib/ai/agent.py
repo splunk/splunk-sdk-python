@@ -40,7 +40,7 @@ _testing_local_tools_path: str | None = None
 
 class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
     _use_mcp_tools: bool
-    _service: Service | None = None
+    _service: Service
 
     # TODO: We should have a logger inside of an agent, debugging and such.
 
@@ -48,8 +48,8 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
         self,
         model: PredefinedModel,
         system_prompt: str,
+        service: Service,
         use_mcp_tools: bool = False,  # TODO: should we default to True?
-        service: Service | None = None,  # TODO: make it non-optional.
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,
@@ -98,7 +98,7 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
 
 
 async def _load_tools_from_mcp(
-    service: Service | None,
+    service: Service,
 ) -> list[Tool]:
     local_tools_path = _testing_local_tools_path
     if local_tools_path is None:

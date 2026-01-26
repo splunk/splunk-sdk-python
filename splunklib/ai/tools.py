@@ -266,12 +266,9 @@ async def _load_tools(cfg: LocalCfg | RemoteCfg) -> list[Tool]:
 
 
 async def load_mcp_tools(
-    service: Service | None = None,
+    service: Service,
     local_tools_path: str | None = None,
 ) -> list[Tool]:
-    if service is None:
-        raise Exception("Service is required to use MCP tools")
-
     tools: list[Tool] = []
 
     # TODO: tool name collision between local/remote.

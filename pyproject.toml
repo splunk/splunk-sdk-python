@@ -29,8 +29,11 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-dependencies = ["python-dotenv>=0.21.1"]
-optional-dependencies = { compat = ["six>=1.17.0"] }
+dependencies = [
+  "python-dotenv>=0.21.1",
+  # Required because Splunk apps don't get dedicated virtualenvs
+  "six>=1.17.0",
+]
 
 [dependency-groups]
 build = ["build>=1.1.1", "twine>=4.0.2"]
@@ -53,8 +56,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["splunklib", "splunklib.modularinput", "splunklib.searchcommands"]
 
-[tool.setuptools.dynamic]
-version = { attr = "splunklib.__version__" }
+[tool.setuptools.dynamic.version]
+attr = "splunklib.__version__"
 
 # https://docs.astral.sh/ruff/configuration/
 [tool.ruff.lint]

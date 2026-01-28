@@ -15,15 +15,18 @@
 
 import os
 from collections.abc import Sequence
-from contextlib import AbstractAsyncContextManager
-from typing import override
+from typing import Self, final, override
 
 from pydantic import BaseModel
 
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
 from splunklib.ai.model import PredefinedModel
-from splunklib.ai.tools import load_mcp_tools, locate_tools_path_by_sdk_location
+from splunklib.ai.tool_filtering import ToolFilters, filter_tools
+from splunklib.ai.tools import (
+    load_mcp_tools,
+    locate_tools_path_by_sdk_location,
+)
 from splunklib.ai.types import (
     AgentResponse,
     BaseAgent,
@@ -37,10 +40,12 @@ from splunklib.client import Service
 # For testing purposes, overrides the automatically inferred tools.py path.
 _testing_local_tools_path: str | None = None
 
-
-class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
+@final
+class Agent(BaseAgent[OutputT]):
+    _impl: AgentImpl[OutputT] | None
     _use_mcp_tools: bool
     _service: Service
+    _tool_filters: ToolFilters | None
 
     # TODO: We should have a logger inside of an agent, debugging and such.
 
@@ -50,6 +55,7 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
         system_prompt: str,
         service: Service,
         use_mcp_tools: bool = False,  # TODO: should we default to True?
+        tool_filters: ToolFilters | None = None,
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,
@@ -69,36 +75,36 @@ class Agent(BaseAgent[OutputT], AbstractAsyncContextManager):
         )
 
         self._use_mcp_tools = use_mcp_tools
+        self._tool_filters = tool_filters
         self._service = service
         self._impl = None
 
-    @override
-    async def __aenter__(self):
-        # TODO: replace these with if && raise
-        # See: https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement
-        assert self._impl is None, "Agent is already in `async with` context"
+    async def __aenter__(self) -> Self:
+        if self._impl:
+            raise AssertionError("Agent is already in `async with` context")
 
         if self._use_mcp_tools:
-            self._tools = await _load_tools_from_mcp(self._service)
+            self._tools = await _load_tools_from_mcp(self._service, self._tool_filters)
 
         backend = get_backend()
-        self._impl: AgentImpl[OutputT] | None = await backend.create_agent(self)
+        self._impl = await backend.create_agent(self)
 
         return self
 
-    @override
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:  # noqa: ANN001  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
         self._impl = None  # Make sure invoke fails if called after exit.
         return None
 
     @override
     async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]:
-        assert self._impl is not None, "Agent must be used inside 'async with'"
+        if not self._impl:
+            raise AssertionError("Agent must be used inside 'async with'")
+
         return await self._impl.invoke(messages)
 
 
 async def _load_tools_from_mcp(
-    service: Service,
+    service: Service, filters: ToolFilters | None
 ) -> list[Tool]:
     local_tools_path = _testing_local_tools_path
     if local_tools_path is None:
@@ -107,4 +113,8 @@ async def _load_tools_from_mcp(
     if not os.path.exists(local_tools_path):
         local_tools_path = None
 
-    return await load_mcp_tools(service, local_tools_path)
+    mcp_tools = await load_mcp_tools(service, local_tools_path)
+    if filters:
+        return filter_tools(mcp_tools, filters)
+
+    return mcp_tools

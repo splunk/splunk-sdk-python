@@ -18,7 +18,9 @@ test-integration:
 
 .PHONY: docker-up
 docker-up:
-	@DOCKER_BUILDKIT=0 docker-compose up -d --build
+	# For podman (at least on macOS) you might need to add DOCKER_BUILDKIT=0
+	# --build forces Docker to build a new image instead of using an existing one
+	@docker-compose up -d --build
 
 .PHONY: docker-ensure-up
 docker-ensure-up:

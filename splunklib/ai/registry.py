@@ -14,6 +14,7 @@
 # under the License.
 import asyncio
 import inspect
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Generic, ParamSpec, TypeVar, get_type_hints
 
@@ -201,6 +202,7 @@ class ToolRegistry:
         name: str | None = None,
         description: str | None = None,
         title: str | None = None,
+        tags: Sequence[str] | None = None,
     ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
         """
         Decorator that registers a function with the ToolRegistry.
@@ -246,6 +248,9 @@ class ToolRegistry:
                     description=description,
                     inputSchema=input_schema,
                     outputSchema=output_schema,
+                    _meta={
+                        "splunk": {"tags": tags},
+                    },
                 )
             )
             self._tools_func[name] = func

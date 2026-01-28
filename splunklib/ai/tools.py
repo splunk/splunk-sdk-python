@@ -16,7 +16,7 @@ from mcp.types import CallToolResult, PaginatedRequestParams, TextContent
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
-from splunklib.ai.types import Tool, ToolResult, ToolException
+from splunklib.ai.types import Tool, ToolException, ToolResult
 from splunklib.client import Service
 
 TOOLS_FILENAME = "tools.py"
@@ -176,11 +176,17 @@ def _convert_mcp_tool(
             )
         return _convert_tool_result(call_tool_result)
 
+    splunk_meta: dict[str, Any] = (tool.meta or {}).get("splunk") or {}
+    tags: list[str] | None = None
+    if len(splunk_meta) > 0:
+        tags = splunk_meta.get("tags")
+
     return Tool(
         name=tool.name,
         description=tool.description or "",
         input_schema=tool.inputSchema,
         func=call_tool,
+        tags=tags,
     )
 
 
@@ -269,9 +275,8 @@ async def load_mcp_tools(
     service: Service,
     local_tools_path: str | None = None,
 ) -> list[Tool]:
+    # TODO: Add tool.name collision between local/remote tools
     tools: list[Tool] = []
-
-    # TODO: tool name collision between local/remote.
 
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
@@ -284,7 +289,6 @@ async def load_mcp_tools(
         remote_tools = await _load_tools(RemoteCfg(mcp_url=mcp_url, token=token))
         tools.extend(remote_tools)
 
-    # Load local tools.
     if local_tools_path is not None:
         local_tools = await _load_tools(
             LocalCfg(

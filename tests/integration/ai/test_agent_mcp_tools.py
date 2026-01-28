@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
 from splunklib.ai import Agent, Message, OpenAIModel
+from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai.tools import (
     _get_splunk_token_for_mcp,
     _get_splunk_username,
@@ -106,6 +107,31 @@ class TestTools(testlib.SDKTestCase):
 
             response = result.messages[-1].content
             assert want_startup_time in response, "Invalid LLM response"
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(os.path.dirname(__file__), "testdata", "tool_filtering.py"),
+    )
+    @pytest.mark.asyncio
+    async def test_agent_filtering_tools(self) -> None:
+        pytest.importorskip("langchain_openai")
+        model = OpenAIModel(
+            model="llama3.2:3b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+        )
+
+        async with Agent(
+            model=model,
+            system_prompt="",
+            service=self.service,
+            use_mcp_tools=True,
+            tool_filters=ToolFilters(
+                allowed_names=["test_tool_1"], allowed_tags=["test_tag_2"]
+            ),
+        ) as agent:
+            tool_names = [t.name for t in agent.tools]
+            assert tool_names == ["test_tool_1", "test_tool_2", "test_tool_4"]
 
 
 class TestSplunkToken(testlib.SDKTestCase):

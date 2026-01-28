@@ -13,13 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Callable, Literal, TypeVar, Generic
+from typing import Any, Callable, Generic, Literal, TypeVar
 
 from pydantic import BaseModel
+
 from splunklib.ai.model import PredefinedModel
-from abc import ABC, abstractmethod
 
 Role = Literal["system", "user", "assistant", "tool"]
 
@@ -91,7 +92,7 @@ class Tool:
     description: str
     input_schema: dict[str, Any]
     func: Callable[..., Awaitable[ToolResult]]
-
+    tags: list[str] | None = None
 
 class BaseAgent(Generic[OutputT], ABC):
     _system_prompt: str
@@ -115,7 +116,7 @@ class BaseAgent(Generic[OutputT], ABC):
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
         loop_stop_conditions: StopConditions | None = None,
-    ):
+    ) -> None:
         self._system_prompt = system_prompt
         self._model = model
         self._name = name

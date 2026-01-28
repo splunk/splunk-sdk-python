@@ -192,6 +192,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         coroutine=_tool_call,
         response_format="content_and_artifact",
         handle_tool_error=True,
+        tags=tool.tags,
     )
 
 

@@ -49,6 +49,12 @@ The easiest and most effective way of learning how to use this library should be
 
 For details, see the [examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal, as well as the [Splunk Enterprise SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK)
 
+#### Using AI in Splunk apps
+
+Our recent ai integration features allow you to leverage AI capabilities within your Splunk apps. You can use the SDK to interact with AI services, process data, and enhance your applications with AI-driven insights.
+
+For more information and known issues, refer to the [AI in Splunk Apps](splunklib/ai/README.md) documentation.
+
 #### Connecting to a Splunk Enterprise instance
 
 ##### Using a username/password combo

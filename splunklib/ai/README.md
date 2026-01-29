@@ -423,6 +423,14 @@ if os.environ["SSL_CERT_FILE"] == CA_TRUST_STORE and not os.path.exists(CA_TRUST
 
 This causes the system CAs to be used instead of the ones from the `SSL_CERT_FILE`, which might not exist for reasons.
 
-### Appinspect
+### AppInspect
 
-TODO: write this section
+Currently when the App that uses `splunk-sdk[openai]` is installed on Splunk Cloud, AppInspect can flag some of the
+files from the dependency package.
+
+The files that get flagged are:
+
+- `openai/lib/.keep`
+- `openai/helpers/microphone.py`
+
+As a workaround, both of those files are not required for the App to work and can be deleted before packaging the App.

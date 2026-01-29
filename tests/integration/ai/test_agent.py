@@ -263,6 +263,46 @@ class TestAgent(testlib.SDKTestCase):
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
+    async def test_subagent_without_input_schema(self):
+        pytest.importorskip("langchain_openai")
+        model = OpenAIModel(
+            model="ministral-3:8b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+            temperature=0.0,
+        )
+
+        async with (
+            Agent(
+                model=model,
+                system_prompt=(
+                    "You are a helpful assistant that generates nicknames"
+                    "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
+                    "Remember the dash and lowercase zilla. Example: Stefan -> Stefan-zilla"
+                ),
+                service=self.service,
+                name="NicknameGeneratorAgent",
+                description="Generates nicknames for people. Pass a name and get a nickname",
+            ) as subagent,
+            Agent(
+                model=model,
+                system_prompt="You are a supervisor agent that MUST use other agents",
+                agents=[subagent],
+                service=self.service,
+            ) as supervisor,
+        ):
+            result = await supervisor.invoke(
+                [
+                    HumanMessage(
+                        content="hi, my name is Chris. Generate a nickname for me",
+                    )
+                ]
+            )
+
+            response = result.messages[-1].content
+            assert "Chris-zilla" in response, "Agent did generate valid nickname"
+
+    @pytest.mark.asyncio
     async def test_agent_understands_other_agents(self):
         pytest.importorskip("langchain_openai")
         model = OpenAIModel(

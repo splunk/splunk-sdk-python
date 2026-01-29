@@ -218,10 +218,24 @@ def _denormalize_agent_name(name: str) -> str:
 
 
 def _agent_as_tool(agent: BaseAgent[OutputT]):
-    assert agent.name, "Agent must have a name to be used by other Agents"
-    assert agent.input_schema, (
-        "Agent must have an input schema to be used by other Agents"
-    )
+    if not agent.name:
+        raise AssertionError("Agent must have a name to be used by other Agents")
+
+    # TODO: we should enforce uniqueness of subagent names.
+
+    if agent.input_schema is None:
+
+        async def _run(content: str) -> str:
+            result = await agent.invoke([HumanMessage(content=content)])
+            assert agent.output_schema is None
+            return result.messages[-1].content
+
+        return StructuredTool.from_function(
+            coroutine=_run,
+            name=_normalize_agent_name(agent.name),
+            description=agent.description,
+            infer_schema=True,
+        )
 
     InputSchema = agent.input_schema
 

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from splunklib.ai.types import Tool
+from splunklib.ai.tools import Tool
 
 
 @dataclass(frozen=True)

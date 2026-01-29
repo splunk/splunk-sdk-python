@@ -19,21 +19,17 @@ from typing import Self, final, override
 
 from pydantic import BaseModel
 
+from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
+from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.model import PredefinedModel
+from splunklib.ai.stop_conditions import StopConditions
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
 from splunklib.ai.tools import (
+    Tool,
     load_mcp_tools,
     locate_tools_path_by_sdk_location,
-)
-from splunklib.ai.types import (
-    AgentResponse,
-    BaseAgent,
-    BaseMessage,
-    OutputT,
-    StopConditions,
-    Tool,
 )
 from splunklib.client import Service
 

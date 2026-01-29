@@ -13,6 +13,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
+from splunklib.ai.messages import HumanMessage, ToolMessage
 from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.tools import (
@@ -20,7 +21,6 @@ from splunklib.ai.tools import (
     _get_splunk_username,
     locate_tools_path_by_sdk_location,
 )
-from splunklib.ai.types import HumanMessage, ToolMessage
 from splunklib.client import connect
 from tests import testlib
 

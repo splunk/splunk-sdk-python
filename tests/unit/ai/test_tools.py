@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import pytest
 
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
-from splunklib.ai.types import Tool, ToolResult
+from splunklib.ai.tools import Tool, ToolResult
 
 
 async def no_op() -> ToolResult:

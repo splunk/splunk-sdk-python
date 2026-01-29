@@ -13,64 +13,62 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import Any, override, cast
-import uuid
+from typing import Any, cast, override
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware,
-    before_model,
     AgentState,
+    before_model,
 )
 from langchain.agents.middleware.summarization import TokenCounter
+from langchain.messages import AIMessage as LC_AIMessage
+from langchain.messages import HumanMessage as LC_HumanMessage
+from langchain.messages import SystemMessage as LC_SystemMessage
+from langchain.messages import ToolCall as LC_ToolCall
+from langchain.messages import ToolMessage as LC_ToolMessage
 from langchain.tools import ToolException as LC_ToolException
 from langchain_core.language_models import BaseChatModel
-from langchain_core.tools import BaseTool, StructuredTool
-from langgraph.graph.state import CompiledStateGraph, RunnableConfig
-from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.messages.base import BaseMessage as LC_BaseMessage
-from langchain.messages import (
-    AIMessage as LC_AIMessage,
-    ToolCall as LC_ToolCall,
-    ToolMessage as LC_ToolMessage,
-    HumanMessage as LC_HumanMessage,
-    SystemMessage as LC_SystemMessage,
-)
-from langgraph.runtime import Runtime
 from langchain_core.messages.utils import count_tokens_approximately
+from langchain_core.tools import BaseTool, StructuredTool
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph.state import CompiledStateGraph, RunnableConfig
+from langgraph.runtime import Runtime
 
-
+from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import (
     AgentImpl,
     Backend,
+    InvalidMessageTypeError,
     InvalidModelError,
     InvalidToolNameError,
-    InvalidMessageTypeError,
 )
-from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.types import (
-    AIMessage,
+from splunklib.ai.messages import (
     AgentCall,
-    BaseMessage,
-    BaseAgent,
     AgentResponse,
+    AIMessage,
+    BaseMessage,
     HumanMessage,
     OutputT,
-    StopConditions,
     SubagentMessage,
     SystemMessage,
-    TimeoutExceededException,
-    StepsLimitExceededException,
-    TokenLimitExceededException,
-    Tool,
     ToolCall,
-    ToolException,
     ToolMessage,
 )
+from splunklib.ai.model import OpenAIModel, PredefinedModel
+from splunklib.ai.stop_conditions import (
+    StepsLimitExceededException,
+    StopConditions,
+    TimeoutExceededException,
+    TokenLimitExceededException,
+)
+from splunklib.ai.tools import Tool, ToolException
 
 AGENT_PREFIX = "agent-"
 
@@ -183,7 +181,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
             result = await tool.func(**kwargs)
         except ToolException as e:
             raise LC_ToolException(*e.args) from e
-        except LC_ToolException as e:
+        except LC_ToolException:
             assert False, (
                 "ToolException from langchain should not be raised in tool.func"
             )

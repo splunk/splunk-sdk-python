@@ -24,7 +24,7 @@ from typing import override
 
 from splunklib.ai.agent import Agent
 from splunklib.ai.model import OpenAIModel
-from splunklib.ai.types import Message
+from splunklib.ai.messages import HumanMessage
 from tests.cretestlib import CRETestHandler
 
 OPENAI_BASE_URL = "http://host.docker.internal:11434/v1"
@@ -55,7 +55,7 @@ class WeatherHandler(CRETestHandler):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
+                    HumanMessage(
                         role="user",
                         content="""
                             What is the weather like today in Krakow? Use the provided tools to check the temperature.
@@ -85,7 +85,7 @@ class AgentNameHandler(CRETestHandler):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
+                    HumanMessage(
                         role="user",
                         content="What is your name? Answer in one word",
                     )

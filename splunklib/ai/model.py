@@ -36,6 +36,6 @@ class OpenAIModel(PredefinedModel):
 
 
 __all__ = [
-    "PredefinedModel",
     "OpenAIModel",
+    "PredefinedModel",
 ]

@@ -5,7 +5,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, override
+from typing import Any, Callable, override
 
 import httpx
 from anyio import Path
@@ -16,10 +16,28 @@ from mcp.types import CallToolResult, PaginatedRequestParams, TextContent
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
-from splunklib.ai.types import Tool, ToolException, ToolResult
 from splunklib.client import Service
 
 TOOLS_FILENAME = "tools.py"
+
+
+class ToolException(Exception):
+    """Custom exception to indicate tool execution errors."""
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    content: list[str]
+    structured_content: dict[str, Any] | None
+
+
+@dataclass(frozen=True)
+class Tool:
+    name: str
+    description: str
+    input_schema: dict[str, Any]
+    func: Callable[..., collections.abc.Awaitable[ToolResult]]
+    tags: list[str] | None = None
 
 
 def _splunk_home() -> str:

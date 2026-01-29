@@ -31,8 +31,7 @@ from splunklib.ai.core.backend import (
     InvalidToolNameError,
 )
 from splunklib.ai.engines import langchain as lc
-from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.types import (
+from splunklib.ai.messages import (
     AIMessage,
     AgentCall,
     HumanMessage,
@@ -41,6 +40,7 @@ from splunklib.ai.types import (
     ToolCall,
     ToolMessage,
 )
+from splunklib.ai.model import OpenAIModel, PredefinedModel
 
 
 class TestMapMessageFromLangchain(unittest.TestCase):

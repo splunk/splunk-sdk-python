@@ -10,6 +10,7 @@ for model interaction, tool usage, and structured I/O.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.message import HumanMessage
 from splunklib.client import connect
 
 service = connect(
@@ -187,6 +188,13 @@ def runSplunkQuery(ctx: ToolContext) -> list[str]:
 Tools can be filtered, before these are made available to the LLM, via the `tool_filters` parameter.
 
 ```py
+from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.client import connect
+
+model = OpenAIModel(...)
+service = connect(...)
+
 async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
@@ -207,6 +215,14 @@ by breaking complex workflows into smaller, focused units instead of relying on 
 Each subagent can use a different model, allowing you to optimize for both capability and cost of specific operations.
 
 ```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.message import HumanMessage
+from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.client import connect
+
+model = OpenAIModel(...)
+service = connect(...)
+
 async with (
     Agent(
         model=highly_specialized_model,
@@ -270,8 +286,14 @@ An `Agent` can be configured to return structured output. This allows applicatio
 and perform programmatic reasoning without relying on free-form text.
 
 ```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.message import HumanMessage
+from splunklib.client import connect
 from typing import Literal
 from pydantic import BaseModel, Field
+
+model = OpenAIModel(...)
+service = connect(...)
 
 class Output(BaseModel):
     service_name: str = Field(
@@ -315,6 +337,14 @@ the inputs a subagent accepts and guide the supervisor agent by clearly specifyi
 input structure.
 
 ```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.client import connect
+from pydantic import BaseModel
+
+model = OpenAIModel(...)
+service = connect(...)
+
+
 class Input(BaseModel):
 	...
 
@@ -354,7 +384,12 @@ limits are reached, such as:
 - Maximum wall-clock execution time
 
 ```py
-from splunklib.ai.types import StopConditions
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.stop_conditions import StopConditions
+from splunklib.client import connect
+
+model = OpenAIModel(...)
+service = connect(...)
 
 async with Agent(
         model=model,

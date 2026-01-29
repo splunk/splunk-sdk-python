@@ -19,11 +19,10 @@ import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.types import (
-    HumanMessage,
+from splunklib.ai.messages import HumanMessage, SubagentMessage
+from splunklib.ai.stop_conditions import (
     StepsLimitExceededException,
     StopConditions,
-    SubagentMessage,
     TimeoutExceededException,
     TokenLimitExceededException,
 )

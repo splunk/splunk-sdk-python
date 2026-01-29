@@ -15,7 +15,8 @@
 
 from typing import Protocol
 
-from splunklib.ai.types import BaseAgent, BaseMessage, AgentResponse, OutputT
+from splunklib.ai.base_agent import BaseAgent
+from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 
 
 class InvalidModelError(Exception):

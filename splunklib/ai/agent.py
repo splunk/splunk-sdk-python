@@ -43,6 +43,72 @@ _testing_local_tools_path: str | None = None
 
 @final
 class Agent(BaseAgent[OutputT]):
+    """
+    Core entry point for interacting with LLMs in the Agentic Splunk SDK.
+
+    Agents are async context managers and must be used with `async with`:
+
+        async with Agent(
+            model=model,
+            system_prompt="You are a helpful Splunk assistant.",
+            service=service,
+        ) as agent:
+            result = await agent.invoke([...])
+
+    Args:
+        model:
+            The underlying LLM to use. Must be a `PredefinedModel` instance
+            (for example, `OpenAIModel`).
+
+        system_prompt:
+            The system message used to prime and control the agent behavior.
+
+        service:
+            A `Service` instance, that is the authenticated to the Splunk service.
+
+        use_mcp_tools:
+            If `True`, the agent will load and expose MCP tools to the model.
+            This includes:
+              * Remote tools provided by the Splunk MCP Server App.
+              * Local tools registered via `ToolRegistry` in `bin/tools.py`.
+
+            When enabled, the model can decide when and how to call tools
+            as part of its reasoning. Defaults to `False`.
+
+        tool_filters:
+            Optional `ToolFilters` instance used to restrict which tools are
+            exposed to the model when MCP tools are enabled.
+
+        agents:
+            Optional list of subagents available to this agent.
+
+        output_schema:
+            Optional Pydantic model type describing the structured output this
+            agent should return. If `None`, the agent returns free-form text only.
+
+        input_schema:
+            Optional Pydantic model type describing the structured input this
+            agent accepts. Currently this is only honored when the agent is
+            used as a *subagent*. The supervisor agent uses this schema to
+            understand how to call the subagent and how to format its inputs.
+
+        loop_stop_conditions:
+            Optional `StopConditions` instance defining automatic termination.
+            If any limit is exceeded, the corresponding exception
+            (`TokenLimitExceededException`, `StepsLimitExceededException`,
+            or `TimeoutExceededException`) is raised.
+
+        name:
+            Name of the agent when used as a subagent. This is
+            surfaced to the supervisor and used to decide whether this agent
+            is appropriate for a given task. Ignored for top-level agents.
+
+        description:
+            Description of the agent when used as a subagent. This is
+            surfaced to the supervisor and used to decide whether this agent
+            is appropriate for a given task. Ignored for top-level agents.
+    """
+
     _impl: AgentImpl[OutputT] | None
     _use_mcp_tools: bool
     _service: Service
@@ -59,7 +125,7 @@ class Agent(BaseAgent[OutputT]):
         tool_filters: ToolFilters | None = None,
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
-        input_schema: type[BaseModel] | None = None,
+        input_schema: type[BaseModel] | None = None,  # Only used by Subgents
         loop_stop_conditions: StopConditions | None = None,
         name: str = "",  # Only used by Subgents
         description: str = "",  # Only used by Subagents

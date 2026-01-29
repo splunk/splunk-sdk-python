@@ -53,11 +53,27 @@ class BaseMessage:
 
 @dataclass(frozen=True)
 class HumanMessage(BaseMessage):
+    """
+    Message originating from a human user.
+
+    Represents user-provided input to the system, typically used
+    to prompt, guide, or respond to the assistant during a
+    conversation.
+    """
+
     role: Literal["user"] = "user"
 
 
 @dataclass(frozen=True)
 class AIMessage(BaseMessage):
+    """
+    Message produced by an LLM.
+
+    In addition to plain text content, an AIMessage may include
+    agent or tool invocations, representing actions the model is
+    requesting the Agent to execute.
+    """
+
     role: Literal["assistant"] = "assistant"
     calls: Sequence[ToolCall | AgentCall] = field(
         default_factory=list[ToolCall | AgentCall]
@@ -66,6 +82,10 @@ class AIMessage(BaseMessage):
 
 @dataclass(frozen=True)
 class ToolMessage(BaseMessage):
+    """
+    ToolMessage represents a response of a tool call
+    """
+
     role: Literal["tool"] = "tool"
     name: str | None = field(default=None)
     call_id: str = field(default="")
@@ -74,11 +94,19 @@ class ToolMessage(BaseMessage):
 
 @dataclass(frozen=True)
 class SystemMessage(BaseMessage):
+    """
+    A message used to prime or control agent behavior.
+    """
+
     role: Literal["system"] = "system"
 
 
 @dataclass(frozen=True)
 class SubagentMessage(BaseMessage):
+    """
+    SubagentMessage represents a response of an agent invocation
+    """
+
     role: Literal["subagent"] = "subagent"
     name: str = field(default="")
     call_id: str = field(default="")
@@ -114,16 +142,22 @@ class AgentStopException(Exception):
 
 
 class TokenLimitExceededException(AgentStopException):
+    """Raised by `Agent.invoke`, when token limit exceeds"""
+
     def __init__(self, token_limit: int) -> None:
         super().__init__(f"Token limit of {token_limit} exceeded.")
 
 
 class StepsLimitExceededException(AgentStopException):
+    """Raised by `Agent.invoke`, when steps limit exceeds"""
+
     def __init__(self, steps_limit: int) -> None:
         super().__init__(f"Steps limit of {steps_limit} exceeded.")
 
 
 class TimeoutExceededException(AgentStopException):
+    """Raised by `Agent.invoke`, when timeout exceeds"""
+
     def __init__(self, timeout_seconds: float) -> None:
         super().__init__(f"Timed out after {timeout_seconds} seconds.")
 
@@ -145,6 +179,7 @@ class Tool:
     input_schema: dict[str, Any]
     func: Callable[..., Awaitable[ToolResult]]
     tags: list[str] | None = None
+
 
 class BaseAgent(Generic[OutputT], ABC):
     _system_prompt: str

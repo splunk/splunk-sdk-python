@@ -30,7 +30,7 @@ from splunklib.ai.tools import (
 from splunklib.ai.types import (
     AgentResponse,
     BaseAgent,
-    Message,
+    BaseMessage,
     OutputT,
     StopConditions,
     Tool,
@@ -39,6 +39,7 @@ from splunklib.client import Service
 
 # For testing purposes, overrides the automatically inferred tools.py path.
 _testing_local_tools_path: str | None = None
+
 
 @final
 class Agent(BaseAgent[OutputT]):
@@ -96,7 +97,7 @@ class Agent(BaseAgent[OutputT]):
         return None
 
     @override
-    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]:
+    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
         if not self._impl:
             raise AssertionError("Agent must be used inside 'async with'")
 

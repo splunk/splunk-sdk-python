@@ -13,13 +13,14 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
-from splunklib.ai import Agent, Message, OpenAIModel
 from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.tools import (
     _get_splunk_token_for_mcp,
     _get_splunk_username,
     locate_tools_path_by_sdk_location,
 )
+from splunklib.ai.types import HumanMessage, ToolMessage
 from splunklib.client import connect
 from tests import testlib
 
@@ -54,15 +55,21 @@ class TestTools(testlib.SDKTestCase):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
-                        content="""
-                        What is the weather like today in Krakow? Use the provided tools to check the temperature.
-                        Return a short response, containing the tool response.
-                        """,
+                    HumanMessage(
+                        content=(
+                            "What is the weather like today in Krakow? Use the provided tools to check the temperature."
+                            "Return a short response, containing the tool response."
+                        ),
                     )
                 ]
             )
+
+            tool_message = next(
+                filter(lambda m: m.role == "tool", result.messages), None
+            )
+            assert isinstance(tool_message, ToolMessage), "Invalid tool message"
+            assert tool_message, "No tool message found in response"
+            assert tool_message.name == "temperature", "Invalid tool name"
 
             response = result.messages[-1].content
             assert "31.5" in response, "Invalid LLM response"
@@ -93,17 +100,23 @@ class TestTools(testlib.SDKTestCase):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
-                        content="""
-                        Using available tools, please check the startup time of the splunk instance.
-                        Return a short response, containing the tool response.
-                        """,
+                    HumanMessage(
+                        content=(
+                            "Using available tools, please check the startup time of the splunk instance."
+                            "Return a short response, containing the tool response."
+                        ),
                     )
                 ]
             )
 
             want_startup_time = f"{self.service.info.startup_time}"
+
+            tool_message = next(
+                filter(lambda m: m.role == "tool", result.messages), None
+            )
+            assert isinstance(tool_message, ToolMessage), "Invalid tool message"
+            assert tool_message, "No tool message found in response"
+            assert tool_message.name == "startup_time", "Invalid tool name"
 
             response = result.messages[-1].content
             assert want_startup_time in response, "Invalid LLM response"
@@ -253,15 +266,21 @@ async def test_remote_tools():
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
-                        content="""
-                        What is the weather like today in Krakow? Use the provided tools to check the temperature.
-                        Return a short response, containing the tool response.
-                        """,
+                    HumanMessage(
+                        content=(
+                            "What is the weather like today in Krakow? Use the provided tools to check the temperature."
+                            "Return a short response, containing the tool response."
+                        ),
                     )
                 ]
             )
+
+            tool_message = next(
+                filter(lambda m: m.role == "tool", result.messages), None
+            )
+            assert isinstance(tool_message, ToolMessage), "Invalid tool message"
+            assert tool_message, "No tool message found in response"
+            assert tool_message.name == "temperature", "Invalid tool name"
 
             response = result.messages[-1].content
             assert "31.5" in response, "Invalid LLM response"
@@ -312,8 +331,7 @@ async def test_remote_tools_mcp_app_unavail():
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="What is your name? Answer in one word",
                     )
                 ]
@@ -387,16 +405,21 @@ async def test_remote_tools_failure():
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
-                        content="""
-                        What is the weather like today in Cracow? Use the provided tools to check the temperature.
-                        """,
+                    HumanMessage(
+                        content="What is the weather like today in Cracow? Use the provided tools to check the temperature."
                     )
                 ]
             )
-            response = result.messages[-1].content
+            tool_messages = list(filter(lambda m: m.role == "tool", result.messages))
+            assert len(tool_messages) == 2, (
+                "Expected multiple tool calls due to retries"
+            )
+            assert tool_messages[0].status == "error", (
+                "First tool call should be invalid"
+            )
+            assert tool_messages[1].status == "success", "Second tool call should be ok"
 
+            response = result.messages[-1].content
             assert "31.5" in response, "Invalid LLM response"
 
 

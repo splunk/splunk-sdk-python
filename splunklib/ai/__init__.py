@@ -14,11 +14,9 @@
 # under the License.
 
 from splunklib.ai.agent import Agent
-from splunklib.ai.types import Message
 from splunklib.ai.model import OpenAIModel
 
 __all__ = [
     "Agent",
-    "Message",
     "OpenAIModel",
 ]

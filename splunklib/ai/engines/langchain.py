@@ -27,36 +27,56 @@ from langchain.agents.middleware import (
     AgentState,
 )
 from langchain.agents.middleware.summarization import TokenCounter
-from langchain.tools import ToolException as LCToolException
+from langchain.tools import ToolException as LC_ToolException
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.graph.state import CompiledStateGraph, RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
-from langchain.messages import AIMessage, ToolMessage
+from langchain_core.messages.base import BaseMessage as LC_BaseMessage
+from langchain.messages import (
+    AIMessage as LC_AIMessage,
+    ToolCall as LC_ToolCall,
+    ToolMessage as LC_ToolMessage,
+    HumanMessage as LC_HumanMessage,
+    SystemMessage as LC_SystemMessage,
+)
 from langgraph.runtime import Runtime
 from langchain_core.messages.utils import count_tokens_approximately
 
 
-from splunklib.ai.core.backend import AgentImpl, Backend
+from splunklib.ai.core.backend import (
+    AgentImpl,
+    Backend,
+    InvalidModelError,
+    InvalidToolNameError,
+    InvalidMessageTypeError,
+)
 from splunklib.ai.model import OpenAIModel, PredefinedModel
 from splunklib.ai.types import (
-    Message,
-    Role,
+    AIMessage,
+    AgentCall,
+    BaseMessage,
     BaseAgent,
     AgentResponse,
+    HumanMessage,
     OutputT,
     StopConditions,
+    SubagentMessage,
+    SystemMessage,
     TimeoutExceededException,
     StepsLimitExceededException,
     TokenLimitExceededException,
     Tool,
+    ToolCall,
     ToolException,
+    ToolMessage,
 )
 
+AGENT_PREFIX = "agent-"
 
-AGENT_AS_TOOLS_PROMPT = """
+AGENT_AS_TOOLS_PROMPT = f"""
 You are provided with Agents.
-Agents are more advanced TOOLS, which start with "agent-" prefix.
+Agents are more advanced TOOLS, which start with "{AGENT_PREFIX}" prefix.
 
 Do not call the tools if not needed.
 """
@@ -97,15 +117,8 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         )
 
     @override
-    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]:
-        # translate incoming messages to langchain
-        langchain_msgs = [
-            {
-                "role": _map_role_to_langchain(message.role),
-                "content": message.content,
-            }
-            for message in messages
-        ]
+    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
+        langchain_msgs = [_map_message_to_langchain(m) for m in messages]
 
         # call the langchain agent
         result = await self._agent.ainvoke(
@@ -113,15 +126,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             config=self._config,
         )
 
-        # translate the response from langchain to the SDK
-        # TODO: really need to append only the new results - this could be a good optimisation
-        sdk_msgs = [
-            Message(
-                role=_map_role_from_langchain(message.type),
-                content=message.content,
-            )
-            for message in result["messages"]
-        ]
+        sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
 
         # NOTE: The Agent puts it's response into the output schema.
         # The response object is valid and matches the model, however, the response might not always make sense
@@ -177,8 +182,8 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         try:
             result = await tool.func(**kwargs)
         except ToolException as e:
-            raise LCToolException(*e.args) from e
-        except LCToolException as e:
+            raise LC_ToolException(*e.args) from e
+        except LC_ToolException as e:
             assert False, (
                 "ToolException from langchain should not be raised in tool.func"
             )
@@ -202,8 +207,14 @@ def langchain_backend_factory() -> LangChainBackend:
 
 def _normalize_agent_name(name: str) -> str:
     # TODO: should we check for collisions here?
-    name = "-".join(name.strip().lower().split())
-    return f"agent-{name}"
+    # TODO: we shouldn't change the name here - only add a prefix.
+    # We should validate the name when the Agent is created
+    name = "-".join(name.strip().split())
+    return f"{AGENT_PREFIX}{name}"
+
+
+def _denormalize_agent_name(name: str) -> str:
+    return name.removeprefix(AGENT_PREFIX)
 
 
 def _agent_as_tool(agent: BaseAgent[OutputT]):
@@ -218,7 +229,7 @@ def _agent_as_tool(agent: BaseAgent[OutputT]):
         req = InputSchema(**kwargs)
         request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
 
-        result = await agent.invoke([Message(role="user", content=request_text)])
+        result = await agent.invoke([HumanMessage(content=request_text)])
         if agent.output_schema:
             return result.structured_output
         return result.messages[-1].content
@@ -231,30 +242,96 @@ def _agent_as_tool(agent: BaseAgent[OutputT]):
     )
 
 
-def _map_role_from_langchain(role: str) -> Role:
-    match role:
-        case "human":
-            return "user"
-        case "system":
-            return "system"
-        case "ai":
-            return "assistant"
-        case "tool":
-            return "tool"
+def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | AgentCall:
+    if tool_call["name"].startswith(AGENT_PREFIX):
+        return AgentCall(
+            name=_denormalize_agent_name(tool_call["name"]),
+            args=tool_call["args"],
+            id=tool_call["id"],
+        )
+
+    return ToolCall(
+        name=tool_call["name"],
+        args=tool_call["args"],
+        id=tool_call["id"],
+    )
+
+
+def _map_tool_call_to_langchain(call: ToolCall | AgentCall) -> LC_ToolCall:
+    if AGENT_PREFIX in call.name:
+        raise InvalidToolNameError(
+            f"ToolCall name cannot contain agent prefix: {call.name}"
+        )
+
+    name = call.name
+    if isinstance(call, AgentCall):
+        name = _normalize_agent_name(call.name)
+
+    return LC_ToolCall(
+        name=name,
+        args=call.args,
+        id=call.id,
+    )
+
+
+def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
+    match message:
+        case LC_AIMessage():
+            return AIMessage(
+                content=str(message.content),
+                calls=[_map_tool_call_from_langchain(tc) for tc in message.tool_calls],
+            )
+        case LC_HumanMessage():
+            return HumanMessage(content=str(message.content))
+        case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
+            return SubagentMessage(
+                name=_denormalize_agent_name(name),
+                content=str(message.content),
+                call_id=message.tool_call_id,
+                status=message.status,
+            )
+        case LC_ToolMessage():
+            return ToolMessage(
+                name=message.name,
+                content=str(message.content),
+                call_id=message.tool_call_id,
+                status=message.status,
+            )
+        case LC_SystemMessage():
+            return SystemMessage(content=str(message.content))
         case _:
-            raise Exception("Invalid langchain message type")
+            raise InvalidMessageTypeError("Invalid langchain message type")
 
 
-def _map_role_to_langchain(role: Role) -> str:
-    match role:
-        case "user":
-            return "human"
-        case "system":
-            return "system"
-        case "assistant":
-            return "ai"
-        case "tool":
-            return "tool"
+def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
+    match message:
+        case AIMessage():
+            lc_message = LC_AIMessage(content=message.content)
+            # this field can't be set via constructor
+            lc_message.tool_calls = [
+                _map_tool_call_to_langchain(c) for c in message.calls
+            ]
+            return lc_message
+        case HumanMessage():
+            return LC_HumanMessage(content=message.content)
+        case SubagentMessage():
+            return LC_ToolMessage(
+                name=_normalize_agent_name(message.name),
+                content=message.content,
+                tool_call_id=message.call_id,
+                status=message.status,
+            )
+        case ToolMessage():
+            return LC_ToolMessage(
+                content=message.content,
+                tool_call_id=message.call_id,
+                name=message.name,
+                status=message.status,
+            )
+        case SystemMessage():
+            return LC_SystemMessage(content=message.content)
+        case _:
+            raise InvalidMessageTypeError("Invalid SDK message type")
 
 
 def _create_middleware(
@@ -346,6 +423,6 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                       uv add splunk-sdk[openai]"""
                 )
         case _:
-            raise Exception(
+            raise InvalidModelError(
                 "Cannot create langchain model - invalid SDK model provided"
             )

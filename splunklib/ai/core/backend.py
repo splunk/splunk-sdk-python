@@ -15,13 +15,25 @@
 
 from typing import Protocol
 
-from splunklib.ai.types import BaseAgent, Message, AgentResponse, OutputT
+from splunklib.ai.types import BaseAgent, BaseMessage, AgentResponse, OutputT
+
+
+class InvalidModelError(Exception):
+    """Raised when an invalid model is specified for a backend."""
+
+
+class InvalidToolNameError(Exception):
+    """Raised when a tool name contains invalid prefix."""
+
+
+class InvalidMessageTypeError(Exception):
+    """Raised when a message type is not supported by the backend."""
 
 
 class AgentImpl(Protocol[OutputT]):
     """Backend-specific agent implementation used by the public `Agent` wrapper."""
 
-    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]: ...
+    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
 
 
 class Backend(Protocol):

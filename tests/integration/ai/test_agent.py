@@ -18,10 +18,12 @@ import time
 import pytest
 from pydantic import BaseModel, Field
 
-from splunklib.ai import Agent, Message, OpenAIModel
+from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.types import (
+    HumanMessage,
     StepsLimitExceededException,
     StopConditions,
+    SubagentMessage,
     TimeoutExceededException,
     TokenLimitExceededException,
 )
@@ -50,8 +52,7 @@ class TestAgent(testlib.SDKTestCase):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="What is your name? Answer in one word",
                     )
                 ]
@@ -81,8 +82,7 @@ class TestAgent(testlib.SDKTestCase):
         with pytest.raises(Exception, match="Agent must be used inside 'async with'"):
             _ = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="What is your name? Answer in one word",
                     )
                 ]
@@ -109,8 +109,7 @@ class TestAgent(testlib.SDKTestCase):
         with pytest.raises(Exception, match="Agent must be used inside 'async with'"):
             _ = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="What is your name? Answer in one word",
                     )
                 ]
@@ -157,8 +156,7 @@ class TestAgent(testlib.SDKTestCase):
         ) as agent:
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="fill in the details for Person model",
                     )
                 ]
@@ -194,8 +192,7 @@ class TestAgent(testlib.SDKTestCase):
         ) as agent:
             _ = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="hi, my name is Chris",
                     )
                 ]
@@ -203,8 +200,7 @@ class TestAgent(testlib.SDKTestCase):
 
             result = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="What is my name?",
                     )
                 ]
@@ -213,6 +209,58 @@ class TestAgent(testlib.SDKTestCase):
             response = result.messages[-1].content
 
             assert "Chris" in response, "Agent did not remember the name"
+
+    @pytest.mark.asyncio
+    async def test_agent_uses_subagent(self):
+        pytest.importorskip("langchain_openai")
+        model = OpenAIModel(
+            model="ministral-3:8b",
+            base_url=OPENAI_BASE_URL,
+            api_key=OPENAI_API_KEY,
+            temperature=0.0,
+        )
+
+        class NicknameGeneratorInput(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        async with (
+            Agent(
+                model=model,
+                system_prompt=(
+                    "You are a helpful assistant that generates nicknames"
+                    "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
+                    "Remember the dash and lowercase zilla. Example: Stefan -> Stefan-zilla"
+                ),
+                service=self.service,
+                name="NicknameGeneratorAgent",
+                description="Generates nicknames for people. Pass a name and get a nickname",
+                input_schema=NicknameGeneratorInput,
+            ) as subagent,
+            Agent(
+                model=model,
+                system_prompt="You are a supervisor agent that MUST use other agents",
+                agents=[subagent],
+                service=self.service,
+            ) as supervisor,
+        ):
+            result = await supervisor.invoke(
+                [
+                    HumanMessage(
+                        content="hi, my name is Chris. Generate a nickname for me",
+                    )
+                ]
+            )
+
+            response = result.messages[-1].content
+
+            subagent_message = next(
+                filter(lambda m: m.role == "subagent", result.messages), None
+            )
+            assert isinstance(subagent_message, SubagentMessage), (
+                "Invalid subagent message"
+            )
+            assert subagent_message, "No subagent message found in response"
+            assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
     async def test_agent_understands_other_agents(self):
@@ -254,17 +302,17 @@ class TestAgent(testlib.SDKTestCase):
             async with Agent(
                 model=model,
                 agents=[subagent],
-                system_prompt="""You are a supervisor agent that manages other agents to describe multiple people.
-                Make sure you return the structured output data that matches the response format provided to you.
-                If you're unable to get the data from the sub-agent, return an appropriate message indicating the failure.
-                """,
+                system_prompt=(
+                    "You are a supervisor agent that manages other agents to describe multiple people."
+                    "Make sure you return the structured output data that matches the response format provided to you."
+                    "If you're unable to get the data from the sub-agent, return an appropriate message indicating the failure."
+                ),
                 output_schema=SupervisorOutput,
                 service=self.service,
             ) as supervisor_agent:
                 result = await supervisor_agent.invoke(
                     [
-                        Message(
-                            role="user",
+                        HumanMessage(
                             content="give me descriptions for three people. Use describer agent to generate descriptions. Provide it with all the data it needs.",
                         )
                     ]
@@ -298,8 +346,7 @@ class TestAgent(testlib.SDKTestCase):
             ):
                 _ = await agent.invoke(
                     [
-                        Message(
-                            role="user",
+                        HumanMessage(
                             content="hi, my name is Chris",
                         )
                     ]
@@ -322,8 +369,7 @@ class TestAgent(testlib.SDKTestCase):
         ) as agent:
             _ = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="hi, my name is Chris",
                     )
                 ]
@@ -334,8 +380,7 @@ class TestAgent(testlib.SDKTestCase):
             ):
                 _ = await agent.invoke(
                     [
-                        Message(
-                            role="user",
+                        HumanMessage(
                             content="What is my name?",
                         )
                     ]
@@ -358,8 +403,7 @@ class TestAgent(testlib.SDKTestCase):
         ) as agent:
             _ = await agent.invoke(
                 [
-                    Message(
-                        role="user",
+                    HumanMessage(
                         content="hi, my name is Chris",
                     )
                 ]
@@ -372,8 +416,7 @@ class TestAgent(testlib.SDKTestCase):
             ):
                 _ = await agent.invoke(
                     [
-                        Message(
-                            role="user",
+                        HumanMessage(
                             content="What is my name?",
                         )
                     ]

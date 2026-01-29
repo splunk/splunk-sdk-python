@@ -22,15 +22,67 @@ from pydantic import BaseModel
 
 from splunklib.ai.model import PredefinedModel
 
-Role = Literal["system", "user", "assistant", "tool"]
-
 OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
 
 
 @dataclass(frozen=True)
-class Message:
-    role: Role
-    content: str
+class ToolCall:
+    name: str
+    args: dict[str, Any]
+    id: str | None
+
+
+@dataclass(frozen=True)
+class AgentCall:
+    name: str
+    args: dict[str, Any]
+    id: str | None
+
+
+@dataclass(frozen=True)
+class BaseMessage:
+    role: str = ""
+    content: str = field(default="")
+
+    def __post_init__(self):
+        if type(self) is BaseMessage:
+            raise TypeError(
+                "BaseMessage is an abstract class and cannot be instantiated"
+            )
+
+
+@dataclass(frozen=True)
+class HumanMessage(BaseMessage):
+    role: Literal["user"] = "user"
+
+
+@dataclass(frozen=True)
+class AIMessage(BaseMessage):
+    role: Literal["assistant"] = "assistant"
+    calls: Sequence[ToolCall | AgentCall] = field(
+        default_factory=list[ToolCall | AgentCall]
+    )
+
+
+@dataclass(frozen=True)
+class ToolMessage(BaseMessage):
+    role: Literal["tool"] = "tool"
+    name: str | None = field(default=None)
+    call_id: str = field(default="")
+    status: Literal["success", "error"] = "success"
+
+
+@dataclass(frozen=True)
+class SystemMessage(BaseMessage):
+    role: Literal["system"] = "system"
+
+
+@dataclass(frozen=True)
+class SubagentMessage(BaseMessage):
+    role: Literal["subagent"] = "subagent"
+    name: str = field(default="")
+    call_id: str = field(default="")
+    status: Literal["success", "error"] = "success"
 
 
 @dataclass(frozen=True)
@@ -38,7 +90,7 @@ class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT
     # Holds the full message history including tool calls and final response
-    messages: list[Message] = field(default_factory=list)
+    messages: list[BaseMessage] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -128,7 +180,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self._loop_stop_conditions = loop_stop_conditions
 
     @abstractmethod
-    async def invoke(self, messages: list[Message]) -> AgentResponse[OutputT]: ...
+    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
 
     @property
     def system_prompt(self) -> str:

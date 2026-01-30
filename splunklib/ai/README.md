@@ -15,11 +15,11 @@ from splunklib.client import connect
 
 service = connect(
     scheme="https",
-	host="localhost",
-	port=8089,
-	username="user",
-	password="password",
-	autologin=True,
+    host="localhost",
+    port=8089,
+    username="user",
+    password="password",
+    autologin=True,
 )
 
 model = OpenAIModel(
@@ -31,17 +31,11 @@ model = OpenAIModel(
 async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
-	service=service,
+    service=service,
 ) as agent:
-    result = await agent.invoke(
-        [
-            HumanMessage(
-                content="What is your name?",
-            )
-        ]
-    )
+    result = await agent.invoke([HumanMessage(content="What is your name?")])
 
-	print(result.messages[-1].content) # My name is Stefan
+    print(result.messages[-1].content) # My name is Stefan
 ```
 
 ## Models
@@ -49,7 +43,7 @@ async with Agent(
 The Agent is designed with a modular, provider-agnostic architecture. This allows a single Agent implementation
 to work with different model providers through a common interface, without requiring changes to the agent’s core logic.
 
-At the moment, we support: OpenAI and OpenAI-compatible models.
+At the moment, we support OpenAI and OpenAI-compatible models.
 
 ### OpenAI
 
@@ -116,8 +110,8 @@ service = connect(...)
 async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
-	service=service,
-	use_mcp_tools=True,
+    service=service,
+    use_mcp_tools=True,
 ) as agent: ...
 ```
 
@@ -154,6 +148,10 @@ def hello(name: str) -> str:
 if __name__ == "__main__":
     registry.run()
 ```
+
+#### Tool filtering
+
+<!-- TODO -->
 
 #### ToolContext
 
@@ -198,8 +196,8 @@ service = connect(...)
 async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
-	service=service,
-	use_mcp_tools=True,
+    service=service,
+    use_mcp_tools=True,
     tool_filters=ToolFilters(
         allowed_names=["tool_name"], allowed_tags=["tag1", "tag2"]
     ),
@@ -227,7 +225,7 @@ async with (
     Agent(
         model=highly_specialized_model,
         service=service,
-		use_mcp_tools=True,
+        use_mcp_tools=True,
         system_prompt=(
             "You are a highly specialized debugging agent, your job is to provide as much"
             "details as possible to resolve issues."
@@ -242,7 +240,7 @@ async with (
     Agent(
         model=low_cost_model,
         service=service,
-		use_mcp_tools=True,
+        use_mcp_tools=True,
         system_prompt= (
             "You are a log analyzer agent. Your job is to query logs, based on the details that you receive and"
             "return a summary of interesting logs, that can be used for further analysis."
@@ -346,10 +344,10 @@ service = connect(...)
 
 
 class Input(BaseModel):
-	...
+    ...
 
 class Output(BaseModel):
-	...
+    ...
 
 async with Agent(
         model=model,
@@ -357,8 +355,8 @@ async with Agent(
         system_prompt="..." ,
         name="...",
         description="...",
-		input_schema=Input,
-		output_schema=Output,
+        input_schema=Input,
+        output_schema=Output,
     ) as subagent:
     async with Agent(
         model=model,
@@ -399,7 +397,7 @@ async with Agent(
             token_limit = 10000,
             steps_limit = 25,
             timeout_seconds = 10.5,
-		),
+        ),
     ) as agent: ...
 ```
 

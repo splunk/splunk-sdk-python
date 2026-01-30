@@ -20,5 +20,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: python -m pip install . --group test
+      - name: Set up .env
+        run: cp .env.template .env
+      - name: Run unit tests
+        run: make test-unit
       - name: Run entire test suite
-        run: python -m pytest ./tests
+        run: make test-integration

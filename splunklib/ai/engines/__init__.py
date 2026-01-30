@@ -12,3 +12,8 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
+import sys
+
+if sys.version_info < (3, 13):
+    raise ImportError("Python 3.13 or newer is required to use this module")

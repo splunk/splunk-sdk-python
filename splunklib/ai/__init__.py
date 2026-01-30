@@ -13,6 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import sys
+
+if sys.version_info < (3, 13):
+    raise ImportError("Python 3.13 or newer is required to use this module")
+
 from splunklib.ai.agent import Agent
 from splunklib.ai.model import OpenAIModel
 

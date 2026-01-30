@@ -1,20 +1,42 @@
+#
+# Conveniences for splunk-sdk development
+#
+
 CONTAINER_NAME := "splunk"
+
+# VIRTUALENV MANAGEMENT
+
+# https://docs.astral.sh/uv/reference/cli/#uv-run--upgrade
+# --no-config is used to skip all the internal Splunk package indexes
+.PHONY: uv-sync
+uv-sync:
+	@echo "[splunk-sdk] Make sure to tun this only in the repo root!"
+	uv sync --all-groups --all-extras --no-config
+
+.PHONY: uv-upgrade
+uv-upgrade:
+	@echo "[splunk-sdk] Make sure to run this only in the repo root!"
+	uv sync --all-groups --all-extras --upgrade --no-config
 
 .PHONY: docs
 docs:
-	@make -C ./docs html
+	make -C ./docs html
 
 .PHONY: test
 test:
-	@python -m pytest ./tests
+	python -m pytest ./tests
 
 .PHONY: test-unit
 test-unit:
-	@python -m pytest ./tests/unit
+	python -m pytest ./tests/unit
 
 .PHONY: test-integration
 test-integration:
-	@python -m pytest ./tests/integration ./tests/system
+	python -m pytest ./tests/integration ./tests/system
+
+.PHONY: test-ai
+test-ai:
+	python -m pytest ./tests/integration/ai ./tests/unit/ai
 
 .PHONY: docker-up
 docker-up:
@@ -37,14 +59,22 @@ docker-start: docker-up docker-ensure-up
 
 .PHONY: docker-down
 docker-down:
-	@docker-compose stop
+	docker-compose stop
 
 .PHONY: docker-restart
 docker-restart: docker-down docker-start
 
 .PHONY: docker-remove
 docker-remove:
-	@docker-compose rm -f -s
+	docker-compose rm -f -s
 
 .PHONY: docker-refresh
 docker-refresh: docker-remove docker-start
+
+.PHONY: docker-splunk-restart
+docker-splunk-restart:
+	docker exec -it splunk sh -c '/opt/splunk/bin/splunk restart'
+
+.PHONY: docker-tail-python-log
+docker-tail-python-log:
+	docker exec splunk tail /opt/splunk/var/log/splunk/python.log

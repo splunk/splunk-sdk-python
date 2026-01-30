@@ -19,6 +19,6 @@
 try:
     import coverage
 
-    coverage.process_startup()
-except:
+    coverage.process_startup()  # pyright: ignore[reportUnusedCallResult]
+except:  # noqa: E722
     pass

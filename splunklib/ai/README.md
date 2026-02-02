@@ -61,7 +61,7 @@ async with Agent(model=model) as agent: ....
 
 #### Ollama
 
-Since Ollama exposes an [OpenAI compatible AI](https://docs.ollama.com/api/openai-compatibility), the existing `OpenAIModel` can be used
+Since Ollama exposes an [OpenAI compatible API](https://docs.ollama.com/api/openai-compatibility), the existing `OpenAIModel` can be used
 to leverage models available through Ollama.
 
 ```py

@@ -149,10 +149,6 @@ if __name__ == "__main__":
     registry.run()
 ```
 
-#### Tool filtering
-
-<!-- TODO -->
-
 #### ToolContext
 
 `ToolContext` is a special parameter type that tools may declare in their function signature.

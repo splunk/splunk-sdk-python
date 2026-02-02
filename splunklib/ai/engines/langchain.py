@@ -425,6 +425,8 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                     base_url=model.base_url,
                     api_key=model.api_key,
                     temperature=model.temperature,
+                    extra_body=model.extra_body,
+                    http_async_client=model.httpx_client,
                 )
             except ImportError:
                 raise ImportError(

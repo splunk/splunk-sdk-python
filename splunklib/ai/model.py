@@ -14,6 +14,9 @@
 # under the License.
 
 from dataclasses import dataclass
+from typing import Any, Mapping
+
+import httpx
 
 
 @dataclass(frozen=True)
@@ -25,14 +28,30 @@ class PredefinedModel:
 
 @dataclass(frozen=True)
 class OpenAIModel(PredefinedModel):
-    """Predifned OpenAI Model"""
+    """Predefined OpenAI Model"""
 
-    # TODO: For the MVP purposes the configuration is pretty simple.
-    # It will be extended in the future with additional fields.
     model: str
     base_url: str
     api_key: str
     temperature: float | None = None
+
+    extra_body: Mapping[str, Any] | None = None
+    """
+    Optional additional properties to include in the request parameters when
+    making requests to OpenAI compatible APIs.
+
+    This is the recommended way to pass custom parameters that are specific to your
+    OpenAI-compatible API provider but not part of the standard OpenAI API.
+    """
+
+    httpx_client: httpx.AsyncClient | None = None
+    """
+    Optional http client, that is used for all outgoing HTTP requests.
+
+    Can be leveraged to set custom Auth headers to OpenAI compatible APIs:
+
+        httpx_client=httpx.AsyncClient(auth=auth_handler)
+    """
 
 
 __all__ = [

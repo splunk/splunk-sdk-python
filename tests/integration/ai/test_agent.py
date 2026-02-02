@@ -314,7 +314,9 @@ class TestAgent(testlib.SDKTestCase):
             person_name: str = Field(description="The person's full name", min_length=1)
             age: int = Field(description="The person's age in years", ge=0, le=150)
             hobbies: list[str] = Field(
-                description="List of person's hobbies", min_items=1, max_items=5
+                description="List of person's hobbies",
+                min_length=1,
+                max_length=5,
             )
 
         class SubagentOutput(BaseModel):
@@ -335,7 +337,9 @@ class TestAgent(testlib.SDKTestCase):
             class SupervisorOutput(BaseModel):
                 team_name: str = Field(description="The name of the team", min_length=1)
                 member_descriptions: list[SubagentOutput] = Field(
-                    description="List of member descriptions", min_items=1, max_items=10
+                    description="List of member descriptions",
+                    min_length=1,
+                    max_length=10,
                 )
 
             async with Agent(

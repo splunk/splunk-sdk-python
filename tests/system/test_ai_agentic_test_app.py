@@ -17,15 +17,18 @@
 
 import pytest
 
-from tests import testlib
+from tests.ai_testlib import AITestCase
 
 
-class TestAgenticApp(testlib.SDKTestCase):
+class TestAgenticApp(AITestCase):
     def test_agetic_app(self) -> None:
         pytest.importorskip("langchain_openai")
         self.skip_splunk_10_2()
 
-        resp = self.service.post("agentic_app/agent-name")
+        resp = self.service.post(
+            "agentic_app/agent-name",
+            body=self.test_llm_settings.model_dump_json(),
+        )
         assert resp.status == 200
         assert "stefan" in str(resp.body)
 
@@ -33,7 +36,10 @@ class TestAgenticApp(testlib.SDKTestCase):
         pytest.importorskip("langchain_openai")
         self.skip_splunk_10_2()
 
-        resp = self.service.post("agentic_app_with_local_tools/weather")
+        resp = self.service.post(
+            "agentic_app_with_local_tools/weather",
+            body=self.test_llm_settings.model_dump_json(),
+        )
         assert resp.status == 200
         assert "31.5" in str(resp.body)
 
@@ -41,7 +47,10 @@ class TestAgenticApp(testlib.SDKTestCase):
         pytest.importorskip("langchain_openai")
         self.skip_splunk_10_2()
 
-        resp = self.service.post("agentic_app_with_local_tools/agent-name")
+        resp = self.service.post(
+            "agentic_app_with_local_tools/agent-name",
+            body=self.test_llm_settings.model_dump_json(),
+        )
         assert resp.status == 200
         assert "stefan" in str(resp.body)
 

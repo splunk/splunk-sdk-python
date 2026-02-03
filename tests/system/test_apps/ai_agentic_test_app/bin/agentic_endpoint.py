@@ -22,9 +22,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 from typing import override
 
 from splunklib.ai.agent import Agent
-from splunklib.ai.model import OpenAIModel
 from splunklib.ai.messages import HumanMessage
-from tests.cretestlib import CRETestHandler
+from tests.cre_testlib import CRETestHandler
 
 OPENAI_BASE_URL = "http://host.docker.internal:11434/v1"
 OPENAI_API_KEY = "ollama"
@@ -47,14 +46,8 @@ if os.environ["SSL_CERT_FILE"] == CA_TRUST_STORE and not os.path.exists(CA_TRUST
 class AgentNameHandler(CRETestHandler):
     @override
     async def run(self) -> None:
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="Your name is Stefan",
             use_mcp_tools=True,
             service=self.service,
@@ -62,7 +55,6 @@ class AgentNameHandler(CRETestHandler):
             result = await agent.invoke(
                 [
                     HumanMessage(
-                        role="user",
                         content="What is your name? Answer in one word",
                     )
                 ]

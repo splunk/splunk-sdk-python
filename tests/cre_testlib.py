@@ -19,14 +19,17 @@ import traceback
 from abc import abstractmethod
 from http.cookies import SimpleCookie
 
+from splunklib.ai.model import PredefinedModel
 from splunklib.binding import _spliturl
 from splunklib.client import Service, connect
+from tests.ai_test_model import TestLLMSettings, create_model
 
 try:
     import splunk
 
     class CRETestHandler(splunk.rest.BaseRestHandler):
         _service: Service | None = None
+        _model: PredefinedModel | None = None
 
         def handle_POST(self) -> None:
             async def run() -> None:
@@ -44,6 +47,16 @@ try:
 
         @abstractmethod
         async def run(self) -> None: ...
+
+        async def model(self) -> PredefinedModel:
+            if self._model is not None:
+                return self._model
+
+            raw_body = str(self.request["payload"])
+            s = TestLLMSettings.model_validate_json(raw_body)
+            model = await create_model(s)
+            self._model = model
+            return model
 
         @property
         def service(self) -> Service:

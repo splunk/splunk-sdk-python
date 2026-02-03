@@ -18,7 +18,7 @@ import time
 import pytest
 from pydantic import BaseModel, Field
 
-from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage, SubagentMessage
 from splunklib.ai.stop_conditions import (
     StepsLimitExceededException,
@@ -26,26 +26,19 @@ from splunklib.ai.stop_conditions import (
     TimeoutExceededException,
     TokenLimitExceededException,
 )
-from tests import testlib
+from tests.ai_testlib import AITestCase
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
 OPENAI_API_KEY = "ollama"
 
 
-class TestAgent(testlib.SDKTestCase):
+class TestAgent(AITestCase):
     @pytest.mark.asyncio
     async def test_agent_with_openai_round_trip(self):
-        # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
         ) as agent:
@@ -67,13 +60,8 @@ class TestAgent(testlib.SDKTestCase):
     async def test_agent_use_without_async_with(self):
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
         agent = Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
         )
@@ -91,13 +79,8 @@ class TestAgent(testlib.SDKTestCase):
     async def test_agent_use_outside_async_with(self):
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
         agent = Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
         )
@@ -118,13 +101,10 @@ class TestAgent(testlib.SDKTestCase):
     async def test_agent_multiple_async_with(self):
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
         agent = Agent(
-            model=model, system_prompt="Your name is stefan", service=self.service
+            model=(await self.model()),
+            system_prompt="Your name is stefan",
+            service=self.service,
         )
 
         async with agent:
@@ -137,18 +117,13 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_with_structured_output(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         class Person(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
             age: int = Field(description="The person's age in years", ge=0, le=150)
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="Respond with structured data",
             output_schema=Person,
             service=self.service,
@@ -178,14 +153,9 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_remembers_state(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
         ) as agent:
@@ -212,19 +182,13 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_uses_subagent(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="ministral-3:8b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-            temperature=0.0,
-        )
 
         class NicknameGeneratorInput(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
 
         async with (
             Agent(
-                model=model,
+                model=(await self.model()),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames"
                     "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
@@ -236,7 +200,7 @@ class TestAgent(testlib.SDKTestCase):
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
-                model=model,
+                model=(await self.model()),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -264,16 +228,10 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_subagent_without_input_schema(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="ministral-3:8b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-            temperature=0.0,
-        )
 
         async with (
             Agent(
-                model=model,
+                model=(await self.model()),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames"
                     "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
@@ -284,7 +242,7 @@ class TestAgent(testlib.SDKTestCase):
                 description="Generates nicknames for people. Pass a name and get a nickname",
             ) as subagent,
             Agent(
-                model=model,
+                model=(await self.model()),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -304,11 +262,6 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_understands_other_agents(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="devstral-small-2:24b",
-            base_url="http://localhost:11435/v1",
-            api_key=OPENAI_API_KEY,
-        )
 
         class SubagentInput(BaseModel):
             person_name: str = Field(description="The person's full name", min_length=1)
@@ -325,7 +278,7 @@ class TestAgent(testlib.SDKTestCase):
             )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You are a helpful assistant that describes a person based on their details.",
             service=self.service,
             name="PersonDescriberAgent",
@@ -343,7 +296,7 @@ class TestAgent(testlib.SDKTestCase):
                 )
 
             async with Agent(
-                model=model,
+                model=(await self.model()),
                 agents=[subagent],
                 system_prompt=(
                     "You are a supervisor agent that manages other agents to describe multiple people."
@@ -372,14 +325,9 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_token_limit(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
             loop_stop_conditions=StopConditions(token_limit=5),
@@ -398,14 +346,9 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_conversation_limit(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
             loop_stop_conditions=StopConditions(steps_limit=2),
@@ -432,14 +375,9 @@ class TestAgent(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_timeout(self):
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
             loop_stop_conditions=StopConditions(timeout_seconds=0.5),

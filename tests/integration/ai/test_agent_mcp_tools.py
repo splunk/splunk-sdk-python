@@ -13,9 +13,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
+from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage, ToolMessage
 from splunklib.ai.tool_filtering import ToolFilters
-from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.tools import (
     _get_splunk_token_for_mcp,
     _get_splunk_username,
@@ -23,12 +23,13 @@ from splunklib.ai.tools import (
 )
 from splunklib.client import connect
 from tests import testlib
+from tests.ai_testlib import AITestCase
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
 OPENAI_API_KEY = "ollama"
 
 
-class TestTools(testlib.SDKTestCase):
+class TestTools(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
         os.path.join(
@@ -41,14 +42,8 @@ class TestTools(testlib.SDKTestCase):
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
             use_mcp_tools=True,
@@ -86,14 +81,8 @@ class TestTools(testlib.SDKTestCase):
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
 
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
             use_mcp_tools=True,
@@ -128,14 +117,9 @@ class TestTools(testlib.SDKTestCase):
     @pytest.mark.asyncio
     async def test_agent_filtering_tools(self) -> None:
         pytest.importorskip("langchain_openai")
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
 
         async with Agent(
-            model=model,
+            model=(await self.model()),
             system_prompt="",
             service=self.service,
             use_mcp_tools=True,
@@ -204,223 +188,216 @@ async def tokens_handler(request: Request) -> Response:
     )
 
 
-@patch(
-    "splunklib.ai.agent._testing_local_tools_path",
-    os.path.join(
-        os.path.dirname(__file__),
-        "testdata",
-        "non_existent.py",
-    ),
-)
-@pytest.mark.asyncio
-async def test_remote_tools():
-    pytest.importorskip("langchain_openai")
+class TestRemoteTools(AITestCase):
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "non_existent.py",
+        ),
+    )
+    @pytest.mark.asyncio
+    async def test_remote_tools(self):
+        pytest.importorskip("langchain_openai")
 
-    mcp = FastMCP("MCP Server", streamable_http_path="/")
+        mcp = FastMCP("MCP Server", streamable_http_path="/")
 
-    @mcp.tool(description="Returns the current temperature in the city")
-    def temperature(city: str) -> str:
-        if city == "Krakow":
-            return "31.5C"
-        else:
-            return "22.1C"
+        @mcp.tool(description="Returns the current temperature in the city")
+        def temperature(city: str) -> str:
+            if city == "Krakow":
+                return "31.5C"
+            else:
+                return "22.1C"
 
-    @contextlib.asynccontextmanager
-    async def lifespan(app: Starlette):
-        async with mcp.session_manager.run():
-            yield
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette):
+            async with mcp.session_manager.run():
+                yield
 
-    async with run_http_server(
-        Starlette(
-            routes=[
-                Mount("/services/mcp", app=mcp.streamable_http_app()),
-                Route(
-                    "/services/authorization/tokens", tokens_handler, methods=["POST"]
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Mount("/services/mcp", app=mcp.streamable_http_app()),
+                    Route(
+                        "/services/authorization/tokens",
+                        tokens_handler,
+                        methods=["POST"],
+                    ),
+                ],
+                lifespan=lifespan,
+            )
+        ) as (host, port):
+            service = await asyncio.to_thread(
+                lambda: connect(
+                    scheme="http",
+                    host=host,
+                    port=port,
+                    splunkToken=AUTH_TOKEN,
+                    autologin=True,
+                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
-            ],
-            lifespan=lifespan,
-        )
-    ) as (host, port):
-        service = await asyncio.to_thread(
-            lambda: connect(
-                scheme="http",
-                host=host,
-                port=port,
-                splunkToken=AUTH_TOKEN,
-                autologin=True,
-                username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
-            ),
-        )
-
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
-        async with Agent(
-            model=model,
-            system_prompt="You must use the available tools to perform requested operations",
-            service=service,
-            use_mcp_tools=True,
-        ) as agent:
-            result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content=(
-                            "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                            "Return a short response, containing the tool response."
-                        ),
-                    )
-                ]
             )
 
-            tool_message = next(
-                filter(lambda m: m.role == "tool", result.messages), None
+            async with Agent(
+                model=(await self.model()),
+                system_prompt="You must use the available tools to perform requested operations",
+                service=service,
+                use_mcp_tools=True,
+            ) as agent:
+                result = await agent.invoke(
+                    [
+                        HumanMessage(
+                            content=(
+                                "What is the weather like today in Krakow? Use the provided tools to check the temperature."
+                                "Return a short response, containing the tool response."
+                            ),
+                        )
+                    ]
+                )
+
+                tool_message = next(
+                    filter(lambda m: m.role == "tool", result.messages), None
+                )
+                assert isinstance(tool_message, ToolMessage), "Invalid tool message"
+                assert tool_message, "No tool message found in response"
+                assert tool_message.name == "temperature", "Invalid tool name"
+
+                response = result.messages[-1].content
+                assert "31.5" in response, "Invalid LLM response"
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "non_existent.py",
+        ),
+    )
+    @pytest.mark.asyncio
+    async def test_remote_tools_mcp_app_unavail(self):
+        pytest.importorskip("langchain_openai")
+
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Route(
+                        "/services/authorization/tokens",
+                        tokens_handler,
+                        methods=["POST"],
+                    ),
+                ],
             )
-            assert isinstance(tool_message, ToolMessage), "Invalid tool message"
-            assert tool_message, "No tool message found in response"
-            assert tool_message.name == "temperature", "Invalid tool name"
-
-            response = result.messages[-1].content
-            assert "31.5" in response, "Invalid LLM response"
-
-
-@patch(
-    "splunklib.ai.agent._testing_local_tools_path",
-    os.path.join(
-        os.path.dirname(__file__),
-        "testdata",
-        "non_existent.py",
-    ),
-)
-@pytest.mark.asyncio
-async def test_remote_tools_mcp_app_unavail():
-    pytest.importorskip("langchain_openai")
-
-    async with run_http_server(
-        Starlette(
-            routes=[
-                Route(
-                    "/services/authorization/tokens", tokens_handler, methods=["POST"]
+        ) as (host, port):
+            service = await asyncio.to_thread(
+                lambda: connect(
+                    scheme="http",
+                    host=host,
+                    port=port,
+                    splunkToken=AUTH_TOKEN,
+                    autologin=True,
+                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
-            ],
-        )
-    ) as (host, port):
-        service = await asyncio.to_thread(
-            lambda: connect(
-                scheme="http",
-                host=host,
-                port=port,
-                splunkToken=AUTH_TOKEN,
-                autologin=True,
-                username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
-            ),
-        )
-
-        model = OpenAIModel(
-            model="llama3.2:3b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
-        # Make sure that we are able to run the agent, with a service provided in case
-        # the MCP Server App is not installed on the instance.
-        async with Agent(
-            model=model, service=service, system_prompt="Your name is stefan"
-        ) as agent:
-            result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="What is your name? Answer in one word",
-                    )
-                ]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
-            assert "stefan" in response
+            # Make sure that we are able to run the agent, with a service provided in case
+            # the MCP Server App is not installed on the instance.
+            async with Agent(
+                model=(await self.model()),
+                service=service,
+                system_prompt="Your name is stefan",
+            ) as agent:
+                result = await agent.invoke(
+                    [
+                        HumanMessage(
+                            content="What is your name? Answer in one word",
+                        )
+                    ]
+                )
 
+                response = result.messages[-1].content.strip().lower().replace(".", "")
+                assert "stefan" in response
 
-@patch(
-    "splunklib.ai.agent._testing_local_tools_path",
-    os.path.join(
-        os.path.dirname(__file__),
-        "testdata",
-        "non_existent.py",
-    ),
-)
-@pytest.mark.asyncio
-async def test_remote_tools_failure():
-    pytest.importorskip("langchain_openai")
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "non_existent.py",
+        ),
+    )
+    @pytest.mark.asyncio
+    async def test_remote_tools_failure(self):
+        pytest.importorskip("langchain_openai")
 
-    mcp = FastMCP("MCP Server", streamable_http_path="/")
+        mcp = FastMCP("MCP Server", streamable_http_path="/")
 
-    @mcp.tool(description="Returns the current temperature in the city")
-    def temperature(city: str) -> str:
-        # simulate the tool guiding the llm for proper input
-        if city == "Cracow":
-            raise Exception("Use Polish name of the city")
-        if city == "Kraków":
-            return "31.5C"
-        raise Exception("No such city in DB")
+        @mcp.tool(description="Returns the current temperature in the city")
+        def temperature(city: str) -> str:
+            # simulate the tool guiding the llm for proper input
+            if city == "Cracow":
+                raise Exception("Use Polish name of the city")
+            if city == "Kraków":
+                return "31.5C"
+            raise Exception("No such city in DB")
 
-    @contextlib.asynccontextmanager
-    async def lifespan(app: Starlette):
-        async with mcp.session_manager.run():
-            yield
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette):
+            async with mcp.session_manager.run():
+                yield
 
-    async with run_http_server(
-        Starlette(
-            routes=[
-                Mount("/services/mcp", app=mcp.streamable_http_app()),
-                Route(
-                    "/services/authorization/tokens", tokens_handler, methods=["POST"]
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Mount("/services/mcp", app=mcp.streamable_http_app()),
+                    Route(
+                        "/services/authorization/tokens",
+                        tokens_handler,
+                        methods=["POST"],
+                    ),
+                ],
+                lifespan=lifespan,
+            )
+        ) as (host, port):
+            service = await asyncio.to_thread(
+                lambda: connect(
+                    scheme="http",
+                    host=host,
+                    port=port,
+                    splunkToken=AUTH_TOKEN,
+                    autologin=True,
+                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
-            ],
-            lifespan=lifespan,
-        )
-    ) as (host, port):
-        service = await asyncio.to_thread(
-            lambda: connect(
-                scheme="http",
-                host=host,
-                port=port,
-                splunkToken=AUTH_TOKEN,
-                autologin=True,
-                username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
-            ),
-        )
-
-        model = OpenAIModel(
-            model="ministral-3:8b",
-            base_url=OPENAI_BASE_URL,
-            api_key=OPENAI_API_KEY,
-        )
-
-        async with Agent(
-            model=model,
-            system_prompt="You must use the available tools to perform requested operations. You MUST Retry tool calls until you receive a valid response, that's not an error",
-            service=service,
-            use_mcp_tools=True,
-        ) as agent:
-            result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="What is the weather like today in Cracow? Use the provided tools to check the temperature."
-                    )
-                ]
             )
-            tool_messages = list(filter(lambda m: m.role == "tool", result.messages))
-            assert len(tool_messages) == 2, (
-                "Expected multiple tool calls due to retries"
-            )
-            assert tool_messages[0].status == "error", (
-                "First tool call should be invalid"
-            )
-            assert tool_messages[1].status == "success", "Second tool call should be ok"
 
-            response = result.messages[-1].content
-            assert "31.5" in response, "Invalid LLM response"
+            async with Agent(
+                model=(await self.model()),
+                system_prompt="You must use the available tools to perform requested operations. You MUST Retry tool calls until you receive a valid response, that's not an error",
+                service=service,
+                use_mcp_tools=True,
+            ) as agent:
+                result = await agent.invoke(
+                    [
+                        HumanMessage(
+                            content="What is the weather like today in Cracow? Use the provided tools to check the temperature."
+                        )
+                    ]
+                )
+                tool_messages = list(
+                    filter(lambda m: m.role == "tool", result.messages)
+                )
+                assert len(tool_messages) == 2, (
+                    "Expected multiple tool calls due to retries"
+                )
+                assert tool_messages[0].status == "error", (
+                    "First tool call should be invalid"
+                )
+                assert tool_messages[1].status == "success", (
+                    "Second tool call should be ok"
+                )
+
+                response = result.messages[-1].content
+                assert "31.5" in response, "Invalid LLM response"
 
 
 @contextlib.asynccontextmanager

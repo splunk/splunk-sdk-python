@@ -402,3 +402,70 @@ class TestAgent(AITestCase):
                         )
                     ]
                 )
+
+    @pytest.mark.asyncio
+    async def test_duplicated_subagent_name(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="subagent_name",
+            ) as subagent1,
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="subagent_name",
+            ) as subagent2,
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="",
+            ) as subagent1_empty_name,
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="",
+            ) as subagent2_empty_name,
+        ):
+            with pytest.raises(
+                AssertionError, match="Subagents share the same name: subagent_name"
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent1, subagent2],
+                ):
+                    pass
+
+            # Also make sure, that because of this check we have, we will not
+            # mistakenely accept same subagent (since they also share the same name).
+            with pytest.raises(
+                AssertionError, match="Subagents share the same name: subagent_name"
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent1, subagent1],
+                ):
+                    pass
+
+            # Make sure that the subagent is validated before the name uniqueness check.
+            with pytest.raises(
+                AssertionError,
+                match="Agent must have a name to be used by other Agents",
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent1_empty_name, subagent2_empty_name],
+                ):
+                    pass

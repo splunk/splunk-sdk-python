@@ -155,8 +155,21 @@ class LangChainBackend(Backend):
         tools = [_create_langchain_tool(t) for t in agent.tools]
 
         if agent.agents:
-            tools.extend([_agent_as_tool(a) for a in agent.agents])
-            system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
+            seen_names: set[str] = set()
+            for subagent in agent.agents:
+                # Call _agent_as_tool first, such that the empty name exception is
+                # checked and raised first, before the duplicated name exception.
+                tool = _agent_as_tool(subagent)
+
+                if subagent.name in seen_names:
+                    raise AssertionError(
+                        f"Subagents share the same name: {subagent.name}"
+                    )
+
+                seen_names.add(subagent.name)
+                tools.append(tool)
+
+                system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
         middleware = []
         if agent.loop_stop_conditions:
@@ -218,8 +231,6 @@ def _denormalize_agent_name(name: str) -> str:
 def _agent_as_tool(agent: BaseAgent[OutputT]):
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
-
-    # TODO: we should enforce uniqueness of subagent names.
 
     if agent.input_schema is None:
 

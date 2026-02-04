@@ -427,4 +427,13 @@ The files that get flagged are:
 - `openai/lib/.keep`
 - `openai/helpers/microphone.py`
 
-As a workaround, both of those files are not required for the App to work and can be deleted before packaging the App.
+As a workaround, both of those files are not required for the App to work and can be excluded when packaging the App:
+
+```sh
+gtar --transform='s,^,<your_app>/,' \
+  --exclude="__pycache__" \
+  --exclude=".keep" \
+  --exclude="bin/lib/openai/helpers/microphone.py" \
+  -czf dist/<your_app>.tgz \
+  bin default
+```

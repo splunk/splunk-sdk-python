@@ -57,13 +57,13 @@ python3 -m pip install . \
   --target bin/lib/ \
   # Needs to match the platform Splunk is built and
   # ran on, NOT the one you're writing your App on
-  --platform manylinux2014_x86_64 \ 
+  --platform manylinux2014_aarch64 \
   --only-binary=:all:
 
 gtar --transform='s,^,<your_app>/,' \
   --exclude="__pycache__" \
-  --exclude=".keep" \
-  -czf dist/<your_app>.tgz .
+  -czf dist/<your_app>.tgz \
+  bin default
 
 # `<your_app>.tgz` should be now ready in `dist/`!
 ```

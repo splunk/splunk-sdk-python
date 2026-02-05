@@ -47,7 +47,6 @@ from splunklib.ai.core.backend import (
     Backend,
     InvalidMessageTypeError,
     InvalidModelError,
-    InvalidToolNameError,
 )
 from splunklib.ai.messages import (
     AgentCall,
@@ -70,7 +69,21 @@ from splunklib.ai.stop_conditions import (
 )
 from splunklib.ai.tools import Tool, ToolException
 
-AGENT_PREFIX = "agent-"
+# RESERVED_LC_TOOL_PREFIX represents a prefix that is reserved for internal use
+# and no user-visible tool or subagent name can contain it (as a prefix).
+RESERVED_LC_TOOL_PREFIX = "__"
+
+# AGENT_PREFIX is a prefix prepended to a name of an agent,
+# during the conversion of a subagent to a tool.
+# All subagents as tools have this prefix.
+AGENT_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}agent-"
+
+# CONFLICTING_TOOL_PREFIX is a prefix that is prepended to a tool name
+# in case the tool name already starts with RESERVED_LC_TOOL_PREFIX.
+# This prevents the user-provided tools to start with AGENT_PREFIX and also
+# serves as a backward compatibility mechanism for us i.e. we are free to use
+# any tool name that starts with RESERVED_LC_TOOL_PREFIX for other uses.
+CONFLICTING_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}tool-"
 
 AGENT_AS_TOOLS_PROMPT = f"""
 You are provided with Agents.
@@ -202,7 +215,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         return result.content, result.structured_content
 
     return StructuredTool(
-        name=tool.name,
+        name=_normalize_tool_name(tool.name),
         description=tool.description,
         args_schema=tool.input_schema,
         coroutine=_tool_call,
@@ -217,15 +230,21 @@ def langchain_backend_factory() -> LangChainBackend:
 
 
 def _normalize_agent_name(name: str) -> str:
-    # TODO: should we check for collisions here?
-    # TODO: we shouldn't change the name here - only add a prefix.
-    # We should validate the name when the Agent is created
-    name = "-".join(name.strip().split())
     return f"{AGENT_PREFIX}{name}"
 
 
 def _denormalize_agent_name(name: str) -> str:
     return name.removeprefix(AGENT_PREFIX)
+
+
+def _normalize_tool_name(name: str) -> str:
+    if name.startswith(RESERVED_LC_TOOL_PREFIX):
+        return f"{CONFLICTING_TOOL_PREFIX}{name}"
+    return name
+
+
+def _denormalize_tool_name(name: str) -> str:
+    return name.removeprefix(CONFLICTING_TOOL_PREFIX)
 
 
 def _agent_as_tool(agent: BaseAgent[OutputT]):
@@ -274,21 +293,18 @@ def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | AgentCal
         )
 
     return ToolCall(
-        name=tool_call["name"],
+        name=_denormalize_tool_name(tool_call["name"]),
         args=tool_call["args"],
         id=tool_call["id"],
     )
 
 
 def _map_tool_call_to_langchain(call: ToolCall | AgentCall) -> LC_ToolCall:
-    if AGENT_PREFIX in call.name:
-        raise InvalidToolNameError(
-            f"ToolCall name cannot contain agent prefix: {call.name}"
-        )
-
-    name = call.name
-    if isinstance(call, AgentCall):
-        name = _normalize_agent_name(call.name)
+    match call:
+        case AgentCall():
+            name = _normalize_agent_name(call.name)
+        case ToolCall():
+            name = _normalize_tool_name(call.name)
 
     return LC_ToolCall(
         name=name,
@@ -320,7 +336,7 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
                 "langchain responded with a tool call that does not have a name"
             )
             return ToolMessage(
-                name=message.name,
+                name=_denormalize_tool_name(message.name),
                 content=str(message.content),
                 call_id=message.tool_call_id,
                 status=message.status,
@@ -351,9 +367,9 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
             )
         case ToolMessage():
             return LC_ToolMessage(
+                name=_normalize_tool_name(message.name),
                 content=message.content,
                 tool_call_id=message.call_id,
-                name=message.name,
                 status=message.status,
             )
         case SystemMessage():

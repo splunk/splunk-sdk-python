@@ -28,7 +28,6 @@ from langchain.messages import (
 from splunklib.ai.core.backend import (
     InvalidMessageTypeError,
     InvalidModelError,
-    InvalidToolNameError,
 )
 from splunklib.ai.engines import langchain as lc
 from splunklib.ai.messages import (
@@ -159,38 +158,95 @@ class MapMessageToLangchainTests(unittest.TestCase):
             )
         ]
 
-    def test_map_message_to_langchain_tool_call_with_agent_prefix_raises(
-        self,
-    ) -> None:
-        message = AIMessage(
-            content="hi",
-            calls=[ToolCall(name=f"{lc.AGENT_PREFIX}bad-tool", args={}, id="tc-3")],
-        )
-
-        with pytest.raises(InvalidToolNameError):
-            lc._map_message_to_langchain(message)
-
-    def test_map_message_to_langchain_agent_call_with_agent_prefix_raises(
-        self,
-    ) -> None:
-        message = AIMessage(
-            content="hi",
-            calls=[
-                AgentCall(
-                    name=f"{lc.AGENT_PREFIX}bad-agent", args={"q": "test"}, id="tc-4"
-                )
-            ],
-        )
-
-        with pytest.raises(InvalidToolNameError):
-            lc._map_message_to_langchain(message)
-
     def test_map_message_to_langchain_human(self) -> None:
         message = HumanMessage(content="hello")
         mapped = lc._map_message_to_langchain(message)
 
         assert isinstance(mapped, LC_HumanMessage)
         assert mapped.content == "hello"
+
+    def test_map_message_to_langchain_tool_call_with_reserved_prefix(
+        self,
+    ) -> None:
+        message = lc._map_message_to_langchain(
+            AIMessage(
+                content="hi",
+                calls=[ToolCall(name=f"{lc.AGENT_PREFIX}bad-tool", args={}, id="tc-1")],
+            )
+        )
+        assert isinstance(message, LC_AIMessage)
+        assert message.tool_calls == [
+            LC_ToolCall(name="__tool-__agent-bad-tool", args={}, id="tc-1")
+        ]
+
+        message = lc._map_message_to_langchain(
+            AIMessage(
+                content="hi",
+                calls=[ToolCall(name="__bad-tool", args={}, id="tc-2")],
+            )
+        )
+        assert isinstance(message, LC_AIMessage)
+        assert message.tool_calls == [
+            LC_ToolCall(name="__tool-__bad-tool", args={}, id="tc-2")
+        ]
+
+        message = lc._map_message_to_langchain(
+            ToolMessage(content="hi", name="__bad-tool")
+        )
+        assert isinstance(message, LC_ToolMessage)
+        assert message.name == "__tool-__bad-tool"
+
+    def test_map_message_from_langchain_tool_call_with_reserved_prefix(
+        self,
+    ) -> None:
+        message = lc._map_message_from_langchain(
+            LC_AIMessage(
+                content="hi",
+                tool_calls=[
+                    LC_ToolCall(
+                        name="__tool-__bad-tool",
+                        args={},
+                        id="tc-1",
+                    )
+                ],
+            )
+        )
+        assert isinstance(message, AIMessage)
+        assert len(message.calls) > 0
+        assert message.calls[0].name == "__bad-tool"
+
+        message = lc._map_message_from_langchain(
+            message=LC_ToolMessage(
+                name="__tool-__bad-tool",
+                content="result",
+                tool_call_id="call-1",
+                status="success",
+            )
+        )
+        assert isinstance(message, ToolMessage)
+        assert message.name == "__bad-tool"
+
+    def test_map_message_to_langchain_agent_call_with_agent_prefix_raises(
+        self,
+    ) -> None:
+        message = lc._map_message_to_langchain(
+            AIMessage(
+                content="hi",
+                calls=[
+                    AgentCall(
+                        name=f"{lc.AGENT_PREFIX}bad-agent",
+                        args={},
+                        id="tc-1",
+                    )
+                ],
+            )
+        )
+
+        # Fine, but in practice a unnecessary prefix.
+        assert isinstance(message, LC_AIMessage)
+        assert message.tool_calls == [
+            LC_ToolCall(name="__agent-__agent-bad-agent", args={}, id="tc-1")
+        ]
 
     def test_map_message_to_langchain_system(self) -> None:
         message = SystemMessage(content="be helpful")
@@ -219,7 +275,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
         assert isinstance(mapped, LC_ToolMessage)
         assert mapped.content == "ping"
-        assert mapped.name == f"{lc.AGENT_PREFIX}My-Agent"
+        assert mapped.name == f"{lc.AGENT_PREFIX}My Agent"
         assert mapped.tool_call_id == "call-2"
         assert mapped.status == "error"
 

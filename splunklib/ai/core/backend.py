@@ -23,10 +23,6 @@ class InvalidModelError(Exception):
     """Raised when an invalid model is specified for a backend."""
 
 
-class InvalidToolNameError(Exception):
-    """Raised when a tool name contains invalid prefix."""
-
-
 class InvalidMessageTypeError(Exception):
     """Raised when a message type is not supported by the backend."""
 

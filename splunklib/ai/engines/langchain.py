@@ -314,6 +314,11 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
                 status=message.status,
             )
         case LC_ToolMessage():
+            # If this is reached, this likely means that we passed an invalid
+            # tool name to langchain.
+            assert message.name is not None, (
+                "langchain responded with a tool call that does not have a name"
+            )
             return ToolMessage(
                 name=message.name,
                 content=str(message.content),

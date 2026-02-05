@@ -85,7 +85,7 @@ class ToolMessage(BaseMessage):
     """
 
     role: Literal["tool"] = "tool"
-    name: str | None = field(default=None)
+    name: str = field(default="")
     call_id: str = field(default="")
     status: Literal["success", "error"] = "success"
 

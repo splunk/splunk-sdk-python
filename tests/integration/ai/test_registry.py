@@ -112,6 +112,24 @@ class TestToolContextRegistry(TestRegistryTestCase):
             self.assertEqual(res.structuredContent, None)
 
 
+class TestAsyncToolRegistry(TestRegistryTestCase):
+    async def test_tool_hello(self):
+        async with self.connect("async_tool.py") as session:
+            res = await session.call_tool(
+                "hello",
+                arguments={"name": "Stefan"},
+                meta={
+                    "splunk": {
+                        "management_token": self.get_splunk_token(),
+                        "management_url": self.splunk_url,
+                    }
+                },
+            )
+            self.assertEqual(res.isError, False)
+            self.assertEqual(res.content, [])
+            self.assertEqual(res.structuredContent, {"result": "Hello Stefan"})
+
+
 if __name__ == "__main__":
     import unittest
 

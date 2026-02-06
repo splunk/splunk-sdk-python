@@ -102,12 +102,14 @@ class ToolRegistry:
 
         @self._server.call_tool(validate_input=True)
         async def _(name: str, arguments: dict[str, Any]) -> types.CallToolResult:
-            return self._call_tool(name, arguments)
+            return await self._call_tool(name, arguments)
 
     def _list_tools(self) -> list[types.Tool]:
         return self._tools
 
-    def _call_tool(self, name: str, arguments: dict[str, Any]) -> types.CallToolResult:
+    async def _call_tool(
+        self, name: str, arguments: dict[str, Any]
+    ) -> types.CallToolResult:
         func = self._tools_func.get(name)
         if func is None:
             raise ValueError(f"Tool {name} does not exist")
@@ -128,6 +130,11 @@ class ToolRegistry:
                 arguments[k] = ctx
 
         res = func(**arguments)
+
+        # In case func was an async function, await the returned coroutine.
+        # If not then we already have the result.
+        if inspect.isawaitable(res):
+            res = await res
 
         if self._tools_wrapped_result.get(name):
             res = _WrappedResult(res)

@@ -331,6 +331,29 @@ class TestJSONSchemaInference(unittest.TestCase):
             },
         )
 
+    def test_async_tool(self) -> None:
+        r = ToolRegistry()
+
+        @r.tool()
+        async def str_tool() -> str:
+            return ""
+
+        tool = r._tools[0]
+        self.assertEqual(tool.name, "str_tool")
+        self.assertEqual(
+            tool.inputSchema,
+            {"properties": {}, "type": "object", "additionalProperties": False},
+        )
+        self.assertEqual(
+            tool.outputSchema,
+            {
+                "properties": {"result": {"title": "Result", "type": "string"}},
+                "required": ["result"],
+                "title": "_WrappedResult",
+                "type": "object",
+            },
+        )
+
 
 class TestParams(unittest.TestCase):
     def test_description_param(self) -> None:

@@ -365,12 +365,105 @@ async with Agent(
 
 **Note**: Currently input schemas can only be used by subagents, not by regular agents.
 
-## Loop Stop Conditions
+## Hooks
+
+Hooks are user-defined callback functions that can be registered to execute at specific points
+during the agent's operation. Hooks allow developers to add custom behavior, logging and monitoring
+or implement custom stopping conditions for the agent loop without modifying the core agent logic.
+
+There are several types of hooks available.
+They differ by the point in the execution flow where they are invoked:
+
+- before_model: before each model call
+- after_model: after each model call
+- before_agent: once per agent invocation, before any model calls
+- after_agent: once per agent invocation, after all model calls
+
+Example hook that logs token usage after each model call:
+
+```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.hooks import after_model
+from splunklib.client import connect
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+model = OpenAIModel(...)
+service = connect(...)
+
+@after_model
+def log_token_usage(state: AgentState) -> None:
+    logger.debug(f"Model used {state.token_count} tokens up to this point")
+
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="..." ,
+    hooks=[log_token_usage],
+) as agent: ...
+```
+
+The same hook can be defined as a class. It needs to provide the type and name attributes, and implement the `__call__` method:
+
+```py
+from typing import final, override
+from splunklib.ai.hooks import AgentHook, AgentState
+import logging
+
+logger = logging.getLogger(__name__)
+
+@final
+class LoggingHook(AgentHook):
+    type = "before_model"
+    name = "test_hook"
+
+    @override
+    def __call__(self, state: AgentState) -> None:
+        logger.debug(f"Model used {state.token_count} tokens up to this point")
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="..." ,
+    hooks=[LoggingHook()],
+) as agent: ...
+```
+
+The hooks can stop the Agentic Loop under custom conditions by raising exceptions.
+The logic of the hook can be more advanced and include multiple conditions, for example, based on both token usage and execution time:
+
+```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.hooks import before_model, AgentHook
+from time import monotonic
+
+def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentHook:
+    now = monotonic()
+    timeout = now + seconds_limit
+
+    @before_model
+    def _limit_hook(state: AgentState) -> None:
+        if state.token_count > token_limit or monotonic() >= timeout:
+            raise Exception("Stopping Agentic Loop")
+
+    return _limit_hook
+
+
+async with Agent(
+    ...,
+    hooks=[timeout_or_token_limit(seconds_limit=10.0, token_limit=10000)],
+) as agent: ...
+```
+
+### Predefined hooks for loop stopping conditions
 
 To prevent excessive token usage or runaway execution, an Agent can be constrained
-using loop stop conditions.
+using predefined hooks.
 
-Stop conditions allow you to automatically terminate the agent loop when one or more
+Those hooks allow you to automatically terminate the agent loop when one or more
 limits are reached, such as:
 
 - Maximum number of generated tokens
@@ -379,7 +472,7 @@ limits are reached, such as:
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.stop_conditions import StopConditions
+from splunklib.ai.hooks import token_limit, step_limit, timeout_limit
 from splunklib.client import connect
 
 model = OpenAIModel(...)
@@ -389,11 +482,11 @@ async with Agent(
         model=model,
         service=service,
         system_prompt="..." ,
-        loop_stop_conditions=StopConditions(
-            token_limit = 10000,
-            steps_limit = 25,
-            timeout_seconds = 10.5,
-        ),
+        hooks=[
+            token_limit(10000),
+            step_limit(25),
+            timeout_limit(10.5),
+        ],
     ) as agent: ...
 ```
 

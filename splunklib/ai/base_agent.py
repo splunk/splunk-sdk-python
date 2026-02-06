@@ -19,9 +19,9 @@ from typing import Generic
 
 from pydantic import BaseModel
 
+from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.model import PredefinedModel
-from splunklib.ai.stop_conditions import StopConditions
 from splunklib.ai.tools import Tool
 
 
@@ -34,7 +34,7 @@ class BaseAgent(Generic[OutputT], ABC):
     _description: str = ""
     _input_schema: type[BaseModel] | None = None
     _output_schema: type[OutputT] | None = None
-    _loop_stop_conditions: StopConditions | None = None
+    _hooks: Sequence[AgentHook] | None = None
 
     def __init__(
         self,
@@ -46,7 +46,7 @@ class BaseAgent(Generic[OutputT], ABC):
         agents: Sequence["BaseAgent[BaseModel | None]"] | None = None,
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
-        loop_stop_conditions: StopConditions | None = None,
+        hooks: Sequence[AgentHook] | None = None,
     ) -> None:
         self._system_prompt = system_prompt
         self._model = model
@@ -56,7 +56,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
         self._output_schema = output_schema
-        self._loop_stop_conditions = loop_stop_conditions
+        self._hooks = tuple(hooks) if hooks else ()
 
     @abstractmethod
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
@@ -94,5 +94,5 @@ class BaseAgent(Generic[OutputT], ABC):
         return self._output_schema
 
     @property
-    def loop_stop_conditions(self) -> StopConditions | None:
-        return self._loop_stop_conditions
+    def hooks(self) -> Sequence[AgentHook] | None:
+        return self._hooks

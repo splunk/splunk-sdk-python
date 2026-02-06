@@ -22,8 +22,15 @@ from typing import Any, cast, override
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
-    AgentMiddleware,
-    AgentState,
+    AgentMiddleware as LC_AgentMiddleware,
+)
+from langchain.agents.middleware import (
+    AgentState as LC_AgentState,
+)
+from langchain.agents.middleware import (
+    after_agent,
+    after_model,
+    before_agent,
     before_model,
 )
 from langchain.agents.middleware.summarization import TokenCounter
@@ -48,6 +55,13 @@ from splunklib.ai.core.backend import (
     InvalidMessageTypeError,
     InvalidModelError,
 )
+from splunklib.ai.hooks import (
+    AgentHook,
+    AgentState,
+    StepsLimitExceededException,
+    TimeoutExceededException,
+    TokenLimitExceededException,
+)
 from splunklib.ai.messages import (
     AgentCall,
     AgentResponse,
@@ -61,12 +75,6 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.stop_conditions import (
-    StepsLimitExceededException,
-    StopConditions,
-    TimeoutExceededException,
-    TokenLimitExceededException,
-)
 from splunklib.ai.tools import Tool, ToolException
 
 # RESERVED_LC_TOOL_PREFIX represents a prefix that is reserved for internal use
@@ -108,7 +116,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         model: BaseChatModel,
         tools: list[BaseTool],
         output_schema: type[OutputT] | None,
-        middleware: Sequence[AgentMiddleware] | None = None,
+        middleware: Sequence[LC_AgentMiddleware] | None = None,
     ) -> None:
         super().__init__()
         self._output_schema = output_schema
@@ -185,9 +193,9 @@ class LangChainBackend(Backend):
                 system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
         middleware = []
-        if agent.loop_stop_conditions:
+        if agent.hooks:
             middleware.extend(
-                _create_middleware(agent.loop_stop_conditions, model_impl)
+                (_convert_hook_to_middleware(h, model_impl) for h in agent.hooks)
             )
 
         return LangChainAgentImpl(
@@ -378,61 +386,56 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
             raise InvalidMessageTypeError("Invalid SDK message type")
 
 
-def _create_middleware(
-    stop_conditions: StopConditions, model: BaseChatModel
-) -> list[AgentMiddleware]:
-    middlewares: list[AgentMiddleware] = []
+def _convert_hook_to_middleware(
+    hook: AgentHook,
+    model: BaseChatModel,
+) -> LC_AgentMiddleware:
+    match hook.type:
+        case "before_model":
+            wrapper = before_model(can_jump_to=["end"], name=hook.name)
+        case "after_model":
+            wrapper = after_model(can_jump_to=["end"], name=hook.name)
+        case "before_agent":
+            wrapper = before_agent(can_jump_to=["end"], name=hook.name)
+        case "after_agent":
+            wrapper = after_agent(can_jump_to=["end"], name=hook.name)
+        case _:
+            raise AssertionError(f"Unsupported middleware type: {hook.type}")
 
-    if limit := stop_conditions.steps_limit:
-        middlewares.append(_max_steps_middleware(step_limit=limit))
+    def _middleware(state: LC_AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        # NOTE: We're converting the langchain AgentState into the SDK AgentState
+        # on each middleware call.
+        # We're converting all the messages back to the SDK format and counting the
+        # token usage, before calling the middleware.
+        # If converting messages becomes a performance issue, we could store some intermediate
+        # SDK AgentState and update it only with new data, but for now we're
+        # leaving it as is to not over-engineer the solution.
+        # If counting tokens becomes a performance issue, we could also consider adding
+        # the token counting function as part of the Backend interface, so that
+        # it's only used when needed instead.
+        sdk_state = _convert_agent_state_from_langchain(state, model)
+        hook(sdk_state)
 
-    if limit := stop_conditions.token_limit:
-        middlewares.append(_token_count_middleware(token_limit=limit, model=model))
-
-    if seconds := stop_conditions.timeout_seconds:
-        middlewares.append(_timeout_middleware(seconds=seconds))
-
-    return middlewares
-
-
-def _timeout_middleware(seconds: float) -> AgentMiddleware:
-    # NOTE: the timeout timestamp is calculated when the Middleware is created
-    now = monotonic()
-    timeout = now + seconds
-
-    @before_model(can_jump_to=["end"])
-    def _check_timeout(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
-        if monotonic() >= timeout:
-            raise TimeoutExceededException(seconds)
-
-    return _check_timeout
-
-
-def _max_steps_middleware(step_limit: int) -> AgentMiddleware:
-    @before_model(can_jump_to=["end"])
-    def _check_message_limit(
-        state: AgentState, runtime: Runtime
-    ) -> dict[str, Any] | None:
-        if len(state["messages"]) >= step_limit:
-            raise StepsLimitExceededException(step_limit)
-        return None
-
-    return _check_message_limit
+    return wrapper(_middleware)
 
 
-def _token_count_middleware(token_limit: int, model: BaseChatModel) -> AgentMiddleware:
-    @before_model(can_jump_to=["end"])
-    def _check_token_limit(
-        state: AgentState, runtime: Runtime
-    ) -> dict[str, Any] | None:
-        messages = state["messages"]
-        total_tokens = _get_approximate_token_counter(model)
+def _convert_agent_state_from_langchain(
+    state: LC_AgentState, model: BaseChatModel
+) -> AgentState:
+    messages = state["messages"]
+    total_tokens_counter = _get_approximate_token_counter(model)
+    total_tokens = total_tokens_counter(messages)
 
-        if total_tokens(messages) > token_limit:
-            raise TokenLimitExceededException(token_limit)
-        return None
+    response = AgentResponse[Any | None](
+        messages=[_map_message_from_langchain(m) for m in state["messages"]],
+        structured_output=state.get("structured_response"),
+    )
 
-    return _check_token_limit
+    return AgentState(
+        response=response,
+        total_steps=len(messages),
+        token_count=total_tokens,
+    )
 
 
 def _get_approximate_token_counter(model: BaseChatModel) -> TokenCounter:

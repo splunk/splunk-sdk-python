@@ -22,9 +22,9 @@ from pydantic import BaseModel
 from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
+from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.model import PredefinedModel
-from splunklib.ai.stop_conditions import StopConditions
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
 from splunklib.ai.tools import (
     Tool,
@@ -88,11 +88,10 @@ class Agent(BaseAgent[OutputT]):
             used as a *subagent*. The supervisor agent uses this schema to
             understand how to call the subagent and how to format its inputs.
 
-        loop_stop_conditions:
-            Optional `StopConditions` instance defining automatic termination.
-            If any limit is exceeded, the corresponding exception
-            (`TokenLimitExceededException`, `StepsLimitExceededException`,
-            or `TimeoutExceededException`) is raised.
+        hooks:
+            Optional sequence of `AgentHook`. Hooks are user-defined callback
+            functions that can be registered to execute at specific points
+            during the agent's operation.
 
         name:
             Name of the agent when used as a subagent. This is
@@ -122,7 +121,7 @@ class Agent(BaseAgent[OutputT]):
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,  # Only used by Subgents
-        loop_stop_conditions: StopConditions | None = None,
+        hooks: Sequence[AgentHook] | None = None,
         name: str = "",  # Only used by Subgents
         description: str = "",  # Only used by Subagents
     ) -> None:
@@ -134,8 +133,11 @@ class Agent(BaseAgent[OutputT]):
             agents=agents,
             input_schema=input_schema,
             output_schema=output_schema,
-            loop_stop_conditions=loop_stop_conditions,
+            hooks=hooks,
         )
+
+        if duplicate_hook_names := _find_duplicate_hook_names(self.hooks):
+            raise ValueError(f"Duplicate hook names found: {duplicate_hook_names!r}")
 
         self._use_mcp_tools = use_mcp_tools
         self._tool_filters = tool_filters
@@ -181,3 +183,19 @@ async def _load_tools_from_mcp(
         return filter_tools(mcp_tools, filters)
 
     return mcp_tools
+
+
+def _find_duplicate_hook_names(hooks: Sequence[AgentHook] | None) -> set[str]:
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+
+    if not hooks:
+        return set()
+
+    for hook in hooks:
+        if hook.name in seen:
+            duplicates.add(hook.name)
+        else:
+            seen.add(hook.name)
+
+    return duplicates

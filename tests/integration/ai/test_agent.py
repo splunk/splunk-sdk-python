@@ -13,19 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import time
-
 import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage, SubagentMessage
-from splunklib.ai.stop_conditions import (
-    StepsLimitExceededException,
-    StopConditions,
-    TimeoutExceededException,
-    TokenLimitExceededException,
-)
 from tests.ai_testlib import AITestCase
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
@@ -320,87 +312,6 @@ class TestAgent(AITestCase):
                 )
                 assert len(response.member_descriptions) == 3, (
                     "Team does not have 3 members"
-                )
-
-    @pytest.mark.asyncio
-    async def test_agent_loop_stop_conditions_token_limit(self):
-        pytest.importorskip("langchain_openai")
-
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant that responds in structured data.",
-            service=self.service,
-            loop_stop_conditions=StopConditions(token_limit=5),
-        ) as agent:
-            with pytest.raises(
-                TokenLimitExceededException, match="Token limit of 5 exceeded"
-            ):
-                _ = await agent.invoke(
-                    [
-                        HumanMessage(
-                            content="hi, my name is Chris",
-                        )
-                    ]
-                )
-
-    @pytest.mark.asyncio
-    async def test_agent_loop_stop_conditions_conversation_limit(self):
-        pytest.importorskip("langchain_openai")
-
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant that responds in structured data.",
-            service=self.service,
-            loop_stop_conditions=StopConditions(steps_limit=2),
-        ) as agent:
-            _ = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="hi, my name is Chris",
-                    )
-                ]
-            )
-
-            with pytest.raises(
-                StepsLimitExceededException, match="Steps limit of 2 exceeded"
-            ):
-                _ = await agent.invoke(
-                    [
-                        HumanMessage(
-                            content="What is my name?",
-                        )
-                    ]
-                )
-
-    @pytest.mark.asyncio
-    async def test_agent_loop_stop_conditions_timeout(self):
-        pytest.importorskip("langchain_openai")
-
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant that responds in structured data.",
-            service=self.service,
-            loop_stop_conditions=StopConditions(timeout_seconds=0.5),
-        ) as agent:
-            _ = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="hi, my name is Chris",
-                    )
-                ]
-            )
-
-            time.sleep(1)  # wait to exceed timeout
-
-            with pytest.raises(
-                TimeoutExceededException, match="Timed out after 0.5 seconds."
-            ):
-                _ = await agent.invoke(
-                    [
-                        HumanMessage(
-                            content="What is my name?",
-                        )
-                    ]
                 )
 
     @pytest.mark.asyncio

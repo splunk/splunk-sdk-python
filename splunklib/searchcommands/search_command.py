@@ -1228,8 +1228,8 @@ def dispatch(
     ..  code-block:: python
         :linenos:
 
-        #!/usr/bin/env python
         from splunklib.searchcommands import dispatch, StreamingCommand, Configuration, Option, validators
+        
         @Configuration()
         class SomeStreamingCommand(StreamingCommand):
             ...

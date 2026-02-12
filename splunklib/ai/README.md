@@ -504,7 +504,7 @@ add the following snippet to your code:
 
 ```py
 CA_TRUST_STORE = "/opt/splunk/openssl/cert.pem"
-if os.environ["SSL_CERT_FILE"] == CA_TRUST_STORE and not os.path.exists(CA_TRUST_STORE):
+if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(CA_TRUST_STORE):
     os.environ["SSL_CERT_FILE"] = ""
 ```
 

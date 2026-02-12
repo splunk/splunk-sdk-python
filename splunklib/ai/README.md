@@ -10,7 +10,7 @@ for model interaction, tool usage, and structured I/O.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.message import HumanMessage
+from splunklib.ai.messages import HumanMessage
 from splunklib.client import connect
 
 service = connect(
@@ -210,7 +210,7 @@ Each subagent can use a different model, allowing you to optimize for both capab
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.message import HumanMessage
+from splunklib.ai.messages import HumanMessage
 from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.client import connect
 
@@ -281,7 +281,7 @@ and perform programmatic reasoning without relying on free-form text.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.message import HumanMessage
+from splunklib.ai.messages import HumanMessage
 from splunklib.client import connect
 from typing import Literal
 from pydantic import BaseModel, Field

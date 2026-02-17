@@ -5,13 +5,15 @@ import socket
 from unittest.mock import patch
 
 import pytest
+from starlette.middleware import Middleware
 import uvicorn
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage, ToolMessage
@@ -19,7 +21,7 @@ from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai.tools import (
     _get_splunk_token_for_mcp,
     _get_splunk_username,
-    locate_tools_path_by_sdk_location,
+    locate_app,
 )
 from splunklib.client import connect
 from tests import testlib
@@ -38,6 +40,7 @@ class TestTools(AITestCase):
             "weather.py",
         ),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
     async def test_tool_execution_structured_output(self) -> None:
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
@@ -77,6 +80,7 @@ class TestTools(AITestCase):
             "tool_context.py",
         ),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
     async def test_tool_execution_service_access(self) -> None:
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
@@ -114,6 +118,7 @@ class TestTools(AITestCase):
         "splunklib.ai.agent._testing_local_tools_path",
         os.path.join(os.path.dirname(__file__), "testdata", "tool_filtering.py"),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
     async def test_agent_filtering_tools(self) -> None:
         pytest.importorskip("langchain_openai")
@@ -151,16 +156,17 @@ class TestSplunkToken(testlib.SDKTestCase):
         self.assertEqual(_get_splunk_username(service), self.service.username)
 
 
-class TestToolsPathInference:
-    def test_infer_tools_path(self) -> None:
+class TestAppLocate:
+    def test_locate_app(self) -> None:
         path = os.path.join(os.path.dirname(__file__), "testdata", "app-inference")
-        got = locate_tools_path_by_sdk_location(
+        app_id, app_dir = locate_app(
             splunk_home=path,
             sdk_location_path=os.path.join(
                 path, "etc", "apps", "appname", "bin", "lib", "somefile.py"
             ),
         )
-        assert got == os.path.join(path, "etc", "apps", "appname", "bin", "tools.py")
+        assert app_id == "appname"
+        assert app_dir == os.path.join(path, "etc", "apps", "appname")
 
 
 AUTH_TOKEN = "foobarbaz"
@@ -197,14 +203,26 @@ class TestRemoteTools(AITestCase):
             "non_existent.py",
         ),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "fancyapp")
     @pytest.mark.asyncio
     async def test_remote_tools(self):
         pytest.importorskip("langchain_openai")
 
         mcp = FastMCP("MCP Server", streamable_http_path="/")
 
+        trace_id: str | None = None
+        app_id: str | None = None
+
         @mcp.tool(description="Returns the current temperature in the city")
-        def temperature(city: str) -> str:
+        def temperature(ctx: Context, city: str) -> str:
+            nonlocal trace_id, app_id
+            assert trace_id is None and app_id is None
+            assert ctx.request_context.meta is not None
+            meta = ctx.request_context.meta.model_dump()
+            splunk = meta.get("splunk", {})
+            trace_id = splunk.get("trace_id")
+            app_id = splunk.get("app_id")
+
             if city == "Krakow":
                 return "31.5C"
             else:
@@ -214,6 +232,29 @@ class TestRemoteTools(AITestCase):
         async def lifespan(app: Starlette):
             async with mcp.session_manager.run():
                 yield
+
+        http_trace_id: str | None = None
+        http_app_id: str | None = None
+        middleware_called = False
+
+        class MCPMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request: Request, call_next):
+                if request.url.path.startswith("/services/mcp/"):
+                    nonlocal http_trace_id, http_app_id, middleware_called
+
+                    trace_id = request.headers.get("x-splunk-trace-id")
+                    app_id = request.headers.get("x-splunk-app-id")
+
+                    # Make sure header values do not change over time.
+                    if middleware_called:
+                        assert http_trace_id == trace_id
+                        assert http_app_id == app_id
+
+                    middleware_called = True
+                    http_trace_id = trace_id
+                    http_app_id = app_id
+
+                return await call_next(request)
 
         async with run_http_server(
             Starlette(
@@ -226,6 +267,7 @@ class TestRemoteTools(AITestCase):
                     ),
                 ],
                 lifespan=lifespan,
+                middleware=[Middleware(MCPMiddleware)],
             )
         ) as (host, port):
             service = await asyncio.to_thread(
@@ -266,6 +308,11 @@ class TestRemoteTools(AITestCase):
                 response = result.messages[-1].content
                 assert "31.5" in response, "Invalid LLM response"
 
+                assert trace_id == agent.trace_id
+                assert app_id == "fancyapp"
+                assert http_trace_id == agent.trace_id
+                assert http_app_id == "fancyapp"
+
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
         os.path.join(
@@ -274,6 +321,7 @@ class TestRemoteTools(AITestCase):
             "non_existent.py",
         ),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
     async def test_remote_tools_mcp_app_unavail(self):
         pytest.importorskip("langchain_openai")
@@ -326,6 +374,7 @@ class TestRemoteTools(AITestCase):
             "non_existent.py",
         ),
     )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
     async def test_remote_tools_failure(self):
         pytest.importorskip("langchain_openai")

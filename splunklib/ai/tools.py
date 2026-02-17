@@ -47,9 +47,9 @@ def _splunk_home() -> str:
     return splunk_home
 
 
-def locate_tools_path_by_sdk_location(
+def locate_app(
     splunk_home: str | None = None, sdk_location_path: str = __file__
-) -> str:
+) -> tuple[str, str]:
     """
     This function returns the path to the tools file of the app, assumes that the SDK
     is vendored into the app.
@@ -76,7 +76,11 @@ def locate_tools_path_by_sdk_location(
     assert parts[0] != "." and parts[1] != ".."
 
     app_id = parts[0]
-    return os.path.join(splunk_home, "etc", "apps", app_id, "bin", TOOLS_FILENAME)
+    return (app_id, os.path.join(splunk_home, "etc", "apps", app_id))
+
+
+def build_local_tools_path(dir: str) -> str:
+    return os.path.join(dir, "bin", TOOLS_FILENAME)
 
 
 @dataclass
@@ -90,6 +94,8 @@ class LocalCfg:
 class RemoteCfg:
     mcp_url: str
     token: str
+    app_id: str
+    trace_id: str
 
 
 @asynccontextmanager
@@ -120,6 +126,10 @@ async def _connect_remote_mcp(cfg: RemoteCfg):
     async with streamable_http_client(
         url=cfg.mcp_url,
         http_client=httpx.AsyncClient(
+            headers={
+                "x-splunk-trace-id": cfg.trace_id,
+                "x-splunk-app-id": cfg.app_id,
+            },
             auth=_MCPAuth(f"Bearer {cfg.token}"),
             verify=False,
             follow_redirects=True,
@@ -174,17 +184,29 @@ def _convert_mcp_tool(
     async def call_tool(
         **arguments: dict[str, Any],
     ) -> ToolResult:
-        # Provide access to the splunk instance in local tools.
-        # No need to do anything special for remote tools, since
-        # these tools are already authenticated with the token.
         meta: dict[str, Any] | None = None
-        if isinstance(cfg, LocalCfg):
-            meta = {
-                "splunk": {
-                    "management_url": cfg.management_url,
-                    "management_token": cfg.token,
+        match cfg:
+            case LocalCfg():
+                meta = {
+                    "splunk": {
+                        # Provide access to the splunk instance in local tools.
+                        # No need to do anything special for remote tools, since
+                        # these tools are already authenticated with the token.
+                        "management_url": cfg.management_url,
+                        "management_token": cfg.token,
+                        # Currently we don't need to send the trace_id and app_id to local tools, since
+                        # that is only really needed to correlate logs, but for local tools we know
+                        # that logs coming from the local tool registry are already reladed to this
+                        # agent.
+                    }
                 }
-            }
+            case RemoteCfg():
+                meta = {
+                    "splunk": {
+                        "trace_id": cfg.trace_id,
+                        "app_id": cfg.app_id,
+                    }
+                }
 
         async with _connect(cfg) as session:
             call_tool_result = await session.call_tool(
@@ -291,7 +313,9 @@ async def _load_tools(cfg: LocalCfg | RemoteCfg) -> list[Tool]:
 
 async def load_mcp_tools(
     service: Service,
-    local_tools_path: str | None = None,
+    local_tools_path: str | None,
+    app_id: str,
+    trace_id: str,
 ) -> list[Tool]:
     # TODO: Add tool.name collision between local/remote tools
     tools: list[Tool] = []
@@ -304,7 +328,9 @@ async def load_mcp_tools(
     client = httpx.AsyncClient(auth=_MCPAuth(f"Bearer {token}"), verify=False)
     res = await client.get(mcp_url)
     if res.status_code != 404:
-        remote_tools = await _load_tools(RemoteCfg(mcp_url=mcp_url, token=token))
+        remote_tools = await _load_tools(
+            RemoteCfg(mcp_url=mcp_url, token=token, app_id=app_id, trace_id=trace_id)
+        )
         tools.extend(remote_tools)
 
     if local_tools_path is not None:

@@ -26,15 +26,12 @@ from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
-from splunklib.ai.tools import (
-    Tool,
-    load_mcp_tools,
-    locate_tools_path_by_sdk_location,
-)
+from splunklib.ai.tools import Tool, build_local_tools_path, load_mcp_tools, locate_app
 from splunklib.client import Service
 
 # For testing purposes, overrides the automatically inferred tools.py path.
 _testing_local_tools_path: str | None = None
+_testing_app_id: str | None = None
 
 
 @final
@@ -149,7 +146,9 @@ class Agent(BaseAgent[OutputT]):
             raise AssertionError("Agent is already in `async with` context")
 
         if self._use_mcp_tools:
-            self._tools = await _load_tools_from_mcp(self._service, self._tool_filters)
+            self._tools = await _load_tools_from_mcp(
+                self._service, self._tool_filters, self.trace_id
+            )
 
         backend = get_backend()
         self._impl = await backend.create_agent(self)
@@ -169,16 +168,25 @@ class Agent(BaseAgent[OutputT]):
 
 
 async def _load_tools_from_mcp(
-    service: Service, filters: ToolFilters | None
+    service: Service,
+    filters: ToolFilters | None,
+    trace_id: str,
 ) -> list[Tool]:
     local_tools_path = _testing_local_tools_path
+    app_id = _testing_app_id
+
     if local_tools_path is None:
-        local_tools_path = locate_tools_path_by_sdk_location()
+        app_id, app_dir = locate_app()
+        local_tools_path = build_local_tools_path(app_dir)
+
+    assert app_id is not None, (
+        "_load_tools_from_mcp was mocked, but _testing_app_id not"
+    )
 
     if not os.path.exists(local_tools_path):
         local_tools_path = None
 
-    mcp_tools = await load_mcp_tools(service, local_tools_path)
+    mcp_tools = await load_mcp_tools(service, local_tools_path, app_id, trace_id)
     if filters:
         return filter_tools(mcp_tools, filters)
 

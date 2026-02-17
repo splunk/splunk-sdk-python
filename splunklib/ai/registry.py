@@ -35,6 +35,7 @@ class ToolContext:
 
     _management_url: str | None = None
     _management_token: str | None = None
+
     _service: Service | None = None
 
     @property

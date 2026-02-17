@@ -15,6 +15,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import secrets
 from typing import Generic
 
 from pydantic import BaseModel
@@ -35,6 +36,7 @@ class BaseAgent(Generic[OutputT], ABC):
     _input_schema: type[BaseModel] | None = None
     _output_schema: type[OutputT] | None = None
     _hooks: Sequence[AgentHook] | None = None
+    _trace_id: str
 
     def __init__(
         self,
@@ -57,6 +59,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self._input_schema = input_schema
         self._output_schema = output_schema
         self._hooks = tuple(hooks) if hooks else ()
+        self._trace_id = secrets.token_hex(16)  # 32 Hex characters
 
     @abstractmethod
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
@@ -96,3 +99,7 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def hooks(self) -> Sequence[AgentHook] | None:
         return self._hooks
+
+    @property
+    def trace_id(self) -> str:
+        return self._trace_id

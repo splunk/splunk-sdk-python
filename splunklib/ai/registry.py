@@ -14,16 +14,127 @@
 # under the License.
 import asyncio
 import inspect
+import logging
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
-from typing import Any, Callable, Generic, ParamSpec, TypeVar, get_type_hints
+from logging import Logger
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    ParamSpec,
+    TypeVar,
+    get_type_hints,
+    override,
+)
 
 import mcp.types as types
+from mcp import LoggingLevel, ServerSession
 from mcp.server.lowlevel import Server
 from pydantic import TypeAdapter
 
 from splunklib.binding import _spliturl
 from splunklib.client import Service, connect
+
+
+def _normalize_logger_level(levelno: int) -> int:
+    if levelno < logging.INFO:
+        return logging.DEBUG
+    elif levelno < logging.WARNING:
+        return logging.INFO
+    elif levelno < logging.ERROR:
+        return logging.WARN
+    elif levelno < logging.CRITICAL:
+        return logging.ERROR
+    else:
+        return logging.CRITICAL
+
+
+def _map_logger_to_mcp_logging_level(levelno: int) -> types.LoggingLevel:
+    match _normalize_logger_level(levelno):
+        case logging.FATAL:
+            return "critical"
+        case logging.ERROR:
+            return "error"
+        case logging.WARN:
+            return "warning"
+        case logging.INFO:
+            return "info"
+        case logging.DEBUG:
+            return "debug"
+        case _:
+            raise AssertionError("invalid logging level")
+
+
+def _min_logging_level(level: types.LoggingLevel) -> int:
+    match level:
+        case "debug":
+            return logging.NOTSET
+        case "info":
+            return logging.INFO
+        case "notice":
+            return logging.INFO
+        case "warning":
+            return logging.WARN
+        case "error":
+            return logging.ERROR
+        case "critical":
+            return logging.CRITICAL
+        case "alert":
+            return logging.CRITICAL
+        case "emergency":
+            return logging.CRITICAL
+
+
+class _MCPLoggingHandler(logging.Handler):
+    _group: asyncio.TaskGroup
+    _session: ServerSession
+    _request_id: types.RequestId
+
+    def __init__(
+        self,
+        group: asyncio.TaskGroup,
+        session: ServerSession,
+        request_id: types.RequestId,
+    ) -> None:
+        self._group = group
+        self._session = session
+        self._request_id = request_id
+        super().__init__()
+
+    @override
+    def emit(self, record: logging.LogRecord) -> None:
+        mcp_level = _map_logger_to_mcp_logging_level(record.levelno)
+
+        async def send_log() -> None:
+            await self._session.send_log_message(
+                level=mcp_level,
+                data=record.msg,
+                logger="",
+                related_request_id=self._request_id,
+            )
+
+        # We can't await send_log() here, so we create a task, that will
+        # send the logs concurrently.
+        #
+        # Note: These logs, since are executed concurrently might not be sent
+        # in the same order, in which were created.
+        # The root cause of this is that log Handlers cannot be async.
+        #
+        # We could fix this with the use of a asyncio.Queue().put_nowait, but that
+        # has a problem, that it might raise an QueueFull exception, if there
+        # are bunch of logs created. We would have to handle that exception with
+        # a create_task(send_log()), which would still cause such unordered execution.
+        #
+        # Alternatively, we could maintain a set of all tasks that are not yet completed
+        # and await them in send_log, before calling the send_log_message, but note
+        # that this would require a clone of that set here, before creating the task
+        # (also a removal of a task from that set (task.add_done_callback())
+        #
+        # I also wonder whether task.add_done_callback() could be leveraged to order these tasks
+        # i.e. by storing the previous task (self._task) and setting self._task.add_done_callback()
+        # to execute send_log() when  self._task.done == False.
+        _ = self._group.create_task(send_log())
 
 
 class ToolContext:
@@ -35,6 +146,7 @@ class ToolContext:
 
     _management_url: str | None = None
     _management_token: str | None = None
+    _logger: Logger | None = None
 
     _service: Service | None = None
 
@@ -63,6 +175,14 @@ class ToolContext:
         self._service = s
         return s
 
+    @property
+    def logger(self) -> Logger:
+        """
+        This logger can be used by tools to emit logs during execution of a tool.
+        """
+        assert self._logger is not None
+        return self._logger
+
 
 _T = TypeVar("_T", default=Any)
 
@@ -89,6 +209,8 @@ class ToolRegistry:
     _tools_wrapped_result: dict[str, bool]
     _executing: bool = False
 
+    _logging_level: LoggingLevel = "warning"
+
     def __init__(self) -> None:
         self._server = Server("Tool Registry")
         self._tools = []
@@ -105,6 +227,14 @@ class ToolRegistry:
         async def _(name: str, arguments: dict[str, Any]) -> types.CallToolResult:
             return await self._call_tool(name, arguments)
 
+        @self._server.set_logging_level()
+        async def _(level: LoggingLevel) -> None:
+            # Note: We do not update the logging level of already created loggers, see `self._call_tool`,
+            # but that is fine for our use case, since we only call the set_logging_level once, before
+            # tool calls.
+            self._logging_level = level
+            return None
+
     def _list_tools(self) -> list[types.Tool]:
         return self._tools
 
@@ -115,35 +245,56 @@ class ToolRegistry:
         if func is None:
             raise ValueError(f"Tool {name} does not exist")
 
-        ctx = ToolContext()
-        meta = self._server.request_context.meta
-        if meta is not None:
-            splunk_meta = meta.model_dump().get("splunk")
-            if splunk_meta is not None:
-                ctx._management_url = splunk_meta.get("management_url")
-                ctx._management_token = splunk_meta.get("management_token")
+        req_ctx = self._server.request_context
 
-        for k in func.__annotations__:
-            if func.__annotations__[k] == ToolContext:
-                assert arguments.get(k) is None, (
-                    "Improper input schema was generated or schema verification is malfunctioning"
+        try:
+            # Use a TaskGroup such that all logs are send before finishing the tool execution
+            # and all errors propagated (if any).
+            async with asyncio.TaskGroup() as task_group:
+                handler = _MCPLoggingHandler(
+                    task_group,
+                    req_ctx.session,
+                    req_ctx.request_id,
                 )
-                arguments[k] = ctx
 
-        res = func(**arguments)
+                # Create a logger that forwards all logs to the client over MCP.
+                logger = logging.Logger(name="MCP Logger")
+                logger.setLevel(_min_logging_level(self._logging_level))
+                logger.addHandler(handler)
 
-        # In case func was an async function, await the returned coroutine.
-        # If not then we already have the result.
-        if inspect.isawaitable(res):
-            res = await res
+                ctx = ToolContext()
+                ctx._logger = logger
+                meta = req_ctx.meta
+                if meta is not None:
+                    splunk_meta = meta.model_dump().get("splunk")
+                    if splunk_meta is not None:
+                        ctx._management_url = splunk_meta.get("management_url")
+                        ctx._management_token = splunk_meta.get("management_token")
 
-        if self._tools_wrapped_result.get(name):
-            res = _WrappedResult(res)
+                for k in func.__annotations__:
+                    if func.__annotations__[k] == ToolContext:
+                        assert arguments.get(k) is None, (
+                            "Improper input schema was generated or schema verification is malfunctioning"
+                        )
+                        arguments[k] = ctx
 
-        return types.CallToolResult(
-            structuredContent=asdict(res),
-            content=[],
-        )
+                res = func(**arguments)
+
+                # In case func was an async function, await the returned coroutine.
+                # If not then we already have the result.
+                if inspect.isawaitable(res):
+                    res = await res
+
+                if self._tools_wrapped_result.get(name):
+                    res = _WrappedResult(res)
+
+                return types.CallToolResult(
+                    structuredContent=asdict(res),
+                    content=[],
+                )
+        except BaseExceptionGroup as e:
+            # Re-raise the first exception.
+            raise e.exceptions[0]
 
     def _input_schema(self, func: Callable[_P, _R]) -> dict[str, Any]:
         """

@@ -155,7 +155,10 @@ if __name__ == "__main__":
 Unlike regular tool inputs, this parameter is not provided by the LLM. Instead, it is
 automatically injected by the runtime for every tool invocation.
 
-`ToolContext` currently provides access to the SDK’s `Service` object, allowing tools to perform
+
+##### Service access
+
+`ToolContext` provides access to the SDK’s `Service` object, allowing tools to perform
 authenticated actions against Splunk on behalf of the **user who executed the Agent**.
 
 ```py
@@ -176,6 +179,22 @@ def runSplunkQuery(ctx: ToolContext) -> list[str]:
 
     return output
 ```
+
+##### Logger access
+
+`ToolContext` exposes a `Logger` instance that can be used for logging within your tool implementation.
+
+
+```py
+from splunklib.ai.registry import ToolContext
+
+@registry.tool()
+def tool(ctx: ToolContext) -> None:
+    ctx.logger.info("executing tool")
+
+```
+In this example, the `Logger` instance is accessed via `ctx.logger` and used to emit an informational
+log message during tool execution.
 
 ### Tool filtering
 

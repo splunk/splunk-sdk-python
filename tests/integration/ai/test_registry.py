@@ -19,10 +19,13 @@ import os
 import sys
 import unittest
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from typing import override
 
-from mcp import ClientSession, StdioServerParameters
+from mcp import ClientSession, LoggingLevel, StdioServerParameters
+from mcp.client.session import LoggingFnT
 from mcp.client.stdio import stdio_client
-from mcp.types import TextContent
+from mcp.types import LoggingMessageNotificationParams, TextContent
 
 from tests import testlib
 
@@ -44,13 +47,13 @@ class TestRegistryTestCase(testlib.SDKTestCase):
         return f"{self.service.scheme}://{self.service.host}:{self.service.port}"
 
     @asynccontextmanager
-    async def connect(self, name: str):
+    async def connect(self, name: str, logger: LoggingFnT | None = None):
         server_params = StdioServerParameters(
             command=sys.executable,
             args=[os.path.join(os.path.dirname(__file__), "testdata", name)],
         )
         async with stdio_client(server_params) as (read, write):
-            async with ClientSession(read, write) as session:
+            async with ClientSession(read, write, logging_callback=logger) as session:
                 await session.initialize()
                 yield session
 
@@ -128,6 +131,112 @@ class TestAsyncToolRegistry(TestRegistryTestCase):
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
             self.assertEqual(res.structuredContent, {"result": "Hello Stefan"})
+
+
+@dataclass
+class Log:
+    level: LoggingLevel
+    msg: str
+
+
+class FakeLoggingHandler(LoggingFnT):
+    def __init__(self) -> None:
+        self._logs: list[Log] = []
+
+    @property
+    def logs(self) -> list[Log]:
+        # Log might not be ordered, see registry.py.
+        # Such that we never depend on the ordering, we sort it.
+        return sorted(
+            self._logs,
+            key=lambda log: (log.level, log.msg),
+        )
+
+    @override
+    async def __call__(
+        self,
+        params: LoggingMessageNotificationParams,
+    ) -> None:
+        assert isinstance(params.data, str)
+        print(params.level, params.data)
+        self._logs.append(Log(params.level, params.data))
+
+
+class TestLoggingToolRegistry(TestRegistryTestCase):
+    async def test_logs(self) -> None:
+        handler = FakeLoggingHandler()
+
+        async with self.connect(
+            "logger.py",
+            logger=handler,
+        ) as session:
+            _ = await session.set_logging_level("debug")
+
+            res = await session.call_tool(
+                "hello",
+                arguments={"name": "Stefan"},
+                meta={
+                    "splunk": {
+                        "management_token": self.get_splunk_token(),
+                        "management_url": self.splunk_url,
+                    }
+                },
+            )
+
+            assert not res.isError
+
+            assert Log("debug", "debug log") in handler.logs
+            assert Log("info", "info log") in handler.logs
+            assert Log("warning", "warning log") in handler.logs
+            assert Log("error", "error log") in handler.logs
+            assert Log("critical", "critical log") in handler.logs
+
+            assert Log("debug", "debug-1 log") in handler.logs
+            assert Log("debug", "info-1 log") in handler.logs
+            assert Log("info", "warn-1 log") in handler.logs
+            assert Log("warning", "error-1 log") in handler.logs
+            assert Log("error", "critical-1 log") in handler.logs
+
+            assert Log("debug", "notset+1 log") in handler.logs
+            assert Log("debug", "debug+1 log") in handler.logs
+            assert Log("info", "info+1 log") in handler.logs
+            assert Log("warning", "warn+1 log") in handler.logs
+            assert Log("error", "error+1 log") in handler.logs
+            assert Log("critical", "critical+1 log") in handler.logs
+
+            assert len(handler.logs) == 16
+
+    async def test_set_logging_level(self) -> None:
+        handler = FakeLoggingHandler()
+
+        async with self.connect(
+            "logger.py",
+            logger=handler,
+        ) as session:
+            _ = await session.set_logging_level("error")
+
+            res = await session.call_tool(
+                "hello",
+                arguments={"name": "Stefan"},
+                meta={
+                    "splunk": {
+                        "management_token": self.get_splunk_token(),
+                        "management_url": self.splunk_url,
+                    }
+                },
+            )
+
+            assert not res.isError
+
+            assert Log("error", "error log") in handler.logs
+            assert Log("critical", "critical log") in handler.logs
+
+            assert Log("error", "critical-1 log") in handler.logs
+
+            assert Log("error", "error+1 log") in handler.logs
+            assert Log("critical", "critical+1 log") in handler.logs
+
+            assert len(handler.logs) == 5
 
 
 if __name__ == "__main__":

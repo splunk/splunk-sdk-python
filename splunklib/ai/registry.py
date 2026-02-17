@@ -137,6 +137,22 @@ class _MCPLoggingHandler(logging.Handler):
         _ = self._group.create_task(send_log())
 
 
+@dataclass
+class _ToolContextParams:
+    """
+    Internal container for parameters required to initialize `ToolContext`.
+
+    Instead of exposing these arguments directly in the `ToolContext`
+    constructor, we wrap them in this private dataclass to discourage
+    manual construction of `ToolContext` by end users (note the _ prefix
+    in this class name i.e. internal class).
+    """
+
+    management_url: str | None
+    management_token: str | None
+    logger: Logger
+
+
 class ToolContext:
     """
     ToolContext provides a way to interact with the tool execution context.
@@ -144,11 +160,13 @@ class ToolContext:
     relevant type hint is detected.
     """
 
-    _management_url: str | None = None
-    _management_token: str | None = None
-    _logger: Logger | None = None
+    _params: _ToolContextParams
 
     _service: Service | None = None
+
+    def __init__(self, params: _ToolContextParams) -> None:
+        self._params = params
+        self._service = None
 
     @property
     def service(self) -> Service:
@@ -159,17 +177,17 @@ class ToolContext:
         if self._service is not None:
             return self._service
 
-        assert all((self._management_url, self._management_token)), (
+        assert all((self._params.management_url, self._params.management_token)), (
             "Invalid tool invocation, missing management_url and/or management_token"
         )
 
-        scheme, host, port, path = _spliturl(self._management_url)
+        scheme, host, port, path = _spliturl(self._params.management_url)
         s = connect(
             scheme=scheme,
             host=host,
             port=port,
             path=path,
-            token=self._management_token,
+            token=self._params.management_token,
             autologin=True,
         )
         self._service = s
@@ -183,8 +201,7 @@ class ToolContext:
         Logs emitted using this logger are forwarded to the logger
         provided to the agent constructor.
         """
-        assert self._logger is not None
-        return self._logger
+        return self._params.logger
 
 
 _T = TypeVar("_T", default=Any)
@@ -265,14 +282,23 @@ class ToolRegistry:
                 logger.setLevel(_min_logging_level(self._logging_level))
                 logger.addHandler(handler)
 
-                ctx = ToolContext()
-                ctx._logger = logger
+                management_url: str | None = None
+                management_token: str | None = None
+
                 meta = req_ctx.meta
                 if meta is not None:
                     splunk_meta = meta.model_dump().get("splunk")
                     if splunk_meta is not None:
-                        ctx._management_url = splunk_meta.get("management_url")
-                        ctx._management_token = splunk_meta.get("management_token")
+                        management_url = splunk_meta.get("management_url")
+                        management_token = splunk_meta.get("management_token")
+
+                ctx = ToolContext(
+                    params=_ToolContextParams(
+                        management_url=management_url,
+                        management_token=management_token,
+                        logger=logger,
+                    )
+                )
 
                 for k in func.__annotations__:
                     if func.__annotations__[k] == ToolContext:

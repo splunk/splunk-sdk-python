@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from logging import Logger
 import os
 from collections.abc import Sequence
 from typing import Self, final, override
@@ -99,14 +100,16 @@ class Agent(BaseAgent[OutputT]):
             Description of the agent when used as a subagent. This is
             surfaced to the supervisor and used to decide whether this agent
             is appropriate for a given task. Ignored for top-level agents.
+
+        logger:
+            Optional logger instance used for tracing and debugging the agent’s execution.
+            Additionally logs from the local tools are forwarded to this logger.
     """
 
     _impl: AgentImpl[OutputT] | None
     _use_mcp_tools: bool
     _service: Service
     _tool_filters: ToolFilters | None
-
-    # TODO: We should have a logger inside of an agent, debugging and such.
 
     def __init__(
         self,
@@ -121,6 +124,7 @@ class Agent(BaseAgent[OutputT]):
         hooks: Sequence[AgentHook] | None = None,
         name: str = "",  # Only used by Subgents
         description: str = "",  # Only used by Subagents
+        logger: Logger | None = None,
     ) -> None:
         super().__init__(
             model=model,
@@ -131,6 +135,7 @@ class Agent(BaseAgent[OutputT]):
             input_schema=input_schema,
             output_schema=output_schema,
             hooks=hooks,
+            logger=logger,
         )
 
         if duplicate_hook_names := _find_duplicate_hook_names(self.hooks):
@@ -145,13 +150,26 @@ class Agent(BaseAgent[OutputT]):
         if self._impl:
             raise AssertionError("Agent is already in `async with` context")
 
+        if self.name:
+            self.logger.debug(f"Creating agent {self.name}; trace_id={self.trace_id}")
+        else:
+            self.logger.debug(f"Creating agent; trace_id={self.trace_id}")
+
         if self._use_mcp_tools:
             self._tools = await _load_tools_from_mcp(
-                self._service, self._tool_filters, self.trace_id
+                self._service,
+                self._tool_filters,
+                self.trace_id,
+                self.logger,
             )
 
         backend = get_backend()
         self._impl = await backend.create_agent(self)
+
+        if self.name:
+            self.logger.debug(f"Agent {self.name} created; trace_id={self.trace_id}")
+        else:
+            self.logger.debug(f"Agent created; trace_id={self.trace_id}")
 
         return self
 
@@ -171,6 +189,7 @@ async def _load_tools_from_mcp(
     service: Service,
     filters: ToolFilters | None,
     trace_id: str,
+    logger: Logger,
 ) -> list[Tool]:
     local_tools_path = _testing_local_tools_path
     app_id = _testing_app_id
@@ -186,9 +205,15 @@ async def _load_tools_from_mcp(
     if not os.path.exists(local_tools_path):
         local_tools_path = None
 
-    mcp_tools = await load_mcp_tools(service, local_tools_path, app_id, trace_id)
+    mcp_tools = await load_mcp_tools(
+        service, local_tools_path, app_id, trace_id, logger
+    )
     if filters:
         return filter_tools(mcp_tools, filters)
+
+    logger.debug(
+        f"Tools loaded & filtered successfully; tools_after_filtering={[tool.name for tool in mcp_tools]}"
+    )
 
     return mcp_tools
 

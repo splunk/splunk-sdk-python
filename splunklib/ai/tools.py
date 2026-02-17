@@ -1,6 +1,7 @@
 import asyncio
 import collections.abc
 import json
+import logging
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -10,13 +11,20 @@ from typing import Any, Callable, override
 import httpx
 from anyio import Path
 from httpx import Auth, Request, Response
-from mcp import ClientSession, StdioServerParameters, stdio_client
+from mcp import ClientSession, LoggingLevel, StdioServerParameters, stdio_client
+from mcp.client.session import LoggingFnT
 from mcp.client.streamable_http import streamable_http_client
-from mcp.types import CallToolResult, PaginatedRequestParams, TextContent
+from mcp.types import (
+    CallToolResult,
+    LoggingMessageNotificationParams,
+    PaginatedRequestParams,
+    TextContent,
+)
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
 from splunklib.client import Service
+from splunklib.ai.registry import _map_logger_to_mcp_logging_level
 
 TOOLS_FILENAME = "tools.py"
 
@@ -83,6 +91,48 @@ def build_local_tools_path(dir: str) -> str:
     return os.path.join(dir, "bin", TOOLS_FILENAME)
 
 
+def _map_logging_level(level: LoggingLevel) -> int:
+    match level:
+        case "debug":
+            return logging.DEBUG
+        case "info":
+            return logging.INFO
+        case "notice":
+            return logging.INFO
+        case "warning":
+            return logging.WARN
+        case "error":
+            return logging.ERROR
+        case "critical":
+            return logging.CRITICAL
+        case "alert":
+            return logging.CRITICAL
+        case "emergency":
+            return logging.CRITICAL
+
+
+@dataclass
+class _MCPLoggingHandler(LoggingFnT):
+    _logger: logging.Logger
+
+    tool_name: str
+
+    @property
+    def level(self) -> LoggingLevel:
+        return _map_logger_to_mcp_logging_level(self._logger.level)
+
+    @override
+    async def __call__(
+        self,
+        params: LoggingMessageNotificationParams,
+    ) -> None:
+        # TODO: Add call_id.
+        self._logger.log(
+            _map_logging_level(params.level),
+            msg=f"tool: {self.tool_name}: {str(params.data)}",
+        )
+
+
 @dataclass
 class LocalCfg:
     tools_path: str
@@ -99,7 +149,7 @@ class RemoteCfg:
 
 
 @asynccontextmanager
-async def _connect_local_mcp(cfg: LocalCfg):
+async def _connect_local_mcp(cfg: LocalCfg, logger: _MCPLoggingHandler | None = None):
     server_params = StdioServerParameters(
         command=sys.executable,
         args=[cfg.tools_path],
@@ -116,8 +166,12 @@ async def _connect_local_mcp(cfg: LocalCfg):
         server_params.env = {"LD_LIBRARY_PATH": ld}
 
     async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
+        async with ClientSession(read, write, logging_callback=logger) as session:
             await session.initialize()
+
+            if logger is not None:
+                _ = await session.set_logging_level(logger.level)
+
             yield session
 
 
@@ -153,12 +207,12 @@ class _MCPAuth(Auth):
 
 
 @asynccontextmanager
-async def _connect(cfg: LocalCfg | RemoteCfg):
+async def _connect(cfg: LocalCfg | RemoteCfg, logger: _MCPLoggingHandler | None = None):
     if isinstance(cfg, RemoteCfg):
         async with _connect_remote_mcp(cfg) as remote_mcp:
             yield remote_mcp
     else:
-        async with _connect_local_mcp(cfg) as local_mcp:
+        async with _connect_local_mcp(cfg, logger) as local_mcp:
             yield local_mcp
 
 
@@ -178,6 +232,7 @@ async def _list_all_tools(cfg: LocalCfg | RemoteCfg) -> list[MCPTool]:
 
 
 def _convert_mcp_tool(
+    logger: logging.Logger,
     cfg: LocalCfg | RemoteCfg,
     tool: MCPTool,
 ) -> Tool:
@@ -208,7 +263,7 @@ def _convert_mcp_tool(
                     }
                 }
 
-        async with _connect(cfg) as session:
+        async with _connect(cfg, _MCPLoggingHandler(logger, tool.name)) as session:
             call_tool_result = await session.call_tool(
                 name=tool.name,
                 arguments=arguments,
@@ -306,9 +361,9 @@ def _get_splunk_token_for_mcp(service: Service) -> str:
     return body.entry[0].content.token
 
 
-async def _load_tools(cfg: LocalCfg | RemoteCfg) -> list[Tool]:
+async def _load_tools(cfg: LocalCfg | RemoteCfg, logger: logging.Logger) -> list[Tool]:
     tools = await _list_all_tools(cfg)
-    return [_convert_mcp_tool(cfg, tool) for tool in tools]
+    return [_convert_mcp_tool(logger, cfg, tool) for tool in tools]
 
 
 async def load_mcp_tools(
@@ -316,6 +371,7 @@ async def load_mcp_tools(
     local_tools_path: str | None,
     app_id: str,
     trace_id: str,
+    logger: logging.Logger,
 ) -> list[Tool]:
     # TODO: Add tool.name collision between local/remote tools
     tools: list[Tool] = []
@@ -328,12 +384,18 @@ async def load_mcp_tools(
     client = httpx.AsyncClient(auth=_MCPAuth(f"Bearer {token}"), verify=False)
     res = await client.get(mcp_url)
     if res.status_code != 404:
+        logger.debug("Splunk MCP Server App detected - loading remote tools")
         remote_tools = await _load_tools(
-            RemoteCfg(mcp_url=mcp_url, token=token, app_id=app_id, trace_id=trace_id)
+            RemoteCfg(mcp_url=mcp_url, token=token, app_id=app_id, trace_id=trace_id),
+            logger,
+        )
+        logger.debug(
+            f"Remote tools loaded; tools={[tool.name for tool in remote_tools]}"
         )
         tools.extend(remote_tools)
 
     if local_tools_path is not None:
+        logger.debug(f"Loading local tools; local_tools_path={local_tools_path}")
         local_tools = await _load_tools(
             LocalCfg(
                 tools_path=local_tools_path,
@@ -342,8 +404,10 @@ async def load_mcp_tools(
                 # the Service auth fields and send them or generate a separate token, that does not have
                 # the "mcp" audience set.
                 token=token,
-            )
+            ),
+            logger,
         )
+        logger.debug(f"Local tools loaded; tools={[tool.name for tool in local_tools]}")
         tools.extend(local_tools)
 
     return tools

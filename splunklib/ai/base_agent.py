@@ -15,6 +15,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import logging
 import secrets
 from typing import Generic
 
@@ -37,6 +38,7 @@ class BaseAgent(Generic[OutputT], ABC):
     _output_schema: type[OutputT] | None = None
     _hooks: Sequence[AgentHook] | None = None
     _trace_id: str
+    _logger: logging.Logger
 
     def __init__(
         self,
@@ -49,6 +51,7 @@ class BaseAgent(Generic[OutputT], ABC):
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
         hooks: Sequence[AgentHook] | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
         self._system_prompt = system_prompt
         self._model = model
@@ -61,8 +64,18 @@ class BaseAgent(Generic[OutputT], ABC):
         self._hooks = tuple(hooks) if hooks else ()
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
 
+        if logger is None:
+            # Create a no-op logger to skip checking for its existence.
+            logger = logging.Logger(name="fake", level=logging.CRITICAL + 100)
+            assert len(logger.handlers) == 0
+        self._logger = logger
+
     @abstractmethod
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
+
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
 
     @property
     def system_prompt(self) -> str:

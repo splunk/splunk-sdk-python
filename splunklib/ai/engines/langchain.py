@@ -13,16 +13,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import Any, cast, override
+from typing import Any, Awaitable, Callable, cast, override
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware as LC_AgentMiddleware,
+    wrap_tool_call,
 )
 from langchain.agents.middleware import (
     AgentState as LC_AgentState,
@@ -40,6 +42,7 @@ from langchain.messages import SystemMessage as LC_SystemMessage
 from langchain.messages import ToolCall as LC_ToolCall
 from langchain.messages import ToolMessage as LC_ToolMessage
 from langchain.tools import ToolException as LC_ToolException
+from langchain.tools.tool_node import ToolCallRequest as LC_ToolCallRequest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages.base import BaseMessage as LC_BaseMessage
 from langchain_core.messages.utils import count_tokens_approximately
@@ -47,6 +50,7 @@ from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.state import CompiledStateGraph, RunnableConfig
 from langgraph.runtime import Runtime
+from langgraph.types import Command as LC_Command
 
 from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import (
@@ -58,9 +62,8 @@ from splunklib.ai.core.backend import (
 from splunklib.ai.hooks import (
     AgentHook,
     AgentState,
-    StepsLimitExceededException,
-    TimeoutExceededException,
-    TokenLimitExceededException,
+    after_model as hook_after_model,
+    before_model as hook_before_model,
 )
 from splunklib.ai.messages import (
     AgentCall,
@@ -192,11 +195,27 @@ class LangChainBackend(Backend):
 
                 system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
-        middleware = []
+        before_user_hooks, after_user_hooks, before_user_lc_middlewares = (
+            _debugging_middleware(agent.logger)
+        )
+
+        middleware = [
+            _convert_hook_to_middleware(h, model_impl) for h in before_user_hooks
+        ]
+        middleware.extend(before_user_lc_middlewares)
+
+        # User-provided hooks go in between our hooks.
         if agent.hooks:
             middleware.extend(
-                (_convert_hook_to_middleware(h, model_impl) for h in agent.hooks)
+                (
+                    _convert_hook_to_middleware(h, model_impl, logger=agent.logger)
+                    for h in agent.hooks
+                )
             )
+
+        middleware.extend(
+            (_convert_hook_to_middleware(h, model_impl) for h in after_user_hooks)
+        )
 
         return LangChainAgentImpl(
             system_prompt=system_prompt,
@@ -205,6 +224,73 @@ class LangChainBackend(Backend):
             output_schema=agent.output_schema,
             middleware=middleware,
         )
+
+
+def _debugging_middleware(
+    logger: logging.Logger,
+) -> tuple[list[AgentHook], list[AgentHook], list[LC_AgentMiddleware]]:
+    # TODO: These names can conflict with user-provided names.
+
+    # TODO: replace this with ours middleware, once we add them.
+    @wrap_tool_call  # pyright: ignore[reportArgumentType, reportCallIssue, reportUntypedFunctionDecorator]
+    async def _tool_call(
+        request: LC_ToolCallRequest,
+        handler: Callable[
+            [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+        ],
+    ) -> LC_ToolMessage | LC_Command[None]:
+        call = _map_tool_call_from_langchain(request.tool_call)
+
+        tool_or_agent = "Tool"
+        if isinstance(call, AgentCall):
+            tool_or_agent = "Agent"
+
+        logger.debug(f"{tool_or_agent} call {call.name} stared; id={call.id}")
+        try:
+            result = await handler(request)
+            assert isinstance(result, LC_ToolMessage)
+
+            if result.status == "success":
+                logger.debug(
+                    f"{tool_or_agent} call {call.name} succeeded; id={call.id}"
+                )
+            else:
+                logger.debug(f"{tool_or_agent} call {call.name} failed; id={call.id}")
+
+            return result
+        except Exception:
+            logger.debug(f"{tool_or_agent} call {call.name} failed; id={call.id}")
+            raise
+
+    before_user_lc_middlewares = [_tool_call]
+
+    @hook_after_model
+    def _debug_after_model(state: AgentState) -> None:
+        last = state.response.messages[-1]
+        if isinstance(last, AIMessage):
+            tool_calls = [
+                (call.name, call.id)
+                for call in last.calls
+                if isinstance(call, ToolCall)
+            ]
+            subagent_calls = [
+                (call.name, call.id)
+                for call in last.calls
+                if isinstance(call, AgentCall)
+            ]
+            logger.debug(
+                f"LLM model invocation ended; requested_tool_calls={tool_calls}; requested_subagent_calls={subagent_calls}"
+            )
+
+    before_user_hooks = [_debug_after_model]
+
+    @hook_before_model
+    def _debug_before_model(state: AgentState) -> None:
+        logger.debug("Invoking LLM model")
+
+    after_user_hooks = [_debug_before_model]
+
+    return before_user_hooks, after_user_hooks, before_user_lc_middlewares  # pyright: ignore[reportReturnType]
 
 
 def _create_langchain_tool(tool: Tool) -> BaseTool:
@@ -389,6 +475,7 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
 def _convert_hook_to_middleware(
     hook: AgentHook,
     model: BaseChatModel,
+    logger: logging.Logger | None = None,
 ) -> LC_AgentMiddleware:
     match hook.type:
         case "before_model":
@@ -414,6 +501,10 @@ def _convert_hook_to_middleware(
         # the token counting function as part of the Backend interface, so that
         # it's only used when needed instead.
         sdk_state = _convert_agent_state_from_langchain(state, model)
+
+        if logger:
+            logger.debug(f"Executing {hook.type} hook {hook.name}")
+
         hook(sdk_state)
 
     return wrapper(_middleware)

@@ -179,6 +179,9 @@ class ToolContext:
     def logger(self) -> Logger:
         """
         This logger can be used by tools to emit logs during execution of a tool.
+
+        Logs emitted using this logger are forwarded to the logger
+        provided to the agent constructor.
         """
         assert self._logger is not None
         return self._logger

@@ -27,14 +27,14 @@ OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | Non
 class ToolCall:
     name: str
     args: dict[str, Any]
-    id: str | None
+    id: str | None  # TODO: can be None?
 
 
 @dataclass(frozen=True)
 class AgentCall:
     name: str
     args: dict[str, Any]
-    id: str | None
+    id: str | None  # TODO: can be None?
 
 
 @dataclass(frozen=True)

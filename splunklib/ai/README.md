@@ -196,6 +196,8 @@ def tool(ctx: ToolContext) -> None:
 In this example, the `Logger` instance is accessed via `ctx.logger` and used to emit an informational
 log message during tool execution.
 
+These logs are forwarded to the `logger` passed to the `Agent` constructor.
+
 ### Tool filtering
 
 Tools can be filtered, before these are made available to the LLM, via the `tool_filters` parameter.
@@ -513,6 +515,35 @@ When a limit is exceeded, the agent raises the exception corresponding to the vi
 condition (`TokenLimitExceededException`, `StepsLimitExceededException` or `TimeoutExceededException`).
 
 These limits apply over the entire lifetime of an `Agent`.
+
+## Logger
+
+The `Agent` constructor accepts an optional logger parameter that enables detailed
+tracing and debugging throughout the agent’s lifecycle.
+
+```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.hooks import token_limit, step_limit, timeout_limit
+from splunklib.client import connect
+import logging
+
+model = OpenAIModel(...)
+service = connect(...)
+
+logger = logging.getLogger("test")
+logger.setLevel(logging.DEBUG)
+
+async with Agent(
+        model=model,
+        service=service,
+        system_prompt="..." ,
+        logger=logger,
+    ) as agent: ...
+```
+
+The agent emits logs for events such as: model interactions, tool calls, subagent calls.
+
+Additionally logs from local tools are also forwarded to this logger.
 
 ## Known issues
 

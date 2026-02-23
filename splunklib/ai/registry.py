@@ -32,8 +32,8 @@ from mcp import LoggingLevel, ServerSession
 from mcp.server.lowlevel import Server
 from pydantic import TypeAdapter
 
-from splunklib.binding import _spliturl
-from splunklib.client import Service, connect
+from splunklib.ai.serialized_service import SerializedService
+from splunklib.client import Service
 
 
 def _normalize_logger_level(levelno: int) -> int:
@@ -147,8 +147,7 @@ class _ToolContextParams:
     in this class name i.e. internal class).
     """
 
-    management_url: str | None
-    management_token: str | None
+    service: SerializedService | None
     logger: Logger
 
 
@@ -176,21 +175,13 @@ class ToolContext:
         if self._service is not None:
             return self._service
 
-        assert all((self._params.management_url, self._params.management_token)), (
-            "Invalid tool invocation, missing management_url and/or management_token"
+        assert self._params.service is not None, (
+            "Invalid tool invocation, missing serialized service details"
         )
 
-        scheme, host, port, path = _spliturl(self._params.management_url)
-        s = connect(
-            scheme=scheme,
-            host=host,
-            port=port,
-            path=path,
-            token=self._params.management_token,
-            autologin=True,
-        )
-        self._service = s
-        return s
+        # TODO: Shouldn't this function be async and this use asyncio.to_thread()?
+        self._service = self._params.service.connect()
+        return self._service
 
     @property
     def logger(self) -> Logger:
@@ -281,20 +272,19 @@ class ToolRegistry:
                 logger.setLevel(_min_logging_level(self._logging_level))
                 logger.addHandler(handler)
 
-                management_url: str | None = None
-                management_token: str | None = None
+                service: SerializedService | None = None
 
                 meta = req_ctx.meta
                 if meta is not None:
                     splunk_meta = meta.model_dump().get("splunk")
                     if splunk_meta is not None:
-                        management_url = splunk_meta.get("management_url")
-                        management_token = splunk_meta.get("management_token")
+                        service = SerializedService.model_validate(
+                            splunk_meta.get("service")
+                        )
 
                 ctx = ToolContext(
                     params=_ToolContextParams(
-                        management_url=management_url,
-                        management_token=management_token,
+                        service=service,
                         logger=logger,
                     )
                 )

@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 from dataclasses import asdict, dataclass
 import logging
+import json
 import os
 import socket
 from typing import Annotated
@@ -23,7 +24,6 @@ from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage, ToolMessage
 from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai.tools import (
-    _get_splunk_token_for_mcp,
     _get_splunk_username,
     locate_app,
 )
@@ -140,21 +140,30 @@ class TestTools(AITestCase):
             assert tool_names == ["test_tool_1", "test_tool_2", "test_tool_4"]
 
 
-class TestSplunkToken(testlib.SDKTestCase):
+class TestSplunkGetUsername(testlib.SDKTestCase):
+    def get_splunk_bearer_token(self) -> str:
+        res = self.service.post(
+            path_segment="authorization/tokens",
+            name=self.service.username,
+            audience="test",
+            type="ephemeral",
+            output_mode="json",
+        )
+        token = json.loads(str(res.body))["entry"][0]["content"]["token"]
+        return token
+
     def test_get_splunk_username(self) -> None:
         self.assertTrue(
-            self.service.username is not None and self.service.username != ""
+            self.service.username and self.service.password
         )  # our CI logs-in with username and password.
 
         self.assertEqual(_get_splunk_username(self.service), self.service.username)
-
-        token = _get_splunk_token_for_mcp(self.service)
 
         service = connect(
             scheme=self.service.scheme,
             host=self.service.host,
             port=self.service.port,
-            token=token,
+            token=self.get_splunk_bearer_token(),
         )
 
         self.assertEqual(_get_splunk_username(service), self.service.username)
@@ -174,28 +183,6 @@ class TestAppLocate:
 
 
 AUTH_TOKEN = "foobarbaz"
-
-
-async def tokens_handler(request: Request) -> Response:
-    class Content(BaseModel):
-        token: str
-
-    class Entry(BaseModel):
-        content: Content
-
-    class ResponseBody(BaseModel):
-        entry: list[Entry]
-
-    body = ResponseBody(
-        entry=[
-            Entry(content=Content(token=AUTH_TOKEN)),
-        ]
-    )
-
-    return JSONResponse(
-        content=body.model_dump(),
-        status_code=200,
-    )
 
 
 async def mcp_token_handler(_: Request) -> Response:
@@ -276,11 +263,6 @@ class TestRemoteTools(AITestCase):
                         mcp_token_handler,
                         methods=["GET"],
                     ),
-                    Route(
-                        "/services/authorization/tokens",
-                        tokens_handler,
-                        methods=["POST"],
-                    ),
                 ],
                 lifespan=lifespan,
                 middleware=[Middleware(MCPMiddleware)],
@@ -344,13 +326,7 @@ class TestRemoteTools(AITestCase):
 
         async with run_http_server(
             Starlette(
-                routes=[
-                    Route(
-                        "/services/authorization/tokens",
-                        tokens_handler,
-                        methods=["POST"],
-                    ),
-                ],
+                routes=[],
             )
         ) as (host, port):
             service = await asyncio.to_thread(
@@ -419,11 +395,6 @@ class TestRemoteTools(AITestCase):
                         "/services/mcp_token",
                         mcp_token_handler,
                         methods=["GET"],
-                    ),
-                    Route(
-                        "/services/authorization/tokens",
-                        tokens_handler,
-                        methods=["POST"],
                     ),
                 ],
                 lifespan=lifespan,
@@ -520,11 +491,6 @@ class TestRemoteTools(AITestCase):
                         "/services/mcp_token",
                         mcp_token_handler,
                         methods=["GET"],
-                    ),
-                    Route(
-                        "/services/authorization/tokens",
-                        tokens_handler,
-                        methods=["POST"],
                     ),
                 ],
                 lifespan=lifespan,

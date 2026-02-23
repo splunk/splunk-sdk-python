@@ -23,6 +23,7 @@ from mcp.types import (
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
+from splunklib.ai.serialized_service import SerializedService
 from splunklib.binding import HTTPError
 from splunklib.client import Service
 from splunklib.ai.registry import _map_logger_to_mcp_logging_level
@@ -137,8 +138,7 @@ class _MCPLoggingHandler(LoggingFnT):
 @dataclass
 class LocalCfg:
     tools_path: str
-    management_url: str
-    token: str
+    service: SerializedService
 
 
 @dataclass
@@ -256,8 +256,7 @@ def _convert_mcp_tool(
                         # Provide access to the splunk instance in local tools.
                         # No need to do anything special for remote tools, since
                         # these tools are already authenticated with the token.
-                        "management_url": cfg.management_url,
-                        "management_token": cfg.token,
+                        "service": cfg.service.model_dump(),
                         # Currently we don't need to send the trace_id and app_id to local tools, since
                         # that is only really needed to correlate logs, but for local tools we know
                         # that logs coming from the local tool registry are already reladed to this
@@ -342,30 +341,6 @@ def _get_splunk_username(service: Service) -> str:
     return body.entry[0].content.username
 
 
-def _get_splunk_token_for_mcp(service: Service) -> str:
-    res = service.post(
-        path_segment="authorization/tokens",
-        name=_get_splunk_username(service),
-        audience="mcp",
-        type="ephemeral",
-        output_mode="json",
-    )
-
-    class Content(BaseModel):
-        token: str
-
-    class Entry(BaseModel):
-        content: Content
-
-    class ResponseBody(BaseModel):
-        entry: list[Entry]
-
-    body = ResponseBody.model_validate_json(str(res.body))
-    if len(body.entry) == 0:
-        return ""
-    return body.entry[0].content.token
-
-
 def _get_mcp_token(service: Service) -> str | None:
     try:
         res = service.get(
@@ -401,7 +376,6 @@ async def load_mcp_tools(
 
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
-    token = await asyncio.to_thread(lambda: _get_splunk_token_for_mcp(service))
 
     mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(service))
     if mcp_token is not None:
@@ -425,11 +399,7 @@ async def load_mcp_tools(
         local_tools = await _load_tools(
             LocalCfg(
                 tools_path=local_tools_path,
-                management_url=management_url,
-                # TODO: Is this right? I think we should do this differentlly and either serialize
-                # the Service auth fields and send them or generate a separate token, that does not have
-                # the "mcp" audience set.
-                token=token,
+                service=SerializedService.from_service(service),
             ),
             logger,
         )

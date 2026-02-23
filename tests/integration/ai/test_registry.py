@@ -25,6 +25,7 @@ from mcp.client.session import LoggingFnT
 from mcp.client.stdio import stdio_client
 from mcp.types import LoggingMessageNotificationParams, TextContent
 
+from splunklib.ai.serialized_service import SerializedService
 from tests import testlib
 
 
@@ -41,8 +42,8 @@ class TestRegistryTestCase(testlib.SDKTestCase):
         return token
 
     @property
-    def splunk_url(self) -> str:
-        return f"{self.service.scheme}://{self.service.host}:{self.service.port}"
+    def serialized_service(self) -> SerializedService:
+        return SerializedService.from_service(self.service)
 
     @asynccontextmanager
     async def connect(self, name: str, logger: LoggingFnT | None = None):
@@ -62,12 +63,7 @@ class TestToolContextRegistry(TestRegistryTestCase):
             res = await session.call_tool(
                 "startup_time",
                 arguments={},
-                meta={
-                    "splunk": {
-                        "management_token": self.get_splunk_token(),
-                        "management_url": self.splunk_url,
-                    }
-                },
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
             )
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
@@ -80,12 +76,7 @@ class TestToolContextRegistry(TestRegistryTestCase):
             res = await session.call_tool(
                 "startup_time_and_str",
                 arguments={"val": "some value"},
-                meta={
-                    "splunk": {
-                        "management_token": self.get_splunk_token(),
-                        "management_url": self.splunk_url,
-                    }
-                },
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
             )
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
@@ -106,7 +97,7 @@ class TestToolContextRegistry(TestRegistryTestCase):
                 [
                     TextContent(
                         type="text",
-                        text="Invalid tool invocation, missing management_url and/or management_token",
+                        text="Invalid tool invocation, missing serialized service details",
                     )
                 ],
             )
@@ -119,12 +110,7 @@ class TestAsyncToolRegistry(TestRegistryTestCase):
             res = await session.call_tool(
                 "hello",
                 arguments={"name": "Stefan"},
-                meta={
-                    "splunk": {
-                        "management_token": self.get_splunk_token(),
-                        "management_url": self.splunk_url,
-                    }
-                },
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
             )
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
@@ -173,12 +159,7 @@ class TestLoggingToolRegistry(TestRegistryTestCase):
             res = await session.call_tool(
                 "hello",
                 arguments={"name": "Stefan"},
-                meta={
-                    "splunk": {
-                        "management_token": self.get_splunk_token(),
-                        "management_url": self.splunk_url,
-                    }
-                },
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
             )
 
             assert not res.isError
@@ -216,12 +197,7 @@ class TestLoggingToolRegistry(TestRegistryTestCase):
             res = await session.call_tool(
                 "hello",
                 arguments={"name": "Stefan"},
-                meta={
-                    "splunk": {
-                        "management_token": self.get_splunk_token(),
-                        "management_url": self.splunk_url,
-                    }
-                },
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
             )
 
             assert not res.isError

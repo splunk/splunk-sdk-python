@@ -23,6 +23,7 @@ from mcp.types import (
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
+from splunklib.binding import HTTPError
 from splunklib.client import Service
 from splunklib.ai.registry import _map_logger_to_mcp_logging_level
 
@@ -175,6 +176,11 @@ async def _connect_local_mcp(cfg: LocalCfg, logger: _MCPLoggingHandler | None = 
             yield session
 
 
+# Based on streamable_http_client defaults, when http_client is usnet.
+_MCP_DEFAULT_TIMEOUT = 30.0  # General operations (seconds)
+_MCP_DEFAULT_SSE_READ_TIMEOUT = 300.0  # SSE streams - 5 minutes (seconds)
+
+
 @asynccontextmanager
 async def _connect_remote_mcp(cfg: RemoteCfg):
     async with streamable_http_client(
@@ -187,6 +193,9 @@ async def _connect_remote_mcp(cfg: RemoteCfg):
             auth=_MCPAuth(f"Bearer {cfg.token}"),
             verify=False,
             follow_redirects=True,
+            timeout=httpx.Timeout(
+                _MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT
+            ),
         ),
     ) as (read, write, _):
         async with ClientSession(read, write) as session:
@@ -357,6 +366,24 @@ def _get_splunk_token_for_mcp(service: Service) -> str:
     return body.entry[0].content.token
 
 
+def _get_mcp_token(service: Service) -> str | None:
+    try:
+        res = service.get(
+            path_segment="mcp_token",
+            username=_get_splunk_username(service),
+            output_mode="json",
+        )
+    except HTTPError as e:
+        if e.status == 404:
+            return None
+        raise
+
+    class ResponseBody(BaseModel):
+        token: str
+
+    return ResponseBody.model_validate_json(str(res.body)).token
+
+
 async def _load_tools(cfg: LocalCfg | RemoteCfg, logger: logging.Logger) -> list[Tool]:
     tools = await _list_all_tools(cfg)
     return [_convert_mcp_tool(logger, cfg, tool) for tool in tools]
@@ -376,13 +403,16 @@ async def load_mcp_tools(
     mcp_url = f"{management_url}/services/mcp"
     token = await asyncio.to_thread(lambda: _get_splunk_token_for_mcp(service))
 
-    # Load remote MCP tools, only if the MCP server App is available.
-    client = httpx.AsyncClient(auth=_MCPAuth(f"Bearer {token}"), verify=False)
-    res = await client.get(mcp_url)
-    if res.status_code != 404:
+    mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(service))
+    if mcp_token is not None:
         logger.debug("Splunk MCP Server App detected - loading remote tools")
         remote_tools = await _load_tools(
-            RemoteCfg(mcp_url=mcp_url, token=token, app_id=app_id, trace_id=trace_id),
+            RemoteCfg(
+                mcp_url=mcp_url,
+                token=mcp_token,
+                app_id=app_id,
+                trace_id=trace_id,
+            ),
             logger,
         )
         logger.debug(

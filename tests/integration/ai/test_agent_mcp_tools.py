@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 from dataclasses import asdict, dataclass
+import logging
 import os
 import socket
 from typing import Annotated
@@ -197,6 +198,13 @@ async def tokens_handler(request: Request) -> Response:
     )
 
 
+async def mcp_token_handler(_: Request) -> Response:
+    return JSONResponse(
+        content={"token": AUTH_TOKEN},
+        status_code=200,
+    )
+
+
 class TestRemoteTools(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
@@ -263,6 +271,11 @@ class TestRemoteTools(AITestCase):
             Starlette(
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
+                    Route(
+                        "/services/mcp_token",
+                        mcp_token_handler,
+                        methods=["GET"],
+                    ),
                     Route(
                         "/services/authorization/tokens",
                         tokens_handler,
@@ -403,6 +416,11 @@ class TestRemoteTools(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route(
+                        "/services/mcp_token",
+                        mcp_token_handler,
+                        methods=["GET"],
+                    ),
+                    Route(
                         "/services/authorization/tokens",
                         tokens_handler,
                         methods=["POST"],
@@ -499,6 +517,11 @@ class TestRemoteTools(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route(
+                        "/services/mcp_token",
+                        mcp_token_handler,
+                        methods=["GET"],
+                    ),
+                    Route(
                         "/services/authorization/tokens",
                         tokens_handler,
                         methods=["POST"],
@@ -550,6 +573,50 @@ class TestRemoteTools(AITestCase):
 
                 response = result.messages[-1].content
                 assert "31.5" in response, "Invalid LLM response"
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "non_existent.py",
+        ),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @pytest.mark.asyncio
+    async def test_splunk_mcp_server_app(self) -> None:
+        # Skip if the langchain_openai package is not installed
+        pytest.importorskip("langchain_openai")
+
+        # TODO: Remove this test once we have an E2E with Splunk MCP Server app.
+
+        self.skipTest("manual test")
+
+        logger = logging.getLogger("test")
+        logger.setLevel(logging.DEBUG)
+
+        service = connect(
+            port=8090,
+            host="localhost",
+            username="admin",
+            password="",
+            autologin=True,
+        )
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="You must use the available tools to perform requested operations",
+            service=service,
+            use_mcp_tools=True,
+            logger=logger,
+        ) as agent:
+            for tool in agent.tools:
+                if tool.name == "splunk_get_indexes":
+                    result = await tool.func()
+                    assert len(result.structured_content["results"]) != 0
+                    return
+
+            assert False, "tool splunk_get_indexes not found"
 
 
 @contextlib.asynccontextmanager

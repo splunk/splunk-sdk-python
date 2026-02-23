@@ -302,10 +302,6 @@ def _convert_tool_result(
         if isinstance(content, TextContent):
             text_contents.append(content.text)
 
-    # If there is no text content, use the structuredContent as text content.
-    if len(text_contents) == 0:
-        text_contents.append(json.dumps(result.structuredContent))
-
     return ToolResult(
         content=text_contents, structured_content=result.structuredContent
     )

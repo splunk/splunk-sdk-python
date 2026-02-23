@@ -1,9 +1,12 @@
 import asyncio
 import contextlib
+from dataclasses import asdict, dataclass
 import os
 import socket
+from typing import Annotated
 from unittest.mock import patch
 
+from mcp.types import CallToolResult, TextContent
 import pytest
 from starlette.middleware import Middleware
 import uvicorn
@@ -444,6 +447,106 @@ class TestRemoteTools(AITestCase):
                 assert tool_messages[1].status == "success", (
                     "Second tool call should be ok"
                 )
+
+                response = result.messages[-1].content
+                assert "31.5" in response, "Invalid LLM response"
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "non_existent.py",
+        ),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @pytest.mark.asyncio
+    async def test_tool_call_text_content_with_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        mcp = FastMCP("MCP Server", streamable_http_path="/")
+
+        @dataclass
+        class Result:
+            celsius_degrees: str
+
+        @mcp.tool(description="Returns the current temperature in the city")
+        def temperature(city: str) -> Annotated[CallToolResult, Result]:
+            if city == "Krakow":
+                temperature = "31.5C"
+            else:
+                temperature = "22.1C"
+
+            # The Splunk MCP Server App returns a succeeded message in the content
+            # and a proper output in the structured_content field.
+            return CallToolResult(
+                content=[
+                    TextContent(
+                        type="text",
+                        text=f"Tool call succeeded, temperature in {city} found",
+                    )
+                ],
+                structuredContent=asdict(Result(temperature)),
+            )
+
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette):
+            async with mcp.session_manager.run():
+                yield
+
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Mount("/services/mcp", app=mcp.streamable_http_app()),
+                    Route(
+                        "/services/authorization/tokens",
+                        tokens_handler,
+                        methods=["POST"],
+                    ),
+                ],
+                lifespan=lifespan,
+            )
+        ) as (host, port):
+            service = await asyncio.to_thread(
+                lambda: connect(
+                    scheme="http",
+                    host=host,
+                    port=port,
+                    splunkToken=AUTH_TOKEN,
+                    autologin=True,
+                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
+                ),
+            )
+
+            async with Agent(
+                model=(await self.model()),
+                system_prompt="You must use the available tools to perform requested operations",
+                service=service,
+                use_mcp_tools=True,
+            ) as agent:
+                result = await agent.invoke(
+                    [
+                        HumanMessage(
+                            content=(
+                                "What is the weather like today in Krakow? Use the provided tools to check the temperature."
+                                "Return a short response, containing the tool response."
+                            ),
+                        )
+                    ]
+                )
+
+                found_tool_message = False
+                for msg in result.messages:
+                    if isinstance(msg, ToolMessage):
+                        found_tool_message = True
+                        # Both text content and structured_content should be in the
+                        # content of a tool response.
+                        assert (
+                            "Tool call succeeded, temperature in Krakow found"
+                            in msg.content
+                        )
+                        assert '"celsius_degrees": "31.5C"' in msg.content
+                assert found_tool_message, "missing ToolMessage in agent response"
 
                 response = result.messages[-1].content
                 assert "31.5" in response, "Invalid LLM response"

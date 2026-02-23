@@ -15,7 +15,7 @@
 import logging
 import uuid
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from functools import partial
 from time import monotonic
 from typing import Any, Awaitable, Callable, cast, override
@@ -77,7 +77,7 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.tools import Tool, ToolException
+from splunklib.ai.tools import Tool, ToolException, ToolResult
 
 # RESERVED_LC_TOOL_PREFIX represents a prefix that is reserved for internal use
 # and no user-visible tool or subagent name can contain it (as a prefix).
@@ -295,7 +295,7 @@ def _debugging_middleware(
 def _create_langchain_tool(tool: Tool) -> BaseTool:
     async def _tool_call(
         **kwargs: dict[str, Any],
-    ) -> tuple[list[str], dict[str, Any] | None]:
+    ) -> dict[str, Any] | list[str]:
         try:
             result = await tool.func(**kwargs)
         except ToolException as e:
@@ -305,14 +305,26 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
                 "ToolException from langchain should not be raised in tool.func"
             )
 
-        return result.content, result.structured_content
+        if result.structured_content:
+            # For both local tools and remote tools (Splunk MCP Server App),
+            # the primary payload is returned in structured_content.
+            # The content field is typically minimal for remote tools and empty for local tools.
+            #
+            # FastMCP behaves slightly differently: when structured_content is returned,
+            # it also includes json.dumps(structured_content) in the content field.
+            #
+            # If we introduce support for additional MCP implementations in the future,
+            # this assumption may need to be revisited. For now, this approach is fine.
+            # The worst-case scenario is that the same information is provided to the LLM twice.
+            return asdict(result)  # both content + structured_content
+        return result.content
 
     return StructuredTool(
         name=_normalize_tool_name(tool.name),
         description=tool.description,
         args_schema=tool.input_schema,
         coroutine=_tool_call,
-        response_format="content_and_artifact",
+        response_format="content",
         handle_tool_error=True,
         tags=tool.tags,
     )

@@ -73,8 +73,8 @@ docker-refresh: docker-remove docker-start
 
 .PHONY: docker-splunk-restart
 docker-splunk-restart:
-	docker exec -it splunk sh -c '/opt/splunk/bin/splunk restart'
+	docker exec -it splunk sudo sh -c '/opt/splunk/bin/splunk restart --run-as-root'
 
 .PHONY: docker-tail-python-log
 docker-tail-python-log:
-	docker exec splunk tail /opt/splunk/var/log/splunk/python.log
+	docker exec splunk sudo tail /opt/splunk/var/log/splunk/python.log

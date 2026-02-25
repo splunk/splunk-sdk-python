@@ -62,6 +62,7 @@ from splunklib.ai.core.backend import (
 from splunklib.ai.hooks import (
     AgentHook,
     AgentState,
+    FunctionHook,
     after_model as hook_after_model,
     before_model as hook_before_model,
 )
@@ -229,8 +230,6 @@ class LangChainBackend(Backend):
 def _debugging_middleware(
     logger: logging.Logger,
 ) -> tuple[list[AgentHook], list[AgentHook], list[LC_AgentMiddleware]]:
-    # TODO: These names can conflict with user-provided names.
-
     # TODO: replace this with ours middleware, once we add them.
     @wrap_tool_call  # pyright: ignore[reportArgumentType, reportCallIssue, reportUntypedFunctionDecorator]
     async def _tool_call(
@@ -489,15 +488,25 @@ def _convert_hook_to_middleware(
     model: BaseChatModel,
     logger: logging.Logger | None = None,
 ) -> LC_AgentMiddleware:
+    # Inspect the hook to generate a useful name for debug log messages.
+    hook_name = hook.__class__.__name__
+    if isinstance(hook, FunctionHook):
+        hook_name = hook.func.__name__
+
+    # Generate a random name to name this hook in langchain.
+    # We can't use the hook_name, derived above, since it might not be unique, we
+    # also don't want to force the users to name these hooks, as langchain does.
+    lc_hook_name = str(uuid.uuid4())
+
     match hook.type:
         case "before_model":
-            wrapper = before_model(can_jump_to=["end"], name=hook.name)
+            wrapper = before_model(can_jump_to=["end"], name=lc_hook_name)
         case "after_model":
-            wrapper = after_model(can_jump_to=["end"], name=hook.name)
+            wrapper = after_model(can_jump_to=["end"], name=lc_hook_name)
         case "before_agent":
-            wrapper = before_agent(can_jump_to=["end"], name=hook.name)
+            wrapper = before_agent(can_jump_to=["end"], name=lc_hook_name)
         case "after_agent":
-            wrapper = after_agent(can_jump_to=["end"], name=hook.name)
+            wrapper = after_agent(can_jump_to=["end"], name=lc_hook_name)
         case _:
             raise AssertionError(f"Unsupported middleware type: {hook.type}")
 
@@ -517,7 +526,7 @@ def _convert_hook_to_middleware(
         sdk_state = _convert_agent_state_from_langchain(state, model)
 
         if logger:
-            logger.debug(f"Executing {hook.type} hook {hook.name}")
+            logger.debug(f"Executing {hook.type} hook {hook_name}")
 
         res = hook(sdk_state)
         if isawaitable(res):

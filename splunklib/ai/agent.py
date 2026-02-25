@@ -137,9 +137,6 @@ class Agent(BaseAgent[OutputT]):
             logger=logger,
         )
 
-        if duplicate_hook_names := _find_duplicate_hook_names(self.hooks):
-            raise ValueError(f"Duplicate hook names found: {duplicate_hook_names!r}")
-
         self._use_mcp_tools = use_mcp_tools
         self._tool_filters = tool_filters
         self._service = service
@@ -215,19 +212,3 @@ async def _load_tools_from_mcp(
     )
 
     return mcp_tools
-
-
-def _find_duplicate_hook_names(hooks: Sequence[AgentHook] | None) -> set[str]:
-    seen: set[str] = set()
-    duplicates: set[str] = set()
-
-    if not hooks:
-        return set()
-
-    for hook in hooks:
-        if hook.name in seen:
-            duplicates.add(hook.name)
-        else:
-            seen.add(hook.name)
-
-    return duplicates

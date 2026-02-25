@@ -39,21 +39,6 @@ from tests.ai_testlib import AITestCase
 
 class TestHook(AITestCase):
     @pytest.mark.asyncio
-    async def test_agent_hooks_duplicated(self):
-        pytest.importorskip("langchain_openai")
-
-        with pytest.raises(
-            ValueError, match="Duplicate hook names found: {'builtin_step_limit'}"
-        ):
-            async with Agent(
-                model=(await self.model()),
-                system_prompt="Your name is stefan",
-                service=self.service,
-                hooks=[step_limit(5), step_limit(10)],
-            ) as agent:
-                ...
-
-    @pytest.mark.asyncio
     async def test_agent_hook(self):
         pytest.importorskip("langchain_openai")
 
@@ -62,7 +47,6 @@ class TestHook(AITestCase):
         @final
         class TestHook(AgentHook):
             type = "before_model"
-            name = "test_async_hook"
 
             @override
             def __call__(self, state: AgentState) -> None:
@@ -73,7 +57,6 @@ class TestHook(AITestCase):
         @final
         class TestAsyncHook(AgentHook):
             type = "before_model"
-            name = "test_hook"
 
             @override
             async def __call__(self, state: AgentState) -> None:

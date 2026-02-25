@@ -31,8 +31,6 @@ class AgentHook(Protocol):
     """
 
     type: HookType
-    # Name of the middleware must be unique
-    name: str
 
     def __call__(self, state: AgentState) -> None | Awaitable[None]:
         """Called at specific points during the agent execution, depending on the hook type."""
@@ -63,48 +61,54 @@ class TimeoutExceededException(AgentStopException):
         super().__init__(f"Timed out after {timeout_seconds} seconds.")
 
 
-def _create_hook(
-    type: HookType,
-    func: Callable[[AgentState], None | Awaitable[None]],
-    name: str | None = None,
-) -> AgentHook:
-    mw_name = name or func.__name__
-    mw_type = type
+@final
+class FunctionHook(AgentHook):
+    """
+    Implementation of AgentHook that wraps a single callable function.
 
-    @final
-    class CustomHook(AgentHook):
-        type = mw_type
-        name = mw_name
+    FunctionHook allows creation of a hook from a plain function instead of
+    defining a full AgentHook subclass.
 
-        @override
-        def __call__(self, state: AgentState) -> None | Awaitable[None]:
-            return func(state)
+    Use helper decorators: before_model, after_model, before_agent, after_agent to
+    construct such hook.
+    """
 
-    return CustomHook()
+    type: HookType
+    func: Callable[[AgentState], None | Awaitable[None]]
+
+    def __init__(
+        self, hookType: HookType, func: Callable[[AgentState], None | Awaitable[None]]
+    ) -> None:
+        self.type = hookType
+        self.func = func
+
+    @override
+    def __call__(self, state: AgentState) -> None | Awaitable[None]:
+        return self.func(state)
 
 
 def before_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called before each model call."""
 
-    return _create_hook("before_model", func)
+    return FunctionHook("before_model", func)
 
 
 def after_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called after each model call."""
 
-    return _create_hook("after_model", func)
+    return FunctionHook("after_model", func)
 
 
 def before_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called once per agent invocation. Before any model calls."""
 
-    return _create_hook("before_agent", func)
+    return FunctionHook("before_agent", func)
 
 
 def after_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called once per agent invocation. After all model calls."""
 
-    return _create_hook("after_agent", func)
+    return FunctionHook("after_agent", func)
 
 
 def token_limit(limit: float) -> AgentHook:
@@ -114,7 +118,7 @@ def token_limit(limit: float) -> AgentHook:
         if state.token_count > limit:
             raise TokenLimitExceededException(token_limit=limit)
 
-    return _create_hook("before_model", _token_limit_hook, name="builtin_token_limit")
+    return FunctionHook("before_model", _token_limit_hook)
 
 
 def step_limit(limit: int) -> AgentHook:
@@ -124,7 +128,7 @@ def step_limit(limit: int) -> AgentHook:
         if state.total_steps >= limit:
             raise StepsLimitExceededException(steps_limit=limit)
 
-    return _create_hook("before_model", _step_limit_hook, name="builtin_step_limit")
+    return FunctionHook("before_model", _step_limit_hook)
 
 
 def timeout_limit(seconds: float) -> AgentHook:
@@ -137,6 +141,4 @@ def timeout_limit(seconds: float) -> AgentHook:
         if monotonic() >= timeout:
             raise TimeoutExceededException(timeout_seconds=seconds)
 
-    return _create_hook(
-        "before_model", _timeout_limit_hook, name="builtin_timeout_limit"
-    )
+    return FunctionHook("before_model", _timeout_limit_hook)

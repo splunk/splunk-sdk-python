@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from inspect import isawaitable
 import logging
 import uuid
 from collections.abc import Sequence
@@ -500,7 +501,9 @@ def _convert_hook_to_middleware(
         case _:
             raise AssertionError(f"Unsupported middleware type: {hook.type}")
 
-    def _middleware(state: LC_AgentState, runtime: Runtime) -> dict[str, Any] | None:
+    async def _middleware(
+        state: LC_AgentState, runtime: Runtime
+    ) -> dict[str, Any] | None:
         # NOTE: We're converting the langchain AgentState into the SDK AgentState
         # on each middleware call.
         # We're converting all the messages back to the SDK format and counting the
@@ -516,7 +519,10 @@ def _convert_hook_to_middleware(
         if logger:
             logger.debug(f"Executing {hook.type} hook {hook.name}")
 
-        hook(sdk_state)
+        res = hook(sdk_state)
+        if isawaitable(res):
+            await res
+        return None
 
     return wrapper(_middleware)
 

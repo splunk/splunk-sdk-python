@@ -57,20 +57,35 @@ class TestHook(AITestCase):
     async def test_agent_hook(self):
         pytest.importorskip("langchain_openai")
 
+        hook_calls = 0
+
         @final
         class TestHook(AgentHook):
+            type = "before_model"
+            name = "test_async_hook"
+
+            @override
+            def __call__(self, state: AgentState) -> None:
+                nonlocal hook_calls
+                hook_calls += 1
+                assert len(state.response.messages) == 1
+
+        @final
+        class TestAsyncHook(AgentHook):
             type = "before_model"
             name = "test_hook"
 
             @override
-            def __call__(self, state: AgentState) -> None:
+            async def __call__(self, state: AgentState) -> None:
+                nonlocal hook_calls
+                hook_calls += 1
                 assert len(state.response.messages) == 1
 
         async with Agent(
             model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
-            hooks=[TestHook()],
+            hooks=[TestHook(), TestAsyncHook()],
         ) as agent:
             result = await agent.invoke(
                 [
@@ -82,6 +97,7 @@ class TestHook(AITestCase):
 
             response = result.messages[-1].content.strip().lower().replace(".", "")
             assert "stefan" == response
+            assert hook_calls == 2
 
     @pytest.mark.asyncio
     async def test_agent_hook_decorator(self):
@@ -96,8 +112,22 @@ class TestHook(AITestCase):
 
             assert len(state.response.messages) == 1
 
+        @before_model
+        async def test_async_hook_before(state: AgentState) -> None:
+            nonlocal hook_calls
+            hook_calls += 1
+
+            assert len(state.response.messages) == 1
+
         @after_model
         def test_hook_after(state: AgentState) -> None:
+            nonlocal hook_calls
+            hook_calls += 1
+
+            assert len(state.response.messages) == 2
+
+        @after_model
+        async def test_async_hook_after(state: AgentState) -> None:
             nonlocal hook_calls
             hook_calls += 1
 
@@ -107,7 +137,12 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
-            hooks=[test_hook_before, test_hook_after],
+            hooks=[
+                test_hook_before,
+                test_async_hook_before,
+                test_hook_after,
+                test_async_hook_after,
+            ],
         ) as agent:
             result = await agent.invoke(
                 [
@@ -119,7 +154,7 @@ class TestHook(AITestCase):
 
             response = result.messages[-1].content.strip().lower().replace(".", "")
             assert "stefan" == response
-            assert hook_calls == 2
+            assert hook_calls == 4
 
     @pytest.mark.asyncio
     async def test_agent_hook_agent(self):
@@ -137,8 +172,24 @@ class TestHook(AITestCase):
 
             assert len(state.response.messages) == 1
 
+        @before_agent
+        async def before_async_agent_hook(state: AgentState) -> None:
+            nonlocal hook_calls
+            hook_calls += 1
+
+            assert len(state.response.messages) == 1
+
         @after_agent
-        def after_agent_hook(state: AgentState) -> None:
+        async def after_agent_hook(state: AgentState) -> None:
+            nonlocal hook_calls
+            hook_calls += 1
+
+            person = state.response.structured_output
+            assert person.name.lower() == "stefan"
+            assert len(state.response.messages) == 2
+
+        @after_agent
+        async def after_async_agent_hook(state: AgentState) -> None:
             nonlocal hook_calls
             hook_calls += 1
 
@@ -150,7 +201,12 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="Your name is stefan",
             service=self.service,
-            hooks=[before_agent_hook, after_agent_hook],
+            hooks=[
+                before_agent_hook,
+                before_async_agent_hook,
+                after_agent_hook,
+                after_async_agent_hook,
+            ],
             output_schema=Person,
         ) as agent:
             result = await agent.invoke(
@@ -163,7 +219,7 @@ class TestHook(AITestCase):
 
             response = result.messages[-1].content.strip().lower().replace(".", "")
             assert '{"name":"stefan"}' == response
-            assert hook_calls == 2
+            assert hook_calls == 4
 
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_token_limit(self):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from time import monotonic
-from typing import Any, Callable, Literal, Protocol, final, override
+from typing import Any, Awaitable, Callable, Literal, Protocol, final, override
 
 from splunklib.ai.messages import AgentResponse
 
@@ -34,7 +34,7 @@ class AgentHook(Protocol):
     # Name of the middleware must be unique
     name: str
 
-    def __call__(self, state: AgentState) -> None:
+    def __call__(self, state: AgentState) -> None | Awaitable[None]:
         """Called at specific points during the agent execution, depending on the hook type."""
 
 
@@ -65,7 +65,7 @@ class TimeoutExceededException(AgentStopException):
 
 def _create_hook(
     type: HookType,
-    func: Callable[[AgentState], None],
+    func: Callable[[AgentState], None | Awaitable[None]],
     name: str | None = None,
 ) -> AgentHook:
     mw_name = name or func.__name__
@@ -77,31 +77,31 @@ def _create_hook(
         name = mw_name
 
         @override
-        def __call__(self, state: AgentState) -> None:
+        def __call__(self, state: AgentState) -> None | Awaitable[None]:
             return func(state)
 
     return CustomHook()
 
 
-def before_model(func: Callable[[AgentState], None]) -> AgentHook:
+def before_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called before each model call."""
 
     return _create_hook("before_model", func)
 
 
-def after_model(func: Callable[[AgentState], None]) -> AgentHook:
+def after_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called after each model call."""
 
     return _create_hook("after_model", func)
 
 
-def before_agent(func: Callable[[AgentState], None]) -> AgentHook:
+def before_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called once per agent invocation. Before any model calls."""
 
     return _create_hook("before_agent", func)
 
 
-def after_agent(func: Callable[[AgentState], None]) -> AgentHook:
+def after_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
     """This hook is called once per agent invocation. After all model calls."""
 
     return _create_hook("after_agent", func)

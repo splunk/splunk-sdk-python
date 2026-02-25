@@ -56,6 +56,7 @@ dev = [
 ]
 
 [build-system]
+# setuptools v61 introduces pyproject.toml support
 requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
@@ -72,14 +73,25 @@ packages = [
 [tool.setuptools.dynamic]
 version = { attr = "splunklib.__version__" }
 
+[tool.basedpyright]
+exclude = [".venv"]
+allowedUntypedLibraries = ["splunklib"]
+reportAny = false
+reportExplicitAny = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnusedCallResult = false
+
 # https://docs.astral.sh/ruff/configuration/
 [tool.ruff.lint]
 fixable = ["ALL"]
 select = [
   "ANN", # flake8 type annotations
+  "C4",  # comprehensions
   "DOC", # pydocstyle
   "E",   # pycodestyle
   "F",   # pyflakes
   "I",   # isort
+  "UP",  # pyupgrade
   "RUF", # ruff-specific rules
 ]

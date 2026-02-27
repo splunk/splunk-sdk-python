@@ -25,6 +25,7 @@ from mcp.client.session import LoggingFnT
 from mcp.client.stdio import stdio_client
 from mcp.types import LoggingMessageNotificationParams, TextContent
 
+from splunklib.ai.registry import LogData
 from splunklib.ai.serialized_service import SerializedService
 from tests import testlib
 
@@ -141,9 +142,8 @@ class FakeLoggingHandler(LoggingFnT):
         self,
         params: LoggingMessageNotificationParams,
     ) -> None:
-        assert isinstance(params.data, str)
-        print(params.level, params.data)
-        self._logs.append(Log(params.level, params.data))
+        record = LogData(**params.data)
+        self._logs.append(Log(params.level, record.message))
 
 
 class TestLoggingToolRegistry(TestRegistryTestCase):

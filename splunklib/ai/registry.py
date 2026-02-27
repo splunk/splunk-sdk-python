@@ -85,20 +85,29 @@ def _min_logging_level(level: types.LoggingLevel) -> int:
             return logging.CRITICAL
 
 
+@dataclass
+class LogData:
+    tool_name: str
+    message: str
+
+
 class _MCPLoggingHandler(logging.Handler):
     _group: asyncio.TaskGroup
     _session: ServerSession
     _request_id: types.RequestId
+    _tool_name: str
 
     def __init__(
         self,
         group: asyncio.TaskGroup,
         session: ServerSession,
         request_id: types.RequestId,
+        tool_name: str,
     ) -> None:
         self._group = group
         self._session = session
         self._request_id = request_id
+        self._tool_name = tool_name
         super().__init__()
 
     @override
@@ -108,7 +117,7 @@ class _MCPLoggingHandler(logging.Handler):
         async def send_log() -> None:
             await self._session.send_log_message(
                 level=mcp_level,
-                data=record.msg,
+                data=asdict(LogData(tool_name=self._tool_name, message=record.msg)),
                 logger="",
                 related_request_id=self._request_id,
             )
@@ -265,6 +274,7 @@ class ToolRegistry:
                     task_group,
                     req_ctx.session,
                     req_ctx.request_id,
+                    name,
                 )
 
                 # Create a logger that forwards all logs to the client over MCP.

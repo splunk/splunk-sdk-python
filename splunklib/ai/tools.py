@@ -1,12 +1,12 @@
 import asyncio
 import collections.abc
-import json
 import logging
 import os
 import sys
 from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator, Awaitable, Generator
 from dataclasses import dataclass
-from typing import Any, Callable, override
+from typing import Any, Callable, Literal, override
 
 import httpx
 from anyio import Path
@@ -26,7 +26,7 @@ from pydantic import BaseModel
 from splunklib.ai.serialized_service import SerializedService
 from splunklib.binding import HTTPError
 from splunklib.client import Service
-from splunklib.ai.registry import _map_logger_to_mcp_logging_level
+from splunklib.ai.registry import LogData, _map_logger_to_mcp_logging_level
 
 TOOLS_FILENAME = "tools.py"
 
@@ -46,7 +46,7 @@ class Tool:
     name: str
     description: str
     input_schema: dict[str, Any]
-    func: Callable[..., collections.abc.Awaitable[ToolResult]]
+    func: Callable[..., Awaitable[ToolResult]]
     tags: list[str] | None = None
 
 
@@ -117,8 +117,6 @@ def _map_logging_level(level: LoggingLevel) -> int:
 class _MCPLoggingHandler(LoggingFnT):
     _logger: logging.Logger
 
-    tool_name: str
-
     @property
     def level(self) -> LoggingLevel:
         return _map_logger_to_mcp_logging_level(self._logger.level)
@@ -129,78 +127,11 @@ class _MCPLoggingHandler(LoggingFnT):
         params: LoggingMessageNotificationParams,
     ) -> None:
         # TODO: Add call_id.
+        record = LogData(**params.data)
         self._logger.log(
             _map_logging_level(params.level),
-            msg=f"tool: {self.tool_name}: {str(params.data)}",
+            msg=f"tool: {record.tool_name}: {record.message}",
         )
-
-
-@dataclass
-class LocalCfg:
-    tools_path: str
-    service: SerializedService
-
-
-@dataclass
-class RemoteCfg:
-    mcp_url: str
-    token: str
-    app_id: str
-    trace_id: str
-
-
-@asynccontextmanager
-async def _connect_local_mcp(cfg: LocalCfg, logger: _MCPLoggingHandler | None = None):
-    server_params = StdioServerParameters(
-        command=sys.executable,
-        args=[cfg.tools_path],
-    )
-
-    # Splunk starts processes with a custom LD_LIBRARY_PATH env var, the mcp lib
-    # does not forward all env, but few restricted ones by default. If we don't do
-    # so then the shared object that python loads would fail to succeed.
-    # TODO: If needed we might in future pass all env vars, but we would have to investigate why
-    # the mcp lib did that filtering in the first place. For now we only allow additionally
-    # the LD_LIBRARY_PATH.
-    ld = os.environ.get("LD_LIBRARY_PATH")
-    if ld is not None:
-        server_params.env = {"LD_LIBRARY_PATH": ld}
-
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write, logging_callback=logger) as session:
-            await session.initialize()
-
-            if logger is not None:
-                _ = await session.set_logging_level(logger.level)
-
-            yield session
-
-
-# Based on streamable_http_client defaults, when http_client is usnet.
-_MCP_DEFAULT_TIMEOUT = 30.0  # General operations (seconds)
-_MCP_DEFAULT_SSE_READ_TIMEOUT = 300.0  # SSE streams - 5 minutes (seconds)
-
-
-@asynccontextmanager
-async def _connect_remote_mcp(cfg: RemoteCfg):
-    async with streamable_http_client(
-        url=cfg.mcp_url,
-        http_client=httpx.AsyncClient(
-            headers={
-                "x-splunk-trace-id": cfg.trace_id,
-                "x-splunk-app-id": cfg.app_id,
-            },
-            auth=_MCPAuth(f"Bearer {cfg.token}"),
-            verify=False,
-            follow_redirects=True,
-            timeout=httpx.Timeout(
-                _MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT
-            ),
-        ),
-    ) as (read, write, _):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            yield session
 
 
 class _MCPAuth(Auth):
@@ -208,75 +139,62 @@ class _MCPAuth(Auth):
         self._authorization = authorization
 
     @override
-    def auth_flow(
-        self, request: Request
-    ) -> collections.abc.Generator[Request, Response, None]:
+    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
         request.headers["Authorization"] = self._authorization
         yield request
 
 
-@asynccontextmanager
-async def _connect(cfg: LocalCfg | RemoteCfg, logger: _MCPLoggingHandler | None = None):
-    if isinstance(cfg, RemoteCfg):
-        async with _connect_remote_mcp(cfg) as remote_mcp:
-            yield remote_mcp
-    else:
-        async with _connect_local_mcp(cfg, logger) as local_mcp:
-            yield local_mcp
-
-
-async def _list_all_tools(cfg: LocalCfg | RemoteCfg) -> list[MCPTool]:
-    async with _connect(cfg) as session:
-        cursor: str | None = None
-        tools: list[MCPTool] = []
-        while True:
-            result = await session.list_tools(
-                params=PaginatedRequestParams(cursor=cursor)
-            )
-            tools.extend(result.tools)
-            if not result.nextCursor:
-                break
-            cursor = result.nextCursor
-        return tools
+async def _list_all_tools(session: ClientSession) -> list[MCPTool]:
+    cursor: str | None = None
+    tools: list[MCPTool] = []
+    while True:
+        result = await session.list_tools(params=PaginatedRequestParams(cursor=cursor))
+        tools.extend(result.tools)
+        if not result.nextCursor:
+            break
+        cursor = result.nextCursor
+    return tools
 
 
 def _convert_mcp_tool(
-    logger: logging.Logger,
-    cfg: LocalCfg | RemoteCfg,
+    session: ClientSession,
+    type: Literal["remote", "local"],
+    app_id: str,
+    trace_id: str,
     tool: MCPTool,
+    service: Service,
 ) -> Tool:
     async def call_tool(
         **arguments: dict[str, Any],
     ) -> ToolResult:
         meta: dict[str, Any] | None = None
-        match cfg:
-            case LocalCfg():
+        match type:
+            case "local":
                 meta = {
                     "splunk": {
                         # Provide access to the splunk instance in local tools.
                         # No need to do anything special for remote tools, since
                         # these tools are already authenticated with the token.
-                        "service": cfg.service.model_dump(),
+                        "service": SerializedService.from_service(service),
                         # Currently we don't need to send the trace_id and app_id to local tools, since
                         # that is only really needed to correlate logs, but for local tools we know
                         # that logs coming from the local tool registry are already reladed to this
                         # agent.
                     }
                 }
-            case RemoteCfg():
+            case "remote":
                 meta = {
                     "splunk": {
-                        "trace_id": cfg.trace_id,
-                        "app_id": cfg.app_id,
+                        "trace_id": trace_id,
+                        "app_id": app_id,
                     }
                 }
 
-        async with _connect(cfg, _MCPLoggingHandler(logger, tool.name)) as session:
-            call_tool_result = await session.call_tool(
-                name=tool.name,
-                arguments=arguments,
-                meta=meta,
-            )
+        call_tool_result = await session.call_tool(
+            name=tool.name,
+            arguments=arguments,
+            meta=meta,
+        )
         return _convert_tool_result(call_tool_result)
 
     splunk_meta: dict[str, Any] = (tool.meta or {}).get("splunk") or {}
@@ -359,51 +277,85 @@ def _get_mcp_token(service: Service) -> str | None:
     return ResponseBody.model_validate_json(str(res.body)).token
 
 
-async def _load_tools(cfg: LocalCfg | RemoteCfg, logger: logging.Logger) -> list[Tool]:
-    tools = await _list_all_tools(cfg)
-    return [_convert_mcp_tool(logger, cfg, tool) for tool in tools]
+@asynccontextmanager
+async def connect_local_mcp(
+    local_tools_path: str,
+    logger: logging.Logger,
+) -> AsyncGenerator[ClientSession]:
+    server_params = StdioServerParameters(
+        command=sys.executable,
+        args=[local_tools_path],
+    )
+
+    # Splunk starts processes with a custom LD_LIBRARY_PATH env var, the mcp lib
+    # does not forward all env, but few restricted ones by default. If we don't do
+    # so then the shared object that python loads would fail to succeed.
+    # TODO: If needed we might in future pass all env vars, but we would have to investigate why
+    # the mcp lib did that filtering in the first place. For now we only allow additionally
+    # the LD_LIBRARY_PATH.
+    ld = os.environ.get("LD_LIBRARY_PATH")
+    if ld is not None:
+        server_params.env = {"LD_LIBRARY_PATH": ld}
+
+    async with stdio_client(server_params) as (read, write):
+        logging_handler = _MCPLoggingHandler(logger)
+        async with ClientSession(
+            read, write, logging_callback=logging_handler
+        ) as session:
+            await session.initialize()
+
+            _ = await session.set_logging_level(logging_handler.level)
+
+            yield session
 
 
-async def load_mcp_tools(
+# Based on streamable_http_client defaults, when http_client is usnet.
+_MCP_DEFAULT_TIMEOUT = 30.0  # General operations (seconds)
+_MCP_DEFAULT_SSE_READ_TIMEOUT = 300.0  # SSE streams - 5 minutes (seconds)
+
+
+@asynccontextmanager
+async def connect_remote_mcp(
     service: Service,
-    local_tools_path: str | None,
     app_id: str,
     trace_id: str,
-    logger: logging.Logger,
-) -> list[Tool]:
-    # TODO: Add tool.name collision between local/remote tools
-    tools: list[Tool] = []
-
+) -> AsyncGenerator[ClientSession | None]:
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
 
     mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(service))
     if mcp_token is not None:
-        logger.debug("Splunk MCP Server App detected - loading remote tools")
-        remote_tools = await _load_tools(
-            RemoteCfg(
-                mcp_url=mcp_url,
-                token=mcp_token,
-                app_id=app_id,
-                trace_id=trace_id,
+        async with streamable_http_client(
+            url=mcp_url,
+            http_client=httpx.AsyncClient(
+                headers={
+                    "x-splunk-trace-id": trace_id,
+                    "x-splunk-app-id": app_id,
+                },
+                auth=_MCPAuth(f"Bearer {mcp_token}"),
+                verify=False,
+                follow_redirects=True,
+                timeout=httpx.Timeout(
+                    _MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT
+                ),
             ),
-            logger,
-        )
-        logger.debug(
-            f"Remote tools loaded; tools={[tool.name for tool in remote_tools]}"
-        )
-        tools.extend(remote_tools)
+        ) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                yield session
+    else:
+        yield None
 
-    if local_tools_path is not None:
-        logger.debug(f"Loading local tools; local_tools_path={local_tools_path}")
-        local_tools = await _load_tools(
-            LocalCfg(
-                tools_path=local_tools_path,
-                service=SerializedService.from_service(service),
-            ),
-            logger,
-        )
-        logger.debug(f"Local tools loaded; tools={[tool.name for tool in local_tools]}")
-        tools.extend(local_tools)
 
-    return tools
+async def load_mcp_tools(
+    session: ClientSession,
+    type: Literal["remote", "local"],
+    app_id: str,
+    trace_id: str,
+    service: Service,
+) -> list[Tool]:
+    tools = await _list_all_tools(session)
+    return [
+        _convert_mcp_tool(session, type, app_id, trace_id, tool, service)
+        for tool in tools
+    ]

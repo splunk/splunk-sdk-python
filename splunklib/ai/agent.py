@@ -12,9 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from logging import Logger
 import os
-from collections.abc import Sequence
+from collections.abc import AsyncGenerator, Sequence
 from typing import Self, final, override
 
 from pydantic import BaseModel
@@ -26,7 +27,14 @@ from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
-from splunklib.ai.tools import Tool, build_local_tools_path, load_mcp_tools, locate_app
+from splunklib.ai.tools import (
+    Tool,
+    build_local_tools_path,
+    connect_local_mcp,
+    connect_remote_mcp,
+    load_mcp_tools,
+    locate_app,
+)
 from splunklib.client import Service
 
 # For testing purposes, overrides the automatically inferred tools.py path.
@@ -101,7 +109,7 @@ class Agent(BaseAgent[OutputT]):
             is appropriate for a given task. Ignored for top-level agents.
 
         logger:
-            Optional logger instance used for tracing and debugging the agent’s execution.
+            Optional logger instance used for tracing and debugging the agent's execution.
             Additionally logs from the local tools are forwarded to this logger.
     """
 
@@ -109,6 +117,7 @@ class Agent(BaseAgent[OutputT]):
     _use_mcp_tools: bool
     _service: Service
     _tool_filters: ToolFilters | None
+    _agent_context_manager: AbstractAsyncContextManager[Self] | None = None
 
     def __init__(
         self,
@@ -119,9 +128,9 @@ class Agent(BaseAgent[OutputT]):
         tool_filters: ToolFilters | None = None,
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
-        input_schema: type[BaseModel] | None = None,  # Only used by Subgents
+        input_schema: type[BaseModel] | None = None,  # Only used by Subagents
         hooks: Sequence[AgentHook] | None = None,
-        name: str = "",  # Only used by Subgents
+        name: str = "",  # Only used by Subagents
         description: str = "",  # Only used by Subagents
         logger: Logger | None = None,
     ) -> None:
@@ -142,36 +151,94 @@ class Agent(BaseAgent[OutputT]):
         self._service = service
         self._impl = None
 
-    async def __aenter__(self) -> Self:
-        if self._impl:
-            raise AssertionError("Agent is already in `async with` context")
-
-        if self.name:
-            self.logger.debug(f"Creating agent {self.name}; trace_id={self.trace_id}")
-        else:
-            self.logger.debug(f"Creating agent; trace_id={self.trace_id}")
-
-        if self._use_mcp_tools:
-            self._tools = await _load_tools_from_mcp(
-                self._service,
-                self._tool_filters,
-                self.trace_id,
-                self.logger,
+    @asynccontextmanager
+    async def _start_agent(self) -> AsyncGenerator[Self]:
+        async with AsyncExitStack() as stack:
+            assert self._impl is None, (
+                "internal error: _impl was not set to None after agent invocation"
             )
 
-        backend = get_backend()
-        self._impl = await backend.create_agent(self)
+            if self.name:
+                self.logger.debug(
+                    f"Creating agent {self.name}; trace_id={self.trace_id}"
+                )
+            else:
+                self.logger.debug(f"Creating agent; trace_id={self.trace_id}")
 
-        if self.name:
-            self.logger.debug(f"Agent {self.name} created; trace_id={self.trace_id}")
-        else:
-            self.logger.debug(f"Agent created; trace_id={self.trace_id}")
+            if self._use_mcp_tools:
+                tools: list[Tool] = []
 
-        return self
+                self.logger.debug("Local tool registry detected")
+                local_tools_path, app_id = _local_tools_path()
+                if local_tools_path:
+                    local_session = await stack.enter_async_context(
+                        connect_local_mcp(local_tools_path, self.logger)
+                    )
+                    self.logger.debug("Loading local tools")
+                    local_tools = await load_mcp_tools(
+                        local_session, "local", app_id, self.trace_id, self._service
+                    )
+                    self.logger.debug(f"Local tools loaded; {local_tools=}")
+                    tools.extend(local_tools)
 
-    async def __aexit__(self, exc_type, exc_value, traceback) -> None:  # noqa: ANN001  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
-        self._impl = None  # Make sure invoke fails if called after exit.
-        return None
+                self.logger.debug("Probing MCP Server App availability")
+                remote_session = await stack.enter_async_context(
+                    connect_remote_mcp(
+                        self._service,
+                        app_id,
+                        self.trace_id,
+                    )
+                )
+                if remote_session:
+                    self.logger.debug("Loading remote tools - MCP Server available")
+                    remote_tools = await load_mcp_tools(
+                        remote_session,
+                        "remote",
+                        app_id,
+                        self.trace_id,
+                        self._service,
+                    )
+                    self.logger.debug(f"Remote tools loaded; {remote_tools=}")
+                    tools.extend(remote_tools)
+
+                if self._tool_filters:
+                    tools = filter_tools(tools, self._tool_filters)
+
+                self.logger.debug(
+                    f"Tools loaded & filtered successfully; tools_after_filtering={[tool.name for tool in tools]}"
+                )
+
+                self._tools = tools
+
+            backend = get_backend()
+            self._impl = await backend.create_agent(self)
+
+            if self.name:
+                self.logger.debug(
+                    f"Agent {self.name} created; trace_id={self.trace_id}"
+                )
+            else:
+                self.logger.debug(f"Agent created; trace_id={self.trace_id}")
+
+            yield self
+
+            self._impl = None
+
+    async def __aenter__(self) -> Self:
+        if self._agent_context_manager:
+            raise AssertionError("Agent is already in `async with` context")
+        self._agent_context_manager = self._start_agent()
+        return await self._agent_context_manager.__aenter__()
+
+    async def __aexit__(
+        self, exc_type: ..., exc_value: ..., traceback: ...
+    ) -> bool | None:
+        assert self._agent_context_manager is not None
+        return await self._agent_context_manager.__aexit__(
+            exc_type,
+            exc_value,
+            traceback,
+        )
 
     @override
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
@@ -181,12 +248,7 @@ class Agent(BaseAgent[OutputT]):
         return await self._impl.invoke(messages)
 
 
-async def _load_tools_from_mcp(
-    service: Service,
-    filters: ToolFilters | None,
-    trace_id: str,
-    logger: Logger,
-) -> list[Tool]:
+def _local_tools_path() -> tuple[str | None, str]:
     local_tools_path = _testing_local_tools_path
     app_id = _testing_app_id
 
@@ -201,14 +263,4 @@ async def _load_tools_from_mcp(
     if not os.path.exists(local_tools_path):
         local_tools_path = None
 
-    mcp_tools = await load_mcp_tools(
-        service, local_tools_path, app_id, trace_id, logger
-    )
-    if filters:
-        return filter_tools(mcp_tools, filters)
-
-    logger.debug(
-        f"Tools loaded & filtered successfully; tools_after_filtering={[tool.name for tool in mcp_tools]}"
-    )
-
-    return mcp_tools
+    return local_tools_path, app_id

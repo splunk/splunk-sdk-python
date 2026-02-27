@@ -139,6 +139,70 @@ class TestTools(AITestCase):
             tool_names = [t.name for t in agent.tools]
             assert tool_names == ["test_tool_1", "test_tool_2", "test_tool_4"]
 
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__),
+            "testdata",
+            "multi_city_weather.py",
+        ),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    async def test_multiple_and_concurrent_tool_calls(self) -> None:
+        # Skip if the langchain_openai package is not installed
+        pytest.importorskip("langchain_openai")
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="You must use the available tools to perform requested operations",
+            service=self.service,
+            use_mcp_tools=True,
+        ) as agent:
+            call_count_tool = next(
+                (t for t in agent.tools if t.name == "backdoor_tool_call_count"), None
+            )
+            assert call_count_tool is not None
+
+            # This will cause 3 tools to be called concurrently.
+            result = await agent.invoke(
+                [
+                    HumanMessage(
+                        content=(
+                            "What is the weather like today in Krakow, Warsaw and Gdansk?"
+                            "Use the provided tools to check the temperature."
+                            "Return a short response, containing all of tool responses."
+                        ),
+                    )
+                ]
+            )
+
+            response = result.messages[-1].content
+            assert "31.5" in response, "Invalid LLM response"
+            assert "30.0" in response, "Invalid LLM response"
+            assert "25.5" in response, "Invalid LLM response"
+
+            # Call additional tool, to make sure that MCP is shared across an agent, not invoke.
+            result = await agent.invoke(
+                [
+                    HumanMessage(
+                        content=(
+                            "What is the weather like today in Poznan?"
+                            "Use the provided tools to check the temperature."
+                            "Return a short response, containing all of tool responses."
+                        ),
+                    )
+                ]
+            )
+            response = result.messages[-1].content
+            assert "28.5" in response, "Invalid LLM response"
+
+            # Make sure MCP was alive during entire Agent lifetime.
+            tool_result = await call_count_tool.func()
+            assert tool_result.structured_content is not None
+            result = tool_result.structured_content["result"]
+            assert isinstance(result, int)
+            assert result == 4
+
 
 class TestSplunkGetUsername(testlib.SDKTestCase):
     def get_splunk_bearer_token(self) -> str:

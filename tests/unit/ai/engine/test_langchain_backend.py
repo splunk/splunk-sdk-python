@@ -12,26 +12,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# pyright: reportPrivateUsage=false
+
 import unittest
 
 import pytest
+from langchain.messages import AIMessage as LC_AIMessage
+from langchain.messages import HumanMessage as LC_HumanMessage
+from langchain.messages import SystemMessage as LC_SystemMessage
+from langchain.messages import ToolCall as LC_ToolCall
+from langchain.messages import ToolMessage as LC_ToolMessage
 
-from langchain.messages import (
-    AIMessage as LC_AIMessage,
-    HumanMessage as LC_HumanMessage,
-    SystemMessage as LC_SystemMessage,
-    ToolCall as LC_ToolCall,
-    ToolMessage as LC_ToolMessage,
-)
-
-from splunklib.ai.core.backend import (
-    InvalidMessageTypeError,
-    InvalidModelError,
-)
+from splunklib.ai.core.backend import InvalidMessageTypeError, InvalidModelError
 from splunklib.ai.engines import langchain as lc
 from splunklib.ai.messages import (
-    AIMessage,
     AgentCall,
+    AIMessage,
     HumanMessage,
     SubagentMessage,
     SystemMessage,
@@ -57,9 +53,9 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             name=f"{lc.AGENT_PREFIX}assistant", args={"q": "test"}, id="tc-2"
         )
         message = LC_AIMessage(content="done", tool_calls=[tool_call])
-
         mapped = lc._map_message_from_langchain(message)
 
+        assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
             AgentCall(
                 name="assistant",
@@ -77,6 +73,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
         mapped = lc._map_message_from_langchain(message)
 
+        assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
             ToolCall(name="lookup", args={"q": "test"}, id="tc-1"),
             AgentCall(
@@ -129,7 +126,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
     def test_map_message_from_langchain_invalid_raises(self) -> None:
         with pytest.raises(InvalidMessageTypeError):
-            lc._map_message_from_langchain(object())
+            lc._map_message_from_langchain(object())  # pyright: ignore[reportArgumentType]
 
 
 class MapMessageToLangchainTests(unittest.TestCase):
@@ -280,7 +277,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
     def test_map_message_to_langchain_invalid_raises(self) -> None:
         with pytest.raises(InvalidMessageTypeError):
-            lc._map_message_to_langchain(object())
+            lc._map_message_to_langchain(object())  # pyright: ignore[reportArgumentType]
 
 
 class CreateLangchainModelTests(unittest.TestCase):
@@ -289,7 +286,9 @@ class CreateLangchainModelTests(unittest.TestCase):
             lc._create_langchain_model(PredefinedModel(model="unknown"))
 
     def test_create_langchain_model_openai(self) -> None:
-        langchain_openai = pytest.importorskip("langchain_openai")
+        pytest.importorskip("langchain_openai")
+        import langchain_openai
+
         model = OpenAIModel(
             model="gpt-test",
             base_url="https://example.com",
@@ -302,7 +301,3 @@ class CreateLangchainModelTests(unittest.TestCase):
         assert result.model_name == model.model
         assert result.openai_api_base == model.base_url
         assert result.temperature == model.temperature
-
-
-if __name__ == "__main__":
-    unittest.main()

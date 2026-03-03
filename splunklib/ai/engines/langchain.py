@@ -41,6 +41,7 @@ from langchain.agents.middleware import (
 from langchain.agents.middleware.summarization import TokenCounter
 from langchain.agents.middleware.types import ModelCallResult
 from langchain.messages import AIMessage as LC_AIMessage
+from langchain.messages import AnyMessage as LC_AnyMessage
 from langchain.messages import HumanMessage as LC_HumanMessage
 from langchain.messages import SystemMessage as LC_SystemMessage
 from langchain.messages import ToolCall as LC_ToolCall
@@ -529,16 +530,21 @@ def _convert_tool_message_from_lc(
 
 def _convert_model_result_from_lc(model_response: ModelCallResult) -> AIMessage:
     if isinstance(model_response, ModelResponse):
-        model_response = model_response.result[-1]
+        ai_message = next(
+            (m for m in model_response.result if isinstance(m, LC_AIMessage)), None
+        )
+        assert ai_message, "ModelResponse should contain at least one LC_AIMessage"
+    else:
+        ai_message = model_response
 
     return AIMessage(
-        content=model_response.content,
-        calls=[_map_tool_call_from_langchain(tc) for tc in model_response.tool_calls],
+        content=ai_message.content.__str__(),
+        calls=[_map_tool_call_from_langchain(tc) for tc in ai_message.tool_calls],
     )
 
 
 def _convert_agent_state_to_lc(state: AgentState) -> LC_AgentState:  # pyright: ignore[reportMissingTypeArgument, reportUnknownParameterType]
-    return LC_AgentState(
+    return LC_AgentState(  # pyright: ignore[reportUnknownVariableType]
         messages=[_map_message_to_langchain(m) for m in state.response.messages],
     )
 
@@ -751,7 +757,7 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
             raise InvalidMessageTypeError("Invalid langchain message type")
 
 
-def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
+def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
     match message:
         case AIMessage():
             lc_message = LC_AIMessage(content=message.content)

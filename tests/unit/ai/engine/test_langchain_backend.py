@@ -26,9 +26,9 @@ from langchain.messages import ToolMessage as LC_ToolMessage
 from splunklib.ai.core.backend import InvalidMessageTypeError, InvalidModelError
 from splunklib.ai.engines import langchain as lc
 from splunklib.ai.messages import (
-    AgentCall,
     AIMessage,
     HumanMessage,
+    SubagentCall,
     SubagentMessage,
     SystemMessage,
     ToolCall,
@@ -57,7 +57,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
         assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
-            AgentCall(
+            SubagentCall(
                 name="assistant",
                 args={"q": "test"},
                 id="tc-2",
@@ -76,7 +76,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
         assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
             ToolCall(name="lookup", args={"q": "test"}, id="tc-1"),
-            AgentCall(
+            SubagentCall(
                 name="assistant",
                 args={"q": "test"},
                 id="tc-2",
@@ -143,7 +143,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
     def test_map_message_to_langchain_ai_with_agent_call(self) -> None:
         message = AIMessage(
             content="hi",
-            calls=[AgentCall(name="assistant", args={"q": "test"}, id="tc-2")],
+            calls=[SubagentCall(name="assistant", args={"q": "test"}, id="tc-2")],
         )
         mapped = lc._map_message_to_langchain(message)
 
@@ -229,7 +229,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
             AIMessage(
                 content="hi",
                 calls=[
-                    AgentCall(
+                    SubagentCall(
                         name=f"{lc.AGENT_PREFIX}bad-agent",
                         args={},
                         id="tc-1",

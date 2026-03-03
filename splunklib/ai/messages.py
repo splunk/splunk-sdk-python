@@ -30,11 +30,10 @@ class ToolCall:
 
 
 @dataclass(frozen=True)
-class AgentCall:
+class SubagentCall:
     name: str
     args: dict[str, Any]
     id: str | None  # TODO: can be None?
-
 
 @dataclass(frozen=True)
 class BaseMessage:
@@ -72,8 +71,8 @@ class AIMessage(BaseMessage):
     """
 
     role: Literal["assistant"] = "assistant"
-    calls: Sequence[ToolCall | AgentCall] = field(
-        default_factory=list[ToolCall | AgentCall]
+    calls: Sequence[ToolCall | SubagentCall] = field(
+        default_factory=list[ToolCall | SubagentCall]
     )
 
 

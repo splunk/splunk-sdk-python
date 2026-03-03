@@ -12,29 +12,34 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from inspect import isawaitable
 import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from functools import partial
+from inspect import isawaitable
 from typing import Any, Awaitable, Callable, cast, override
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware as LC_AgentMiddleware,
-    wrap_tool_call,
 )
 from langchain.agents.middleware import (
     AgentState as LC_AgentState,
 )
 from langchain.agents.middleware import (
+    ModelRequest as LC_ModelRequest,
+)
+from langchain.agents.middleware import (
+    ModelResponse,
     after_agent,
     after_model,
     before_agent,
     before_model,
+    wrap_tool_call,
 )
 from langchain.agents.middleware.summarization import TokenCounter
+from langchain.agents.middleware.types import ModelCallResult
 from langchain.messages import AIMessage as LC_AIMessage
 from langchain.messages import HumanMessage as LC_HumanMessage
 from langchain.messages import SystemMessage as LC_SystemMessage
@@ -62,20 +67,35 @@ from splunklib.ai.hooks import (
     AgentHook,
     AgentState,
     FunctionHook,
+)
+from splunklib.ai.hooks import (
     after_model as hook_after_model,
+)
+from splunklib.ai.hooks import (
     before_model as hook_before_model,
 )
 from splunklib.ai.messages import (
-    AgentCall,
     AgentResponse,
     AIMessage,
     BaseMessage,
     HumanMessage,
     OutputT,
+    SubagentCall,
     SubagentMessage,
     SystemMessage,
     ToolCall,
     ToolMessage,
+)
+from splunklib.ai.middleware import (
+    AgentMiddleware,
+    ModelMiddlewareHandler,
+    ModelRequest,
+    SubagentMiddlewareHandler,
+    SubagentRequest,
+    SubagentResponse,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
 from splunklib.ai.tools import Tool, ToolException, ToolResult
@@ -214,6 +234,10 @@ class LangChainBackend(Backend):
             )
 
         middleware.extend(
+            _Middleware(m, model_impl, agent.logger) for m in agent.middleware or []
+        )
+
+        middleware.extend(
             (_convert_hook_to_middleware(h, model_impl) for h in after_user_hooks)
         )
 
@@ -224,6 +248,299 @@ class LangChainBackend(Backend):
             output_schema=agent.output_schema,
             middleware=middleware,
         )
+
+
+class _Middleware(LC_AgentMiddleware):
+    _middleware: AgentMiddleware
+    _model: BaseChatModel
+    _logger: logging.Logger
+    _name: str
+
+    def __init__(
+        self,
+        middleware: AgentMiddleware,
+        model: BaseChatModel,
+        logger: logging.Logger,
+    ) -> None:
+        self._middleware = middleware
+        self._model = model
+        self._logger = logger
+        self._name = str(uuid.uuid4())
+
+    def _is_overridden(self, method_name: str) -> bool:
+        """Return True if the middleware method was overridden by the user."""
+        return getattr(type(self._middleware), method_name) is not getattr(
+            AgentMiddleware, method_name
+        )
+
+    @property
+    @override
+    def name(self) -> str:
+        return self._name
+
+    @override
+    async def awrap_model_call(
+        self,
+        request: LC_ModelRequest,
+        handler: Callable[[LC_ModelRequest], Awaitable[ModelCallResult]],
+    ) -> ModelCallResult:
+        if not self._is_overridden("model_middleware"):
+            # Optimization: if not overridden, then skip the conversion overhead.
+            return await handler(request)
+
+        sdk_request = _convert_model_request_from_lc(request, self._model)
+        sdk_response = await self._middleware.model_middleware(
+            sdk_request,
+            _convert_model_handler_from_lc(handler, original_request=request),
+        )
+        return _convert_ai_message_to_model_result(sdk_response)
+
+    @override
+    async def awrap_tool_call(
+        self,
+        request: LC_ToolCallRequest,
+        handler: Callable[
+            [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+        ],
+    ) -> LC_ToolMessage | LC_Command[None]:
+        call = _map_tool_call_from_langchain(request.tool_call)
+
+        if isinstance(call, ToolCall):
+            if not self._is_overridden("tool_middleware"):
+                # Optimization: if not overridden, then skip the conversion overhead.
+                return await handler(request)
+
+            sdk_request = _convert_tool_request_from_lc(request, self._model)
+            self._logger.debug(f"Tool call {call.name} started; id={call.id}")
+            sdk_response = await self._middleware.tool_middleware(
+                sdk_request,
+                _convert_tool_handler_from_lc(handler, original_request=request),
+            )
+            self._logger.debug(
+                f"Tool call {call.name} finished; id={call.id}; status={sdk_response.status}"
+            )
+            return _convert_tool_response_to_lc(sdk_response, sdk_request.call)
+
+        if not self._is_overridden("subagent_middleware"):
+            # Optimization: if not overridden, then skip the conversion overhead.
+            return await handler(request)
+
+        sdk_request = _convert_subagent_request_from_lc(request, self._model)
+        self._logger.debug(f"Subagent call {call.name} started; id={call.id}")
+        sdk_response = await self._middleware.subagent_middleware(
+            sdk_request,
+            _convert_subagent_handler_from_lc(handler, original_request=request),
+        )
+        self._logger.debug(
+            f"Subagent call {call.name} finished; id={call.id}; status={sdk_response.status}"
+        )
+        return _convert_subagent_response_to_lc(sdk_response, sdk_request.call)
+
+
+def _convert_tool_handler_from_lc(
+    handler: Callable[
+        [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+    ],
+    original_request: LC_ToolCallRequest,
+) -> ToolMiddlewareHandler:
+    async def _sdk_handler(request: ToolRequest) -> ToolResponse:
+        lc_request = _convert_tool_request_to_lc(request, original_request)
+        result = await handler(lc_request)
+        sdk_result = _convert_tool_message_from_lc(result)
+        assert isinstance(sdk_result, ToolMessage), (
+            "Expected tool response from tool middleware handler"
+        )
+        return ToolResponse(content=sdk_result.content, status=sdk_result.status)
+
+    return _sdk_handler
+
+
+def _convert_subagent_handler_from_lc(
+    handler: Callable[
+        [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+    ],
+    original_request: LC_ToolCallRequest,
+) -> SubagentMiddlewareHandler:
+    async def _sdk_handler(request: SubagentRequest) -> SubagentResponse:
+        lc_request = _convert_subagent_request_to_lc(request, original_request)
+        result = await handler(lc_request)
+        sdk_result = _convert_tool_message_from_lc(result)
+        assert isinstance(sdk_result, SubagentMessage), (
+            "Expected subagent response from subagent middleware handler"
+        )
+        return SubagentResponse(content=sdk_result.content, status=sdk_result.status)
+
+    return _sdk_handler
+
+
+def _convert_model_handler_from_lc(
+    handler: Callable[[LC_ModelRequest], Awaitable[ModelCallResult]],
+    original_request: LC_ModelRequest,
+) -> ModelMiddlewareHandler:
+    async def _sdk_handler(request: ModelRequest) -> AIMessage:
+        lc_request = _convert_model_request_to_lc(request, original_request)
+        result = await handler(lc_request)
+
+        return _convert_model_result_from_lc(result)
+
+    return _sdk_handler
+
+
+def _convert_model_request_from_lc(
+    request: LC_ModelRequest, model: BaseChatModel
+) -> ModelRequest:
+    system_message = (
+        str(request.system_message.content) if request.system_message else ""
+    )
+
+    return ModelRequest(
+        system_message=system_message,
+        state=_convert_agent_state_from_langchain(request.state, model),
+    )
+
+
+def _convert_tool_request_from_lc(
+    request: LC_ToolCallRequest, model: BaseChatModel
+) -> ToolRequest:
+    tool_call = _map_tool_call_from_langchain(request.tool_call)
+    assert isinstance(tool_call, ToolCall), "Expected tool call"
+    return ToolRequest(
+        call=tool_call,
+        state=_convert_agent_state_from_langchain(request.state, model),
+    )
+
+
+def _convert_subagent_request_from_lc(
+    request: LC_ToolCallRequest,
+    model: BaseChatModel,
+) -> SubagentRequest:
+    subagent_call = _map_tool_call_from_langchain(request.tool_call)
+    assert isinstance(subagent_call, SubagentCall), "Expected subagent call"
+    return SubagentRequest(
+        call=subagent_call,
+        state=_convert_agent_state_from_langchain(request.state, model),
+    )
+
+
+def _convert_tool_request_to_lc(
+    request: ToolRequest, original_request: LC_ToolCallRequest
+) -> LC_ToolCallRequest:
+    return original_request.override(
+        tool_call=_map_tool_call_to_langchain(request.call),
+        state=_convert_agent_state_to_lc(request.state),
+    )
+
+
+def _convert_subagent_request_to_lc(
+    request: SubagentRequest, original_request: LC_ToolCallRequest
+) -> LC_ToolCallRequest:
+    return original_request.override(
+        tool_call=_map_tool_call_to_langchain(request.call),
+        state=_convert_agent_state_to_lc(request.state),
+    )
+
+
+def _convert_model_request_to_lc(
+    request: ModelRequest, original_request: LC_ModelRequest
+) -> LC_ModelRequest:
+    return original_request.override(
+        system_message=LC_SystemMessage(content=request.system_message),
+        state=_convert_agent_state_to_lc(request.state),  # pyright: ignore[reportUnknownArgumentType]
+    )
+
+
+def _convert_ai_message_to_model_result(message: AIMessage) -> ModelCallResult:
+    lc_message = LC_AIMessage(content=message.content)
+    # this field can't be set via constructor
+    lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in message.calls]
+    return lc_message
+
+
+def _convert_tool_message_to_lc(
+    message: ToolMessage | SubagentMessage,
+) -> LC_ToolMessage:
+    match message:
+        case SubagentMessage():
+            name = _normalize_agent_name(message.name)
+        case ToolMessage():
+            name = _normalize_tool_name(message.name)
+
+    return LC_ToolMessage(
+        name=name,
+        content=message.content,
+        tool_call_id=message.call_id,
+        status=message.status,
+    )
+
+
+def _convert_tool_response_to_lc(
+    response: ToolResponse,
+    call: ToolCall,
+) -> LC_ToolMessage:
+    return LC_ToolMessage(
+        name=_normalize_tool_name(call.name),
+        content=response.content,
+        tool_call_id=call.id,
+        status=response.status,
+    )
+
+
+def _convert_subagent_response_to_lc(
+    response: SubagentResponse,
+    call: SubagentCall,
+) -> LC_ToolMessage:
+    return LC_ToolMessage(
+        name=_normalize_agent_name(call.name),
+        content=response.content,
+        tool_call_id=call.id,
+        status=response.status,
+    )
+
+
+def _convert_tool_message_from_lc(
+    message: LC_ToolMessage | LC_Command[None],
+) -> ToolMessage | SubagentMessage:
+    match message:
+        case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
+            return SubagentMessage(
+                name=_denormalize_agent_name(name),
+                content=str(message.content),
+                call_id=message.tool_call_id,
+                status=message.status,
+            )
+        case LC_ToolMessage():
+            # If this is reached, this likely means that we passed an invalid
+            # tool name to langchain.
+            assert message.name is not None, (
+                "langchain responded with a tool call that does not have a name"
+            )
+            return ToolMessage(
+                name=_denormalize_tool_name(message.name),
+                content=str(message.content),
+                call_id=message.tool_call_id,
+                status=message.status,
+            )
+        case LC_Command():
+            # NOTE: for now the command is not implemented
+            # if this is gonna be useful we will implement it
+            # in the future
+            raise NotImplementedError("Command is not supported")
+
+
+def _convert_model_result_from_lc(model_response: ModelCallResult) -> AIMessage:
+    if isinstance(model_response, ModelResponse):
+        model_response = model_response.result[-1]
+
+    return AIMessage(
+        content=model_response.content,
+        calls=[_map_tool_call_from_langchain(tc) for tc in model_response.tool_calls],
+    )
+
+
+def _convert_agent_state_to_lc(state: AgentState) -> LC_AgentState:  # pyright: ignore[reportMissingTypeArgument, reportUnknownParameterType]
+    return LC_AgentState(
+        messages=[_map_message_to_langchain(m) for m in state.response.messages],
+    )
 
 
 def _debugging_middleware(
@@ -240,7 +557,7 @@ def _debugging_middleware(
         call = _map_tool_call_from_langchain(request.tool_call)
 
         tool_or_agent = "Tool"
-        if isinstance(call, AgentCall):
+        if isinstance(call, SubagentCall):
             tool_or_agent = "Agent"
 
         logger.debug(f"{tool_or_agent} call {call.name} stared; id={call.id}")
@@ -274,7 +591,7 @@ def _debugging_middleware(
             subagent_calls = [
                 (call.name, call.id)
                 for call in last.calls
-                if isinstance(call, AgentCall)
+                if isinstance(call, SubagentCall)
             ]
             logger.debug(
                 f"LLM model invocation ended; requested_tool_calls={tool_calls}; requested_subagent_calls={subagent_calls}"
@@ -388,9 +705,9 @@ def _agent_as_tool(agent: BaseAgent[OutputT]):
     )
 
 
-def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | AgentCall:
+def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | SubagentCall:
     if tool_call["name"].startswith(AGENT_PREFIX):
-        return AgentCall(
+        return SubagentCall(
             name=_denormalize_agent_name(tool_call["name"]),
             args=tool_call["args"],
             id=tool_call["id"],
@@ -403,9 +720,9 @@ def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | AgentCal
     )
 
 
-def _map_tool_call_to_langchain(call: ToolCall | AgentCall) -> LC_ToolCall:
+def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
     match call:
-        case AgentCall():
+        case SubagentCall():
             name = _normalize_agent_name(call.name)
         case ToolCall():
             name = _normalize_tool_name(call.name)
@@ -426,25 +743,8 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
             )
         case LC_HumanMessage():
             return HumanMessage(content=str(message.content))
-        case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
-            return SubagentMessage(
-                name=_denormalize_agent_name(name),
-                content=str(message.content),
-                call_id=message.tool_call_id,
-                status=message.status,
-            )
         case LC_ToolMessage():
-            # If this is reached, this likely means that we passed an invalid
-            # tool name to langchain.
-            assert message.name is not None, (
-                "langchain responded with a tool call that does not have a name"
-            )
-            return ToolMessage(
-                name=_denormalize_tool_name(message.name),
-                content=str(message.content),
-                call_id=message.tool_call_id,
-                status=message.status,
-            )
+            return _convert_tool_message_from_lc(message)
         case LC_SystemMessage():
             return SystemMessage(content=str(message.content))
         case _:
@@ -462,20 +762,8 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_BaseMessage:
             return lc_message
         case HumanMessage():
             return LC_HumanMessage(content=message.content)
-        case SubagentMessage():
-            return LC_ToolMessage(
-                name=_normalize_agent_name(message.name),
-                content=message.content,
-                tool_call_id=message.call_id,
-                status=message.status,
-            )
-        case ToolMessage():
-            return LC_ToolMessage(
-                name=_normalize_tool_name(message.name),
-                content=message.content,
-                tool_call_id=message.call_id,
-                status=message.status,
-            )
+        case SubagentMessage() | ToolMessage():
+            return _convert_tool_message_to_lc(message)
         case SystemMessage():
             return LC_SystemMessage(content=message.content)
         case _:

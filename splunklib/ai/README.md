@@ -386,6 +386,163 @@ async with Agent(
 
 **Note**: Currently input schemas can only be used by subagents, not by regular agents.
 
+## Middleware
+
+Middleware lets you intercept model, tool, and subagent calls in a request/handler chain.
+Each middleware can inspect input, call `handler(request)`, and modify the returned response.
+
+Available decorators:
+
+- `model_middleware`
+- `tool_middleware`
+- `subagent_middleware`
+
+Class-based middleware:
+
+```py
+from typing import override
+from splunklib.ai.middleware import (
+    AgentMiddleware,
+    ModelMiddlewareHandler,
+    ModelRequest,
+    SubagentMiddlewareHandler,
+    SubagentRequest,
+    SubagentResponse,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
+)
+from splunklib.ai.messages import AIMessage
+
+
+class ExampleMiddleware(AgentMiddleware):
+    @override
+    async def model_middleware(
+        self, request: ModelRequest, handler: ModelMiddlewareHandler
+    ) -> AIMessage:
+        request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
+        return await handler(request)
+
+    @override
+    async def tool_middleware(
+        self, request: ToolRequest, handler: ToolMiddlewareHandler
+    ) -> ToolResponse:
+        if request.call.name == "temperature":
+            return ToolResponse(content="25.0")
+        return await handler(request)
+
+    @override
+    async def subagent_middleware(
+        self, request: SubagentRequest, handler: SubagentMiddlewareHandler
+    ) -> SubagentResponse:
+        if request.call.name == "SummaryAgent":
+            return SubagentResponse(
+                content="Executive summary: no critical incidents detected."
+            )
+        return await handler(request)
+```
+
+Example model middleware:
+
+```py
+from splunklib.ai.middleware import (
+    model_middleware,
+    ModelMiddlewareHandler,
+    ModelRequest,
+)
+from splunklib.ai.messages import AIMessage
+
+
+@model_middleware
+async def redact_system_prompt(
+    request: ModelRequest, handler: ModelMiddlewareHandler
+) -> AIMessage:
+    request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
+    return await handler(request)
+```
+
+Example tool middleware:
+
+```py
+from splunklib.ai.middleware import (
+    tool_middleware,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
+)
+
+
+@tool_middleware
+async def mock_temperature(
+    request: ToolRequest, handler: ToolMiddlewareHandler
+) -> ToolResponse:
+    if request.call.name == "temperature":
+        return ToolResponse(content="25.0")
+    return await handler(request)
+```
+
+Example subagent middleware:
+
+```py
+from splunklib.ai.middleware import (
+    subagent_middleware,
+    SubagentMiddlewareHandler,
+    SubagentRequest,
+    SubagentResponse,
+)
+
+
+@subagent_middleware
+async def mock_subagent(
+    request: SubagentRequest, handler: SubagentMiddlewareHandler
+) -> SubagentResponse:
+    if request.call.name == "SummaryAgent":
+        return SubagentResponse(
+            content="Executive summary: no critical incidents detected."
+        )
+    return await handler(request)
+```
+
+Retry pattern (bounded retries):
+
+```py
+from splunklib.ai.middleware import (
+    tool_middleware,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
+)
+
+
+class RetryableToolError(Exception): pass
+
+
+@tool_middleware
+async def retry_transient_tool_failures(
+    request: ToolRequest, handler: ToolMiddlewareHandler
+) -> ToolResponse:
+    last_error: Exception | None = None
+    for _ in range(3):
+        try:
+            return await handler(request)
+        except RetryableToolError as e:
+            last_error = e
+
+    assert last_error is not None
+    raise last_error
+```
+
+Pass middleware to `Agent`:
+
+```py
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="...",
+    middleware=[redact_system_prompt, mock_temperature, mock_subagent],
+) as agent: ...
+```
+
 ## Hooks
 
 Hooks are user-defined callback functions that can be registered to execute at specific points

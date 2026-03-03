@@ -86,4 +86,5 @@ async def _buildInternalAIModel(
         api_key="",  # unused
         extra_body={"user": f'{{"appkey":"{app_key}"}}'},
         httpx_client=httpx.AsyncClient(auth=auth_handler),
+        temperature=0.0,
     )

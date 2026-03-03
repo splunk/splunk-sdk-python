@@ -12,16 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
 import logging
 import secrets
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Generic
 
 from pydantic import BaseModel
 
 from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
+from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tools import Tool
 
@@ -36,6 +37,7 @@ class BaseAgent(Generic[OutputT], ABC):
     _input_schema: type[BaseModel] | None = None
     _output_schema: type[OutputT] | None = None
     _hooks: Sequence[AgentHook] | None = None
+    _middleware: Sequence[AgentMiddleware] | None = None
     _trace_id: str
     _logger: logging.Logger
 
@@ -50,6 +52,7 @@ class BaseAgent(Generic[OutputT], ABC):
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
         hooks: Sequence[AgentHook] | None = None,
+        middleware: Sequence[AgentMiddleware] | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
         self._system_prompt = system_prompt
@@ -61,6 +64,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self._input_schema = input_schema
         self._output_schema = output_schema
         self._hooks = tuple(hooks) if hooks else ()
+        self._middleware = tuple(middleware) if middleware else ()
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
 
         if logger is None:
@@ -111,6 +115,10 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def hooks(self) -> Sequence[AgentHook] | None:
         return self._hooks
+
+    @property
+    def middleware(self) -> Sequence[AgentMiddleware] | None:
+        return self._middleware
 
     @property
     def trace_id(self) -> str:

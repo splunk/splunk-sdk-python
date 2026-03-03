@@ -12,10 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
-from logging import Logger
 import os
 from collections.abc import AsyncGenerator, Sequence
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
+from logging import Logger
 from typing import Self, final, override
 
 from pydantic import BaseModel
@@ -25,6 +25,7 @@ from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
 from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
+from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
 from splunklib.ai.tools import (
@@ -130,6 +131,7 @@ class Agent(BaseAgent[OutputT]):
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,  # Only used by Subagents
         hooks: Sequence[AgentHook] | None = None,
+        middleware: Sequence[AgentMiddleware] | None = None,
         name: str = "",  # Only used by Subagents
         description: str = "",  # Only used by Subagents
         logger: Logger | None = None,
@@ -143,6 +145,7 @@ class Agent(BaseAgent[OutputT]):
             input_schema=input_schema,
             output_schema=output_schema,
             hooks=hooks,
+            middleware=middleware,
             logger=logger,
         )
 

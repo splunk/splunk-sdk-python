@@ -1,8 +1,8 @@
-name: Python CI
+name: Python SDK CI
 on: [push, workflow_dispatch]
 
 jobs:
-  run-test-suite:
+  test-stage:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

@@ -18,6 +18,10 @@ uv-upgrade:
 	@echo "[splunk-sdk] Make sure to run this only in the repo root!"
 	uv sync --all-groups --all-extras --upgrade --no-config
 
+.PHONY: clean
+clean: 
+	rm -rf ./build ./dist ./.venv ./.ruff_cache ./.pytest_cache ./splunk_sdk.egg-info ./__pycache__ ./**/__pycache__
+
 .PHONY: docs
 docs:
 	make -C ./docs html

@@ -234,11 +234,13 @@ class Agent(BaseAgent[OutputT]):
         self, exc_type: ..., exc_value: ..., traceback: ...
     ) -> bool | None:
         assert self._agent_context_manager is not None
-        return await self._agent_context_manager.__aexit__(
+        result = await self._agent_context_manager.__aexit__(
             exc_type,
             exc_value,
             traceback,
         )
+        self._agent_context_manager = None
+        return result
 
     @override
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:

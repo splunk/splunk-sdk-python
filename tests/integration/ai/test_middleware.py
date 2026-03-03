@@ -48,15 +48,11 @@ from tests.ai_testlib import AITestCase
 class TestMiddleware(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_middleware_tool_call(self):
+    async def test_agent_middleware_tool_call(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -81,7 +77,7 @@ class TestMiddleware(AITestCase):
             return result
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
@@ -97,46 +93,38 @@ class TestMiddleware(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_middleware_tool_call_exception_raised(self):
+    async def test_agent_middleware_tool_call_exception_raised(self) -> None:
         pytest.importorskip("langchain_openai")
 
         @tool_middleware
         async def test_middleware(
-            request: ToolRequest, handler: ToolMiddlewareHandler
+            _request: ToolRequest, _handler: ToolMiddlewareHandler
         ) -> ToolResponse:
             raise Exception("testing")
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
             use_mcp_tools=True,
         ) as agent:
             with pytest.raises(Exception, match="testing"):
-                _ = await agent.invoke(
+                await agent.invoke(
                     [HumanMessage(content="What is the weather like today in Krakow?")]
                 )
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_middleware_tool_call_retry(self):
+    async def test_agent_middleware_tool_call_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -156,7 +144,7 @@ class TestMiddleware(AITestCase):
             return second_result
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
@@ -172,22 +160,18 @@ class TestMiddleware(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_middleware_tool_made_up_response(self):
+    async def test_agent_middleware_tool_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
 
         @tool_middleware
         async def test_middleware(
-            request: ToolRequest, handler: ToolMiddlewareHandler
+            request: ToolRequest, _handler: ToolMiddlewareHandler
         ) -> ToolResponse:
             nonlocal middleware_called
             middleware_called = True
@@ -197,7 +181,7 @@ class TestMiddleware(AITestCase):
             return ToolResponse(content="0.5C")
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
@@ -211,7 +195,7 @@ class TestMiddleware(AITestCase):
             assert "0.5" in response, "Invalid response from LLM"
 
             tool_message = next(
-                filter(lambda x: isinstance(x, ToolMessage), res.messages), None
+                (tm for tm in res.messages if isinstance(tm, ToolMessage)), None
             )
             assert tool_message, "ToolMessage not found in messages"
             assert tool_message.content == "0.5C", "Invalid response from Tool"
@@ -219,15 +203,11 @@ class TestMiddleware(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_two_tool_middlewares(self):
+    async def test_agent_two_tool_middlewares(self) -> None:
         pytest.importorskip("langchain_openai")
 
         first_called = False
@@ -237,7 +217,7 @@ class TestMiddleware(AITestCase):
         async def first_middleware(
             request: ToolRequest, handler: ToolMiddlewareHandler
         ) -> ToolResponse:
-            assert not second_called
+            assert not second_called, "Second middleware was called before the first"
 
             nonlocal first_called
             first_called = True
@@ -247,14 +227,14 @@ class TestMiddleware(AITestCase):
         async def second_middleware(
             request: ToolRequest, handler: ToolMiddlewareHandler
         ) -> ToolResponse:
-            assert first_called
+            assert first_called, "First middleware wasn't called before the second"
 
             nonlocal second_called
             second_called = True
             return await handler(request)
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="You are a helpful assistant",
             service=self.service,
             middleware=[first_middleware, second_middleware],
@@ -264,20 +244,16 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
             assert "31.5" in res.messages[-1].content
-            assert first_called
-            assert second_called
+            assert first_called, "First middleware was called after the second"
+            assert second_called, "Second middleware was called before the first"
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_tool_and_model_middlewares(self):
+    async def test_agent_tool_and_model_middlewares(self) -> None:
         pytest.importorskip("langchain_openai")
 
         tool_called = False
@@ -300,7 +276,7 @@ class TestMiddleware(AITestCase):
             return await handler(request)
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="You are a helpful assistant",
             service=self.service,
             middleware=[tool_test_middleware, model_test_middleware],
@@ -315,15 +291,11 @@ class TestMiddleware(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_agent_class_middleware_model_tool_subagent(self):
+    async def test_agent_class_middleware_model_tool_subagent(self) -> None:
         pytest.importorskip("langchain_openai")
 
         model_called = False
@@ -364,7 +336,7 @@ class TestMiddleware(AITestCase):
         middleware = ExampleMiddleware()
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="You are a helpful assistant",
             service=self.service,
             middleware=[middleware],
@@ -380,7 +352,7 @@ class TestMiddleware(AITestCase):
 
         async with (
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames."
                     "If prompted for nickname you MUST append '-zilla' to provided name."
@@ -391,7 +363,7 @@ class TestMiddleware(AITestCase):
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -408,7 +380,7 @@ class TestMiddleware(AITestCase):
         assert subagent_called
 
     @pytest.mark.asyncio
-    async def test_agent_uses_subagent(self):
+    async def test_agent_uses_subagent(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -436,7 +408,7 @@ class TestMiddleware(AITestCase):
 
         async with (
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames"
                     "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
@@ -448,7 +420,7 @@ class TestMiddleware(AITestCase):
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -458,26 +430,23 @@ class TestMiddleware(AITestCase):
             result = await supervisor.invoke(
                 [
                     HumanMessage(
-                        content="hi, my name is Chris. Generate a nickname for me",
+                        content="Hi, my name is Chris. Generate a nickname for me."
                     )
                 ]
             )
 
-            response = result.messages[-1].content
-
             subagent_message = next(
-                filter(lambda m: m.role == "subagent", result.messages), None
-            )
-            assert isinstance(subagent_message, SubagentMessage), (
-                "Invalid subagent message"
+                (m for m in result.messages if isinstance(m, SubagentMessage)), None
             )
             assert subagent_message, "No subagent message found in response"
+
+            response = result.messages[-1].content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
-    async def test_agent_middleware_subagent_made_up_response(self):
+    async def test_agent_middleware_subagent_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -487,7 +456,7 @@ class TestMiddleware(AITestCase):
 
         @subagent_middleware
         async def test_middleware(
-            request: SubagentRequest, handler: SubagentMiddlewareHandler
+            request: SubagentRequest, _handler: SubagentMiddlewareHandler
         ) -> SubagentResponse:
             nonlocal middleware_called
             middleware_called = True
@@ -498,10 +467,10 @@ class TestMiddleware(AITestCase):
 
         async with (
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames"
-                    "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
+                    + "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -509,7 +478,7 @@ class TestMiddleware(AITestCase):
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -524,7 +493,7 @@ class TestMiddleware(AITestCase):
             assert "Chris-superstar" in response, "Invalid response from LLM"
 
             subagent_message = next(
-                filter(lambda x: isinstance(x, SubagentMessage), result.messages), None
+                (sm for sm in result.messages if isinstance(sm, SubagentMessage)), None
             )
             assert subagent_message, "SubagentMessage not found in messages"
             assert subagent_message.content == "Chris-superstar", (
@@ -535,14 +504,10 @@ class TestMiddleware(AITestCase):
     @pytest.mark.asyncio
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
-    async def test_agent_middleware_model_retry(self):
+    async def test_agent_middleware_model_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -559,7 +524,7 @@ class TestMiddleware(AITestCase):
 
             second_result = await handler(request)
 
-            # only if it's a model response that contains the tool calls
+            # Only if it's a model response that contains the tool calls
             if first_result.calls:
                 tool_call = first_result.calls[0]
                 assert isinstance(tool_call, ToolCall)
@@ -573,7 +538,7 @@ class TestMiddleware(AITestCase):
             return second_result
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt=(
                 "You are a helpful assistant. "
                 "You MUST use available tools when asked about weather."
@@ -582,14 +547,14 @@ class TestMiddleware(AITestCase):
             middleware=[test_middleware],
             use_mcp_tools=True,
         ) as agent:
-            _ = await agent.invoke(
+            await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Kraków?")]
             )
 
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
-    async def test_agent_middleware_model_retry_subagent_call(self):
+    async def test_agent_middleware_model_retry_subagent_call(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -630,7 +595,7 @@ class TestMiddleware(AITestCase):
 
         async with (
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt=(
                     "You are a helpful assistant that generates nicknames."
                     "If prompted for nickname you MUST append '-zilla' to provided name."
@@ -641,7 +606,7 @@ class TestMiddleware(AITestCase):
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
-                model=(await self.model()),
+                model=await self.model(),
                 system_prompt="You are a supervisor agent that MUST use other agents",
                 agents=[subagent],
                 service=self.service,
@@ -657,7 +622,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
-    async def test_agent_middleware_model_made_up_response(self):
+    async def test_agent_middleware_model_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
         middleware_called = False
@@ -672,7 +637,7 @@ class TestMiddleware(AITestCase):
             return AIMessage(content="My response is made up")
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
@@ -680,7 +645,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [
                     HumanMessage(
-                        content="dzien dobry, what is the weather like today in Kraków?"
+                        content="Dzień dobry, what is the weather like today in Kraków?"
                     )
                 ]
             )
@@ -690,7 +655,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
-    async def test_agent_middleware_model_exception_raised(self):
+    async def test_agent_middleware_model_exception_raised(self) -> None:
         pytest.importorskip("langchain_openai")
 
         @model_middleware
@@ -700,16 +665,16 @@ class TestMiddleware(AITestCase):
             raise Exception("testing")
 
         async with Agent(
-            model=(await self.model()),
+            model=await self.model(),
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
         ) as agent:
             with pytest.raises(Exception, match="testing"):
-                _ = await agent.invoke(
+                await agent.invoke(
                     [
                         HumanMessage(
-                            content="dzien dobry, what is the weather like today in Kraków?"
+                            content="Dzień dobry, what is the weather like today in Kraków?"
                         )
                     ]
                 )

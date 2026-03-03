@@ -14,38 +14,34 @@
 
 import logging
 import uuid
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
 from functools import partial
 from inspect import isawaitable
-from typing import Any, Awaitable, Callable, cast, override
+from typing import Any, cast, final, override
 
-from langchain.agents import create_agent
+from langchain.agents import create_agent  # pyright: ignore[reportUnknownVariableType]
 from langchain.agents.middleware import (
     AgentMiddleware as LC_AgentMiddleware,
-)
-from langchain.agents.middleware import (
     AgentState as LC_AgentState,
-)
-from langchain.agents.middleware import (
     ModelRequest as LC_ModelRequest,
-)
-from langchain.agents.middleware import (
-    ModelResponse,
+    ModelResponse as LC_ModelResponse,
     after_agent,
     after_model,
     before_agent,
     before_model,
     wrap_tool_call,
 )
-from langchain.agents.middleware.summarization import TokenCounter
-from langchain.agents.middleware.types import ModelCallResult
-from langchain.messages import AIMessage as LC_AIMessage
-from langchain.messages import AnyMessage as LC_AnyMessage
-from langchain.messages import HumanMessage as LC_HumanMessage
-from langchain.messages import SystemMessage as LC_SystemMessage
-from langchain.messages import ToolCall as LC_ToolCall
-from langchain.messages import ToolMessage as LC_ToolMessage
+from langchain.agents.middleware.summarization import TokenCounter as LC_TokenCounter
+from langchain.agents.middleware.types import ModelCallResult as LC_ModelCallResult
+from langchain.messages import (
+    AIMessage as LC_AIMessage,
+    AnyMessage as LC_AnyMessage,
+    HumanMessage as LC_HumanMessage,
+    SystemMessage as LC_SystemMessage,
+    ToolCall as LC_ToolCall,
+    ToolMessage as LC_ToolMessage,
+)
 from langchain.tools import ToolException as LC_ToolException
 from langchain.tools.tool_node import ToolCallRequest as LC_ToolCallRequest
 from langchain_core.language_models import BaseChatModel
@@ -68,11 +64,7 @@ from splunklib.ai.hooks import (
     AgentHook,
     AgentState,
     FunctionHook,
-)
-from splunklib.ai.hooks import (
     after_model as hook_after_model,
-)
-from splunklib.ai.hooks import (
     before_model as hook_before_model,
 )
 from splunklib.ai.messages import (
@@ -99,22 +91,19 @@ from splunklib.ai.middleware import (
     ToolResponse,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.tools import Tool, ToolException, ToolResult
+from splunklib.ai.tools import Tool, ToolException
 
-# RESERVED_LC_TOOL_PREFIX represents a prefix that is reserved for internal use
-# and no user-visible tool or subagent name can contain it (as a prefix).
+# Represents a prefix reserved only for internal use.
+# No user-visible tool or subagent name can be prefixed with it.
 RESERVED_LC_TOOL_PREFIX = "__"
 
-# AGENT_PREFIX is a prefix prepended to a name of an agent,
-# during the conversion of a subagent to a tool.
-# All subagents as tools have this prefix.
+# Prepended to agent name when used as a tool.
+# All subagents-as-tools have this prefix.
 AGENT_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}agent-"
 
-# CONFLICTING_TOOL_PREFIX is a prefix that is prepended to a tool name
-# in case the tool name already starts with RESERVED_LC_TOOL_PREFIX.
-# This prevents the user-provided tools to start with AGENT_PREFIX and also
-# serves as a backward compatibility mechanism for us i.e. we are free to use
-# any tool name that starts with RESERVED_LC_TOOL_PREFIX for other uses.
+# Prepended to a tool name in case it already starts with INTERNAL_TOOL_PREFIX. This
+# prevents user-provided tools from starting with AGENT_PREFIX and also serves as a
+# backward compatibility measure - we're free to use any prefixed tool name.
 CONFLICTING_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}tool-"
 
 AGENT_AS_TOOLS_PROMPT = f"""
@@ -129,7 +118,7 @@ ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 
 @dataclass
 class LangChainAgentImpl(AgentImpl[OutputT]):
-    _agent: CompiledStateGraph
+    _agent: CompiledStateGraph[Any]
     _thread_id: uuid.UUID
     _config: RunnableConfig
     _output_schema: type[OutputT] | None
@@ -171,38 +160,33 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
 
-        # NOTE: The Agent puts it's response into the output schema.
-        # The response object is valid and matches the model, however, the response might not always make sense
-        # and it's up to developers to make sure the Agent responds with correct data.
+        # NOTE: Agent responses will always conform to output schema. Verifying
+        # if an LLM made any mistakes or not is _always_ up to the developer.
         if self._output_schema:
             return AgentResponse(
                 structured_output=result["structured_response"],
                 messages=sdk_msgs,
             )
 
-        # HACK: this let's us put the None in the structured_output field.
-        # It also shows None as type of the field if no `output_schema`
-        # was provided to the Agent class.
+        # HACK: This let's us put None in the structured_output field. It also shows
+        # None as the field type if no `output_schema`was provided to the Agent class.
         return AgentResponse(structured_output=cast(OutputT, None), messages=sdk_msgs)
 
 
+@final
 class LangChainBackend(Backend):
-    def __init__(self): ...
-
     @override
     async def create_agent(
         self,
         agent: BaseAgent[OutputT],
     ) -> AgentImpl[OutputT]:
-        model_impl = _create_langchain_model(agent.model)
-
         system_prompt = agent.system_prompt
         tools = [_create_langchain_tool(t) for t in agent.tools]
 
         if agent.agents:
             seen_names: set[str] = set()
             for subagent in agent.agents:
-                # Call _agent_as_tool first, such that the empty name exception is
+                # Call _agent_as_tool first, so that the empty name exception is
                 # checked and raised first, before the duplicated name exception.
                 tool = _agent_as_tool(subagent)
 
@@ -220,6 +204,7 @@ class LangChainBackend(Backend):
             _debugging_middleware(agent.logger)
         )
 
+        model_impl = _create_langchain_model(agent.model)
         middleware = [
             _convert_hook_to_middleware(h, model_impl) for h in before_user_hooks
         ]
@@ -228,18 +213,15 @@ class LangChainBackend(Backend):
         # User-provided hooks go in between our hooks.
         if agent.hooks:
             middleware.extend(
-                (
-                    _convert_hook_to_middleware(h, model_impl, logger=agent.logger)
-                    for h in agent.hooks
-                )
+                _convert_hook_to_middleware(h, model_impl, logger=agent.logger)
+                for h in agent.hooks
             )
 
         middleware.extend(
             _Middleware(m, model_impl, agent.logger) for m in agent.middleware or []
         )
-
         middleware.extend(
-            (_convert_hook_to_middleware(h, model_impl) for h in after_user_hooks)
+            _convert_hook_to_middleware(h, model_impl) for h in after_user_hooks
         )
 
         return LangChainAgentImpl(
@@ -283,8 +265,8 @@ class _Middleware(LC_AgentMiddleware):
     async def awrap_model_call(
         self,
         request: LC_ModelRequest,
-        handler: Callable[[LC_ModelRequest], Awaitable[ModelCallResult]],
-    ) -> ModelCallResult:
+        handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+    ) -> LC_ModelCallResult:
         if not self._is_overridden("model_middleware"):
             # Optimization: if not overridden, then skip the conversion overhead.
             return await handler(request)
@@ -308,22 +290,22 @@ class _Middleware(LC_AgentMiddleware):
 
         if isinstance(call, ToolCall):
             if not self._is_overridden("tool_middleware"):
-                # Optimization: if not overridden, then skip the conversion overhead.
+                # Optimization: if not overridden, skip the conversion overhead.
                 return await handler(request)
 
             sdk_request = _convert_tool_request_from_lc(request, self._model)
-            self._logger.debug(f"Tool call {call.name} started; id={call.id}")
+            self._logger.debug(f"Tool call {call.name} started; {call.id=}")
             sdk_response = await self._middleware.tool_middleware(
                 sdk_request,
                 _convert_tool_handler_from_lc(handler, original_request=request),
             )
             self._logger.debug(
-                f"Tool call {call.name} finished; id={call.id}; status={sdk_response.status}"
+                f"Tool call {call.name} finished; {call.id=}; {sdk_response.status=}"
             )
             return _convert_tool_response_to_lc(sdk_response, sdk_request.call)
 
         if not self._is_overridden("subagent_middleware"):
-            # Optimization: if not overridden, then skip the conversion overhead.
+            # Optimization: if not overridden, skip the conversion overhead.
             return await handler(request)
 
         sdk_request = _convert_subagent_request_from_lc(request, self._model)
@@ -333,7 +315,7 @@ class _Middleware(LC_AgentMiddleware):
             _convert_subagent_handler_from_lc(handler, original_request=request),
         )
         self._logger.debug(
-            f"Subagent call {call.name} finished; id={call.id}; status={sdk_response.status}"
+            f"Subagent call {call.name} finished; {call.id=}; {sdk_response.status=}"
         )
         return _convert_subagent_response_to_lc(sdk_response, sdk_request.call)
 
@@ -375,7 +357,7 @@ def _convert_subagent_handler_from_lc(
 
 
 def _convert_model_handler_from_lc(
-    handler: Callable[[LC_ModelRequest], Awaitable[ModelCallResult]],
+    handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
     original_request: LC_ModelRequest,
 ) -> ModelMiddlewareHandler:
     async def _sdk_handler(request: ModelRequest) -> AIMessage:
@@ -391,7 +373,7 @@ def _convert_model_request_from_lc(
     request: LC_ModelRequest, model: BaseChatModel
 ) -> ModelRequest:
     system_message = (
-        str(request.system_message.content) if request.system_message else ""
+        request.system_message.content.__str__() if request.system_message else ""
     )
 
     return ModelRequest(
@@ -446,13 +428,13 @@ def _convert_model_request_to_lc(
 ) -> LC_ModelRequest:
     return original_request.override(
         system_message=LC_SystemMessage(content=request.system_message),
-        state=_convert_agent_state_to_lc(request.state),  # pyright: ignore[reportUnknownArgumentType]
+        state=_convert_agent_state_to_lc(request.state),
     )
 
 
-def _convert_ai_message_to_model_result(message: AIMessage) -> ModelCallResult:
+def _convert_ai_message_to_model_result(message: AIMessage) -> LC_ModelCallResult:
     lc_message = LC_AIMessage(content=message.content)
-    # this field can't be set via constructor
+    # This field can't be set via __init__()
     lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in message.calls]
     return lc_message
 
@@ -505,19 +487,18 @@ def _convert_tool_message_from_lc(
         case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
             return SubagentMessage(
                 name=_denormalize_agent_name(name),
-                content=str(message.content),
+                content=message.content.__str__(),
                 call_id=message.tool_call_id,
                 status=message.status,
             )
         case LC_ToolMessage():
-            # If this is reached, this likely means that we passed an invalid
-            # tool name to langchain.
+            # If this is reached, we likely passed an invalid tool name to LangChain.
             assert message.name is not None, (
-                "langchain responded with a tool call that does not have a name"
+                "LangChain responded with a nameless tool call"
             )
             return ToolMessage(
                 name=_denormalize_tool_name(message.name),
-                content=str(message.content),
+                content=message.content.__str__(),
                 call_id=message.tool_call_id,
                 status=message.status,
             )
@@ -528,8 +509,8 @@ def _convert_tool_message_from_lc(
             raise NotImplementedError("Command is not supported")
 
 
-def _convert_model_result_from_lc(model_response: ModelCallResult) -> AIMessage:
-    if isinstance(model_response, ModelResponse):
+def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> AIMessage:
+    if isinstance(model_response, LC_ModelResponse):
         ai_message = next(
             (m for m in model_response.result if isinstance(m, LC_AIMessage)), None
         )
@@ -543,17 +524,16 @@ def _convert_model_result_from_lc(model_response: ModelCallResult) -> AIMessage:
     )
 
 
-def _convert_agent_state_to_lc(state: AgentState) -> LC_AgentState:  # pyright: ignore[reportMissingTypeArgument, reportUnknownParameterType]
-    return LC_AgentState(  # pyright: ignore[reportUnknownVariableType]
-        messages=[_map_message_to_langchain(m) for m in state.response.messages],
-    )
+def _convert_agent_state_to_lc(state: AgentState) -> LC_AgentState[Any]:
+    messages = [_map_message_to_langchain(m) for m in state.response.messages]
+    return LC_AgentState(messages=messages)
 
 
 def _debugging_middleware(
     logger: logging.Logger,
 ) -> tuple[list[AgentHook], list[AgentHook], list[LC_AgentMiddleware]]:
-    # TODO: replace this with ours middleware, once we add them.
-    @wrap_tool_call  # pyright: ignore[reportArgumentType, reportCallIssue, reportUntypedFunctionDecorator]
+    # TODO: Replace with our middleware once we add it
+    @wrap_tool_call  # pyright: ignore[reportCallIssue, reportArgumentType, reportUntypedFunctionDecorator]
     async def _tool_call(
         request: LC_ToolCallRequest,
         handler: Callable[
@@ -589,24 +569,26 @@ def _debugging_middleware(
     def _debug_after_model(state: AgentState) -> None:
         last = state.response.messages[-1]
         if isinstance(last, AIMessage):
-            tool_calls = [
+            requested_tool_calls = [
                 (call.name, call.id)
                 for call in last.calls
                 if isinstance(call, ToolCall)
             ]
-            subagent_calls = [
+            requested_subagent_calls = [
                 (call.name, call.id)
                 for call in last.calls
                 if isinstance(call, SubagentCall)
             ]
             logger.debug(
-                f"LLM model invocation ended; requested_tool_calls={tool_calls}; requested_subagent_calls={subagent_calls}"
+                "LLM model invocation ended; "
+                + f"{requested_tool_calls=}; "
+                + f"{requested_subagent_calls=}"
             )
 
     before_user_hooks = [_debug_after_model]
 
     @hook_before_model
-    def _debug_before_model(state: AgentState) -> None:
+    def _debug_before_model(_state: AgentState) -> None:
         logger.debug("Invoking LLM model")
 
     after_user_hooks = [_debug_before_model]
@@ -615,29 +597,27 @@ def _debugging_middleware(
 
 
 def _create_langchain_tool(tool: Tool) -> BaseTool:
-    async def _tool_call(
-        **kwargs: dict[str, Any],
-    ) -> dict[str, Any] | list[str]:
+    async def _tool_call(**kwargs: dict[str, Any]) -> dict[str, Any] | list[str]:
         try:
             result = await tool.func(**kwargs)
         except ToolException as e:
             raise LC_ToolException(*e.args) from e
         except LC_ToolException:
             assert False, (
-                "ToolException from langchain should not be raised in tool.func"
+                "ToolException from LangChain should not be raised in tool.func"
             )
 
         if result.structured_content:
-            # For both local tools and remote tools (Splunk MCP Server App),
-            # the primary payload is returned in structured_content.
-            # The content field is typically minimal for remote tools and empty for local tools.
+            # For both local tools and remote tools (Splunk MCP Server App), the primary
+            # payload is returned in structured_content. The content field is typically
+            # minimal for remote tools and empty for local tools.
             #
             # FastMCP behaves slightly differently: when structured_content is returned,
             # it also includes json.dumps(structured_content) in the content field.
             #
             # If we introduce support for additional MCP implementations in the future,
             # this assumption may need to be revisited. For now, this approach is fine.
-            # The worst-case scenario is that the same information is provided to the LLM twice.
+            # Worst-case scenario is the same information is provided to the LLM twice.
             return asdict(result)  # both content + structured_content
         return result.content
 
@@ -674,13 +654,13 @@ def _denormalize_tool_name(name: str) -> str:
     return name.removeprefix(CONFLICTING_TOOL_PREFIX)
 
 
-def _agent_as_tool(agent: BaseAgent[OutputT]):
+def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
 
     if agent.input_schema is None:
 
-        async def _run(content: str) -> str:
+        async def _run(content: str) -> str:  # pyright: ignore[reportRedeclaration]
             result = await agent.invoke([HumanMessage(content=content)])
             assert agent.output_schema is None
             return result.messages[-1].content
@@ -694,7 +674,7 @@ def _agent_as_tool(agent: BaseAgent[OutputT]):
 
     InputSchema = agent.input_schema
 
-    async def _run(**kwargs) -> OutputT | str:
+    async def _run(**kwargs: dict[str, Any]) -> OutputT | str:
         req = InputSchema(**kwargs)
         request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
 
@@ -744,15 +724,15 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
     match message:
         case LC_AIMessage():
             return AIMessage(
-                content=str(message.content),
+                content=message.content.__str__(),
                 calls=[_map_tool_call_from_langchain(tc) for tc in message.tool_calls],
             )
         case LC_HumanMessage():
-            return HumanMessage(content=str(message.content))
+            return HumanMessage(content=message.content.__str__())
         case LC_ToolMessage():
             return _convert_tool_message_from_lc(message)
         case LC_SystemMessage():
-            return SystemMessage(content=str(message.content))
+            return SystemMessage(content=message.content.__str__())
         case _:
             raise InvalidMessageTypeError("Invalid langchain message type")
 
@@ -786,9 +766,9 @@ def _convert_hook_to_middleware(
     if isinstance(hook, FunctionHook):
         hook_name = hook.func.__name__
 
-    # Generate a random name to name this hook in langchain.
-    # We can't use the hook_name, derived above, since it might not be unique, we
-    # also don't want to force the users to name these hooks, as langchain does.
+    # Generate a random name to name this hook in langchain. We can't use the hook_name
+    # derived above, since it might not be unique. We also don't want to force the users
+    # to name these hooks like LangChain does.
     lc_hook_name = str(uuid.uuid4())
 
     match hook.type:
@@ -800,22 +780,20 @@ def _convert_hook_to_middleware(
             wrapper = before_agent(can_jump_to=["end"], name=lc_hook_name)
         case "after_agent":
             wrapper = after_agent(can_jump_to=["end"], name=lc_hook_name)
-        case _:
-            raise AssertionError(f"Unsupported middleware type: {hook.type}")
+        case _:  # pyright: ignore[reportUnnecessaryComparison]
+            raise AssertionError(f"Unsupported middleware type: {hook.type}")  # pyright: ignore[reportUnreachable]
 
     async def _middleware(
-        state: LC_AgentState, runtime: Runtime
+        state: LC_AgentState[Any],
+        runtime: Runtime,  # pyright: ignore[reportUnusedParameter]
     ) -> dict[str, Any] | None:
-        # NOTE: We're converting the langchain AgentState into the SDK AgentState
-        # on each middleware call.
-        # We're converting all the messages back to the SDK format and counting the
-        # token usage, before calling the middleware.
-        # If converting messages becomes a performance issue, we could store some intermediate
-        # SDK AgentState and update it only with new data, but for now we're
-        # leaving it as is to not over-engineer the solution.
-        # If counting tokens becomes a performance issue, we could also consider adding
-        # the token counting function as part of the Backend interface, so that
-        # it's only used when needed instead.
+        # NOTE: We convert LC_AgentState into SDK AgentState on each middleware call.
+        # We also convert all the messages back to the SDK format and counting the token
+        # usage, before calling the middleware. If converting messages becomes a perf
+        # issue, we could store some intermediate SDK AgentState and update it only with
+        # new data. For now we're leaving it as is to not over-engineer the solution.
+        # If tokens counting becomes a perf issue, we could also consider moving it
+        # to the Backend interface instead, so it's only used when needed.
         sdk_state = _convert_agent_state_from_langchain(state, model)
 
         if logger:
@@ -830,7 +808,7 @@ def _convert_hook_to_middleware(
 
 
 def _convert_agent_state_from_langchain(
-    state: LC_AgentState, model: BaseChatModel
+    state: LC_AgentState[Any], model: BaseChatModel
 ) -> AgentState:
     messages = state["messages"]
     total_tokens_counter = _get_approximate_token_counter(model)
@@ -848,13 +826,13 @@ def _convert_agent_state_from_langchain(
     )
 
 
-def _get_approximate_token_counter(model: BaseChatModel) -> TokenCounter:
+def _get_approximate_token_counter(model: BaseChatModel) -> LC_TokenCounter:
     """Tune parameters of approximate token counter based on model type."""
 
-    # NOTE: this is copied from langchain library
-    if model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE:
-        # 3.3 was estimated in an offline experiment, comparing with Claude's token-counting
-        # API: https://platform.claude.com/docs/en/build-with-claude/token-counting
+    # NOTE: This is adapted from the backend provider library
+    # 3.3 was estimated in an offline experiment, comparing with Claude's token-counting
+    # API: https://platform.claude.com/docs/en/build-with-claude/token-counting
+    if model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE:  # pyright: ignore[reportPrivateUsage]
         return partial(count_tokens_approximately, chars_per_token=3.3)
     return count_tokens_approximately
 
@@ -863,12 +841,12 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
     match model:
         case OpenAIModel():
             try:
-                from langchain_openai import ChatOpenAI  # noqa: F401
+                from langchain_openai import ChatOpenAI
 
                 return ChatOpenAI(
                     model=model.model,
                     base_url=model.base_url,
-                    api_key=model.api_key,
+                    api_key=lambda: model.api_key,
                     temperature=model.temperature,
                     extra_body=model.extra_body,
                     http_async_client=model.httpx_client,

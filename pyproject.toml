@@ -95,3 +95,6 @@ select = [
   "UP",  # pyupgrade
   "RUF", # ruff-specific rules
 ]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

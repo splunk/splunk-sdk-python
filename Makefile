@@ -28,19 +28,23 @@ docs:
 
 .PHONY: test
 test:
-	python -m pytest ./tests
+	# Previously failing tests go first
+	python -m pytest --ff ./tests
 
 .PHONY: test-unit
 test-unit:
-	python -m pytest ./tests/unit
+	# Previously failing tests go first
+	python -m pytest --ff ./tests/unit
 
 .PHONY: test-integration
 test-integration:
-	python -m pytest ./tests/integration ./tests/system
+	# Previously failing tests go first
+	python -m pytest --ff ./tests/integration ./tests/system
 
 .PHONY: test-ai
 test-ai:
-	python -m pytest ./tests/integration/ai ./tests/unit/ai
+	# Previously failing tests go first
+	python -m pytest --ff ./tests/integration/ai ./tests/unit/ai
 
 .PHONY: docker-up
 docker-up:

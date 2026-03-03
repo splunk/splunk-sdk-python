@@ -355,7 +355,7 @@ class TestAgent(AITestCase):
                     pass
 
             # Also make sure, that because of this check we have, we will not
-            # mistakenely accept same subagent (since they also share the same name).
+            # mistakenly accept same subagent (since they also share the same name).
             with pytest.raises(
                 AssertionError, match="Subagents share the same name: subagent_name"
             ):

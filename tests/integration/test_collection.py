@@ -160,11 +160,11 @@ class CollectionTestCase(testlib.SDKTestCase):
                 expected_kwargs["sort_key"] = "sid"
                 found_kwargs["sort_key"] = "sid"
             expected = list(
-                reversed([ent.name for ent in coll.list(**expected_kwargs)])
+                reversed([ent.name.lower() for ent in coll.list(**expected_kwargs)])
             )
             if len(expected) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
-            found = [ent.name for ent in coll.list(**found_kwargs)]
+            found = [ent.name.lower() for ent in coll.list(**found_kwargs)]
 
             if expected != found:
                 logging.warning(

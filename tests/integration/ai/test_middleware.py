@@ -305,9 +305,7 @@ class TestMiddleware(AITestCase):
         class ExampleMiddleware(AgentMiddleware):
             @override
             async def model_middleware(
-                self,
-                request: ModelRequest,
-                handler: ModelMiddlewareHandler,
+                self, request: ModelRequest, handler: ModelMiddlewareHandler
             ) -> AIMessage:
                 nonlocal model_called
                 model_called = True
@@ -315,9 +313,7 @@ class TestMiddleware(AITestCase):
 
             @override
             async def tool_middleware(
-                self,
-                request: ToolRequest,
-                handler: ToolMiddlewareHandler,
+                self, request: ToolRequest, handler: ToolMiddlewareHandler
             ) -> ToolResponse:
                 nonlocal tool_called
                 tool_called = True
@@ -325,9 +321,7 @@ class TestMiddleware(AITestCase):
 
             @override
             async def subagent_middleware(
-                self,
-                request: SubagentRequest,
-                handler: SubagentMiddlewareHandler,
+                self, request: SubagentRequest, handler: SubagentMiddlewareHandler
             ) -> SubagentResponse:
                 nonlocal subagent_called
                 subagent_called = True
@@ -337,7 +331,7 @@ class TestMiddleware(AITestCase):
 
         async with Agent(
             model=await self.model(),
-            system_prompt="You are a helpful assistant",
+            system_prompt="You are a helpful assistant.",
             service=self.service,
             middleware=[middleware],
             use_mcp_tools=True,
@@ -354,12 +348,12 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames."
-                    "If prompted for nickname you MUST append '-zilla' to provided name."
+                    "You are a helpful assistant that generates nicknames. A valid "
+                    + "nickname consists of the provided name suffixed with '-zilla.'"
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
-                description="Generates nicknames for people. Pass a name and get a nickname",
+                description="Pass a name and get a nickname",
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
@@ -410,13 +404,12 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames"
-                    "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
-                    "Remember the dash and lowercase zilla. Example: Stefan -> Stefan-zilla"
+                    "You are a helpful assistant that generates nicknames. A valid "
+                    + "nickname consists of the provided name suffixed with '-zilla.'"
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
-                description="Generates nicknames for people. Pass a name and get a nickname",
+                description="Pass a name and get a nickname",
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
@@ -430,7 +423,7 @@ class TestMiddleware(AITestCase):
             result = await supervisor.invoke(
                 [
                     HumanMessage(
-                        content="Hi, my name is Chris. Generate a nickname for me."
+                        content="hi, my name is Chris. Generate a nickname for me"
                     )
                 ]
             )
@@ -469,12 +462,12 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames"
-                    + "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
+                    "You are a helpful assistant that generates nicknames. A valid "
+                    + "nickname consists of the provided name suffixed with '-zilla.'"
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
-                description="Generates nicknames for people. Pass a name and get a nickname",
+                description="Pass a name and get a nickname",
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(
@@ -541,7 +534,7 @@ class TestMiddleware(AITestCase):
             model=await self.model(),
             system_prompt=(
                 "You are a helpful assistant. "
-                "You MUST use available tools when asked about weather."
+                + "You MUST use available tools when asked about weather."
             ),
             service=self.service,
             middleware=[test_middleware],
@@ -597,12 +590,12 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames."
-                    "If prompted for nickname you MUST append '-zilla' to provided name."
+                    "You are a helpful assistant that generates nicknames. A valid "
+                    + "nickname consists of the provided name suffixed with '-zilla.'"
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
-                description="Generates nicknames for people. Pass a name and get a nickname",
+                description="Pass a name and get a nickname",
                 input_schema=NicknameGeneratorInput,
             ) as subagent,
             Agent(

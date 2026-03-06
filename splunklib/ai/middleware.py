@@ -73,7 +73,13 @@ class ModelRequest:
     state: AgentState
 
 
-ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[AIMessage]]
+@dataclass
+class ModelResponse:
+    message: AIMessage
+    structured_output: Any | None = None
+
+
+ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 
 
 @dataclass
@@ -107,7 +113,7 @@ class AgentMiddleware:
         self,
         request: ModelRequest,
         handler: ModelMiddlewareHandler,
-    ) -> AIMessage:
+    ) -> ModelResponse:
         """Executed in between the LLM calls"""
 
         return await handler(request)
@@ -155,7 +161,7 @@ def subagent_middleware(
 
 
 def model_middleware(
-    func: Callable[[ModelRequest, ModelMiddlewareHandler], Awaitable[AIMessage]],
+    func: Callable[[ModelRequest, ModelMiddlewareHandler], Awaitable[ModelResponse]],
 ) -> AgentMiddleware:
     class _CustomMiddleware(AgentMiddleware):
         @override
@@ -163,7 +169,7 @@ def model_middleware(
             self,
             request: ModelRequest,
             handler: ModelMiddlewareHandler,
-        ) -> AIMessage:
+        ) -> ModelResponse:
             return await func(request, handler)
 
     return _CustomMiddleware()

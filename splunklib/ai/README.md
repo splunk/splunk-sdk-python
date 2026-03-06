@@ -407,6 +407,7 @@ from splunklib.ai.middleware import (
     AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
+	ModelResponse,
     SubagentMiddlewareHandler,
     SubagentRequest,
     SubagentResponse,
@@ -414,7 +415,7 @@ from splunklib.ai.middleware import (
     ToolRequest,
     ToolResponse,
 )
-from splunklib.ai.messages import AIMessage, AgentResponse, ToolCall
+from splunklib.ai.messages import AgentResponse, ToolCall
 
 
 class ExampleMiddleware(AgentMiddleware):
@@ -431,7 +432,7 @@ class ExampleMiddleware(AgentMiddleware):
     @override
     async def model_middleware(
         self, request: ModelRequest, handler: ModelMiddlewareHandler
-    ) -> AIMessage:
+    ) -> ModelResponse:
         request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
         return await handler(request)
 
@@ -484,14 +485,13 @@ from splunklib.ai.middleware import (
     model_middleware,
     ModelMiddlewareHandler,
     ModelRequest,
+	ModelResponse,
 )
-from splunklib.ai.messages import AIMessage
-
 
 @model_middleware
 async def redact_system_prompt(
     request: ModelRequest, handler: ModelMiddlewareHandler
-) -> AIMessage:
+) -> ModelResponse:
     request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
     return await handler(request)
 ```

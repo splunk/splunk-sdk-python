@@ -35,6 +35,7 @@ from splunklib.ai.middleware import (
     AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
+    ModelResponse,
     SubagentMiddlewareHandler,
     SubagentRequest,
     SubagentResponse,
@@ -274,7 +275,7 @@ class TestMiddleware(AITestCase):
         @model_middleware
         async def model_test_middleware(
             request: ModelRequest, handler: ModelMiddlewareHandler
-        ) -> AIMessage:
+        ) -> ModelResponse:
             nonlocal model_called
             model_called = True
             return await handler(request)
@@ -310,7 +311,7 @@ class TestMiddleware(AITestCase):
             @override
             async def model_middleware(
                 self, request: ModelRequest, handler: ModelMiddlewareHandler
-            ) -> AIMessage:
+            ) -> ModelResponse:
                 nonlocal model_called
                 model_called = True
                 return await handler(request)
@@ -512,21 +513,21 @@ class TestMiddleware(AITestCase):
         @model_middleware
         async def test_middleware(
             request: ModelRequest, handler: ModelMiddlewareHandler
-        ) -> AIMessage:
+        ) -> ModelResponse:
             nonlocal middleware_called
             middleware_called = True
 
             first_result = await handler(request)
-            assert isinstance(first_result, AIMessage)
+            assert isinstance(first_result, ModelResponse)
 
             second_result = await handler(request)
 
             # Only if it's a model response that contains the tool calls
-            if first_result.calls:
-                tool_call = first_result.calls[0]
+            if first_result.message.calls:
+                tool_call = first_result.message.calls[0]
                 assert isinstance(tool_call, ToolCall)
 
-                second_tool_call = first_result.calls[0]
+                second_tool_call = first_result.message.calls[0]
                 assert isinstance(second_tool_call, ToolCall)
 
                 assert tool_call.name == second_tool_call.name == "temperature"
@@ -562,21 +563,21 @@ class TestMiddleware(AITestCase):
         @model_middleware
         async def test_middleware(
             request: ModelRequest, handler: ModelMiddlewareHandler
-        ) -> AIMessage:
+        ) -> ModelResponse:
             nonlocal middleware_called
             middleware_called = True
 
             first_result = await handler(request)
-            assert isinstance(first_result, AIMessage)
+            assert isinstance(first_result, ModelResponse)
 
             second_result = await handler(request)
 
             # only if it's a model response that contains the subagent calls
-            if first_result.calls:
-                subagent_call = first_result.calls[0]
+            if first_result.message.calls:
+                subagent_call = first_result.message.calls[0]
                 assert isinstance(subagent_call, SubagentCall)
 
-                second_subagent_call = first_result.calls[0]
+                second_subagent_call = first_result.message.calls[0]
                 assert isinstance(second_subagent_call, SubagentCall)
 
                 assert (
@@ -627,11 +628,11 @@ class TestMiddleware(AITestCase):
         @model_middleware
         async def test_middleware(
             _request: ModelRequest, _handler: ModelMiddlewareHandler
-        ) -> AIMessage:
+        ) -> ModelResponse:
             nonlocal middleware_called
             middleware_called = True
 
-            return AIMessage(content="My response is made up")
+            return ModelResponse(message=AIMessage(content="My response is made up"))
 
         async with Agent(
             model=await self.model(),
@@ -658,7 +659,7 @@ class TestMiddleware(AITestCase):
         @model_middleware
         async def test_middleware(
             _request: ModelRequest, _handler: ModelMiddlewareHandler
-        ) -> AIMessage:
+        ) -> ModelResponse:
             raise Exception("testing")
 
         async with Agent(
@@ -675,6 +676,86 @@ class TestMiddleware(AITestCase):
                         )
                     ]
                 )
+
+    @pytest.mark.asyncio
+    async def test_model_middleware_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # Regression test - make sure that model middleware does not
+        # cause structured output to be dropped.
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @model_middleware
+        async def test_middleware(
+            req: ModelRequest, handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            return await handler(req)
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            resp = await agent.invoke([HumanMessage(content="What is your name?")])
+            assert resp.structured_output.name.lower() == "stefan"
+
+    @pytest.mark.asyncio
+    async def test_model_middleware_modify_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @model_middleware
+        async def test_middleware(
+            req: ModelRequest, handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            resp = await handler(req)
+            assert type(resp.structured_output) is Output
+            resp.structured_output.name = "Mike"
+            return resp
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            resp = await agent.invoke([HumanMessage(content="What is your name?")])
+            assert resp.structured_output.name == "Mike"
+
+    @pytest.mark.asyncio
+    async def test_model_middleware_made_up_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @model_middleware
+        async def test_middleware(
+            _req: ModelRequest, _handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            return ModelResponse(
+                message=AIMessage(
+                    content="Stefan",
+                ),
+                structured_output=Output(name="Stefan"),
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            resp = await agent.invoke([HumanMessage(content="What is your name?")])
+            assert resp.structured_output.name.lower() == "stefan"
 
     @pytest.mark.asyncio
     async def test_agent_middleware(self) -> None:

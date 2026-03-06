@@ -85,6 +85,7 @@ from splunklib.ai.middleware import (
     AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
+    ModelResponse,
     SubagentMiddlewareHandler,
     SubagentRequest,
     SubagentResponse,
@@ -352,7 +353,7 @@ class _Middleware(LC_AgentMiddleware):
             sdk_request,
             _convert_model_handler_from_lc(handler, original_request=request),
         )
-        return _convert_ai_message_to_model_result(sdk_response)
+        return _convert_model_response_to_model_result(sdk_response)
 
     @override
     async def awrap_tool_call(
@@ -436,7 +437,7 @@ def _convert_model_handler_from_lc(
     handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
     original_request: LC_ModelRequest,
 ) -> ModelMiddlewareHandler:
-    async def _sdk_handler(request: ModelRequest) -> AIMessage:
+    async def _sdk_handler(request: ModelRequest) -> ModelResponse:
         lc_request = _convert_model_request_to_lc(request, original_request)
         result = await handler(lc_request)
 
@@ -508,10 +509,17 @@ def _convert_model_request_to_lc(
     )
 
 
-def _convert_ai_message_to_model_result(message: AIMessage) -> LC_ModelCallResult:
-    lc_message = LC_AIMessage(content=message.content)
+def _convert_model_response_to_model_result(
+    resp: ModelResponse,
+) -> LC_ModelCallResult:
+    lc_message = LC_AIMessage(content=resp.message.content)
     # This field can't be set via __init__()
-    lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in message.calls]
+    lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in resp.message.calls]
+    if resp.structured_output is not None:
+        return LC_ModelResponse(
+            result=[lc_message],
+            structured_response=resp.structured_output,
+        )
     return lc_message
 
 
@@ -585,18 +593,23 @@ def _convert_tool_message_from_lc(
             raise NotImplementedError("Command is not supported")
 
 
-def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> AIMessage:
+def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelResponse:
     if isinstance(model_response, LC_ModelResponse):
         ai_message = next(
             (m for m in model_response.result if isinstance(m, LC_AIMessage)), None
         )
         assert ai_message, "ModelResponse should contain at least one LC_AIMessage"
+        structured_response = model_response.structured_response
     else:
         ai_message = model_response
+        structured_response = None
 
-    return AIMessage(
-        content=ai_message.content.__str__(),
-        calls=[_map_tool_call_from_langchain(tc) for tc in ai_message.tool_calls],
+    return ModelResponse(
+        message=AIMessage(
+            content=ai_message.content.__str__(),
+            calls=[_map_tool_call_from_langchain(tc) for tc in ai_message.tool_calls],
+        ),
+        structured_output=structured_response,
     )
 
 

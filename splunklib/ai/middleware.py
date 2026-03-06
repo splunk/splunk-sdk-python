@@ -19,6 +19,7 @@ from typing import Any, Literal, override
 from splunklib.ai.messages import (
     AIMessage,
     AgentResponse,
+    BaseMessage,
     SubagentCall,
     ToolCall,
 )
@@ -75,6 +76,14 @@ class ModelRequest:
 ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[AIMessage]]
 
 
+@dataclass
+class AgentRequest:
+    messages: list[BaseMessage]
+
+
+AgentMiddlewareHandler = Callable[[AgentRequest], Awaitable[AgentResponse[Any | None]]]
+
+
 class AgentMiddleware:
     async def tool_middleware(
         self,
@@ -100,6 +109,15 @@ class AgentMiddleware:
         handler: ModelMiddlewareHandler,
     ) -> AIMessage:
         """Executed in between the LLM calls"""
+
+        return await handler(request)
+
+    async def agent_middleware(
+        self,
+        request: AgentRequest,
+        handler: AgentMiddlewareHandler,
+    ) -> AgentResponse[Any | None]:
+        """Executed in between invoke"""
 
         return await handler(request)
 
@@ -146,6 +164,23 @@ def model_middleware(
             request: ModelRequest,
             handler: ModelMiddlewareHandler,
         ) -> AIMessage:
+            return await func(request, handler)
+
+    return _CustomMiddleware()
+
+
+def agent_middleware(
+    func: Callable[
+        [AgentRequest, AgentMiddlewareHandler], Awaitable[AgentResponse[Any | None]]
+    ],
+) -> AgentMiddleware:
+    class _CustomMiddleware(AgentMiddleware):
+        @override
+        async def agent_middleware(
+            self,
+            request: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse[Any | None]:
             return await func(request, handler)
 
     return _CustomMiddleware()

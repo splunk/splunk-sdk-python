@@ -393,6 +393,7 @@ Each middleware can inspect input, call `handler(request)`, and modify the retur
 
 Available decorators:
 
+- `agent_middleware`
 - `model_middleware`
 - `tool_middleware`
 - `subagent_middleware`
@@ -400,9 +401,10 @@ Available decorators:
 Class-based middleware:
 
 ```py
-from typing import override
+from typing import Any, override
 from splunklib.ai.middleware import (
-    AgentMiddleware,
+	AgentMiddlewareHandler,
+    AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
     SubagentMiddlewareHandler,
@@ -412,10 +414,20 @@ from splunklib.ai.middleware import (
     ToolRequest,
     ToolResponse,
 )
-from splunklib.ai.messages import AIMessage
+from splunklib.ai.messages import AIMessage, AgentResponse, ToolCall
 
 
 class ExampleMiddleware(AgentMiddleware):
+    @override
+    async def agent_middleware(
+        self, request: AgentRequest, handler: AgentMiddlewareHandler
+    ) -> AgentResponse[Any | None]:
+        # Keep retrying until the agent makes at least one tool call.
+        resp = await handler(request)
+        while not any(m for m in resp.messages if isinstance(m, ToolCall)):
+            resp = await handler(request)
+        return resp
+
     @override
     async def model_middleware(
         self, request: ModelRequest, handler: ModelMiddlewareHandler
@@ -440,6 +452,29 @@ class ExampleMiddleware(AgentMiddleware):
                 content="Executive summary: no critical incidents detected."
             )
         return await handler(request)
+```
+
+Example agent middleware:
+
+```py
+from typing import Any
+from splunklib.ai.middleware import (
+    agent_middleware,
+    AgentMiddlewareHandler,
+    AgentRequest,
+)
+from splunklib.ai.messages import AgentResponse, ToolCall
+
+
+@agent_middleware
+async def force_tool_call(
+    request: AgentRequest, handler: AgentMiddlewareHandler
+) -> AgentResponse[Any | None]:
+    # Keep retrying until the agent makes at least one tool call.
+    resp = await handler(request)
+    while not any(m for m in resp.messages if isinstance(m, ToolCall)):
+        resp = await handler(request)
+    return resp
 ```
 
 Example model middleware:

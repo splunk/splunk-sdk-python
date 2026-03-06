@@ -79,8 +79,10 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.middleware import (
+    AgentMiddlewareHandler,
     AgentState,
     AgentMiddleware,
+    AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
     SubagentMiddlewareHandler,
@@ -122,6 +124,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
     _thread_id: uuid.UUID
     _config: RunnableConfig
     _output_schema: type[OutputT] | None
+    _middleware: Sequence[AgentMiddleware]
 
     def __init__(
         self,
@@ -129,15 +132,16 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         model: BaseChatModel,
         tools: list[BaseTool],
         output_schema: type[OutputT] | None,
-        middleware: Sequence[LC_AgentMiddleware] | None = None,
+        lcmiddleware: Sequence[LC_AgentMiddleware] | None = None,
+        middleware: Sequence[AgentMiddleware] | None = None,
     ) -> None:
         super().__init__()
         self._output_schema = output_schema
         self._thread_id = uuid.uuid4()
         self._config = {"configurable": {"thread_id": self._thread_id}}
+        self._middleware = middleware or []
 
         checkpointer = InMemorySaver()
-        middleware = middleware or []
 
         self._agent = create_agent(
             model=model,
@@ -145,32 +149,103 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             system_prompt=system_prompt,
             checkpointer=checkpointer,
             response_format=output_schema,
-            middleware=middleware,
+            middleware=lcmiddleware or [],
         )
+
+    def _with_agent_middleware(
+        self,
+        agent_invoke: Callable[[AgentRequest], Awaitable[AgentResponse[Any | None]]],
+    ) -> Callable[[AgentRequest], Awaitable[AgentResponse[Any | None]]]:
+        # When provided with a list of middlewares, e.g. [m1, m2, m3],
+        # they are executed in the following order:
+        #
+        # m1 -> m2 -> m3 -> agent_invoke
+        #
+        # Each middleware wraps the next one in the chain.
+        #
+        # - m1's handler calls m2.agent_middleware(...)
+        # - m2's handler calls m3.agent_middleware(...)
+        # - m3's handler eventually calls agent_invoke(...)
+        #
+        # We build the chain by iterating in reverse order.
+        # Each middleware wraps the previously constructed handler,
+        # so the first middleware in the list becomes the outermost one.
+
+        invoke = agent_invoke
+        for middleware in reversed(self._middleware):
+
+            def make_next(
+                m: AgentMiddleware, h: AgentMiddlewareHandler
+            ) -> AgentMiddlewareHandler:
+                async def next(r: AgentRequest) -> AgentResponse[Any | None]:
+                    return await m.agent_middleware(r, h)
+
+                return next
+
+            invoke = make_next(middleware, invoke)
+
+        return invoke
 
     @override
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
-        langchain_msgs = [_map_message_to_langchain(m) for m in messages]
+        async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
+            langchain_msgs = [_map_message_to_langchain(m) for m in req.messages]
 
-        # call the langchain agent
-        result = await self._agent.ainvoke(
-            {"messages": langchain_msgs},
-            config=self._config,
-        )
-
-        sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
-
-        # NOTE: Agent responses will always conform to output schema. Verifying
-        # if an LLM made any mistakes or not is _always_ up to the developer.
-        if self._output_schema:
-            return AgentResponse(
-                structured_output=result["structured_response"],
-                messages=sdk_msgs,
+            # call the langchain agent
+            result = await self._agent.ainvoke(
+                {"messages": langchain_msgs},
+                config=self._config,
             )
 
-        # HACK: This let's us put None in the structured_output field. It also shows
-        # None as the field type if no `output_schema`was provided to the Agent class.
-        return AgentResponse(structured_output=cast(OutputT, None), messages=sdk_msgs)
+            sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
+
+            # NOTE: Agent responses will always conform to output schema. Verifying
+            # if an LLM made any mistakes or not is _always_ up to the developer.
+
+            assert (
+                self._output_schema is None
+                or type(result["structured_response"]) is self._output_schema
+            )
+
+            if self._output_schema:
+                return AgentResponse(
+                    structured_output=result["structured_response"],
+                    messages=sdk_msgs,
+                )
+            else:
+                return AgentResponse(structured_output=None, messages=sdk_msgs)
+
+        result = await self._with_agent_middleware(invoke_agent)(
+            AgentRequest(
+                messages=messages,
+            )
+        )
+
+        if self._output_schema:
+            if result.structured_output is None:
+                raise AssertionError("Agent middleware discarded a structured output")
+
+            if type(result.structured_output) is not self._output_schema:
+                raise AssertionError(
+                    f"Agent middleware returned an invalid structured_output type: {type(result.structured_output)}, want: {self._output_schema}"
+                )
+
+            return AgentResponse[OutputT](
+                messages=result.messages,
+                structured_output=result.structured_output,
+            )
+        else:
+            if result.structured_output is not None:
+                raise AssertionError(
+                    "Agent middleware unexpectedly included a structured output"
+                )
+
+            return AgentResponse[OutputT](
+                messages=result.messages,
+                # HACK: This let's us put None in the structured_output field. It also shows
+                # None as the field type if no `output_schema`was provided to the Agent class.
+                structured_output=cast(OutputT, None),
+            )
 
 
 @final
@@ -229,7 +304,8 @@ class LangChainBackend(Backend):
             model=model_impl,
             tools=tools,
             output_schema=agent.output_schema,
-            middleware=middleware,
+            lcmiddleware=middleware,
+            middleware=agent.middleware,
         )
 
 

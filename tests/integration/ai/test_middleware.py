@@ -13,7 +13,7 @@
 # under the License.
 
 import os
-from typing import override
+from typing import Any, override
 from unittest.mock import patch
 
 import pytest
@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from splunklib.ai import Agent
 from splunklib.ai.messages import (
     AIMessage,
+    AgentResponse,
     HumanMessage,
     SubagentCall,
     SubagentMessage,
@@ -30,6 +31,8 @@ from splunklib.ai.messages import (
 )
 from splunklib.ai.middleware import (
     AgentMiddleware,
+    AgentMiddlewareHandler,
+    AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
     SubagentMiddlewareHandler,
@@ -38,6 +41,7 @@ from splunklib.ai.middleware import (
     ToolMiddlewareHandler,
     ToolRequest,
     ToolResponse,
+    agent_middleware,
     model_middleware,
     subagent_middleware,
     tool_middleware,
@@ -671,3 +675,325 @@ class TestMiddleware(AITestCase):
                         )
                     ]
                 )
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        @agent_middleware
+        async def test_middleware(
+            req: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            assert len(req.messages) == 1
+            assert req.messages[0] == HumanMessage(
+                content="What is the weather like today in Krakow?"
+            )
+            resp = await handler(req)
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+            return resp
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+        ) as agent:
+            resp = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Krakow?")]
+            )
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_class_based(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Middleware(AgentMiddleware):
+            @override
+            async def agent_middleware(
+                self,
+                request: AgentRequest,
+                handler: AgentMiddlewareHandler,
+            ) -> AgentResponse[Any | None]:
+                return AgentResponse(
+                    messages=[
+                        HumanMessage(
+                            content="What is the weather like today in Krakow?"
+                        ),
+                        AIMessage(content="Cloudy"),
+                    ],
+                    structured_output=None,
+                )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[Middleware()],
+        ) as agent:
+            resp = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Krakow?")]
+            )
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_exception(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        @agent_middleware
+        async def test_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            raise Exception("testing")
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+        ) as agent:
+            with pytest.raises(Exception, match="testing"):
+                _ = await agent.invoke(
+                    [HumanMessage(content="What is the weather like today in Krakow?")]
+                )
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_fake_response(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        @agent_middleware
+        async def test_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            return AgentResponse(
+                messages=[
+                    HumanMessage(content="What is the weather like today in Krakow?"),
+                    AIMessage(content="Cloudy"),
+                ],
+                structured_output=None,
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+        ) as agent:
+            resp = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Krakow?")]
+            )
+            assert len(resp.messages) == 2
+            assert resp.messages[1] == AIMessage(content="Cloudy")
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_retry(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        @agent_middleware
+        async def test_middleware(
+            req: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            resp = await handler(req)
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+            resp = await handler(req)
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+            return resp
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test_middleware],
+        ) as agent:
+            resp = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Krakow?")]
+            )
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_multiple(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        test1_called = False
+        test2_called = False
+
+        @agent_middleware
+        async def test1_middleware(
+            req: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            nonlocal test1_called, test2_called
+            assert not test1_called and not test2_called
+            test1_called = True
+            resp = await handler(req)
+            assert test1_called and test2_called
+            return resp
+
+        @agent_middleware
+        async def test2_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            nonlocal test1_called, test2_called
+            assert test1_called and not test2_called
+            test2_called = True
+            return AgentResponse(
+                messages=[
+                    HumanMessage(content="What is the weather like today in Krakow?"),
+                    AIMessage(content="Cloudy"),
+                ],
+                structured_output=None,
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is stefan",
+            service=self.service,
+            middleware=[test1_middleware, test2_middleware],
+        ) as agent:
+            resp = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Krakow?")]
+            )
+            assert len(resp.messages) > 1
+            assert isinstance(resp.messages[-1], AIMessage)
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @agent_middleware
+        async def test_middleware(
+            req: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            resp = await handler(req)
+            assert resp.structured_output is not None
+            assert type(resp.structured_output) is Output
+            assert resp.structured_output.name.lower() == "stefan"
+            return resp
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is Stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            resp = await agent.invoke([HumanMessage(content="What is your name?")])
+            assert resp.structured_output is not None
+            assert type(resp.structured_output) is Output
+            assert resp.structured_output.name.lower() == "stefan"
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_missing_structured_output(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @agent_middleware
+        async def test_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            return AgentResponse(
+                messages=[
+                    HumanMessage(content="What is your name?"),
+                    AIMessage(content="Stefan"),
+                ],
+                structured_output=None,
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is Stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            with pytest.raises(
+                AssertionError, match="Agent middleware discarded a structured output"
+            ):
+                _ = await agent.invoke([HumanMessage(content="What is your name?")])
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_invalid_structured_output_type(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        class Output2(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @agent_middleware
+        async def test_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            return AgentResponse[Any | None](
+                messages=[
+                    HumanMessage(content="What is your name?"),
+                    AIMessage(content="Stefan"),
+                ],
+                structured_output=Output2(name="Stefan"),
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is Stefan",
+            service=self.service,
+            middleware=[test_middleware],
+            output_schema=Output,
+        ) as agent:
+            with pytest.raises(
+                AssertionError,
+                match="Agent middleware returned an invalid structured_output type:",
+            ):
+                _ = await agent.invoke([HumanMessage(content="What is your name?")])
+
+    @pytest.mark.asyncio
+    async def test_agent_middleware_unexpected_additional_structured_output(
+        self,
+    ) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Output(BaseModel):
+            name: str = Field(description="name of the Person")
+
+        @agent_middleware
+        async def test_middleware(
+            _req: AgentRequest,
+            _handler: AgentMiddlewareHandler,
+        ) -> AgentResponse:
+            return AgentResponse[Any | None](
+                messages=[
+                    HumanMessage(content="What is your name?"),
+                    AIMessage(content="Stefan"),
+                ],
+                structured_output=Output(name="Stefan"),
+            )
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="Your name is Stefan",
+            service=self.service,
+            middleware=[test_middleware],
+        ) as agent:
+            with pytest.raises(
+                AssertionError,
+                match="Agent middleware unexpectedly included a structured output",
+            ):
+                _ = await agent.invoke([HumanMessage(content="What is your name?")])

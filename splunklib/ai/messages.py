@@ -35,6 +35,7 @@ class SubagentCall:
     args: dict[str, Any]
     id: str | None  # TODO: can be None?
 
+
 @dataclass(frozen=True)
 class BaseMessage:
     role: str = ""

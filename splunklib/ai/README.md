@@ -562,6 +562,7 @@ Example hook that logs token usage after each model call:
 ```py
 from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.hooks import after_model
+from splunklib.ai.middleware import AgentState
 from splunklib.client import connect
 
 import logging
@@ -588,7 +589,8 @@ The same hook can be defined as a class. It needs to provide the type and name a
 
 ```py
 from typing import final, override
-from splunklib.ai.hooks import AgentHook, AgentState
+from splunklib.ai.hooks import AgentHook
+from splunklib.ai.middleware import AgentState
 import logging
 
 logger = logging.getLogger(__name__)
@@ -616,6 +618,7 @@ The logic of the hook can be more advanced and include multiple conditions, for 
 ```py
 from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.hooks import before_model, AgentHook
+from splunklib.ai.middleware import AgentState
 from time import monotonic
 
 def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentHook:

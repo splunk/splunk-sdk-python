@@ -21,7 +21,6 @@ from pydantic import BaseModel, Field
 from splunklib.ai import Agent
 from splunklib.ai.hooks import (
     AgentHook,
-    AgentState,
     StepsLimitExceededException,
     TimeoutExceededException,
     TokenLimitExceededException,
@@ -34,6 +33,7 @@ from splunklib.ai.hooks import (
     token_limit,
 )
 from splunklib.ai.messages import HumanMessage
+from splunklib.ai.middleware import AgentState
 from tests.ai_testlib import AITestCase
 
 

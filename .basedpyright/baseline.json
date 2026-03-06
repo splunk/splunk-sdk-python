@@ -82,16 +82,6 @@
                 }
             }
         ],
-        "./splunklib/ai/hooks.py": [
-            {
-                "code": "reportDeprecated",
-                "range": {
-                    "startColumn": 24,
-                    "endColumn": 33,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./splunklib/ai/model.py": [
             {
                 "code": "reportDeprecated",

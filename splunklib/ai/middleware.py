@@ -14,14 +14,26 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Literal, override
+from typing import Any, Literal, override
 
-from splunklib.ai.hooks import AgentState
 from splunklib.ai.messages import (
     AIMessage,
+    AgentResponse,
     SubagentCall,
     ToolCall,
 )
+
+
+@dataclass(frozen=True)
+class AgentState:
+    """AgentState is passed to middleware and contains information about the current state of the agent execution."""
+
+    # holds messages exchanged so far in the conversation
+    response: AgentResponse[Any | None]
+    # steps taken so far in the conversation
+    total_steps: int
+    # tokens used so far in the conversation
+    token_count: float
 
 
 @dataclass

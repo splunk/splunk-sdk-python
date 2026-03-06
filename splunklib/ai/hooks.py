@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from collections.abc import Awaitable, Callable
 from time import monotonic
-from typing import Any, Awaitable, Callable, Literal, Protocol, final, override
+from typing import Literal, Protocol, final, override
 
-from splunklib.ai.messages import AgentResponse
+from splunklib.ai.middleware import AgentState
 
 # Hook type decides when the hook is called during agent execution.
 # before_model: before each model call
@@ -10,18 +10,6 @@ from splunklib.ai.messages import AgentResponse
 # before_agent: once per agent invocation, before any model calls
 # after_agent: once per agent invocation, after all model calls
 HookType = Literal["before_model", "after_model", "before_agent", "after_agent"]
-
-
-@dataclass(frozen=True)
-class AgentState:
-    """AgentState is passed to each hook and contains information about the current state of the agent execution."""
-
-    # holds messages exchanged so far in the conversation
-    response: AgentResponse[Any | None]
-    # steps taken so far in the conversation
-    total_steps: int
-    # tokens used so far in the conversation
-    token_count: float
 
 
 class AgentHook(Protocol):

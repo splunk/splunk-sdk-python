@@ -62,7 +62,6 @@ from splunklib.ai.core.backend import (
 )
 from splunklib.ai.hooks import (
     AgentHook,
-    AgentState,
     FunctionHook,
     after_model as hook_after_model,
     before_model as hook_before_model,
@@ -80,6 +79,7 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.middleware import (
+    AgentState,
     AgentMiddleware,
     ModelMiddlewareHandler,
     ModelRequest,

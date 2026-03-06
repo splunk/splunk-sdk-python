@@ -17,11 +17,13 @@
 import unittest
 
 import pytest
-from langchain.messages import AIMessage as LC_AIMessage
-from langchain.messages import HumanMessage as LC_HumanMessage
-from langchain.messages import SystemMessage as LC_SystemMessage
-from langchain.messages import ToolCall as LC_ToolCall
-from langchain.messages import ToolMessage as LC_ToolMessage
+from langchain.messages import (
+    AIMessage as LC_AIMessage,
+    HumanMessage as LC_HumanMessage,
+    SystemMessage as LC_SystemMessage,
+    ToolCall as LC_ToolCall,
+    ToolMessage as LC_ToolMessage,
+)
 
 from splunklib.ai.core.backend import InvalidMessageTypeError, InvalidModelError
 from splunklib.ai.engines import langchain as lc
@@ -35,6 +37,7 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
+from splunklib.ai.tools import ToolType
 
 
 class TestMapMessageFromLangchain(unittest.TestCase):
@@ -46,7 +49,9 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
         assert isinstance(mapped, AIMessage)
         assert mapped.content == "done"
-        assert mapped.calls == [ToolCall(name="lookup", args={"q": "test"}, id="tc-1")]
+        assert mapped.calls == [
+            ToolCall(name="lookup", args={"q": "test"}, id="tc-1", type=ToolType.REMOTE)
+        ]
 
     def test_map_message_from_langchain_ai_with_agent_call(self) -> None:
         tool_call = LC_ToolCall(
@@ -75,12 +80,10 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
         assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
-            ToolCall(name="lookup", args={"q": "test"}, id="tc-1"),
-            SubagentCall(
-                name="assistant",
-                args={"q": "test"},
-                id="tc-2",
+            ToolCall(
+                name="lookup", args={"q": "test"}, id="tc-1", type=ToolType.REMOTE
             ),
+            SubagentCall(name="assistant", args={"q": "test"}, id="tc-2"),
         ]
 
     def test_map_message_from_langchain_human(self) -> None:
@@ -132,7 +135,8 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 class MapMessageToLangchainTests(unittest.TestCase):
     def test_map_message_to_langchain_ai(self) -> None:
         message = AIMessage(
-            content="hi", calls=[ToolCall(name="lookup", args={}, id="tc-1")]
+            content="hi",
+            calls=[ToolCall(name="lookup", args={}, id="tc-1", type=ToolType.REMOTE)],
         )
         mapped = lc._map_message_to_langchain(message)
 
@@ -161,13 +165,18 @@ class MapMessageToLangchainTests(unittest.TestCase):
         assert isinstance(mapped, LC_HumanMessage)
         assert mapped.content == "hello"
 
-    def test_map_message_to_langchain_tool_call_with_reserved_prefix(
-        self,
-    ) -> None:
+    def test_map_message_to_langchain_tool_call_with_reserved_prefix(self) -> None:
         message = lc._map_message_to_langchain(
             AIMessage(
                 content="hi",
-                calls=[ToolCall(name=f"{lc.AGENT_PREFIX}bad-tool", args={}, id="tc-1")],
+                calls=[
+                    ToolCall(
+                        name=f"{lc.AGENT_PREFIX}bad-tool",
+                        args={},
+                        id="tc-1",
+                        type=ToolType.REMOTE,
+                    )
+                ],
             )
         )
         assert isinstance(message, LC_AIMessage)
@@ -178,7 +187,11 @@ class MapMessageToLangchainTests(unittest.TestCase):
         message = lc._map_message_to_langchain(
             AIMessage(
                 content="hi",
-                calls=[ToolCall(name="__bad-tool", args={}, id="tc-2")],
+                calls=[
+                    ToolCall(
+                        name="__bad-tool", args={}, id="tc-2", type=ToolType.REMOTE
+                    )
+                ],
             )
         )
         assert isinstance(message, LC_AIMessage)
@@ -187,7 +200,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
         ]
 
         message = lc._map_message_to_langchain(
-            ToolMessage(content="hi", name="__bad-tool")
+            ToolMessage(content="hi", name="__bad-tool", type=ToolType.REMOTE)
         )
         assert isinstance(message, LC_ToolMessage)
         assert message.name == "__tool-__bad-tool"
@@ -253,7 +266,11 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
     def test_map_message_to_langchain_tool(self) -> None:
         message = ToolMessage(
-            name="lookup", content="result", call_id="call-1", status="error"
+            name="lookup",
+            content="result",
+            call_id="call-1",
+            status="error",
+            type=ToolType.REMOTE,
         )
         mapped = lc._map_message_to_langchain(message)
 
@@ -301,3 +318,27 @@ class CreateLangchainModelTests(unittest.TestCase):
         assert result.model_name == model.model
         assert result.openai_api_base == model.base_url
         assert result.temperature == model.temperature
+
+
+@pytest.mark.parametrize(
+    ("name", "tool_type", "expected_name"),
+    [
+        (
+            f"{lc.RESERVED_LC_TOOL_PREFIX}test_tool",
+            ToolType.REMOTE,
+            f"{lc.CONFLICTING_TOOL_PREFIX}__test_tool",
+        ),
+        ("test_tool", ToolType.LOCAL, f"{lc.LOCAL_TOOL_PREFIX}test_tool"),
+        (
+            f"{lc.RESERVED_LC_TOOL_PREFIX}test_tool",
+            ToolType.LOCAL,
+            f"{lc.LOCAL_TOOL_PREFIX}{lc.RESERVED_LC_TOOL_PREFIX}test_tool",
+        ),
+    ],
+)
+def test_normalize_tool_name(
+    name: str, tool_type: ToolType, expected_name: str
+) -> None:
+    got_name = lc._normalize_tool_name(name, tool_type)
+
+    assert got_name == expected_name

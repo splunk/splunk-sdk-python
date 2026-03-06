@@ -87,7 +87,7 @@ from splunklib.ai.middleware import (
     tool_middleware,
 )
 from splunklib.ai.model import OpenAIModel, PredefinedModel
-from splunklib.ai.tools import Tool, ToolException
+from splunklib.ai.tools import Tool, ToolException, ToolType
 
 # Represents a prefix reserved only for internal use.
 # No user-visible tool or subagent name can be prefixed with it.
@@ -101,6 +101,10 @@ AGENT_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}agent-"
 # prevents user-provided tools from starting with AGENT_PREFIX and also serves as a
 # backward compatibility measure - we're free to use any prefixed tool name.
 CONFLICTING_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}tool-"
+
+# Prepended to a local tool name when passed to LangChain to both avoid name conflicts
+# and to allow recovering tool type during LC -> SDK conversion
+LOCAL_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}local-"
 
 AGENT_AS_TOOLS_PROMPT = f"""
 You are provided with Agents.
@@ -242,6 +246,15 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             )
 
 
+def _prepare_langchain_tools(agent_tools: Sequence[Tool]) -> list[BaseTool]:
+    """We prefix every local tool name."""
+    tools = list[BaseTool]()
+    for a_tool in agent_tools:
+        tools.append(_create_langchain_tool(a_tool))
+
+    return tools
+
+
 @final
 class LangChainBackend(Backend):
     @override
@@ -249,9 +262,9 @@ class LangChainBackend(Backend):
         self,
         agent: BaseAgent[OutputT],
     ) -> AgentImpl[OutputT]:
-        system_prompt = agent.system_prompt
-        tools = [_create_langchain_tool(t) for t in agent.tools]
+        tools = _prepare_langchain_tools(agent.tools)
 
+        system_prompt = agent.system_prompt
         if agent.agents:
             seen_names: set[str] = set()
             for subagent in agent.agents:
@@ -466,7 +479,8 @@ def _convert_tool_request_to_lc(
 
 
 def _convert_subagent_request_to_lc(
-    request: SubagentRequest, original_request: LC_ToolCallRequest
+    request: SubagentRequest,
+    original_request: LC_ToolCallRequest,
 ) -> LC_ToolCallRequest:
     return original_request.override(
         tool_call=_map_tool_call_to_langchain(request.call),
@@ -475,7 +489,8 @@ def _convert_subagent_request_to_lc(
 
 
 def _convert_model_request_to_lc(
-    request: ModelRequest, original_request: LC_ModelRequest
+    request: ModelRequest,
+    original_request: LC_ModelRequest,
 ) -> LC_ModelRequest:
     return original_request.override(
         system_message=LC_SystemMessage(content=request.system_message),
@@ -504,7 +519,7 @@ def _convert_tool_message_to_lc(
         case SubagentMessage():
             name = _normalize_agent_name(message.name)
         case ToolMessage():
-            name = _normalize_tool_name(message.name)
+            name = _normalize_tool_name(message.name, message.type)
 
     return LC_ToolMessage(
         name=name,
@@ -515,11 +530,10 @@ def _convert_tool_message_to_lc(
 
 
 def _convert_tool_response_to_lc(
-    response: ToolResponse,
-    call: ToolCall,
+    response: ToolResponse, call: ToolCall
 ) -> LC_ToolMessage:
     return LC_ToolMessage(
-        name=_normalize_tool_name(call.name),
+        name=_normalize_tool_name(call.name, call.type),
         content=response.content,
         tool_call_id=call.id,
         status=response.status,
@@ -554,11 +568,18 @@ def _convert_tool_message_from_lc(
             assert message.name is not None, (
                 "LangChain responded with a nameless tool call"
             )
+
+            tool_type: ToolType = (
+                ToolType.LOCAL
+                if message.name.startswith(LOCAL_TOOL_PREFIX)
+                else ToolType.REMOTE
+            )
             return ToolMessage(
                 name=_denormalize_tool_name(message.name),
                 content=message.content.__str__(),
                 call_id=message.tool_call_id,
                 status=message.status,
+                type=tool_type,
             )
         case LC_Command():
             # NOTE: for now the command is not implemented
@@ -668,7 +689,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         except ToolException as e:
             raise LC_ToolException(*e.args) from e
         except LC_ToolException:
-            assert False, (
+            assert False, (  # noqa: PT015
                 "ToolException from LangChain should not be raised in tool.func"
             )
 
@@ -687,7 +708,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         return result.content
 
     return StructuredTool(
-        name=_normalize_tool_name(tool.name),
+        name=_normalize_tool_name(tool.name, tool.type),
         description=tool.description,
         args_schema=tool.input_schema,
         coroutine=_tool_call,
@@ -709,14 +730,24 @@ def _denormalize_agent_name(name: str) -> str:
     return name.removeprefix(AGENT_PREFIX)
 
 
-def _normalize_tool_name(name: str) -> str:
+def _normalize_tool_name(name: str, tool_type: ToolType) -> str:
+    if tool_type == ToolType.LOCAL:
+        return LOCAL_TOOL_PREFIX + name
+
     if name.startswith(RESERVED_LC_TOOL_PREFIX):
-        return f"{CONFLICTING_TOOL_PREFIX}{name}"
+        # Tool name contains our reserved prefix, see comment
+        # on CONFLICTING_TOOL_PREFIX for more details
+        return CONFLICTING_TOOL_PREFIX + name
+
     return name
 
 
 def _denormalize_tool_name(name: str) -> str:
-    return name.removeprefix(CONFLICTING_TOOL_PREFIX)
+    if name.startswith(RESERVED_LC_TOOL_PREFIX):
+        assert "-" in name, "Invalid prefix in tool name"
+        _prefix, name = name.split("-", maxsplit=1)
+
+    return name
 
 
 def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
@@ -757,17 +788,22 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
 
 def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | SubagentCall:
-    if tool_call["name"].startswith(AGENT_PREFIX):
+    name = tool_call["name"]
+    if name.startswith(AGENT_PREFIX):
         return SubagentCall(
-            name=_denormalize_agent_name(tool_call["name"]),
+            name=_denormalize_agent_name(name),
             args=tool_call["args"],
             id=tool_call["id"],
         )
 
+    tool_type: ToolType = (
+        ToolType.LOCAL if name.startswith(LOCAL_TOOL_PREFIX) else ToolType.REMOTE
+    )
     return ToolCall(
-        name=_denormalize_tool_name(tool_call["name"]),
+        name=_denormalize_tool_name(name),
         args=tool_call["args"],
         id=tool_call["id"],
+        type=tool_type,
     )
 
 
@@ -776,13 +812,9 @@ def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
         case SubagentCall():
             name = _normalize_agent_name(call.name)
         case ToolCall():
-            name = _normalize_tool_name(call.name)
+            name = _normalize_tool_name(call.name, call.type)
 
-    return LC_ToolCall(
-        name=name,
-        args=call.args,
-        id=call.id,
-    )
+    return LC_ToolCall(id=call.id, name=name, args=call.args)
 
 
 def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
@@ -806,7 +838,7 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
     match message:
         case AIMessage():
             lc_message = LC_AIMessage(content=message.content)
-            # this field can't be set via constructor
+            # This field can't be set via constructor
             lc_message.tool_calls = [
                 _map_tool_call_to_langchain(c) for c in message.calls
             ]

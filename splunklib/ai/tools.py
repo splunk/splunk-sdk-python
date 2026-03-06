@@ -1,12 +1,12 @@
 import asyncio
-import collections.abc
 import logging
 import os
 import sys
+from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from contextlib import asynccontextmanager
-from collections.abc import AsyncGenerator, Awaitable, Generator
 from dataclasses import dataclass
-from typing import Any, Callable, Literal, override
+from enum import Enum
+from typing import Any, final, override
 
 import httpx
 from anyio import Path
@@ -19,14 +19,17 @@ from mcp.types import (
     LoggingMessageNotificationParams,
     PaginatedRequestParams,
     TextContent,
+    Tool as MCPTool,
 )
-from mcp.types import Tool as MCPTool
 from pydantic import BaseModel
 
+from splunklib.ai.registry import (
+    LogData,
+    _map_logger_to_mcp_logging_level,  # pyright: ignore[reportPrivateUsage]
+)
 from splunklib.ai.serialized_service import SerializedService
 from splunklib.binding import HTTPError
 from splunklib.client import Service
-from splunklib.ai.registry import LogData, _map_logger_to_mcp_logging_level
 
 TOOLS_FILENAME = "tools.py"
 
@@ -41,12 +44,18 @@ class ToolResult:
     structured_content: dict[str, Any] | None
 
 
+class ToolType(Enum):
+    LOCAL = "local"
+    REMOTE = "remote"
+
+
 @dataclass(frozen=True)
 class Tool:
     name: str
     description: str
     input_schema: dict[str, Any]
     func: Callable[..., Awaitable[ToolResult]]
+    type: ToolType
     tags: list[str] | None = None
 
 
@@ -134,12 +143,13 @@ class _MCPLoggingHandler(LoggingFnT):
         )
 
 
+@final
 class _MCPAuth(Auth):
     def __init__(self, authorization: str) -> None:
         self._authorization = authorization
 
     @override
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(self, request: Request) -> Generator[Request, Response]:
         request.headers["Authorization"] = self._authorization
         yield request
 
@@ -158,31 +168,29 @@ async def _list_all_tools(session: ClientSession) -> list[MCPTool]:
 
 def _convert_mcp_tool(
     session: ClientSession,
-    type: Literal["remote", "local"],
+    type: ToolType,
     app_id: str,
     trace_id: str,
     tool: MCPTool,
     service: Service,
 ) -> Tool:
-    async def call_tool(
-        **arguments: dict[str, Any],
-    ) -> ToolResult:
+    async def call_tool(**arguments: dict[str, Any]) -> ToolResult:
         meta: dict[str, Any] | None = None
         match type:
-            case "local":
+            case ToolType.LOCAL:
                 meta = {
                     "splunk": {
                         # Provide access to the splunk instance in local tools.
                         # No need to do anything special for remote tools, since
                         # these tools are already authenticated with the token.
                         "service": SerializedService.from_service(service),
-                        # Currently we don't need to send the trace_id and app_id to local tools, since
-                        # that is only really needed to correlate logs, but for local tools we know
-                        # that logs coming from the local tool registry are already reladed to this
-                        # agent.
+                        # Currently we don't need to send the trace_id and app_id to
+                        # local tools, since that is only really needed to correlate
+                        # logs, but for local tools we know that logs coming from the
+                        # local tool registry are already reloaded to this agent.
                     }
                 }
-            case "remote":
+            case ToolType.REMOTE:
                 meta = {
                     "splunk": {
                         "trace_id": trace_id,
@@ -208,6 +216,7 @@ def _convert_mcp_tool(
         input_schema=tool.inputSchema,
         func=call_tool,
         tags=tags,
+        type=type,
     )
 
 
@@ -322,7 +331,6 @@ async def connect_remote_mcp(
 ) -> AsyncGenerator[ClientSession | None]:
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
-
     mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(service))
     if mcp_token is not None:
         async with streamable_http_client(
@@ -349,7 +357,7 @@ async def connect_remote_mcp(
 
 async def load_mcp_tools(
     session: ClientSession,
-    type: Literal["remote", "local"],
+    type: ToolType,
     app_id: str,
     trace_id: str,
     service: Service,

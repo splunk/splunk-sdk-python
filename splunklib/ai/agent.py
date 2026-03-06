@@ -29,6 +29,7 @@ from splunklib.ai.model import PredefinedModel
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
 from splunklib.ai.tools import (
     Tool,
+    ToolType,
     build_local_tools_path,
     connect_local_mcp,
     connect_remote_mcp,
@@ -171,7 +172,11 @@ class Agent(BaseAgent[OutputT]):
                     )
                     self.logger.debug("Loading local tools")
                     local_tools = await load_mcp_tools(
-                        local_session, "local", app_id, self.trace_id, self._service
+                        local_session,
+                        ToolType.LOCAL,
+                        app_id,
+                        self.trace_id,
+                        self._service,
                     )
                     self.logger.debug(f"Local tools loaded; {local_tools=}")
                     tools.extend(local_tools)
@@ -188,7 +193,7 @@ class Agent(BaseAgent[OutputT]):
                     self.logger.debug("Loading remote tools - MCP Server available")
                     remote_tools = await load_mcp_tools(
                         remote_session,
-                        "remote",
+                        ToolType.REMOTE,
                         app_id,
                         self.trace_id,
                         self._service,

@@ -86,14 +86,15 @@ reportUnusedCallResult = false
 [tool.ruff.lint]
 fixable = ["ALL"]
 select = [
-  "ANN", # flake8 type annotations
+  "ANN", # flake-8-annotations
   "C4",  # comprehensions
   "DOC", # pydocstyle
   "E",   # pycodestyle
   "F",   # pyflakes
   "I",   # isort
-  "UP",  # pyupgrade
+  "PT",  # flake-8-pytest-rules
   "RUF", # ruff-specific rules
+  "UP",  # pyupgrade
 ]
 
 [tool.ruff.lint.isort]

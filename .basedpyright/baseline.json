@@ -202,30 +202,6 @@
         ],
         "./splunklib/ai/tools.py": [
             {
-                "code": "reportUnusedImport",
-                "range": {
-                    "startColumn": 7,
-                    "endColumn": 22,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportPrivateUsage",
-                "range": {
-                    "startColumn": 43,
-                    "endColumn": 75,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnannotatedClassAttribute",
-                "range": {
-                    "startColumn": 13,
-                    "endColumn": 27,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownVariableType",
                 "range": {
                     "startColumn": 15,
@@ -30169,22 +30145,6 @@
             }
         ],
         "./tests/integration/ai/test_agent_mcp_tools.py": [
-            {
-                "code": "reportUnusedImport",
-                "range": {
-                    "startColumn": 21,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportPrivateUsage",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 24,
-                    "lineCount": 1
-                }
-            },
             {
                 "code": "reportUnknownArgumentType",
                 "range": {

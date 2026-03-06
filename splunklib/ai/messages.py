@@ -12,14 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel
 
-OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
+from splunklib.ai.tools import ToolType
 
 
 @dataclass(frozen=True)
@@ -27,6 +26,7 @@ class ToolCall:
     name: str
     args: dict[str, Any]
     id: str | None  # TODO: can be None?
+    type: ToolType
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ class BaseMessage:
     role: str = ""
     content: str = field(default="")
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if type(self) is BaseMessage:
             raise TypeError(
                 "BaseMessage is an abstract class and cannot be instantiated"
@@ -79,14 +79,15 @@ class AIMessage(BaseMessage):
 
 @dataclass(frozen=True)
 class ToolMessage(BaseMessage):
-    """
-    ToolMessage represents a response of a tool call
-    """
+    """ToolMessage represents a response of a tool call"""
+
+    # TODO: See if we can remove the defaults - they should always be populated manually
 
     role: Literal["tool"] = "tool"
     name: str = field(default="")
     call_id: str = field(default="")
     status: Literal["success", "error"] = "success"
+    type: ToolType = ToolType.LOCAL
 
 
 @dataclass(frozen=True)
@@ -108,6 +109,9 @@ class SubagentMessage(BaseMessage):
     name: str = field(default="")
     call_id: str = field(default="")
     status: Literal["success", "error"] = "success"
+
+
+OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
 
 
 @dataclass(frozen=True)

@@ -1,30 +1,32 @@
 import asyncio
 import contextlib
-from dataclasses import asdict, dataclass
-import logging
 import json
+import logging
 import os
 import socket
-from typing import Annotated
+from collections.abc import AsyncGenerator
+from dataclasses import asdict, dataclass
+from typing import Annotated, Any
 from unittest.mock import patch
 
-from mcp.types import CallToolResult, TextContent
 import pytest
-from starlette.middleware import Middleware
 import uvicorn
 from mcp.server.fastmcp import Context, FastMCP
-from pydantic import BaseModel
+from mcp.types import CallToolResult, TextContent
+from pydantic import BaseModel, Field
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from splunklib.ai import Agent
+from splunklib.ai.engines.langchain import LOCAL_TOOL_PREFIX
 from splunklib.ai.messages import HumanMessage, ToolMessage
 from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai.tools import (
-    _get_splunk_username,
+    _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
     locate_app,
 )
 from splunklib.client import connect
@@ -646,16 +648,88 @@ class TestRemoteTools(AITestCase):
                     assert len(result.structured_content["results"]) != 0
                     return
 
-            assert False, "tool splunk_get_indexes not found"
+            assert False, "Tool splunk_get_indexes not found"
+
+
+class TestHandlingToolNameCollision(AITestCase):
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(os.path.dirname(__file__), "testdata", "tool_collision.py"),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @pytest.mark.asyncio
+    async def test_tool_collision(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        local_tool_name = f"{LOCAL_TOOL_PREFIX}temperature"
+        remote_tool_name = "temperature"
+
+        mcp = FastMCP("MCP Server", streamable_http_path="/")
+        mcp.add_tool(
+            name=remote_tool_name,
+            description="Remote temperature tool",
+            fn=lambda: "31.5C",
+        )
+
+        @contextlib.asynccontextmanager
+        async def lifespan(_app: Starlette) -> AsyncGenerator[None, Any]:
+            async with mcp.session_manager.run():
+                yield
+
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Mount("/services/mcp", app=mcp.streamable_http_app()),
+                    Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
+                ],
+                lifespan=lifespan,
+            )
+        ) as (host, port):
+            service = await asyncio.to_thread(
+                lambda: connect(
+                    scheme="http",
+                    host=host,
+                    port=port,
+                    splunkToken=AUTH_TOKEN,
+                    autologin=True,
+                    # To avoid mocking `authentication/current-context` endpoint
+                    username="admin",
+                ),
+            )
+
+            class ToolResults(BaseModel):
+                local_temperature: str = Field(
+                    description=f"Result from {local_tool_name=}"
+                )
+                remote_temperature: str = Field(
+                    description=f"Result from {remote_tool_name=}"
+                )
+
+            async with Agent(
+                model=await self.model(),
+                system_prompt="Return only JSON, no additional text.",
+                service=service,
+                use_mcp_tools=True,
+                output_schema=ToolResults,
+            ) as agent:
+                assert len(agent.tools) == 2
+
+                content = "Call tools to populate output."
+                response = await agent.invoke([HumanMessage("user", content)])
+                print(response.structured_output)
+                assert response.structured_output.remote_temperature == "31.5C"
+                assert response.structured_output.local_temperature == "22.1C"
 
 
 @contextlib.asynccontextmanager
-async def run_http_server(app: Starlette):
+async def run_http_server(
+    app: Starlette,
+) -> AsyncGenerator[tuple[str, int], Any]:
     # Create a socket with port 0, this will cause a creation of a socket with
-    # a free port that is avail on the system, such that we do not have to hardcode a port, or
-    # re-try until we find a free one.
-    # Additionally this avoid a race, since the port is up and running here, rather started by
-    # server.serve, which happens concurrently.
+    # a free port that is avail on the system, such that we do not have to
+    # hardcode a port, or re-try until we find a free one.
+    # Additionally this avoid a race, since the port is up and running here,
+    # rather started by server.serve, which happens concurrently.
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     sock.listen(128)

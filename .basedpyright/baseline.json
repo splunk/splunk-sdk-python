@@ -30354,24 +30354,6 @@
                 }
             }
         ],
-        "./tests/integration/ai/test_hooks.py": [
-            {
-                "code": "reportOptionalMemberAccess",
-                "range": {
-                    "startColumn": 26,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportOptionalMemberAccess",
-                "range": {
-                    "startColumn": 26,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./tests/integration/ai/test_registry.py": [
             {
                 "code": "reportUnknownArgumentType",

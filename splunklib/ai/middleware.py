@@ -27,7 +27,7 @@ from splunklib.ai.messages import (
 
 @dataclass(frozen=True)
 class AgentState:
-    """AgentState is passed to middleware and contains information about the current state of the agent execution."""
+    """AgentState is available through certain middlewares and contains information about the current state of an agent execution."""
 
     # holds messages exchanged so far in the conversation
     response: AgentResponse[Any | None]

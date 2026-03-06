@@ -592,12 +592,15 @@ They differ by the point in the execution flow where they are invoked:
 - before_agent: once per agent invocation, before any model calls
 - after_agent: once per agent invocation, after all model calls
 
+Hooks implement the same interface as middlewares, which allows them to be supplied
+directly as middleware instances in the Agent constructor.
+
 Example hook that logs token usage after each model call:
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.hooks import after_model
-from splunklib.ai.middleware import AgentState
+from splunklib.ai.middleware import ModelResponse
 from splunklib.client import connect
 
 import logging
@@ -608,42 +611,15 @@ model = OpenAIModel(...)
 service = connect(...)
 
 @after_model
-def log_token_usage(state: AgentState) -> None:
-    logger.debug(f"Model used {state.token_count} tokens up to this point")
+def log_model_response(req: ModelResponse) -> None:
+    logger.debug(f"Model response {req.message.content}")
 
 
 async with Agent(
     model=model,
     service=service,
     system_prompt="..." ,
-    hooks=[log_token_usage],
-) as agent: ...
-```
-
-The same hook can be defined as a class. It needs to provide the type and name attributes, and implement the `__call__` method:
-
-```py
-from typing import final, override
-from splunklib.ai.hooks import AgentHook
-from splunklib.ai.middleware import AgentState
-import logging
-
-logger = logging.getLogger(__name__)
-
-@final
-class LoggingHook(AgentHook):
-    type = "before_model"
-    name = "test_hook"
-
-    @override
-    def __call__(self, state: AgentState) -> None:
-        logger.debug(f"Model used {state.token_count} tokens up to this point")
-
-async with Agent(
-    model=model,
-    service=service,
-    system_prompt="..." ,
-    hooks=[LoggingHook()],
+    middleware=[log_model_response],
 ) as agent: ...
 ```
 
@@ -652,17 +628,17 @@ The logic of the hook can be more advanced and include multiple conditions, for 
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.hooks import before_model, AgentHook
-from splunklib.ai.middleware import AgentState
+from splunklib.ai.hooks import before_model
+from splunklib.ai.middleware import AgentMiddleware, ModelRequest
 from time import monotonic
 
-def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentHook:
+def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentMiddleware:
     now = monotonic()
     timeout = now + seconds_limit
 
     @before_model
-    def _limit_hook(state: AgentState) -> None:
-        if state.token_count > token_limit or monotonic() >= timeout:
+    def _limit_hook(req: ModelRequest) -> None:
+        if req.state.token_count > token_limit or monotonic() >= timeout:
             raise Exception("Stopping Agentic Loop")
 
     return _limit_hook
@@ -670,7 +646,7 @@ def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentHoo
 
 async with Agent(
     ...,
-    hooks=[timeout_or_token_limit(seconds_limit=10.0, token_limit=10000)],
+    middleware=[timeout_or_token_limit(seconds_limit=10.0, token_limit=10000)],
 ) as agent: ...
 ```
 

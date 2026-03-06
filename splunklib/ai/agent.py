@@ -23,7 +23,6 @@ from pydantic import BaseModel
 from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
-from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
@@ -94,11 +93,6 @@ class Agent(BaseAgent[OutputT]):
             used as a *subagent*. The supervisor agent uses this schema to
             understand how to call the subagent and how to format its inputs.
 
-        hooks:
-            Optional sequence of `AgentHook`. Hooks are user-defined callback
-            functions that can be registered to execute at specific points
-            during the agent's operation.
-
         name:
             Name of the agent when used as a subagent. This is
             surfaced to the supervisor and used to decide whether this agent
@@ -130,7 +124,6 @@ class Agent(BaseAgent[OutputT]):
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,  # Only used by Subagents
-        hooks: Sequence[AgentHook] | None = None,
         middleware: Sequence[AgentMiddleware] | None = None,
         name: str = "",  # Only used by Subagents
         description: str = "",  # Only used by Subagents
@@ -144,7 +137,6 @@ class Agent(BaseAgent[OutputT]):
             agents=agents,
             input_schema=input_schema,
             output_schema=output_schema,
-            hooks=hooks,
             middleware=middleware,
             logger=logger,
         )

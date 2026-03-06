@@ -20,7 +20,6 @@ from typing import Generic
 
 from pydantic import BaseModel
 
-from splunklib.ai.hooks import AgentHook
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
@@ -36,7 +35,6 @@ class BaseAgent(Generic[OutputT], ABC):
     _description: str = ""
     _input_schema: type[BaseModel] | None = None
     _output_schema: type[OutputT] | None = None
-    _hooks: Sequence[AgentHook] | None = None
     _middleware: Sequence[AgentMiddleware] | None = None
     _trace_id: str
     _logger: logging.Logger
@@ -51,7 +49,6 @@ class BaseAgent(Generic[OutputT], ABC):
         agents: Sequence["BaseAgent[BaseModel | None]"] | None = None,
         input_schema: type[BaseModel] | None = None,
         output_schema: type[OutputT] | None = None,
-        hooks: Sequence[AgentHook] | None = None,
         middleware: Sequence[AgentMiddleware] | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
@@ -63,7 +60,6 @@ class BaseAgent(Generic[OutputT], ABC):
         self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
         self._output_schema = output_schema
-        self._hooks = tuple(hooks) if hooks else ()
         self._middleware = tuple(middleware) if middleware else ()
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
 
@@ -111,10 +107,6 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def output_schema(self) -> type[OutputT] | None:
         return self._output_schema
-
-    @property
-    def hooks(self) -> Sequence[AgentHook] | None:
-        return self._hooks
 
     @property
     def middleware(self) -> Sequence[AgentMiddleware] | None:

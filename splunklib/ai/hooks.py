@@ -1,27 +1,17 @@
+import inspect
 from collections.abc import Awaitable, Callable
 from time import monotonic
-from typing import Literal, Protocol, final, override
+from typing import Any, override
 
-from splunklib.ai.middleware import AgentState
-
-# Hook type decides when the hook is called during agent execution.
-# before_model: before each model call
-# after_model: after each model call
-# before_agent: once per agent invocation, before any model calls
-# after_agent: once per agent invocation, after all model calls
-HookType = Literal["before_model", "after_model", "before_agent", "after_agent"]
-
-
-class AgentHook(Protocol):
-    """AgentHook is a callable that can be registered to be called at specific points during the agent execution.
-
-    Use decorators `before_model`, `after_model`, `before_agent`, `after_agent` to create hooks from simple functions.
-    """
-
-    type: HookType
-
-    def __call__(self, state: AgentState) -> None | Awaitable[None]:
-        """Called at specific points during the agent execution, depending on the hook type."""
+from splunklib.ai.messages import AgentResponse
+from splunklib.ai.middleware import (
+    AgentMiddleware,
+    AgentMiddlewareHandler,
+    AgentRequest,
+    ModelMiddlewareHandler,
+    ModelRequest,
+    ModelResponse,
+)
 
 
 class AgentStopException(Exception):
@@ -49,84 +39,119 @@ class TimeoutExceededException(AgentStopException):
         super().__init__(f"Timed out after {timeout_seconds} seconds.")
 
 
-@final
-class FunctionHook(AgentHook):
-    """
-    Implementation of AgentHook that wraps a single callable function.
-
-    FunctionHook allows creation of a hook from a plain function instead of
-    defining a full AgentHook subclass.
-
-    Use helper decorators: before_model, after_model, before_agent, after_agent to
-    construct such hook.
-    """
-
-    type: HookType
-    func: Callable[[AgentState], None | Awaitable[None]]
-
-    def __init__(
-        self, hookType: HookType, func: Callable[[AgentState], None | Awaitable[None]]
-    ) -> None:
-        self.type = hookType
-        self.func = func
-
-    @override
-    def __call__(self, state: AgentState) -> None | Awaitable[None]:
-        return self.func(state)
-
-
-def before_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
+def before_model(
+    func: Callable[[ModelRequest], None | Awaitable[None]],
+) -> AgentMiddleware:
     """This hook is called before each model call."""
 
-    return FunctionHook("before_model", func)
+    class _Middleware(AgentMiddleware):
+        @override
+        async def model_middleware(
+            self,
+            request: ModelRequest,
+            handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            res = func(request)
+            if inspect.isawaitable(res):
+                await res
+            return await handler(request)
+
+    return _Middleware()
 
 
-def after_model(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
+def after_model(
+    func: Callable[[ModelResponse], None | Awaitable[None]],
+) -> AgentMiddleware:
     """This hook is called after each model call."""
 
-    return FunctionHook("after_model", func)
+    class _Middleware(AgentMiddleware):
+        @override
+        async def model_middleware(
+            self,
+            request: ModelRequest,
+            handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            handler_response = await handler(request)
+            res = func(handler_response)
+            if inspect.isawaitable(res):
+                await res
+            return handler_response
+
+    return _Middleware()
 
 
-def before_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
+def before_agent(
+    func: Callable[[AgentRequest], None | Awaitable[None]],
+) -> AgentMiddleware:
     """This hook is called once per agent invocation. Before any model calls."""
 
-    return FunctionHook("before_agent", func)
+    class _Middleware(AgentMiddleware):
+        @override
+        async def agent_middleware(
+            self,
+            request: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse[Any | None]:
+            res = func(request)
+            if inspect.isawaitable(res):
+                await res
+            return await handler(request)
+
+    return _Middleware()
 
 
-def after_agent(func: Callable[[AgentState], None | Awaitable[None]]) -> AgentHook:
+def after_agent(
+    func: Callable[[AgentResponse[Any | None]], None | Awaitable[None]],
+) -> AgentMiddleware:
     """This hook is called once per agent invocation. After all model calls."""
 
-    return FunctionHook("after_agent", func)
+    class _Middleware(AgentMiddleware):
+        @override
+        async def agent_middleware(
+            self,
+            request: AgentRequest,
+            handler: AgentMiddlewareHandler,
+        ) -> AgentResponse[Any | None]:
+            handler_response = await handler(request)
+            res = func(handler_response)
+            if inspect.isawaitable(res):
+                await res
+            return handler_response
+
+    return _Middleware()
 
 
-def token_limit(limit: float) -> AgentHook:
+def token_limit(limit: float) -> AgentMiddleware:
     """This hook can be used to stop the agent execution if the token usage exceeds a certain limit."""
 
-    def _token_limit_hook(state: AgentState) -> None:
-        if state.token_count > limit:
+    @before_model
+    def _token_limit_hook(req: ModelRequest) -> None:
+        if req.state.token_count > limit:
             raise TokenLimitExceededException(token_limit=limit)
 
-    return FunctionHook("before_model", _token_limit_hook)
+    return _token_limit_hook
 
 
-def step_limit(limit: int) -> AgentHook:
+def step_limit(limit: int) -> AgentMiddleware:
     """This hook can be used to stop the agent execution if the number of steps exceeds a certain limit."""
 
-    def _step_limit_hook(state: AgentState) -> None:
-        if state.total_steps >= limit:
+    @before_model
+    def _step_limit_hook(req: ModelRequest) -> None:
+        if req.state.total_steps >= limit:
             raise StepsLimitExceededException(steps_limit=limit)
 
-    return FunctionHook("before_model", _step_limit_hook)
+    return _step_limit_hook
 
 
-def timeout_limit(seconds: float) -> AgentHook:
+def timeout_limit(seconds: float) -> AgentMiddleware:
     """This hook can be used to stop the agent execution if the time limit exceeds a certain limit."""
 
     now = monotonic()
     timeout = now + seconds
 
-    def _timeout_limit_hook(_state: AgentState) -> None:
+    @before_model
+    def _timeout_limit_hook(_: ModelRequest) -> None:
         if monotonic() >= timeout:
             raise TimeoutExceededException(timeout_seconds=seconds)
 
-    return FunctionHook("before_model", _timeout_limit_hook)
+    return _timeout_limit_hook

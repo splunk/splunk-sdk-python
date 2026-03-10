@@ -27,7 +27,10 @@ from langchain.agents.middleware import (
     ModelResponse as LC_ModelResponse,
 )
 from langchain.agents.middleware.summarization import TokenCounter as LC_TokenCounter
-from langchain.agents.middleware.types import ModelCallResult as LC_ModelCallResult
+from langchain.agents.middleware.types import (
+    ExtendedModelResponse as LC_ExtendedModelResponse,
+    ModelCallResult as LC_ModelCallResult,
+)
 from langchain.messages import (
     AIMessage as LC_AIMessage,
     AnyMessage as LC_AnyMessage,
@@ -70,10 +73,10 @@ from splunklib.ai.messages import (
     ToolMessage,
 )
 from splunklib.ai.middleware import (
-    AgentMiddlewareHandler,
-    AgentState,
     AgentMiddleware,
+    AgentMiddlewareHandler,
     AgentRequest,
+    AgentState,
     ModelMiddlewareHandler,
     ModelRequest,
     ModelResponse,
@@ -130,7 +133,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         model: BaseChatModel,
         tools: list[BaseTool],
         output_schema: type[OutputT] | None,
-        lcmiddleware: Sequence[LC_AgentMiddleware] | None = None,
+        lc_middleware: Sequence[LC_AgentMiddleware] | None = None,
         middleware: Sequence[AgentMiddleware] | None = None,
     ) -> None:
         super().__init__()
@@ -147,7 +150,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             system_prompt=system_prompt,
             checkpointer=checkpointer,
             response_format=output_schema,
-            middleware=lcmiddleware or [],
+            middleware=lc_middleware or [],
         )
 
     def _with_agent_middleware(
@@ -300,7 +303,7 @@ class LangChainBackend(Backend):
             model=model_impl,
             tools=tools,
             output_schema=agent.output_schema,
-            lcmiddleware=middleware,
+            lc_middleware=middleware,
             middleware=agent.middleware,
         )
 
@@ -589,6 +592,9 @@ def _convert_tool_message_from_lc(
 
 
 def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelResponse:
+    if isinstance(model_response, LC_ExtendedModelResponse):
+        model_response = model_response.model_response
+
     if isinstance(model_response, LC_ModelResponse):
         ai_message = next(
             (m for m in model_response.result if isinstance(m, LC_AIMessage)), None

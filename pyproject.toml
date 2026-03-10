@@ -96,6 +96,9 @@ select = [
   "RUF", # ruff-specific rules
   "UP",  # pyupgrade
 ]
+ignore = [
+  "E501", # line-length
+]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

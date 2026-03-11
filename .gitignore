@@ -280,4 +280,4 @@ $RECYCLE.BIN/
 .vscode/
 docs/_build/
 !*.conf.spec
-local.meta
+**/metadata/local.meta

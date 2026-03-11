@@ -162,22 +162,29 @@ automatically injected by the runtime for every tool invocation.
 authenticated actions against Splunk on behalf of the **user who executed the Agent**.
 
 ```py
-from splunklib.ai.registry import ToolContext
+from splunklib.ai.registry import ToolContext, ToolRegistry
+from splunklib.results import JSONResultsReader
+
+registry = ToolRegistry()
+
 
 @registry.tool()
-def runSplunkQuery(ctx: ToolContext) -> list[str]:
+def run_splunk_query(ctx: ToolContext) -> list[str]:
     stream = ctx.service.jobs.oneshot(
         "| makeresults count=10 | streamstats count as row_num",
         output_mode="json",
     )
 
+    result = JSONResultsReader(stream)
     output: list[str] = []
-    result = results.JSONResultsReader(stream)
     for r in result:
         if isinstance(r, dict):
             output.append(r["row_num"])
 
     return output
+
+if __name__ == "__main__":
+    registry.run()
 ```
 
 ##### Logger access

@@ -31,6 +31,7 @@ services:
             - "./tests/system/test_apps/ai_agentic_test_local_tools_app:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app"
 
             - "./examples/ai_custom_search_app:/opt/splunk/etc/apps/ai_custom_search_app"
+            - "./examples/ai_custom_alert_app:/opt/splunk/etc/apps/ai_custom_alert_app"
 
             - "./splunklib:/opt/splunk/etc/apps/eventing_app/bin/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/generating_app/bin/splunklib"
@@ -40,6 +41,7 @@ services:
             - "./splunklib:/opt/splunk/etc/apps/ai_agentic_test_app/bin/lib/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app/bin/lib/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/ai_custom_search_app/bin/lib/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_custom_alert_app/bin/lib/splunklib"
 
             - "./tests:/opt/splunk/etc/apps/ai_agentic_test_app/bin/lib/tests"
             - "./tests:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app/bin/lib/tests"

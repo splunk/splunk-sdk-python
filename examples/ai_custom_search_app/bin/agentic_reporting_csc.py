@@ -13,21 +13,20 @@
 # under the License.
 import asyncio
 import json
-import logging
-import logging.handlers
 import os
 import sys
 from collections.abc import Generator, Sequence
 from typing import Any, final, override
 
-# ! NOTE: This insert is only needed for splunk-sdk-python CI/CD to work.
+from setup_logging import setup_logging  # pyright: ignore[reportImplicitRelativeImport]
+
+# ! WARN: This insert is only needed for splunk-sdk-python CI/CD to work.
 # ! Remove this if you're modifying this example locally.
 sys.path.insert(0, "/splunklib-deps")
 
 # Include all 3rd party dependencies from <app_name>/bin/lib/
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 
-import httpx
 from pydantic import BaseModel, Field
 
 from splunklib.ai import OpenAIModel
@@ -42,8 +41,9 @@ from splunklib.searchcommands import (
 )
 from splunklib.searchcommands.eventing_command import EventingCommand
 
-# BUG: By default, a CRE process has its trust store path overridden by Splunk.
-# Unsetting that env makes said process use the default CAs instead.
+# BUG: For some reason the process is started with its trust store path overridden with
+# one that might not exist on the filesystem. In such case we unset the env, which
+# causes the default Certificate Authorities to be used instead.
 CA_TRUST_STORE = "/opt/splunk/openssl/cert.pem"
 if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(
     CA_TRUST_STORE
@@ -51,32 +51,8 @@ if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(
     del os.environ["SSL_CERT_FILE"]
 
 APP_NAME = "ai_custom_search_app"
+logger = setup_logging(APP_NAME)
 
-
-def setup_logging() -> logging.Logger:
-    """To see logs from this logger, run this SPL in Splunk:
-    `index=_internal sourcetype=ai_custom_search_app:log`
-    """
-    SPLUNK_HOME: str = os.environ.get("SPLUNK_HOME", os.path.join("/opt", "splunk"))
-    LOG_FILE: str = os.path.join(SPLUNK_HOME, "var", "log", "splunk", f"{APP_NAME}.log")
-
-    logger = logging.getLogger(APP_NAME)
-    logger.setLevel(logging.DEBUG)
-
-    handler = logging.handlers.RotatingFileHandler(
-        LOG_FILE, maxBytes=1024 * 1024, backupCount=5
-    )
-    handler.setFormatter(
-        logging.Formatter(f"%(asctime)s %(levelname)s [{APP_NAME}] %(message)s")
-    )
-    logger.addHandler(handler)
-
-    return logger
-
-
-logger = setup_logging()
-
-# endregion
 
 LLM_MODEL = OpenAIModel(
     model="gpt-4o-mini",
@@ -85,7 +61,6 @@ LLM_MODEL = OpenAIModel(
     # https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragepython
     api_key="<super_secret_key>",
 )
-LLM_SYSTEM_PROMPT = "You are an Expert Splunk Data Analyst."
 
 
 class AgentOutput(BaseModel):
@@ -140,7 +115,7 @@ class AgenticReportingCSC(EventingCommand):
             user_prompt = f"""
 Analyze this log: "{record_json}" and perform these tasks:
 
-1. Decide if record matches the intent: "{self.should_filter}"? 
+1. Decide if record matches the intent: "{self.should_filter}"?
     (Return boolean `should_keep`)
 2. Is this log relevant to "{self.highlight_topic}"?
     (Return boolean `is_relevant`)
@@ -166,8 +141,14 @@ Analyze this log: "{record_json}" and perform these tasks:
         assert self.service, "No Splunk connection available"
 
         async with Agent(
-            model=LLM_MODEL,
-            system_prompt=LLM_SYSTEM_PROMPT,
+            model=OpenAIModel(
+                model="gpt-4o-mini",
+                base_url="https://api.openai.com/v1",
+                # To store API keys, consider secret storage:
+                # https://dev.splunk.com/enterprise/docs/developapps/manageknowledge/secretstorage/secretstoragepython
+                api_key="<super_secret_key>",
+            ),
+            system_prompt="You are an Expert Splunk Data Analyst.",
             service=self.service,
             output_schema=AgentOutput,
         ) as agent:

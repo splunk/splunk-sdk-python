@@ -1,15 +1,5 @@
 {
     "files": {
-        "./examples/ai_custom_search_app/bin/agentic_reporting_csc.py": [
-            {
-                "code": "reportUnusedImport",
-                "range": {
-                    "startColumn": 7,
-                    "endColumn": 12,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./splunklib/__init__.py": [
             {
                 "code": "reportUnknownParameterType",

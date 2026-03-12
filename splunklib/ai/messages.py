@@ -38,8 +38,8 @@ class SubagentCall:
 
 @dataclass(frozen=True)
 class BaseMessage:
-    role: str = ""
-    content: str = field(default="")
+    role: str = field(init=False)
+    content: str = field(init=False)
 
     def __post_init__(self) -> None:
         if type(self) is BaseMessage:
@@ -58,7 +58,8 @@ class HumanMessage(BaseMessage):
     conversation.
     """
 
-    role: Literal["user"] = "user"
+    role: Literal["user"] = field(default="user", init=False)
+    content: str
 
 
 @dataclass(frozen=True)
@@ -71,23 +72,23 @@ class AIMessage(BaseMessage):
     requesting the Agent to execute.
     """
 
-    role: Literal["assistant"] = "assistant"
-    calls: Sequence[ToolCall | SubagentCall] = field(
-        default_factory=list[ToolCall | SubagentCall]
-    )
+    role: Literal["assistant"] = field(default="assistant", init=False)
+    content: str
+
+    calls: Sequence[ToolCall | SubagentCall]
 
 
 @dataclass(frozen=True)
 class ToolMessage(BaseMessage):
     """ToolMessage represents a response of a tool call"""
 
-    # TODO: See if we can remove the defaults - they should always be populated manually
+    role: Literal["tool"] = field(default="tool", init=False)
+    content: str
 
-    role: Literal["tool"] = "tool"
-    name: str = field(default="")
-    call_id: str = field(default="")
-    status: Literal["success", "error"] = "success"
-    type: ToolType = ToolType.LOCAL
+    name: str
+    type: ToolType
+    call_id: str
+    status: Literal["success", "error"]
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,8 @@ class SystemMessage(BaseMessage):
     A message used to prime or control agent behavior.
     """
 
-    role: Literal["system"] = "system"
+    role: Literal["system"] = field(default="system", init=False)
+    content: str
 
 
 @dataclass(frozen=True)
@@ -105,10 +107,12 @@ class SubagentMessage(BaseMessage):
     SubagentMessage represents a response of an agent invocation
     """
 
-    role: Literal["subagent"] = "subagent"
-    name: str = field(default="")
-    call_id: str = field(default="")
-    status: Literal["success", "error"] = "success"
+    role: Literal["subagent"] = field(default="subagent", init=False)
+    content: str
+
+    name: str
+    call_id: str
+    status: Literal["success", "error"]
 
 
 OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
@@ -119,4 +123,4 @@ class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT
     # Holds the full message history including tool calls and final response
-    messages: list[BaseMessage] = field(default_factory=list)
+    messages: list[BaseMessage]

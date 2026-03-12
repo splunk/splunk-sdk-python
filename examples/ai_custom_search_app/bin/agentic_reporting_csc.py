@@ -153,7 +153,7 @@ Analyze this log: "{record_json}" and perform these tasks:
             output_schema=AgentOutput,
         ) as agent:
             logger.info(f"Invoking {LLM_MODEL.model} at {LLM_MODEL.base_url}")
-            result = await agent.invoke([HumanMessage(role="user", content=prompt)])
+            result = await agent.invoke([HumanMessage(content=prompt)])
             return result.structured_output
 
 

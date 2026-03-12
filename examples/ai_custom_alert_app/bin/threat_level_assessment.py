@@ -100,7 +100,7 @@ async def invoke_agent(
     ) as agent:
         logger.info(f"Invoking {agent.model=}")
         logger.debug(f"{user_prompt=}")
-        result = await agent.invoke([HumanMessage(role="user", content=user_prompt)])
+        result = await agent.invoke([HumanMessage(content=user_prompt)])
         return result.structured_output
 
 

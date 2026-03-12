@@ -632,7 +632,9 @@ class TestMiddleware(AITestCase):
             nonlocal middleware_called
             middleware_called = True
 
-            return ModelResponse(message=AIMessage(content="My response is made up"))
+            return ModelResponse(
+                message=AIMessage(content="My response is made up", calls=[])
+            )
 
         async with Agent(
             model=await self.model(),
@@ -741,9 +743,7 @@ class TestMiddleware(AITestCase):
             _req: ModelRequest, _handler: ModelMiddlewareHandler
         ) -> ModelResponse:
             return ModelResponse(
-                message=AIMessage(
-                    content="Stefan",
-                ),
+                message=AIMessage(content="Stefan", calls=[]),
                 structured_output=Output(name="Stefan"),
             )
 
@@ -803,7 +803,7 @@ class TestMiddleware(AITestCase):
                         HumanMessage(
                             content="What is the weather like today in Krakow?"
                         ),
-                        AIMessage(content="Cloudy"),
+                        AIMessage(content="Cloudy", calls=[]),
                     ],
                     structured_output=None,
                 )
@@ -854,7 +854,7 @@ class TestMiddleware(AITestCase):
             return AgentResponse(
                 messages=[
                     HumanMessage(content="What is the weather like today in Krakow?"),
-                    AIMessage(content="Cloudy"),
+                    AIMessage(content="Cloudy", calls=[]),
                 ],
                 structured_output=None,
             )
@@ -869,7 +869,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
             assert len(resp.messages) == 2
-            assert resp.messages[1] == AIMessage(content="Cloudy")
+            assert resp.messages[1] == AIMessage(content="Cloudy", calls=[])
 
     @pytest.mark.asyncio
     async def test_agent_middleware_retry(self) -> None:
@@ -930,7 +930,7 @@ class TestMiddleware(AITestCase):
             return AgentResponse(
                 messages=[
                     HumanMessage(content="What is the weather like today in Krakow?"),
-                    AIMessage(content="Cloudy"),
+                    AIMessage(content="Cloudy", calls=[]),
                 ],
                 structured_output=None,
             )
@@ -992,7 +992,7 @@ class TestMiddleware(AITestCase):
             return AgentResponse(
                 messages=[
                     HumanMessage(content="What is your name?"),
-                    AIMessage(content="Stefan"),
+                    AIMessage(content="Stefan", calls=[]),
                 ],
                 structured_output=None,
             )
@@ -1027,7 +1027,7 @@ class TestMiddleware(AITestCase):
             return AgentResponse[Any | None](
                 messages=[
                     HumanMessage(content="What is your name?"),
-                    AIMessage(content="Stefan"),
+                    AIMessage(content="Stefan", calls=[]),
                 ],
                 structured_output=Output2(name="Stefan"),
             )
@@ -1062,7 +1062,7 @@ class TestMiddleware(AITestCase):
             return AgentResponse[Any | None](
                 messages=[
                     HumanMessage(content="What is your name?"),
-                    AIMessage(content="Stefan"),
+                    AIMessage(content="Stefan", calls=[]),
                 ],
                 structured_output=Output(name="Stefan"),
             )

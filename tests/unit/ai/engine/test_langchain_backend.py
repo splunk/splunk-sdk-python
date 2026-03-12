@@ -200,7 +200,13 @@ class MapMessageToLangchainTests(unittest.TestCase):
         ]
 
         message = lc._map_message_to_langchain(
-            ToolMessage(content="hi", name="__bad-tool", type=ToolType.REMOTE)
+            ToolMessage(
+                call_id="foo",
+                status="success",
+                content="hi",
+                name="__bad-tool",
+                type=ToolType.REMOTE,
+            )
         )
         assert isinstance(message, LC_ToolMessage)
         assert message.name == "__tool-__bad-tool"

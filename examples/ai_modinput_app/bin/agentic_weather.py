@@ -127,7 +127,7 @@ class AgenticWeatherModInput(Script):
                 f"Parse {data_json=} into a into a short, human-readable sentence. "
                 + "Was it a good day to go outside if you're human?"
             )
-            response = await agent.invoke([HumanMessage(role="user", content=prompt)])
+            response = await agent.invoke([HumanMessage(content=prompt)])
             logger.debug(f"{response=}")
             return response.messages[-1].content
 

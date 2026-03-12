@@ -50,7 +50,6 @@ class WeatherHandler(CRETestHandler):
             result = await agent.invoke(
                 [
                     HumanMessage(
-                        role="user",
                         content=(
                             "What is the weather like today in Krakow? Use the provided tools to check the temperature. "
                             "Return a short response, containing the tool response."

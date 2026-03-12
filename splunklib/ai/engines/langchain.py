@@ -346,9 +346,8 @@ class _Middleware(LC_AgentMiddleware):
             # Optimization: if not overridden, then skip the conversion overhead.
             return await handler(request)
 
-        sdk_request = _convert_model_request_from_lc(request, self._model)
         sdk_response = await self._middleware.model_middleware(
-            sdk_request,
+            _convert_model_request_from_lc(request, self._model),
             _convert_model_handler_from_lc(handler, original_request=request),
         )
         return _convert_model_response_to_model_result(sdk_response)
@@ -368,23 +367,33 @@ class _Middleware(LC_AgentMiddleware):
                 # Optimization: if not overridden, skip the conversion overhead.
                 return await handler(request)
 
-            sdk_request = _convert_tool_request_from_lc(request, self._model)
             sdk_response = await self._middleware.tool_middleware(
-                sdk_request,
+                _convert_tool_request_from_lc(request, self._model),
                 _convert_tool_handler_from_lc(handler, original_request=request),
             )
-            return _convert_tool_response_to_lc(sdk_response, sdk_request.call)
+
+            return LC_ToolMessage(
+                name=_normalize_tool_name(call.name, call.type),
+                tool_call_id=call.id,
+                content=sdk_response.content,
+                status=sdk_response.status,
+            )
 
         if not self._is_overridden("subagent_middleware"):
             # Optimization: if not overridden, skip the conversion overhead.
             return await handler(request)
 
-        sdk_request = _convert_subagent_request_from_lc(request, self._model)
         sdk_response = await self._middleware.subagent_middleware(
-            sdk_request,
+            _convert_subagent_request_from_lc(request, self._model),
             _convert_subagent_handler_from_lc(handler, original_request=request),
         )
-        return _convert_subagent_response_to_lc(sdk_response, sdk_request.call)
+
+        return LC_ToolMessage(
+            name=_normalize_agent_name(call.name),
+            tool_call_id=call.id,
+            content=sdk_response.content,
+            status=sdk_response.status,
+        )
 
 
 def _convert_tool_handler_from_lc(
@@ -529,29 +538,6 @@ def _convert_tool_message_to_lc(
         content=message.content,
         tool_call_id=message.call_id,
         status=message.status,
-    )
-
-
-def _convert_tool_response_to_lc(
-    response: ToolResponse, call: ToolCall
-) -> LC_ToolMessage:
-    return LC_ToolMessage(
-        name=_normalize_tool_name(call.name, call.type),
-        content=response.content,
-        tool_call_id=call.id,
-        status=response.status,
-    )
-
-
-def _convert_subagent_response_to_lc(
-    response: SubagentResponse,
-    call: SubagentCall,
-) -> LC_ToolMessage:
-    return LC_ToolMessage(
-        name=_normalize_agent_name(call.name),
-        content=response.content,
-        tool_call_id=call.id,
-        status=response.status,
     )
 
 

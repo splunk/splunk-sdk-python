@@ -43,7 +43,10 @@ async with Agent(
 The Agent is designed with a modular, provider-agnostic architecture. This allows a single Agent implementation
 to work with different model providers through a common interface, without requiring changes to the agent’s core logic.
 
-At the moment, we support OpenAI and OpenAI-compatible models.
+We support following predefined models:
+
+- `OpenAIModel` - works with OpenAI and any [OpenAI-compatible API](https://platform.openai.com/docs/api-reference).
+- `AnthropicModel` - works with Anthropic and any [Anthropic-compatible API](https://docs.anthropic.com/en/api).
 
 ### OpenAI
 
@@ -59,10 +62,27 @@ model = OpenAIModel(
 async with Agent(model=model) as agent: ....
 ```
 
-#### Ollama
+### Anthropic
 
-Since Ollama exposes an [OpenAI compatible API](https://docs.ollama.com/api/openai-compatibility), the existing `OpenAIModel` can be used
-to leverage models available through Ollama.
+```py
+from splunklib.ai import Agent, AnthropicModel
+
+model = AnthropicModel(
+    model="claude-haiku-4-5-20251001",
+    base_url="https://api.anthropic.com",
+    api_key="SECRET",
+)
+
+async with Agent(model=model) as agent: ....
+```
+
+### Self-hosted models via Ollama
+
+[Ollama](https://ollama.com/) can serve local models with both OpenAI and Anthropic-compatible endpoints, so either model class works.
+
+#### Using `OpenAIModel` with Ollama
+
+See [OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility) for supported features.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
@@ -70,6 +90,22 @@ from splunklib.ai import Agent, OpenAIModel
 model = OpenAIModel(
     model="llama3.2:3b",
     base_url="http://localhost:11434/v1",
+    api_key="ollama",
+)
+
+async with Agent(model=model) as agent: ....
+```
+
+#### Using `AnthropicModel` with Ollama
+
+See [Anthropic compatibility](https://docs.ollama.com/api/anthropic-compatibility) for supported features.
+
+```py
+from splunklib.ai import Agent, AnthropicModel
+
+model = AnthropicModel(
+    model="llama3.2:3b",
+    base_url="http://localhost:11434",
     api_key="ollama",
 )
 

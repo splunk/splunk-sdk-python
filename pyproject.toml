@@ -34,8 +34,8 @@ dependencies = []
 [project.optional-dependencies]
 compat = ["six>=1.17.0"]
 ai = ["mcp>=1.26.0", "pydantic>=2.12.5", "langchain>=1.2.7"]
+anthropic = ["splunk-sdk[ai]", "langchain-anthropic>=0.3"]
 openai = ["splunk-sdk[ai]", "langchain-openai>=1.1.7"]
-ollama = ["splunk-sdk[ai]", "langchain-ollama>=1.0.1"]
 
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]
@@ -49,7 +49,7 @@ test = [
 release = ["build>=1.4.0", "jinja2>=3.1.6", "twine>=6.2.0", "sphinx>=9.1.0"]
 lint = ["basedpyright>=1.37.2", "ruff>=0.14.14"]
 dev = [
-  "splunk-sdk[openai, ollama]",
+  "splunk-sdk[openai, anthropic]",
   { include-group = "test" },
   { include-group = "lint" },
   { include-group = "release" },

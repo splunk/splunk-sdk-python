@@ -89,7 +89,7 @@ from splunklib.ai.middleware import (
     subagent_middleware,
     tool_middleware,
 )
-from splunklib.ai.model import OpenAIModel, PredefinedModel
+from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
 from splunklib.ai.tools import Tool, ToolException, ToolType
 
 # Represents a prefix reserved only for internal use.
@@ -891,11 +891,32 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                 )
             except ImportError:
                 raise ImportError(
-                    """OpenAI support is not installed.\n\n
-                    To enable OpenAI / ChatGPT models, install the optional extra:\n\n
-                      pip install "splunk-sdk[openai]"\n
-                      # or if using uv:\n
-                      uv add splunk-sdk[openai]"""
+                    "OpenAI support is not installed.\n"
+                    + "To enable OpenAI / ChatGPT models, install the optional extra:\n"
+                    + 'pip install "splunk-sdk[openai]"\n'
+                    + "# or if using uv:\n"
+                    + "uv add splunk-sdk[openai]"
+                )
+        case AnthropicModel():
+            try:
+                from langchain_anthropic import ChatAnthropic
+
+                kwargs: dict[str, Any] = {
+                    "model_name": model.model,
+                    "api_key": model.api_key,
+                    "base_url": model.base_url,
+                }
+                if model.temperature is not None:
+                    kwargs["temperature"] = model.temperature
+
+                return ChatAnthropic(**kwargs)
+            except ImportError:
+                raise ImportError(
+                    "Anthropic support is not installed.\n"
+                    + "To enable Anthropic models, install the optional extra:\n"
+                    + 'pip install "splunk-sdk[anthropic]"\n'
+                    + "# or if using uv:\n"
+                    + "uv add splunk-sdk[anthropic]"
                 )
         case _:
             raise InvalidModelError(

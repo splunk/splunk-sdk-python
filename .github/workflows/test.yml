@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: python -m pip install '.[openai]' --group test
+        run: python -m pip install '.[openai, anthropic]' --group test
 
       - name: Set up .env
         run: cp .env.template .env

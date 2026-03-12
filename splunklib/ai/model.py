@@ -53,7 +53,18 @@ class OpenAIModel(PredefinedModel):
     """
 
 
+@dataclass(frozen=True)
+class AnthropicModel(PredefinedModel):
+    """Predefined Anthropic Model"""
+
+    model: str
+    api_key: str
+    base_url: str
+    temperature: float | None = None
+
+
 __all__ = [
+    "AnthropicModel",
     "OpenAIModel",
     "PredefinedModel",
 ]

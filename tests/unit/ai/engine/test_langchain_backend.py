@@ -36,7 +36,7 @@ from splunklib.ai.messages import (
     ToolCall,
     ToolMessage,
 )
-from splunklib.ai.model import OpenAIModel, PredefinedModel
+from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
 from splunklib.ai.tools import ToolType
 
 
@@ -324,6 +324,40 @@ class CreateLangchainModelTests(unittest.TestCase):
         assert result.model_name == model.model
         assert result.openai_api_base == model.base_url
         assert result.temperature == model.temperature
+
+    def test_create_langchain_model_anthropic(self) -> None:
+        pytest.importorskip("langchain_anthropic")
+        import langchain_anthropic
+
+        model = AnthropicModel(
+            model="claude-3-5-sonnet-20241022",
+            api_key="test-key",
+            base_url="https://api.anthropic.com",
+            temperature=0.3,
+        )
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_anthropic.ChatAnthropic)
+        assert result.model == model.model
+        assert result.temperature == model.temperature
+
+    def test_create_langchain_model_anthropic_with_base_url(self) -> None:
+        pytest.importorskip("langchain_anthropic")
+        import langchain_anthropic
+
+        model = AnthropicModel(
+            model="claude-3-5-sonnet-20241022",
+            api_key="test-key",
+            base_url="http://localhost:11434",
+            temperature=0.5,
+        )
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_anthropic.ChatAnthropic)
+        assert result.model == model.model
+        assert result.temperature == model.temperature
+        # ChatAnthropic stores base_url in anthropic_api_url
+        assert result.anthropic_api_url == model.base_url
 
 
 @pytest.mark.parametrize(

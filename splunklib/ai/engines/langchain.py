@@ -746,11 +746,15 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
 
+    # TODO: The schemas that are inferred here could be better, we specify the schema as:
+    # OutputT | str, but we know based on agent.output_schema whether this either OutputT or str.
+
     if agent.input_schema is None:
 
-        async def _run(content: str) -> str:  # pyright: ignore[reportRedeclaration]
+        async def _run(content: str) -> OutputT | str:  # pyright: ignore[reportRedeclaration]
             result = await agent.invoke([HumanMessage(content=content)])
-            assert agent.output_schema is None
+            if agent.output_schema:
+                return result.structured_output
             return result.messages[-1].content
 
         return StructuredTool.from_function(

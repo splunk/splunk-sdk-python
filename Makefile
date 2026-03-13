@@ -1,50 +1,52 @@
-#
-# Conveniences for splunk-sdk development
-#
+### Conveniences for splunk-sdk-python development
 
-CONTAINER_NAME := "splunk"
-
-# VIRTUALENV MANAGEMENT
+## VIRTUALENV MANAGEMENT
 
 # https://docs.astral.sh/uv/reference/cli/#uv-run--upgrade
-# --no-config is used to skip all the internal Splunk package indexes
+# --no-config skips our Splunk package index
 .PHONY: uv-sync
 uv-sync:
-	@echo "[splunk-sdk] Make sure to tun this only in the repo root!"
-	uv sync --all-groups --all-extras --no-config
+	uv sync --no-config
 
 .PHONY: uv-upgrade
 uv-upgrade:
-	@echo "[splunk-sdk] Make sure to run this only in the repo root!"
-	uv sync --all-groups --all-extras --upgrade --no-config
+	uv sync --no-config --upgrade
 
 .PHONY: clean
-clean: 
+clean:
 	rm -rf ./build ./dist ./.venv ./.ruff_cache ./.pytest_cache ./splunk_sdk.egg-info ./__pycache__ ./**/__pycache__
 
 .PHONY: docs
 docs:
 	make -C ./docs html
 
+## TESTING
+
+# -ra generates a report on all failed tests
+# -vv lets us see what failed and why the rest of the suite is running
+PYTEST_CMD := python -m pytest --no-header -ra -vv
+
 .PHONY: test
 test:
-	# Previously failing tests go first
-	python -m pytest --ff ./tests
+	$(PYTEST_CMD) ./tests
 
 .PHONY: test-unit
 test-unit:
-	# Previously failing tests go first
-	python -m pytest --ff ./tests/unit
+	$(PYTEST_CMD) ./tests/unit
 
 .PHONY: test-integration
 test-integration:
-	# Previously failing tests go first
-	python -m pytest --ff ./tests/integration ./tests/system
+# Previously failing tests go first
+	$(PYTEST_CMD) --ff ./tests/integration ./tests/system
 
 .PHONY: test-ai
 test-ai:
-	# Previously failing tests go first
-	python -m pytest --ff ./tests/integration/ai ./tests/unit/ai
+	$(PYTEST_CMD) ./tests/integration/ai ./tests/unit/ai
+
+## DOCKER
+
+CONTAINER_NAME := splunk
+SPLUNK_HOME := /opt/splunk
 
 .PHONY: docker-up
 docker-up:
@@ -81,8 +83,8 @@ docker-refresh: docker-remove docker-start
 
 .PHONY: docker-splunk-restart
 docker-splunk-restart:
-	docker exec -it splunk sudo sh -c '/opt/splunk/bin/splunk restart --run-as-root'
+	docker exec -it $(CONTAINER_NAME) sudo sh -c '$(SPLUNK_HOME)/bin/splunk restart --run-as-root'
 
 .PHONY: docker-tail-python-log
 docker-tail-python-log:
-	docker exec splunk sudo tail /opt/splunk/var/log/splunk/python.log
+	docker exec -it $(CONTAINER_NAME) sudo tail $(SPLUNK_HOME)/var/log/splunk/python.log

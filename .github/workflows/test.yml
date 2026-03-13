@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: ${{ matrix.python-version }}
+          cache: "pip"
       - name: Install dependencies
         run: python -m pip install '.[openai, anthropic]' --group test
 
@@ -38,13 +39,13 @@ jobs:
           INTERNAL_AI_BASE_URL: ${{ secrets.INTERNAL_AI_BASE_URL }}
 
       - name: Restore pytest cache
+        if: ${{ github.ref }} != "refs/heads/master" && ${{ github.ref }} != "refs/heads/develop"
         uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         with:
           path: .pytest_cache
           key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
-            pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-
       - name: Run unit tests
         run: make test-unit
       - name: Run entire test suite

@@ -1,3 +1,5 @@
+# pyright: reportUnusedFunction=false, reportUnusedParameter=false
+
 import asyncio
 import contextlib
 import json
@@ -6,7 +8,7 @@ import os
 import socket
 from collections.abc import AsyncGenerator
 from dataclasses import asdict, dataclass
-from typing import Annotated, Any
+from typing import Annotated, Any, override
 from unittest.mock import patch
 
 import pytest
@@ -16,7 +18,7 @@ from mcp.types import CallToolResult, TextContent
 from pydantic import BaseModel, Field
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
@@ -40,11 +42,7 @@ OPENAI_API_KEY = "ollama"
 class TestTools(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     async def test_tool_execution_structured_output(self) -> None:
@@ -62,7 +60,7 @@ class TestTools(AITestCase):
                     HumanMessage(
                         content=(
                             "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                            "Return a short response, containing the tool response."
+                            + "Return a short response, containing the tool response."
                         ),
                     )
                 ]
@@ -80,11 +78,7 @@ class TestTools(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "tool_context.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "tool_context.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     async def test_tool_execution_service_access(self) -> None:
@@ -102,7 +96,7 @@ class TestTools(AITestCase):
                     HumanMessage(
                         content=(
                             "Using available tools, please check the startup time of the splunk instance."
-                            "Return a short response, containing the tool response."
+                            + "Return a short response, containing the tool response."
                         ),
                     )
                 ]
@@ -143,11 +137,7 @@ class TestTools(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "multi_city_weather.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "multi_city_weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     async def test_multiple_and_concurrent_tool_calls(self) -> None:
@@ -171,8 +161,8 @@ class TestTools(AITestCase):
                     HumanMessage(
                         content=(
                             "What is the weather like today in Krakow, Warsaw and Gdansk?"
-                            "Use the provided tools to check the temperature."
-                            "Return a short response, containing all of tool responses."
+                            + "Use the provided tools to check the temperature."
+                            + "Return a short response, containing all of tool responses."
                         ),
                     )
                 ]
@@ -189,8 +179,8 @@ class TestTools(AITestCase):
                     HumanMessage(
                         content=(
                             "What is the weather like today in Poznan?"
-                            "Use the provided tools to check the temperature."
-                            "Return a short response, containing all of tool responses."
+                            + "Use the provided tools to check the temperature."
+                            + "Return a short response, containing all of tool responses."
                         ),
                     )
                 ]
@@ -210,29 +200,29 @@ class TestSplunkGetUsername(testlib.SDKTestCase):
     def get_splunk_bearer_token(self) -> str:
         res = self.service.post(
             path_segment="authorization/tokens",
-            name=self.service.username,
+            name=self.service.username,  # pyright: ignore[reportUnknownArgumentType]
             audience="test",
             type="ephemeral",
             output_mode="json",
         )
-        token = json.loads(str(res.body))["entry"][0]["content"]["token"]
+        token = json.loads(str(res.body))["entry"][0]["content"]["token"]  # pyright: ignore[reportUnknownArgumentType]
         return token
 
     def test_get_splunk_username(self) -> None:
-        self.assertTrue(
-            self.service.username and self.service.password
-        )  # our CI logs-in with username and password.
+        # Our CI logs-in with username and password.
+        assert self.service.username
+        assert self.service.password
 
-        self.assertEqual(_get_splunk_username(self.service), self.service.username)
+        assert _get_splunk_username(self.service) == self.service.username
 
         service = connect(
-            scheme=self.service.scheme,
-            host=self.service.host,
+            scheme=self.service.scheme,  # pyright: ignore[reportUnknownArgumentType]
+            host=self.service.host,  # pyright: ignore[reportUnknownArgumentType]
             port=self.service.port,
             token=self.get_splunk_bearer_token(),
         )
 
-        self.assertEqual(_get_splunk_username(service), self.service.username)
+        assert _get_splunk_username(service) == self.service.username
 
 
 class TestAppLocate:
@@ -252,24 +242,17 @@ AUTH_TOKEN = "foobarbaz"
 
 
 async def mcp_token_handler(_: Request) -> Response:
-    return JSONResponse(
-        content={"token": AUTH_TOKEN},
-        status_code=200,
-    )
+    return JSONResponse(content={"token": AUTH_TOKEN}, status_code=200)
 
 
 class TestRemoteTools(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "non_existent.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "fancyapp")
     @pytest.mark.asyncio
-    async def test_remote_tools(self):
+    async def test_remote_tools(self) -> None:
         pytest.importorskip("langchain_openai")
 
         mcp = FastMCP("MCP Server", streamable_http_path="/")
@@ -278,9 +261,10 @@ class TestRemoteTools(AITestCase):
         app_id: str | None = None
 
         @mcp.tool(description="Returns the current temperature in the city")
-        def temperature(ctx: Context, city: str) -> str:
+        def temperature(ctx: Context[Any, Any], city: str) -> str:
             nonlocal trace_id, app_id
-            assert trace_id is None and app_id is None
+            assert trace_id is None
+            assert app_id is None
             assert ctx.request_context.meta is not None
             meta = ctx.request_context.meta.model_dump()
             splunk = meta.get("splunk", {})
@@ -293,7 +277,7 @@ class TestRemoteTools(AITestCase):
                 return "22.1C"
 
         @contextlib.asynccontextmanager
-        async def lifespan(app: Starlette):
+        async def lifespan(app: Starlette) -> AsyncGenerator[None, Any]:
             async with mcp.session_manager.run():
                 yield
 
@@ -302,7 +286,10 @@ class TestRemoteTools(AITestCase):
         middleware_called = False
 
         class MCPMiddleware(BaseHTTPMiddleware):
-            async def dispatch(self, request: Request, call_next):
+            @override
+            async def dispatch(
+                self, request: Request, call_next: RequestResponseEndpoint
+            ) -> Response:
                 if request.url.path.startswith("/services/mcp/"):
                     nonlocal http_trace_id, http_app_id, middleware_called
 
@@ -324,11 +311,7 @@ class TestRemoteTools(AITestCase):
             Starlette(
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
-                    Route(
-                        "/services/mcp_token",
-                        mcp_token_handler,
-                        methods=["GET"],
-                    ),
+                    Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
                 ],
                 lifespan=lifespan,
                 middleware=[Middleware(MCPMiddleware)],
@@ -356,7 +339,7 @@ class TestRemoteTools(AITestCase):
                         HumanMessage(
                             content=(
                                 "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                                "Return a short response, containing the tool response."
+                                + "Return a short response, containing the tool response."
                             ),
                         )
                     ]
@@ -374,27 +357,19 @@ class TestRemoteTools(AITestCase):
 
                 assert trace_id == agent.trace_id
                 assert app_id == "fancyapp"
-                assert http_trace_id == agent.trace_id
+                assert http_trace_id == agent.trace_id  # pyright: ignore[reportUnreachable]
                 assert http_app_id == "fancyapp"
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "non_existent.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_remote_tools_mcp_app_unavail(self):
+    async def test_remote_tools_mcp_app_unavailable(self) -> None:
         pytest.importorskip("langchain_openai")
 
-        async with run_http_server(
-            Starlette(
-                routes=[],
-            )
-        ) as (host, port):
+        async with run_http_server(Starlette(routes=[])) as (host, port):
             service = await asyncio.to_thread(
                 lambda: connect(
                     scheme="http",
@@ -414,11 +389,7 @@ class TestRemoteTools(AITestCase):
                 system_prompt="Your name is stefan",
             ) as agent:
                 result = await agent.invoke(
-                    [
-                        HumanMessage(
-                            content="What is your name? Answer in one word",
-                        )
-                    ]
+                    [HumanMessage(content="What is your name? Answer in one word")]
                 )
 
                 response = result.messages[-1].content.strip().lower().replace(".", "")
@@ -426,15 +397,11 @@ class TestRemoteTools(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "non_existent.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
-    async def test_remote_tools_failure(self):
+    async def test_remote_tools_failure(self) -> None:
         pytest.importorskip("langchain_openai")
 
         mcp = FastMCP("MCP Server", streamable_http_path="/")
@@ -449,7 +416,7 @@ class TestRemoteTools(AITestCase):
             raise Exception("No such city in DB")
 
         @contextlib.asynccontextmanager
-        async def lifespan(app: Starlette):
+        async def lifespan(app: Starlette) -> AsyncGenerator[None, Any]:
             async with mcp.session_manager.run():
                 yield
 
@@ -457,11 +424,7 @@ class TestRemoteTools(AITestCase):
             Starlette(
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
-                    Route(
-                        "/services/mcp_token",
-                        mcp_token_handler,
-                        methods=["GET"],
-                    ),
+                    Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
                 ],
                 lifespan=lifespan,
             )
@@ -479,14 +442,16 @@ class TestRemoteTools(AITestCase):
 
             async with Agent(
                 model=(await self.model()),
-                system_prompt="You must use the available tools to perform requested operations. You MUST Retry tool calls until you receive a valid response, that's not an error",
+                system_prompt="You must use the available tools to perform requested operations. "
+                + "You MUST Retry tool calls until you receive a valid response, that's not an error",
                 service=service,
                 use_mcp_tools=True,
             ) as agent:
                 result = await agent.invoke(
                     [
                         HumanMessage(
-                            content="What is the weather like today in Cracow? Use the provided tools to check the temperature."
+                            content="What is the weather like today in Cracow? "
+                            + "Use the provided tools to check the temperature."
                         )
                     ]
                 )
@@ -496,9 +461,11 @@ class TestRemoteTools(AITestCase):
                 assert len(tool_messages) == 2, (
                     "Expected multiple tool calls due to retries"
                 )
+                assert isinstance(tool_messages[0], ToolMessage)
                 assert tool_messages[0].status == "error", (
                     "First tool call should be invalid"
                 )
+                assert isinstance(tool_messages[1], ToolMessage)
                 assert tool_messages[1].status == "success", (
                     "Second tool call should be ok"
                 )
@@ -508,11 +475,7 @@ class TestRemoteTools(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "non_existent.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
@@ -545,7 +508,7 @@ class TestRemoteTools(AITestCase):
             )
 
         @contextlib.asynccontextmanager
-        async def lifespan(app: Starlette):
+        async def lifespan(app: Starlette) -> AsyncGenerator[None, Any]:
             async with mcp.session_manager.run():
                 yield
 
@@ -553,11 +516,7 @@ class TestRemoteTools(AITestCase):
             Starlette(
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
-                    Route(
-                        "/services/mcp_token",
-                        mcp_token_handler,
-                        methods=["GET"],
-                    ),
+                    Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
                 ],
                 lifespan=lifespan,
             )
@@ -583,8 +542,9 @@ class TestRemoteTools(AITestCase):
                     [
                         HumanMessage(
                             content=(
-                                "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                                "Return a short response, containing the tool response."
+                                "What is the weather like today in Krakow? "
+                                + "Use the provided tools to check the temperature. "
+                                + "Return a short response, containing the tool response."
                             ),
                         )
                     ]
@@ -608,21 +568,15 @@ class TestRemoteTools(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "non_existent.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
     async def test_splunk_mcp_server_app(self) -> None:
+        pytest.skip("Remove this test once we have an E2E with Splunk MCP Server app.")
+
         # Skip if the langchain_openai package is not installed
-        pytest.importorskip("langchain_openai")
-
-        # TODO: Remove this test once we have an E2E with Splunk MCP Server app.
-
-        self.skipTest("manual test")
+        pytest.importorskip("langchain_openai")  # pyright: ignore[reportUnreachable]
 
         logger = logging.getLogger("test")
         logger.setLevel(logging.DEBUG)
@@ -642,13 +596,15 @@ class TestRemoteTools(AITestCase):
             use_mcp_tools=True,
             logger=logger,
         ) as agent:
-            for tool in agent.tools:
-                if tool.name == "splunk_get_indexes":
-                    result = await tool.func()
-                    assert len(result.structured_content["results"]) != 0
+            for tool in agent.tools:  # pyright: ignore[reportUnreachable]
+                if tool.name == "splunk_get_indexes":  # pyright: ignore[reportUnreachable]
+                    result = await tool.func()  # pyright: ignore[reportUnreachable]
+                    assert (
+                        len((result.structured_content or {}).get("results", [])) != 0
+                    )
                     return
 
-            assert False, "Tool splunk_get_indexes not found"
+            pytest.fail("Tool splunk_get_indexes not found")
 
 
 class TestHandlingToolNameCollision(AITestCase):

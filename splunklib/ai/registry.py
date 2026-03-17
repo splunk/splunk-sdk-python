@@ -14,12 +14,11 @@
 import asyncio
 import inspect
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from logging import Logger
 from typing import (
     Any,
-    Callable,
     Generic,
     ParamSpec,
     TypeVar,
@@ -224,7 +223,7 @@ class ToolRegistryRuntimeError(RuntimeError):
 class ToolRegistry:
     _server: Server
     _tools: list[types.Tool]
-    _tools_func: dict[str, Callable]
+    _tools_func: dict[str, Callable[..., Any]]
     _tools_wrapped_result: dict[str, bool]
     _executing: bool = False
 

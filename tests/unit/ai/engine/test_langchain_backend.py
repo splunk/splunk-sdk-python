@@ -31,10 +31,13 @@ from splunklib.ai.messages import (
     AIMessage,
     HumanMessage,
     SubagentCall,
+    SubagentFailureResult,
     SubagentMessage,
     SystemMessage,
     ToolCall,
+    ToolFailureResult,
     ToolMessage,
+    ToolResult,
 )
 from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
 from splunklib.ai.tools import ToolType
@@ -102,15 +105,19 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
     def test_map_message_from_langchain_tool(self) -> None:
         message = LC_ToolMessage(
-            name="lookup", content="result", tool_call_id="call-1", status="error"
+            name="lookup",
+            content="result",
+            tool_call_id="call-1",
+            status="error",
+            artifact=ToolFailureResult("result"),
         )
         mapped = lc._map_message_from_langchain(message)
 
         assert isinstance(mapped, ToolMessage)
         assert mapped.name == "lookup"
-        assert mapped.content == "result"
         assert mapped.call_id == "call-1"
-        assert mapped.status == "error"
+        assert isinstance(mapped.result, ToolFailureResult)
+        assert mapped.result.error_message == "result"
 
     def test_map_message_from_langchain_subagent(self) -> None:
         message = LC_ToolMessage(
@@ -118,14 +125,15 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             content="subagent output",
             tool_call_id="call-2",
             status="error",
+            artifact=SubagentFailureResult("subagent output"),
         )
         mapped = lc._map_message_from_langchain(message)
 
         assert isinstance(mapped, SubagentMessage)
         assert mapped.name == "assistant"
-        assert mapped.content == "subagent output"
         assert mapped.call_id == "call-2"
-        assert mapped.status == "error"
+        assert isinstance(mapped.result, SubagentFailureResult)
+        assert mapped.result.error_message == "subagent output"
 
     def test_map_message_from_langchain_invalid_raises(self) -> None:
         with pytest.raises(InvalidMessageTypeError):
@@ -202,10 +210,9 @@ class MapMessageToLangchainTests(unittest.TestCase):
         message = lc._map_message_to_langchain(
             ToolMessage(
                 call_id="foo",
-                status="success",
-                content="hi",
                 name="__bad-tool",
                 type=ToolType.REMOTE,
+                result=ToolResult(content="foo", structured_content=None),
             )
         )
         assert isinstance(message, LC_ToolMessage)
@@ -236,6 +243,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
                 content="result",
                 tool_call_id="call-1",
                 status="success",
+                artifact=ToolResult(content="result", structured_content=None),
             )
         )
         assert isinstance(message, ToolMessage)
@@ -273,10 +281,9 @@ class MapMessageToLangchainTests(unittest.TestCase):
     def test_map_message_to_langchain_tool(self) -> None:
         message = ToolMessage(
             name="lookup",
-            content="result",
             call_id="call-1",
-            status="error",
             type=ToolType.REMOTE,
+            result=ToolFailureResult("result"),
         )
         mapped = lc._map_message_to_langchain(message)
 
@@ -288,7 +295,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
     def test_map_message_to_langchain_subagent(self) -> None:
         message = SubagentMessage(
-            name="My Agent", content="ping", call_id="call-2", status="error"
+            name="My Agent", call_id="call-2", result=SubagentFailureResult("ping")
         )
         mapped = lc._map_message_to_langchain(message)
 

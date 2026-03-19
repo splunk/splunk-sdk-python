@@ -61,5 +61,5 @@ class AgentNameHandler(CRETestHandler):
                 ]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
+            response = result.final_message.content.strip().lower().replace(".", "")
             self.response.write(response)

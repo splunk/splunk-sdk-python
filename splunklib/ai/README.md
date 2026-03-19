@@ -35,7 +35,7 @@ async with Agent(
 ) as agent:
     result = await agent.invoke([HumanMessage(content="What is your name?")])
 
-    print(result.messages[-1].content) # My name is Stefan
+    print(result.final_message.content) # My name is Stefan
 ```
 
 ## Models

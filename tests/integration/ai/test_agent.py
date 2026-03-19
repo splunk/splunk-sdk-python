@@ -41,7 +41,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
+            response = result.final_message.content.strip().lower().replace(".", "")
             assert result.structured_output is None, (
                 "The structured output should not be populated"
             )
@@ -129,7 +129,7 @@ class TestAgent(AITestCase):
 
             response = result.structured_output
 
-            last_message = result.messages[-1].content
+            last_message = result.final_message.content
 
             assert type(response) == Person, "Response is not of type Person"
             assert response.name != "", "Name field is empty"
@@ -166,7 +166,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
 
             assert "Chris" in response, "Agent did not remember the name"
 
@@ -205,7 +205,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
 
             subagent_message = next(
                 filter(lambda m: m.role == "subagent", result.messages), None
@@ -247,7 +247,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
@@ -288,7 +288,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio

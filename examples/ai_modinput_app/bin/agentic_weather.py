@@ -129,7 +129,7 @@ class AgenticWeatherModInput(Script):
             )
             response = await agent.invoke([HumanMessage(content=prompt)])
             logger.debug(f"{response=}")
-            return response.messages[-1].content
+            return response.final_message.content
 
 
 if __name__ == "__main__":

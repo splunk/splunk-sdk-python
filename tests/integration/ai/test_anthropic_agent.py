@@ -47,6 +47,6 @@ class TestAnthropicAgent(AITestCase):
                 [HumanMessage(content="What is your name? Answer in one word")]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
+            response = result.final_message.content.strip().lower().replace(".", "")
             assert result.structured_output is None
             assert "stefan" in response

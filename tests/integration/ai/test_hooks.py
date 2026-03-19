@@ -92,7 +92,7 @@ class TestHook(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
+            response = result.final_message.content.strip().lower().replace(".", "")
             assert "stefan" == response
             assert hook_calls == 4
 
@@ -159,7 +159,7 @@ class TestHook(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content.strip().lower().replace(".", "")
+            response = result.final_message.content.strip().lower().replace(".", "")
             assert '{"name":"stefan"}' == response
             assert hook_calls == 4
 

@@ -25,7 +25,12 @@ from starlette.routing import Mount, Route
 
 from splunklib.ai import Agent
 from splunklib.ai.engines.langchain import LOCAL_TOOL_PREFIX
-from splunklib.ai.messages import HumanMessage, ToolMessage
+from splunklib.ai.messages import (
+    HumanMessage,
+    ToolFailureResult,
+    ToolMessage,
+    ToolResult,
+)
 from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai.tools import (
     _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
@@ -73,7 +78,7 @@ class TestTools(AITestCase):
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "temperature", "Invalid tool name"
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "31.5" in response, "Invalid LLM response"
 
     @patch(
@@ -111,7 +116,7 @@ class TestTools(AITestCase):
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "startup_time", "Invalid tool name"
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert want_startup_time in response, "Invalid LLM response"
 
     @patch(
@@ -168,7 +173,7 @@ class TestTools(AITestCase):
                 ]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "31.5" in response, "Invalid LLM response"
             assert "30.0" in response, "Invalid LLM response"
             assert "25.5" in response, "Invalid LLM response"
@@ -185,7 +190,7 @@ class TestTools(AITestCase):
                     )
                 ]
             )
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "28.5" in response, "Invalid LLM response"
 
             # Make sure MCP was alive during entire Agent lifetime.
@@ -352,7 +357,7 @@ class TestRemoteTools(AITestCase):
                 assert tool_message, "No tool message found in response"
                 assert tool_message.name == "temperature", "Invalid tool name"
 
-                response = result.messages[-1].content
+                response = result.final_message.content
                 assert "31.5" in response, "Invalid LLM response"
 
                 assert trace_id == agent.trace_id
@@ -392,7 +397,7 @@ class TestRemoteTools(AITestCase):
                     [HumanMessage(content="What is your name? Answer in one word")]
                 )
 
-                response = result.messages[-1].content.strip().lower().replace(".", "")
+                response = result.final_message.content.strip().lower().replace(".", "")
                 assert "stefan" in response
 
     @patch(
@@ -455,22 +460,14 @@ class TestRemoteTools(AITestCase):
                         )
                     ]
                 )
-                tool_messages = list(
-                    filter(lambda m: m.role == "tool", result.messages)
-                )
-                assert len(tool_messages) == 2, (
-                    "Expected multiple tool calls due to retries"
-                )
-                assert isinstance(tool_messages[0], ToolMessage)
-                assert tool_messages[0].status == "error", (
-                    "First tool call should be invalid"
-                )
-                assert isinstance(tool_messages[1], ToolMessage)
-                assert tool_messages[1].status == "success", (
-                    "Second tool call should be ok"
-                )
+                tool_messages = [
+                    tm for tm in result.messages if isinstance(tm, ToolMessage)
+                ]
+                assert len(tool_messages) == 2, "Expected 2 tool calls due to retries"
+                assert type(tool_messages[0].result) is ToolFailureResult
+                assert type(tool_messages[1].result) is ToolResult
 
-                response = result.messages[-1].content
+                response = result.final_message.content
                 assert "31.5" in response, "Invalid LLM response"
 
     @patch(
@@ -555,15 +552,20 @@ class TestRemoteTools(AITestCase):
                     if isinstance(msg, ToolMessage):
                         found_tool_message = True
                         # Both text content and structured_content should be in the
-                        # content of a tool response.
+                        # result of a tool response.
+                        tool_result = msg.result
+                        assert isinstance(tool_result, ToolResult)
                         assert (
                             "Tool call succeeded, temperature in Krakow found"
-                            in msg.content
+                            in tool_result.content
                         )
-                        assert '"celsius_degrees": "31.5C"' in msg.content
+                        assert tool_result.structured_content is not None
+                        assert (
+                            tool_result.structured_content["celsius_degrees"] == "31.5C"
+                        )
                 assert found_tool_message, "missing ToolMessage in agent response"
 
-                response = result.messages[-1].content
+                response = result.final_message.content
                 assert "31.5" in response, "Invalid LLM response"
 
     @patch(

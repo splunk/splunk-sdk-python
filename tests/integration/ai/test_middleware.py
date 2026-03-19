@@ -21,13 +21,15 @@ from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
 from splunklib.ai.messages import (
-    AIMessage,
     AgentResponse,
+    AIMessage,
     HumanMessage,
     SubagentCall,
     SubagentMessage,
+    SubagentTextResult,
     ToolCall,
     ToolMessage,
+    ToolResult,
 )
 from splunklib.ai.middleware import (
     AgentMiddleware,
@@ -76,10 +78,9 @@ class TestMiddleware(AITestCase):
             state = request.state
             assert len(state.response.messages) == 2
 
-            result = await handler(request)
-            assert isinstance(result, ToolResponse)
-            assert result.status == "success"
-            return result
+            response = await handler(request)
+            assert isinstance(response.result, ToolResult)
+            return response
 
         async with Agent(
             model=await self.model(),
@@ -92,7 +93,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
 
-            response = res.messages[-1].content
+            response = res.final_message.content
             assert "31.5" in response
             assert middleware_called, "Middleware was not called"
 
@@ -141,12 +142,11 @@ class TestMiddleware(AITestCase):
             nonlocal middleware_called
             middleware_called = True
 
-            first_result = await handler(request)
-            second_result = await handler(request)
-            assert isinstance(first_result, ToolResponse)
-            assert first_result.status == "success"
-            assert second_result == first_result
-            return second_result
+            first_response = await handler(request)
+            second_response = await handler(request)
+            assert isinstance(first_response.result, ToolResult)
+            assert second_response == first_response
+            return second_response
 
         async with Agent(
             model=await self.model(),
@@ -159,7 +159,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
 
-            response = res.messages[-1].content
+            response = res.final_message.content
             assert "31.5" in response
             assert middleware_called, "Middleware was not called"
 
@@ -183,7 +183,7 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return ToolResponse(content="0.5C")
+            return ToolResponse(ToolResult(content="0.5C", structured_content=None))
 
         async with Agent(
             model=await self.model(),
@@ -196,14 +196,15 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Kraków?")]
             )
 
-            response = res.messages[-1].content
+            response = res.final_message.content
             assert "0.5" in response, "Invalid response from LLM"
 
             tool_message = next(
                 (tm for tm in res.messages if isinstance(tm, ToolMessage)), None
             )
             assert tool_message, "ToolMessage not found in messages"
-            assert tool_message.content == "0.5C", "Invalid response from Tool"
+            assert isinstance(tool_message.result, ToolResult)
+            assert tool_message.result.content == "0.5C", "Invalid response from Tool"
             assert middleware_called, "Middleware was not called"
 
     @patch(
@@ -248,7 +249,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in res.messages[-1].content
+            assert "31.5" in res.final_message.content
             assert first_called, "First middleware was called after the second"
             assert second_called, "Second middleware was called before the first"
 
@@ -290,7 +291,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in res.messages[-1].content
+            assert "31.5" in res.final_message.content
             assert tool_called
             assert model_called
 
@@ -344,7 +345,7 @@ class TestMiddleware(AITestCase):
             tool_result = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in tool_result.messages[-1].content
+            assert "31.5" in tool_result.final_message.content
 
         class NicknameGeneratorInput(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
@@ -372,7 +373,7 @@ class TestMiddleware(AITestCase):
             subagent_result = await supervisor.invoke(
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
-            assert "Chris-zilla" in subagent_result.messages[-1].content
+            assert "Chris-zilla" in subagent_result.final_message.content
 
         assert model_called
         assert tool_called
@@ -398,12 +399,11 @@ class TestMiddleware(AITestCase):
             assert call.name == "NicknameGeneratorAgent"
             assert call.args == {"name": "Chris"}
 
-            first_result = await handler(request)
-            second_result = await handler(request)
-            assert isinstance(first_result, SubagentResponse)
-            assert first_result.status == "success"
-            assert second_result == first_result
-            return second_result
+            first_response = await handler(request)
+            second_response = await handler(request)
+            assert isinstance(first_response.result, SubagentTextResult)
+            assert second_response == first_response
+            return second_response
 
         async with (
             Agent(
@@ -438,7 +438,7 @@ class TestMiddleware(AITestCase):
             )
             assert subagent_message, "No subagent message found in response"
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
             assert middleware_called, "Middleware was not called"
@@ -461,7 +461,7 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return SubagentResponse(content="Chris-superstar")
+            return SubagentResponse(SubagentTextResult(content="Chris-superstar"))
 
         async with (
             Agent(
@@ -487,14 +487,15 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "Chris-superstar" in response, "Invalid response from LLM"
 
             subagent_message = next(
                 (sm for sm in result.messages if isinstance(sm, SubagentMessage)), None
             )
             assert subagent_message, "SubagentMessage not found in messages"
-            assert subagent_message.content == "Chris-superstar", (
+            assert isinstance(subagent_message.result, SubagentTextResult)
+            assert subagent_message.result.content == "Chris-superstar", (
                 "Invalid response from subagent"
             )
             assert middleware_called, "Middleware was not called"
@@ -615,7 +616,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
 
-            response = result.messages[-1].content
+            response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
             assert middleware_called, "Middleware was not called"
 
@@ -650,7 +651,7 @@ class TestMiddleware(AITestCase):
                 ]
             )
 
-            response = res.messages[-1].content
+            response = res.final_message.content
             assert "My response is made up" == response
             assert middleware_called, "Middleware was not called"
 

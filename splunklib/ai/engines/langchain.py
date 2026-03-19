@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
 import logging
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
@@ -67,10 +68,15 @@ from splunklib.ai.messages import (
     HumanMessage,
     OutputT,
     SubagentCall,
+    SubagentFailureResult,
     SubagentMessage,
+    SubagentStructuredResult,
+    SubagentTextResult,
     SystemMessage,
     ToolCall,
+    ToolFailureResult,
     ToolMessage,
+    ToolResult,
 )
 from splunklib.ai.middleware import (
     AgentMiddleware,
@@ -133,7 +139,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         model: BaseChatModel,
         tools: list[BaseTool],
         output_schema: type[OutputT] | None,
-        lc_middleware: Sequence[LC_AgentMiddleware] | None = None,
+        lc_middleware: list[LC_AgentMiddleware],
         middleware: Sequence[AgentMiddleware] | None = None,
     ) -> None:
         super().__init__()
@@ -144,13 +150,49 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         checkpointer = InMemorySaver()
 
+        # This middleware is executed just after the tool execution and populates
+        # the artifact field for failed tool calls, since in such cases we can't
+        # populate the artifact in LC directly since this is an LC_ToolException that only
+        # allows setting of the content field.
+        # We do that here, to avoid doing this logic in the individual conversion helpers.
+        #
+        # TODO: once we move middlewares into one LC middleware, we should move
+        # that piece of logic there (DVPL-12959).
+        class _ToolFailureArtifact(LC_AgentMiddleware):
+            @override
+            async def awrap_tool_call(
+                self,
+                request: LC_ToolCallRequest,
+                handler: Callable[
+                    [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+                ],
+            ) -> LC_ToolMessage | LC_Command[None]:
+                resp = await handler(request)
+                assert isinstance(resp, LC_ToolMessage)
+                assert resp.name, "missing tool name"
+
+                if resp.status == "error":
+                    # This assertion asserts the current behaviour, but can be removed safely,
+                    # if we at some point decide to raise a LC_ToolException in a subagent invocation.
+                    # Also in such case we would need to populate artifact with SubagentFailureResult.
+                    assert not resp.name.startswith(AGENT_PREFIX), (
+                        "subagent produced a non-fatal error"
+                    )
+
+                    assert resp.artifact is None, "artifact is already populated"
+                    resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
+
+                return resp
+
+        lc_middleware.append(_ToolFailureArtifact())
+
         self._agent = create_agent(
             model=model,
             tools=tools,
             system_prompt=system_prompt,
             checkpointer=checkpointer,
             response_format=output_schema,
-            middleware=lc_middleware or [],
+            middleware=lc_middleware,
         )
 
     def _with_agent_middleware(
@@ -189,6 +231,10 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
     @override
     async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
+        # TODO: What if we are passed len(messages) == 0 to invoke?
+        # TODO: What if someone passed call_id that don't have a corresponding id with the response.
+        # Possibly we should do a validation phase of messages here.
+
         async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
             langchain_msgs = [_map_message_to_langchain(m) for m in req.messages]
 
@@ -199,6 +245,10 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             )
 
             sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
+            assert type(sdk_msgs[-1]) is AIMessage, "last message was not an AIMessage"
+            assert len(sdk_msgs[-1].calls) == 0, (
+                "last message is an AIMessage with calls != 0"
+            )
 
             # NOTE: Agent responses will always conform to output schema. Verifying
             # if an LLM made any mistakes or not is _always_ up to the developer.
@@ -221,6 +271,17 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 messages=messages,
             )
         )
+
+        # TODO: should we move these checks to run in-between individual middlewares,
+        # not after all were executed?
+
+        if type(result.messages[-1]) is not AIMessage:
+            raise AssertionError(
+                "AgentMiddleware did not include an AIMessage at result.messages[-1]"
+            )
+
+        if len(result.messages[-1].calls) != 0:
+            raise AssertionError("AgentMiddleware included tool calls in AIMessage")
 
         if self._output_schema:
             if result.structured_output is None:
@@ -294,7 +355,7 @@ class LangChainBackend(Backend):
         middleware.extend(after_user_middlewares)
 
         model_impl = _create_langchain_model(agent.model)
-        middleware = [
+        lc_middleware: list[LC_AgentMiddleware] = [
             _Middleware(m, model_impl, agent.logger) for m in middleware or []
         ]
 
@@ -303,7 +364,7 @@ class LangChainBackend(Backend):
             model=model_impl,
             tools=tools,
             output_schema=agent.output_schema,
-            lc_middleware=middleware,
+            lc_middleware=lc_middleware,
             middleware=agent.middleware,
         )
 
@@ -372,11 +433,26 @@ class _Middleware(LC_AgentMiddleware):
                 _convert_tool_handler_from_lc(handler, original_request=request),
             )
 
+            sdk_result = sdk_response.result
+            match sdk_result:
+                case ToolResult():
+                    status = "success"
+                    if sdk_result.structured_content:
+                        # both content + structured_content
+                        content = json.dumps(asdict(sdk_response))
+                    else:
+                        content = sdk_result.content
+                case ToolFailureResult():
+                    status = "error"
+                    content = sdk_result.error_message
+                    pass
+
             return LC_ToolMessage(
                 name=_normalize_tool_name(call.name, call.type),
                 tool_call_id=call.id,
-                content=sdk_response.content,
-                status=sdk_response.status,
+                content=content,
+                status=status,
+                artifact=sdk_result,
             )
 
         if not self._is_overridden("subagent_middleware"):
@@ -388,11 +464,27 @@ class _Middleware(LC_AgentMiddleware):
             _convert_subagent_handler_from_lc(handler, original_request=request),
         )
 
+        sdk_result = sdk_response.result
+        match sdk_result:
+            case SubagentStructuredResult():
+                status = "success"
+                # both content + structured_content
+                content = json.dumps(sdk_result.structured_output)
+            case SubagentTextResult():
+                status = "success"
+                # both content + structured_content
+                content = sdk_result.content
+            case SubagentFailureResult():
+                status = "error"
+                content = sdk_result.error_message
+                pass
+
         return LC_ToolMessage(
             name=_normalize_agent_name(call.name),
             tool_call_id=call.id,
-            content=sdk_response.content,
-            status=sdk_response.status,
+            content=content,
+            status=status,
+            artifact=sdk_result,
         )
 
 
@@ -409,7 +501,7 @@ def _convert_tool_handler_from_lc(
         assert isinstance(sdk_result, ToolMessage), (
             "Expected tool response from tool middleware handler"
         )
-        return ToolResponse(content=sdk_result.content, status=sdk_result.status)
+        return ToolResponse(sdk_result.result)
 
     return _sdk_handler
 
@@ -420,14 +512,16 @@ def _convert_subagent_handler_from_lc(
     ],
     original_request: LC_ToolCallRequest,
 ) -> SubagentMiddlewareHandler:
-    async def _sdk_handler(request: SubagentRequest) -> SubagentResponse:
+    async def _sdk_handler(
+        request: SubagentRequest,
+    ) -> SubagentResponse:
         lc_request = _convert_subagent_request_to_lc(request, original_request)
         result = await handler(lc_request)
         sdk_result = _convert_tool_message_from_lc(result)
         assert isinstance(sdk_result, SubagentMessage), (
             "Expected subagent response from subagent middleware handler"
         )
-        return SubagentResponse(content=sdk_result.content, status=sdk_result.status)
+        return SubagentResponse(sdk_result.result)
 
     return _sdk_handler
 
@@ -530,14 +624,36 @@ def _convert_tool_message_to_lc(
     match message:
         case SubagentMessage():
             name = _normalize_agent_name(message.name)
+            match message.result:
+                case SubagentStructuredResult():
+                    status = "success"
+                    content = json.dumps(message.result.structured_output)
+                case SubagentTextResult():
+                    status = "success"
+                    content = message.result.content
+                case SubagentFailureResult():
+                    status = "error"
+                    content = message.result.error_message
         case ToolMessage():
             name = _normalize_tool_name(message.name, message.type)
+            match message.result:
+                case ToolResult():
+                    if message.result.structured_content:
+                        # both content + structured_content
+                        content = json.dumps(asdict(message.result))
+                    else:
+                        content = message.result.content
+                    status = "success"
+                case ToolFailureResult():
+                    status = "error"
+                    content = message.result.error_message
 
     return LC_ToolMessage(
         name=name,
-        content=message.content,
         tool_call_id=message.call_id,
-        status=message.status,
+        status=status,
+        content=content,
+        artifact=message.result,
     )
 
 
@@ -546,17 +662,43 @@ def _convert_tool_message_from_lc(
 ) -> ToolMessage | SubagentMessage:
     match message:
         case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
+            if (
+                type(message.artifact) is SubagentStructuredResult
+                or type(message.artifact) is SubagentTextResult
+                or type(message.artifact) is SubagentFailureResult
+            ):
+                result = message.artifact
+            else:
+                # TODO: remove once we introudce SDK checkpointers.
+                # This is a workaround, since when we use LC checkpointers,
+                # the artifact is converted to a dict.
+                if hasattr(message.artifact, "error_message"):
+                    result = SubagentFailureResult(**message.artifact)
+                elif hasattr(message.artifact, "structured_content"):
+                    result = SubagentStructuredResult(**message.artifact)
+                else:
+                    result = SubagentTextResult(**message.artifact)
             return SubagentMessage(
                 name=_denormalize_agent_name(name),
-                content=message.content.__str__(),
                 call_id=message.tool_call_id,
-                status=message.status,
+                result=result,
             )
         case LC_ToolMessage():
             # If this is reached, we likely passed an invalid tool name to LangChain.
             assert message.name is not None, (
                 "LangChain responded with a nameless tool call"
             )
+
+            if (
+                type(message.artifact) is ToolResult
+                or type(message.artifact) is ToolFailureResult
+            ):
+                result = message.artifact
+            else:
+                # TODO: remove once we introudce SDK checkpointers.
+                # This is a workaround, since when we use LC checkpointers,
+                # the artifact is converted to a dict.
+                result = ToolResult(**message.artifact)
 
             tool_type: ToolType = (
                 ToolType.LOCAL
@@ -565,10 +707,9 @@ def _convert_tool_message_from_lc(
             )
             return ToolMessage(
                 name=_denormalize_tool_name(message.name),
-                content=message.content.__str__(),
                 call_id=message.tool_call_id,
-                status=message.status,
                 type=tool_type,
+                result=result,
             )
         case LC_Command():
             # NOTE: for now the command is not implemented
@@ -615,14 +756,14 @@ def _debugging_middleware(
         call = request.call
         logger.debug(f"Tool call {call.name} stared; id={call.id}")
         try:
-            result = await handler(request)
+            response = await handler(request)
 
-            if result.status == "success":
+            if type(response.result) is ToolResult:
                 logger.debug(f"Tool call {call.name} succeeded; id={call.id}")
             else:
                 logger.debug(f"Tool call {call.name} failed; id={call.id}")
 
-            return result
+            return response
         except Exception:
             logger.debug(f"Tool call {call.name} failed; id={call.id}")
             raise
@@ -635,14 +776,17 @@ def _debugging_middleware(
         call = request.call
         logger.debug(f"Subagent call {call.name} stared; id={call.id}")
         try:
-            result = await handler(request)
+            response = await handler(request)
 
-            if result.status == "success":
+            if (
+                type(response.result) is SubagentStructuredResult
+                or type(response.result) is SubagentTextResult
+            ):
                 logger.debug(f"Subagent call {call.name} succeeded; id={call.id}")
             else:
                 logger.debug(f"Subagent call {call.name} failed; id={call.id}")
 
-            return result
+            return response
         except Exception:
             logger.debug(f"Subagent call {call.name} failed; id={call.id}")
             raise
@@ -675,7 +819,9 @@ def _debugging_middleware(
 
 
 def _create_langchain_tool(tool: Tool) -> BaseTool:
-    async def _tool_call(**kwargs: dict[str, Any]) -> dict[str, Any] | list[str]:
+    async def _tool_call(
+        **kwargs: dict[str, Any],
+    ) -> tuple[dict[str, Any] | str, ToolResult]:
         try:
             result = await tool.func(**kwargs)
         except ToolException as e:
@@ -684,6 +830,11 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
             assert False, (  # noqa: PT015
                 "ToolException from LangChain should not be raised in tool.func"
             )
+
+        # TODO: Should we change the splunklib.ai.tools.ToolResult.content to a str, instead of list[str]?
+        text_content = "\n".join(result.content)
+
+        artifact = ToolResult(text_content, result.structured_content)
 
         if result.structured_content:
             # For both local tools and remote tools (Splunk MCP Server App), the primary
@@ -696,15 +847,15 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
             # If we introduce support for additional MCP implementations in the future,
             # this assumption may need to be revisited. For now, this approach is fine.
             # Worst-case scenario is the same information is provided to the LLM twice.
-            return asdict(result)  # both content + structured_content
-        return result.content
+            return asdict(result), artifact  # both content + structured_content
+        return text_content, artifact
 
     return StructuredTool(
         name=_normalize_tool_name(tool.name, tool.type),
         description=tool.description,
         args_schema=tool.input_schema,
         coroutine=_tool_call,
-        response_format="content",
+        response_format="content_and_artifact",
         handle_tool_error=True,
         tags=tool.tags,
     )
@@ -751,35 +902,54 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
     if agent.input_schema is None:
 
-        async def _run(content: str) -> OutputT | str:  # pyright: ignore[reportRedeclaration]
+        async def _run(  # pyright: ignore[reportRedeclaration]
+            content: str,
+        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
             result = await agent.invoke([HumanMessage(content=content)])
             if agent.output_schema:
-                return result.structured_output
-            return result.messages[-1].content
+                assert result.structured_output is not None
+                return result.structured_output, SubagentStructuredResult(
+                    structured_output=result.structured_output.model_dump(),
+                )
+
+            ai_message = result.messages[-1]
+            assert type(ai_message) is AIMessage
+            return ai_message.content, SubagentTextResult(content=ai_message.content)
 
         return StructuredTool.from_function(
             coroutine=_run,
             name=_normalize_agent_name(agent.name),
             description=agent.description,
             infer_schema=True,
+            response_format="content_and_artifact",
         )
 
     InputSchema = agent.input_schema
 
-    async def _run(**kwargs: dict[str, Any]) -> OutputT | str:
+    async def _run(
+        **kwargs: dict[str, Any],
+    ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
         req = InputSchema(**kwargs)
         request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
 
         result = await agent.invoke([HumanMessage(content=request_text)])
+
         if agent.output_schema:
-            return result.structured_output
-        return result.messages[-1].content
+            assert result.structured_output is not None
+            return result.structured_output, SubagentStructuredResult(
+                structured_output=result.structured_output.model_dump(),
+            )
+
+        ai_message = result.messages[-1]
+        assert type(ai_message) is AIMessage
+        return ai_message.content, SubagentTextResult(content=ai_message.content)
 
     return StructuredTool.from_function(
         coroutine=_run,
         name=_normalize_agent_name(agent.name),
         description=agent.description,
         args_schema=InputSchema,
+        response_format="content_and_artifact",
     )
 
 

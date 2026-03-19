@@ -14,14 +14,19 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, Literal, override
+from typing import Any, override
 
 from splunklib.ai.messages import (
-    AIMessage,
     AgentResponse,
+    AIMessage,
     BaseMessage,
     SubagentCall,
+    SubagentFailureResult,
+    SubagentStructuredResult,
+    SubagentTextResult,
     ToolCall,
+    ToolFailureResult,
+    ToolResult,
 )
 
 
@@ -45,8 +50,7 @@ class ToolRequest:
 
 @dataclass
 class ToolResponse:
-    content: str
-    status: Literal["success", "error"] = "success"
+    result: ToolResult | ToolFailureResult
 
 
 ToolMiddlewareHandler = Callable[[ToolRequest], Awaitable[ToolResponse]]
@@ -60,11 +64,13 @@ class SubagentRequest:
 
 @dataclass
 class SubagentResponse:
-    content: str
-    status: Literal["success", "error"] = "success"
+    result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
 
-SubagentMiddlewareHandler = Callable[[SubagentRequest], Awaitable[SubagentResponse]]
+SubagentMiddlewareHandler = Callable[
+    [SubagentRequest],
+    Awaitable[SubagentResponse],
+]
 
 
 @dataclass
@@ -145,7 +151,8 @@ def tool_middleware(
 
 def subagent_middleware(
     func: Callable[
-        [SubagentRequest, SubagentMiddlewareHandler], Awaitable[SubagentResponse]
+        [SubagentRequest, SubagentMiddlewareHandler],
+        Awaitable[SubagentResponse],
     ],
 ) -> AgentMiddleware:
     class _CustomMiddleware(AgentMiddleware):

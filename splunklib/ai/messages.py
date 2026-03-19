@@ -32,6 +32,7 @@ class ToolCall:
 @dataclass(frozen=True)
 class SubagentCall:
     name: str
+    # TODO: should be a str | dict[str, Any] for subagents without structured inputs
     args: dict[str, Any]
     id: str | None  # TODO: can be None?
 
@@ -39,7 +40,6 @@ class SubagentCall:
 @dataclass(frozen=True)
 class BaseMessage:
     role: str = field(init=False)
-    content: str = field(init=False)
 
     def __post_init__(self) -> None:
         if type(self) is BaseMessage:
@@ -79,16 +79,72 @@ class AIMessage(BaseMessage):
 
 
 @dataclass(frozen=True)
+class ToolResult:
+    """
+    ToolResult represents a result of a successful tool call.
+    """
+
+    content: str
+    structured_content: dict[str, Any] | None
+
+
+@dataclass(frozen=True)
+class SubagentStructuredResult:
+    """
+    SubagentStructuredResult represents a result of a successful subagent call.
+    Returned by subagent calls that have an output schema.
+    """
+
+    structured_output: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class SubagentTextResult:
+    """
+    SubagentTextResult represents a result of a successful subagent call.
+    Returned by subagent calls that don't have an output schema.
+    """
+
+    content: str
+
+
+@dataclass(frozen=True)
+class ToolFailureResult:
+    """
+    Represents the result of a failed sub-agent call.
+
+    This type of failure is non-fatal, i.e. it does not stop the agent loop.
+    Instead, the error information is returned to the LLM.
+    """
+
+    error_message: str
+
+
+@dataclass(frozen=True)
+class SubagentFailureResult:
+    """
+    Represents the result of a failed tool call.
+
+    This type of failure is non-fatal, i.e. it does not stop the agent loop.
+    Instead, the error information is returned to the LLM.
+
+    Currently this result is not produced by the subagent call, but can be leveraged
+    in middlewares e.g. to reject subagent calls in a non-fatal way.
+    """
+
+    error_message: str
+
+
+@dataclass(frozen=True)
 class ToolMessage(BaseMessage):
     """ToolMessage represents a response of a tool call"""
 
     role: Literal["tool"] = field(default="tool", init=False)
-    content: str
 
     name: str
     type: ToolType
     call_id: str
-    status: Literal["success", "error"]
+    result: ToolResult | ToolFailureResult
 
 
 @dataclass(frozen=True)
@@ -108,14 +164,17 @@ class SubagentMessage(BaseMessage):
     """
 
     role: Literal["subagent"] = field(default="subagent", init=False)
-    content: str
 
     name: str
     call_id: str
-    status: Literal["success", "error"]
+    result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
 
 OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
+
+# TODO: We should make sure that the list[BaseMessage] is JSON serializable
+# and deserializable. This might become important with custom checkpointers
+# where developers might want to store messages in say KV store.
 
 
 @dataclass(frozen=True)
@@ -123,4 +182,21 @@ class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT
     # Holds the full message history including tool calls and final response
+    # The last message is and must always be an AIMessage with len(calls) == 0.
     messages: list[BaseMessage]
+
+    @property
+    def final_message(self) -> AIMessage:
+        """final_message returns the last AIMessage at self.messages[-1]."""
+
+        # Make sure that it is valid, otherwise report that.
+        # These exceptions should never be reached in a valid code and always
+        # are a programmers fault.
+        if type(self.messages[-1]) is not AIMessage:
+            raise AssertionError(
+                "Invalid AgentResponse, self.messages[-1] is not of type: AIMessage"
+            )
+        if len(self.messages[-1].calls) != 0:
+            raise AssertionError("Invalid AgentResponse, self.messages[-1].calls != 0")
+
+        return self.messages[-1]

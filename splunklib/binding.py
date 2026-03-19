@@ -1762,7 +1762,21 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
                 kwargs["cert_file"] = cert_file
 
             if not verify:
-                kwargs["context"] = ssl._create_unverified_context()  # nosemgrep
+                ctx = ssl._create_unverified_context()  # nosemgrep
+                # Support all ML-KEM key exchange algorithms, by default OpenSSL only
+                # includes the X25519MLKEM768 from all of the below listed MLKEM key
+                # exchanges.
+                #
+                # set_groups method is only available with Python 3.15, but Splunk comes
+                # with patched python that includes set_groups on 3.9 and 3.13, thus we
+                # check for the existence of set_groups, not the python version.
+                if hasattr(ctx, "set_groups"):
+                    ctx.set_groups(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                        "X25519MLKEM768:SecP256r1MLKEM768:SecP384r1MLKEM1024:"
+                        + "MLKEM512:MLKEM768:MLKEM1024:"
+                        + "X25519:secp256r1:X448:secp384r1:secp521r1:ffdhe2048:ffdhe3072"
+                    )
+                kwargs["context"] = ctx
             elif context:
                 # verify is True in elif branch and context is not None
                 kwargs["context"] = context

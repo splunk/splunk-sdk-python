@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Launch Splunk Docker instance
-        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
@@ -21,7 +19,13 @@ jobs:
           cache: "pip"
       - name: Install dependencies
         run: python -m pip install '.[openai, anthropic]' --group test
-
+      - name: Download Splunk MCP Server App
+        run: python ./scripts/download_splunk_mcp_server_app.py
+        env:
+          SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
+          SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+      - name: Launch Splunk Docker instance
+        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Set up .env
         run: cp .env.template .env
       - name: Write internal AI secrets to .env

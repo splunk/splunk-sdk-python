@@ -1,3 +1,4 @@
+from typing import override
 from splunklib.ai.model import PredefinedModel
 from tests.ai_test_model import InternalAIModel, TestLLMSettings, create_model
 from tests.testlib import SDKTestCase
@@ -5,6 +6,17 @@ from tests.testlib import SDKTestCase
 
 class AITestCase(SDKTestCase):
     _model: PredefinedModel | None = None
+
+    @override
+    def setUp(self) -> None:
+        super().setUp()
+
+        # Our tests don't expect this app to be installed, if needed it is
+        # installed on demand.
+        for app in self.service.apps.list():  # pyright: ignore[reportUnknownVariableType]
+            if app.name.lower() == "splunk_mcp_server":
+                app.delete()
+                self.restart_splunk()
 
     @property
     def test_llm_settings(self) -> TestLLMSettings:

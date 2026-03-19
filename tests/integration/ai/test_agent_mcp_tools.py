@@ -3,7 +3,6 @@
 import asyncio
 import contextlib
 import json
-import logging
 import os
 import socket
 from collections.abc import AsyncGenerator
@@ -567,46 +566,6 @@ class TestRemoteTools(AITestCase):
 
                 response = result.final_message.content
                 assert "31.5" in response, "Invalid LLM response"
-
-    @patch(
-        "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(os.path.dirname(__file__), "testdata", "non_existent.py"),
-    )
-    @patch("splunklib.ai.agent._testing_app_id", "app_id")
-    @pytest.mark.asyncio
-    async def test_splunk_mcp_server_app(self) -> None:
-        pytest.skip("Remove this test once we have an E2E with Splunk MCP Server app.")
-
-        # Skip if the langchain_openai package is not installed
-        pytest.importorskip("langchain_openai")  # pyright: ignore[reportUnreachable]
-
-        logger = logging.getLogger("test")
-        logger.setLevel(logging.DEBUG)
-
-        service = connect(
-            port=8090,
-            host="localhost",
-            username="admin",
-            password="",
-            autologin=True,
-        )
-
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You must use the available tools to perform requested operations",
-            service=service,
-            use_mcp_tools=True,
-            logger=logger,
-        ) as agent:
-            for tool in agent.tools:  # pyright: ignore[reportUnreachable]
-                if tool.name == "splunk_get_indexes":  # pyright: ignore[reportUnreachable]
-                    result = await tool.func()  # pyright: ignore[reportUnreachable]
-                    assert (
-                        len((result.structured_content or {}).get("results", [])) != 0
-                    )
-                    return
-
-            pytest.fail("Tool splunk_get_indexes not found")
 
 
 class TestHandlingToolNameCollision(AITestCase):

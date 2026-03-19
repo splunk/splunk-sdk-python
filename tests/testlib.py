@@ -239,7 +239,7 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
         # Before we start, make sure splunk doesn't need a restart.
         service = client.connect(**cls.opts.kwargs)
         if service.restart_required:
-            self.restart_splunk()
+            restart_splunk(service)
 
     def setUp(self):
         unittest.TestCase.setUp(self)

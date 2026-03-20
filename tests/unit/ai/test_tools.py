@@ -49,8 +49,9 @@ TEST_TOOLS = [TEST_TOOL_1, TEST_TOOL_2, TEST_TOOL_3, TEST_TOOL_4]
 @pytest.mark.parametrize(
     ("allowed_names", "allowed_tags", "initial_tools", "expected_tools"),
     [
-        (["test_tool_1"], [], TEST_TOOLS, [TEST_TOOL_1]),
-        ([], ["test_tag_2"], TEST_TOOLS, [TEST_TOOL_2, TEST_TOOL_4]),
+        (None, None, [], []),
+        (["test_tool_1"], None, TEST_TOOLS, [TEST_TOOL_1]),
+        (None, ["test_tag_2"], TEST_TOOLS, [TEST_TOOL_2, TEST_TOOL_4]),
         (
             ["test_tool_1"],
             ["test_tag_2"],
@@ -61,8 +62,8 @@ TEST_TOOLS = [TEST_TOOL_1, TEST_TOOL_2, TEST_TOOL_3, TEST_TOOL_4]
     ],
 )
 def test_filtering(
-    allowed_names: Sequence[str],
-    allowed_tags: Sequence[str],
+    allowed_names: Sequence[str] | None,
+    allowed_tags: Sequence[str] | None,
     initial_tools: Sequence[Tool],
     expected_tools: Sequence[Tool],
 ) -> None:

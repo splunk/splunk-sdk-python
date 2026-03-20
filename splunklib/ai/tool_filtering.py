@@ -22,14 +22,14 @@ from splunklib.ai.tools import Tool
 class ToolFilters:
     """Allowlists by which Tools are filtered."""
 
-    allowed_names: Sequence[str]
-    allowed_tags: Sequence[str]
+    allowed_names: Sequence[str] | None = None
+    allowed_tags: Sequence[str] | None = None
 
 
 def _is_allowed(tool: Tool, filters: ToolFilters) -> bool:
     return (
-        tool.name in filters.allowed_names
-        or len(set(filters.allowed_tags).intersection(tool.tags or [])) > 0
+        tool.name in (filters.allowed_names or [])
+        or len(set(filters.allowed_tags or []).intersection(tool.tags or [])) > 0
     )
 
 

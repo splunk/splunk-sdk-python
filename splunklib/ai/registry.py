@@ -11,9 +11,11 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
 import asyncio
 import inspect
 import logging
+import string
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from logging import Logger
@@ -416,6 +418,12 @@ class ToolRegistry:
             if name is None:
                 name = func.__name__
 
+            if not is_tool_name_valid(name):
+                raise ToolRegistryRuntimeError(
+                    f"Tool name {name} doesn't conform to MCP spec, see: "
+                    + "https://modelcontextprotocol.io/specification/latest/server/tools#tool-names"
+                )
+
             if self._executing:
                 raise ToolRegistryRuntimeError(
                     "ToolRegistry is already running, cannot define new tools"
@@ -497,3 +505,16 @@ def _drop_type_annotations_of(
     new_func.__annotations__ = new_annotations
 
     return new_func
+
+
+MCP_ALLOWED_CHARS = string.ascii_letters + string.digits + "_-."
+
+
+def is_tool_name_valid(name: str) -> bool:
+    """Checks compliance with the MCP spec restrictions, see:
+    https://modelcontextprotocol.io/specification/latest/server/tools#tool-names
+    """
+    if not (1 <= len(name) <= 128):
+        return False
+
+    return set(name).issubset(MCP_ALLOWED_CHARS)

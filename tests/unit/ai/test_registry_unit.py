@@ -15,6 +15,7 @@
 # pyright: reportPrivateUsage=false, reportUnusedFunction=false, reportUnusedParameter=false
 
 import os
+import string
 import sys
 import unittest
 from collections.abc import AsyncGenerator
@@ -27,7 +28,12 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.types import TextContent
 
-from splunklib.ai.registry import ToolContext, ToolRegistry, ToolRegistryRuntimeError
+from splunklib.ai.registry import (
+    ToolContext,
+    ToolRegistry,
+    ToolRegistryRuntimeError,
+    is_tool_name_valid,
+)
 
 
 class TestJSONSchemaInference(unittest.TestCase):
@@ -405,6 +411,38 @@ class TestDuplicateName(unittest.TestCase):
             ToolRegistryRuntimeError, match="Tool tool_name already defined"
         ):
             register_name(r)
+
+
+@pytest.mark.parametrize(
+    argnames="name",
+    argvalues=[
+        ".",
+        "." * 128,
+        "func.tool-name_v2",
+        string.ascii_letters + string.digits,
+    ],
+)
+def test_valid_name_passes(name: str) -> None:
+    assert is_tool_name_valid(name)
+
+
+@pytest.mark.parametrize(
+    argnames="name",
+    argvalues=[
+        "",
+        "—",
+        "." * 129,
+        "tool^name+=|/",
+        string.punctuation,
+    ],
+)
+def test_tool_decorator_raises_on_invalid_name(name: str) -> None:
+    reg = ToolRegistry()
+
+    with pytest.raises(ToolRegistryRuntimeError, match=r"Tool name .*"):
+
+        @reg.tool(name)
+        def mock_tool() -> None: ...
 
 
 class TestRegistryTestCase(unittest.IsolatedAsyncioTestCase):

@@ -642,8 +642,8 @@ Example hook that logs token usage after each model call:
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.hooks import after_model
-from splunklib.ai.middleware import ModelResponse
+from splunklib.ai.hooks import before_model
+from splunklib.ai.middleware import ModelRequest
 from splunklib.client import connect
 
 import logging
@@ -653,16 +653,16 @@ logger = logging.getLogger(__name__)
 model = OpenAIModel(...)
 service = connect(...)
 
-@after_model
-def log_model_response(req: ModelResponse) -> None:
-    logger.debug(f"Model response {req.message.content}")
+@before_model
+def log_usage(req: ModelRequest) -> None:
+    logger.debug(f"Steps: {req.state.total_steps}, Tokens: {req.state.token_count}")
 
 
 async with Agent(
     model=model,
     service=service,
-    system_prompt="..." ,
-    middleware=[log_model_response],
+    system_prompt="...",
+    middleware=[log_usage],
 ) as agent: ...
 ```
 

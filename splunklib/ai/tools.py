@@ -174,6 +174,11 @@ def _convert_mcp_tool(
     tool: MCPTool,
     service: Service,
 ) -> Tool:
+    # Trust model: SerializedService (containing Splunk credentials) is only passed to
+    # LOCAL MCP tools, which run in the same trust boundary as modular inputs and custom
+    # search commands. REMOTE tools (Splunk MCP Server App) receive only trace_id and
+    # app_id - they authenticate independently via a separate MCP token.
+
     async def call_tool(**arguments: dict[str, Any]) -> ToolResult:
         meta: dict[str, Any] | None = None
         match type:

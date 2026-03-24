@@ -15,7 +15,7 @@
 
 from typing import Self
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from splunklib.binding import _spliturl
 from splunklib.client import Service, connect
@@ -24,10 +24,10 @@ from splunklib.client import Service, connect
 class SerializedService(BaseModel):
     management_url: str = ""
     username: str | None = None
-    password: str | None = None
-    token: str | None = None
-    bearer_token: str | None = None
-    auth_cookies: dict[str, str] | None = None
+    password: str | None = Field(default=None, repr=False)
+    token: str | None = Field(default=None, repr=False)
+    bearer_token: str | None = Field(default=None, repr=False)
+    auth_cookies: dict[str, str] | None = Field(default=None, repr=False)
 
     @classmethod
     def from_service(cls, service: Service) -> Self:

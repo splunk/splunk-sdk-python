@@ -2,6 +2,7 @@ services:
     splunk:
         image: "splunk/splunk:${SPLUNK_VERSION}"
         container_name: splunk
+        platform: linux/amd64
         environment:
             - SPLUNK_START_ARGS=--accept-license
             - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
@@ -13,7 +14,7 @@ services:
             - "8088:8088"
             - "8089:8089"
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:8000']
+            test: ["CMD", "curl", "-f", "http://localhost:8000"]
             interval: 5s
             timeout: 5s
             retries: 20

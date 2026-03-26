@@ -11,19 +11,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-#
-# The purpose of this module is to provide a friendlier domain interface to
-# various Splunk endpoints. The approach here is to leverage the binding
-# layer to capture endpoint context and provide objects and methods that
-# offer simplified access their corresponding endpoints. The design avoids
-# caching resource state. From the perspective of this module, the 'policy'
-# for caching resource state belongs in the application or a higher level
-# framework, and its the purpose of this module to provide simplified
-# access to that resource state.
-#
-# A side note, the objects below that provide helper methods for updating eg:
-# Entity state, are written so that they may be used in a fluent style.
-#
 
 """The **splunklib.client** module provides a Pythonic interface to the
 `Splunk REST API <http://docs.splunk.com/Documentation/Splunk/latest/RESTAPI/RESTcontents>`_,
@@ -56,10 +43,21 @@ attributes, and methods that are specific to each kind of entity. For example::
 
     print(my_app['author'])  # Or: print(my_app.author)
     my_app.package()  # Creates a compressed package of this application
+
+The purpose of this module is to provide a friendlier domain interface to
+various Splunk endpoints. The approach here is to leverage the binding
+layer to capture endpoint context and provide objects and methods that
+offer simplified access their corresponding endpoints. The design avoids
+caching resource state. From the perspective of this module, the 'policy'
+for caching resource state belongs in the application or a higher level
+framework, and its the purpose of this module to provide simplified
+access to that resource state.
+
+A side note, the objects below that provide helper methods for updating eg:
+Entity state, are written so that they may be used in a fluent style.
 """
 
 import contextlib
-import datetime
 import json
 import logging
 import re
@@ -68,8 +66,15 @@ from datetime import datetime, timedelta
 from time import sleep
 from urllib import parse
 
+try:
+    from warnings import deprecated
+except ImportError:
+
+    def deprecated(message):  # pyright: ignore[reportUnknownParameterType]
+        return lambda _msg: None
+
+
 from . import data
-from .data import record
 from .binding import (
     AuthenticationError,
     Context,
@@ -80,17 +85,18 @@ from .binding import (
     _NoAuthenticationToken,
     namespace,
 )
+from .data import record
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "connect",
+    "AuthenticationError",
+    "IncomparableException",
     "NotSupportedError",
     "OperationError",
-    "IncomparableException",
     "Service",
+    "connect",
     "namespace",
-    "AuthenticationError",
 ]
 
 PATH_APPS = "apps/local/"
@@ -2007,6 +2013,9 @@ class StoragePassword(Entity):
         return self.content.get("clear_password")
 
     @property
+    @deprecated(
+        "To improve security, this field now returns an empty string and will be removed from Splunk in a future release.",
+    )
     def encrypted_password(self):
         return self.content.get("encr_password")
 

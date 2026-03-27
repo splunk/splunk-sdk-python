@@ -1,23 +1,31 @@
 CONTAINER_NAME := "splunk"
 
+.PHONY: venv-sync
+venv-sync: 
+	@uv sync --all-extras --no-config
+
+.PHONY: venv-upgrade
+venv-upgrade: 
+	@uv sync --all-extras --no-config --upgrade
+
 .PHONY: docs
-docs:
+docs: 
 	@make -C ./docs html
 
 .PHONY: test
-test:
+test: 
 	@python -m pytest ./tests
 
 .PHONY: test-unit
-test-unit:
+test-unit: 
 	@python -m pytest ./tests/unit
 
 .PHONY: test-integration
-test-integration:
+test-integration: 
 	@python -m pytest ./tests/integration ./tests/system
 
 .PHONY: docker-up
-docker-up:
+docker-up: 
 	@docker-compose up -d
 
 .PHONY: docker-ensure-up
@@ -31,18 +39,20 @@ docker-ensure-up:
 	done
 
 .PHONY: docker-start
-docker-start: docker-up docker-ensure-up
+docker-start: 
+	@docker-up docker-ensure-up
 
 .PHONY: docker-down
-docker-down:
+docker-down: 
 	@docker-compose stop
 
 .PHONY: docker-restart
 docker-restart: docker-down docker-start
 
 .PHONY: docker-remove
-docker-remove:
+docker-remove: 
 	@docker-compose rm -f -s
 
 .PHONY: docker-refresh
-docker-refresh: docker-remove docker-start
+docker-refresh: 
+	@docker-remove docker-start

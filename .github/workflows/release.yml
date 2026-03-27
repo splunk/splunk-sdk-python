@@ -29,7 +29,7 @@ jobs:
       - name: Generate API reference
         run: make -C ./docs html
       - name: Upload docs artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: python-sdk-docs
           path: docs/_build/html

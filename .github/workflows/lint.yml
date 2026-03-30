@@ -12,6 +12,6 @@ jobs:
       - name: Verify uv.lock is up-to-date
         run: uv lock --check
       - name: Install dependencies with uv
-        run: uv sync
+        run: SDK_DEPS_GROUP="lint" make uv-sync-ci
       - name: Verify basedpyright baseline
         run: uv run --frozen basedpyright

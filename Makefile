@@ -3,14 +3,23 @@
 ## VIRTUALENV MANAGEMENT
 
 # https://docs.astral.sh/uv/reference/cli/#uv-run--upgrade
-# --no-config skips our Splunk package index
+# --no-config skips Splunk's internal PyPI mirror
+UV_SYNC_CMD := uv sync --no-config
+
 .PHONY: uv-sync
 uv-sync:
-	uv sync --no-config
+	$(UV_SYNC_CMD) --dev
 
 .PHONY: uv-upgrade
 uv-upgrade:
-	uv sync --no-config --upgrade
+	$(UV_SYNC_CMD) --dev --upgrade
+
+
+# Workaround for make being unable to pass arguments to underlying cmd
+# $ SDK_DEPS_GROUP="build" make uv-sync-ci
+.PHONY: uv-sync-ci
+uv-sync-ci:
+	uv sync --locked --group $(SDK_DEPS_GROUP)
 
 .PHONY: clean
 clean:
@@ -22,9 +31,11 @@ docs:
 
 ## TESTING
 
-# -ra generates a report on all failed tests
-# -vv lets us see what failed and why the rest of the suite is running
-PYTEST_CMD := python -m pytest --no-header -ra -vv
+# --ff lets previously failing tests go first
+# -ra prints a report on all failed tests after a run
+# -vv shows why a test failed while the rest of the suite is running
+PYTHON_CMD := uv run python
+PYTEST_CMD := $(PYTHON_CMD) -m pytest --no-header --ff -ra -vv
 
 .PHONY: test
 test:
@@ -36,7 +47,6 @@ test-unit:
 
 .PHONY: test-integration
 test-integration:
-# Previously failing tests go first
 	$(PYTEST_CMD) --ff ./tests/integration ./tests/system
 
 .PHONY: test-ai

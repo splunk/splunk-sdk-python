@@ -108,7 +108,8 @@ class TestMiddleware(AITestCase):
 
         @tool_middleware
         async def test_middleware(
-            _request: ToolRequest, _handler: ToolMiddlewareHandler
+            _request: ToolRequest,  # noqa: PT019
+            _handler: ToolMiddlewareHandler,  # noqa: PT019
         ) -> ToolResponse:
             raise Exception("testing")
 
@@ -176,7 +177,8 @@ class TestMiddleware(AITestCase):
 
         @tool_middleware
         async def test_middleware(
-            request: ToolRequest, _handler: ToolMiddlewareHandler
+            request: ToolRequest,
+            _handler: ToolMiddlewareHandler,  # noqa: PT019
         ) -> ToolResponse:
             nonlocal middleware_called
             middleware_called = True
@@ -454,7 +456,8 @@ class TestMiddleware(AITestCase):
 
         @subagent_middleware
         async def test_middleware(
-            request: SubagentRequest, _handler: SubagentMiddlewareHandler
+            request: SubagentRequest,
+            _handler: SubagentMiddlewareHandler,  # noqa: PT019
         ) -> SubagentResponse:
             nonlocal middleware_called
             middleware_called = True
@@ -628,7 +631,8 @@ class TestMiddleware(AITestCase):
 
         @model_middleware
         async def test_middleware(
-            _request: ModelRequest, _handler: ModelMiddlewareHandler
+            _request: ModelRequest,  # noqa: PT019
+            _handler: ModelMiddlewareHandler,  # noqa: PT019
         ) -> ModelResponse:
             nonlocal middleware_called
             middleware_called = True
@@ -661,7 +665,8 @@ class TestMiddleware(AITestCase):
 
         @model_middleware
         async def test_middleware(
-            _request: ModelRequest, _handler: ModelMiddlewareHandler
+            _request: ModelRequest,  # noqa: PT019
+            _handler: ModelMiddlewareHandler,  # noqa: PT019
         ) -> ModelResponse:
             raise Exception("testing")
 
@@ -741,7 +746,8 @@ class TestMiddleware(AITestCase):
 
         @model_middleware
         async def test_middleware(
-            _req: ModelRequest, _handler: ModelMiddlewareHandler
+            _req: ModelRequest,  # noqa: PT019
+            _handler: ModelMiddlewareHandler,  # noqa: PT019
         ) -> ModelResponse:
             return ModelResponse(
                 message=AIMessage(content="Stefan", calls=[]),
@@ -827,8 +833,8 @@ class TestMiddleware(AITestCase):
 
         @agent_middleware
         async def test_middleware(
-            _req: AgentRequest,
-            _handler: AgentMiddlewareHandler,
+            _req: AgentRequest,  # noqa: PT019
+            _handler: AgentMiddlewareHandler,  # noqa: PT019
         ) -> AgentResponse:
             raise Exception("testing")
 
@@ -849,8 +855,8 @@ class TestMiddleware(AITestCase):
 
         @agent_middleware
         async def test_middleware(
-            _req: AgentRequest,
-            _handler: AgentMiddlewareHandler,
+            _req: AgentRequest,  # noqa: PT019
+            _handler: AgentMiddlewareHandler,  # noqa: PT019
         ) -> AgentResponse:
             return AgentResponse(
                 messages=[
@@ -914,10 +920,12 @@ class TestMiddleware(AITestCase):
             handler: AgentMiddlewareHandler,
         ) -> AgentResponse:
             nonlocal test1_called, test2_called
-            assert not test1_called and not test2_called
+            assert not test1_called
+            assert not test2_called
             test1_called = True
             resp = await handler(req)
-            assert test1_called and test2_called
+            assert test1_called
+            assert test2_called
             return resp
 
         @agent_middleware
@@ -926,7 +934,8 @@ class TestMiddleware(AITestCase):
             _handler: AgentMiddlewareHandler,
         ) -> AgentResponse:
             nonlocal test1_called, test2_called
-            assert test1_called and not test2_called
+            assert test1_called
+            assert not test2_called
             test2_called = True
             return AgentResponse(
                 messages=[
@@ -987,8 +996,8 @@ class TestMiddleware(AITestCase):
 
         @agent_middleware
         async def test_middleware(
-            _req: AgentRequest,
-            _handler: AgentMiddlewareHandler,
+            _req: AgentRequest,  # noqa: PT019
+            _handler: AgentMiddlewareHandler,  # noqa: PT019
         ) -> AgentResponse:
             return AgentResponse(
                 messages=[
@@ -1022,8 +1031,8 @@ class TestMiddleware(AITestCase):
 
         @agent_middleware
         async def test_middleware(
-            _req: AgentRequest,
-            _handler: AgentMiddlewareHandler,
+            _req: AgentRequest,  # noqa: PT019
+            _handler: AgentMiddlewareHandler,  # noqa: PT019
         ) -> AgentResponse:
             return AgentResponse[Any | None](
                 messages=[
@@ -1057,8 +1066,8 @@ class TestMiddleware(AITestCase):
 
         @agent_middleware
         async def test_middleware(
-            _req: AgentRequest,
-            _handler: AgentMiddlewareHandler,
+            _req: AgentRequest,  # noqa: PT019
+            _handler: AgentMiddlewareHandler,  # noqa: PT019
         ) -> AgentResponse:
             return AgentResponse[Any | None](
                 messages=[

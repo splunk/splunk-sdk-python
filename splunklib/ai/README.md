@@ -476,8 +476,14 @@ class ExampleMiddleware(AgentMiddleware):
     async def model_middleware(
         self, request: ModelRequest, handler: ModelMiddlewareHandler
     ) -> ModelResponse:
-        request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
-        return await handler(request)
+        return await handler(
+            ModelRequest(
+                system_message=request.system_message.replace(
+                    "SECRET", "[REDACTED]"
+                ),
+                state=request.state,
+            )
+        )
 
     @override
     async def tool_middleware(
@@ -535,8 +541,14 @@ from splunklib.ai.middleware import (
 async def redact_system_prompt(
     request: ModelRequest, handler: ModelMiddlewareHandler
 ) -> ModelResponse:
-    request.system_message = request.system_message.replace("SECRET", "[REDACTED]")
-    return await handler(request)
+    return await handler(
+        ModelRequest(
+            system_message=request.system_message.replace(
+                "SECRET", "[REDACTED]"
+            ),
+            state=request.state,
+        )
+    )
 ```
 
 Example tool middleware:

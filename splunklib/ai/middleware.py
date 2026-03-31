@@ -42,13 +42,13 @@ class AgentState:
     token_count: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class ToolRequest:
     call: ToolCall
     state: AgentState
 
 
-@dataclass
+@dataclass(frozen=True)
 class ToolResponse:
     result: ToolResult | ToolFailureResult
 
@@ -56,13 +56,13 @@ class ToolResponse:
 ToolMiddlewareHandler = Callable[[ToolRequest], Awaitable[ToolResponse]]
 
 
-@dataclass
+@dataclass(frozen=True)
 class SubagentRequest:
     call: SubagentCall
     state: AgentState
 
 
-@dataclass
+@dataclass(frozen=True)
 class SubagentResponse:
     result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
@@ -73,13 +73,13 @@ SubagentMiddlewareHandler = Callable[
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ModelRequest:
     system_message: str
     state: AgentState
 
 
-@dataclass
+@dataclass(frozen=True)
 class ModelResponse:
     message: AIMessage
     structured_output: Any | None = None
@@ -88,7 +88,7 @@ class ModelResponse:
 ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 
 
-@dataclass
+@dataclass(frozen=True)
 class AgentRequest:
     messages: list[BaseMessage]
 

@@ -50,7 +50,6 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command as LC_Command
 
 from splunklib.ai.base_agent import BaseAgent
-from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.core.backend import (
     AgentImpl,
     Backend,
@@ -125,27 +124,58 @@ Do not call the tools if not needed.
 ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 
 
+@final
+class LangChainBackend(Backend):
+    @override
+    async def create_agent(
+        self,
+        agent: BaseAgent[OutputT],
+    ) -> AgentImpl[OutputT]:
+        return LangChainAgentImpl(agent)
+
+
 @dataclass
 class LangChainAgentImpl(AgentImpl[OutputT]):
     _agent: CompiledStateGraph[Any]
-    _output_schema: type[OutputT] | None
-    _middleware: Sequence[AgentMiddleware]
-    _conversation_store: ConversationStore | None = None
+    _sdk_agent: BaseAgent[OutputT]
 
-    def __init__(
-        self,
-        system_prompt: str,
-        model: BaseChatModel,
-        tools: list[BaseTool],
-        output_schema: type[OutputT] | None,
-        lc_middleware: list[LC_AgentMiddleware],
-        middleware: Sequence[AgentMiddleware] | None = None,
-        conversation_store: ConversationStore | None = None,
-    ) -> None:
+    def __init__(self, agent: BaseAgent[OutputT]) -> None:
         super().__init__()
-        self._output_schema = output_schema
-        self._middleware = middleware or []
-        self._conversation_store = conversation_store
+        self._sdk_agent = agent
+
+        tools = _prepare_langchain_tools(agent.tools)
+
+        system_prompt = agent.system_prompt
+        if agent.agents:
+            seen_names: set[str] = set()
+            for subagent in agent.agents:
+                # Call _agent_as_tool first, so that the empty name exception is
+                # checked and raised first, before the duplicated name exception.
+                tool = _agent_as_tool(subagent)
+
+                if subagent.name in seen_names:
+                    raise AssertionError(
+                        f"Subagents share the same name: {subagent.name}"
+                    )
+
+                seen_names.add(subagent.name)
+                tools.append(tool)
+
+                system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
+
+        before_user_middlewares, after_user_middlewares = _debugging_middleware(
+            agent.logger
+        )
+
+        middleware = before_user_middlewares
+        middleware.extend(agent.middleware or [])
+        middleware.extend(after_user_middlewares)
+
+        model_impl = _create_langchain_model(agent.model)
+
+        lc_middleware: list[LC_AgentMiddleware] = [
+            _Middleware(m, model_impl, agent.logger) for m in (middleware or [])
+        ]
 
         # This middleware is executed just after the tool execution and populates
         # the artifact field for failed tool calls, since in such cases we can't
@@ -184,10 +214,10 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         lc_middleware.append(_ToolFailureArtifact())
 
         self._agent = create_agent(
-            model=model,
+            model=model_impl,
             tools=tools,
             system_prompt=system_prompt,
-            response_format=output_schema,
+            response_format=agent.output_schema,
             middleware=lc_middleware,
         )
 
@@ -211,7 +241,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # so the first middleware in the list becomes the outermost one.
 
         invoke = agent_invoke
-        for middleware in reversed(self._middleware):
+        for middleware in reversed(self._sdk_agent.middleware or []):
 
             def make_next(
                 m: AgentMiddleware, h: AgentMiddlewareHandler
@@ -237,8 +267,8 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             langchain_msgs = []
 
             # Prepend messages from conversation store.
-            if self._conversation_store:
-                msgs = await self._conversation_store.get_messages(thread_id)
+            if self._sdk_agent.conversation_store:
+                msgs = await self._sdk_agent.conversation_store.get_messages(thread_id)
                 langchain_msgs.extend([_map_message_to_langchain(m) for m in msgs])
 
             langchain_msgs.extend([_map_message_to_langchain(m) for m in req.messages])
@@ -258,11 +288,11 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             # if an LLM made any mistakes or not is _always_ up to the developer.
 
             assert (
-                self._output_schema is None
-                or type(result["structured_response"]) is self._output_schema
+                self._sdk_agent.output_schema is None
+                or type(result["structured_response"]) is self._sdk_agent.output_schema
             )
 
-            if self._output_schema:
+            if self._sdk_agent.output_schema:
                 return AgentResponse(
                     structured_output=result["structured_response"],
                     messages=sdk_msgs,
@@ -287,19 +317,19 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         if len(result.messages[-1].calls) != 0:
             raise AssertionError("AgentMiddleware included tool calls in AIMessage")
 
-        if self._output_schema:
+        if self._sdk_agent.output_schema:
             if result.structured_output is None:
                 raise AssertionError("Agent middleware discarded a structured output")
 
-            if type(result.structured_output) is not self._output_schema:
+            if type(result.structured_output) is not self._sdk_agent.output_schema:
                 raise AssertionError(
-                    f"Agent middleware returned an invalid structured_output type: {type(result.structured_output)}, want: {self._output_schema}"
+                    f"Agent middleware returned an invalid structured_output type: {type(result.structured_output)}, want: {self._sdk_agent.output_schema}"
                 )
 
             # Store the resulting messages in the conversation store, after all
             # agent middlewares have been executed.
-            if self._conversation_store:
-                await self._conversation_store.store_messages(
+            if self._sdk_agent.conversation_store:
+                await self._sdk_agent.conversation_store.store_messages(
                     thread_id, result.messages
                 )
 
@@ -315,8 +345,8 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
             # Store the resulting messages in the conversation store, after all
             # agent middlewares have been executed.
-            if self._conversation_store:
-                await self._conversation_store.store_messages(
+            if self._sdk_agent.conversation_store:
+                await self._sdk_agent.conversation_store.store_messages(
                     thread_id, result.messages
                 )
 
@@ -335,57 +365,6 @@ def _prepare_langchain_tools(agent_tools: Sequence[Tool]) -> list[BaseTool]:
         tools.append(_create_langchain_tool(a_tool))
 
     return tools
-
-
-@final
-class LangChainBackend(Backend):
-    @override
-    async def create_agent(
-        self,
-        agent: BaseAgent[OutputT],
-    ) -> AgentImpl[OutputT]:
-        tools = _prepare_langchain_tools(agent.tools)
-
-        system_prompt = agent.system_prompt
-        if agent.agents:
-            seen_names: set[str] = set()
-            for subagent in agent.agents:
-                # Call _agent_as_tool first, so that the empty name exception is
-                # checked and raised first, before the duplicated name exception.
-                tool = _agent_as_tool(subagent)
-
-                if subagent.name in seen_names:
-                    raise AssertionError(
-                        f"Subagents share the same name: {subagent.name}"
-                    )
-
-                seen_names.add(subagent.name)
-                tools.append(tool)
-
-                system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
-
-        before_user_middlewares, after_user_middlewares = _debugging_middleware(
-            agent.logger
-        )
-
-        middleware = before_user_middlewares
-        middleware.extend(agent.middleware or [])
-        middleware.extend(after_user_middlewares)
-
-        model_impl = _create_langchain_model(agent.model)
-        lc_middleware: list[LC_AgentMiddleware] = [
-            _Middleware(m, model_impl, agent.logger) for m in middleware or []
-        ]
-
-        return LangChainAgentImpl(
-            system_prompt=system_prompt,
-            model=model_impl,
-            tools=tools,
-            output_schema=agent.output_schema,
-            lc_middleware=lc_middleware,
-            middleware=agent.middleware,
-            conversation_store=agent.conversation_store,
-        )
 
 
 class _Middleware(LC_AgentMiddleware):

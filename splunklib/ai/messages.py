@@ -32,8 +32,7 @@ class ToolCall:
 @dataclass(frozen=True)
 class SubagentCall:
     name: str
-    # TODO: should be a str | dict[str, Any] for subagents without structured inputs
-    args: dict[str, Any]
+    args: str | dict[str, Any]
     id: str | None  # TODO: can be None?
 
 

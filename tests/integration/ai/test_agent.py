@@ -16,7 +16,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
-from splunklib.ai.messages import HumanMessage, SubagentMessage
+from splunklib.ai.messages import AIMessage, HumanMessage, SubagentCall, SubagentMessage
 from tests.ai_testlib import AITestCase
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
@@ -175,7 +175,17 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = result.final_message.content
+            first_ai_message = next(
+                m for m in result.messages if isinstance(m, AIMessage)
+            )
+            assert first_ai_message
+            assert len(first_ai_message.calls) == 1
+            assert isinstance(first_ai_message.calls[0], SubagentCall)
+            args = first_ai_message.calls[0].args
+            assert isinstance(args, dict)
+
+            # asserts that can create NicknameGeneratorInput from args
+            NicknameGeneratorInput(**args)
 
             subagent_message = next(
                 filter(lambda m: m.role == "subagent", result.messages), None
@@ -184,6 +194,8 @@ class TestAgent(AITestCase):
                 "Invalid subagent message"
             )
             assert subagent_message, "No subagent message found in response"
+
+            response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
@@ -216,6 +228,15 @@ class TestAgent(AITestCase):
                     )
                 ]
             )
+
+            first_ai_message = next(
+                m for m in result.messages if isinstance(m, AIMessage)
+            )
+            assert first_ai_message
+            assert len(first_ai_message.calls) == 1
+            assert isinstance(first_ai_message.calls[0], SubagentCall)
+            assert isinstance(first_ai_message.calls[0].args, str)
+            assert first_ai_message.calls[0].args.lower() == "chris"
 
             response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"

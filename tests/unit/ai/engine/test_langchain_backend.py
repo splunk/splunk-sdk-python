@@ -58,7 +58,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
     def test_map_message_from_langchain_ai_with_agent_call(self) -> None:
         tool_call = LC_ToolCall(
-            name=f"{lc.AGENT_PREFIX}assistant", args={"q": "test"}, id="tc-2"
+            name=f"{lc.AGENT_PREFIX}assistant", args={"args": {"q": "test"}}, id="tc-2"
         )
         message = LC_AIMessage(content="done", tool_calls=[tool_call])
         mapped = lc._map_message_from_langchain(message)
@@ -75,7 +75,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
     def test_map_message_from_langchain_ai_with_mixed_calls(self) -> None:
         tool_call = LC_ToolCall(name="lookup", args={"q": "test"}, id="tc-1")
         agent_call = LC_ToolCall(
-            name=f"{lc.AGENT_PREFIX}assistant", args={"q": "test"}, id="tc-2"
+            name=f"{lc.AGENT_PREFIX}assistant", args={"args": {"q": "test"}}, id="tc-2"
         )
         message = LC_AIMessage(content="done", tool_calls=[tool_call, agent_call])
 
@@ -155,14 +155,22 @@ class MapMessageToLangchainTests(unittest.TestCase):
     def test_map_message_to_langchain_ai_with_agent_call(self) -> None:
         message = AIMessage(
             content="hi",
-            calls=[SubagentCall(name="assistant", args={"q": "test"}, id="tc-2")],
+            calls=[
+                SubagentCall(
+                    name="assistant",
+                    args={"q": "test"},
+                    id="tc-2",
+                )
+            ],
         )
         mapped = lc._map_message_to_langchain(message)
 
         assert isinstance(mapped, LC_AIMessage)
         assert mapped.tool_calls == [
             LC_ToolCall(
-                name=f"{lc.AGENT_PREFIX}assistant", args={"q": "test"}, id="tc-2"
+                name=f"{lc.AGENT_PREFIX}assistant",
+                args={"args": {"q": "test"}},
+                id="tc-2",
             )
         ]
 
@@ -268,7 +276,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
         # Fine, but in practice a unnecessary prefix.
         assert isinstance(message, LC_AIMessage)
         assert message.tool_calls == [
-            LC_ToolCall(name="__agent-__agent-bad-agent", args={}, id="tc-1")
+            LC_ToolCall(name="__agent-__agent-bad-agent", args={"args": {}}, id="tc-1")
         ]
 
     def test_map_message_to_langchain_system(self) -> None:

@@ -146,6 +146,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         tools = _prepare_langchain_tools(agent.tools)
 
         system_prompt = agent.system_prompt
+        structured_subagents: list[str] = []
         if agent.agents:
             seen_names: set[str] = set()
             for subagent in agent.agents:
@@ -160,6 +161,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
                 seen_names.add(subagent.name)
                 tools.append(tool)
+
+                if subagent.input_schema is not None:
+                    structured_subagents.append(subagent.name)
 
                 system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
@@ -211,7 +215,87 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
                 return resp
 
+        class _SubagentArgumentPacker(LC_AgentMiddleware):
+            # For non-structured subagents, the SubagentCall.args field is an `str | dict[str, Any]`,
+            # to differentiate that we wrap the resulting args in an SubagentLCArgs.
+            #
+            # This middleware performs the corresponding pack/unpack at the two
+            # points in the LangChain call graph where raw args are needed/retreived.
+            #
+            # TODO: once we move middlewares into one LC middleware, we should move
+            # that piece of logic there (DVPL-12959).
+            @override
+            async def awrap_model_call(
+                self,
+                request: LC_ModelRequest,
+                handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+            ) -> LC_ModelCallResult:
+                # Unpack existing messages.
+                messages: list[LC_AnyMessage] = []
+                for msg in request.messages:
+                    if isinstance(msg, LC_AIMessage):
+                        new_calls: list[LC_ToolCall] = []
+                        for call in msg.tool_calls:
+                            new_calls.append(self.unpack_tool_call(call))
+                        msg = msg.model_copy(update={"tool_calls": new_calls})
+                    messages.append(msg)
+
+                response = await handler(request.override(messages=messages))
+
+                ai_message = response
+                if isinstance(ai_message, LC_ExtendedModelResponse):
+                    ai_message = ai_message.model_response
+                if isinstance(ai_message, LC_ModelResponse):
+                    ai_message = next(
+                        (m for m in ai_message.result if isinstance(m, LC_AIMessage)),
+                        None,
+                    )
+                    assert ai_message, "AIMessage not found found in response"
+
+                # Pack new message.
+                for call in ai_message.tool_calls:
+                    if call["name"].startswith(AGENT_PREFIX):
+                        if (
+                            _denormalize_agent_name(call["name"])
+                            in structured_subagents
+                        ):
+                            args = SubagentLCArgs(call["args"])
+                        else:
+                            content: str = call["args"].get("content", "")
+                            args = SubagentLCArgs(content)
+                        call["args"] = asdict(args)
+
+                return response
+
+            # Unpack args, just before tool call.
+            @override
+            async def awrap_tool_call(
+                self,
+                request: LC_ToolCallRequest,
+                handler: Callable[
+                    [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+                ],
+            ) -> LC_ToolMessage | LC_Command[None]:
+                return await handler(
+                    request.override(
+                        tool_call=self.unpack_tool_call(request.tool_call),
+                    )
+                )
+
+            def unpack_tool_call(self, call: LC_ToolCall) -> LC_ToolCall:
+                if call["name"].startswith(AGENT_PREFIX):
+                    unpacked_args = SubagentLCArgs(**call["args"]).args
+                    if isinstance(unpacked_args, str):
+                        unpacked_args = {"content": unpacked_args}
+                    return LC_ToolCall(
+                        id=call["id"],
+                        name=call["name"],
+                        args=unpacked_args,
+                    )
+                return call
+
         lc_middleware.append(_ToolFailureArtifact())
+        lc_middleware.append(_SubagentArgumentPacker())
 
         self._agent = create_agent(
             model=model_impl,
@@ -933,12 +1017,17 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     )
 
 
+@dataclass(frozen=True)
+class SubagentLCArgs:
+    args: str | dict[str, Any]
+
+
 def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | SubagentCall:
     name = tool_call["name"]
     if name.startswith(AGENT_PREFIX):
         return SubagentCall(
             name=_denormalize_agent_name(name),
-            args=tool_call["args"],
+            args=SubagentLCArgs(**tool_call["args"]).args,
             id=tool_call["id"],
         )
 
@@ -957,10 +1046,12 @@ def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
     match call:
         case SubagentCall():
             name = _normalize_agent_name(call.name)
+            args = asdict(SubagentLCArgs(call.args))
         case ToolCall():
             name = _normalize_tool_name(call.name, call.type)
+            args = call.args
 
-    return LC_ToolCall(id=call.id, name=name, args=call.args)
+    return LC_ToolCall(id=call.id, name=name, args=args)
 
 
 def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:

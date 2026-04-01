@@ -264,6 +264,83 @@ async with Agent(
 ) as agent: ...
 ```
 
+## Conversation stores
+
+By default, each call to `agent.invoke` is stateless - the agent has no memory of previous interactions,
+unless you provide the previouis message history explicitly. A conversation store enables the agent to persist
+and recall message history across invocations.
+
+### `InMemoryStore`
+
+The built-in `InMemoryStore` keeps conversation history in process memory.
+
+```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.conversation_store import InMemoryStore
+from splunklib.ai.messages import HumanMessage
+from splunklib.client import connect
+
+model = OpenAIModel(...)
+service = connect(...)
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="",
+    conversation_store=InMemoryStore(),
+) as agent:
+    await agent.invoke([HumanMessage(content="Hi, my name is Chris.")])
+    result = await agent.invoke([HumanMessage(content="What is my name?")])
+    print(result.final_message.content)  # Chris
+```
+
+### Multiple conversation threads
+
+Each conversation is isolated by a `thread_id`. You can pass a `thread_id` per invocation to maintain
+separate histories for different users or sessions within the same agent instance.
+
+```py
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="",
+    conversation_store=InMemoryStore(),
+) as agent:
+    await agent.invoke(
+        [HumanMessage(content="Hi, my name is Alice.")],
+        thread_id="user-alice",
+    )
+    await agent.invoke(
+        [HumanMessage(content="Hi, my name is Bob.")],
+        thread_id="user-bob",
+    )
+
+    result = await agent.invoke(
+        [HumanMessage(content="What is my name?")],
+        thread_id="user-alice",
+    )
+    print(result.final_message.content)  # Alice - Bob's thread is unaffected
+```
+
+A custom `thread_id` can also be set on the agent constructor. When `invoke` is called without an explicit
+`thread_id`, the `thread_id` from the constructor is used. If no `thread_id` is provided in the constructor, one
+is generated implicitly.
+
+```py
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="",
+    conversation_store=InMemoryStore(),
+    thread_id="session-42",
+) as agent:
+    await agent.invoke([HumanMessage(content="Hi, my name is Chris.")])
+
+    # No thread_id supplied — falls back to "session-42"
+    result = await agent.invoke([HumanMessage(content="What is my name?")])
+    print(result.final_message.content)  # Chris
+```
+
 ## Subagents
 
 The `Agent` constructor can accept subagents as input parameters.

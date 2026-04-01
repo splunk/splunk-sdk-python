@@ -17,10 +17,12 @@ from collections.abc import AsyncGenerator, Sequence
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from logging import Logger
 from typing import Self, final, override
+from uuid import uuid4
 
 from pydantic import BaseModel
 
 from splunklib.ai.base_agent import BaseAgent
+from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
@@ -107,6 +109,29 @@ class Agent(BaseAgent[OutputT]):
         logger:
             Optional logger instance used for tracing and debugging the agent's execution.
             Additionally logs from the local tools are forwarded to this logger.
+
+        conversation_store:
+            Optional `ConversationStore` instance used to persist conversation history
+            across multiple `invoke` calls. When provided, the agent automatically loads
+            prior messages for the active thread before each invocation and saves the
+            full updated history afterwards.
+
+            Use the built-in `InMemoryStore` for in-process persistence, or implement
+            `ConversationStore` to back history with an external store.
+
+            Without a store, each `invoke` call is stateless and the agent has no memory
+            of previous turns.
+
+        thread_id:
+            Identifies the conversation thread used when reading from and writing to the
+            `conversation_store`. Each unique `thread_id` maintains a separate history,
+            so different users or sessions can share one store without interference.
+
+            If omitted, a random ID is generated automatically. The `thread_id` can
+            also be overridden per-call by passing it directly to `invoke`.
+
+            Never invoke an Agent using the same thread_id more than once concurrently
+            while using the same conversation_store.
     """
 
     _impl: AgentImpl[OutputT] | None
@@ -129,17 +154,22 @@ class Agent(BaseAgent[OutputT]):
         name: str = "",  # Only used by Subagents
         description: str = "",  # Only used by Subagents
         logger: Logger | None = None,
+        conversation_store: ConversationStore | None = None,
+        thread_id: str | None = None,
     ) -> None:
         super().__init__(
             model=model,
             system_prompt=system_prompt,
             name=name,
             description=description,
+            tools=None,
             agents=agents,
             input_schema=input_schema,
             output_schema=output_schema,
             middleware=middleware,
             logger=logger,
+            conversation_store=conversation_store,
+            thread_id=thread_id if thread_id is not None else str(uuid4()),
         )
 
         self._use_mcp_tools = use_mcp_tools
@@ -242,12 +272,19 @@ class Agent(BaseAgent[OutputT]):
         self._agent_context_manager = None
         return result
 
+    # TODO: for now we have a thread_id as an optional param, should
+    # we wrap it in a dataclass? Might help with future-proofing the API??
     @override
-    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
+    async def invoke(
+        self, messages: list[BaseMessage], thread_id: str | None = None
+    ) -> AgentResponse[OutputT]:
         if not self._impl:
             raise AssertionError("Agent must be used inside 'async with'")
 
-        return await self._impl.invoke(messages)
+        if thread_id is None:
+            thread_id = self._thread_id
+
+        return await self._impl.invoke(messages, thread_id)
 
 
 def _local_tools_path() -> tuple[str | None, str]:

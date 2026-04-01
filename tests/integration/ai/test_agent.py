@@ -141,36 +141,6 @@ class TestAgent(AITestCase):
                 "Age field not found in the message"
             )
 
-    @pytest.mark.asyncio
-    async def test_agent_remembers_state(self):
-        pytest.importorskip("langchain_openai")
-
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant that responds in structured data.",
-            service=self.service,
-        ) as agent:
-            _ = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="hi, my name is Chris",
-                    )
-                ]
-            )
-
-            result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="What is my name?",
-                    )
-                ]
-            )
-
-            response = result.final_message.content
-
-            assert "Chris" in response, "Agent did not remember the name"
-
-    @pytest.mark.asyncio
     async def test_agent_uses_subagent(self):
         pytest.importorskip("langchain_openai")
 

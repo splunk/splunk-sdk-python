@@ -20,6 +20,7 @@ from typing import Generic
 
 from pydantic import BaseModel
 
+from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
@@ -38,19 +39,23 @@ class BaseAgent(Generic[OutputT], ABC):
     _middleware: Sequence[AgentMiddleware] | None = None
     _trace_id: str
     _logger: logging.Logger
+    _conversation_store: ConversationStore | None = None
+    _thread_id: str
 
     def __init__(
         self,
         system_prompt: str,
         model: PredefinedModel,
-        description: str = "",
-        name: str = "",
-        tools: Sequence[Tool] | None = None,
-        agents: Sequence["BaseAgent[BaseModel | None]"] | None = None,
-        input_schema: type[BaseModel] | None = None,
-        output_schema: type[OutputT] | None = None,
-        middleware: Sequence[AgentMiddleware] | None = None,
-        logger: logging.Logger | None = None,
+        description: str,
+        name: str,
+        tools: Sequence[Tool] | None,
+        agents: Sequence["BaseAgent[BaseModel | None]"] | None,
+        input_schema: type[BaseModel] | None,
+        output_schema: type[OutputT] | None,
+        middleware: Sequence[AgentMiddleware] | None,
+        logger: logging.Logger | None,
+        conversation_store: ConversationStore | None,
+        thread_id: str,
     ) -> None:
         self._system_prompt = system_prompt
         self._model = model
@@ -62,6 +67,8 @@ class BaseAgent(Generic[OutputT], ABC):
         self._output_schema = output_schema
         self._middleware = tuple(middleware) if middleware else ()
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
+        self._conversation_store = conversation_store
+        self._thread_id = thread_id
 
         if logger is None:
             # Create a no-op logger to skip checking for its existence.
@@ -70,7 +77,9 @@ class BaseAgent(Generic[OutputT], ABC):
         self._logger = logger
 
     @abstractmethod
-    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
+    async def invoke(
+        self, messages: list[BaseMessage], thread_id: str | None = None
+    ) -> AgentResponse[OutputT]: ...
 
     @property
     def logger(self) -> logging.Logger:
@@ -115,3 +124,11 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def trace_id(self) -> str:
         return self._trace_id
+
+    @property
+    def conversation_store(self) -> ConversationStore | None:
+        return self._conversation_store
+
+    @property
+    def default_thread_id(self) -> str:
+        return self._thread_id

@@ -46,11 +46,11 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages.base import BaseMessage as LC_BaseMessage
 from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.tools import BaseTool, StructuredTool
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.graph.state import CompiledStateGraph, RunnableConfig
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command as LC_Command
 
 from splunklib.ai.base_agent import BaseAgent
+from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.core.backend import (
     AgentImpl,
     Backend,
@@ -128,10 +128,9 @@ ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 @dataclass
 class LangChainAgentImpl(AgentImpl[OutputT]):
     _agent: CompiledStateGraph[Any]
-    _thread_id: uuid.UUID
-    _config: RunnableConfig
     _output_schema: type[OutputT] | None
     _middleware: Sequence[AgentMiddleware]
+    _conversation_store: ConversationStore | None = None
 
     def __init__(
         self,
@@ -141,14 +140,12 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         output_schema: type[OutputT] | None,
         lc_middleware: list[LC_AgentMiddleware],
         middleware: Sequence[AgentMiddleware] | None = None,
+        conversation_store: ConversationStore | None = None,
     ) -> None:
         super().__init__()
         self._output_schema = output_schema
-        self._thread_id = uuid.uuid4()
-        self._config = {"configurable": {"thread_id": self._thread_id}}
         self._middleware = middleware or []
-
-        checkpointer = InMemorySaver()
+        self._conversation_store = conversation_store
 
         # This middleware is executed just after the tool execution and populates
         # the artifact field for failed tool calls, since in such cases we can't
@@ -190,7 +187,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             model=model,
             tools=tools,
             system_prompt=system_prompt,
-            checkpointer=checkpointer,
             response_format=output_schema,
             middleware=lc_middleware,
         )
@@ -230,18 +226,26 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         return invoke
 
     @override
-    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]:
+    async def invoke(
+        self, messages: list[BaseMessage], thread_id: str
+    ) -> AgentResponse[OutputT]:
         # TODO: What if we are passed len(messages) == 0 to invoke?
         # TODO: What if someone passed call_id that don't have a corresponding id with the response.
         # Possibly we should do a validation phase of messages here.
 
         async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
-            langchain_msgs = [_map_message_to_langchain(m) for m in req.messages]
+            langchain_msgs = []
+
+            # Prepend messages from conversation store.
+            if self._conversation_store:
+                msgs = await self._conversation_store.get_messages(thread_id)
+                langchain_msgs.extend([_map_message_to_langchain(m) for m in msgs])
+
+            langchain_msgs.extend([_map_message_to_langchain(m) for m in req.messages])
 
             # call the langchain agent
             result = await self._agent.ainvoke(
                 {"messages": langchain_msgs},
-                config=self._config,
             )
 
             sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
@@ -292,6 +296,13 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                     f"Agent middleware returned an invalid structured_output type: {type(result.structured_output)}, want: {self._output_schema}"
                 )
 
+            # Store the resulting messages in the conversation store, after all
+            # agent middlewares have been executed.
+            if self._conversation_store:
+                await self._conversation_store.store_messages(
+                    thread_id, result.messages
+                )
+
             return AgentResponse[OutputT](
                 messages=result.messages,
                 structured_output=result.structured_output,
@@ -300,6 +311,13 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             if result.structured_output is not None:
                 raise AssertionError(
                     "Agent middleware unexpectedly included a structured output"
+                )
+
+            # Store the resulting messages in the conversation store, after all
+            # agent middlewares have been executed.
+            if self._conversation_store:
+                await self._conversation_store.store_messages(
+                    thread_id, result.messages
                 )
 
             return AgentResponse[OutputT](
@@ -366,6 +384,7 @@ class LangChainBackend(Backend):
             output_schema=agent.output_schema,
             lc_middleware=lc_middleware,
             middleware=agent.middleware,
+            conversation_store=agent.conversation_store,
         )
 
 
@@ -662,26 +681,15 @@ def _convert_tool_message_from_lc(
 ) -> ToolMessage | SubagentMessage:
     match message:
         case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
-            if (
-                type(message.artifact) is SubagentStructuredResult
-                or type(message.artifact) is SubagentTextResult
-                or type(message.artifact) is SubagentFailureResult
-            ):
-                result = message.artifact
-            else:
-                # TODO: remove once we introudce SDK checkpointers.
-                # This is a workaround, since when we use LC checkpointers,
-                # the artifact is converted to a dict.
-                if hasattr(message.artifact, "error_message"):
-                    result = SubagentFailureResult(**message.artifact)
-                elif hasattr(message.artifact, "structured_content"):
-                    result = SubagentStructuredResult(**message.artifact)
-                else:
-                    result = SubagentTextResult(**message.artifact)
+            assert (
+                isinstance(message.artifact, SubagentStructuredResult)
+                or isinstance(message.artifact, SubagentTextResult)
+                or isinstance(message.artifact, SubagentFailureResult)
+            )
             return SubagentMessage(
                 name=_denormalize_agent_name(name),
                 call_id=message.tool_call_id,
-                result=result,
+                result=message.artifact,
             )
         case LC_ToolMessage():
             # If this is reached, we likely passed an invalid tool name to LangChain.
@@ -689,16 +697,9 @@ def _convert_tool_message_from_lc(
                 "LangChain responded with a nameless tool call"
             )
 
-            if (
-                type(message.artifact) is ToolResult
-                or type(message.artifact) is ToolFailureResult
-            ):
-                result = message.artifact
-            else:
-                # TODO: remove once we introudce SDK checkpointers.
-                # This is a workaround, since when we use LC checkpointers,
-                # the artifact is converted to a dict.
-                result = ToolResult(**message.artifact)
+            assert isinstance(message.artifact, ToolResult) or isinstance(
+                message.artifact, ToolFailureResult
+            )
 
             tool_type: ToolType = (
                 ToolType.LOCAL
@@ -709,7 +710,7 @@ def _convert_tool_message_from_lc(
                 name=_denormalize_tool_name(message.name),
                 call_id=message.tool_call_id,
                 type=tool_type,
-                result=result,
+                result=message.artifact,
             )
         case LC_Command():
             # NOTE: for now the command is not implemented

@@ -29,7 +29,9 @@ class InvalidMessageTypeError(Exception):
 class AgentImpl(Protocol[OutputT]):
     """Backend-specific agent implementation used by the public `Agent` wrapper."""
 
-    async def invoke(self, messages: list[BaseMessage]) -> AgentResponse[OutputT]: ...
+    async def invoke(
+        self, messages: list[BaseMessage], thread_id: str
+    ) -> AgentResponse[OutputT]: ...
 
 
 class Backend(Protocol):

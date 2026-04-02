@@ -29,7 +29,7 @@ from splunklib.ai.messages import AgentResponse, BaseMessage, HumanMessage, Outp
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
 from splunklib.ai.security import create_structured_prompt
-from splunklib.ai.tool_filtering import ToolFilters, filter_tools
+from splunklib.ai.tool_settings import LocalToolSettings, ToolSettings
 from splunklib.ai.tools import (
     Tool,
     ToolType,
@@ -44,6 +44,8 @@ from splunklib.client import Service
 # For testing purposes, overrides the automatically inferred tools.py path.
 _testing_local_tools_path: str | None = None
 _testing_app_id: str | None = None
+
+DEFAULT_TOOL_SETTINGS = ToolSettings(local=False, remote=None)
 
 
 @final
@@ -71,18 +73,14 @@ class Agent(BaseAgent[OutputT]):
         service:
             A `Service` instance, that is the authenticated to the Splunk service.
 
-        use_mcp_tools:
-            If `True`, the agent will load and expose MCP tools to the model.
-            This includes:
-              * Remote tools provided by the Splunk MCP Server App.
-              * Local tools registered via `ToolRegistry` in `bin/tools.py`.
+        tool_settings:
+            Optional `ToolSettings` instance controlling which MCP tools are
+            loaded and exposed to the model. When provided, the agent loads:
+              * Local tools via `ToolSettings.local` (registered in `<app_path>/bin/tools.py`).
+              * Remote tools via `ToolSettings.remote` (requires Splunk MCP Server App present on SH).
 
-            When enabled, the model can decide when and how to call tools
-            as part of its reasoning. Defaults to `False`.
-
-        tool_filters:
-            Optional `ToolFilters` instance used to restrict which tools are
-            exposed to the model when MCP tools are enabled.
+            Each sub-setting accepts an optional allowlist to restrict which
+            tools are exposed. No tools are loaded by default.
 
         agents:
             Optional list of subagents available to this agent.
@@ -136,9 +134,7 @@ class Agent(BaseAgent[OutputT]):
     """
 
     _impl: AgentImpl[OutputT] | None
-    _use_mcp_tools: bool
     _service: Service
-    _tool_filters: ToolFilters | None
     _agent_context_manager: AbstractAsyncContextManager[Self] | None = None
 
     def __init__(
@@ -146,8 +142,7 @@ class Agent(BaseAgent[OutputT]):
         model: PredefinedModel,
         system_prompt: str,
         service: Service,
-        use_mcp_tools: bool = False,  # TODO: should we default to True?
-        tool_filters: ToolFilters | None = None,
+        tool_settings: ToolSettings = DEFAULT_TOOL_SETTINGS,
         agents: Sequence[BaseAgent[BaseModel | None]] | None = None,
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,  # Only used by Subagents
@@ -165,6 +160,7 @@ class Agent(BaseAgent[OutputT]):
             description=description,
             tools=None,
             agents=agents,
+            tool_settings=tool_settings,
             input_schema=input_schema,
             output_schema=output_schema,
             middleware=middleware,
@@ -173,87 +169,84 @@ class Agent(BaseAgent[OutputT]):
             thread_id=thread_id if thread_id is not None else str(uuid4()),
         )
 
-        self._use_mcp_tools = use_mcp_tools
-        self._tool_filters = tool_filters
         self._service = service
         self._impl = None
 
     @asynccontextmanager
     async def _start_agent(self) -> AsyncGenerator[Self]:
+        # NOTE: We use an AsyncExitStack to persist both local and remote
+        # MCP server connections throughout an Agent's entire lifetime
         async with AsyncExitStack() as stack:
             assert self._impl is None, (
                 "internal error: _impl was not set to None after agent invocation"
             )
 
-            if self.name:
-                self.logger.debug(
-                    f"Creating agent {self.name}; trace_id={self.trace_id}"
-                )
-            else:
-                self.logger.debug(f"Creating agent; trace_id={self.trace_id}")
+            self.logger.debug(f"Creating agent {self.name=}; {self.trace_id=}")
 
-            if self._use_mcp_tools:
-                tools: list[Tool] = []
-
-                self.logger.debug("Local tool registry detected")
-                local_tools_path, app_id = _local_tools_path()
-                if local_tools_path:
-                    local_session = await stack.enter_async_context(
-                        connect_local_mcp(local_tools_path, self.logger)
-                    )
-                    self.logger.debug("Loading local tools")
-                    local_tools = await load_mcp_tools(
-                        local_session,
-                        ToolType.LOCAL,
-                        app_id,
-                        self.trace_id,
-                        self._service,
-                    )
-                    self.logger.debug(f"Local tools loaded; {local_tools=}")
-                    tools.extend(local_tools)
-
-                self.logger.debug("Probing MCP Server App availability")
-                remote_session = await stack.enter_async_context(
-                    connect_remote_mcp(
-                        self._service,
-                        app_id,
-                        self.trace_id,
-                    )
-                )
-                if remote_session:
-                    self.logger.debug("Loading remote tools - MCP Server available")
-                    remote_tools = await load_mcp_tools(
-                        remote_session,
-                        ToolType.REMOTE,
-                        app_id,
-                        self.trace_id,
-                        self._service,
-                    )
-                    self.logger.debug(f"Remote tools loaded; {remote_tools=}")
-                    tools.extend(remote_tools)
-
-                if self._tool_filters:
-                    tools = filter_tools(tools, self._tool_filters)
-
-                self.logger.debug(
-                    f"Tools loaded & filtered successfully; tools_after_filtering={[tool.name for tool in tools]}"
-                )
-
-                self._tools = tools
+            self._tools = await self._load_tools(stack)
 
             backend = get_backend()
             self._impl = await backend.create_agent(self)
 
-            if self.name:
-                self.logger.debug(
-                    f"Agent {self.name} created; trace_id={self.trace_id}"
-                )
-            else:
-                self.logger.debug(f"Agent created; trace_id={self.trace_id}")
+            self.logger.debug(f"Agent {self.name=} created; {self.trace_id=}")
 
             yield self
 
             self._impl = None
+
+    async def _load_tools(self, stack: AsyncExitStack) -> list[Tool]:
+        tools: list[Tool] = []
+        if not self.tool_settings.local and not self.tool_settings.remote:
+            return tools
+
+        local_tools_path, app_id = _local_tools_path()
+        if self.tool_settings.local and local_tools_path:
+            self.logger.debug("Loading local tools")
+            local_session = await stack.enter_async_context(
+                connect_local_mcp(local_tools_path, self.logger)
+            )
+
+            local_tools = await load_mcp_tools(
+                local_session,
+                ToolType.LOCAL,
+                app_id,
+                self.trace_id,
+                self._service,
+            )
+
+            if isinstance(self.tool_settings.local, LocalToolSettings):
+                allowlist = self.tool_settings.local.allowlist
+                self.logger.debug("Local allowlist detected")
+                local_tools = [lt for lt in local_tools if allowlist.is_allowed(lt)]
+
+            self.logger.debug(f"Local tools loaded; {local_tools=}")
+            tools.extend(local_tools)
+
+        if self.tool_settings.remote:
+            self.logger.debug("Probing MCP Server App availability")
+            remote_session = await stack.enter_async_context(
+                connect_remote_mcp(self._service, app_id, self.trace_id)
+            )
+
+            if remote_session:
+                self.logger.debug("Loading remote tools - MCP Server available")
+                remote_tools = await load_mcp_tools(
+                    remote_session,
+                    ToolType.REMOTE,
+                    app_id,
+                    self.trace_id,
+                    self._service,
+                )
+
+                allowlist = self.tool_settings.remote.allowlist
+                remote_tools = [rt for rt in remote_tools if allowlist.is_allowed(rt)]
+
+                self.logger.debug(
+                    f"Loaded remote_tools={[t.name for t in remote_tools]}"
+                )
+                tools.extend(remote_tools)
+
+        return tools
 
     async def __aenter__(self) -> Self:
         if self._agent_context_manager:
@@ -266,9 +259,7 @@ class Agent(BaseAgent[OutputT]):
     ) -> bool | None:
         assert self._agent_context_manager is not None
         result = await self._agent_context_manager.__aexit__(
-            exc_type,
-            exc_value,
-            traceback,
+            exc_type, exc_value, traceback
         )
         self._agent_context_manager = None
         return result

@@ -30,7 +30,12 @@ from splunklib.ai.messages import (
     ToolMessage,
     ToolResult,
 )
-from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.ai.tool_settings import (
+    LocalToolSettings,
+    RemoteToolSettings,
+    ToolAllowlist,
+    ToolSettings,
+)
 from splunklib.ai.tools import (
     _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
     locate_app,
@@ -57,7 +62,7 @@ class TestTools(AITestCase):
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             result = await agent.invoke(
                 [
@@ -93,7 +98,7 @@ class TestTools(AITestCase):
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             result = await agent.invoke(
                 [
@@ -131,9 +136,11 @@ class TestTools(AITestCase):
             model=(await self.model()),
             system_prompt="",
             service=self.service,
-            use_mcp_tools=True,
-            tool_filters=ToolFilters(
-                allowed_names=["test_tool_1"], allowed_tags=["test_tag_2"]
+            tool_settings=ToolSettings(
+                local=LocalToolSettings(
+                    allowlist=ToolAllowlist(names=["test_tool_1"], tags=["test_tag_2"])
+                ),
+                remote=None,
             ),
         ) as agent:
             tool_names = [t.name for t in agent.tools]
@@ -152,7 +159,7 @@ class TestTools(AITestCase):
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             call_count_tool = next(
                 (t for t in agent.tools if t.name == "backdoor_tool_call_count"), None
@@ -336,7 +343,12 @@ class TestRemoteTools(AITestCase):
                 model=(await self.model()),
                 system_prompt="You must use the available tools to perform requested operations",
                 service=service,
-                use_mcp_tools=True,
+                tool_settings=ToolSettings(
+                    local=False,
+                    remote=RemoteToolSettings(
+                        allowlist=ToolAllowlist(names=["temperature"])
+                    ),
+                ),
             ) as agent:
                 result = await agent.invoke(
                     [
@@ -449,7 +461,12 @@ class TestRemoteTools(AITestCase):
                 system_prompt="You must use the available tools to perform requested operations. "
                 + "You MUST Retry tool calls until you receive a valid response, that's not an error",
                 service=service,
-                use_mcp_tools=True,
+                tool_settings=ToolSettings(
+                    local=False,
+                    remote=RemoteToolSettings(
+                        allowlist=ToolAllowlist(names=["temperature"])
+                    ),
+                ),
             ) as agent:
                 result = await agent.invoke(
                     [
@@ -532,7 +549,12 @@ class TestRemoteTools(AITestCase):
                 model=(await self.model()),
                 system_prompt="You must use the available tools to perform requested operations",
                 service=service,
-                use_mcp_tools=True,
+                tool_settings=ToolSettings(
+                    local=False,
+                    remote=RemoteToolSettings(
+                        allowlist=ToolAllowlist(names=["temperature"])
+                    ),
+                ),
             ) as agent:
                 result = await agent.invoke(
                     [
@@ -626,7 +648,12 @@ class TestHandlingToolNameCollision(AITestCase):
                 model=await self.model(),
                 system_prompt="Return only JSON, no additional text.",
                 service=service,
-                use_mcp_tools=True,
+                tool_settings=ToolSettings(
+                    local=True,
+                    remote=RemoteToolSettings(
+                        allowlist=ToolAllowlist(custom_predicate=lambda _: True)
+                    ),
+                ),
                 output_schema=ToolResults,
             ) as agent:
                 assert len(agent.tools) == 2

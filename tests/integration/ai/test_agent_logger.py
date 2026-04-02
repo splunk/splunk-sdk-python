@@ -22,6 +22,7 @@ import pytest
 
 from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage
+from splunklib.ai.tool_settings import ToolSettings
 from tests.ai_testlib import AITestCase
 
 
@@ -56,11 +57,7 @@ class FakeLoggingHandler(logging.Handler):
 class TestAgentLogger(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather_with_logs.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather_with_logs.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
@@ -77,15 +74,15 @@ class TestAgentLogger(AITestCase):
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
-            use_mcp_tools=True,
             logger=logger,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             _ = await agent.invoke(
                 [
                     HumanMessage(
                         content=(
                             "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                            "Return a short response, containing the tool response."
+                            + "Return a short response, containing the tool response."
                         ),
                     )
                 ]
@@ -100,11 +97,7 @@ class TestAgentLogger(AITestCase):
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "weather_with_logs.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "weather_with_logs.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
@@ -121,7 +114,7 @@ class TestAgentLogger(AITestCase):
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
             logger=logger,
         ) as agent:
             _ = await agent.invoke(
@@ -129,7 +122,7 @@ class TestAgentLogger(AITestCase):
                     HumanMessage(
                         content=(
                             "What is the weather like today in Krakow? Use the provided tools to check the temperature."
-                            "Return a short response, containing the tool response."
+                            + "Return a short response, containing the tool response."
                         ),
                     )
                 ]

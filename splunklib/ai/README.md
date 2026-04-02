@@ -90,7 +90,7 @@ from splunklib.ai import Agent, OpenAIModel
 model = OpenAIModel(
     model="llama3.2:3b",
     base_url="http://localhost:11434/v1",
-    api_key="ollama",
+    api_key="",  # required but ignored
 )
 
 async with Agent(model=model) as agent: ....
@@ -106,7 +106,7 @@ from splunklib.ai import Agent, AnthropicModel
 model = AnthropicModel(
     model="llama3.2:3b",
     base_url="http://localhost:11434",
-    api_key="ollama",
+    api_key="",  # required but ignored
 )
 
 async with Agent(model=model) as agent: ....
@@ -130,14 +130,11 @@ To enable the Agent to perform background or auxiliary tasks, it can be extended
 These tools provide the Agent with additional capabilities beyond text generation, such as executing
 actions, fetching data, or interacting with external systems.
 
-The `use_mcp_tools` parameter controls whether MCP tools are exposed to the underlying LLM. When this flag
-is enabled, both local and remote MCP tools are loaded and made available for invocation by the model during execution.
-
-This mechanism allows the Agent to dynamically decide when to use tools as part of its reasoning process,
-while keeping tool availability explicitly configurable.
+The `tool_settings` parameter controls which MCP tools are exposed to the underlying LLM. See [Tool filtering](#tool-filtering).
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.tool_settings import ToolSettings
 from splunklib.client import connect
 
 model = OpenAIModel(...)
@@ -147,7 +144,7 @@ async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
     service=service,
-    use_mcp_tools=True,
+    tool_settings=ToolSettings(local=True),
 ) as agent: ...
 ```
 
@@ -156,6 +153,25 @@ async with Agent(
 Remote tools are provided by the [Splunk MCP Server App](https://help.splunk.com/en/splunk-cloud-platform/mcp-server-for-splunk-platform/about-the-mcp-server-for-splunk-platform).
 When a Splunk instance has the MCP Server App installed and configured, the Agent automatically
 discovers and loads all tools that are enabled on the MCP server during construction.
+
+To let an agent access remote tools, pass a `RemoteToolSettings` instance and all the appropriate tools whitelisted:
+
+```py
+from splunklib.ai.tool_settings import RemoteToolSettings, ToolAllowlist, ToolSettings
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="...",
+    tool_settings=ToolSettings(
+        remote=RemoteToolSettings(
+            allowlist=ToolAllowlist(names=["splunk_get_indexes"], tags=["tag1"])
+        )
+    ),
+) as agent: ...
+```
+
+See [Tool filtering](#tool-filtering) for more details.
 
 ### Local tools
 
@@ -168,7 +184,7 @@ decorator, which is used to annotate Python functions that should be made availa
 Each annotated function becomes an invocable tool, with its signature and docstring used to define
 the tool’s interface and description.
 
-Example `tool.py` implementation:
+Example `tools.py` implementation:
 
 ```py
 from splunklib.ai.registry import ToolRegistry
@@ -177,7 +193,7 @@ registry = ToolRegistry()
 
 @registry.tool()
 def hello(name: str) -> str:
-    """Hello returns a hello message"""
+    """Returns a hello message"""
     return f"Hello {name}!"
 
 
@@ -185,12 +201,31 @@ if __name__ == "__main__":
     registry.run()
 ```
 
+To let an agent access all local tools, set `local=True`. To enable only some tools, pass a `LocalToolSettings` instance:
+
+```py
+from splunklib.ai.tool_settings import LocalToolSettings, ToolAllowlist, ToolSettings
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="...",
+    tool_settings=ToolSettings(
+        # local=True,  # enable all local tools
+        local=RemoteToolSettings(
+            allowlist=ToolAllowlist(names=["tool1"], tags=["tag1"])
+        )
+    ),
+) as agent: ...
+```
+
+See [Tool filtering](#tool-filtering) for more details.
+
 #### ToolContext
 
 `ToolContext` is a special parameter type that tools may declare in their function signature.
 Unlike regular tool inputs, this parameter is not provided by the LLM. Instead, it is
 automatically injected by the runtime for every tool invocation.
-
 
 ##### Service access
 
@@ -227,7 +262,6 @@ if __name__ == "__main__":
 
 `ToolContext` exposes a `Logger` instance that can be used for logging within your tool implementation.
 
-
 ```py
 from splunklib.ai.registry import ToolContext
 
@@ -236,6 +270,7 @@ def tool(ctx: ToolContext) -> None:
     ctx.logger.info("executing tool")
 
 ```
+
 In this example, the `Logger` instance is accessed via `ctx.logger` and used to emit an informational
 log message during tool execution.
 
@@ -243,11 +278,11 @@ These logs are forwarded to the `logger` passed to the `Agent` constructor.
 
 ### Tool filtering
 
-Tools can be filtered, before these are made available to the LLM, via the `tool_filters` parameter.
+Remote tools must intentionally allowlisted before they are made available to the LLM.
 
 ```py
-from splunklib.ai.tool_filtering import ToolFilters
 from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.tool_settings import LocalToolSettings, RemoteToolSettings, ToolAllowlist, ToolSettings
 from splunklib.client import connect
 
 model = OpenAIModel(...)
@@ -257,17 +292,35 @@ async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
     service=service,
-    use_mcp_tools=True,
-    tool_filters=ToolFilters(
-        allowed_names=["tool_name"], allowed_tags=["tag1", "tag2"]
+    tool_settings=ToolSettings(
+        local=True,
+        remote=RemoteToolSettings(
+            allowlist=ToolAllowlist(names=["tool_name"], tags=["tag1", "tag2"])
+        ),
     ),
 ) as agent: ...
+```
+
+A `custom_predicate` can be used for more flexible filtering:
+
+```py
+tool_settings=ToolSettings(
+    local=LocalToolSettings(
+        allowlist=ToolAllowlist(custom_predicate=lambda tool: tool.name.startswith("my_"))
+    ),
+)
+```
+
+As a shorthand, pass `local=True` to load all local tools with no filtering:
+
+```py
+tool_settings=ToolSettings(local=True)
 ```
 
 ## Conversation stores
 
 By default, each call to `agent.invoke` is stateless - the agent has no memory of previous interactions,
-unless you provide the previouis message history explicitly. A conversation store enables the agent to persist
+unless you provide the previous message history explicitly. A conversation store enables the agent to persist
 and recall message history across invocations.
 
 ### `InMemoryStore`
@@ -352,7 +405,7 @@ Each subagent can use a different model, allowing you to optimize for both capab
 ```py
 from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.messages import HumanMessage
-from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.ai.tool_settings import LocalToolSettings, ToolAllowlist, ToolSettings
 from splunklib.client import connect
 
 model = OpenAIModel(...)
@@ -362,7 +415,6 @@ async with (
     Agent(
         model=highly_specialized_model,
         service=service,
-        use_mcp_tools=True,
         system_prompt=(
             "You are a highly specialized debugging agent, your job is to provide as much"
             "details as possible to resolve issues."
@@ -370,22 +422,21 @@ async with (
         ),
         name="debugging_agent",
         description="Agent, that provided with logs will analyze and debug complex issues",
-        tool_filters=ToolFilters(
-            allowed_tags=["debugging"]
+        tool_settings=ToolSettings(
+            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["debugging"]))
         ),
     ) as debugging_agent,
     Agent(
         model=low_cost_model,
         service=service,
-        use_mcp_tools=True,
-        system_prompt= (
+        system_prompt=(
             "You are a log analyzer agent. Your job is to query logs, based on the details that you receive and"
             "return a summary of interesting logs, that can be used for further analysis."
         ),
         name="log_analyzer_agent",
         description="Agent, that provided with a problem details will return logs, that could be related to the problem",
-        tool_filters=ToolFilters(
-            allowed_tags=["spl"]
+        tool_settings=ToolSettings(
+            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["spl"]))
         ),
     ) as log_analyzer_agent,
 ):
@@ -561,11 +612,11 @@ Class-based middleware:
 ```py
 from typing import Any, override
 from splunklib.ai.middleware import (
-	AgentMiddlewareHandler,
+    AgentMiddlewareHandler,
     AgentRequest,
     ModelMiddlewareHandler,
     ModelRequest,
-	ModelResponse,
+    ModelResponse,
     SubagentMiddlewareHandler,
     SubagentRequest,
     SubagentResponse,
@@ -649,7 +700,7 @@ from splunklib.ai.middleware import (
     model_middleware,
     ModelMiddlewareHandler,
     ModelRequest,
-	ModelResponse,
+    ModelResponse,
 )
 
 @model_middleware

@@ -38570,32 +38570,6 @@
                 }
             }
         ],
-        "./tests/system/test_ai_agentic_test_app.py": [
-            {
-                "code": "reportUnknownArgumentType",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 40,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnknownArgumentType",
-                "range": {
-                    "startColumn": 29,
-                    "endColumn": 38,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnknownArgumentType",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 40,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./tests/system/test_apps/cre_app/bin/execute.py": [
             {
                 "code": "reportMissingImports",

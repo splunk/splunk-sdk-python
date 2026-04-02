@@ -49,6 +49,7 @@ from splunklib.ai.middleware import (
     subagent_middleware,
     tool_middleware,
 )
+from splunklib.ai.tool_settings import ToolSettings
 from tests.ai_testlib import AITestCase
 
 
@@ -87,7 +88,7 @@ class TestMiddleware(AITestCase):
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
@@ -118,7 +119,7 @@ class TestMiddleware(AITestCase):
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             with pytest.raises(Exception, match="testing"):
                 await agent.invoke(
@@ -154,7 +155,7 @@ class TestMiddleware(AITestCase):
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
@@ -192,7 +193,7 @@ class TestMiddleware(AITestCase):
             system_prompt="Your name is stefan",
             service=self.service,
             middleware=[test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Kraków?")]
@@ -246,7 +247,7 @@ class TestMiddleware(AITestCase):
             system_prompt="You are a helpful assistant",
             service=self.service,
             middleware=[first_middleware, second_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
@@ -288,7 +289,7 @@ class TestMiddleware(AITestCase):
             system_prompt="You are a helpful assistant",
             service=self.service,
             middleware=[tool_test_middleware, model_test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
@@ -342,7 +343,7 @@ class TestMiddleware(AITestCase):
             system_prompt="You are a helpful assistant.",
             service=self.service,
             middleware=[middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             tool_result = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
@@ -547,7 +548,7 @@ class TestMiddleware(AITestCase):
             ),
             service=self.service,
             middleware=[test_middleware],
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Kraków?")]

@@ -22,6 +22,7 @@ from typing import override
 
 from splunklib.ai.agent import Agent
 from splunklib.ai.messages import HumanMessage
+from splunklib.ai.tool_settings import ToolSettings
 from tests.cre_testlib import CRETestHandler
 
 OPENAI_BASE_URL = "http://host.docker.internal:11434/v1"
@@ -50,15 +51,11 @@ class AgentNameHandler(CRETestHandler):
         async with Agent(
             model=(await self.model()),
             system_prompt="Your name is Stefan",
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
             service=self.service,
         ) as agent:
             result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="What is your name? Answer in one word",
-                    )
-                ]
+                [HumanMessage(content="What is your name? Answer in one word")]
             )
 
             response = result.final_message.content.strip().lower().replace(".", "")

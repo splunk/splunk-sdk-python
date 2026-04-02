@@ -20,7 +20,7 @@ from tests.ai_testlib import AITestCase
 
 
 class TestAgenticApp(AITestCase):
-    def test_agetic_app(self) -> None:
+    def test_agentic_app(self) -> None:
         pytest.importorskip("langchain_openai")
         self.requires_splunk_10_2()
 
@@ -29,7 +29,7 @@ class TestAgenticApp(AITestCase):
             body=self.test_llm_settings.model_dump_json(),
         )
         assert resp.status == 200
-        assert "stefan" in str(resp.body)
+        assert "stefan" in str(resp.body)  # pyright: ignore[reportUnknownArgumentType]
 
     def test_agentic_app_with_tools_weather(self) -> None:
         pytest.importorskip("langchain_openai")
@@ -40,7 +40,7 @@ class TestAgenticApp(AITestCase):
             body=self.test_llm_settings.model_dump_json(),
         )
         assert resp.status == 200
-        assert "31.5" in str(resp.body)
+        assert "31.5" in str(resp.body)  # pyright: ignore[reportUnknownArgumentType]
 
     def test_agentic_app_with_tools_agent_name(self) -> None:
         pytest.importorskip("langchain_openai")
@@ -51,7 +51,7 @@ class TestAgenticApp(AITestCase):
             body=self.test_llm_settings.model_dump_json(),
         )
         assert resp.status == 200
-        assert "stefan" in str(resp.body)
+        assert "stefan" in str(resp.body)  # pyright: ignore[reportUnknownArgumentType]
 
     # To execute this test locally, download the Splunk MCP Server App tarball from
     # https://splunkbase.splunk.com/app/7931 and place it in a file named
@@ -83,7 +83,7 @@ class TestAgenticApp(AITestCase):
             assert resp.status == 200
         except HTTPError as e:
             if e.status == 404:
-                self.skipTest("Splunk MCP Server App file not found on Splunk instance")
+                pytest.skip("Splunk MCP Server App file not found on Splunk instance")
             raise
 
         # AITestCase already removes the Splunk MCP Server App in case it is already
@@ -109,4 +109,4 @@ class TestAgenticApp(AITestCase):
 
     def requires_splunk_10_2(self) -> None:
         if self.service.splunk_version[0] < 10 or self.service.splunk_version[1] < 2:
-            self.skipTest("Python 3.13 not available on splunk < 10.2")
+            pytest.skip("Python 3.13 not available on splunk < 10.2")

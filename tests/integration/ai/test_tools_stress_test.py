@@ -19,6 +19,7 @@ from unittest.mock import patch
 import pytest
 
 from splunklib.ai import Agent
+from splunklib.ai.tool_settings import ToolSettings
 from tests.ai_testlib import AITestCase
 
 
@@ -27,11 +28,7 @@ from tests.ai_testlib import AITestCase
 class TestToolStressTest(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
-        os.path.join(
-            os.path.dirname(__file__),
-            "testdata",
-            "counter.py",
-        ),
+        os.path.join(os.path.dirname(__file__), "testdata", "counter.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
@@ -40,7 +37,7 @@ class TestToolStressTest(AITestCase):
             model=(await self.model()),
             system_prompt="",
             service=self.service,
-            use_mcp_tools=True,
+            tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
             assert len(agent.tools) == 1
             tool = agent.tools[0]

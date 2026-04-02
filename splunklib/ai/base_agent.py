@@ -24,13 +24,15 @@ from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
+from splunklib.ai.tool_settings import ToolSettings
 from splunklib.ai.tools import Tool
 
 
-class BaseAgent(Generic[OutputT], ABC):
+class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
     _system_prompt: str
     _model: PredefinedModel
     _tools: Sequence[Tool]
+    _tool_settings: ToolSettings
     _agents: Sequence["BaseAgent[BaseModel | None]"]
     _name: str = ""
     _description: str = ""
@@ -46,6 +48,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self,
         system_prompt: str,
         model: PredefinedModel,
+        tool_settings: ToolSettings,
         description: str,
         name: str,
         tools: Sequence[Tool] | None,
@@ -62,6 +65,7 @@ class BaseAgent(Generic[OutputT], ABC):
         self._name = name
         self._description = description
         self._tools = tuple(tools) if tools else ()
+        self._tool_settings = tool_settings
         self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
         self._output_schema = output_schema
@@ -132,6 +136,10 @@ class BaseAgent(Generic[OutputT], ABC):
     @property
     def trace_id(self) -> str:
         return self._trace_id
+
+    @property
+    def tool_settings(self) -> ToolSettings:
+        return self._tool_settings
 
     @property
     def conversation_store(self) -> ConversationStore | None:

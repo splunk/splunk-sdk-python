@@ -50,13 +50,17 @@ class ToolType(Enum):
 
 
 @dataclass(frozen=True)
-class Tool:
+class ToolMetadata:
     name: str
     description: str
     input_schema: dict[str, Any]
-    func: Callable[..., Awaitable[ToolResult]]
     type: ToolType
-    tags: list[str] | None = None
+    tags: list[str]
+
+
+@dataclass(frozen=True)
+class Tool(ToolMetadata):
+    func: Callable[..., Awaitable[ToolResult]]
 
 
 def _splunk_home() -> str:
@@ -92,7 +96,8 @@ def locate_app(
             f"Failed to locate app: Script not located in {apps_path}<app-id>"
         )
 
-    assert parts[0] != "." and parts[1] != ".."
+    assert parts[0] != "."
+    assert parts[1] != ".."
 
     app_id = parts[0]
     return (app_id, os.path.join(splunk_home, "etc", "apps", app_id))
@@ -197,10 +202,7 @@ def _convert_mcp_tool(
                 }
             case ToolType.REMOTE:
                 meta = {
-                    "splunk": {
-                        "trace_id": trace_id,
-                        "app_id": app_id,
-                    }
+                    "splunk": {"trace_id": trace_id, "app_id": app_id},
                 }
 
         call_tool_result = await session.call_tool(
@@ -211,9 +213,7 @@ def _convert_mcp_tool(
         return _convert_tool_result(call_tool_result)
 
     splunk_meta: dict[str, Any] = (tool.meta or {}).get("splunk") or {}
-    tags: list[str] | None = None
-    if len(splunk_meta) > 0:
-        tags = splunk_meta.get("tags")
+    tags = splunk_meta.get("tags", [])
 
     return Tool(
         name=tool.name,
@@ -323,7 +323,7 @@ async def connect_local_mcp(
             yield session
 
 
-# Based on streamable_http_client defaults, when http_client is usnet.
+# Based on streamable_http_client defaults, when http_client is unset.
 _MCP_DEFAULT_TIMEOUT = 30.0  # General operations (seconds)
 _MCP_DEFAULT_SSE_READ_TIMEOUT = 300.0  # SSE streams - 5 minutes (seconds)
 

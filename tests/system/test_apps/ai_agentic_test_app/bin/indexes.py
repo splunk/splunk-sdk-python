@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 from splunklib.ai.agent import Agent
 from splunklib.ai.messages import HumanMessage
-from splunklib.ai.tool_filtering import ToolFilters
+from splunklib.ai.tool_settings import RemoteToolSettings, ToolAllowlist, ToolSettings
 from tests.cre_testlib import CRETestHandler
 
 # BUG: For some reason the CRE process is started with a overridden trust store path, that
@@ -49,23 +49,24 @@ class IndexesHandler(CRETestHandler):
         async with Agent(
             model=(await self.model()),
             system_prompt="You are a helpful Splunk assistant",
-            use_mcp_tools=True,
-            service=self.service,
-            tool_filters=ToolFilters(
-                allowed_names=["splunk_get_indexes"], allowed_tags=[]
+            tool_settings=ToolSettings(
+                local=False,
+                remote=RemoteToolSettings(
+                    allowlist=ToolAllowlist(names=["splunk_get_indexes"])
+                ),
             ),
+            service=self.service,
             output_schema=Output,
         ) as agent:
             assert len(agent.tools) == 1, "Invalid tool count"
             assert (
-                len([tool for tool in agent.tools if tool.name == "splunk_get_indexes"])
-                == 1
+                len([t for t in agent.tools if t.name == "splunk_get_indexes"]) == 1
             ), "splunk_get_indexes not present"
 
             result = await agent.invoke(
                 [
                     HumanMessage(
-                        content="List all indexes available on the splunk instance.",
+                        content="List all indexes available on the splunk instance."
                     )
                 ]
             )

@@ -48,7 +48,7 @@ class TestHook(AITestCase):
             nonlocal hook_calls
             hook_calls += 1
 
-            assert req.system_message == "Your name is stefan"
+            assert req.system_message.startswith("Your name is stefan")
             assert len(req.state.response.messages) == 1
 
         @before_model
@@ -56,7 +56,7 @@ class TestHook(AITestCase):
             nonlocal hook_calls
             hook_calls += 1
 
-            assert req.system_message == "Your name is stefan"
+            assert req.system_message.startswith("Your name is stefan")
             assert len(req.state.response.messages) == 1
 
         @after_model

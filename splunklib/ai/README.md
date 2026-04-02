@@ -422,7 +422,6 @@ and perform programmatic reasoning without relying on free-form text.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.messages import HumanMessage
 from splunklib.client import connect
 from typing import Literal
 from pydantic import BaseModel, Field
@@ -451,12 +450,11 @@ async with Agent(
     system_prompt="You are an agent, whose job is to determine the details of provided failure logs",
     output_schema=Output,
 ) as agent:
-    result = await agent.invoke(
-        [
-            HumanMessage(
-                content=f"Analyze log: {log}",
-            )
-        ]
+    # Use invoke_with_data when passing external data to the agent to reduce
+    # the risk of prompt injection.
+    result = await agent.invoke_with_data(
+        instructions="Analyze this log and determine the failure details.",
+        data=log,
     )
 
     # Make use of the output.
@@ -504,7 +502,7 @@ async with Agent(
         await agent.invoke(...)
 ```
 
-**Note**: Currently input schemas can only be used by subagents, not by regular agents.
+**Note**: Input schemas can only be used by subagents, not by regular agents. When invoking agents with external data, see [Security](#security) for guidance on how to do this safely.
 
 ## Middleware
 
@@ -847,6 +845,78 @@ async with Agent(
 The agent emits logs for events such as: model interactions, tool calls, subagent calls.
 
 Additionally logs from local tools are also forwarded to this logger.
+
+## Security
+
+When invoking the agent with external data (log entries, alert payloads, API responses, etc.),
+use `invoke_with_data` instead of `invoke`. It separates your instructions from the untrusted
+data, reducing the risk of prompt injection:
+
+```py
+from splunklib.ai.messages import HumanMessage
+
+# Use invoke for plain conversational messages.
+result = await agent.invoke([HumanMessage(content="What are the top threats this week?")])
+
+# Use invoke_with_data when passing external data to the agent.
+result = await agent.invoke_with_data(
+    instructions="Summarize this security alert and assess its severity.",
+    data=alert_payload,  # str or dict
+)
+```
+
+If you prefer to build the message manually, `create_structured_prompt` gives you the same
+separation and can be used directly inside a `HumanMessage`:
+
+```py
+from splunklib.ai import create_structured_prompt
+from splunklib.ai.messages import HumanMessage
+
+result = await agent.invoke([
+    HumanMessage(content=create_structured_prompt(
+        instructions="Summarize this security alert and assess its severity.",
+        data=alert_payload,
+    ))
+])
+```
+
+`truncate_input` caps the input length inline when constructing a message. `detect_injection`
+scans for common injection patterns - one way to apply it consistently is via `agent_middleware`,
+which gives you a single place to enforce the policy across every `invoke()` call. You decide
+what to do when injection is detected:
+
+```py
+from typing import Any
+from splunklib.ai import Agent, OpenAIModel, detect_injection, truncate_input
+from splunklib.ai.middleware import (
+    agent_middleware,
+    AgentMiddlewareHandler,
+    AgentRequest,
+)
+from splunklib.ai.messages import AgentResponse, HumanMessage
+
+@agent_middleware
+async def injection_guard(
+    request: AgentRequest, handler: AgentMiddlewareHandler
+) -> AgentResponse[Any | None]:
+    for msg in request.messages:
+        if isinstance(msg, HumanMessage) and detect_injection(msg.content):
+            raise ValueError("Potential prompt injection detected in input.")
+    return await handler(request)
+
+async with Agent(
+    model=model,
+    service=service,
+    system_prompt="...",
+    middleware=[injection_guard],
+) as agent:
+    await agent.invoke([HumanMessage(content=truncate_input(user_input))])
+```
+
+The SDK provides structural defenses. App developers are recommended to:
+
+- Use `invoke_with_data` whenever passing external or user-supplied data to the agent
+- Ensure tool return values contain only the data the LLM needs
 
 ## Known issues
 

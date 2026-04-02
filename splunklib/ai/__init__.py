@@ -19,9 +19,17 @@ if sys.version_info < (3, 13):
 
 from splunklib.ai.agent import Agent
 from splunklib.ai.model import AnthropicModel, OpenAIModel
+from splunklib.ai.security import (
+    create_structured_prompt,
+    detect_injection,
+    truncate_input,
+)
 
 __all__ = [
     "Agent",
     "AnthropicModel",
     "OpenAIModel",
+    "create_structured_prompt",
+    "detect_injection",
+    "truncate_input",
 ]

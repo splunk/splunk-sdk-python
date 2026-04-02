@@ -31,7 +31,6 @@ from setup_logging import setup_logging  # pyright: ignore[reportImplicitRelativ
 
 from splunklib.ai import OpenAIModel
 from splunklib.ai.agent import Agent
-from splunklib.ai.messages import HumanMessage
 from splunklib.modularinput.argument import Argument
 from splunklib.modularinput.event import Event
 from splunklib.modularinput.event_writer import EventWriter
@@ -97,7 +96,7 @@ class AgenticWeatherModInput(Script):
 
                 for weather_event in weather_events:
                     weather_event["human_readable"] = asyncio.run(
-                        self.invoke_agent(json.dumps(weather_event))
+                        self.invoke_agent(weather_event)
                     )
                     logger.debug(f"{weather_event=}")
 
@@ -113,7 +112,7 @@ class AgenticWeatherModInput(Script):
 
             logger.debug(f"Finishing enrichment for {input_name} at {csv_file_path}")
 
-    async def invoke_agent(self, data_json: str) -> str:
+    async def invoke_agent(self, weather_event: dict[str, str | int]) -> str:
         if not self.service:
             raise AssertionError("No Splunk connection available")
 
@@ -123,11 +122,10 @@ class AgenticWeatherModInput(Script):
             system_prompt="You're an expert meteorologist.",
             service=self.service,
         ) as agent:
-            prompt = (
-                f"Parse {data_json=} into a into a short, human-readable sentence. "
-                + "Was it a good day to go outside if you're human?"
+            response = await agent.invoke_with_data(
+                instructions="Parse this weather event into a short, human-readable sentence. Was it a good day to go outside if you're human?",
+                data=weather_event,
             )
-            response = await agent.invoke([HumanMessage(content=prompt)])
             logger.debug(f"{response=}")
             return response.final_message.content
 

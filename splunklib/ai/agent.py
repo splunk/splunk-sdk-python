@@ -16,7 +16,7 @@ import os
 from collections.abc import AsyncGenerator, Sequence
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from logging import Logger
-from typing import Self, final, override
+from typing import Any, Self, final, override
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -25,9 +25,10 @@ from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
-from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
+from splunklib.ai.messages import AgentResponse, BaseMessage, HumanMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
+from splunklib.ai.security import create_structured_prompt
 from splunklib.ai.tool_filtering import ToolFilters, filter_tools
 from splunklib.ai.tools import (
     Tool,
@@ -278,6 +279,13 @@ class Agent(BaseAgent[OutputT]):
     async def invoke(
         self, messages: list[BaseMessage], thread_id: str | None = None
     ) -> AgentResponse[OutputT]:
+        """Invokes the agent with a list of messages.
+
+        Use this for multi-message or role-based conversations.
+        When passing external data (log entries, alert payloads, API responses, etc.)
+        inside a HumanMessage, use `create_structured_prompt` to reduce the risk of
+        prompt injection, or use `invoke_with_data` instead.
+        """
         if not self._impl:
             raise AssertionError("Agent must be used inside 'async with'")
 
@@ -285,6 +293,22 @@ class Agent(BaseAgent[OutputT]):
             thread_id = self._thread_id
 
         return await self._impl.invoke(messages, thread_id)
+
+    async def invoke_with_data(
+        self,
+        instructions: str,
+        data: str | dict[str, Any],
+        thread_id: str | None = None,
+    ) -> AgentResponse[OutputT]:
+        """Invokes the agent with external data that may come from untrusted sources.
+
+        Use instead of `invoke` when passing external data (log entries, alert payloads,
+        API responses, etc.) to reduce the risk of prompt injection.
+        """
+        return await self.invoke(
+            [HumanMessage(content=create_structured_prompt(instructions, data))],
+            thread_id=thread_id,
+        )
 
 
 def _local_tools_path() -> tuple[str | None, str]:

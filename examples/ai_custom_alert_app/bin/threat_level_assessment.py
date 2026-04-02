@@ -35,7 +35,6 @@ from setup_logging import setup_logging  # pyright: ignore[reportImplicitRelativ
 from splunklib import client
 from splunklib.ai import OpenAIModel
 from splunklib.ai.agent import Agent
-from splunklib.ai.messages import HumanMessage
 
 # BUG: For some reason the process is started with its trust store path overridden with
 # one that might not exist on the filesystem. In such case we unset the env, which
@@ -90,8 +89,6 @@ class AgenticSeverityAssessment(BaseModel):
 async def invoke_agent(
     service: client.Service, alert_data: AlertData
 ) -> AgenticSeverityAssessment:
-    user_prompt = f"Assess the severity of the alert triggered from {alert_data.search_name=}. {alert_data.search_results=}"
-
     async with Agent(
         model=LLM_MODEL,
         system_prompt=SYSTEM_PROMPT,
@@ -99,8 +96,10 @@ async def invoke_agent(
         output_schema=AgenticSeverityAssessment,
     ) as agent:
         logger.info(f"Invoking {agent.model=}")
-        logger.debug(f"{user_prompt=}")
-        result = await agent.invoke([HumanMessage(content=user_prompt)])
+        result = await agent.invoke_with_data(
+            instructions="Assess the severity of the alert.",
+            data=alert_data.model_dump(),
+        )
         return result.structured_output
 
 

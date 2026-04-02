@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 import asyncio
-import json
 import os
 import sys
 from collections.abc import Generator, Sequence
@@ -31,7 +30,6 @@ from pydantic import BaseModel, Field
 
 from splunklib.ai import OpenAIModel
 from splunklib.ai.agent import Agent
-from splunklib.ai.messages import HumanMessage
 from splunklib.data import Record
 from splunklib.searchcommands import (
     Configuration,
@@ -109,19 +107,10 @@ class AgenticReportingCSC(EventingCommand):
             if not record:
                 continue
 
-            record_json = json.dumps(record)
-            logger.debug(f"{record_json=}")
+            logger.debug(f"{record=}")
 
-            user_prompt = f"""
-Analyze this log: "{record_json}" and perform these tasks:
-
-1. Decide if record matches the intent: "{self.should_filter}"?
-    (Return boolean `should_keep`)
-2. Is this log relevant to "{self.highlight_topic}"?
-    (Return boolean `is_relevant`)
-"""
             try:
-                llm_analysis = asyncio.run(self.invoke_agent(user_prompt))
+                llm_analysis = asyncio.run(self.invoke_agent(record))
                 logger.debug(f"{llm_analysis.model_dump_json()=}")
                 if self.should_filter and not llm_analysis.should_keep:
                     # Filter the record out of the results
@@ -137,7 +126,7 @@ Analyze this log: "{record_json}" and perform these tasks:
 
         logger.debug("Finish transform() in `agenticreport`")
 
-    async def invoke_agent(self, prompt: str) -> AgentOutput:
+    async def invoke_agent(self, record: Record) -> AgentOutput:
         assert self.service, "No Splunk connection available"
 
         async with Agent(
@@ -153,7 +142,10 @@ Analyze this log: "{record_json}" and perform these tasks:
             output_schema=AgentOutput,
         ) as agent:
             logger.info(f"Invoking {LLM_MODEL.model} at {LLM_MODEL.base_url}")
-            result = await agent.invoke([HumanMessage(content=prompt)])
+            result = await agent.invoke_with_data(
+                instructions=f'Decide if this record matches the intent: "{self.should_filter}". Is it relevant to "{self.highlight_topic}"?',
+                data=dict(record),
+            )
             return result.structured_output
 
 

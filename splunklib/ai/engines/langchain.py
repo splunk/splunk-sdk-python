@@ -203,15 +203,12 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 assert resp.name, "missing tool name"
 
                 if resp.status == "error":
-                    # This assertion asserts the current behaviour, but can be removed safely,
-                    # if we at some point decide to raise a LC_ToolException in a subagent invocation.
-                    # Also in such case we would need to populate artifact with SubagentFailureResult.
-                    assert not resp.name.startswith(AGENT_PREFIX), (
-                        "subagent produced a non-fatal error"
-                    )
-
                     assert resp.artifact is None, "artifact is already populated"
-                    resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
+
+                    if resp.name.startswith(AGENT_PREFIX):
+                        resp.artifact = SubagentFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
+                    else:
+                        resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
 
                 return resp
 

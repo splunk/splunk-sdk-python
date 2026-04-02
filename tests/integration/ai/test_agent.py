@@ -12,11 +12,28 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from dataclasses import replace
 import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
-from splunklib.ai.messages import AIMessage, HumanMessage, SubagentCall, SubagentMessage
+from splunklib.ai.messages import (
+    AIMessage,
+    HumanMessage,
+    SubagentCall,
+    SubagentFailureResult,
+    SubagentMessage,
+)
+from splunklib.ai.middleware import (
+    ModelMiddlewareHandler,
+    ModelRequest,
+    ModelResponse,
+    SubagentMiddlewareHandler,
+    SubagentRequest,
+    SubagentResponse,
+    model_middleware,
+    subagent_middleware,
+)
 from tests.ai_testlib import AITestCase
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
@@ -411,3 +428,92 @@ class TestAgent(AITestCase):
                     agents=[subagent1_empty_name, subagent2_empty_name],
                 ):
                     pass
+
+    @pytest.mark.asyncio
+    async def test_subagent_soft_failure_with_invalid_args(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # Regression test - In case invalid schema is provided to the
+        # subagent during execution, we should not fail the entire agent.
+
+        class SubagentInput(BaseModel):
+            name: str = Field(description="person name", min_length=1)
+
+        after_subagent_call = False
+
+        @subagent_middleware
+        async def _subagent_call_middleware(
+            request: SubagentRequest, handler: SubagentMiddlewareHandler
+        ) -> SubagentResponse:
+            nonlocal after_subagent_call
+
+            # Override the arguments, such that are invalid.
+            resp = await handler(replace(request, call=replace(request.call, args={})))
+            assert isinstance(resp.result, SubagentFailureResult), (
+                "subagent call did not fail"
+            )
+
+            after_subagent_call = True
+            return resp
+
+        @model_middleware
+        async def _model_call_middleware(
+            req: ModelRequest, _handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            if after_subagent_call:
+                msgs = req.state.response.messages
+                assert isinstance(msgs[-1], SubagentMessage)
+                assert isinstance(msgs[-1].result, SubagentFailureResult)
+
+                return ModelResponse(
+                    message=AIMessage(
+                        content="End of the agent loop",
+                        calls=[],
+                    ),
+                    structured_output=None,
+                )
+            else:
+                return ModelResponse(
+                    message=AIMessage(
+                        content="I need to call tools",
+                        calls=[
+                            SubagentCall(
+                                id="call-1",
+                                name="NicknameGeneratorAgent",
+                                args=SubagentInput(name="Chris").model_dump(),
+                            )
+                        ],
+                    ),
+                    structured_output=None,
+                )
+
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt=(
+                    "You are a helpful assistant that generates nicknames"
+                    "If prompted for nickname you MUST append '-zilla' to provided name to create nickname."
+                    "Remember the dash and lowercase zilla. Example: Stefan -> Stefan-zilla"
+                ),
+                service=self.service,
+                input_schema=SubagentInput,
+                name="NicknameGeneratorAgent",
+                description="Generates nicknames for people. Pass a name and get a nickname",
+            ) as subagent,
+            Agent(
+                model=(await self.model()),
+                system_prompt="You are a supervisor agent that MUST use other agents",
+                agents=[subagent],
+                service=self.service,
+                middleware=[_subagent_call_middleware, _model_call_middleware],
+            ) as supervisor,
+        ):
+            await supervisor.invoke(
+                [
+                    HumanMessage(
+                        content="Hi, my name is Chris. Generate a nickname for me",
+                    )
+                ]
+            )
+
+        assert after_subagent_call, "subagent was not called"

@@ -126,9 +126,6 @@ class SubagentFailureResult:
 
     This type of failure is non-fatal, i.e. it does not stop the agent loop.
     Instead, the error information is returned to the LLM.
-
-    Currently this result is not produced by the subagent call, but can be leveraged
-    in middlewares e.g. to reject subagent calls in a non-fatal way.
     """
 
     error_message: str

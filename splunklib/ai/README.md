@@ -415,6 +415,46 @@ for a given task and should be called.
 The input and output schemas are defined as `pydantic.BaseModel` classes and passed to the
 `Agent` constructor via the `input_schema` and `output_schema` parameters.
 
+## Subagents with ConversationStore
+
+A subagent can be given its own `conversation_store`, enabling multi-turn conversations between
+the supervisor and the subagent. When a subagent has a store, the supervisor can resume prior
+conversations with an subagent.
+
+```py
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.conversation_store import InMemoryStore
+from splunklib.ai.messages import HumanMessage
+from splunklib.client import connect
+
+model = OpenAIModel(...)
+service = connect(...)
+
+async with (
+    Agent(
+        model=model,
+        service=service,
+        system_prompt=(
+            "You are a log analysis expert. When asked to analyze a problem, "
+            "ask clarifying questions if needed before querying logs."
+        ),
+        name="log_analyzer_agent",
+        description="Analyzes logs and can ask follow-up questions to narrow down a problem.",
+        conversation_store=InMemoryStore(),
+    ) as log_analyzer_agent,
+):
+    async with Agent(
+        model=model,
+        service=service,
+        system_prompt="You are a supervisor. Use the log analyzer agent to investigate issues.",
+        agents=[log_analyzer_agent],
+    ) as agent:
+        # The supervisor calls the subagent and may continue the
+        # same conversation with a subagent in the agentic loop and
+        # across multiple agent loop invocations.
+        await agent.invoke(...)
+```
+
 ### Structured output
 
 An `Agent` can be configured to return structured output. This allows applications to parse results deterministically

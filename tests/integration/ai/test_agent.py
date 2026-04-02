@@ -210,6 +210,8 @@ class TestAgent(AITestCase):
             # asserts that can create NicknameGeneratorInput from args
             NicknameGeneratorInput(**args)
 
+            assert first_ai_message.calls[0].thread_id is None, "unexpected thread_id"
+
             subagent_message = next(
                 filter(lambda m: m.role == "subagent", result.messages), None
             )
@@ -260,6 +262,7 @@ class TestAgent(AITestCase):
             assert isinstance(first_ai_message.calls[0], SubagentCall)
             assert isinstance(first_ai_message.calls[0].args, str)
             assert first_ai_message.calls[0].args.lower() == "chris"
+            assert first_ai_message.calls[0].thread_id is None, "unexpected thread_id"
 
             response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
@@ -487,6 +490,7 @@ class TestAgent(AITestCase):
                                 id="call-1",
                                 name="NicknameGeneratorAgent",
                                 args=SubagentInput(name="Chris").model_dump(),
+                                thread_id=None,
                             )
                         ],
                     ),

@@ -34,6 +34,7 @@ class SubagentCall:
     name: str
     args: str | dict[str, Any]
     id: str | None  # TODO: can be None?
+    thread_id: str | None
 
 
 @dataclass(frozen=True)

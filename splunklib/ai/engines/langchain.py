@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from enum import Enum
 import json
 import logging
 import uuid
@@ -48,6 +49,7 @@ from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command as LC_Command
+from pydantic import BaseModel, Field, create_model
 
 from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.core.backend import (
@@ -157,6 +159,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         system_prompt = agent.system_prompt
         structured_subagents: list[str] = []
+        conversational_subagents: set[str] = set()
         if agent.agents:
             seen_names: set[str] = set()
             for subagent in agent.agents:
@@ -175,6 +178,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 if subagent.input_schema is not None:
                     structured_subagents.append(subagent.name)
 
+                if subagent.conversation_store is not None:
+                    conversational_subagents.add(subagent.name)
+
                 system_prompt = AGENT_AS_TOOLS_PROMPT + "\n" + system_prompt
 
         system_prompt = system_prompt + PROMPT_INJECTION_SYSTEM_INSTRUCTION
@@ -188,7 +194,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         middleware.extend(after_user_middlewares)
 
         model_impl = _create_langchain_model(agent.model)
-
         lc_middleware: list[LC_AgentMiddleware] = [
             _Middleware(m, model_impl, agent.logger) for m in (middleware or [])
         ]
@@ -223,6 +228,108 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                         resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
 
                 return resp
+
+        class _ThreadIDMiddleware(LC_AgentMiddleware):
+            @override
+            async def awrap_model_call(
+                self,
+                request: LC_ModelRequest,
+                handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+            ) -> LC_ModelCallResult:
+
+                agent_thread_ids: dict[str, set[str]] = {}
+
+                # Update the subagent schema definitions to include all thread_ids that the
+                # LLM could use to continue a corespondation with a subagent.
+                new_tools: list[BaseTool | dict[str, Any]] = []
+                for tool in request.tools:
+                    assert isinstance(tool, StructuredTool)
+                    if self._is_conversational_agent(tool.name):
+                        assert isinstance(tool.args_schema, type)
+                        assert issubclass(tool.args_schema, BaseModel)
+
+                        # Collect all thread_ids from previous subagent calls.
+                        thread_ids: set[str] = set()
+                        for m in request.messages:
+                            if isinstance(m, LC_AIMessage):
+                                for call in m.tool_calls:
+                                    if call["name"] == tool.name:
+                                        args = SubagentLCArgs(**call["args"])
+                                        if args.thread_id:
+                                            thread_ids.add(args.thread_id)
+
+                        # Create an updated tool, with an updated input schema, that
+                        # has a thread_id as an enum instead of a str, disallowing the
+                        # LLM from halucinating a thread_id, instead requiring that it is one
+                        # of the few specified thread_ids.
+                        tool = tool.model_copy(
+                            update={
+                                "args_schema": create_model(
+                                    tool.args_schema.__name__,
+                                    thread_id=(
+                                        Enum(
+                                            "thread_id",
+                                            {v: v for v in thread_ids},
+                                            type=str,
+                                        ),
+                                        Field(
+                                            description=(
+                                                "Provide previous thread id to continue an existing conversation with an agent. "
+                                                + "Never issue a call to the same thread_id more than once. "
+                                                + "Do not provide to start a new corespondation"
+                                            ),
+                                            default=None,
+                                        ),
+                                    ),
+                                    __base__=tool.args_schema,
+                                )
+                            }
+                        )
+                        agent_thread_ids[tool.name] = thread_ids
+                    new_tools.append(tool)
+
+                resp = await handler(request.override(tools=new_tools))
+
+                ai_message = resp
+                if isinstance(ai_message, LC_ExtendedModelResponse):
+                    ai_message = ai_message.model_response
+                if isinstance(ai_message, LC_ModelResponse):
+                    ai_message = next(
+                        (m for m in ai_message.result if isinstance(m, LC_AIMessage)),
+                        None,
+                    )
+                    assert ai_message
+
+                called_thread_ids: set[str] = set()
+                for call in ai_message.tool_calls:
+                    if self._is_conversational_agent(call["name"]):
+                        args = SubagentLCArgs(**call["args"])
+                        possible_thread_ids = agent_thread_ids.get(call["name"], set())
+                        if args.thread_id and args.thread_id not in possible_thread_ids:
+                            # LLM halucinated a thread_id, start a new conversation instead.
+                            # This should not happen, since we provide an enum above, but just
+                            # in case.
+                            args.thread_id = str(uuid.uuid4())
+
+                        if args.thread_id and args.thread_id in called_thread_ids:
+                            # LLM did not listen not to issue multiple calls to the
+                            # same thread_id, start a new conversation instead.
+                            args.thread_id = str(uuid.uuid4())
+
+                        if not args.thread_id:
+                            # Generate thread_id for a new conversation.
+                            args.thread_id = str(uuid.uuid4())
+
+                        called_thread_ids.add(args.thread_id)
+                        call["args"] = asdict(args)
+
+                return resp
+
+            def _is_conversational_agent(self, name: str) -> bool:
+                return (
+                    name.startswith(AGENT_PREFIX)
+                    and _denormalize_agent_name(name) in conversational_subagents
+                )
 
         class _SubagentArgumentPacker(LC_AgentMiddleware):
             # For non-structured subagents, the SubagentCall.args field is an `str | dict[str, Any]`,
@@ -264,14 +371,20 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 # Pack new message.
                 for call in ai_message.tool_calls:
                     if call["name"].startswith(AGENT_PREFIX):
-                        if (
-                            _denormalize_agent_name(call["name"])
-                            in structured_subagents
-                        ):
-                            args = SubagentLCArgs(call["args"])
+                        name = _denormalize_agent_name(call["name"])
+                        is_structured = name in structured_subagents
+                        is_conversational = name in conversational_subagents
+                        if is_conversational:
+                            args = SubagentLCArgs(
+                                call["args"].get(
+                                    "content", {} if is_structured else ""
+                                ),
+                                call["args"].get("thread_id"),
+                            )
+                        elif not is_structured:
+                            args = SubagentLCArgs(call["args"].get("content", ""), None)
                         else:
-                            content: str = call["args"].get("content", "")
-                            args = SubagentLCArgs(content)
+                            args = SubagentLCArgs(call["args"], None)
                         call["args"] = asdict(args)
 
                 return response
@@ -293,17 +406,30 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
             def unpack_tool_call(self, call: LC_ToolCall) -> LC_ToolCall:
                 if call["name"].startswith(AGENT_PREFIX):
-                    unpacked_args = SubagentLCArgs(**call["args"]).args
-                    if isinstance(unpacked_args, str):
-                        unpacked_args = {"content": unpacked_args}
+                    packed = SubagentLCArgs(**call["args"])
+
+                    unpacked_args: dict[str, Any] = {}
+                    if packed.thread_id is not None:
+                        unpacked_args = {
+                            "content": packed.args,
+                            "thread_id": packed.thread_id,
+                        }
+                    elif isinstance(packed.args, str):
+                        unpacked_args = {"content": packed.args}
+                    else:
+                        unpacked_args = packed.args
+
                     return LC_ToolCall(
                         id=call["id"],
                         name=call["name"],
                         args=unpacked_args,
                     )
+
                 return call
 
         lc_middleware.append(_ToolFailureArtifact())
+        if len(conversational_subagents) > 0:
+            lc_middleware.append(_ThreadIDMiddleware())
         lc_middleware.append(_SubagentArgumentPacker())
 
         self._agent = create_agent(
@@ -970,26 +1096,38 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
 
-    # TODO: The schemas that are inferred here could be better, we specify the schema as:
-    # OutputT | str, but we know based on agent.output_schema whether this either OutputT or str.
-
     # TODO: consider using create_structured_prompt when calling subagents
+    # TODO: restrict subagent names
 
-    if agent.input_schema is None:
+    async def invoke_agent(
+        message: HumanMessage, thread_id: str | None
+    ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+        result = await agent.invoke([message], thread_id=thread_id)
 
-        async def _run(  # pyright: ignore[reportRedeclaration]
-            content: str,
-        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
-            result = await agent.invoke([HumanMessage(content=content)])
-            if agent.output_schema:
-                assert result.structured_output is not None
-                return result.structured_output, SubagentStructuredResult(
-                    structured_output=result.structured_output.model_dump(),
-                )
+        if agent.output_schema:
+            assert result.structured_output is not None
+            return result.structured_output, SubagentStructuredResult(
+                structured_output=result.structured_output.model_dump(),
+            )
 
-            ai_message = result.messages[-1]
-            assert type(ai_message) is AIMessage
-            return ai_message.content, SubagentTextResult(content=ai_message.content)
+        return result.final_message.content, SubagentTextResult(
+            content=result.final_message.content
+        )
+
+    InputSchema = agent.input_schema
+    if InputSchema is None:
+        if agent.conversation_store:
+
+            async def _run(  # pyright: ignore[reportRedeclaration]
+                content: str, thread_id: str
+            ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+                return await invoke_agent(HumanMessage(content=content), thread_id)
+        else:
+
+            async def _run(  # pyright: ignore[reportRedeclaration]
+                content: str,
+            ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+                return await invoke_agent(HumanMessage(content=content), None)
 
         return StructuredTool.from_function(
             coroutine=_run,
@@ -999,38 +1137,55 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
             response_format="content_and_artifact",
         )
 
-    InputSchema = agent.input_schema
-
-    async def _run(
-        **kwargs: dict[str, Any],
+    async def invoke_agent_structured(
+        content: BaseModel, thread_id: str | None
     ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
-        req = InputSchema(**kwargs)
-        request_text = f"INPUT_JSON:\n{req.model_dump_json()}\n"
+        request_text = f"INPUT_JSON:\n{content.model_dump_json()}\n"
+        return await invoke_agent(
+            HumanMessage(content=request_text), thread_id=thread_id
+        )
 
-        result = await agent.invoke([HumanMessage(content=request_text)])
+    if agent.conversation_store:
 
-        if agent.output_schema:
-            assert result.structured_output is not None
-            return result.structured_output, SubagentStructuredResult(
-                structured_output=result.structured_output.model_dump(),
-            )
+        async def _run(
+            **kwargs: Any,  # noqa: ANN401
+        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+            content: BaseModel = kwargs["content"]
+            thread_id: str = kwargs["thread_id"]
+            return await invoke_agent_structured(content, thread_id)
 
-        ai_message = result.messages[-1]
-        assert type(ai_message) is AIMessage
-        return ai_message.content, SubagentTextResult(content=ai_message.content)
+        return StructuredTool.from_function(
+            coroutine=_run,
+            name=_normalize_agent_name(agent.name),
+            description=agent.description,
+            args_schema=create_model(
+                InputSchema.__name__ + "WithThreadID",
+                thread_id=(str),
+                content=(InputSchema),
+            ),
+            response_format="content_and_artifact",
+        )
+    else:
 
-    return StructuredTool.from_function(
-        coroutine=_run,
-        name=_normalize_agent_name(agent.name),
-        description=agent.description,
-        args_schema=InputSchema,
-        response_format="content_and_artifact",
-    )
+        async def _run(
+            **kwargs: Any,  # noqa: ANN401
+        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+            content = InputSchema(**kwargs)
+            return await invoke_agent_structured(content, None)
+
+        return StructuredTool.from_function(
+            coroutine=_run,
+            name=_normalize_agent_name(agent.name),
+            description=agent.description,
+            args_schema=InputSchema,
+            response_format="content_and_artifact",
+        )
 
 
-@dataclass(frozen=True)
+@dataclass()
 class SubagentLCArgs:
     args: str | dict[str, Any]
+    thread_id: str | None
 
 
 def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | SubagentCall:
@@ -1039,6 +1194,7 @@ def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | Subagent
         return SubagentCall(
             name=_denormalize_agent_name(name),
             args=SubagentLCArgs(**tool_call["args"]).args,
+            thread_id=SubagentLCArgs(**tool_call["args"]).thread_id,
             id=tool_call["id"],
         )
 
@@ -1057,7 +1213,7 @@ def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
     match call:
         case SubagentCall():
             name = _normalize_agent_name(call.name)
-            args = asdict(SubagentLCArgs(call.args))
+            args = asdict(SubagentLCArgs(call.args, call.thread_id))
         case ToolCall():
             name = _normalize_tool_name(call.name, call.type)
             args = call.args

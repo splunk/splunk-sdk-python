@@ -294,6 +294,7 @@ class Agent(BaseAgent[OutputT]):
 
         return await self._impl.invoke(messages, thread_id)
 
+    @override
     async def invoke_with_data(
         self,
         instructions: str,

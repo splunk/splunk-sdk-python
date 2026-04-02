@@ -16,7 +16,7 @@ import logging
 import secrets
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Generic
+from typing import Any, Generic
 
 from pydantic import BaseModel
 
@@ -79,6 +79,14 @@ class BaseAgent(Generic[OutputT], ABC):
     @abstractmethod
     async def invoke(
         self, messages: list[BaseMessage], thread_id: str | None = None
+    ) -> AgentResponse[OutputT]: ...
+
+    @abstractmethod
+    async def invoke_with_data(
+        self,
+        instructions: str,
+        data: str | dict[str, Any],
+        thread_id: str | None = None,
     ) -> AgentResponse[OutputT]: ...
 
     @property

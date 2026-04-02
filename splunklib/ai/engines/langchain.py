@@ -1096,7 +1096,6 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
 
-    # TODO: consider using create_structured_prompt when calling subagents
     # TODO: restrict subagent names
 
     async def invoke_agent(
@@ -1140,9 +1139,20 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     async def invoke_agent_structured(
         content: BaseModel, thread_id: str | None
     ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
-        request_text = f"INPUT_JSON:\n{content.model_dump_json()}\n"
-        return await invoke_agent(
-            HumanMessage(content=request_text), thread_id=thread_id
+        result = await agent.invoke_with_data(
+            instructions="Follow the system prompt.",
+            data=content.model_dump(),
+            thread_id=thread_id,
+        )
+
+        if agent.output_schema:
+            assert result.structured_output is not None
+            return result.structured_output, SubagentStructuredResult(
+                structured_output=result.structured_output.model_dump(),
+            )
+
+        return result.final_message.content, SubagentTextResult(
+            content=result.final_message.content
         )
 
     if agent.conversation_store:

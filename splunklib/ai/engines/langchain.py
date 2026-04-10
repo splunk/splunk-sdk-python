@@ -194,9 +194,8 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         middleware.extend(after_user_middlewares)
 
         model_impl = _create_langchain_model(agent.model)
-        lc_middleware: list[LC_AgentMiddleware] = [
-            _Middleware(m, model_impl, agent.logger) for m in (middleware or [])
-        ]
+
+        lc_middleware: list[LC_AgentMiddleware] = [_Middleware(middleware, model_impl)]
 
         # This middleware is executed just after the tool execution and populates
         # the artifact field for failed tool calls, since in such cases we can't
@@ -204,8 +203,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # allows setting of the content field.
         # We do that here, to avoid doing this logic in the individual conversion helpers.
         #
-        # TODO: once we move middlewares into one LC middleware, we should move
-        # that piece of logic there (DVPL-12959).
+        # TODO: we could move this logic to  _Middleware.
         class _ToolFailureArtifact(LC_AgentMiddleware):
             @override
             async def awrap_tool_call(
@@ -338,8 +336,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             # This middleware performs the corresponding pack/unpack at the two
             # points in the LangChain call graph where raw args are needed/retreived.
             #
-            # TODO: once we move middlewares into one LC middleware, we should move
-            # that piece of logic there (DVPL-12959).
+            # TODO: we could move this logic to  _Middleware.
             @override
             async def awrap_model_call(
                 self,
@@ -587,32 +584,66 @@ def _prepare_langchain_tools(agent_tools: Sequence[Tool]) -> list[BaseTool]:
 
 
 class _Middleware(LC_AgentMiddleware):
-    _middleware: AgentMiddleware
+    _middleware: list[AgentMiddleware]
     _model: BaseChatModel
-    _logger: logging.Logger
-    _name: str
 
-    def __init__(
-        self,
-        middleware: AgentMiddleware,
-        model: BaseChatModel,
-        logger: logging.Logger,
-    ) -> None:
+    def __init__(self, middleware: list[AgentMiddleware], model: BaseChatModel) -> None:
         self._middleware = middleware
         self._model = model
-        self._logger = logger
-        self._name = str(uuid.uuid4())
 
-    def _is_overridden(self, method_name: str) -> bool:
-        """Return True if the middleware method was overridden by the user."""
-        return getattr(type(self._middleware), method_name) is not getattr(
-            AgentMiddleware, method_name
-        )
+    def _with_model_middleware(
+        self, model_invoke: ModelMiddlewareHandler
+    ) -> Callable[[ModelRequest], Awaitable[ModelResponse]]:
+        invoke = model_invoke
+        for middleware in reversed(self._middleware or []):
 
-    @property
-    @override
-    def name(self) -> str:
-        return self._name
+            def make_next(
+                m: AgentMiddleware, h: ModelMiddlewareHandler
+            ) -> ModelMiddlewareHandler:
+                async def next(r: ModelRequest) -> ModelResponse:
+                    return await m.model_middleware(r, h)
+
+                return next
+
+            invoke = make_next(middleware, invoke)
+
+        return invoke
+
+    def _with_tool_call_middleware(
+        self, tool_invoke: ToolMiddlewareHandler
+    ) -> Callable[[ToolRequest], Awaitable[ToolResponse]]:
+        invoke = tool_invoke
+        for middleware in reversed(self._middleware or []):
+
+            def make_next(
+                m: AgentMiddleware, h: ToolMiddlewareHandler
+            ) -> ToolMiddlewareHandler:
+                async def next(r: ToolRequest) -> ToolResponse:
+                    return await m.tool_middleware(r, h)
+
+                return next
+
+            invoke = make_next(middleware, invoke)
+
+        return invoke
+
+    def _with_subagent_call_middleware(
+        self, subagent_invoke: SubagentMiddlewareHandler
+    ) -> Callable[[SubagentRequest], Awaitable[SubagentResponse]]:
+        invoke = subagent_invoke
+        for middleware in reversed(self._middleware or []):
+
+            def make_next(
+                m: AgentMiddleware, h: SubagentMiddlewareHandler
+            ) -> SubagentMiddlewareHandler:
+                async def next(r: SubagentRequest) -> SubagentResponse:
+                    return await m.subagent_middleware(r, h)
+
+                return next
+
+            invoke = make_next(middleware, invoke)
+
+        return invoke
 
     @override
     async def awrap_model_call(
@@ -620,14 +651,11 @@ class _Middleware(LC_AgentMiddleware):
         request: LC_ModelRequest,
         handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
     ) -> LC_ModelCallResult:
-        if not self._is_overridden("model_middleware"):
-            # Optimization: if not overridden, then skip the conversion overhead.
-            return await handler(request)
-
-        sdk_response = await self._middleware.model_middleware(
-            _convert_model_request_from_lc(request, self._model),
-            _convert_model_handler_from_lc(handler, original_request=request),
+        req = _convert_model_request_from_lc(request, self._model)
+        final_handler = _convert_model_handler_from_lc(
+            handler, original_request=request
         )
+        sdk_response = await self._with_model_middleware(final_handler)(req)
         return _convert_model_response_to_model_result(sdk_response)
 
     @override
@@ -641,14 +669,11 @@ class _Middleware(LC_AgentMiddleware):
         call = _map_tool_call_from_langchain(request.tool_call)
 
         if isinstance(call, ToolCall):
-            if not self._is_overridden("tool_middleware"):
-                # Optimization: if not overridden, skip the conversion overhead.
-                return await handler(request)
-
-            sdk_response = await self._middleware.tool_middleware(
-                _convert_tool_request_from_lc(request, self._model),
-                _convert_tool_handler_from_lc(handler, original_request=request),
+            req = _convert_tool_request_from_lc(request, self._model)
+            final_handler = _convert_tool_handler_from_lc(
+                handler, original_request=request
             )
+            sdk_response = await self._with_tool_call_middleware(final_handler)(req)
 
             sdk_result = sdk_response.result
             match sdk_result:
@@ -672,14 +697,11 @@ class _Middleware(LC_AgentMiddleware):
                 artifact=sdk_result,
             )
 
-        if not self._is_overridden("subagent_middleware"):
-            # Optimization: if not overridden, skip the conversion overhead.
-            return await handler(request)
-
-        sdk_response = await self._middleware.subagent_middleware(
-            _convert_subagent_request_from_lc(request, self._model),
-            _convert_subagent_handler_from_lc(handler, original_request=request),
+        req = _convert_subagent_request_from_lc(request, self._model)
+        final_handler = _convert_subagent_handler_from_lc(
+            handler, original_request=request
         )
+        sdk_response = await self._with_subagent_call_middleware(final_handler)(req)
 
         sdk_result = sdk_response.result
         match sdk_result:

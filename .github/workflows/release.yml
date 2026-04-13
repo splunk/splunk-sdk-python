@@ -16,12 +16,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Setup Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-      - name: Setup uv
+      - name: Set up uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
         with:
           activate-environment: true

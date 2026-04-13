@@ -837,9 +837,15 @@ def _convert_model_request_to_lc(
     request: ModelRequest,
     original_request: LC_ModelRequest,
 ) -> LC_ModelRequest:
+    state = _convert_agent_state_to_lc(request.state)
+    # LC_ModelRequest has `messages` and `state` as independent fields.
+    # LangChain uses `messages` (not state["messages"]) when calling the LLM,
+    # so we must override both to ensure middleware mutations (e.g. PII
+    # redaction) actually reach the model.
     return original_request.override(
         system_message=LC_SystemMessage(content=request.system_message),
-        state=_convert_agent_state_to_lc(request.state),
+        messages=state["messages"],
+        state=state,
     )
 
 

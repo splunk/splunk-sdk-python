@@ -13,6 +13,7 @@
 # under the License.
 
 import os
+from dataclasses import replace
 from typing import Any, override
 from unittest.mock import patch
 
@@ -685,6 +686,117 @@ class TestMiddleware(AITestCase):
                         )
                     ]
                 )
+
+    @pytest.mark.asyncio
+    async def test_model_middleware_message_mutation_reaches_llm(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # Regression test for DVPL-13038: message mutations in model middleware must reach the LLM.
+
+        @model_middleware
+        async def mutating_middleware(
+            request: ModelRequest, handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            new_state = replace(
+                request.state,
+                response=replace(
+                    request.state.response,
+                    messages=[HumanMessage(content="What is the capital of France?")],
+                ),
+            )
+            return await handler(replace(request, state=new_state))
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt="You are a geography assistant. Answer concisely.",
+            service=self.service,
+            middleware=[mutating_middleware],
+        ) as agent:
+            res = await agent.invoke(
+                [HumanMessage(content="What is the capital of Germany?")]
+            )
+            assert "Paris" in res.final_message.content
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @pytest.mark.asyncio
+    async def test_tool_middleware_arg_mutation_reaches_tool(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # Tool call arg mutations in tool_middleware must reach the actual tool execution.
+
+        @tool_middleware
+        async def mutating_middleware(
+            request: ToolRequest, handler: ToolMiddlewareHandler
+        ) -> ToolResponse:
+            mutated = replace(
+                request,
+                call=replace(request.call, args={"city": "Krakow"}),
+            )
+            return await handler(mutated)
+
+        async with Agent(
+            model=await self.model(),
+            system_prompt=(
+                "You are a helpful assistant. "
+                "You MUST use available tools when asked about weather."
+            ),
+            service=self.service,
+            middleware=[mutating_middleware],
+            tool_settings=ToolSettings(local=True, remote=None),
+        ) as agent:
+            res = await agent.invoke(
+                [HumanMessage(content="What is the weather like today in Berlin?")]
+            )
+            # Berlin returns 22.1C; Krakow returns 31.5C
+            assert "31.5" in res.final_message.content
+
+    @pytest.mark.asyncio
+    async def test_subagent_middleware_arg_mutation_reaches_subagent(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # Subagent call arg mutations in subagent_middleware must reach the actual subagent.
+
+        class NicknameGeneratorInput(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        @subagent_middleware
+        async def mutating_middleware(
+            request: SubagentRequest, handler: SubagentMiddlewareHandler
+        ) -> SubagentResponse:
+            mutated = replace(
+                request,
+                call=replace(request.call, args={"name": "Alice"}),
+            )
+            return await handler(mutated)
+
+        async with (
+            Agent(
+                model=await self.model(),
+                system_prompt=(
+                    "You are a helpful assistant that generates nicknames. A valid "
+                    "nickname consists of the provided name suffixed with '-zilla.'"
+                ),
+                service=self.service,
+                name="NicknameGeneratorAgent",
+                description="Pass a name and get a nickname",
+                input_schema=NicknameGeneratorInput,
+            ) as subagent,
+            Agent(
+                model=await self.model(),
+                system_prompt="You are a supervisor agent that MUST use other agents",
+                agents=[subagent],
+                service=self.service,
+                middleware=[mutating_middleware],
+            ) as supervisor,
+        ):
+            result = await supervisor.invoke(
+                [HumanMessage(content="Generate a nickname for Bob")]
+            )
+            assert "Alice-zilla" in result.final_message.content
 
     @pytest.mark.asyncio
     async def test_model_middleware_structured_output(self) -> None:

@@ -1,39 +1,49 @@
-name: Python CI
-on: [push, workflow_dispatch]
+name: Python SDK CI
+on:
+  push:
+    branches: [master, develop]
 
 jobs:
-  run-test-suite:
+  test-stage:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version: [3.9]
         splunk-version: [9.4, latest]
         include:
-          # Oldest possible configuration
-          # Last Ubuntu version with Python 3.7 binaries available
-          - os: ubuntu-22.04
-            python-version: 3.7
-            splunk-version: 9.1
-          # Latest possible configuration
           - os: ubuntu-latest
             python-version: 3.13
             splunk-version: latest
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Launch Splunk Docker instance
-        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: ${{ matrix.python-version }}
-      - name: (Python 3.7) Install dependencies
-        if: ${{ matrix.python-version == '3.7' }}
-        run: python -m pip install python-dotenv pytest
-      - name: (Python >= 3.9) Install dependencies
-        if: ${{ matrix.python-version != '3.7' }}
-        run: python -m pip install . --group test
-      - name: Run entire test suite
-        run: python -m pytest ./tests
+          cache: pip
+      - name: Set up latest uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.11.6
+          activate-environment: true
+          enable-cache: true
+      - name: Install Python dependencies
+        run: SDK_DEPS_GROUP="test" make uv-sync-ci
+      - name: Launch Splunk Docker instance
+        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
+      - name: Set up `.env`
+        run: cp .env.template .env
+      - name: Restore `pytest` cache
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        with:
+          path: .pytest_cache
+          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
+      - name: Run unit tests
+        run: make test-unit
+      - name: Run integration/system tests
+        run: make test-integration

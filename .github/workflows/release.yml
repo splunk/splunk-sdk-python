@@ -14,16 +14,22 @@ jobs:
     environment:
       name: splunk-pypi
     steps:
-      - name: Checkout source
+      - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          activate-environment: true
+          enable-cache: true
       - name: Install dependencies
-        run: python -m pip install . --group release
+        run: SDK_DEPS_GROUP="release" make uv-sync-ci
       - name: Build packages for distribution
-        run: python -m build
+        run: uv build
       - name: Publish packages to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
       - name: Generate API reference

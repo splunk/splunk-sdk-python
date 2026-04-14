@@ -13,6 +13,10 @@ from splunklib.ai.middleware import (
     ModelResponse,
 )
 
+DEFAULT_TIMEOUT_SECONDS: float = 600.0
+DEFAULT_STEP_LIMIT: int = 100
+DEFAULT_TOKEN_LIMIT: int = 200_000
+
 
 class AgentStopException(Exception):
     """Custom exception to indicate conversation stopping conditions."""
@@ -121,37 +125,79 @@ def after_agent(
     return _Middleware()
 
 
-def token_limit(limit: float) -> AgentMiddleware:
-    """This hook can be used to stop the agent execution if the token usage exceeds a certain limit."""
+class TokenLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the token count of messages passed to the model exceeds the given limit."""
 
-    @before_model
-    def _token_limit_hook(req: ModelRequest) -> None:
-        if req.state.token_count > limit:
-            raise TokenLimitExceededException(token_limit=limit)
+    _limit: int
 
-    return _token_limit_hook
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
 
-
-def step_limit(limit: int) -> AgentMiddleware:
-    """This hook can be used to stop the agent execution if the number of steps exceeds a certain limit."""
-
-    @before_model
-    def _step_limit_hook(req: ModelRequest) -> None:
-        if req.state.total_steps >= limit:
-            raise StepsLimitExceededException(steps_limit=limit)
-
-    return _step_limit_hook
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if request.state.token_count >= self._limit:
+            raise TokenLimitExceededException(token_limit=self._limit)
+        return await handler(request)
 
 
-def timeout_limit(seconds: float) -> AgentMiddleware:
-    """This hook can be used to stop the agent execution if the time limit exceeds a certain limit."""
+class StepLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the number of steps taken reaches the given limit."""
 
-    now = monotonic()
-    timeout = now + seconds
+    _limit: int
 
-    @before_model
-    def _timeout_limit_hook(_: ModelRequest) -> None:
-        if monotonic() >= timeout:
-            raise TimeoutExceededException(timeout_seconds=seconds)
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
 
-    return _timeout_limit_hook
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if request.state.total_steps >= self._limit:
+            raise StepsLimitExceededException(steps_limit=self._limit)
+        return await handler(request)
+
+
+class TimeoutLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when wall-clock time within an invoke exceeds the given seconds.
+
+    The deadline resets on every invoke call - it measures time from the start of
+    each invocation, not from agent construction.
+
+    Do not share instances between agents.
+    """
+
+    _seconds: float
+    _deadline: float | None
+
+    def __init__(self, seconds: float) -> None:
+        self._seconds = seconds
+        self._deadline = None
+
+    @override
+    async def agent_middleware(
+        self,
+        request: AgentRequest,
+        handler: AgentMiddlewareHandler,
+    ) -> AgentResponse[Any | None]:
+        # WARN: this might not work with agents handling
+        # different threads at the same time.
+        self._deadline = monotonic() + self._seconds
+        return await handler(request)
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if self._deadline is not None and monotonic() >= self._deadline:
+            raise TimeoutExceededException(timeout_seconds=self._seconds)
+        return await handler(request)
+
+

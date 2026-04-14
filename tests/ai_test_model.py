@@ -78,7 +78,7 @@ async def _buildInternalAIModel(
     token = _TokenResponse.model_validate_json(response.text).access_token
 
     auth_handler = _InternalAIAuth(token)
-    model = "gpt-4.1"
+    model = "gpt-5-nano"
 
     return OpenAIModel(
         model=model,

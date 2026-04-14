@@ -264,8 +264,6 @@ class Agent(BaseAgent[OutputT]):
         self._agent_context_manager = None
         return result
 
-    # TODO: for now we have a thread_id as an optional param, should
-    # we wrap it in a dataclass? Might help with future-proofing the API??
     @override
     async def invoke(
         self, messages: list[BaseMessage], thread_id: str | None = None

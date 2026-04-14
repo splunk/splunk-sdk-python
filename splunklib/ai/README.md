@@ -602,10 +602,10 @@ Each middleware can inspect input, call `handler(request)`, and modify the retur
 
 Available decorators:
 
-- `agent_middleware`
-- `model_middleware`
-- `tool_middleware`
-- `subagent_middleware`
+- `agent_middleware` - runs once per `invoke` call.
+- `model_middleware` - runs on every model call.
+- `tool_middleware` - runs on every tool call.
+- `subagent_middleware` - runs on every subagent call.
 
 Class-based middleware:
 
@@ -848,65 +848,76 @@ The hooks can stop the Agentic Loop under custom conditions by raising exception
 The logic of the hook can be more advanced and include multiple conditions, for example, based on both token usage and execution time:
 
 ```py
-from splunklib.ai import Agent, OpenAIModel
 from splunklib.ai.hooks import before_model
 from splunklib.ai.middleware import AgentMiddleware, ModelRequest
-from time import monotonic
 
-def timeout_or_token_limit(seconds_limit: float, token_limit: float) -> AgentMiddleware:
-    now = monotonic()
-    timeout = now + seconds_limit
-
+def token_and_step_limit(token_limit: float, step_limit: int) -> AgentMiddleware:
     @before_model
-    def _limit_hook(req: ModelRequest) -> None:
-        if req.state.token_count > token_limit or monotonic() >= timeout:
+    def _hook(req: ModelRequest) -> None:
+        if req.state.token_count > token_limit or req.state.total_steps >= step_limit:
             raise Exception("Stopping Agentic Loop")
 
-    return _limit_hook
+    return _hook
 
 
 async with Agent(
     ...,
-    middleware=[timeout_or_token_limit(seconds_limit=10.0, token_limit=10000)],
+    middleware=[token_and_step_limit(token_limit=10_000, step_limit=5)],
 ) as agent: ...
 ```
 
-### Predefined hooks for loop stopping conditions
+### Default limit middlewares
 
-To prevent excessive token usage or runaway execution, an Agent can be constrained
-using predefined hooks.
+Every `Agent` automatically applies sane default limits to prevent runaway execution
+or excessive token usage. Default limit middlewares are appended after any user-supplied
+middleware, so they always act on the final state of the request. If you override one of
+the defaults by passing your own instance, you are responsible for its position in the
+chain - place it last if you want the same behavior.
 
-Those hooks allow you to automatically terminate the agent loop when one or more
-limits are reached, such as:
+| Middleware | Default | Measured |
+|---|---|---|
+| `TokenLimitMiddleware` | 200 000 tokens | token count of messages passed to the model |
+| `StepLimitMiddleware` | 100 steps | steps taken |
+| `TimeoutLimitMiddleware` | 600 seconds (10 minutes) | per `invoke` call |
 
-- Maximum number of generated tokens
-- Maximum number of reasoning / execution steps
-- Maximum wall-clock execution time
+`TokenLimitMiddleware` and `StepLimitMiddleware` check the values from the messages passed to the
+model on each call. `TimeoutLimitMiddleware` resets its deadline on each `invoke`, so every call
+gets a fresh time budget.
+
+When a limit is exceeded, the agent raises the corresponding exception:
+`TokenLimitExceededException`, `StepsLimitExceededException`, or `TimeoutExceededException`.
+
+#### Overriding defaults
+
+To override a specific limit, pass your own instance of the corresponding middleware
+class. The default for that limit is suppressed automatically - the other defaults
+remain active:
 
 ```py
-from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.hooks import token_limit, step_limit, timeout_limit
-from splunklib.client import connect
-
-model = OpenAIModel(...)
-service = connect(...)
+from splunklib.ai.hooks import TokenLimitMiddleware, StepLimitMiddleware, TimeoutLimitMiddleware
 
 async with Agent(
-        model=model,
-        service=service,
-        system_prompt="..." ,
-        hooks=[
-            token_limit(10000),
-            step_limit(25),
-            timeout_limit(10.5),
-        ],
-    ) as agent: ...
+    ...,
+    middleware=[
+        TokenLimitMiddleware(50_000),   # overrides default 200 000; other defaults still apply
+    ],
+) as agent: ...
 ```
 
-When a limit is exceeded, the agent raises the exception corresponding to the violated
-condition (`TokenLimitExceededException`, `StepsLimitExceededException` or `TimeoutExceededException`).
+To override all defaults, pass all three:
 
-These limits apply over the entire lifetime of an `Agent`.
+```py
+async with Agent(
+    ...,
+    middleware=[
+        TokenLimitMiddleware(50_000),
+        StepLimitMiddleware(10),
+        TimeoutLimitMiddleware(30.0),
+    ],
+) as agent: ...
+```
+
+There is no explicit opt-out - the intent is that agents should always have some guardrails.
 
 ## Logger
 
@@ -915,7 +926,6 @@ tracing and debugging throughout the agent’s lifecycle.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.hooks import token_limit, step_limit, timeout_limit
 from splunklib.client import connect
 import logging
 

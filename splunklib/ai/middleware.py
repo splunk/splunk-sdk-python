@@ -39,7 +39,7 @@ class AgentState:
     # steps taken so far in the conversation
     total_steps: int
     # tokens used so far in the conversation
-    token_count: float
+    token_count: int
 
 
 @dataclass(frozen=True)

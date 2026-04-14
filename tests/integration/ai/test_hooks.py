@@ -12,27 +12,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import time
-
 import pytest
 from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
 from splunklib.ai.conversation_store import InMemoryStore
 from splunklib.ai.hooks import (
+    StepLimitMiddleware,
     StepsLimitExceededException,
     TimeoutExceededException,
+    TimeoutLimitMiddleware,
     TokenLimitExceededException,
+    TokenLimitMiddleware,
     after_agent,
     after_model,
     before_agent,
     before_model,
-    step_limit,
-    timeout_limit,
-    token_limit,
 )
-from splunklib.ai.messages import AgentResponse, HumanMessage
-from splunklib.ai.middleware import AgentRequest, ModelRequest, ModelResponse
+from splunklib.ai.messages import AIMessage, AgentResponse, HumanMessage
+from splunklib.ai.middleware import AgentRequest, ModelMiddlewareHandler, ModelRequest, ModelResponse, model_middleware
 from tests.ai_testlib import AITestCase
 
 
@@ -173,7 +171,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[token_limit(5)],
+            middleware=[TokenLimitMiddleware(5)],
         ) as agent:
             with pytest.raises(
                 TokenLimitExceededException, match="Token limit of 5 exceeded"
@@ -194,18 +192,15 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[step_limit(2)],
-            conversation_store=InMemoryStore(),
+            middleware=[StepLimitMiddleware(2)],
         ) as agent:
-            resp = await agent.invoke([HumanMessage(content="hi, my name is Chris")])
-
-            msgs = resp.messages
-            msgs.append(HumanMessage(content="What is my name?"))
-
             with pytest.raises(
                 StepsLimitExceededException, match="Steps limit of 2 exceeded"
             ):
-                _ = await agent.invoke(msgs)
+                _ = await agent.invoke([
+                    HumanMessage(content="hi, my name is Chris"),
+                    HumanMessage(content="What is my name?"),
+                ])
 
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_conversation_limit_with_checkpointer(
@@ -217,7 +212,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[step_limit(2)],
+            middleware=[StepLimitMiddleware(2)],
             conversation_store=InMemoryStore(),
         ) as agent:
             _ = await agent.invoke([HumanMessage(content="hi, my name is Chris")])
@@ -225,35 +220,54 @@ class TestHook(AITestCase):
             with pytest.raises(
                 StepsLimitExceededException, match="Steps limit of 2 exceeded"
             ):
-                _ = await agent.invoke([HumanMessage(content="What is my name?")])
+                _ = await agent.invoke([
+                    HumanMessage(content="What is my name?"),
+                    HumanMessage(content="Are you sure?"),
+                ])
+
+    @pytest.mark.asyncio
+    async def test_agent_loop_stop_conditions_steps_accumulate_across_invokes(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        step_limit = StepLimitMiddleware(2)
+
+        @model_middleware
+        async def fixed_response(
+            _request: ModelRequest, _handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            return ModelResponse(message=AIMessage(content="ok", calls=[]))
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="You are a helpful assistant.",
+            service=self.service,
+            middleware=[step_limit, fixed_response],
+            conversation_store=InMemoryStore(),
+        ) as agent:
+            _ = await agent.invoke([HumanMessage(content="hi")])
+
+            with pytest.raises(StepsLimitExceededException):
+                _ = await agent.invoke([HumanMessage(content="hi")])
 
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_timeout(self):
         pytest.importorskip("langchain_openai")
 
+        # timeout_limit resets on each invoke, so we use a near-zero timeout
+        # so it fires within the same invocation before the first model call.
         async with Agent(
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[timeout_limit(0.5)],
+            middleware=[TimeoutLimitMiddleware(0.001)],
         ) as agent:
-            _ = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="hi, my name is Chris",
-                    )
-                ]
-            )
-
-            time.sleep(1)  # wait to exceed timeout
-
             with pytest.raises(
-                TimeoutExceededException, match="Timed out after 0.5 seconds."
+                TimeoutExceededException, match="Timed out after 0.001 seconds."
             ):
                 _ = await agent.invoke(
                     [
                         HumanMessage(
-                            content="What is my name?",
+                            content="hi, my name is Chris",
                         )
                     ]
                 )

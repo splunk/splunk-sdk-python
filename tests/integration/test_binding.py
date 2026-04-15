@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-#
-# Copyright © 2011-2024 Splunk, Inc.
+# Copyright © 2011-2026 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -937,7 +935,31 @@ class TestPostWithBodyParam(unittest.TestCase):
             body={"testkey": "testvalue"},
         )
 
-    def test_post_with_params_and_no_body(self):
+    def test_post_with_params_and_body_json(self):
+        def handler(url, message, **kwargs):
+            assert (
+                url
+                == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            )
+            assert message["body"] == '{"testkey": "testvalue"}'
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.post(
+            "foo/bar",
+            extrakey="extraval",
+            owner="testowner",
+            app="testapp",
+            body=json.dumps({"testkey": "testvalue"}),
+            headers=[("Content-Type", "application/json")],
+        )
+
+    def test_post_with_urlencoded_params(self):
         def handler(url, message, **kwargs):
             assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
             assert message["body"] == b"extrakey=extraval"
@@ -950,6 +972,164 @@ class TestPostWithBodyParam(unittest.TestCase):
 
         ctx = binding.Context(handler=handler)
         ctx.post("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
+
+
+class TestPutWithBodyParam(unittest.TestCase):
+    def test_put(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"testkey=testvalue"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.put(
+            "foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"}
+        )
+
+    def test_put_with_params_and_body_form(self):
+        def handler(url, message, **kwargs):
+            assert (
+                url
+                == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            )
+            assert message["body"] == b"testkey=testvalue"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.put(
+            "foo/bar",
+            extrakey="extraval",
+            owner="testowner",
+            app="testapp",
+            body={"testkey": "testvalue"},
+        )
+
+    def test_put_with_params_and_body_json(self):
+        def handler(url, message, **kwargs):
+            assert (
+                url
+                == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            )
+            assert message["body"] == '{"testkey": "testvalue"}'
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.put(
+            "foo/bar",
+            extrakey="extraval",
+            owner="testowner",
+            app="testapp",
+            body=json.dumps({"testkey": "testvalue"}),
+            headers=[("Content-Type", "application/json")],
+        )
+
+    def test_put_with_urlencoded_params(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"extrakey=extraval"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.put("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
+
+
+class TestPatchWithBodyParam(unittest.TestCase):
+    def test_patch(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"testkey=testvalue"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.patch(
+            "foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"}
+        )
+
+    def test_patch_with_params_and_body_form(self):
+        def handler(url, message, **kwargs):
+            assert (
+                url
+                == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            )
+            assert message["body"] == b"testkey=testvalue"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.patch(
+            "foo/bar",
+            extrakey="extraval",
+            owner="testowner",
+            app="testapp",
+            body={"testkey": "testvalue"},
+        )
+
+    def test_patch_with_params_and_body_json(self):
+        def handler(url, message, **kwargs):
+            assert (
+                url
+                == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar?extrakey=extraval"
+            )
+            assert message["body"] == '{"testkey": "testvalue"}'
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.patch(
+            "foo/bar",
+            extrakey="extraval",
+            owner="testowner",
+            app="testapp",
+            body=json.dumps({"testkey": "testvalue"}),
+            headers=[("Content-Type", "application/json")],
+        )
+
+    def test_patch_with_urlencoded_params(self):
+        def handler(url, message, **kwargs):
+            assert url == "https://localhost:8089/servicesNS/testowner/testapp/foo/bar"
+            assert message["body"] == b"extrakey=extraval"
+            return splunklib.data.Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                }
+            )
+
+        ctx = binding.Context(handler=handler)
+        ctx.patch("foo/bar", extrakey="extraval", owner="testowner", app="testapp")
 
 
 def _wrap_handler(func, response_code=200, body=""):
@@ -1036,6 +1216,88 @@ class TestFullPost(unittest.TestCase):
         with MockServer(POST=check_response):
             ctx = binding.connect(port=9093, scheme="http", token="waffle")
             ctx.post("/", foo="bar", body={"baz": "baf", "hep": "cat"})
+
+
+class TestFullPut(unittest.TestCase):
+    def test_put_with_body_urlencoded(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert body.decode("utf-8") == "foo=bar"
+
+        with MockServer(PUT=check_response):
+            ctx = binding.connect(port=9093, scheme="http", token="waffle")
+            ctx.put("/", foo="bar")
+
+    def test_put_with_body_string(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert handler.headers["content-type"] == "application/json"
+            assert json.loads(body)["baz"] == "baf"
+
+        with MockServer(PUT=check_response):
+            ctx = binding.connect(
+                port=9093,
+                scheme="http",
+                token="waffle",
+                headers=[("Content-Type", "application/json")],
+            )
+            ctx.put("/", foo="bar", body='{"baz": "baf"}')
+
+    def test_put_with_body_dict(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert (
+                handler.headers["content-type"] == "application/x-www-form-urlencoded"
+            )
+            assert ensure_str(body) in ["baz=baf&hep=cat", "hep=cat&baz=baf"]
+
+        with MockServer(PUT=check_response):
+            ctx = binding.connect(port=9093, scheme="http", token="waffle")
+            ctx.put("/", foo="bar", body={"baz": "baf", "hep": "cat"})
+
+
+class TestFullPatch(unittest.TestCase):
+    def test_patch_with_body_urlencoded(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert body.decode("utf-8") == "foo=bar"
+
+        with MockServer(PATCH=check_response):
+            ctx = binding.connect(port=9093, scheme="http", token="waffle")
+            ctx.patch("/", foo="bar")
+
+    def test_patch_with_body_string(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert handler.headers["content-type"] == "application/json"
+            assert json.loads(body)["baz"] == "baf"
+
+        with MockServer(PATCH=check_response):
+            ctx = binding.connect(
+                port=9093,
+                scheme="http",
+                token="waffle",
+                headers=[("Content-Type", "application/json")],
+            )
+            ctx.patch("/", foo="bar", body='{"baz": "baf"}')
+
+    def test_patch_with_body_dict(self):
+        def check_response(handler):
+            length = int(handler.headers.get("content-length", 0))
+            body = handler.rfile.read(length)
+            assert (
+                handler.headers["content-type"] == "application/x-www-form-urlencoded"
+            )
+            assert ensure_str(body) in ["baz=baf&hep=cat", "hep=cat&baz=baf"]
+
+        with MockServer(PATCH=check_response):
+            ctx = binding.connect(port=9093, scheme="http", token="waffle")
+            ctx.patch("/", foo="bar", body={"baz": "baf", "hep": "cat"})
 
 
 if __name__ == "__main__":

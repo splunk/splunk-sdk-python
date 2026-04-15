@@ -1,4 +1,5 @@
 from typing import override
+import splunklib.ai.engines.langchain as langchain_engine
 from splunklib.ai.model import PredefinedModel
 from tests.ai_test_model import InternalAIModel, TestLLMSettings, create_model
 from tests.testlib import SDKTestCase
@@ -6,10 +7,12 @@ from tests.testlib import SDKTestCase
 
 class AITestCase(SDKTestCase):
     _model: PredefinedModel | None = None
+    _token_usage_before: int = 0
 
     @override
     def setUp(self) -> None:
         super().setUp()
+        self._token_usage_before = langchain_engine.total_token_usage
 
         # Our tests don't expect this app to be installed, if needed it is
         # installed on demand.
@@ -17,6 +20,12 @@ class AITestCase(SDKTestCase):
             if app.name.lower() == "splunk_mcp_server":
                 app.delete()
                 self.restart_splunk()
+
+    @override
+    def tearDown(self) -> None:
+        tokens_used = langchain_engine.total_token_usage - self._token_usage_before
+        print(f"\n[token usage] {self.id()}: {tokens_used} tokens")
+        super().tearDown()
 
     @property
     def test_llm_settings(self) -> TestLLMSettings:

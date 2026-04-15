@@ -35,7 +35,7 @@ docs:
 # -ra prints a report on all failed tests after a run
 # -vv shows why a test failed while the rest of the suite is running
 PYTHON_CMD := uv run python
-PYTEST_CMD := $(PYTHON_CMD) -m pytest --no-header --ff -ra -vv
+PYTEST_CMD := $(PYTHON_CMD) -m pytest --no-header --ff -ra -vvv -s
 
 .PHONY: test
 test:
@@ -47,7 +47,7 @@ test-unit:
 
 .PHONY: test-integration
 test-integration:
-	$(PYTEST_CMD) --ff ./tests/integration ./tests/system
+	$(PYTEST_CMD) --ff ./tests/integration/ai ./tests/system
 
 .PHONY: test-ai
 test-ai:

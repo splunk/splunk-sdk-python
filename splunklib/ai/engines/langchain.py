@@ -120,6 +120,8 @@ from splunklib.ai.tools import Tool, ToolException, ToolType
 LC_AgentMiddleware = Langchain_AgentMiddleware[Any, "InvokeContext", Any]
 LC_ModelRequest = Langchain_ModelRequest["InvokeContext"]
 
+total_token_usage: int = 0
+
 # Set to True to enable debugging mode.
 _DEBUG = False
 
@@ -291,7 +293,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 request: LC_ModelRequest,
                 handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
             ) -> LC_ModelCallResult:
-
                 agent_thread_ids: dict[str, set[str]] = {}
 
                 # Update the subagent schema definitions to include all thread_ids that the
@@ -498,6 +499,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 print("LLM CALL", request)
                 try:
                     resp = await handler(request)
+                except LC_StructuredOutputError as e:
+                    print("LLM FAILURE", e, e.ai_message)
+                    raise
                 except Exception as e:
                     print("LLM FAILURE", e)
                     raise
@@ -527,6 +531,45 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         if _DEBUG:
             lc_middleware.append(_DEBUGMiddleware())
+
+        class _TOKENUsage(LC_AgentMiddleware):
+            @override
+            async def awrap_model_call(
+                self,
+                request: LC_ModelRequest,
+                handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+            ) -> LC_ModelCallResult:
+                global total_token_usage
+
+                def _extract_tokens(resp: LC_ModelCallResult) -> int:
+                    ai_message = resp
+                    if isinstance(ai_message, LC_ExtendedModelResponse):
+                        ai_message = ai_message.model_response
+                    if isinstance(ai_message, LC_ModelResponse):
+                        ai_message = next(
+                            (
+                                m
+                                for m in ai_message.result
+                                if isinstance(m, LC_AIMessage)
+                            ),
+                            None,
+                        )
+                    if ai_message is not None and ai_message.usage_metadata:
+                        return ai_message.usage_metadata.get("total_tokens", 0)
+                    return 0
+
+                try:
+                    resp = await handler(request)
+                    total_token_usage += _extract_tokens(resp)
+                    return resp
+                except LC_StructuredOutputError as e:
+                    if e.ai_message.usage_metadata:
+                        total_token_usage += e.ai_message.usage_metadata.get(
+                            "total_tokens", 0
+                        )
+                    raise
+
+        lc_middleware.append(_TOKENUsage())
 
         response_format = None
         if agent.output_schema is not None:

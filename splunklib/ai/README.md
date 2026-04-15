@@ -647,7 +647,9 @@ async with Agent(
         await agent.invoke(...)
 ```
 
-**Note**: Input schemas can only be used by subagents, not by regular agents. When invoking agents with external data, see [Security](#security) for guidance on how to do this safely.
+> **Note**: Input schemas can only be used by subagents, not by regular agents. When invoking agents with external data, see [Security](#security) for guidance on how to do this safely.
+
+> **Note**: Subagents with an `input_schema` receive their input via `invoke_with_data`, which separates instructions from data and reduces the risk of prompt injection. Subagents without an `input_schema` receive their input as a plain message, which provides weaker injection resistance - use them with caution when the supervisor may pass untrusted data.
 
 ## Middleware
 
@@ -1003,9 +1005,27 @@ Additionally logs from local tools are also forwarded to this logger.
 
 ## Security
 
-When invoking the agent with external data (log entries, alert payloads, API responses, etc.),
-use `invoke_with_data` instead of `invoke`. It separates your instructions from the untrusted
-data, reducing the risk of prompt injection:
+The SDK provides layered, automatic defenses and opt-in utilities to help you build secure
+agentic applications. Automatic protections are active for every agent with no configuration
+required. Opt-in utilities give you additional control where your use case requires it.
+
+### What's on by default
+
+| Protection | Default |
+|---|---|
+| Token limit | 200 000 tokens |
+| Step limit | 100 steps |
+| Timeout | 600 seconds per `invoke` |
+| System prompt hardening | Automatic - security rules are appended to every agent's system prompt |
+
+See [Overriding defaults](#overriding-defaults) to customize or override these limits.
+
+### Prompt injection
+
+The SDK automatically appends injection-resistance rules to every agent's system prompt, so you
+do not need to add them manually. For additional protection when passing external or user-supplied
+data into the agent, use `invoke_with_data` instead of `invoke`. It separates your instructions
+from the untrusted data, reducing the risk of prompt injection:
 
 ```py
 from splunklib.ai.messages import HumanMessage
@@ -1035,6 +1055,7 @@ result = await agent.invoke([
 ])
 ```
 
+For additional opt-in protection, the SDK provides `truncate_input` and `detect_injection`.
 `truncate_input` caps the input length inline when constructing a message. `detect_injection`
 scans for common injection patterns - one way to apply it consistently is via `agent_middleware`,
 which gives you a single place to enforce the policy across every `invoke()` call. You decide
@@ -1068,10 +1089,61 @@ async with Agent(
     await agent.invoke([HumanMessage(content=truncate_input(user_input))])
 ```
 
-The SDK provides structural defenses. App developers are recommended to:
+### Tool and subagent results
 
-- Use `invoke_with_data` whenever passing external or user-supplied data to the agent
-- Ensure tool return values contain only the data the LLM needs
+Tool results and subagent responses are delivered to the LLM using the `tool` message role,
+which models recognize as data rather than instructions. In addition, the SDK automatically
+appends security rules to every agent's system prompt instructing the LLM to treat all tool
+and subagent results as data to analyze, not commands to execute.
+
+Subagents are internally represented as tools - their responses go through the same `tool`
+message role and are covered by the same system prompt rules.
+
+These defenses significantly reduce the risk of indirect prompt injection through results,
+but they are not a 100% guarantee. Developers should:
+
+- Use models that reliably respect message roles and system prompt instructions
+- Validate or sanitize results from external systems before passing them through tools or subagents
+- Apply the principle of least privilege - the fewer tools an agent has, the smaller the
+  attack surface if a result is adversarial
+
+### Audit logging
+
+The SDK's built-in logger (see [Logger](#logger)) emits structured debug events for tool calls,
+subagent calls, and model interactions. These events include tool names, call IDs, and
+success/failure status - metadata only, never message content.
+
+When adding custom logging via middleware or hooks, avoid logging message content or any data
+that may contain sensitive information or PII. Log metadata instead:
+
+```py
+from splunklib.ai.middleware import tool_middleware, ToolMiddlewareHandler, ToolRequest, ToolResponse
+
+@tool_middleware
+async def audit_tool_calls(request: ToolRequest, handler: ToolMiddlewareHandler) -> ToolResponse:
+    logger.info("tool_call started", extra={"tool": request.call.name})
+    return await handler(request)
+```
+
+### Developer responsibility
+
+The SDK provides structural guardrails, but cannot enforce every security rule for every use
+case. As the application developer, you are responsible for the data that flows through your
+application and into the LLM.
+
+We recommend that you:
+
+- Audit which data sources feed into `invoke` / `invoke_with_data` and verify that no
+  sensitive data is included unintentionally
+- Use the logger and middleware to observe agent behavior during development and confirm
+  that data flows match your expectations
+- Choose an LLM provider appropriate for your data sensitivity requirements - for example,
+  a self-hosted model for highly sensitive or regulated data
+
+### Further reading
+
+For a comprehensive overview of LLM-specific risks, see the
+[OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
 
 ## Known issues
 

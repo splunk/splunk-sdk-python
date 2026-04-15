@@ -118,6 +118,21 @@ class TestAsyncToolRegistry(TestRegistryTestCase):
             self.assertEqual(res.structuredContent, {"result": "Hello Stefan"})
 
 
+class TestTemperatureAsDictRegistry(TestRegistryTestCase):
+    async def test_tool_temperature_returning_dict(self):
+        async with self.connect("temperature_as_dict.py") as session:
+            res = await session.call_tool(
+                "temperature",
+                arguments={"city": "Krakow"},
+                meta={"splunk": {"service": self.serialized_service.model_dump()}},
+            )
+            self.assertEqual(res.isError, False)
+            self.assertEqual(res.content, [])
+            self.assertEqual(
+                res.structuredContent, {"city": "Krakow", "temperature": 22}
+            )
+
+
 @dataclass
 class Log:
     level: LoggingLevel

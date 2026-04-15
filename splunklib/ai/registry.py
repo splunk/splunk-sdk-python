@@ -17,7 +17,7 @@ import inspect
 import logging
 import string
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from logging import Logger
 from typing import (
     Any,
@@ -317,8 +317,14 @@ class ToolRegistry:
                 if self._tools_wrapped_result.get(name):
                     res = _WrappedResult(res)
 
+                if is_dataclass(res) and not isinstance(res, type):
+                    res = asdict(res)
+
+                if not isinstance(res, dict):
+                    raise AssertionError("invalid type of tool response")
+
                 return types.CallToolResult(
-                    structuredContent=asdict(res),
+                    structuredContent=res,  # pyright: ignore[reportUnknownArgumentType]
                     content=[],
                 )
         except BaseExceptionGroup as e:
@@ -354,6 +360,7 @@ class ToolRegistry:
 
         return input_schema
 
+    # TODO: figure out how to handle custom classes as output type
     def _output_schema(self, func: Callable[_P, _R]) -> tuple[dict[str, Any], bool]:
         """
         Generates a output schema for the provided func, if necessary wraps the

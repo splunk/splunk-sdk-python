@@ -25,10 +25,18 @@ from starlette.routing import Mount, Route
 from splunklib.ai import Agent
 from splunklib.ai.engines.langchain import LOCAL_TOOL_PREFIX
 from splunklib.ai.messages import (
+    AIMessage,
     HumanMessage,
+    ToolCall,
     ToolFailureResult,
     ToolMessage,
     ToolResult,
+)
+from splunklib.ai.middleware import (
+    ModelMiddlewareHandler,
+    ModelRequest,
+    ModelResponse,
+    model_middleware,
 )
 from splunklib.ai.tool_settings import (
     LocalToolSettings,
@@ -37,6 +45,7 @@ from splunklib.ai.tool_settings import (
     ToolSettings,
 )
 from splunklib.ai.tools import (
+    ToolType,
     _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
     locate_app,
 )
@@ -588,6 +597,67 @@ class TestRemoteTools(AITestCase):
 
                 response = result.final_message.content
                 assert "31.5" in response, "Invalid LLM response"
+
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(os.path.dirname(__file__), "testdata", "temperature_as_dict.py"),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @pytest.mark.asyncio
+    async def test_supports_plain_dicts_as_tool_outputs(self) -> None:
+        """Regression test for DVPL-13022"""
+        pytest.importorskip("langchain_openai")
+
+        messages: list[AIMessage] = [
+            AIMessage(
+                content="",
+                calls=[
+                    ToolCall(
+                        name="temperature",
+                        args={"city": "Krakow"},
+                        id="call_hSdIJSuUZOh2IiBsqfrzhA7d",
+                        type=ToolType.LOCAL,
+                    )
+                ],
+            ),
+            AIMessage(content="The temperature in Krakow is 22°C.", calls=[]),
+        ]
+
+        responses = (m for m in messages)
+
+        @model_middleware
+        async def middleware(
+            req: ModelRequest, handler: ModelMiddlewareHandler
+        ) -> ModelResponse:
+            return ModelResponse(message=next(responses))
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="You must use the available tools to perform requested operations",
+            service=self.service,
+            tool_settings=ToolSettings(local=True, remote=None),
+            middleware=[middleware],
+        ) as agent:
+            result = await agent.invoke(
+                [
+                    HumanMessage(
+                        content=(
+                            "What is the weather like today in Krakow? Use the provided tools to check the temperature."
+                            + "Return a short response, containing the tool response."
+                        ),
+                    )
+                ]
+            )
+
+            tool_message = next(
+                filter(lambda m: m.role == "tool", result.messages), None
+            )
+            assert isinstance(tool_message, ToolMessage), "Invalid tool message"
+            assert tool_message, "No tool message found in response"
+            assert tool_message.name == "temperature", "Invalid tool name"
+
+            response = result.final_message.content
+            assert "22" in response, "Invalid LLM response"
 
 
 class TestHandlingToolNameCollision(AITestCase):

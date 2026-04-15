@@ -66,6 +66,25 @@ class TestJSONSchemaInference(unittest.TestCase):
             "type": "object",
         }
 
+    def test_output_non_wrapped_dict(self) -> None:
+        r = ToolRegistry()
+
+        @r.tool()
+        def structured_tool() -> dict[str, Any]:
+            return {"some": "info"}
+
+        tool = r._tools[0]
+        assert tool.name == "structured_tool"
+        assert tool.inputSchema == {
+            "properties": {},
+            "type": "object",
+            "additionalProperties": False,
+        }
+        assert tool.outputSchema == {
+            "additionalProperties": True,
+            "type": "object",
+        }
+
     def test_output_wrapped(self) -> None:
         r = ToolRegistry()
 

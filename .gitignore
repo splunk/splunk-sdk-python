@@ -283,4 +283,6 @@ docs/_build/
 !*.conf.spec
 **/metadata/local.meta
 
-splunk-mcp-server*.{spl,tar,tar.gz,tgz}
+*.spl
+*.tgz
+*.tar*

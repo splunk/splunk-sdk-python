@@ -554,6 +554,60 @@ async with Agent(
     result.structured_output.summary
 ```
 
+### Output schema generation details
+
+When an `output_schema` is configured, the SDK automatically selects a strategy for generating
+structured output based on the capabilities of the underlying model:
+
+- **Provider strategy** - used when the model natively supports structured output.
+
+- **Tool strategy** - used as a fallback when the model does not natively support structured outputs.
+  The LLM passes the structured output into a tool call, according to the tool input schema. The
+  tool schema correspponds to the `output_schema` pydantic model as passed to the `Agent` constructor.
+  In that case the returned `AIMessage` will contain the `structured_output_calls` field populated
+  and a `StructuredOutputMessage` will be appended to the message list, since each tool call must
+  have a corresponding tool response.
+
+The strategy is selected automatically - no configuration is required.
+
+#### Output schema generation failure
+
+Output schema generation can fail for various reasons:
+
+- The model produces output that does not conform to the schema (e.g. wrong type, missing field,
+  invalid enum value).
+- The schema contains logic that cannot be fully expressed the encoded schema, which gets passed
+  to the LLM - for example, a `model_validator`/`field_validator` that enforces a constraint.
+  Because the model has no visibility into such constraints at generation time, it may produce
+  values that pass schema validation but are then rejected by the validator at parse time.
+
+  ```py
+  class Output(BaseModel):
+      min_score: float
+      max_score: float = Field(descripiton="max_score must be less or equal than min_score")
+
+      @model_validator(mode="after")
+      def max_must_exceed_min(self) -> "Output":
+          if self.max_score <= self.min_score:
+              raise ValueError("max_score must be greater than min_score")
+          return self
+  ```
+- In case of **tool strategy** if the LLM model returned multiple structured output tool calls.
+
+By default the output schema generation is re-tried, until the LLM generates a valid output.
+This happens differently depending on the output schema generation strategy.
+
+- **Provider strategy** - the validation error is fed back to the model, which is asked to
+  regenerate the output in the same agentic loop iteration.
+- **Tool strategy** - the validation error is returned as a tool response, prompting the model
+  to retry the structured output tool call in the same agentic loop iteration.
+
+On each failed attempt, a `StructuredOutputGenerationException` is raised inside the model
+middleware chain. If the exception propagates out of the last middleware, the SDK catches it and
+triggers the retry logic described above. A custom `model_middleware` can intercept this exception
+to observe, log, or override the retry behavior. A custom `model_middleware` can also raise
+the `StructuredOutputGenerationException` manually to reject structured output and force a re-generation.
+
 ### Subagents with structured output/input
 
 In addition to output schemas, subagents can define input schemas. These schemas both constrain

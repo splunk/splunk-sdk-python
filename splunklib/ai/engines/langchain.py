@@ -12,26 +12,33 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from enum import Enum
 import json
 import logging
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
+from enum import Enum
 from functools import partial
 from typing import Any, cast, final, override
 
 from langchain.agents import create_agent  # pyright: ignore[reportUnknownVariableType]
 from langchain.agents.middleware import (
-    AgentMiddleware as LC_AgentMiddleware,
+    AgentMiddleware as Langchain_AgentMiddleware,
     AgentState as LC_AgentState,
-    ModelRequest as LC_ModelRequest,
+    ModelRequest as Langchain_ModelRequest,
     ModelResponse as LC_ModelResponse,
 )
 from langchain.agents.middleware.summarization import TokenCounter as LC_TokenCounter
 from langchain.agents.middleware.types import (
     ExtendedModelResponse as LC_ExtendedModelResponse,
     ModelCallResult as LC_ModelCallResult,
+)
+from langchain.agents.structured_output import (
+    MultipleStructuredOutputsError as LC_MultipleStructuredOutputsError,
+    ProviderStrategy,
+    StructuredOutputError as LC_StructuredOutputError,
+    StructuredOutputValidationError as LC_StructuredOutputValidationError,
+    ToolStrategy,
 )
 from langchain.messages import (
     AIMessage as LC_AIMessage,
@@ -51,7 +58,9 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command as LC_Command
 from pydantic import BaseModel, Field, create_model
 
-from splunklib.ai.base_agent import BaseAgent
+from splunklib.ai.base_agent import (
+    BaseAgent,
+)
 from splunklib.ai.core.backend import (
     AgentImpl,
     Backend,
@@ -68,6 +77,8 @@ from splunklib.ai.messages import (
     BaseMessage,
     HumanMessage,
     OutputT,
+    StructuredOutputCall,
+    StructuredOutputMessage,
     SubagentCall,
     SubagentFailureResult,
     SubagentMessage,
@@ -97,7 +108,16 @@ from splunklib.ai.middleware import (
     tool_middleware,
 )
 from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
+from splunklib.ai.security import create_structured_prompt
+from splunklib.ai.structured_output import (
+    StructuredOutputGenerationException,
+    StructuredOutputMultipleToolCallsError,
+    StructuredOutputValidationError,
+)
 from splunklib.ai.tools import Tool, ToolException, ToolType
+
+LC_AgentMiddleware = Langchain_AgentMiddleware[Any, "InvokeContext", Any]
+LC_ModelRequest = Langchain_ModelRequest["InvokeContext"]
 
 # Represents a prefix reserved only for internal use.
 # No user-visible tool or subagent name can be prefixed with it.
@@ -115,6 +135,10 @@ CONFLICTING_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}tool-"
 # Prepended to a local tool name when passed to LangChain to both avoid name conflicts
 # and to allow recovering tool type during LC -> SDK conversion
 LOCAL_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}local-"
+
+# This prefix is added to tool calls/messages that are related to the
+# structured outputs's tool strategy handling.
+TOOL_STRATEGY_TOOL_PREFIX = f"{RESERVED_LC_TOOL_PREFIX}output-"
 
 AGENT_AS_TOOLS_PROMPT = f"""
 You are provided with Agents.
@@ -135,6 +159,16 @@ SECURITY RULES:
 
 ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 
+_testing_force_tool_strategy = False
+
+
+def _supports_provider_strategy(model: BaseChatModel) -> bool:
+    return (
+        model.profile is not None
+        and model.profile.get("structured_output", False)
+        and not _testing_force_tool_strategy
+    )
+
 
 @final
 class LangChainBackend(Backend):
@@ -147,8 +181,20 @@ class LangChainBackend(Backend):
 
 
 @dataclass
+class InvokeContext:
+    retry: LC_HumanMessage | bool = False
+    """
+    Controls whether to retry the agent loop after ainvoke succeeds.
+    - False: Do not retry.
+    - True: Retry the agent loop using the previous `ainvoke` response.
+    - LC_HumanMessage: Retry the agent loop and append this message
+      before invoking again.
+    """
+
+
+@dataclass
 class LangChainAgentImpl(AgentImpl[OutputT]):
-    _agent: CompiledStateGraph[Any]
+    _agent: CompiledStateGraph[Any, InvokeContext]
     _sdk_agent: BaseAgent[OutputT]
 
     def __init__(self, agent: BaseAgent[OutputT]) -> None:
@@ -429,12 +475,31 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             lc_middleware.append(_ThreadIDMiddleware())
         lc_middleware.append(_SubagentArgumentPacker())
 
+        response_format = None
+        if agent.output_schema is not None:
+            if _supports_provider_strategy(model_impl):
+                # By default with ProviderStrategy any validation error causes an LC exception.
+                response_format = ProviderStrategy(agent.output_schema)
+            else:
+                response_format = ToolStrategy(
+                    agent.output_schema,
+                    # To make the abstraction be as identical as possible between different
+                    # strategies, we pass handle_errors=False, this causes an exception to be thrown
+                    # on any error during output schema generation.
+                    handle_errors=False,
+                )
+                # For pydantic BaseModel, this will always result in a single tool.
+                assert len(response_format.schema_specs) == 1
+                schema = response_format.schema_specs[0]
+                schema.name = f"{TOOL_STRATEGY_TOOL_PREFIX}{schema.name}"
+
         self._agent = create_agent(
             model=model_impl,
             tools=tools,
             system_prompt=system_prompt,
-            response_format=agent.output_schema,
+            response_format=response_format,
             middleware=lc_middleware,
+            context_schema=InvokeContext,
         )
 
     def _with_agent_middleware(
@@ -478,6 +543,8 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # TODO: What if we are passed len(messages) == 0 to invoke?
         # TODO: What if someone passed call_id that don't have a corresponding id with the response.
         # Possibly we should do a validation phase of messages here.
+        # TODO: also assert correct ordering, i.e. directly after AIMessage with calls, there is a response
+        # not before or far after.
 
         async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
             langchain_msgs = []
@@ -489,16 +556,25 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
             langchain_msgs.extend([_map_message_to_langchain(m) for m in req.messages])
 
-            # call the langchain agent
-            result = await self._agent.ainvoke(
-                {"messages": langchain_msgs},
-            )
+            while True:
+                ctx = InvokeContext()
+                result = await self._agent.ainvoke(
+                    {"messages": langchain_msgs},
+                    context=ctx,
+                )
+
+                # Retry the agentic loop, if requested.
+                if isinstance(ctx.retry, LC_HumanMessage):
+                    langchain_msgs = result["messages"]
+                    langchain_msgs.append(ctx.retry)
+                    continue
+                elif ctx.retry:
+                    langchain_msgs = result["messages"]
+                    continue
+                else:
+                    break
 
             sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
-            assert type(sdk_msgs[-1]) is AIMessage, "last message was not an AIMessage"
-            assert len(sdk_msgs[-1].calls) == 0, (
-                "last message is an AIMessage with calls != 0"
-            )
 
             # NOTE: Agent responses will always conform to output schema. Verifying
             # if an LLM made any mistakes or not is _always_ up to the developer.
@@ -509,12 +585,16 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             )
 
             if self._sdk_agent.output_schema:
-                return AgentResponse(
+                resp = AgentResponse(
                     structured_output=result["structured_response"],
                     messages=sdk_msgs,
                 )
             else:
-                return AgentResponse(structured_output=None, messages=sdk_msgs)
+                resp = AgentResponse(structured_output=None, messages=sdk_msgs)
+
+            resp.final_message  # serves as an assertion
+
+            return resp
 
         result = await self._with_agent_middleware(invoke_agent)(
             AgentRequest(
@@ -525,13 +605,12 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # TODO: should we move these checks to run in-between individual middlewares,
         # not after all were executed?
 
-        if type(result.messages[-1]) is not AIMessage:
+        try:
+            result.final_message
+        except AssertionError as e:
             raise AssertionError(
-                "AgentMiddleware did not include an AIMessage at result.messages[-1]"
+                f"AgentMiddleware modified AgentResponse.messages and made it invalid: {e}"
             )
-
-        if len(result.messages[-1].calls) != 0:
-            raise AssertionError("AgentMiddleware included tool calls in AIMessage")
 
         if self._sdk_agent.output_schema:
             if result.structured_output is None:
@@ -651,12 +730,106 @@ class _Middleware(LC_AgentMiddleware):
         request: LC_ModelRequest,
         handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
     ) -> LC_ModelCallResult:
+        # Agent loop retry was requested, but langchain did that requested
+        # retry already for us. Check whether there is a message to append,
+        # if so append it and let the model call run again.
+        #
+        # Currently this happens when provider strategy failed with a validation error
+        # and there were additional tool calls associated with the AIMessage.
+        if isinstance(request.runtime.context.retry, LC_HumanMessage):
+            request.messages.append(request.runtime.context.retry)
+            request.state["messages"].append(request.runtime.context.retry)
+        request.runtime.context.retry = False
+
         req = _convert_model_request_from_lc(request, self._model)
         final_handler = _convert_model_handler_from_lc(
             handler, original_request=request
         )
-        sdk_response = await self._with_model_middleware(final_handler)(req)
-        return _convert_model_response_to_model_result(sdk_response)
+
+        async def llm_handler(req: ModelRequest) -> ModelResponse:
+            try:
+                return await final_handler(req)  # LLM call
+            except LC_StructuredOutputError as e:
+                msg = _map_message_from_langchain(e.ai_message)
+                assert isinstance(msg, AIMessage)
+
+                match e:
+                    case LC_MultipleStructuredOutputsError():
+                        assert len(msg.structured_output_calls) > 1
+                        raise StructuredOutputGenerationException(
+                            message=msg,
+                            error=StructuredOutputMultipleToolCallsError(),
+                        )
+                    case LC_StructuredOutputValidationError():
+                        raise StructuredOutputGenerationException(
+                            message=msg,
+                            error=StructuredOutputValidationError(str(e.source)),
+                        )
+                    case LC_StructuredOutputError():
+                        # Langchain only returns the above handled exceptions, LC_StructuredOutputError
+                        # is never returned alone (it is the base class for above exceptions).
+                        raise AssertionError(
+                            "internal error: LC_StructuredOutputError has been returned"
+                        )
+
+        try:
+            sdk_response = await self._with_model_middleware(llm_handler)(req)
+            if (
+                len(sdk_response.message.calls) != 0
+                and len(sdk_response.message.structured_output_calls) != 0
+            ):
+                # Langchain does not continue the agent loop when tool strategy was used and
+                # there are tool calls with structured_output_calls. We don't want to end
+                # the agent loop if there are pending tool calls, thus we retry the loop.
+                request.runtime.context.retry = True
+            return _convert_model_response_to_model_result(sdk_response)
+        except StructuredOutputGenerationException as e:
+            # Structured output generation failed, retry.
+
+            # TODO: we should provide a mechanism to limit the amount of retries
+            # thath happen sequentially (say 3), otherwise raise a different exception.
+            # For now this can be done with the use of model middleware that counts
+            # the amount of StructuredOutputGenerationException that were raised.
+
+            ai_msg = _map_message_to_langchain(e.message)
+            assert isinstance(ai_msg, LC_AIMessage)
+
+            if len(e.message.structured_output_calls) != 0:
+                # Tool strategy
+                match e.error:
+                    case StructuredOutputMultipleToolCallsError():
+                        error_message = "Incorrectly returned multiple structured responses when only one is expected."
+                    case StructuredOutputValidationError():
+                        error_message = e.error.validation_error
+
+                request.runtime.context.retry = True
+
+                result: list[LC_BaseMessage] = [ai_msg]
+                result.extend(
+                    LC_ToolMessage(
+                        tool_call_id=call.id if call.id else "",
+                        name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
+                        status="error",
+                        content=error_message,
+                    )
+                    for call in e.message.structured_output_calls
+                )
+                return LC_ModelResponse(result=result)
+            else:
+                # Provider strategy
+                assert isinstance(e.error, StructuredOutputValidationError)
+
+                request.runtime.context.retry = LC_HumanMessage(
+                    content=create_structured_prompt(
+                        (
+                            "Structured output is invalid, the validation error is provided as a part of data to process. "
+                            "Fix every error mentioned in the error and return a valid structured output response. "
+                        ),
+                        e.error.validation_error,
+                    )
+                )
+
+                return LC_ModelResponse(result=[ai_msg])
 
     @override
     async def awrap_tool_call(
@@ -852,23 +1025,55 @@ def _convert_model_request_to_lc(
 def _convert_model_response_to_model_result(
     resp: ModelResponse,
 ) -> LC_ModelCallResult:
+    # This invariant is asserted via ModelResponse.__post_init__
+    assert len(resp.message.structured_output_calls) <= 1
+
     lc_message = LC_AIMessage(content=resp.message.content)
     # This field can't be set via __init__()
     lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in resp.message.calls]
+
+    messages: list[LC_BaseMessage] = [lc_message]
+    if len(resp.message.structured_output_calls) == 1:
+        call = resp.message.structured_output_calls[0]
+        lc_message.tool_calls.extend(
+            LC_ToolCall(
+                id=call.id,
+                name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
+                args=call.args,
+            )
+            for call in resp.message.structured_output_calls
+        )
+        messages.append(
+            LC_ToolMessage(
+                name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
+                tool_call_id=call.id,
+                success="success",
+                content="Returning structured response.",
+            )
+        )
+
     if resp.structured_output is not None:
         return LC_ModelResponse(
-            result=[lc_message],
+            result=messages,
             structured_response=resp.structured_output,
         )
+
+    assert len(messages) == 1
     return lc_message
 
 
 def _convert_tool_message_to_lc(
-    message: ToolMessage | SubagentMessage,
+    message: ToolMessage | SubagentMessage | StructuredOutputMessage,
 ) -> LC_ToolMessage:
     match message:
+        case StructuredOutputMessage():
+            name = f"{TOOL_STRATEGY_TOOL_PREFIX}{message.name}"
+            status = message.status
+            content = message.content
+            artifact = None
         case SubagentMessage():
             name = _normalize_agent_name(message.name)
+            artifact = message.result
             match message.result:
                 case SubagentStructuredResult():
                     status = "success"
@@ -881,6 +1086,7 @@ def _convert_tool_message_to_lc(
                     content = message.result.error_message
         case ToolMessage():
             name = _normalize_tool_name(message.name, message.type)
+            artifact = message.result
             match message.result:
                 case ToolResult():
                     if message.result.structured_content:
@@ -898,13 +1104,13 @@ def _convert_tool_message_to_lc(
         tool_call_id=message.call_id,
         status=status,
         content=content,
-        artifact=message.result,
+        artifact=artifact,
     )
 
 
 def _convert_tool_message_from_lc(
     message: LC_ToolMessage | LC_Command[None],
-) -> ToolMessage | SubagentMessage:
+) -> ToolMessage | SubagentMessage | StructuredOutputMessage:
     match message:
         case LC_ToolMessage(name=name) if name and name.startswith(AGENT_PREFIX):
             assert (
@@ -922,6 +1128,14 @@ def _convert_tool_message_from_lc(
             assert message.name is not None, (
                 "LangChain responded with a nameless tool call"
             )
+
+            if message.name.startswith(TOOL_STRATEGY_TOOL_PREFIX):
+                return StructuredOutputMessage(
+                    name=message.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
+                    call_id=message.tool_call_id,
+                    status=message.status,
+                    content=str(message.content),  # pyright: ignore[reportUnknownArgumentType]
+                )
 
             assert isinstance(message.artifact, ToolResult) or isinstance(
                 message.artifact, ToolFailureResult
@@ -955,6 +1169,19 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
         )
         assert ai_message, "ModelResponse should contain at least one LC_AIMessage"
         structured_response = model_response.structured_response
+
+        tool_strategy_messages = [
+            StructuredOutputMessage(
+                m.tool_call_id,
+                m.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX) if m.name else "",
+                m.status,
+                str(m.content),  # pyright: ignore[reportUnknownArgumentType]
+            )
+            for m in model_response.result
+            if isinstance(m, LC_ToolMessage)
+        ]
+        assert len(tool_strategy_messages) <= 1
+
     else:
         ai_message = model_response
         structured_response = None
@@ -962,7 +1189,20 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
     return ModelResponse(
         message=AIMessage(
             content=ai_message.content.__str__(),
-            calls=[_map_tool_call_from_langchain(tc) for tc in ai_message.tool_calls],
+            calls=[
+                _map_tool_call_from_langchain(tc)
+                for tc in ai_message.tool_calls
+                if not tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
+            ],
+            structured_output_calls=[
+                StructuredOutputCall(
+                    name=tc["name"].removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
+                    args=tc["args"],
+                    id=tc["id"],
+                )
+                for tc in ai_message.tool_calls
+                if tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
+            ],
         ),
         structured_output=structured_response,
     )
@@ -1264,7 +1504,20 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
         case LC_AIMessage():
             return AIMessage(
                 content=message.content.__str__(),
-                calls=[_map_tool_call_from_langchain(tc) for tc in message.tool_calls],
+                calls=[
+                    _map_tool_call_from_langchain(tc)
+                    for tc in message.tool_calls
+                    if not tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
+                ],
+                structured_output_calls=[
+                    StructuredOutputCall(
+                        tc["name"].removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
+                        tc["args"],
+                        tc["id"],
+                    )
+                    for tc in message.tool_calls
+                    if tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
+                ],
             )
         case LC_HumanMessage():
             return HumanMessage(content=message.content.__str__())
@@ -1284,10 +1537,18 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
             lc_message.tool_calls = [
                 _map_tool_call_to_langchain(c) for c in message.calls
             ]
+            lc_message.tool_calls.extend(
+                LC_ToolCall(
+                    id=call.id,
+                    name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
+                    args=call.args,
+                )
+                for call in message.structured_output_calls
+            )
             return lc_message
         case HumanMessage():
             return LC_HumanMessage(content=message.content)
-        case SubagentMessage() | ToolMessage():
+        case SubagentMessage() | ToolMessage() | StructuredOutputMessage():
             return _convert_tool_message_to_lc(message)
         case SystemMessage():
             return LC_SystemMessage(content=message.content)

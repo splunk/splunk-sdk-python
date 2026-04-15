@@ -84,6 +84,12 @@ class ModelResponse:
     message: AIMessage
     structured_output: Any | None = None
 
+    def __post_init__(self) -> None:
+        if len(self.message.structured_output_calls) > 1:
+            raise AssertionError(
+                f"len(message.structured_output_calls) is not equal to 0 or 1 but {len(self.message.structured_output_calls)}"
+            )
+
 
 ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 

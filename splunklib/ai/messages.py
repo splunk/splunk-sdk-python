@@ -38,6 +38,13 @@ class SubagentCall:
 
 
 @dataclass(frozen=True)
+class StructuredOutputCall:
+    name: str
+    args: dict[str, Any]
+    id: str | None  # TODO: can be None?
+
+
+@dataclass(frozen=True)
 class BaseMessage:
     role: str = field(init=False)
 
@@ -70,12 +77,20 @@ class AIMessage(BaseMessage):
     In addition to plain text content, an AIMessage may include
     agent or tool invocations, representing actions the model is
     requesting the Agent to execute.
+
+    AIMessage might contain structured_output_calls, when the LLM model
+    does not support natively structured outputs, in such cases the
+    LLM returns the structured output as part of a tool call,
+    stored in that field.
     """
 
     role: Literal["assistant"] = field(default="assistant", init=False)
     content: str
 
     calls: Sequence[ToolCall | SubagentCall]
+    structured_output_calls: Sequence[StructuredOutputCall] = field(
+        default_factory=tuple
+    )
 
 
 @dataclass(frozen=True)
@@ -167,6 +182,22 @@ class SubagentMessage(BaseMessage):
     result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
 
+@dataclass(frozen=True)
+class StructuredOutputMessage(BaseMessage):
+    """
+    StructuredMessage represents a response to the StructuredOutputCall.
+    """
+
+    role: Literal["tool-strategy-response"] = field(
+        default="tool-strategy-response", init=False
+    )
+
+    call_id: str
+    name: str
+    status: Literal["success", "error"]
+    content: str
+
+
 OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | None)
 
 # TODO: We should make sure that the list[BaseMessage] is JSON serializable
@@ -178,22 +209,34 @@ OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | Non
 class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT
-    # Holds the full message history including tool calls and final response
-    # The last message is and must always be an AIMessage with len(calls) == 0.
+    # Holds the full message history including tool calls and final response.
+    #
+    # Normally messages[-1] is the final AIMessage, but when the tool strategy
+    # is used for structured output generation, messages[-1] may be a
+    # StructuredOutputMessage instead. Use final_message to get
+    # the final AIMessage reliably.
     messages: list[BaseMessage]
 
     @property
     def final_message(self) -> AIMessage:
-        """final_message returns the last AIMessage at self.messages[-1]."""
+        """
+        final_message returns the AIMessage that ended the agentic loop.
+        """
 
-        # Make sure that it is valid, otherwise report that.
-        # These exceptions should never be reached in a valid code and always
-        # are a programmers fault.
-        if type(self.messages[-1]) is not AIMessage:
-            raise AssertionError(
-                "Invalid AgentResponse, self.messages[-1] is not of type: AIMessage"
-            )
-        if len(self.messages[-1].calls) != 0:
-            raise AssertionError("Invalid AgentResponse, self.messages[-1].calls != 0")
+        for msg in reversed(self.messages):
+            if isinstance(msg, AIMessage):
+                if len(msg.calls) != 0:
+                    raise AssertionError(
+                        "AgentResponse.messages is invalid; unexpected AIMessage with len(call) != 0"
+                    )
+                return msg
+            elif isinstance(msg, StructuredOutputMessage):
+                continue
+            else:
+                raise AssertionError(
+                    f"AgentResponse.messages is invalid; unexpected message type {type(msg)}"
+                )
 
-        return self.messages[-1]
+        raise AssertionError(
+            "AgentResponse.messages is invalid; there are no messages in the list"
+        )

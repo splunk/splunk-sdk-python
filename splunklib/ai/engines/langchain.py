@@ -605,8 +605,11 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             # Prepend messages from conversation store.
             if self._sdk_agent.conversation_store:
                 msgs = await self._sdk_agent.conversation_store.get_messages(thread_id)
-                langchain_msgs.extend([_map_message_to_langchain(m) for m in msgs])
+                if len(msgs) > 0:
+                    _validate_messages(msgs, False)
+                    langchain_msgs.extend([_map_message_to_langchain(m) for m in msgs])
 
+            _validate_messages(req.messages, False)
             langchain_msgs.extend([_map_message_to_langchain(m) for m in req.messages])
 
             while True:
@@ -629,6 +632,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
             sdk_msgs = [_map_message_from_langchain(m) for m in result["messages"]]
 
+            # Serves as an assertion, if this is hit, it likely means a bug in the agentic loop.
+            _validate_messages(sdk_msgs, True)
+
             # NOTE: Agent responses will always conform to output schema. Verifying
             # if an LLM made any mistakes or not is _always_ up to the developer.
 
@@ -645,8 +651,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             else:
                 resp = AgentResponse(structured_output=None, messages=sdk_msgs)
 
-            resp.final_message  # serves as an assertion
-
             return resp
 
         result = await self._with_agent_middleware(invoke_agent)(
@@ -659,16 +663,15 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # not after all were executed?
 
         try:
-            result.final_message
-        except AssertionError as e:
-            raise AssertionError(
-                f"AgentMiddleware modified AgentResponse.messages and made it invalid: {e}"
+            _validate_messages(result.messages, True)
+        except _InvalidMessagesException as e:
+            raise _InvalidMessagesException(
+                f"Agent middleware modified messages and made it invalid: {e}"
             )
 
         if self._sdk_agent.output_schema:
             if result.structured_output is None:
                 raise AssertionError("Agent middleware discarded a structured output")
-
             if type(result.structured_output) is not self._sdk_agent.output_schema:
                 raise AssertionError(
                     f"Agent middleware returned an invalid structured_output type: {type(result.structured_output)}, want: {self._sdk_agent.output_schema}"
@@ -1686,3 +1689,132 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
             raise InvalidModelError(
                 "Cannot create langchain model - invalid SDK model provided"
             )
+
+
+class _InvalidMessagesException(Exception):
+    pass
+
+
+def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) -> None:
+    if len(messages) == 0:
+        raise _InvalidMessagesException("messages list is empty")
+
+    pending_structured_calls: dict[str, str] = {}
+    pending_tool_calls: dict[str, str] = {}
+    pending_subagent_calls: dict[str, str] = {}
+
+    def check_no_pending_calls() -> None:
+        if len(pending_structured_calls) != 0:
+            raise _InvalidMessagesException(
+                f"StructuredToolCall does not have a corresponding StructuredOutputMessage; ids={list(pending_structured_calls.keys())}"
+            )
+        if len(pending_tool_calls) != 0:
+            raise _InvalidMessagesException(
+                f"ToolCall does not have a corresponding ToolMessage; ids={list(pending_tool_calls.keys())}"
+            )
+        if len(pending_subagent_calls) != 0:
+            raise _InvalidMessagesException(
+                f"SubagentCall does not have a corresponding SubagentMessage; ids={list(pending_subagent_calls.keys())}"
+            )
+
+    used_call_ids: set[str] = set()
+
+    def check_call_id(type: str, id: str) -> None:
+        if id == "":
+            raise _InvalidMessagesException(f"Empty {type} call_id: {id=}")
+        if id in used_call_ids:
+            raise _InvalidMessagesException(f"Duplicated {type} call_id: {id}")
+
+        used_call_ids.add(id)
+
+    def check_tool_name(type: str, name: str) -> None:
+        if name == "":
+            raise _InvalidMessagesException(f"Empty {type} name: {name=}")
+
+    # We use `type() is X` instead of `isinstance`/match statement
+    # to make sure that users do not subclass our types, since we do
+    # type conversions between LC and SDK types in the backend and
+    # the subclassed types that users provide would be lost
+    # (since we re-create these back as our types).
+
+    last_ai_message: AIMessage | None = None
+    for message in messages:
+        if type(message) is HumanMessage:
+            check_no_pending_calls()
+        elif type(message) is SystemMessage:
+            check_no_pending_calls()
+        elif type(message) is AIMessage:
+            last_ai_message = message
+
+            check_no_pending_calls()
+            for call in message.calls:
+                if type(call) is ToolCall:
+                    assert call.id is not None
+                    check_call_id("tool", call.id)
+                    check_tool_name("tool", call.name)
+                    pending_tool_calls[call.id] = call.name
+                elif type(call) is SubagentCall:
+                    assert call.id is not None
+                    check_call_id("subagent", call.id)
+                    check_tool_name("subagent", call.name)
+                    pending_subagent_calls[call.id] = call.name
+                else:
+                    raise _InvalidMessagesException(
+                        f"AIMessage contains invalid call type: {type(call)}"
+                    )
+            for call in message.structured_output_calls:
+                if type(call) is StructuredOutputCall:
+                    assert call.id is not None
+                    check_call_id("structured output tool", call.id)
+                    check_tool_name("structured output tool", call.name)
+                    pending_structured_calls[call.id] = call.name
+                else:
+                    raise _InvalidMessagesException(
+                        f"AIMessage contains invalid call type: {type(call)}"
+                    )
+
+        elif type(message) is ToolMessage:
+            name = pending_tool_calls.get(message.call_id)
+            if name is None:
+                raise _InvalidMessagesException(
+                    f"ToolMessage does not have a corresponding ToolCall; id={message.call_id}"
+                )
+            if name != message.name:
+                raise _InvalidMessagesException(
+                    f"ToolMessage.name = {message.name}, but the corresponding ToolCall.name = {name}"
+                )
+            del pending_tool_calls[message.call_id]
+        elif type(message) is SubagentMessage:
+            name = pending_subagent_calls.get(message.call_id)
+            if name is None:
+                raise _InvalidMessagesException(
+                    f"SubagentMessage does not have a corresponding SubagentCall; id={message.call_id}"
+                )
+            if name != message.name:
+                raise _InvalidMessagesException(
+                    f"SubagentMessage.name = {message.name}, but the corresponding SubagentCall.name = {name}"
+                )
+            del pending_subagent_calls[message.call_id]
+        elif type(message) is StructuredOutputMessage:
+            name = pending_structured_calls.get(message.call_id)
+            if name is None:
+                raise _InvalidMessagesException(
+                    f"StructuredOutputMessage does not have a corresponding StructuredOutputCall; id={message.call_id}"
+                )
+            if name != message.name:
+                raise _InvalidMessagesException(
+                    f"StructuredOutputMessage.name = {message.name}, but the corresponding StructuredOutputCall.name = {name}"
+                )
+            del pending_structured_calls[message.call_id]
+        else:
+            raise _InvalidMessagesException(
+                f"Messages contains invalid message type: {type(message)}"
+            )
+
+    check_no_pending_calls()
+
+    if agent_loop_end:
+        if last_ai_message is None:
+            raise _InvalidMessagesException("messages does not have an AIMessage")
+        if len(last_ai_message.calls) != 0:
+            raise _InvalidMessagesException("last AIMessage has tool calls")

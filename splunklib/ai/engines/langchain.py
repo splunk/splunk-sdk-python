@@ -14,6 +14,7 @@
 
 import json
 import logging
+import os
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
@@ -118,6 +119,16 @@ from splunklib.ai.tools import Tool, ToolException, ToolType
 
 LC_AgentMiddleware = Langchain_AgentMiddleware[Any, "InvokeContext", Any]
 LC_ModelRequest = Langchain_ModelRequest["InvokeContext"]
+
+# Set to True to enable debugging mode.
+_DEBUG = False
+
+# Disallow _DEBUG == True in CI.
+# Github actions sets the CI env var.
+if _DEBUG and os.environ.get("CI") is not None:
+    raise Exception(
+        "_DEBUG can only be used in a local dev env and shouldn't ever be committed!"
+    )
 
 # Represents a prefix reserved only for internal use.
 # No user-visible tool or subagent name can be prefixed with it.
@@ -474,6 +485,48 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         if len(conversational_subagents) > 0:
             lc_middleware.append(_ThreadIDMiddleware())
         lc_middleware.append(_SubagentArgumentPacker())
+
+        class _DEBUGMiddleware(LC_AgentMiddleware):
+            @override
+            async def awrap_model_call(
+                self,
+                request: LC_ModelRequest,
+                handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+            ) -> LC_ModelCallResult:
+                from rich import print
+
+                print("LLM CALL", request)
+                try:
+                    resp = await handler(request)
+                except Exception as e:
+                    print("LLM FAILURE", e)
+                    raise
+
+                print("LLM RESPONSE", resp)
+                return resp
+
+            @override
+            async def awrap_tool_call(
+                self,
+                request: LC_ToolCallRequest,
+                handler: Callable[
+                    [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
+                ],
+            ) -> LC_ToolMessage | LC_Command[None]:
+                from rich import print
+
+                print("TOOL CALL", request)
+                try:
+                    resp = await handler(request)
+                except Exception as e:
+                    print("TOOL FAILURE", e)
+                    raise
+
+                print("TOOL RESPONSE", resp)
+                return resp
+
+        if _DEBUG:
+            lc_middleware.append(_DEBUGMiddleware())
 
         response_format = None
         if agent.output_schema is not None:

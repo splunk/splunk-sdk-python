@@ -22,6 +22,9 @@ from splunklib.ai.registry import ToolContext, ToolRegistry
 
 registry = ToolRegistry()
 
+# Asserts that SPLUNK_HOME is available.
+assert os.environ["SPLUNK_HOME"] == "/opt/splunk"
+
 
 @registry.tool(description="Returns the current temperature in the city")
 def temperature(ctx: ToolContext, city: str) -> str:

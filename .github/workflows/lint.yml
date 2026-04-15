@@ -1,4 +1,4 @@
-name: Python SDK CI
+name: Python SDK Lint
 on: [push, workflow_dispatch]
 
 jobs:
@@ -6,12 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+      - uses: ./.github/actions/setup-sdk-environment
         with:
-          activate-environment: true
+          python-version: ${{ matrix.python-version }}
+          deps-group: lint
       - name: Verify uv.lock is up-to-date
         run: uv lock --check
-      - name: Install dependencies with uv
-        run: SDK_DEPS_GROUP="lint" make uv-sync-ci
-      - name: Verify basedpyright baseline
+      - name: Verify against basedpyright baseline
         run: uv run --frozen basedpyright

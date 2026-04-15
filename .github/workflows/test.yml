@@ -14,20 +14,11 @@ jobs:
         python-version: [3.13]
         splunk-version: [latest]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: ./.github/actions/setup-sdk-environment
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
-      - name: Setup uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
-        with:
-          activate-environment: true
-          enable-cache: true
-      - name: Install dependencies
-        run: SDK_DEPS_GROUP="test" make uv-sync-ci
+          deps-group: test
       - name: Download Splunk MCP Server App
         run: uv run ./scripts/download_splunk_mcp_server_app.py
         env:
@@ -50,10 +41,9 @@ jobs:
           INTERNAL_AI_CLIENT_SECRET: ${{ secrets.INTERNAL_AI_CLIENT_SECRET }}
           INTERNAL_AI_TOKEN_URL: ${{ secrets.INTERNAL_AI_TOKEN_URL }}
           INTERNAL_AI_BASE_URL: ${{ secrets.INTERNAL_AI_BASE_URL }}
-
       - name: Restore pytest cache
-        if: ${{ github.ref }} != "refs/heads/master" && ${{ github.ref }} != "refs/heads/develop"
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .pytest_cache
           key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}

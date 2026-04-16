@@ -1,10 +1,8 @@
 name: Python SDK CI
-on:
-  push:
-    branches: [master, develop]
+on: [push, workflow_dispatch]
 
 jobs:
-  test-stage:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -16,28 +14,18 @@ jobs:
             python-version: 3.13
             splunk-version: latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: ./.github/actions/setup-sdk-environment
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
-      - name: Set up latest uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
-        with:
-          version: 0.11.6
-          activate-environment: true
-          enable-cache: true
-      - name: Install Python dependencies
-        run: SDK_DEPS_GROUP="test" make uv-sync-ci
+          deps-group: test
       - name: Launch Splunk Docker instance
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
-      - name: Set up `.env`
+      - name: Set up .env
         run: cp .env.template .env
-      - name: Restore `pytest` cache
+      - name: Restore pytest cache
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .pytest_cache
           key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}

@@ -7,43 +7,69 @@ The [Splunk Enterprise](https://www.splunk.com/en_us/products/splunk-enterprise.
 
 You may be asking:
 
-- [What are Splunk apps?](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.0/meet-splunk-apps/apps-and-add-ons)
-- [What can Splunk apps do?](https://dev.splunk.com/enterprise/docs/developapps/extensionpoints)
-- [How do I write Splunk apps?](https://dev.splunk.com/enterprise/docs/welcome)
+- [What are Splunk Apps?](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.0/meet-splunk-apps/apps-and-add-ons)
+- [What can Splunk Apps do?](https://dev.splunk.com/enterprise/docs/developapps/extensionpoints)
+- [How do I write Splunk Apps?](https://dev.splunk.com/enterprise/docs/welcome)
 - [Where does the SDK fit in all this?](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/)
 - What's the difference between `import splunklib` and `import splunk`?
-  - This repo contains `splunklib`. `splunk` is an internal library bundled with the Splunk platform.
+  - This repo contains `splunklib`, whereas `splunk` is an internal library bundled with the Splunk platform.
 
 ## Getting started
 
-### Pre-requirements
+### Requirements
 
-#### Python
-
-Please use the latest Python version supported when developing. Splunk Enterprise SDK for Python is tested with Python 3.9 and 3.13.
-
-#### Splunk Enterprise
-
-This SDK is only tested with Splunk Enterprise versions supported in the [Splunk Software Support Policy](https://www.splunk.com/en_us/legal/splunk-software-support-policy.html).
-
-[Go here](http://www.splunk.com/download) to get Splunk Enterprise.
+- [Python 3.13 or newer](https://www.python.org/downloads/)
+- [Splunk Enterprise/Cloud](http://www.splunk.com/download)
 
 ### Installing the SDK
 
-Using `pip` is the easiest way to pull the SDK into your project. `poetry` and `uv` should work just as well. A project-specific virtualenv is recommended.
+Using `uv`:
 
-In your app's project folder:
-
-```sh
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install splunk-sdk --target bin/
+```python
+uv init
+uv add splunk-sdk
+uv sync
 ```
 
-Install your dependencies into `bin/` if bundling with an app, otherwise you can skip it.
-[See docs](https://dev.splunk.com/enterprise/docs/developapps/createapps/appanatomy/) on more details about packaging additional dependencies with your app.
+If you prefer not using `uv`, using `pip` should work as expected:
 
-### Using SDK in apps
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install splunk-sdk
+```
+
+### Including external dependencies in your App
+
+Because of the way Splunk Apps are built, you need to install your external dependencies to `bin/lib/` for the App to work. Then in your App script files:
+
+```python
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
+```
+
+### Packaging your App
+
+An example workflow to package your App for uploading to Splunk (expect to modify it heavily):
+
+```sh
+python3 -m pip install . \
+  --target bin/lib/ \
+  # Needs to match the platform Splunk is built and
+  # ran on, NOT the one you're writing your App on
+  --platform manylinux2014_aarch64 \
+  --only-binary=:all:
+
+gtar --transform='s,^,<your_app>/,' \
+  --exclude="__pycache__" \
+  -czf dist/<your_app>.tgz \
+  bin default
+
+# `<your_app>.tgz` should be now ready in `dist/`!
+```
+
+[See docs](https://dev.splunk.com/enterprise/docs/developapps/createapps/appanatomy) for more details.
+
+### Using SDK in Splunk Apps
 
 The easiest and most effective way of learning how to use this library should be reading through the apps in our test suite, as well as the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform in a variety of scenarios - from basic metadata retrieval, one-shot searching and managing saved searches to building complete applications with modular inputs and custom search commands.
 
@@ -166,26 +192,37 @@ class MyScript(Script):
 We welcome all contributions!
 If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](CONTRIBUTING.md).
 
-#### Testing
+### Setting up a development environment
 
-This repository contains both unit and integration tests. The latter need `docker`/`podman` to work.
+Make sure you have `uv` and `docker`/`podman` installed and available in your `$PATH`. Run `make uv-sync` to get a virtualenv set up or updated. After activating it with `source .venv/bin/activate` you should be ready to go!
 
-##### Create an `.env` file
+#### Creating an `.env` file
 
-To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in a `.env` file.
+To connect to Splunk Enterprise, many of the SDK examples and unit tests take command-line arguments that specify values for the host, port, and authentication. For convenience during development, you can store these arguments as key-value pairs in an `.env` file.
 
 A file called `.env.template` exists in the root of this repository. Duplicate it as `.env`, then adjust it to your match your environment.
 
+```sh
+cp .env.template .env
+```
+
 > **WARNING:** The `.env` file isn't part of the Splunk platform. This is **not** the place for production credentials!
+
+#### Testing
+
+This repository contains a suite of unit and integration tests.
 
 ```sh
 # Run entire test suite:
 make test
+
 # Run only the unit tests:
 make test-unit
 ```
 
 ##### Integration tests
+
+The integration suite requires `docker`/`podman` to work.
 
 > NOTE: Before running the integration tests, make sure the instance of Splunk you are testing against doesn't have new events being dumped continuously into it. Several of the tests rely on a stable event count. It's best to test against a clean install of Splunk but if you can't, you should at least disable the \*NIX and Windows apps.
 
@@ -200,7 +237,7 @@ make test-integration
 
 > Do not run the test suite against a production instance of Splunk! It will run just fine with the free Splunk license.
 
-### Setting up logging for splunklib
+#### Enabling logging in `splunklib`
 
 The default level is WARNING, which means that only events of this level and above will be visible
 To change a logging level we can call setup_logging() method and pass the logging level as an argument.
@@ -231,23 +268,16 @@ setup_logging(logging.DEBUG)
 
 Stay connected with other developers building on the Splunk platform.
 
-- [E-mail](mailto:devinfo@splunk.com)
-- [Issues and pull requests](https://github.com/splunk/splunk-sdk-python/issues/)
-- [Community Slack](https://splunk-usergroups.slack.com/app_redirect?channel=appdev)
 - [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools)
+- [Issues and pull requests](https://github.com/splunk/splunk-sdk-python/issues/)
+- [Send an e-mail to Splunk Dev Platform](mailto:devinfo@splunk.com)
 
-### Support
+## Support
 
-- You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html) and include `Splunk Enterprise SDK for Python` in the subject line.
+- You will be granted support if you or your company are already covered under an existing maintenance/support agreement. Submit a new case in the [Support Portal](https://www.splunk.com/en_us/support-and-services.html) and include at least `Splunk Enterprise SDK for Python` in the subject line.
 
 If you are not covered under an existing maintenance/support agreement, you can find help through the broader community at [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 
-- Splunk will NOT provide support for SDKs if the core library (the code in the `/splunklib` directory) has been modified. If you modify an SDK and want support, you can find help through the broader community and [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
+- Splunk will NOT provide support for SDKs if the core library (code in the `/splunklib` directory) has been modified. If you modify the SDK and want support, try finding it with the broader community, e.g. [Splunk Answers](https://community.splunk.com/t5/Splunk-Development/ct-p/developer-tools).
 
-  We would also like to know why you modified the core library, so please send feedback to [devinfo@splunk.com](mailto:devinfo@splunk.com).
-
-- File any issues on [GitHub](https://github.com/splunk/splunk-sdk-python/issues).
-
-### Contact us
-
-You can reach the Splunk Developer Platform team at [devinfo@splunk.com](mailto:devinfo@splunk.com).
+  That said, we'd also like to know why you felt the need to modify the core library, so please send feedback and file any issues in our [GitHub Issues](https://github.com/splunk/splunk-sdk-python/issues).

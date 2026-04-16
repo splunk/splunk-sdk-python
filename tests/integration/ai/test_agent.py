@@ -441,6 +441,66 @@ class TestAgent(AITestCase):
                     pass
 
     @pytest.mark.asyncio
+    async def test_subagent_with_invalid_name(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="invalid name",
+            ) as subagent_invalid,
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="invalid@name",
+            ) as subagent_invalid2,
+            Agent(
+                model=(await self.model()),
+                system_prompt="",
+                service=self.service,
+                name="a" * 129,
+            ) as subagent_too_long,
+        ):
+            with pytest.raises(
+                AssertionError,
+                match="Agent name is invalid",
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent_invalid],
+                ):
+                    pass
+
+            with pytest.raises(
+                AssertionError,
+                match="Agent name is invalid",
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent_invalid2],
+                ):
+                    pass
+
+            with pytest.raises(
+                AssertionError,
+                match="Agent name is invalid",
+            ):
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="",
+                    service=self.service,
+                    agents=[subagent_too_long],
+                ):
+                    pass
+
+    @pytest.mark.asyncio
     async def test_subagent_soft_failure_with_invalid_args(self) -> None:
         pytest.importorskip("langchain_openai")
 

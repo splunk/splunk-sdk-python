@@ -15,6 +15,7 @@
 import json
 import logging
 import os
+import string
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
@@ -1416,11 +1417,22 @@ def _denormalize_tool_name(name: str) -> str:
     return name
 
 
+def _is_agent_name_valid(name: str) -> bool:
+    AGENT_NAME_ALLOWED_CHARS = string.ascii_letters + string.digits + "_-"
+    if not (1 <= len(name) <= 128):
+        return False
+
+    return set(name).issubset(AGENT_NAME_ALLOWED_CHARS)
+
+
 def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
 
-    # TODO: restrict subagent names
+    if not _is_agent_name_valid(agent.name):
+        raise AssertionError(
+            "Agent name is invalid, must contain only letters, numbers, '_' or '-' and have max 128 characters"
+        )
 
     async def invoke_agent(
         message: HumanMessage, thread_id: str | None

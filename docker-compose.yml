@@ -1,8 +1,10 @@
 services:
     splunk:
-        image: "splunk/splunk:${SPLUNK_VERSION}"
         container_name: splunk
         platform: linux/amd64
+        build:
+            context: .
+            dockerfile: Dockerfile
         environment:
             - SPLUNK_START_ARGS=--accept-license
             - SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
@@ -25,8 +27,23 @@ services:
             - "./tests/system/test_apps/streaming_app:/opt/splunk/etc/apps/streaming_app"
             - "./tests/system/test_apps/modularinput_app:/opt/splunk/etc/apps/modularinput_app"
             - "./tests/system/test_apps/cre_app:/opt/splunk/etc/apps/cre_app"
+            - "./tests/system/test_apps/ai_agentic_test_app:/opt/splunk/etc/apps/ai_agentic_test_app"
+            - "./tests/system/test_apps/ai_agentic_test_local_tools_app:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app"
+
+            - "./examples/ai_custom_search_app:/opt/splunk/etc/apps/ai_custom_search_app"
+            - "./examples/ai_custom_alert_app:/opt/splunk/etc/apps/ai_custom_alert_app"
+            - "./examples/ai_modinput_app:/opt/splunk/etc/apps/ai_modinput_app"
+
             - "./splunklib:/opt/splunk/etc/apps/eventing_app/bin/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/generating_app/bin/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/reporting_app/bin/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/streaming_app/bin/splunklib"
             - "./splunklib:/opt/splunk/etc/apps/modularinput_app/bin/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_agentic_test_app/bin/lib/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app/bin/lib/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_custom_search_app/bin/lib/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_custom_alert_app/bin/lib/splunklib"
+            - "./splunklib:/opt/splunk/etc/apps/ai_modinput_app/bin/lib/splunklib"
+
+            - "./tests:/opt/splunk/etc/apps/ai_agentic_test_app/bin/lib/tests"
+            - "./tests:/opt/splunk/etc/apps/ai_agentic_test_local_tools_app/bin/lib/tests"

@@ -40,7 +40,7 @@ class ToolException(Exception):
 
 @dataclass(frozen=True)
 class ToolResult:
-    content: list[str]
+    content: str
     structured_content: dict[str, Any] | None
 
 
@@ -243,7 +243,7 @@ def _convert_tool_result(
             text_contents.append(content.text)
 
     return ToolResult(
-        content=text_contents, structured_content=result.structuredContent
+        content="\n".join(text_contents), structured_content=result.structuredContent
     )
 
 

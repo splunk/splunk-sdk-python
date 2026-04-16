@@ -7,7 +7,7 @@ from splunklib.ai.tools import Tool, ToolResult, ToolType
 
 
 async def no_op() -> ToolResult:
-    return ToolResult(content=[], structured_content={})
+    return ToolResult(content="", structured_content={})
 
 
 LOCAL_TOOL_1 = Tool(

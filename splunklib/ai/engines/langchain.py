@@ -1354,10 +1354,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
                 "ToolException from LangChain should not be raised in tool.func"
             )
 
-        # TODO: Should we change the splunklib.ai.tools.ToolResult.content to a str, instead of list[str]?
-        text_content = "\n".join(result.content)
-
-        artifact = ToolResult(text_content, result.structured_content)
+        artifact = ToolResult(result.content, result.structured_content)
 
         if result.structured_content:
             # For both local tools and remote tools (Splunk MCP Server App), the primary
@@ -1371,7 +1368,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
             # this assumption may need to be revisited. For now, this approach is fine.
             # Worst-case scenario is the same information is provided to the LLM twice.
             return asdict(result), artifact  # both content + structured_content
-        return text_content, artifact
+        return result.content, artifact
 
     return StructuredTool(
         name=_normalize_tool_name(tool.name, tool.type),

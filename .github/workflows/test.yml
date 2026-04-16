@@ -3,16 +3,17 @@ on: [push, workflow_dispatch]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
         python-version: [3.9]
         splunk-version: [9.4, latest]
         include:
-          - os: ubuntu-latest
-            python-version: 3.13
+          - python-version: 3.13
             splunk-version: latest
+    concurrency:
+      group: ${{ github.workflow }}-py_${{ matrix.python-version }}-splunk_${{ matrix.splunk-version }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: ./.github/actions/setup-sdk-environment

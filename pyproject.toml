@@ -58,7 +58,7 @@ dev = [
 
 [build-system]
 # setuptools v61 introduces pyproject.toml support
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]

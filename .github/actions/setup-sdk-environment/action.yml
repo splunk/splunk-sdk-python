@@ -1,0 +1,22 @@
+name: Set up SDK environment
+description: Perform all the shared setup steps
+
+inputs:
+  python-version:
+    description: Python version used for this run
+    required: true
+  deps-group:
+    description: Dependency groups passed to `uv sync --group`
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
+      with:
+        version: 0.11.6
+        activate-environment: true
+        python-version: ${{ inputs.python-version }}
+    - name: Install dependencies from the ${{ inputs.deps-group }} group(s)
+      run: SDK_DEPS_GROUP="${{ inputs.deps-group }}" make uv-sync-ci
+      shell: bash

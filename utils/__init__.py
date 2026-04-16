@@ -74,6 +74,26 @@ RULES_SPLUNK = {
         "default": None,
         "help": "Session key for authentication",
     },
+    "internal_ai_client_id": {
+        "flags": ["--internalAIClientID"],
+        "default": None,
+    },
+    "internal_ai_client_secret": {
+        "flags": ["--internalAIClientSecret"],
+        "default": None,
+    },
+    "internal_ai_app_key": {
+        "flags": ["--internalAIAppKey"],
+        "default": None,
+    },
+    "internal_ai_token_url": {
+        "flags": ["--internalAITokenURL"],
+        "default": None,
+    },
+    "internal_ai_base_url": {
+        "flags": ["--internalAIBaseURL"],
+        "default": None,
+    },
 }
 
 FLAGS_SPLUNK = list(RULES_SPLUNK.keys())

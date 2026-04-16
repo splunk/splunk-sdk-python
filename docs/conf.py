@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Splunk SDK for Python documentation build configuration file, created by
 # sphinx-quickstart on Fri Apr 13 12:28:15 2012.
 #

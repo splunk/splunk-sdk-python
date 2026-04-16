@@ -32,10 +32,10 @@ with the :func:`connect` function::
 jobs, saved searches, inputs, and indexes). All of these fields are
 :class:`Collection` objects::
 
-    appcollection = service.apps
-    my_app = appcollection.create('my_app')
-    my_app = appcollection['my_app']
-    appcollection.delete('my_app')
+    app_collection = service.apps
+    my_app = app_collection.create('my_app')
+    my_app = app_collection['my_app']
+    app_collection.delete('my_app')
 
 The individual elements of the collection, in this case *applications*,
 are subclasses of :class:`Entity`. An ``Entity`` object has fields for its
@@ -887,7 +887,7 @@ class Endpoint:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'OK',
                  'status': 200}
-            apps.get('nonexistant/path') # raises HTTPError
+            apps.get('nonexistent/path') # raises HTTPError
             s.logout()
             apps.get() # raises AuthenticationError
         """
@@ -969,7 +969,7 @@ class Endpoint:
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'Created',
                  'status': 201}
-            apps.get('nonexistant/path') # raises HTTPError
+            apps.get('nonexistent/path') # raises HTTPError
             s.logout()
             apps.get() # raises AuthenticationError
         """
@@ -1468,7 +1468,7 @@ class ReadOnlyCollection(Endpoint):
         :type kwargs: ``dict``
         :rtype: iterator over entities.
 
-        Implemented to give Collection a listish interface. This
+        Implemented to give Collection a list-ish interface. This
         function always makes a roundtrip to the server, plus at most
         two additional round trips if
         the ``autologin`` field of :func:`connect` is set to ``True``.
@@ -1488,7 +1488,7 @@ class ReadOnlyCollection(Endpoint):
     def __len__(self):
         """Enable ``len(...)`` for ``Collection`` objects.
 
-        Implemented for consistency with a listish interface. No
+        Implemented for consistency with a list-ish interface. No
         further failure modes beyond those possible for any method on
         an Endpoint.
 
@@ -1867,7 +1867,7 @@ class Collection(ReadOnlyCollection):
                              ('content-type', 'text/xml; charset=utf-8')],
                  'reason': 'OK',
                  'status': 200}
-            saved_searches.get('nonexistant/search') # raises HTTPError
+            saved_searches.get('nonexistent/search') # raises HTTPError
             s.logout()
             saved_searches.get() # raises AuthenticationError
 
@@ -1967,7 +1967,7 @@ class Configurations(Collection):
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects
         # returned refer to the configs/ path instead of the
-        # properties/ path used by Configrations.
+        # properties/ path used by Configurations.
         return PATH_CONF % state["title"]
 
 
@@ -3204,7 +3204,7 @@ class Jobs(Collection):
 
         :param query: The search query.
         :type query: ``string``
-        :param kwargs: Additiona parameters (optional). For a list of available
+        :param kwargs: Additional parameters (optional). For a list of available
             parameters, see `Search job parameters
             <http://dev.splunk.com/view/SP-CAAAEE5#searchjobparams>`_
             on Splunk Developer Portal.

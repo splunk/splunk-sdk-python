@@ -2,17 +2,13 @@
 # Makefile for Sphinx docs generation
 #
 
-SPHINXBUILD = sphinx-build
 BUILDDIR = ./_build
 HTMLDIR = ${BUILDDIR}/html
 
-# Internal variables
-ALLSPHINXOPTS = -d $(BUILDDIR)/doctrees .
-
 .PHONY: html
 html:
-	@rm -rf $(BUILDDIR)
-	@$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(HTMLDIR)
-	@sh munge_links.sh $(HTMLDIR)
-	@echo
-	@echo "Build finished. HTML pages available at docs/$(HTMLDIR)."
+	rm -rf $(BUILDDIR)
+	sphinx-build -b html -d $(BUILDDIR)/doctrees . $(HTMLDIR)
+	sh munge_links.sh $(HTMLDIR)
+	@echo "[splunk-sdk] ---"
+	@echo "[splunk-sdk] Build finished. HTML pages available at docs/$(HTMLDIR)."

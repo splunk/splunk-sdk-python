@@ -279,3 +279,10 @@ $RECYCLE.BIN/
 
 .vscode/
 docs/_build/
+
+!*.conf.spec
+**/metadata/local.meta
+
+*.spl
+*.tgz
+*.tar*

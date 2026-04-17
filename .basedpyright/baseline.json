@@ -72,16 +72,6 @@
                 }
             }
         ],
-        "./splunklib/ai/model.py": [
-            {
-                "code": "reportDeprecated",
-                "range": {
-                    "startColumn": 24,
-                    "endColumn": 31,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./splunklib/ai/serialized_service.py": [
             {
                 "code": "reportPrivateUsage",

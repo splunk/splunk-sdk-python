@@ -112,7 +112,7 @@ from splunklib.ai.middleware import (
     subagent_middleware,
     tool_middleware,
 )
-from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
+from splunklib.ai.model import AnthropicModel, GoogleModel, OpenAIModel, PredefinedModel
 from splunklib.ai.security import create_structured_prompt
 from splunklib.ai.structured_output import (
     StructuredOutputGenerationException,
@@ -1849,6 +1849,33 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                     + 'pip install "splunk-sdk[anthropic]"\n'
                     + "# or if using uv:\n"
                     + "uv add splunk-sdk[anthropic]"
+                )
+        case GoogleModel():
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+
+                google_kwargs: dict[str, Any] = {"model": model.model}
+                if model.api_key is not None:
+                    google_kwargs["google_api_key"] = model.api_key
+                if model.project is not None:
+                    google_kwargs["project"] = model.project
+                if model.location is not None:
+                    google_kwargs["location"] = model.location
+                if model.credentials is not None:
+                    google_kwargs["credentials"] = model.credentials
+                if model.vertexai is not None:
+                    google_kwargs["vertexai"] = model.vertexai
+                if model.temperature is not None:
+                    google_kwargs["temperature"] = model.temperature
+
+                return ChatGoogleGenerativeAI(**google_kwargs)
+            except ImportError:
+                raise ImportError(
+                    "Google GenAI support is not installed.\n"
+                    + "To enable Google / Gemini models, install the optional extra:\n"
+                    + 'pip install "splunk-sdk[google]"\n'
+                    + "# or if using uv:\n"
+                    + "uv add splunk-sdk[google]"
                 )
         case _:
             raise InvalidModelError(

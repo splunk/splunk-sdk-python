@@ -36,6 +36,7 @@ compat = ["six>=1.17.0"]
 ai = ["httpx==0.28.1", "langchain>=1.2.13", "mcp>=1.26.0", "pydantic>=2.7.4"]
 anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.0"]
 openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.1.12"]
+bedrock = ["splunk-sdk[anthropic]>=2.1.1", "langchain-aws>=0.2.0"]
 
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]
@@ -50,7 +51,7 @@ release = ["build>=1.4.2", "jinja2>=3.1.6", "sphinx>=9.1.0", "twine>=6.2.0"]
 lint = ["basedpyright>=1.38.4", "ruff>=0.15.8"]
 dev = [
   "rich>=14.3.3",
-  "splunk-sdk[openai, anthropic]",
+  "splunk-sdk[openai, anthropic, bedrock]",
   { include-group = "test" },
   { include-group = "lint" },
   { include-group = "release" },

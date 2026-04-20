@@ -121,7 +121,7 @@ LC_AgentMiddleware = Langchain_AgentMiddleware[Any, "InvokeContext", Any]
 LC_ModelRequest = Langchain_ModelRequest["InvokeContext"]
 
 # Set to True to enable debugging mode.
-_DEBUG = False
+_DEBUG = True
 
 # Disallow _DEBUG == True in CI.
 # Github actions sets the CI env var.

@@ -94,6 +94,11 @@ RULES_SPLUNK = {
         "flags": ["--internalAIBaseURL"],
         "default": None,
     },
+    "bedrock_model_id": {"flags": ["--bedrockModelID"], "default": None},
+    "bedrock_aws_region": {"flags": ["--bedrockAWSRegion"], "default": None},
+    "bedrock_base_model_id": {"flags": ["--bedrockBaseModelID"], "default": None},
+    "bedrock_sonnet_model_id": {"flags": ["--bedrockSonnetModelID"], "default": None},
+    "bedrock_sonnet_base_model_id": {"flags": ["--bedrockSonnetBaseModelID"], "default": None},
 }
 
 FLAGS_SPLUNK = list(RULES_SPLUNK.keys())

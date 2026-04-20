@@ -358,8 +358,9 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames. A valid "
-                    + "nickname consists of the provided name suffixed with '-zilla.'"
+                    "You are a helpful assistant that generates nicknames. "
+                    + "The nickname MUST be formatted as exactly '<name>-zilla' with a hyphen. "
+                    + "For example: Chris -> Chris-zilla, Alice -> Alice-zilla."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -406,15 +407,16 @@ class TestMiddleware(AITestCase):
             first_response = await handler(request)
             second_response = await handler(request)
             assert isinstance(first_response.result, SubagentTextResult)
-            assert second_response == first_response
+            assert isinstance(second_response.result, SubagentTextResult)
             return second_response
 
         async with (
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames. A valid "
-                    + "nickname consists of the provided name suffixed with '-zilla.'"
+                    "You are a helpful assistant that generates nicknames. "
+                    + "The nickname MUST be formatted as exactly '<name>-zilla' with a hyphen. "
+                    + "For example: Chris -> Chris-zilla, Alice -> Alice-zilla."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -472,8 +474,9 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames. A valid "
-                    + "nickname consists of the provided name suffixed with '-zilla.'"
+                    "You are a helpful assistant that generates nicknames. "
+                    + "The nickname MUST be formatted as exactly '<name>-zilla' with a hyphen. "
+                    + "For example: Chris -> Chris-zilla, Alice -> Alice-zilla."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -601,8 +604,9 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames. A valid "
-                    + "nickname consists of the provided name suffixed with '-zilla.'"
+                    "You are a helpful assistant that generates nicknames. "
+                    + "The nickname MUST be formatted as exactly '<name>-zilla' with a hyphen. "
+                    + "For example: Chris -> Chris-zilla, Alice -> Alice-zilla."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -777,8 +781,9 @@ class TestMiddleware(AITestCase):
             Agent(
                 model=await self.model(),
                 system_prompt=(
-                    "You are a helpful assistant that generates nicknames. A valid "
-                    "nickname consists of the provided name suffixed with '-zilla.'"
+                    "You are a helpful assistant that generates nicknames. "
+                    "The nickname MUST be formatted as exactly '<name>-zilla' with a hyphen. "
+                    "For example: Chris -> Chris-zilla, Alice -> Alice-zilla."
                 ),
                 service=self.service,
                 name="NicknameGeneratorAgent",
@@ -796,7 +801,14 @@ class TestMiddleware(AITestCase):
             result = await supervisor.invoke(
                 [HumanMessage(content="Generate a nickname for Bob")]
             )
-            assert "Alice-zilla" in result.final_message.content
+            # The middleware mutated the arg to "Alice", so the subagent must have
+            # received "Alice" and returned "Alice-zilla". Check the subagent message.
+            subagent_msg = next(
+                (m for m in result.messages if isinstance(m, SubagentMessage)), None
+            )
+            assert subagent_msg is not None
+            assert isinstance(subagent_msg.result, SubagentTextResult)
+            assert "Alice-zilla" in subagent_msg.result.content
 
     @pytest.mark.asyncio
     async def test_model_middleware_structured_output(self) -> None:

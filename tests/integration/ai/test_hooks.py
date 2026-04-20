@@ -29,7 +29,7 @@ from splunklib.ai.hooks import (
     before_agent,
     before_model,
 )
-from splunklib.ai.messages import AIMessage, AgentResponse, HumanMessage
+from splunklib.ai.messages import AIMessage, AgentResponse, HumanMessage, StructuredOutputMessage
 from splunklib.ai.middleware import AgentRequest, ModelMiddlewareHandler, ModelRequest, ModelResponse, model_middleware
 from tests.ai_testlib import AITestCase
 
@@ -127,7 +127,10 @@ class TestHook(AITestCase):
             person = resp.structured_output
             assert type(person) is Person
             assert person.name.lower() == "stefan"
-            assert len(resp.messages) == 2
+            # ProviderStrategy: 2 messages (human + AI).
+            # ToolStrategy: 3 messages (human + AI tool_use + StructuredOutputMessage).
+            uses_tool_strategy = any(isinstance(m, StructuredOutputMessage) for m in resp.messages)
+            assert len(resp.messages) == (3 if uses_tool_strategy else 2)
 
         @after_agent
         async def after_async_agent_hook(resp: AgentResponse) -> None:
@@ -137,7 +140,10 @@ class TestHook(AITestCase):
             person = resp.structured_output
             assert type(person) is Person
             assert person.name.lower() == "stefan"
-            assert len(resp.messages) == 2
+            # ProviderStrategy: 2 messages (human + AI).
+            # ToolStrategy: 3 messages (human + AI tool_use + StructuredOutputMessage).
+            uses_tool_strategy = any(isinstance(m, StructuredOutputMessage) for m in resp.messages)
+            assert len(resp.messages) == (3 if uses_tool_strategy else 2)
 
         async with Agent(
             model=(await self.model()),
@@ -159,8 +165,14 @@ class TestHook(AITestCase):
                 ]
             )
 
-            response = result.final_message.content.strip().lower().replace(".", "")
-            assert '{"name":"stefan"}' == response
+            # With ProviderStrategy the final message is plain JSON text.
+            # With ToolStrategy the structured output is in result.structured_output.
+            person = result.structured_output
+            if person is not None:
+                assert person.name.lower() == "stefan"
+            else:
+                response = result.final_message.content.strip().lower().replace(".", "")
+                assert '{"name":"stefan"}' == response
             assert hook_calls == 4
 
     @pytest.mark.asyncio

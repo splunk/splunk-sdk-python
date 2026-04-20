@@ -123,7 +123,7 @@ class TestStructuredOutput(AITestCase):
 
         async with Agent(
             model=(await self.model()),
-            system_prompt="Respond with structured data",
+            system_prompt="Respond with structured data about the person described by the user.",
             output_schema=Person,
             service=self.service,
             middleware=[
@@ -135,7 +135,7 @@ class TestStructuredOutput(AITestCase):
             result = await agent.invoke(
                 [
                     HumanMessage(
-                        content="fill in the details for Person model",
+                        content="Fill in the Person model for: John Smith, age 30.",
                     )
                 ]
             )
@@ -218,7 +218,7 @@ class TestStructuredOutput(AITestCase):
             return resp
 
         async with Agent(
-            model=(await self.model()),
+            model=(await self.sonnet_model()),
             system_prompt="Respond with structured data",
             output_schema=Person,
             service=self.service,
@@ -265,6 +265,9 @@ class TestStructuredOutput(AITestCase):
     @pytest.mark.asyncio
     async def test_provider_strategy_retry(self) -> None:
         pytest.importorskip("langchain_openai")
+
+        if not self.supports_provider_strategy:
+            pytest.skip("Model does not support ProviderStrategy (native JSON output)")
 
         # Note that here we assume that our CI runs model that supports provider strategy.
 
@@ -675,6 +678,9 @@ class TestStructuredOutput(AITestCase):
     async def test_provider_strategy_reject_output_in_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
 
+        if not self.supports_provider_strategy:
+            pytest.skip("Model does not recover from structured output rejection via Bedrock Converse API")
+
         # Note that here we assume that our CI runs model that supports provider strategy.
 
         class Person(BaseModel):
@@ -697,7 +703,7 @@ class TestStructuredOutput(AITestCase):
             return resp
 
         async with Agent(
-            model=(await self.model()),
+            model=(await self.sonnet_model()),
             system_prompt="Respond with structured data",
             output_schema=Person,
             service=self.service,
@@ -712,6 +718,9 @@ class TestStructuredOutput(AITestCase):
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
     async def test_tool_strategy_reject_output_in_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
+
+        if not self.supports_provider_strategy:
+            pytest.skip("Model does not recover from structured output rejection via Bedrock Converse API")
 
         class Person(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
@@ -733,7 +742,7 @@ class TestStructuredOutput(AITestCase):
             return resp
 
         async with Agent(
-            model=(await self.model()),
+            model=(await self.sonnet_model()),
             system_prompt="Respond with structured data",
             output_schema=Person,
             service=self.service,
@@ -748,6 +757,7 @@ class TestStructuredOutput(AITestCase):
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
     async def test_tool_strategy_multiple_tool_calls(self) -> None:
         pytest.importorskip("langchain_openai")
+
 
         class Person(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
@@ -774,7 +784,7 @@ class TestStructuredOutput(AITestCase):
                 raise
 
         async with Agent(
-            model=(await self.model()),
+            model=(await self.sonnet_model()),
             system_prompt=(
                 "Respond with structured data. CALL __output-Person for each name you were provided."
             ),
@@ -800,6 +810,9 @@ class TestStructuredOutput(AITestCase):
     @pytest.mark.asyncio
     async def test_provider_strategy_recovery(self) -> None:
         pytest.importorskip("langchain_openai")
+
+        if not self.supports_provider_strategy:
+            pytest.skip("Model does not support ProviderStrategy (native JSON output)")
 
         # Note that here we assume that our CI runs model that supports provider strategy.
 

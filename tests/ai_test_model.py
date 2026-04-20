@@ -1,11 +1,13 @@
 import collections.abc
-from typing import override
+from dataclasses import dataclass
+from typing import Any, override
 
 import httpx
 from httpx import Auth, Request, Response
+from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel
 
-from splunklib.ai import OpenAIModel
+from splunklib.ai import AnthropicModel, OpenAIModel
 from splunklib.ai.model import PredefinedModel
 
 
@@ -18,14 +20,51 @@ class InternalAIModel(BaseModel):
     base_url: str
 
 
+@dataclass(frozen=True)
+class AnthropicBedrockModel(AnthropicModel):
+    """Anthropic model accessed via AWS Bedrock, for testing only."""
+
+    api_key: str = ""
+    base_url: str = ""
+    aws_region: str = ""
+    base_model_id: str = ""
+
+    def _to_langchain_model(self) -> BaseChatModel:
+        try:
+            from langchain_aws import ChatBedrockConverse
+
+            kwargs: dict[str, Any] = {"model": self.model}
+            if self.aws_region:
+                kwargs["region_name"] = self.aws_region
+            if self.temperature is not None:
+                kwargs["temperature"] = self.temperature
+            if self.model.startswith("arn:"):
+                kwargs["provider"] = "anthropic"
+                kwargs["base_model_id"] = (
+                    self.base_model_id or "anthropic.claude-haiku-4-5-20251001"
+                )
+            return ChatBedrockConverse(**kwargs)
+        except ImportError:
+            raise ImportError(
+                "AWS Bedrock support is not installed.\n"
+                + "To enable Bedrock models, install the optional extra:\n"
+                + 'pip install "splunk-sdk[bedrock]"\n'
+                + "# or if using uv:\n"
+                + "uv add splunk-sdk[bedrock]"
+            )
+
+
 class TestLLMSettings(BaseModel):
     # TODO: Currently we only support our internal OpenAI-compatible model,
     # once we are close to GA we should also support OpenAI and probably Ollama, such
     # that external developers can also run our test suite suite locally.
     internal_ai: InternalAIModel | None = None
+    anthropic_bedrock: AnthropicBedrockModel | None = None
 
 
 async def create_model(s: TestLLMSettings) -> PredefinedModel:
+    if s.anthropic_bedrock is not None:
+        return s.anthropic_bedrock
     if s.internal_ai is not None:
         return await _buildInternalAIModel(
             token_url=s.internal_ai.token_url,
@@ -46,7 +85,7 @@ class _InternalAIAuth(Auth):
     @override
     def auth_flow(
         self, request: Request
-    ) -> collections.abc.Generator[Request, Response, None]:
+    ) -> collections.abc.Generator[Request, Response]:
         request.headers["api-key"] = self.token
         yield request
 

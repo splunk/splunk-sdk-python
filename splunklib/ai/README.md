@@ -114,7 +114,7 @@ async with Agent(model=model) as agent: ....
 
 ## Messages
 
-`Agent.invoke` processes a list of `BaseMessage` objects and returns a new list reflecting both prior messages and the LLM’s outputs.
+`Agent.invoke` processes a list of `BaseMessage` objects and returns an `AgentResponse` containing the updated message history and optional structured output.
 
 `BaseMessage` is a base class, that is extended by:
 
@@ -144,7 +144,7 @@ async with Agent(
     model=model,
     system_prompt="Your name is Stefan",
     service=service,
-    tool_settings=ToolSettings(local=True),
+    tool_settings=ToolSettings(local=True, remote=None),
 ) as agent: ...
 ```
 
@@ -212,9 +212,10 @@ async with Agent(
     system_prompt="...",
     tool_settings=ToolSettings(
         # local=True,  # enable all local tools
-        local=RemoteToolSettings(
+        local=LocalToolSettings(
             allowlist=ToolAllowlist(names=["tool1"], tags=["tag1"])
-        )
+        ),
+        remote=None,
     ),
 ) as agent: ...
 ```
@@ -278,7 +279,7 @@ These logs are forwarded to the `logger` passed to the `Agent` constructor.
 
 ### Tool filtering
 
-Remote tools must intentionally allowlisted before they are made available to the LLM.
+Remote tools must be intentionally allowlisted before they are made available to the LLM.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
@@ -308,13 +309,14 @@ tool_settings=ToolSettings(
     local=LocalToolSettings(
         allowlist=ToolAllowlist(custom_predicate=lambda tool: tool.name.startswith("my_"))
     ),
+    remote=None,
 )
 ```
 
 As a shorthand, pass `local=True` to load all local tools with no filtering:
 
 ```py
-tool_settings=ToolSettings(local=True)
+tool_settings=ToolSettings(local=True, remote=None)
 ```
 
 ## Conversation stores
@@ -423,7 +425,8 @@ async with (
         name="debugging_agent",
         description="Agent, that provided with logs will analyze and debug complex issues",
         tool_settings=ToolSettings(
-            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["debugging"]))
+            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["debugging"])),
+            remote=None,
         ),
     ) as debugging_agent,
     Agent(
@@ -436,7 +439,8 @@ async with (
         name="log_analyzer_agent",
         description="Agent, that provided with a problem details will return logs, that could be related to the problem",
         tool_settings=ToolSettings(
-            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["spl"]))
+            local=LocalToolSettings(allowlist=ToolAllowlist(tags=["spl"])),
+            remote=None,
         ),
     ) as log_analyzer_agent,
 ):
@@ -470,7 +474,7 @@ The input and output schemas are defined as `pydantic.BaseModel` classes and pas
 
 A subagent can be given its own `conversation_store`, enabling multi-turn conversations between
 the supervisor and the subagent. When a subagent has a store, the supervisor can resume prior
-conversations with an subagent.
+conversations with a subagent.
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
@@ -563,7 +567,7 @@ structured output based on the capabilities of the underlying model:
 
 - **Tool strategy** - used as a fallback when the model does not natively support structured outputs.
   The LLM passes the structured output into a tool call, according to the tool input schema. The
-  tool schema correspponds to the `output_schema` pydantic model as passed to the `Agent` constructor.
+  tool schema corresponds to the `output_schema` pydantic model as passed to the `Agent` constructor.
   In that case the returned `AIMessage` will contain the `structured_output_calls` field populated
   and a `StructuredOutputMessage` will be appended to the message list, since each tool call must
   have a corresponding tool response.
@@ -584,7 +588,7 @@ Output schema generation can fail for various reasons:
   ```py
   class Output(BaseModel):
       min_score: float
-      max_score: float = Field(descripiton="max_score must be less or equal than min_score")
+      max_score: float = Field(description="max_score must be greater than min_score")
 
       @model_validator(mode="after")
       def max_must_exceed_min(self) -> "Output":
@@ -592,6 +596,7 @@ Output schema generation can fail for various reasons:
               raise ValueError("max_score must be greater than min_score")
           return self
   ```
+
 - In case of **tool strategy** if the LLM model returned multiple structured output tool calls.
 
 By default the output schema generation is re-tried, until the LLM generates a valid output.
@@ -667,7 +672,9 @@ Class-based middleware:
 
 ```py
 from typing import Any, override
+from splunklib.ai.messages import SubagentTextResult, ToolResult
 from splunklib.ai.middleware import (
+    AgentMiddleware,
     AgentMiddlewareHandler,
     AgentRequest,
     ModelMiddlewareHandler,
@@ -712,7 +719,7 @@ class ExampleMiddleware(AgentMiddleware):
         self, request: ToolRequest, handler: ToolMiddlewareHandler
     ) -> ToolResponse:
         if request.call.name == "temperature":
-            return ToolResponse(content="25.0")
+            return ToolResponse(result=ToolResult(content="25.0", structured_content=None))
         return await handler(request)
 
     @override
@@ -720,9 +727,7 @@ class ExampleMiddleware(AgentMiddleware):
         self, request: SubagentRequest, handler: SubagentMiddlewareHandler
     ) -> SubagentResponse:
         if request.call.name == "SummaryAgent":
-            return SubagentResponse(
-                content="Executive summary: no critical incidents detected."
-            )
+            return SubagentResponse(result=SubagentTextResult(content="Executive summary: no critical incidents detected."))
         return await handler(request)
 ```
 
@@ -789,13 +794,14 @@ async def mock_temperature(
     request: ToolRequest, handler: ToolMiddlewareHandler
 ) -> ToolResponse:
     if request.call.name == "temperature":
-        return ToolResponse(content="25.0")
+        return ToolResponse(result=ToolResult(content="25.0", structured_content=None))
     return await handler(request)
 ```
 
 Example subagent middleware:
 
 ```py
+from splunklib.ai.messages import SubagentTextResult
 from splunklib.ai.middleware import (
     subagent_middleware,
     SubagentMiddlewareHandler,
@@ -809,9 +815,7 @@ async def mock_subagent(
     request: SubagentRequest, handler: SubagentMiddlewareHandler
 ) -> SubagentResponse:
     if request.call.name == "SummaryAgent":
-        return SubagentResponse(
-            content="Executive summary: no critical incidents detected."
-        )
+        return SubagentResponse(result=SubagentTextResult(content="Executive summary: no critical incidents detected."))
     return await handler(request)
 ```
 

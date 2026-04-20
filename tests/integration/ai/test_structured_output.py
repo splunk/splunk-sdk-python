@@ -52,7 +52,7 @@ from splunklib.ai.structured_output import (
 )
 from splunklib.ai.tool_settings import ToolSettings
 from splunklib.ai.tools import ToolType
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 class AssertNoCallMiddleware(AgentMiddleware):
@@ -91,6 +91,7 @@ class AssertSingleAgentMiddlewareCall(AgentMiddleware):
 class TestStructuredOutput(AITestCase):
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_strategy(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -153,6 +154,7 @@ class TestStructuredOutput(AITestCase):
 
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_strategy_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -263,6 +265,7 @@ class TestStructuredOutput(AITestCase):
         assert after_first_model_call
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_provider_strategy_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -363,6 +366,7 @@ class TestStructuredOutput(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_provider_strategy_with_tool_calls(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -438,6 +442,7 @@ class TestStructuredOutput(AITestCase):
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_strategy_with_tool_calls(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -517,6 +522,7 @@ class TestStructuredOutput(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_provider_strategy_with_tool_calls_failure(
         self,
     ) -> None:
@@ -596,6 +602,7 @@ class TestStructuredOutput(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
+    @ai_snapshot_test()
     async def test_tool_strategy_with_tool_calls_failure(
         self,
     ) -> None:
@@ -672,6 +679,7 @@ class TestStructuredOutput(AITestCase):
         assert tool_called
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_provider_strategy_reject_output_in_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -710,6 +718,7 @@ class TestStructuredOutput(AITestCase):
 
     @pytest.mark.asyncio
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
+    @ai_snapshot_test()
     async def test_tool_strategy_reject_output_in_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -746,6 +755,7 @@ class TestStructuredOutput(AITestCase):
 
     @pytest.mark.asyncio
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
+    @ai_snapshot_test()
     async def test_tool_strategy_multiple_tool_calls(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -798,6 +808,7 @@ class TestStructuredOutput(AITestCase):
             )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_provider_strategy_recovery(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -858,6 +869,7 @@ class TestStructuredOutput(AITestCase):
 
     @pytest.mark.asyncio
     @patch("splunklib.ai.engines.langchain._testing_force_tool_strategy", True)
+    @ai_snapshot_test()
     async def test_tool_strategy_recovery(self) -> None:
         pytest.importorskip("langchain_openai")
 

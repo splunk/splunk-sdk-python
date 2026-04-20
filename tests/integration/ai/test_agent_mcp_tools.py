@@ -36,7 +36,11 @@ from splunklib.ai.middleware import (
     ModelMiddlewareHandler,
     ModelRequest,
     ModelResponse,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
     model_middleware,
+    tool_middleware,
 )
 from splunklib.ai.tool_settings import (
     LocalToolSettings,
@@ -51,7 +55,7 @@ from splunklib.ai.tools import (
 )
 from splunklib.client import connect
 from tests import testlib
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
 OPENAI_API_KEY = "ollama"
@@ -63,6 +67,7 @@ class TestTools(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_tool_execution_structured_output(self) -> None:
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
@@ -99,15 +104,41 @@ class TestTools(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "tool_context.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_tool_execution_service_access(self) -> None:
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
+
+        fake_result = "1776953380"
+
+        @tool_middleware
+        async def _tool_middleware(
+            request: ToolRequest,
+            handler: ToolMiddlewareHandler,
+        ) -> ToolResponse:
+            # Since we do snapshot testing, and the result is send to the LLM
+            # we need to make sure that the results are always the same, but here
+            # to verify the service access we kind of need the test to return a different
+            # value that comes from the splunk instance. So we assert that the tool
+            # result is correct here and replace it with a different value that is
+            # stable across invocations (or more precisely across different splunk instances).
+            resp = await handler(request)
+            assert isinstance(resp.result, ToolResult)
+            assert resp.result.content == ""
+            assert resp.result.structured_content is not None
+            assert (
+                resp.result.structured_content["result"]
+                == f"{self.service.info.startup_time}"
+            )
+            resp.result.structured_content["result"] = fake_result
+            return resp
 
         async with Agent(
             model=(await self.model()),
             system_prompt="You must use the available tools to perform requested operations",
             service=self.service,
             tool_settings=ToolSettings(local=True, remote=None),
+            middleware=[_tool_middleware],
         ) as agent:
             result = await agent.invoke(
                 [
@@ -120,8 +151,6 @@ class TestTools(AITestCase):
                 ]
             )
 
-            want_startup_time = f"{self.service.info.startup_time}"
-
             tool_message = next(
                 filter(lambda m: m.role == "tool", result.messages), None
             )
@@ -130,7 +159,7 @@ class TestTools(AITestCase):
             assert tool_message.name == "startup_time", "Invalid tool name"
 
             response = result.final_message.content
-            assert want_startup_time in response, "Invalid LLM response"
+            assert fake_result in response, "Invalid LLM response"
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
@@ -138,6 +167,7 @@ class TestTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_filtering_tools(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -160,6 +190,7 @@ class TestTools(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "multi_city_weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_multiple_and_concurrent_tool_calls(self) -> None:
         # Skip if the langchain_openai package is not installed
         pytest.importorskip("langchain_openai")
@@ -272,6 +303,7 @@ class TestRemoteTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "fancyapp")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_remote_tools(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -391,6 +423,7 @@ class TestRemoteTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_remote_tools_mcp_app_unavailable(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -426,6 +459,7 @@ class TestRemoteTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_remote_tools_failure(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -501,6 +535,7 @@ class TestRemoteTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_call_text_content_with_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -604,6 +639,7 @@ class TestRemoteTools(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_supports_plain_dicts_as_tool_outputs(self) -> None:
         """Regression test for DVPL-13022"""
         pytest.importorskip("langchain_openai")
@@ -667,6 +703,7 @@ class TestHandlingToolNameCollision(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_collision(self) -> None:
         pytest.importorskip("langchain_openai")
 

@@ -40,7 +40,7 @@ from splunklib.ai.middleware import (
     model_middleware,
     subagent_middleware,
 )
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 OPENAI_BASE_URL = "http://localhost:11434/v1"
 OPENAI_API_KEY = "ollama"
@@ -48,6 +48,7 @@ OPENAI_API_KEY = "ollama"
 
 class TestAgent(AITestCase):
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_with_openai_round_trip(self):
         pytest.importorskip("langchain_openai")
 
@@ -71,6 +72,7 @@ class TestAgent(AITestCase):
             assert "stefan" in response
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_use_without_async_with(self):
         pytest.importorskip("langchain_openai")
 
@@ -90,6 +92,7 @@ class TestAgent(AITestCase):
             )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_use_outside_async_with(self):
         pytest.importorskip("langchain_openai")
 
@@ -112,6 +115,7 @@ class TestAgent(AITestCase):
             )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_multiple_async_with(self):
         pytest.importorskip("langchain_openai")
 
@@ -129,6 +133,7 @@ class TestAgent(AITestCase):
                     pass
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_with_structured_output(self):
         pytest.importorskip("langchain_openai")
 
@@ -164,6 +169,8 @@ class TestAgent(AITestCase):
                 "Age field not found in the message"
             )
 
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_uses_subagent(self):
         pytest.importorskip("langchain_openai")
 
@@ -224,6 +231,7 @@ class TestAgent(AITestCase):
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_without_input_schema(self):
         pytest.importorskip("langchain_openai")
 
@@ -268,6 +276,7 @@ class TestAgent(AITestCase):
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_without_input_schema_with_output_schema(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -308,9 +317,8 @@ class TestAgent(AITestCase):
             response = result.final_message.content
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
-    # TODO: unskip the test once we switch to a better model
     @pytest.mark.asyncio
-    @pytest.mark.skip("Test failing because of model change to gpt-5-nano")
+    @ai_snapshot_test()
     async def test_agent_understands_other_agents(self):
         pytest.importorskip("langchain_openai")
 
@@ -374,6 +382,7 @@ class TestAgent(AITestCase):
                 )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_duplicated_subagent_name(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -441,6 +450,7 @@ class TestAgent(AITestCase):
                     pass
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_with_invalid_name(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -501,6 +511,7 @@ class TestAgent(AITestCase):
                     pass
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_soft_failure_with_invalid_args(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -591,6 +602,7 @@ class TestAgent(AITestCase):
         assert after_subagent_call, "subagent was not called"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_invoke_with_data_structures_prompt(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -631,6 +643,7 @@ class TestAgent(AITestCase):
         )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_with_input_schema_uses_invoke_with_data(self) -> None:
         pytest.importorskip("langchain_openai")
 

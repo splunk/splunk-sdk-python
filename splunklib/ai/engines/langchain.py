@@ -174,6 +174,10 @@ ANTHROPIC_CHAT_MODEL_TYPE = "anthropic-chat"
 _testing_force_tool_strategy = False
 
 
+def _thread_id_new_uuid() -> str:
+    return str(uuid.uuid4())
+
+
 def _supports_provider_strategy(model: BaseChatModel) -> bool:
     return (
         model.profile is not None
@@ -365,16 +369,16 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                             # LLM halucinated a thread_id, start a new conversation instead.
                             # This should not happen, since we provide an enum above, but just
                             # in case.
-                            args.thread_id = str(uuid.uuid4())
+                            args.thread_id = _thread_id_new_uuid()
 
                         if args.thread_id and args.thread_id in called_thread_ids:
                             # LLM did not listen not to issue multiple calls to the
                             # same thread_id, start a new conversation instead.
-                            args.thread_id = str(uuid.uuid4())
+                            args.thread_id = _thread_id_new_uuid()
 
                         if not args.thread_id:
                             # Generate thread_id for a new conversation.
-                            args.thread_id = str(uuid.uuid4())
+                            args.thread_id = _thread_id_new_uuid()
 
                         called_thread_ids.add(args.thread_id)
                         call["args"] = asdict(args)

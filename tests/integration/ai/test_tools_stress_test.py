@@ -20,7 +20,7 @@ import pytest
 
 from splunklib.ai import Agent
 from splunklib.ai.tool_settings import ToolSettings
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 # Test that makes sure our logic in the tool registry and tool calling
@@ -32,6 +32,7 @@ class TestToolStressTest(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_call_stress_test(self) -> None:
         async with Agent(
             model=(await self.model()),

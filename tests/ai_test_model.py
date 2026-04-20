@@ -75,6 +75,8 @@ async def _buildInternalAIModel(
         auth=(client_id, client_secret),
     )
 
+    response.raise_for_status()
+
     token = _TokenResponse.model_validate_json(response.text).access_token
 
     auth_handler = _InternalAIAuth(token)

@@ -23,7 +23,7 @@ import pytest
 from splunklib.ai import Agent
 from splunklib.ai.messages import HumanMessage
 from splunklib.ai.tool_settings import ToolSettings
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 @dataclass
@@ -61,6 +61,7 @@ class TestAgentLogger(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_local_tool_logger(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -101,6 +102,7 @@ class TestAgentLogger(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_local_tool_logger_logging_level(self) -> None:
         pytest.importorskip("langchain_openai")
 

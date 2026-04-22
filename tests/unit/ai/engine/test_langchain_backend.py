@@ -30,10 +30,12 @@ from splunklib.ai.engines import langchain as lc
 from splunklib.ai.messages import (
     AIMessage,
     HumanMessage,
+    OpaqueBlock,
     SubagentCall,
     SubagentFailureResult,
     SubagentMessage,
     SystemMessage,
+    TextBlock,
     ToolCall,
     ToolFailureResult,
     ToolMessage,
@@ -55,6 +57,127 @@ class TestMapMessageFromLangchain(unittest.TestCase):
         assert mapped.calls == [
             ToolCall(name="lookup", args={"q": "test"}, id="tc-1", type=ToolType.REMOTE)
         ]
+
+    def test_map_message_from_langchain_ai_with_text_content_block(self) -> None:
+        extras = (
+            {
+                # simulate gemini model returning thought signature in extra field of text content block
+                "signature": "EjQKMgEMOdbHDmsQ+BTM6duYJ43i5npxkpn28Ir0VjD1p6w4fUqIdYszIcWx+XcqAW1a8E+Q"
+            },
+        )
+
+        text_block = {
+            "type": "text",
+            "text": "test-content-block",
+            "id": "some-id",
+            "extras": extras,
+        }
+        message = LC_AIMessage(content=[text_block], tool_calls=[])
+
+        mapped = lc._map_message_from_langchain(message)
+
+        assert isinstance(mapped, AIMessage)
+        assert isinstance(mapped.content[0], TextBlock)
+        assert mapped.content[0].text == "test-content-block"
+        assert mapped.content[0].id == "some-id"
+        assert mapped.content[0].extras == extras
+
+    def test_map_message_from_langchain_ai_with_text_content_block_without_id(
+        self,
+    ) -> None:
+        extras = (
+            {
+                # simulate gemini model returning thought signature in extra field of text content block
+                "signature": "EjQKMgEMOdbHDmsQ+BTM6duYJ43i5npxkpn28Ir0VjD1p6w4fUqIdYszIcWx+XcqAW1a8E+Q"
+            },
+        )
+
+        text_block = {
+            "type": "text",
+            "text": "test-content-block",
+            "extras": extras,
+        }
+        message = LC_AIMessage(content=[text_block], tool_calls=[])
+
+        mapped = lc._map_message_from_langchain(message)
+
+        assert isinstance(mapped, AIMessage)
+        assert isinstance(mapped.content[0], TextBlock)
+        assert mapped.content[0].text == "test-content-block"
+        assert mapped.content[0].id is None
+        assert mapped.content[0].extras == extras
+
+    def test_map_message_from_langchain_ai_with_list_of_str(self) -> None:
+        message = LC_AIMessage(content=["one", "two"], tool_calls=[])
+
+        mapped = lc._map_message_from_langchain(message)
+
+        assert isinstance(mapped, AIMessage)
+        assert mapped.content == ["one", "two"]
+
+    def test_map_message_from_langchain_ai_with_other_content_block(self) -> None:
+        content_block = {
+            "type": "image",
+        }
+        message = LC_AIMessage(content=[content_block], tool_calls=[])
+
+        mapped = lc._map_message_from_langchain(message)
+
+        assert isinstance(mapped, AIMessage)
+        assert isinstance(mapped.content[0], OpaqueBlock)
+        assert mapped.content[0]._data == content_block
+
+    def test_map_message_from_langchain_ai_with_mixed_content(self) -> None:
+        content_block = {
+            "type": "image",
+        }
+        text_block = {
+            "type": "text",
+            "text": "test",
+        }
+        message = LC_AIMessage(
+            content=[content_block, text_block, "test"], tool_calls=[]
+        )
+
+        mapped = lc._map_message_from_langchain(message)
+
+        assert isinstance(mapped, AIMessage)
+        assert isinstance(mapped.content[0], OpaqueBlock)
+        assert mapped.content[0]._data == content_block
+        assert isinstance(mapped.content[1], TextBlock)
+        assert mapped.content[1].text == "test"
+        assert mapped.content[2] == "test"
+
+    def test_map_message_from_langchain_ai_tool_call_with_additional_kwargs(
+        self,
+    ) -> None:
+        tool_call = LC_ToolCall(
+            name=f"__local-startup_time",
+            args={"q": "test"},
+            id="tc-2",
+        )
+        # simulate gemini models returning thought signature in additional kwargs
+        # when calling tools.
+        additional_kwargs = {
+            "function_call": {"name": "__local-startup_time", "arguments": "{}"},
+            "__gemini_function_call_thought_signatures__": {
+                "28e28045-9846-4c9c-ab46-97f33bff5a9c": "EjQKMgEMOdbHH9gTl8BkX2uMM52753GCboanCcnUp9XB896IdThnG42GB8lRSkqGGxVbv5JY"
+            },
+        }
+        message = LC_AIMessage(
+            content="done", tool_calls=[tool_call], additional_kwargs=additional_kwargs
+        )
+        mapped = lc._map_message_from_langchain(message)
+        assert isinstance(mapped, AIMessage)
+        assert mapped.calls == [
+            ToolCall(
+                name="startup_time",
+                args={"q": "test"},
+                id="tc-2",
+                type=ToolType.LOCAL,
+            )
+        ]
+        assert mapped.extras == additional_kwargs
 
     def test_map_message_from_langchain_ai_with_agent_call(self) -> None:
         tool_call = LC_ToolCall(
@@ -159,6 +282,93 @@ class MapMessageToLangchainTests(unittest.TestCase):
         assert mapped.content == "hi"
         assert mapped.tool_calls == [LC_ToolCall(name="lookup", args={}, id="tc-1")]
 
+    def test_map_message_to_langchain_ai_with_text_content_block(self) -> None:
+        extras = {
+            "signature": "EjQKMgEMOdbHDmsQ+BTM6duYJ43i5npxkpn28Ir0VjD1p6w4fUqIdYszIcWx+XcqAW1a8E+Q"
+        }
+        message = AIMessage(
+            content=[
+                TextBlock(
+                    text="test-content-block",
+                    extras=extras,
+                    id="some-id",
+                )
+            ],
+            calls=[],
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert isinstance(mapped.content[0], dict)
+        assert mapped.content[0]["type"] == "text"
+        assert mapped.content[0]["text"] == "test-content-block"
+        assert mapped.content[0]["id"] == "some-id"
+        assert mapped.content[0]["extras"] == extras
+
+    def test_map_message_to_langchain_ai_with_text_content_block_no_id(self) -> None:
+        extras = {
+            "signature": "EjQKMgEMOdbHDmsQ+BTM6duYJ43i5npxkpn28Ir0VjD1p6w4fUqIdYszIcWx+XcqAW1a8E+Q"
+        }
+        message = AIMessage(
+            content=[
+                TextBlock(
+                    text="test-content-block",
+                    extras=extras,
+                )
+            ],
+            calls=[],
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert isinstance(mapped.content[0], dict)
+        assert mapped.content[0]["type"] == "text"
+        assert mapped.content[0]["text"] == "test-content-block"
+        assert mapped.content[0]["id"] is None
+        assert mapped.content[0]["extras"] == extras
+
+    def test_map_message_to_langchain_ai_with_list_of_str(self) -> None:
+        message = AIMessage(
+            content=["one", "two"],
+            calls=[],
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert mapped.content == ["one", "two"]
+
+    def test_map_message_to_langchain_ai_with_opaque_content_block(self) -> None:
+        some_data = {"type": "unsupported"}
+        message = AIMessage(
+            content=[OpaqueBlock(_data=some_data)],
+            calls=[],
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert isinstance(mapped.content[0], dict)
+        assert mapped.content[0]["type"] == "unsupported"
+
+    def test_map_message_to_langchain_ai_with_mixed_content_block(self) -> None:
+        some_data = {"type": "unsupported"}
+        message = AIMessage(
+            content=[
+                OpaqueBlock(_data=some_data),
+                TextBlock(text="test-content-block"),
+                "test",
+            ],
+            calls=[],
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert isinstance(mapped.content[0], dict)
+        assert mapped.content[0]["type"] == "unsupported"
+        assert isinstance(mapped.content[1], dict)
+        assert mapped.content[1]["type"] == "text"
+        assert mapped.content[1]["text"] == "test-content-block"
+        assert mapped.content[2] == "test"
+
     def test_map_message_to_langchain_ai_with_agent_call(self) -> None:
         message = AIMessage(
             content="hi",
@@ -181,6 +391,42 @@ class MapMessageToLangchainTests(unittest.TestCase):
                 id="tc-2",
             )
         ]
+
+    def test_map_message_to_langchain_ai_with_tool_call_with_thought_signature(
+        self,
+    ) -> None:
+        extras = {
+            "function_call": {
+                "name": "__local-startup_time",
+                "arguments": '{"q": "test"}',
+            },
+            "__gemini_function_call_thought_signatures__": {
+                "28e28045-9846-4c9c-ab46-97f33bff5a9c": "EjQKMgEMOdbHH9gTl8BkX2uMM52753GCboanCcnUp9XB896IdThnG42GB8lRSkqGGxVbv5JY"
+            },
+        }
+        message = AIMessage(
+            content="hi",
+            calls=[
+                ToolCall(
+                    name="startup_time",
+                    args={"q": "test"},
+                    id="tc-2",
+                    type=ToolType.LOCAL,
+                )
+            ],
+            extras=extras,
+        )
+        mapped = lc._map_message_to_langchain(message)
+
+        assert isinstance(mapped, LC_AIMessage)
+        assert mapped.tool_calls == [
+            LC_ToolCall(
+                name=f"__local-startup_time",
+                args={"q": "test"},
+                id="tc-2",
+            )
+        ]
+        assert mapped.additional_kwargs == extras
 
     def test_map_message_to_langchain_human(self) -> None:
         message = HumanMessage(content="hello")

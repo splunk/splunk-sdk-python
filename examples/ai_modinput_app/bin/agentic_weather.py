@@ -20,6 +20,8 @@ import sys
 from _collections_abc import dict_items
 from typing import final, override
 
+from splunklib.ai.messages import AIMessage, ContentBlock, TextBlock
+
 # ! NOTE: This insert is only needed for splunk-sdk-python CI/CD to work.
 # ! Remove this if you're modifying this example locally.
 sys.path.insert(0, "/splunklib-deps")
@@ -95,9 +97,9 @@ class AgenticWeatherModInput(Script):
                     weather_events += list(reader)
 
                 for weather_event in weather_events:
-                    weather_event["human_readable"] = asyncio.run(
-                        self.invoke_agent(weather_event)
-                    )
+                    result = asyncio.run(self.invoke_agent(weather_event))
+                    weather_event["human_readable"] = self.parse_content(result)
+
                     logger.debug(f"{weather_event=}")
 
                     event = Event(
@@ -112,7 +114,7 @@ class AgenticWeatherModInput(Script):
 
             logger.debug(f"Finishing enrichment for {input_name} at {csv_file_path}")
 
-    async def invoke_agent(self, weather_event: dict[str, str | int]) -> str:
+    async def invoke_agent(self, weather_event: dict[str, str | int]) -> AIMessage:
         if not self.service:
             raise AssertionError("No Splunk connection available")
 
@@ -127,7 +129,27 @@ class AgenticWeatherModInput(Script):
                 data=weather_event,
             )
             logger.debug(f"{response=}")
-            return response.final_message.content
+            return response.final_message
+
+    def _parse_content_block(self, block: str | ContentBlock) -> str | None:
+        match block:
+            case TextBlock():
+                return block.text
+            case str():
+                return block
+            case _:
+                return None
+
+    def parse_content(self, message: AIMessage) -> str:
+        """Parses the content from AIMessage and builds a single string our of it"""
+        if isinstance(message.content, str):
+            return message.content
+
+        return " ".join(
+            parsed_block
+            for block in message.content
+            if (parsed_block := self._parse_content_block(block))
+        )
 
 
 if __name__ == "__main__":

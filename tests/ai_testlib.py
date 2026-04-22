@@ -6,11 +6,13 @@ from collections.abc import Callable, Coroutine
 from typing import Any, override
 from unittest.mock import patch
 from urllib import parse
+from warnings import warn
 
 import vcr
 from vcr.config import RecordMode
 from vcr.request import Request
 
+from splunklib.ai.messages import AIMessage, ContentBlock, TextBlock
 from splunklib.ai.model import PredefinedModel
 from tests.ai_test_model import InternalAIModel, TestLLMSettings, create_model
 from tests.testlib import SDKTestCase
@@ -31,6 +33,27 @@ class AITestCase(SDKTestCase):
             if app.name.lower() == "splunk_mcp_server":
                 app.delete()
                 self.restart_splunk()
+
+    def _parse_content_block(self, block: str | ContentBlock) -> str | None:
+        match block:
+            case TextBlock():
+                return block.text
+            case str():
+                return block
+            case _:
+                warn(f"Skipping OpaqueBlock when parsing the AIMessage.content")
+                return None
+
+    def parse_content(self, message: AIMessage) -> str:
+        """Parses the content from AIMessage and builds a single string our of it"""
+        if isinstance(message.content, str):
+            return message.content
+
+        return " ".join(
+            parsed_block
+            for block in message.content
+            if (parsed_block := self._parse_content_block(block))
+        )
 
     @property
     def test_llm_settings(self) -> TestLLMSettings:

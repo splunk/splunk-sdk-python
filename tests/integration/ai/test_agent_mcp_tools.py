@@ -96,7 +96,7 @@ class TestTools(AITestCase):
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "temperature", "Invalid tool name"
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "31.5" in response, "Invalid LLM response"
 
     @patch(
@@ -219,7 +219,7 @@ class TestTools(AITestCase):
                 ]
             )
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "31.5" in response, "Invalid LLM response"
             assert "30.0" in response, "Invalid LLM response"
             assert "25.5" in response, "Invalid LLM response"
@@ -236,7 +236,7 @@ class TestTools(AITestCase):
                     )
                 ]
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "28.5" in response, "Invalid LLM response"
 
             # Make sure MCP was alive during entire Agent lifetime.
@@ -409,7 +409,7 @@ class TestRemoteTools(AITestCase):
                 assert tool_message, "No tool message found in response"
                 assert tool_message.name == "temperature", "Invalid tool name"
 
-                response = result.final_message.content
+                response = self.parse_content(result.final_message)
                 assert "31.5" in response, "Invalid LLM response"
 
                 assert trace_id == agent.trace_id
@@ -450,7 +450,12 @@ class TestRemoteTools(AITestCase):
                     [HumanMessage(content="What is your name? Answer in one word")]
                 )
 
-                response = result.final_message.content.strip().lower().replace(".", "")
+                response = (
+                    self.parse_content(result.final_message)
+                    .strip()
+                    .lower()
+                    .replace(".", "")
+                )
                 assert "stefan" in response
 
     @patch(
@@ -526,7 +531,7 @@ class TestRemoteTools(AITestCase):
                 assert type(tool_messages[0].result) is ToolFailureResult
                 assert type(tool_messages[1].result) is ToolResult
 
-                response = result.final_message.content
+                response = self.parse_content(result.final_message)
                 assert "31.5" in response, "Invalid LLM response"
 
     @patch(
@@ -630,7 +635,7 @@ class TestRemoteTools(AITestCase):
                         )
                 assert found_tool_message, "missing ToolMessage in agent response"
 
-                response = result.final_message.content
+                response = self.parse_content(result.final_message)
                 assert "31.5" in response, "Invalid LLM response"
 
     @patch(
@@ -692,7 +697,7 @@ class TestRemoteTools(AITestCase):
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "temperature", "Invalid tool name"
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "22" in response, "Invalid LLM response"
 
 

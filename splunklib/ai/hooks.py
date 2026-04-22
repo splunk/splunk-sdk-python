@@ -199,5 +199,3 @@ class TimeoutLimitMiddleware(AgentMiddleware):
         if self._deadline is not None and monotonic() >= self._deadline:
             raise TimeoutExceededException(timeout_seconds=self._seconds)
         return await handler(request)
-
-

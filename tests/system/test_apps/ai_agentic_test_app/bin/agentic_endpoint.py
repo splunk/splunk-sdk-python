@@ -21,7 +21,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 from typing import override
 
 from splunklib.ai.agent import Agent
-from splunklib.ai.messages import HumanMessage
+from splunklib.ai.messages import (
+    AIMessage,
+    ContentBlock,
+    HumanMessage,
+    SubagentTextResult,
+    TextBlock,
+)
 from splunklib.ai.tool_settings import ToolSettings
 from tests.cre_testlib import CRETestHandler
 
@@ -58,5 +64,30 @@ class AgentNameHandler(CRETestHandler):
                 [HumanMessage(content="What is your name? Answer in one word")]
             )
 
-            response = result.final_message.content.strip().lower().replace(".", "")
+            response = (
+                self.parse_content(result.final_message)
+                .strip()
+                .lower()
+                .replace(".", "")
+            )
             self.response.write(response)
+
+    def _parse_content_block(self, block: str | ContentBlock) -> str | None:
+        match block:
+            case TextBlock():
+                return block.text
+            case str():
+                return block
+            case _:
+                return None
+
+    def parse_content(self, message: AIMessage | SubagentTextResult) -> str:
+        """Parses the content from AIMessage and builds a single string our of it"""
+        if isinstance(message.content, str):
+            return message.content
+
+        return " ".join(
+            parsed_block
+            for block in message.content
+            if (parsed_block := self._parse_content_block(block))
+        )

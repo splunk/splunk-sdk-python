@@ -44,24 +44,20 @@ def run() -> None:
     client = httpx.Client(follow_redirects=True)
     response = client.post(
         f"{SPLUNKBASE_URL}/api/account:login",
-        data={
-            "username": username,
-            "password": password,
-        },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data={"username": username, "password": password},
     )
-
     response.raise_for_status()
 
-    root = ET.fromstring(response.text)
-
-    token = next(elem.text for elem in root if elem.tag.endswith("id"))
+    response_xml = ET.fromstring(response.text)
+    token = next(elem.text for elem in response_xml if elem.tag.endswith("id"))
     if token is None:
         raise AssertionError("token not found in the response")
 
     response = client.get(
         f"{SPLUNKBASE_URL}/api/v1/app/{SPLUNK_MCP_APP_ID}/?include=release",
-        headers={"Authorization": f"Bearer {token}"},
+        # ? Might not be needed here after all?
+        # headers={"Authorization": f"Bearer {token}"},
     )
     response.raise_for_status()
 

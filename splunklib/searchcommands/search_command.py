@@ -50,6 +50,7 @@ from .internals import (
 )
 from ..client import Service
 from ..utils import ensure_str
+from .monitor_dispatch import DispatchMonitor
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -92,12 +93,14 @@ class SearchCommand:
         self._configuration = self.ConfigurationSettings(self)
         self._input_header = InputHeader()
         self._fieldnames = None
+        self._finalizing = None
         self._finished = None
         self._metadata = None
         self._options = None
         self._protocol_version = None
         self._search_results_info = None
         self._service = None
+        self._status = None
 
         # Internal variables
 
@@ -263,6 +266,9 @@ class SearchCommand:
         """
         if self._search_results_info is not None:
             return self._search_results_info
+        return self._search_results_info_refresh()
+
+    def _search_results_info_refresh(self):
 
         if self._protocol_version == 1:
             try:
@@ -663,6 +669,8 @@ class SearchCommand:
                 ifile = self._prepare_protocol_v1(argv, ifile, ofile)
                 self._records = self._records_protocol_v1
                 self._metadata.action = "execute"
+                self.monitor = DispatchMonitor(self)
+                self.monitor.start()
                 self._execute(ifile, None)
 
             else:
@@ -761,6 +769,8 @@ class SearchCommand:
                     f"{class_name}.metadata.searchinfo.dispatch_dir is undefined"
                 )
 
+            self.monitor = DispatchMonitor(self)
+            self.monitor.start()
             debug("  tempfile.tempdir=%r", tempfile.tempdir)
         except:
             self._record_writer = RecordWriterV2(ofile)
@@ -928,6 +938,13 @@ class SearchCommand:
         r"\$(?P<item>(?:\$\$|[^$])*)\$(?:;|$)"
     )  # matches a single value in an encoded list
 
+    def _raise_if_stopped(self, records):
+        """Wraps the records iterator to check for exit conditions."""
+        for record in records:
+            if self._finalizing:
+                raise RuntimeError("Search has been finalized")
+            yield record
+
     # Note: Subclasses must override this method so that it can be called
     # called as self._execute(ifile, None)
     def _execute(self, ifile, process):
@@ -944,7 +961,8 @@ class SearchCommand:
 
         """
         if self.protocol_version == 1:
-            self._record_writer.write_records(process(self._records(ifile)))
+            self._record_writer.write_records(
+                process(self._raise_if_stopped(self._records(ifile))))
             self.finish()
         else:
             assert self._protocol_version == 2
@@ -1064,6 +1082,7 @@ class SearchCommand:
             self._metadata.update(metadata)
             self._execute_chunk_v2(process, result)
 
+            # Tell the downstream commands if we are done or manually stopped
             self._record_writer.write_chunk(finished=self._finished)
 
     def _execute_chunk_v2(self, process, chunk):

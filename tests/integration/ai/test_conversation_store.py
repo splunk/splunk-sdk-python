@@ -66,9 +66,9 @@ class TestConversationStore(AITestCase):
 
             if after_first_call:
                 # Previous messages included.
-                assert len(request.state.response.messages) == 3
+                assert len(request.state.messages) == 3
             else:
-                assert len(request.state.response.messages) == 1
+                assert len(request.state.messages) == 1
             return await handler(request)
 
         @agent_middleware
@@ -166,7 +166,7 @@ class TestConversationStore(AITestCase):
             nonlocal model_middleware_called
             model_middleware_called = True
 
-            assert len(request.state.response.messages) == 1
+            assert len(request.state.messages) == 1
             return await handler(request)
 
         async with Agent(
@@ -186,9 +186,9 @@ class TestConversationStore(AITestCase):
                 thread_id="2",
             )
             response = result.final_message.content
-            assert "Mike" not in response, (
-                "Agent remembered the name from a different thread_id"
-            )
+            assert (
+                "Mike" not in response
+            ), "Agent remembered the name from a different thread_id"
 
         assert model_middleware_called
 
@@ -276,9 +276,9 @@ class TestSubagentsWithConversationStore(AITestCase):
             nonlocal after_first_call
 
             if after_first_call:
-                assert len(request.state.response.messages) == 3
+                assert len(request.state.messages) == 3
             else:
-                assert len(request.state.response.messages) == 1
+                assert len(request.state.messages) == 1
 
             after_first_call = True
             return await handler(request)
@@ -347,9 +347,9 @@ class TestSubagentsWithConversationStore(AITestCase):
             nonlocal after_first_call
 
             if after_first_call:
-                assert len(request.state.response.messages) == 3
+                assert len(request.state.messages) == 3
             else:
-                assert len(request.state.response.messages) == 1
+                assert len(request.state.messages) == 1
 
             after_first_call = True
             return await handler(request)

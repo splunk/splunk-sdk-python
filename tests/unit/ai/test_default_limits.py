@@ -28,7 +28,13 @@ from splunklib.ai.hooks import (
     TokenLimitMiddleware,
 )
 from splunklib.ai.messages import AIMessage, AgentResponse
-from splunklib.ai.middleware import AgentMiddleware, AgentRequest, AgentState, ModelRequest, ModelResponse
+from splunklib.ai.middleware import (
+    AgentMiddleware,
+    AgentRequest,
+    AgentState,
+    ModelRequest,
+    ModelResponse,
+)
 from splunklib.ai.model import OpenAIModel
 from splunklib.client import Service
 
@@ -48,7 +54,7 @@ def _make_agent_request() -> AgentRequest:
 
 def _make_model_request(token_count: int = 0, total_steps: int = 0) -> ModelRequest:
     state = AgentState(
-        response=AgentResponse(messages=[], structured_output=None),
+        messages=[],
         total_steps=total_steps,
         token_count=token_count,
     )
@@ -69,9 +75,13 @@ class TestDefaultLimitsInjection(unittest.TestCase):
         token = next(m for m in mw if isinstance(m, TokenLimitMiddleware))
         step = next(m for m in mw if isinstance(m, StepLimitMiddleware))
         timeout = next(m for m in mw if isinstance(m, TimeoutLimitMiddleware))
-        assert token._limit == DEFAULT_TOKEN_LIMIT  # pyright: ignore[reportPrivateUsage]
+        assert (
+            token._limit == DEFAULT_TOKEN_LIMIT
+        )  # pyright: ignore[reportPrivateUsage]
         assert step._limit == DEFAULT_STEP_LIMIT  # pyright: ignore[reportPrivateUsage]
-        assert timeout._seconds == DEFAULT_TIMEOUT_SECONDS  # pyright: ignore[reportPrivateUsage]
+        assert (
+            timeout._seconds == DEFAULT_TIMEOUT_SECONDS
+        )  # pyright: ignore[reportPrivateUsage]
 
     def test_user_token_limit_suppresses_default(self) -> None:
         agent = _make_agent(middleware=[TokenLimitMiddleware(50_000)])
@@ -102,7 +112,11 @@ class TestDefaultLimitsInjection(unittest.TestCase):
 
     def test_all_user_limits_suppress_all_defaults(self) -> None:
         agent = _make_agent(
-            middleware=[TokenLimitMiddleware(50_000), StepLimitMiddleware(10), TimeoutLimitMiddleware(30.0)]
+            middleware=[
+                TokenLimitMiddleware(50_000),
+                StepLimitMiddleware(10),
+                TimeoutLimitMiddleware(30.0),
+            ]
         )
         mw = list(agent.middleware or [])
         assert len([m for m in mw if isinstance(m, TokenLimitMiddleware)]) == 1
@@ -139,9 +153,15 @@ class TestTimeoutLimitMiddleware(unittest.IsolatedAsyncioTestCase):
 
     async def test_timeout_fires_when_deadline_exceeded(self) -> None:
         mw = TimeoutLimitMiddleware(60.0)
-        mw._deadline = monotonic() - 1.0  # pyright: ignore[reportPrivateUsage]  # already in the past
+        mw._deadline = (
+            monotonic() - 1.0
+        )  # pyright: ignore[reportPrivateUsage]  # already in the past
 
-        state = AgentState(response=AgentResponse(messages=[], structured_output=None), total_steps=0, token_count=0)
+        state = AgentState(
+            messages=[],
+            total_steps=0,
+            token_count=0,
+        )
         request = ModelRequest(system_message="", state=state)
 
         with self.assertRaises(TimeoutExceededException):
@@ -152,18 +172,29 @@ class TestTokenLimitMiddleware(unittest.IsolatedAsyncioTestCase):
     async def test_raises_when_token_count_in_request_exceeds_limit(self) -> None:
         mw = TokenLimitMiddleware(200)
 
-        await mw.model_middleware(_make_model_request(token_count=100), _noop_model_handler)
-        await mw.model_middleware(_make_model_request(token_count=199), _noop_model_handler)
+        await mw.model_middleware(
+            _make_model_request(token_count=100), _noop_model_handler
+        )
+        await mw.model_middleware(
+            _make_model_request(token_count=199), _noop_model_handler
+        )
         with self.assertRaises(TokenLimitExceededException):
-            await mw.model_middleware(_make_model_request(token_count=200), _noop_model_handler)
+            await mw.model_middleware(
+                _make_model_request(token_count=200), _noop_model_handler
+            )
 
 
 class TestStepLimitMiddleware(unittest.IsolatedAsyncioTestCase):
     async def test_raises_when_steps_in_request_reach_limit(self) -> None:
         mw = StepLimitMiddleware(3)
 
-        await mw.model_middleware(_make_model_request(total_steps=1), _noop_model_handler)
-        await mw.model_middleware(_make_model_request(total_steps=2), _noop_model_handler)
+        await mw.model_middleware(
+            _make_model_request(total_steps=1), _noop_model_handler
+        )
+        await mw.model_middleware(
+            _make_model_request(total_steps=2), _noop_model_handler
+        )
         with self.assertRaises(StepsLimitExceededException):
-            await mw.model_middleware(_make_model_request(total_steps=3), _noop_model_handler)
-
+            await mw.model_middleware(
+                _make_model_request(total_steps=3), _noop_model_handler
+            )

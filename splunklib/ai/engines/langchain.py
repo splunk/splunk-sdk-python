@@ -280,12 +280,12 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
                     if resp.name.startswith(AGENT_PREFIX):
                         resp.artifact = SubagentFailureResult(
-                            str(resp.content)
-                        )  # pyright: ignore[reportUnknownArgumentType]
+                            str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
+                        )
                     else:
                         resp.artifact = ToolFailureResult(
-                            str(resp.content)
-                        )  # pyright: ignore[reportUnknownArgumentType]
+                            str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
+                        )
 
                 return resp
 
@@ -971,9 +971,9 @@ def _convert_tool_handler_from_lc(
         lc_request = _convert_tool_request_to_lc(request, original_request)
         result = await handler(lc_request)
         sdk_result = _convert_tool_message_from_lc(result)
-        assert isinstance(
-            sdk_result, ToolMessage
-        ), "Expected tool response from tool middleware handler"
+        assert isinstance(sdk_result, ToolMessage), (
+            "Expected tool response from tool middleware handler"
+        )
         return ToolResponse(sdk_result.result)
 
     return _sdk_handler
@@ -991,9 +991,9 @@ def _convert_subagent_handler_from_lc(
         lc_request = _convert_subagent_request_to_lc(request, original_request)
         result = await handler(lc_request)
         sdk_result = _convert_tool_message_from_lc(result)
-        assert isinstance(
-            sdk_result, SubagentMessage
-        ), "Expected subagent response from subagent middleware handler"
+        assert isinstance(sdk_result, SubagentMessage), (
+            "Expected subagent response from subagent middleware handler"
+        )
         return SubagentResponse(sdk_result.result)
 
     return _sdk_handler
@@ -1186,18 +1186,16 @@ def _convert_tool_message_from_lc(
             )
         case LC_ToolMessage():
             # If this is reached, we likely passed an invalid tool name to LangChain.
-            assert (
-                message.name is not None
-            ), "LangChain responded with a nameless tool call"
+            assert message.name is not None, (
+                "LangChain responded with a nameless tool call"
+            )
 
             if message.name.startswith(TOOL_STRATEGY_TOOL_PREFIX):
                 return StructuredOutputMessage(
                     name=message.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
                     call_id=message.tool_call_id,
                     status=message.status,
-                    content=str(
-                        message.content
-                    ),  # pyright: ignore[reportUnknownArgumentType]
+                    content=str(message.content),  # pyright: ignore[reportUnknownArgumentType]
                 )
 
             assert isinstance(message.artifact, ToolResult) or isinstance(
@@ -1357,9 +1355,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
         except ToolException as e:
             raise LC_ToolException(*e.args) from e
         except LC_ToolException:
-            assert (
-                False
-            ), (  # noqa: PT015
+            assert False, (  # noqa: PT015
                 "ToolException from LangChain should not be raised in tool.func"
             )
 
@@ -1650,9 +1646,7 @@ def _get_approximate_token_counter(model: BaseChatModel) -> LC_TokenCounter:
     # NOTE: This is adapted from the backend provider library
     # 3.3 was estimated in an offline experiment, comparing with Claude's token-counting
     # API: https://platform.claude.com/docs/en/build-with-claude/token-counting
-    if (
-        model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE
-    ):  # pyright: ignore[reportPrivateUsage]
+    if model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE:  # pyright: ignore[reportPrivateUsage]
         return partial(count_tokens_approximately, chars_per_token=3.3)
     return count_tokens_approximately
 

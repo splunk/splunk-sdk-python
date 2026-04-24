@@ -75,13 +75,9 @@ class TestDefaultLimitsInjection(unittest.TestCase):
         token = next(m for m in mw if isinstance(m, TokenLimitMiddleware))
         step = next(m for m in mw if isinstance(m, StepLimitMiddleware))
         timeout = next(m for m in mw if isinstance(m, TimeoutLimitMiddleware))
-        assert (
-            token._limit == DEFAULT_TOKEN_LIMIT
-        )  # pyright: ignore[reportPrivateUsage]
+        assert token._limit == DEFAULT_TOKEN_LIMIT  # pyright: ignore[reportPrivateUsage]
         assert step._limit == DEFAULT_STEP_LIMIT  # pyright: ignore[reportPrivateUsage]
-        assert (
-            timeout._seconds == DEFAULT_TIMEOUT_SECONDS
-        )  # pyright: ignore[reportPrivateUsage]
+        assert timeout._seconds == DEFAULT_TIMEOUT_SECONDS  # pyright: ignore[reportPrivateUsage]
 
     def test_user_token_limit_suppresses_default(self) -> None:
         agent = _make_agent(middleware=[TokenLimitMiddleware(50_000)])
@@ -153,9 +149,7 @@ class TestTimeoutLimitMiddleware(unittest.IsolatedAsyncioTestCase):
 
     async def test_timeout_fires_when_deadline_exceeded(self) -> None:
         mw = TimeoutLimitMiddleware(60.0)
-        mw._deadline = (
-            monotonic() - 1.0
-        )  # pyright: ignore[reportPrivateUsage]  # already in the past
+        mw._deadline = monotonic() - 1.0  # pyright: ignore[reportPrivateUsage]  # already in the past
 
         state = AgentState(
             messages=[],

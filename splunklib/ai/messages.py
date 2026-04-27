@@ -64,25 +64,25 @@ ContentBlock = TextBlock | OpaqueBlock
 
 @dataclass(frozen=True)
 class ToolCall:
+    id: str
     name: str
-    args: dict[str, Any]
-    id: str | None  # TODO: can be None?
     type: ToolType
+    args: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class SubagentCall:
+    id: str
     name: str
     args: str | dict[str, Any]
-    id: str | None  # TODO: can be None?
     thread_id: str | None
 
 
 @dataclass(frozen=True)
 class StructuredOutputCall:
+    id: str
     name: str
     args: dict[str, Any]
-    id: str | None  # TODO: can be None?
 
 
 @dataclass(frozen=True)

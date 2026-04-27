@@ -1266,7 +1266,7 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
 
 
 def _convert_agent_state_to_lc(state: AgentState) -> LC_AgentState[Any]:
-    messages = [_map_message_to_langchain(m) for m in state.response.messages]
+    messages = [_map_message_to_langchain(m) for m in state.messages]
     return LC_AgentState(messages=messages)
 
 
@@ -1627,14 +1627,9 @@ def _convert_agent_state_from_langchain(
     messages = state["messages"]
     total_tokens_counter = _get_approximate_token_counter(model)
     total_tokens = total_tokens_counter(messages)
-
-    response = AgentResponse[Any | None](
-        messages=[_map_message_from_langchain(m) for m in state["messages"]],
-        structured_output=state.get("structured_response"),
-    )
-
+    messages = [_map_message_from_langchain(m) for m in state["messages"]]
     return AgentState(
-        response=response,
+        messages=messages,
         total_steps=len(messages),
         token_count=total_tokens,
     )

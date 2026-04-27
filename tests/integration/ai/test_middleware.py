@@ -78,7 +78,7 @@ class TestMiddleware(AITestCase):
             assert call.args == {"city": "Krakow"}
 
             state = request.state
-            assert len(state.response.messages) == 2
+            assert len(state.messages) == 2
 
             response = await handler(request)
             assert isinstance(response.result, ToolResult)
@@ -699,10 +699,7 @@ class TestMiddleware(AITestCase):
         ) -> ModelResponse:
             new_state = replace(
                 request.state,
-                response=replace(
-                    request.state.response,
-                    messages=[HumanMessage(content="What is the capital of France?")],
-                ),
+                messages=[HumanMessage(content="What is the capital of France?")],
             )
             return await handler(replace(request, state=new_state))
 

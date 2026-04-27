@@ -47,7 +47,7 @@ class TestHook(AITestCase):
             hook_calls += 1
 
             assert req.system_message.startswith("Your name is stefan")
-            assert len(req.state.response.messages) == 1
+            assert len(req.state.messages) == 1
 
         @before_model
         async def test_async_hook_before(req: ModelRequest) -> None:
@@ -55,7 +55,7 @@ class TestHook(AITestCase):
             hook_calls += 1
 
             assert req.system_message.startswith("Your name is stefan")
-            assert len(req.state.response.messages) == 1
+            assert len(req.state.messages) == 1
 
         @after_model
         def test_hook_after(resp: ModelResponse) -> None:

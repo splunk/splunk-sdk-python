@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Sequence, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, override
 
@@ -35,7 +35,7 @@ class AgentState:
     """AgentState is available through certain middlewares and contains information about the current state of an agent execution."""
 
     # holds messages exchanged so far in the conversation
-    response: AgentResponse[Any | None]
+    messages: Sequence[BaseMessage]
     # steps taken so far in the conversation
     total_steps: int
     # tokens used so far in the conversation
@@ -96,7 +96,7 @@ ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 
 @dataclass(frozen=True)
 class AgentRequest:
-    messages: list[BaseMessage]
+    messages: Sequence[BaseMessage]
 
 
 AgentMiddlewareHandler = Callable[[AgentRequest], Awaitable[AgentResponse[Any | None]]]

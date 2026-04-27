@@ -532,7 +532,7 @@ class TestAgent(AITestCase):
             req: ModelRequest, _handler: ModelMiddlewareHandler
         ) -> ModelResponse:
             if after_subagent_call:
-                msgs = req.state.response.messages
+                msgs = req.state.messages
                 assert isinstance(msgs[-1], SubagentMessage)
                 assert isinstance(msgs[-1].result, SubagentFailureResult)
 

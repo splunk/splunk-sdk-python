@@ -279,13 +279,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                     assert resp.artifact is None, "artifact is already populated"
 
                     if resp.name.startswith(AGENT_PREFIX):
-                        resp.artifact = SubagentFailureResult(
-                            str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
-                        )
+                        resp.artifact = SubagentFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
                     else:
-                        resp.artifact = ToolFailureResult(
-                            str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
-                        )
+                        resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
 
                 return resp
 
@@ -1458,7 +1454,6 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
                 content: str, thread_id: str
             ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
                 return await invoke_agent(HumanMessage(content=content), thread_id)
-
         else:
 
             async def _run(  # pyright: ignore[reportRedeclaration]

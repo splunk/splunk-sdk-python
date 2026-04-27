@@ -30,13 +30,7 @@ from splunklib.ai.hooks import (
     before_model,
 )
 from splunklib.ai.messages import AIMessage, AgentResponse, HumanMessage
-from splunklib.ai.middleware import (
-    AgentRequest,
-    ModelMiddlewareHandler,
-    ModelRequest,
-    ModelResponse,
-    model_middleware,
-)
+from splunklib.ai.middleware import AgentRequest, ModelMiddlewareHandler, ModelRequest, ModelResponse, model_middleware
 from tests.ai_testlib import AITestCase
 
 
@@ -203,12 +197,10 @@ class TestHook(AITestCase):
             with pytest.raises(
                 StepsLimitExceededException, match="Steps limit of 2 exceeded"
             ):
-                _ = await agent.invoke(
-                    [
-                        HumanMessage(content="hi, my name is Chris"),
-                        HumanMessage(content="What is my name?"),
-                    ]
-                )
+                _ = await agent.invoke([
+                    HumanMessage(content="hi, my name is Chris"),
+                    HumanMessage(content="What is my name?"),
+                ])
 
     @pytest.mark.asyncio
     async def test_agent_loop_stop_conditions_conversation_limit_with_checkpointer(
@@ -228,17 +220,13 @@ class TestHook(AITestCase):
             with pytest.raises(
                 StepsLimitExceededException, match="Steps limit of 2 exceeded"
             ):
-                _ = await agent.invoke(
-                    [
-                        HumanMessage(content="What is my name?"),
-                        HumanMessage(content="Are you sure?"),
-                    ]
-                )
+                _ = await agent.invoke([
+                    HumanMessage(content="What is my name?"),
+                    HumanMessage(content="Are you sure?"),
+                ])
 
     @pytest.mark.asyncio
-    async def test_agent_loop_stop_conditions_steps_accumulate_across_invokes(
-        self,
-    ) -> None:
+    async def test_agent_loop_stop_conditions_steps_accumulate_across_invokes(self) -> None:
         pytest.importorskip("langchain_openai")
 
         step_limit = StepLimitMiddleware(2)

@@ -500,9 +500,9 @@ class TestMiddleware(AITestCase):
             )
             assert subagent_message, "SubagentMessage not found in messages"
             assert isinstance(subagent_message.result, SubagentTextResult)
-            assert (
-                subagent_message.result.content == "Chris-superstar"
-            ), "Invalid response from subagent"
+            assert subagent_message.result.content == "Chris-superstar", (
+                "Invalid response from subagent"
+            )
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio

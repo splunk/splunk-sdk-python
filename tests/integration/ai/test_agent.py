@@ -65,9 +65,9 @@ class TestAgent(AITestCase):
             )
 
             response = result.final_message.content.strip().lower().replace(".", "")
-            assert (
-                result.structured_output is None
-            ), "The structured output should not be populated"
+            assert result.structured_output is None, (
+                "The structured output should not be populated"
+            )
             assert "stefan" in response
 
     @pytest.mark.asyncio
@@ -160,9 +160,9 @@ class TestAgent(AITestCase):
 
             # check if the last message contains the response in natural language
             assert response.name in last_message, "Name field not found in the message"
-            assert (
-                str(response.age) in last_message
-            ), "Age field not found in the message"
+            assert str(response.age) in last_message, (
+                "Age field not found in the message"
+            )
 
     async def test_agent_uses_subagent(self):
         pytest.importorskip("langchain_openai")
@@ -215,9 +215,9 @@ class TestAgent(AITestCase):
             subagent_message = next(
                 filter(lambda m: m.role == "subagent", result.messages), None
             )
-            assert isinstance(
-                subagent_message, SubagentMessage
-            ), "Invalid subagent message"
+            assert isinstance(subagent_message, SubagentMessage), (
+                "Invalid subagent message"
+            )
             assert subagent_message, "No subagent message found in response"
 
             response = result.final_message.content
@@ -366,12 +366,12 @@ class TestAgent(AITestCase):
                 )
 
                 response = result.structured_output
-                assert (
-                    type(response) == SupervisorOutput
-                ), "Response is not of type Team"
-                assert (
-                    len(response.member_descriptions) == 3
-                ), "Team does not have 3 members"
+                assert type(response) == SupervisorOutput, (
+                    "Response is not of type Team"
+                )
+                assert len(response.member_descriptions) == 3, (
+                    "Team does not have 3 members"
+                )
 
     @pytest.mark.asyncio
     async def test_duplicated_subagent_name(self) -> None:
@@ -520,9 +520,9 @@ class TestAgent(AITestCase):
 
             # Override the arguments, such that are invalid.
             resp = await handler(replace(request, call=replace(request.call, args={})))
-            assert isinstance(
-                resp.result, SubagentFailureResult
-            ), "subagent call did not fail"
+            assert isinstance(resp.result, SubagentFailureResult), (
+                "subagent call did not fail"
+            )
 
             after_subagent_call = True
             return resp

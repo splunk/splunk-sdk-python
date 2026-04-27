@@ -96,7 +96,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
 
-            response = res.final_message.content
+            response = self.parse_content(res.final_message)
             assert "31.5" in response
             assert middleware_called, "Middleware was not called"
 
@@ -165,7 +165,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
 
-            response = res.final_message.content
+            response = self.parse_content(res.final_message)
             assert "31.5" in response
             assert middleware_called, "Middleware was not called"
 
@@ -204,7 +204,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Kraków?")]
             )
 
-            response = res.final_message.content
+            response = self.parse_content(res.final_message)
             assert "0.5" in response, "Invalid response from LLM"
 
             tool_message = next(
@@ -258,7 +258,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in res.final_message.content
+            assert "31.5" in self.parse_content(res.final_message)
             assert first_called, "First middleware was called after the second"
             assert second_called, "Second middleware was called before the first"
 
@@ -301,7 +301,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in res.final_message.content
+            assert "31.5" in self.parse_content(res.final_message)
             assert tool_called
             assert model_called
 
@@ -356,7 +356,7 @@ class TestMiddleware(AITestCase):
             tool_result = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
-            assert "31.5" in tool_result.final_message.content
+            assert "31.5" in self.parse_content(tool_result.final_message)
 
         class NicknameGeneratorInput(BaseModel):
             name: str = Field(description="The person's full name", min_length=1)
@@ -384,7 +384,7 @@ class TestMiddleware(AITestCase):
             subagent_result = await supervisor.invoke(
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
-            assert "Chris-zilla" in subagent_result.final_message.content
+            assert "Chris-zilla" in self.parse_content(subagent_result.final_message)
 
         assert model_called
         assert tool_called
@@ -450,7 +450,7 @@ class TestMiddleware(AITestCase):
             )
             assert subagent_message, "No subagent message found in response"
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
 
             assert middleware_called, "Middleware was not called"
@@ -501,7 +501,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Chris-superstar" in response, "Invalid response from LLM"
 
             subagent_message = next(
@@ -632,7 +632,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="Generate a nickname for Chris")]
             )
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Chris-zilla" in response, "Agent did generate valid nickname"
             assert middleware_called, "Middleware was not called"
 
@@ -669,7 +669,7 @@ class TestMiddleware(AITestCase):
                 ]
             )
 
-            response = res.final_message.content
+            response = self.parse_content(res.final_message)
             assert "My response is made up" == response
             assert middleware_called, "Middleware was not called"
 
@@ -726,7 +726,7 @@ class TestMiddleware(AITestCase):
             res = await agent.invoke(
                 [HumanMessage(content="What is the capital of Germany?")]
             )
-            assert "Paris" in res.final_message.content
+            assert "Paris" in self.parse_content(res.final_message)
 
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
@@ -764,7 +764,7 @@ class TestMiddleware(AITestCase):
                 [HumanMessage(content="What is the weather like today in Berlin?")]
             )
             # Berlin returns 22.1C; Krakow returns 31.5C
-            assert "31.5" in res.final_message.content
+            assert "31.5" in self.parse_content(res.final_message)
 
     @pytest.mark.asyncio
     @ai_snapshot_test()
@@ -809,7 +809,7 @@ class TestMiddleware(AITestCase):
             result = await supervisor.invoke(
                 [HumanMessage(content="Generate a nickname for Bob")]
             )
-            assert "Alice-zilla" in result.final_message.content
+            assert "Alice-zilla" in self.parse_content(result.final_message)
 
     @pytest.mark.asyncio
     @ai_snapshot_test()

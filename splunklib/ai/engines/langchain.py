@@ -77,7 +77,9 @@ from splunklib.ai.messages import (
     AgentResponse,
     AIMessage,
     BaseMessage,
+    ContentBlock,
     HumanMessage,
+    OpaqueBlock,
     OutputT,
     StructuredOutputCall,
     StructuredOutputMessage,
@@ -87,6 +89,7 @@ from splunklib.ai.messages import (
     SubagentStructuredResult,
     SubagentTextResult,
     SystemMessage,
+    TextBlock,
     ToolCall,
     ToolFailureResult,
     ToolMessage,
@@ -955,7 +958,7 @@ class _Middleware(LC_AgentMiddleware):
         return LC_ToolMessage(
             name=_normalize_agent_name(call.name),
             tool_call_id=call.id,
-            content=content,
+            content=_map_content_to_langchain(content),
             status=status,
             artifact=sdk_result,
         )
@@ -1089,7 +1092,10 @@ def _convert_model_response_to_model_result(
     # This invariant is asserted via ModelResponse.__post_init__
     assert len(resp.message.structured_output_calls) <= 1
 
-    lc_message = LC_AIMessage(content=resp.message.content)
+    lc_message = LC_AIMessage(
+        content=_map_content_to_langchain(resp.message.content),
+        additional_kwargs=resp.message.extras or {},
+    )
     # This field can't be set via __init__()
     lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in resp.message.calls]
 
@@ -1164,7 +1170,7 @@ def _convert_tool_message_to_lc(
         name=name,
         tool_call_id=message.call_id,
         status=status,
-        content=content,
+        content=_map_content_to_langchain(content),
         artifact=artifact,
     )
 
@@ -1247,9 +1253,10 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
         ai_message = model_response
         structured_response = None
 
+    additional_kwargs = cast(dict[str, Any], ai_message.additional_kwargs)
     return ModelResponse(
         message=AIMessage(
-            content=ai_message.content.__str__(),
+            content=_map_content_from_langchain(ai_message.content),  # pyright: ignore[reportUnknownArgumentType]
             calls=[
                 _map_tool_call_from_langchain(tc)
                 for tc in ai_message.tool_calls
@@ -1264,6 +1271,7 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
                 for tc in ai_message.tool_calls
                 if tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
             ],
+            extras=additional_kwargs,
         ),
         structured_output=structured_response,
     )
@@ -1426,6 +1434,28 @@ def _is_agent_name_valid(name: str) -> bool:
     return set(name).issubset(AGENT_NAME_ALLOWED_CHARS)
 
 
+def _parse_content_block(block: str | ContentBlock) -> str | None:
+    match block:
+        case TextBlock():
+            return block.text
+        case str():
+            return block
+        case _:
+            return None
+
+
+def _parse_content(content: str | list[str | ContentBlock]) -> str:
+    """Parses the content from AIMessage and builds a single string our of it"""
+    if isinstance(content, str):
+        return content
+
+    return " ".join(
+        parsed_block
+        for block in content
+        if (parsed_block := _parse_content_block(block))
+    )
+
+
 def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
     if not agent.name:
         raise AssertionError("Agent must have a name to be used by other Agents")
@@ -1437,7 +1467,10 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
     async def invoke_agent(
         message: HumanMessage, thread_id: str | None
-    ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+    ) -> tuple[
+        OutputT | str,
+        SubagentStructuredResult | SubagentTextResult,
+    ]:
         result = await agent.invoke([message], thread_id=thread_id)
 
         if agent.output_schema:
@@ -1446,9 +1479,8 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
                 structured_output=result.structured_output.model_dump(),
             )
 
-        return result.final_message.content, SubagentTextResult(
-            content=result.final_message.content
-        )
+        text_content = _parse_content(result.final_message.content)
+        return text_content, SubagentTextResult(content=text_content)
 
     InputSchema = agent.input_schema
     if InputSchema is None:
@@ -1456,13 +1488,19 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
             async def _run(  # pyright: ignore[reportRedeclaration]
                 content: str, thread_id: str
-            ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+            ) -> tuple[
+                OutputT | str,
+                SubagentStructuredResult | SubagentTextResult,
+            ]:
                 return await invoke_agent(HumanMessage(content=content), thread_id)
         else:
 
             async def _run(  # pyright: ignore[reportRedeclaration]
                 content: str,
-            ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+            ) -> tuple[
+                OutputT | str,
+                SubagentStructuredResult | SubagentTextResult,
+            ]:
                 return await invoke_agent(HumanMessage(content=content), None)
 
         return StructuredTool.from_function(
@@ -1475,7 +1513,10 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
     async def invoke_agent_structured(
         content: BaseModel, thread_id: str | None
-    ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+    ) -> tuple[
+        OutputT | str,
+        SubagentStructuredResult | SubagentTextResult,
+    ]:
         result = await agent.invoke_with_data(
             instructions="Follow the system prompt.",
             data=content.model_dump(),
@@ -1488,15 +1529,17 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
                 structured_output=result.structured_output.model_dump(),
             )
 
-        return result.final_message.content, SubagentTextResult(
-            content=result.final_message.content
-        )
+        text_content = _parse_content(result.final_message.content)
+        return text_content, SubagentTextResult(content=text_content)
 
     if agent.conversation_store:
 
         async def _run(
             **kwargs: Any,  # noqa: ANN401
-        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+        ) -> tuple[
+            OutputT | str,
+            SubagentStructuredResult | SubagentTextResult,
+        ]:
             content: BaseModel = kwargs["content"]
             thread_id: str = kwargs["thread_id"]
             return await invoke_agent_structured(content, thread_id)
@@ -1516,7 +1559,10 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
 
         async def _run(
             **kwargs: Any,  # noqa: ANN401
-        ) -> tuple[OutputT | str, SubagentStructuredResult | SubagentTextResult]:
+        ) -> tuple[
+            OutputT | str,
+            SubagentStructuredResult | SubagentTextResult,
+        ]:
             content = InputSchema(**kwargs)
             return await invoke_agent_structured(content, None)
 
@@ -1568,11 +1614,69 @@ def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
     return LC_ToolCall(id=call.id, name=name, args=args)
 
 
+def _map_content_from_langchain(
+    content: str | list[str | dict[str, Any]],
+) -> str | list[str | ContentBlock]:
+    if isinstance(content, str):
+        return content
+
+    result_content = [_map_content_block_from_langchain(b) for b in content]
+
+    return result_content
+
+
+def _map_content_block_from_langchain(
+    block: str | dict[str, Any],
+) -> str | ContentBlock:
+    if isinstance(block, str):
+        return block
+
+    match block.get("type"):
+        case "text":
+            return TextBlock(
+                text=block["text"], extras=block.get("extras"), id=block.get("id")
+            )
+        case _:
+            # NOTE: we return data we're not handling
+            # as opaque content blocks so they
+            # are preserved and sent back to the LLM
+            return OpaqueBlock(_data=block)
+
+
+def _map_content_to_langchain(
+    content: str | list[str | ContentBlock],
+) -> str | list[str | dict[str, Any]]:
+    if isinstance(content, str):
+        return content
+
+    result_content = [_map_content_block_to_langchain(b) for b in content]
+
+    return result_content
+
+
+def _map_content_block_to_langchain(block: str | ContentBlock) -> str | dict[str, Any]:
+    if isinstance(block, str):
+        return block
+
+    match block:
+        case TextBlock():
+            result: dict[str, Any] = {
+                "type": "text",
+                "text": block.text,
+                "id": block.id,
+            }
+            if block.extras:
+                result["extras"] = block.extras
+            return result
+        case OpaqueBlock():
+            return block._data  # pyright: ignore[reportPrivateUsage]
+
+
 def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
     match message:
         case LC_AIMessage():
             return AIMessage(
-                content=message.content.__str__(),
+                content=_map_content_from_langchain(message.content),  # pyright: ignore[reportUnknownArgumentType]
                 calls=[
                     _map_tool_call_from_langchain(tc)
                     for tc in message.tool_calls
@@ -1587,6 +1691,7 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
                     for tc in message.tool_calls
                     if tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)
                 ],
+                extras=cast(dict[str, Any], message.additional_kwargs),
             )
         case LC_HumanMessage():
             return HumanMessage(content=message.content.__str__())
@@ -1601,7 +1706,10 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
 def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
     match message:
         case AIMessage():
-            lc_message = LC_AIMessage(content=message.content)
+            lc_message = LC_AIMessage(
+                content=_map_content_to_langchain(message.content),
+                additional_kwargs=message.extras or {},
+            )
             # This field can't be set via constructor
             lc_message.tool_calls = [
                 _map_tool_call_to_langchain(c) for c in message.calls

@@ -22,6 +22,47 @@ from splunklib.ai.tools import ToolType
 
 
 @dataclass(frozen=True)
+class TextBlock:
+    """Plain text content block returned by a model."""
+
+    text: str
+    id: str | None = field(default=None)
+    extras: dict[str, Any] | None = field(default=None)
+    """ This field contains LLM-specific metadata.
+
+    It should be returned to the LLM unchanged in subsequent LLM calls.
+    The contents of this field is not guaranteed to be stable
+    and might change as SDK evolves.
+    """
+
+
+@dataclass(frozen=True)
+class OpaqueBlock:
+    """Content block of an unrecognized or unsupported type.
+
+    The raw provider dict is preserved in `_data` so it can be sent back
+    to the model unchanged on subsequent calls.
+    """
+
+    _data: dict[str, Any]
+    """This is raw data coming from the backend library.
+
+    This field is used to preserve the content blocks returned
+    from LLM, but not supported by the SDK.
+
+    DO NOT change the contents of this field.
+
+    If adding logic based around contents of this
+    field, keep in mind things could BREAK in the future,
+    once first class support is added to new content blocks.
+    """
+
+
+# Type alias for all content block variants.
+ContentBlock = TextBlock | OpaqueBlock
+
+
+@dataclass(frozen=True)
 class ToolCall:
     name: str
     args: dict[str, Any]
@@ -85,12 +126,19 @@ class AIMessage(BaseMessage):
     """
 
     role: Literal["assistant"] = field(default="assistant", init=False)
-    content: str
+    content: str | list[str | ContentBlock]
 
     calls: Sequence[ToolCall | SubagentCall]
     structured_output_calls: Sequence[StructuredOutputCall] = field(
         default_factory=tuple
     )
+    extras: dict[str, Any] | None = field(default=None)
+    """ This field contains LLM-specific metadata.
+
+    It should be returned to the LLM unchanged in subsequent LLM calls.
+    The contents of this field is not guaranteed to be stable
+    and might change as SDK evolves.
+    """
 
 
 @dataclass(frozen=True)

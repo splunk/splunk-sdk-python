@@ -305,7 +305,7 @@ class TestStructuredOutput(AITestCase):
                 )
 
                 try:
-                    Person.model_validate_json(e.message.content)
+                    Person.model_validate_json(self.parse_content(e.message))
                     raise AssertionError(
                         "args are valid, but got an StructuredOutputGenerationException"
                     )
@@ -317,7 +317,7 @@ class TestStructuredOutput(AITestCase):
             assert after_first_model_call, "generation error did not happen"
             assert resp.structured_output is not None, "missing structured_output"
             assert (
-                Person.model_validate_json(resp.message.content)
+                Person.model_validate_json(self.parse_content(resp.message))
                 == resp.structured_output
             ), "invalid structured output"
 
@@ -348,7 +348,7 @@ class TestStructuredOutput(AITestCase):
 
             assert len(result.final_message.structured_output_calls) == 0
             assert (
-                Person.model_validate_json(result.final_message.content)
+                Person.model_validate_json(self.parse_content(result.final_message))
                 == result.structured_output
             )
 
@@ -838,7 +838,9 @@ class TestStructuredOutput(AITestCase):
                 assert "ALL letters must be capitalized" in e.error.validation_error
                 assert len(e.message.structured_output_calls) == 0
 
-                args = PersonNotRestricted.model_validate_json(e.message.content)
+                args = PersonNotRestricted.model_validate_json(
+                    self.parse_content(e.message)
+                )
                 args.name = args.name.upper()
 
                 return ModelResponse(

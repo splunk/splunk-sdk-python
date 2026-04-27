@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from pydantic import BaseModel, Field
 import pytest
+from pydantic import BaseModel, Field
 
 from splunklib.ai import Agent
 from splunklib.ai.conversation_store import InMemoryStore
@@ -45,7 +45,7 @@ class TestConversationStore(AITestCase):
 
             result = await agent.invoke([HumanMessage(content="What is my name?")])
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
 
             assert "Chris" not in response, "Agent remembered the name"
 
@@ -103,7 +103,7 @@ class TestConversationStore(AITestCase):
 
             result = await agent.invoke([HumanMessage(content="What is my name?")])
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
 
             assert "Chris" in response, "Agent did not remember the name"
 
@@ -149,7 +149,7 @@ class TestConversationStore(AITestCase):
 
             result = await agent.invoke([HumanMessage(content="What is my name?")])
 
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
 
             assert "Mike" in response, "Agent did not remember the name"
 
@@ -189,7 +189,7 @@ class TestConversationStore(AITestCase):
                 [HumanMessage(content="What is my name?")],
                 thread_id="2",
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Mike" not in response, (
                 "Agent remembered the name from a different thread_id"
             )
@@ -224,14 +224,14 @@ class TestConversationStore(AITestCase):
                 [HumanMessage(content="What is my name?")],
                 thread_id="2",
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Mike" in response, "Agent did not remember the name"
 
             # When thread_id not specified the one from the agent constructor is used.
             result = await agent.invoke(
                 [HumanMessage(content="What is my name?")],
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Mike" in response, "Agent did not remember the name"
 
         # Now use the same conversation_store in a different agent with same thread_ids.
@@ -247,21 +247,21 @@ class TestConversationStore(AITestCase):
                 [HumanMessage(content="What is my name?")],
                 thread_id="1",
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Chris" in response, "Agent did not remember the name"
 
             result = await agent.invoke(
                 [HumanMessage(content="What is my name?")],
                 thread_id="2",
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Mike" in response, "Agent did not remember the name"
 
             # When thread_id not specified the one from the agent constructor is used.
             result = await agent.invoke(
                 [HumanMessage(content="What is my name?")],
             )
-            response = result.final_message.content
+            response = self.parse_content(result.final_message)
             assert "Mike" in response, "Agent did not remember the name"
 
 
@@ -333,7 +333,7 @@ class TestSubagentsWithConversationStore(AITestCase):
                 assert isinstance(third_ai_msg.calls[0], SubagentCall)
                 assert thread_id == third_ai_msg.calls[0].thread_id, "missing thread_id"
 
-                assert "chris" in resp.final_message.content.lower()
+                assert "chris" in self.parse_content(resp.final_message).lower()
 
     @pytest.mark.asyncio
     @deterministic_thread_ids()
@@ -408,4 +408,4 @@ class TestSubagentsWithConversationStore(AITestCase):
                 assert isinstance(third_ai_msg.calls[0], SubagentCall)
                 assert thread_id == third_ai_msg.calls[0].thread_id, "invalid thread_id"
 
-                assert "chris" in resp.final_message.content.lower()
+                assert "chris" in self.parse_content(resp.final_message).lower()

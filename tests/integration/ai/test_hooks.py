@@ -31,11 +31,12 @@ from splunklib.ai.hooks import (
 )
 from splunklib.ai.messages import AIMessage, AgentResponse, HumanMessage
 from splunklib.ai.middleware import AgentRequest, ModelMiddlewareHandler, ModelRequest, ModelResponse, model_middleware
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 class TestHook(AITestCase):
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_hook_decorator(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -97,6 +98,7 @@ class TestHook(AITestCase):
             assert hook_calls == 4
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_hook_agent(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -164,6 +166,7 @@ class TestHook(AITestCase):
             assert hook_calls == 4
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_loop_stop_conditions_token_limit(self):
         pytest.importorskip("langchain_openai")
 
@@ -185,6 +188,7 @@ class TestHook(AITestCase):
                 )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_loop_stop_conditions_conversation_limit(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -203,6 +207,7 @@ class TestHook(AITestCase):
                 ])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_loop_stop_conditions_conversation_limit_with_checkpointer(
         self,
     ) -> None:
@@ -226,6 +231,7 @@ class TestHook(AITestCase):
                 ])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_loop_stop_conditions_steps_accumulate_across_invokes(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -250,6 +256,7 @@ class TestHook(AITestCase):
                 _ = await agent.invoke([HumanMessage(content="hi")])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_loop_stop_conditions_timeout(self):
         pytest.importorskip("langchain_openai")
 

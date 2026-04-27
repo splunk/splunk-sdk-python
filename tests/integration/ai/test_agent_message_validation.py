@@ -46,7 +46,7 @@ from splunklib.ai.middleware import (
     model_middleware,
 )
 from splunklib.ai.tools import ToolType
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 @model_middleware
@@ -71,6 +71,7 @@ class MockStore(ConversationStore):
 
 
 class TestMessageValidation(AITestCase):
+    @ai_snapshot_test()
     async def test_message_validation_invoke(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -533,6 +534,7 @@ class TestMessageValidation(AITestCase):
                     with pytest.raises(Exception, match=exception):
                         await agent.invoke(messages=[HumanMessage(content="")])
 
+    @ai_snapshot_test()
     async def test_message_validation_store_with_invoke(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -574,6 +576,7 @@ class TestMessageValidation(AITestCase):
             ):
                 await agent.invoke(messages=messages)
 
+    @ai_snapshot_test()
     async def test_message_validation_agent_middleware_modifies_messages(self) -> None:
         pytest.importorskip("langchain_openai")
 

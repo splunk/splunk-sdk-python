@@ -51,7 +51,7 @@ from splunklib.ai.middleware import (
     tool_middleware,
 )
 from splunklib.ai.tool_settings import ToolSettings
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 
 class TestMiddleware(AITestCase):
@@ -61,6 +61,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_tool_call(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -105,6 +106,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_tool_call_exception_raised(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -133,6 +135,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_tool_call_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -172,6 +175,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_tool_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -217,6 +221,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_two_tool_middlewares(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -263,6 +268,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_tool_and_model_middlewares(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -305,6 +311,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_class_middleware_model_tool_subagent(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -384,6 +391,7 @@ class TestMiddleware(AITestCase):
         assert subagent_called
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_uses_subagent(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -448,6 +456,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_subagent_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -511,6 +520,7 @@ class TestMiddleware(AITestCase):
         os.path.join(os.path.dirname(__file__), "testdata", "weather.py"),
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
     async def test_agent_middleware_model_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -558,6 +568,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_model_retry_subagent_call(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -626,6 +637,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_model_made_up_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -662,6 +674,7 @@ class TestMiddleware(AITestCase):
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_model_exception_raised(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -688,6 +701,7 @@ class TestMiddleware(AITestCase):
                 )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_model_middleware_message_mutation_reaches_llm(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -720,6 +734,7 @@ class TestMiddleware(AITestCase):
     )
     @patch("splunklib.ai.agent._testing_app_id", "app_id")
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_tool_middleware_arg_mutation_reaches_tool(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -752,6 +767,7 @@ class TestMiddleware(AITestCase):
             assert "31.5" in res.final_message.content
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_subagent_middleware_arg_mutation_reaches_subagent(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -796,6 +812,7 @@ class TestMiddleware(AITestCase):
             assert "Alice-zilla" in result.final_message.content
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_model_middleware_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -822,6 +839,7 @@ class TestMiddleware(AITestCase):
             assert resp.structured_output.name.lower() == "stefan"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_model_middleware_modify_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -848,6 +866,7 @@ class TestMiddleware(AITestCase):
             assert resp.structured_output.name == "Mike"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_model_middleware_made_up_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -875,6 +894,7 @@ class TestMiddleware(AITestCase):
             assert resp.structured_output.name.lower() == "stefan"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -905,6 +925,7 @@ class TestMiddleware(AITestCase):
             assert isinstance(resp.messages[-1], AIMessage)
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_class_based(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -938,6 +959,7 @@ class TestMiddleware(AITestCase):
             assert isinstance(resp.messages[-1], AIMessage)
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_exception(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -960,6 +982,7 @@ class TestMiddleware(AITestCase):
                 )
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_fake_response(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -989,6 +1012,7 @@ class TestMiddleware(AITestCase):
             assert resp.messages[1] == AIMessage(content="Cloudy", calls=[])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_retry(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -1018,6 +1042,7 @@ class TestMiddleware(AITestCase):
             assert isinstance(resp.messages[-1], AIMessage)
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_multiple(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -1068,6 +1093,7 @@ class TestMiddleware(AITestCase):
             assert isinstance(resp.messages[-1], AIMessage)
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -1098,6 +1124,7 @@ class TestMiddleware(AITestCase):
             assert resp.structured_output.name.lower() == "stefan"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_missing_structured_output(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -1130,6 +1157,7 @@ class TestMiddleware(AITestCase):
                 _ = await agent.invoke([HumanMessage(content="What is your name?")])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_invalid_structured_output_type(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -1166,6 +1194,7 @@ class TestMiddleware(AITestCase):
                 _ = await agent.invoke([HumanMessage(content="What is your name?")])
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_middleware_unexpected_additional_structured_output(
         self,
     ) -> None:

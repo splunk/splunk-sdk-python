@@ -27,11 +27,12 @@ from splunklib.ai.middleware import (
     agent_middleware,
     model_middleware,
 )
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test, deterministic_thread_ids
 
 
 class TestConversationStore(AITestCase):
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_does_not_remember_state_without_store(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -49,6 +50,7 @@ class TestConversationStore(AITestCase):
             assert "Chris" not in response, "Agent remembered the name"
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_agent_remembers_state(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -109,6 +111,7 @@ class TestConversationStore(AITestCase):
         assert agent_middleware_called
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_remembers_result_of_agent_middleware(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -153,6 +156,7 @@ class TestConversationStore(AITestCase):
         assert agent_middleware_called
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_invoke_thread_id(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -193,6 +197,7 @@ class TestConversationStore(AITestCase):
         assert model_middleware_called
 
     @pytest.mark.asyncio
+    @ai_snapshot_test()
     async def test_thread_id_in_constructor(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -261,9 +266,9 @@ class TestConversationStore(AITestCase):
 
 
 class TestSubagentsWithConversationStore(AITestCase):
-    # TODO: unskip the test once we switch to a better model
     @pytest.mark.asyncio
-    @pytest.mark.skip("Test failing because of model change to gpt-5-nano")
+    @deterministic_thread_ids()
+    @ai_snapshot_test()
     async def test_supervisor_resumes_subagent_thread_across_invocations(self) -> None:
         pytest.importorskip("langchain_openai")
 
@@ -330,9 +335,9 @@ class TestSubagentsWithConversationStore(AITestCase):
 
                 assert "chris" in resp.final_message.content.lower()
 
-    # TODO: unskip the test once we switch to a better model
     @pytest.mark.asyncio
-    @pytest.mark.skip("Test failing because of model change to gpt-5-nano")
+    @deterministic_thread_ids()
+    @ai_snapshot_test()
     async def test_supervisor_resumes_subagent_thread_across_invocations_structured(
         self,
     ) -> None:

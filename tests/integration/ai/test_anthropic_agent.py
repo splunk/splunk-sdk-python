@@ -16,7 +16,7 @@ import pytest
 
 from splunklib.ai import Agent, AnthropicModel
 from splunklib.ai.messages import HumanMessage
-from tests.ai_testlib import AITestCase
+from tests.ai_testlib import AITestCase, ai_snapshot_test
 
 # Ollama exposes an Anthropic-compatible API -
 # point AnthropicModel at the Ollama base URL
@@ -29,6 +29,7 @@ ANTHROPIC_MODEL = "llama3.2:3b"
 class TestAnthropicAgent(AITestCase):
     @pytest.mark.asyncio
     @pytest.mark.skip("Manual Test")
+    @ai_snapshot_test()
     async def test_agent_with_anthropic_round_trip(self):
         """Basic round-trip using AnthropicModel pointed at local Ollama."""
         model = AnthropicModel(

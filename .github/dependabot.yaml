@@ -1,11 +1,11 @@
-# version: 2
-# updates:
-  # - package-ecosystem: "github-actions"
-  #   directory: "/"
-  #   target-branch: "develop"
-  #   schedule:
-  #     interval: "weekly"
-  # - package-ecosystem: "uv"
-  #   directory: "/"
-  #   schedule:
-  #     interval: "weekly"
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"

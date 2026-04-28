@@ -35,7 +35,7 @@ dependencies = []
 compat = ["six>=1.17.0"]
 ai = ["httpx==0.28.1", "langchain>=1.2.15", "mcp>=1.27.0", "pydantic>=2.13.1"]
 anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.0"]
-openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.1.13"]
+openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.1.14"]
 
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]

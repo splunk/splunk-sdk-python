@@ -48,7 +48,7 @@ test = [
   "vcrpy>=8.1.1",
 ]
 release = ["build>=1.4.3", "jinja2>=3.1.6", "sphinx>=9.1.0", "twine>=6.2.0"]
-lint = ["basedpyright>=1.39.0", "ruff>=0.15.10"]
+lint = ["basedpyright>=1.39.0", "ruff>=0.15.12"]
 dev = [
   "rich>=14.3.3",
   "splunk-sdk[openai, anthropic]",

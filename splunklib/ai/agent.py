@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import asyncio
 import os
 from collections.abc import AsyncGenerator, Sequence
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
@@ -46,6 +47,7 @@ _testing_local_tools_path: str | None = None
 _testing_app_id: str | None = None
 
 DEFAULT_TOOL_SETTINGS = ToolSettings(local=False, remote=None)
+_SPLUNK_SYSTEM_USER = "splunk-system-user"
 
 
 @final
@@ -181,9 +183,14 @@ class Agent(BaseAgent[OutputT]):
                 "internal error: _impl was not set to None after agent invocation"
             )
 
+            splunk_username = await asyncio.to_thread(
+                lambda: _get_splunk_username(self._service)
+            )
+            _validate_agent_privileges(splunk_username)
+
             self.logger.debug(f"Creating agent {self.name=}; {self.trace_id=}")
 
-            self._tools = await self._load_tools(stack)
+            self._tools = await self._load_tools(stack, splunk_username)
 
             backend = get_backend()
             self._impl = await backend.create_agent(self)
@@ -194,7 +201,9 @@ class Agent(BaseAgent[OutputT]):
 
             self._impl = None
 
-    async def _load_tools(self, stack: AsyncExitStack) -> list[Tool]:
+    async def _load_tools(
+        self, stack: AsyncExitStack, splunk_username: str
+    ) -> list[Tool]:
         tools: list[Tool] = []
         if not self.tool_settings.local and not self.tool_settings.remote:
             return tools
@@ -225,7 +234,9 @@ class Agent(BaseAgent[OutputT]):
         if self.tool_settings.remote:
             self.logger.debug("Probing MCP Server App availability")
             remote_session = await stack.enter_async_context(
-                connect_remote_mcp(self._service, app_id, self.trace_id)
+                connect_remote_mcp(
+                    self._service, app_id, self.trace_id, splunk_username
+                )
             )
 
             if remote_session:
@@ -301,6 +312,10 @@ class Agent(BaseAgent[OutputT]):
         )
 
 
+class PrivilegedExecutionError(Exception):
+    pass
+
+
 def _local_tools_path() -> tuple[str | None, str]:
     local_tools_path = _testing_local_tools_path
     app_id = _testing_app_id
@@ -317,3 +332,38 @@ def _local_tools_path() -> tuple[str | None, str]:
         local_tools_path = None
 
     return local_tools_path, app_id
+
+
+def _get_splunk_username(service: Service) -> str:
+    class Content(BaseModel):
+        username: str
+
+    class Entry(BaseModel):
+        content: Content
+
+    class ResponseBody(BaseModel):
+        entry: list[Entry]
+
+    # Query Splunk API for the username.
+    res = service.get(
+        path_segment="authentication/current-context",
+        output_mode="json",
+    )
+
+    body = ResponseBody.model_validate_json(str(res.body))  # pyright: ignore[reportUnknownArgumentType]
+    if len(body.entry) == 0:
+        return ""
+    return body.entry[0].content.username
+
+
+def _validate_agent_privileges(username: str) -> None:
+    """Enforces that the agent is not executed under a system account.
+
+    Raises:
+        PrivilegedExecutionError: If the current execution context corresponds
+        to a disallowed system account.
+    """
+    if username == _SPLUNK_SYSTEM_USER:
+        raise PrivilegedExecutionError(
+            f"Agent must not be executed by the system user: {_SPLUNK_SYSTEM_USER}"
+        )

@@ -201,6 +201,8 @@ class LangChainBackend(Backend):
 
 @dataclass
 class InvokeContext:
+    thread_id: str
+
     retry: LC_HumanMessage | bool = False
     """
     Controls whether to retry the agent loop after ainvoke succeeds.
@@ -637,12 +639,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
     async def invoke(
         self, messages: list[BaseMessage], thread_id: str
     ) -> AgentResponse[OutputT]:
-        # TODO: What if we are passed len(messages) == 0 to invoke?
-        # TODO: What if someone passed call_id that don't have a corresponding id with the response.
-        # Possibly we should do a validation phase of messages here.
-        # TODO: also assert correct ordering, i.e. directly after AIMessage with calls, there is a response
-        # not before or far after.
-
         async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
             langchain_msgs = []
 
@@ -657,7 +653,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             langchain_msgs.extend([_map_message_to_langchain(m) for m in req.messages])
 
             while True:
-                ctx = InvokeContext()
+                ctx = InvokeContext(thread_id=thread_id)
                 result = await self._agent.ainvoke(
                     {"messages": langchain_msgs},
                     context=ctx,
@@ -699,6 +695,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         result = await self._with_agent_middleware(invoke_agent)(
             AgentRequest(
+                thread_id=thread_id,
                 messages=messages,
             )
         )
@@ -1054,24 +1051,29 @@ def _convert_model_handler_from_lc(
 def _convert_model_request_from_lc(
     request: LC_ModelRequest, model: BaseChatModel
 ) -> ModelRequest:
+    thread_id = request.runtime.context.thread_id
+
     system_message = (
         request.system_message.content.__str__() if request.system_message else ""
     )
 
     return ModelRequest(
         system_message=system_message,
-        state=_convert_agent_state_from_langchain(request.state, model),
+        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
     )
 
 
 def _convert_tool_request_from_lc(
     request: LC_ToolCallRequest, model: BaseChatModel
 ) -> ToolRequest:
+    assert isinstance(request.runtime.context, InvokeContext)
+    thread_id = request.runtime.context.thread_id
+
     tool_call = _map_tool_call_from_langchain(request.tool_call)
     assert isinstance(tool_call, ToolCall), "Expected tool call"
     return ToolRequest(
         call=tool_call,
-        state=_convert_agent_state_from_langchain(request.state, model),
+        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
     )
 
 
@@ -1079,11 +1081,14 @@ def _convert_subagent_request_from_lc(
     request: LC_ToolCallRequest,
     model: BaseChatModel,
 ) -> SubagentRequest:
+    assert isinstance(request.runtime.context, InvokeContext)
+    thread_id = request.runtime.context.thread_id
+
     subagent_call = _map_tool_call_from_langchain(request.tool_call)
     assert isinstance(subagent_call, SubagentCall), "Expected subagent call"
     return SubagentRequest(
         call=subagent_call,
-        state=_convert_agent_state_from_langchain(request.state, model),
+        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
     )
 
 
@@ -1508,7 +1513,9 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
         OutputT | str,
         SubagentStructuredResult | SubagentTextResult,
     ]:
-        result = await agent.invoke([message], thread_id=thread_id)
+        result = await agent.invoke(
+            [message], thread_id=thread_id or _thread_id_new_uuid()
+        )
 
         if agent.output_schema:
             assert result.structured_output is not None
@@ -1557,7 +1564,7 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
         result = await agent.invoke_with_data(
             instructions="Follow the system prompt.",
             data=content.model_dump(),
-            thread_id=thread_id,
+            thread_id=thread_id or _thread_id_new_uuid(),
         )
 
         if agent.output_schema:
@@ -1772,7 +1779,7 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
 
 
 def _convert_agent_state_from_langchain(
-    state: LC_AgentState[Any], model: BaseChatModel
+    state: LC_AgentState[Any], model: BaseChatModel, thread_id: str
 ) -> AgentState:
     messages = state["messages"]
     total_tokens_counter = _get_approximate_token_counter(model)
@@ -1782,6 +1789,7 @@ def _convert_agent_state_from_langchain(
         messages=messages,
         total_steps=len(messages),
         token_count=total_tokens,
+        thread_id=thread_id,
     )
 
 
@@ -1912,6 +1920,11 @@ def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) ->
                     check_call_id("subagent", call.id)
                     check_tool_name("subagent", call.name)
                     pending_subagent_calls[call.id] = call.name
+
+                    if call.thread_id == "":
+                        raise _InvalidMessagesException(
+                            "thread_id should not be an empty string"
+                        )
                 else:
                     raise _InvalidMessagesException(
                         f"AIMessage contains invalid call type: {type(call)}"

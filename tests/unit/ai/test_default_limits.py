@@ -43,7 +43,7 @@ def _make_agent(middleware: list[AgentMiddleware] | None = None) -> Agent:  # ty
 
 
 def _make_agent_request() -> AgentRequest:
-    return AgentRequest(messages=[])
+    return AgentRequest(messages=[], thread_id="foo")
 
 
 def _make_model_request(token_count: int = 0, total_steps: int = 0) -> ModelRequest:
@@ -51,6 +51,7 @@ def _make_model_request(token_count: int = 0, total_steps: int = 0) -> ModelRequ
         messages=[],
         total_steps=total_steps,
         token_count=token_count,
+        thread_id="foo",
     )
     return ModelRequest(system_message="", state=state)
 
@@ -141,7 +142,7 @@ class TestTimeoutLimitMiddleware(unittest.IsolatedAsyncioTestCase):
         mw = TimeoutLimitMiddleware(60.0)
         mw._deadline = monotonic() - 1.0  # pyright: ignore[reportPrivateUsage]  # already in the past
 
-        state = AgentState(messages=[], total_steps=0, token_count=0)
+        state = AgentState(messages=[], total_steps=0, token_count=0, thread_id="foo")
         request = ModelRequest(system_message="", state=state)
 
         with self.assertRaises(TimeoutExceededException):

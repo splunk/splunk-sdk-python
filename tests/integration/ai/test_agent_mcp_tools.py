@@ -23,6 +23,9 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 
 from splunklib.ai import Agent
+from splunklib.ai.agent import (
+    _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
+)
 from splunklib.ai.engines.langchain import LOCAL_TOOL_PREFIX
 from splunklib.ai.messages import (
     AIMessage,
@@ -50,7 +53,6 @@ from splunklib.ai.tool_settings import (
 )
 from splunklib.ai.tools import (
     ToolType,
-    _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
     locate_app,
 )
 from splunklib.client import connect
@@ -296,6 +298,12 @@ async def mcp_token_handler(_: Request) -> Response:
     return JSONResponse(content={"token": AUTH_TOKEN}, status_code=200)
 
 
+async def current_context_handler(_: Request) -> Response:
+    return JSONResponse(
+        content={"entry": [{"content": {"username": "admin"}}]}, status_code=200
+    )
+
+
 class TestRemoteTools(AITestCase):
     @patch(
         "splunklib.ai.agent._testing_local_tools_path",
@@ -364,6 +372,11 @@ class TestRemoteTools(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
+                    Route(
+                        "/services/authentication/current-context",
+                        current_context_handler,
+                        methods=["GET"],
+                    ),
                 ],
                 lifespan=lifespan,
                 middleware=[Middleware(MCPMiddleware)],
@@ -376,7 +389,6 @@ class TestRemoteTools(AITestCase):
                     port=port,
                     splunkToken=AUTH_TOKEN,
                     autologin=True,
-                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
             )
 
@@ -427,7 +439,17 @@ class TestRemoteTools(AITestCase):
     async def test_remote_tools_mcp_app_unavailable(self) -> None:
         pytest.importorskip("langchain_openai")
 
-        async with run_http_server(Starlette(routes=[])) as (host, port):
+        async with run_http_server(
+            Starlette(
+                routes=[
+                    Route(
+                        "/services/authentication/current-context",
+                        current_context_handler,
+                        methods=["GET"],
+                    ),
+                ]
+            )
+        ) as (host, port):
             service = await asyncio.to_thread(
                 lambda: connect(
                     scheme="http",
@@ -435,7 +457,6 @@ class TestRemoteTools(AITestCase):
                     port=port,
                     splunkToken=AUTH_TOKEN,
                     autologin=True,
-                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
             )
 
@@ -489,6 +510,11 @@ class TestRemoteTools(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
+                    Route(
+                        "/services/authentication/current-context",
+                        current_context_handler,
+                        methods=["GET"],
+                    ),
                 ],
                 lifespan=lifespan,
             )
@@ -500,7 +526,6 @@ class TestRemoteTools(AITestCase):
                     port=port,
                     splunkToken=AUTH_TOKEN,
                     autologin=True,
-                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
             )
 
@@ -579,6 +604,11 @@ class TestRemoteTools(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
+                    Route(
+                        "/services/authentication/current-context",
+                        current_context_handler,
+                        methods=["GET"],
+                    ),
                 ],
                 lifespan=lifespan,
             )
@@ -590,7 +620,6 @@ class TestRemoteTools(AITestCase):
                     port=port,
                     splunkToken=AUTH_TOKEN,
                     autologin=True,
-                    username="admin",  # not required, but set to avoid mocking the authentication/current-context endpoint
                 ),
             )
 
@@ -732,6 +761,11 @@ class TestHandlingToolNameCollision(AITestCase):
                 routes=[
                     Mount("/services/mcp", app=mcp.streamable_http_app()),
                     Route("/services/mcp_token", mcp_token_handler, methods=["GET"]),
+                    Route(
+                        "/services/authentication/current-context",
+                        current_context_handler,
+                        methods=["GET"],
+                    ),
                 ],
                 lifespan=lifespan,
             )
@@ -743,8 +777,6 @@ class TestHandlingToolNameCollision(AITestCase):
                     port=port,
                     splunkToken=AUTH_TOKEN,
                     autologin=True,
-                    # To avoid mocking `authentication/current-context` endpoint
-                    username="admin",
                 ),
             )
 

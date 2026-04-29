@@ -17,6 +17,8 @@ from typing import Any
 
 import pytest
 
+from splunklib.ai import Agent, OpenAIModel
+from splunklib.ai.agent import PrivilegedExecutionError
 from splunklib.ai.messages import AgentResponse, AIMessage, HumanMessage
 from splunklib.ai.middleware import (
     AgentMiddlewareHandler,
@@ -28,6 +30,8 @@ from splunklib.ai.security import (
     detect_injection,
     truncate_input,
 )
+from splunklib.client import Service
+from splunklib.data import Record
 
 
 class TestDetectInjection(unittest.TestCase):
@@ -168,3 +172,34 @@ class TestInjectionGuardMiddleware(unittest.IsolatedAsyncioTestCase):
         )
         await middleware.agent_middleware(request, handler)
         assert called
+
+
+class TestPrivilegedExecution(unittest.IsolatedAsyncioTestCase):
+    @pytest.mark.asyncio
+    async def test_agent_with_system_user(self) -> None:
+        model = OpenAIModel(
+            model="test-model", base_url="test-url", api_key="test-api-key"
+        )
+
+        def handler(url: str, _message: dict[str, Any], **_kwargs: dict[str, Any]):
+            assert (
+                url
+                == "https://localhost:8089/services/authentication/current-context?output_mode=json"
+            )
+            return Record(
+                {
+                    "status": 200,
+                    "headers": [],
+                    "body": '{"entry": [{"content": {"username": "splunk-system-user"}}]}',
+                }
+            )
+
+        service = Service(token="test-token", handler=handler)
+
+        with pytest.raises(PrivilegedExecutionError, match="splunk-system-user"):
+            async with Agent(
+                model=model,
+                system_prompt="Your name is stefan",
+                service=service,
+            ):
+                ...

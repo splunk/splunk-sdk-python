@@ -247,37 +247,11 @@ def _convert_tool_result(
     )
 
 
-def _get_splunk_username(service: Service) -> str:
-    if service.username:
-        return service.username
-
-    class Content(BaseModel):
-        username: str
-
-    class Entry(BaseModel):
-        content: Content
-
-    class ResponseBody(BaseModel):
-        entry: list[Entry]
-
-    # In case service.username is unavailable, query Splunk API for the username.
-    # This can happen when a service is created with a token, without username/password.
-    res = service.get(
-        path_segment="authentication/current-context",
-        output_mode="json",
-    )
-
-    body = ResponseBody.model_validate_json(str(res.body))
-    if len(body.entry) == 0:
-        return ""
-    return body.entry[0].content.username
-
-
-def _get_mcp_token(service: Service) -> str | None:
+def _get_mcp_token(splunk_username: str, service: Service) -> str | None:
     try:
         res = service.get(
             path_segment="mcp_token",
-            username=_get_splunk_username(service),
+            username=splunk_username,
             output_mode="json",
         )
     except HTTPError as e:
@@ -324,10 +298,13 @@ async def connect_remote_mcp(
     service: Service,
     app_id: str,
     trace_id: str,
+    splunk_username: str,
 ) -> AsyncGenerator[ClientSession | None]:
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
-    mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(service))
+    mcp_token = await asyncio.to_thread(
+        lambda: _get_mcp_token(splunk_username, service)
+    )
     if mcp_token is not None:
         async with streamable_http_client(
             url=mcp_url,

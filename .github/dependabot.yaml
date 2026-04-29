@@ -5,7 +5,13 @@ updates:
     target-branch: "develop"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns: ["*"]
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      python-uv-lock:
+        patterns: ["*"]

@@ -23,9 +23,11 @@ from pydantic import BaseModel
 from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.hooks import (
     DEFAULT_STEP_LIMIT,
+    DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT,
     DEFAULT_TIMEOUT_SECONDS,
     DEFAULT_TOKEN_LIMIT,
     StepLimitMiddleware,
+    StructuredOutputRetryLimitMiddleware,
     TimeoutLimitMiddleware,
     TokenLimitMiddleware,
 )
@@ -79,16 +81,24 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
         self._output_schema = output_schema
         user_middleware = tuple(middleware) if middleware else ()
         user_middleware_types = {type(m) for m in user_middleware}
+
         # NOTE: we're creating separate instances per agent - TimeoutLimitMiddleware is stateful
         # and sharing one would cause agents to overwrite each other's deadline.
-        predefined: list[AgentMiddleware] = [
+        predefined_before: list[AgentMiddleware] = [
+            StructuredOutputRetryLimitMiddleware(DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT),
+        ]
+        predefined_after: list[AgentMiddleware] = [
             TokenLimitMiddleware(DEFAULT_TOKEN_LIMIT),
             StepLimitMiddleware(DEFAULT_STEP_LIMIT),
             TimeoutLimitMiddleware(DEFAULT_TIMEOUT_SECONDS),
         ]
-        # Append predefined middlewares by default if not provided already.
-        default_middleware = [m for m in predefined if type(m) not in user_middleware_types]
-        self._middleware = (*user_middleware, *default_middleware)
+
+        self._middleware = (
+            *{m for m in predefined_before if type(m) not in user_middleware_types},
+            *user_middleware,
+            *{m for m in predefined_after if type(m) not in user_middleware_types},
+        )
+
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
         self._conversation_store = conversation_store
         self._thread_id = thread_id

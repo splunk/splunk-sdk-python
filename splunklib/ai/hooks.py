@@ -12,10 +12,12 @@ from splunklib.ai.middleware import (
     ModelRequest,
     ModelResponse,
 )
+from splunklib.ai.structured_output import StructuredOutputGenerationException
 
 DEFAULT_TIMEOUT_SECONDS: float = 600.0
 DEFAULT_STEP_LIMIT: int = 100
 DEFAULT_TOKEN_LIMIT: int = 200_000
+DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT: int = 3
 
 
 class AgentStopException(Exception):
@@ -41,6 +43,13 @@ class TimeoutExceededException(AgentStopException):
 
     def __init__(self, timeout_seconds: float) -> None:
         super().__init__(f"Timed out after {timeout_seconds} seconds.")
+
+
+class StructuredOutputRetryLimitExceededException(AgentStopException):
+    """Raised by `Agent.invoke`, when structured output retry limit exceeds"""
+
+    def __init__(self, retry_count: int) -> None:
+        super().__init__(f"Structured output retry limit of {retry_count} exceeded")
 
 
 def before_model(
@@ -199,3 +208,43 @@ class TimeoutLimitMiddleware(AgentMiddleware):
         if self._deadline is not None and monotonic() >= self._deadline:
             raise TimeoutExceededException(timeout_seconds=self._seconds)
         return await handler(request)
+
+
+class StructuredOutputRetryLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the agent exceeds structured output
+    retry limit during a single agent loop invocation. Pass 0 to disable retries.
+    """
+
+    _limit: int
+    _retries_per_thread_id: dict[str, int]
+
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
+        self._retries_per_thread_id = {}
+
+    @override
+    async def agent_middleware(
+        self,
+        request: AgentRequest,
+        handler: AgentMiddlewareHandler,
+    ) -> AgentResponse[Any | None]:
+        try:
+            # Agent loop starting.
+            self._retries_per_thread_id[request.thread_id] = 0
+            return await handler(request)
+        finally:
+            del self._retries_per_thread_id[request.thread_id]  # don't leak memory
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        try:
+            return await handler(request)
+        except StructuredOutputGenerationException:
+            self._retries_per_thread_id[request.state.thread_id] += 1
+            if self._retries_per_thread_id[request.state.thread_id] > self._limit:
+                raise StructuredOutputRetryLimitExceededException(self._limit)
+            raise  # re-raise, to retry structured output generation

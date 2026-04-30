@@ -81,8 +81,8 @@ reportUnknownMemberType = false
 reportUnusedCallResult = false
 
 # https://docs.astral.sh/ruff/configuration/
-[tool.ruff]
-line-length = 100
+#[tool.ruff]
+#line-length = 100
 
 [tool.ruff.lint]
 fixable = ["ALL"]

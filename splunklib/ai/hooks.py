@@ -182,11 +182,11 @@ class TimeoutLimitMiddleware(AgentMiddleware):
     """
 
     _seconds: float
-    _deadline: float | None
+    _deadline_per_thread_id: dict[str, float]
 
     def __init__(self, seconds: float) -> None:
         self._seconds = seconds
-        self._deadline = None
+        self._deadline_per_thread_id = {}
 
     @override
     async def agent_middleware(
@@ -194,10 +194,14 @@ class TimeoutLimitMiddleware(AgentMiddleware):
         request: AgentRequest,
         handler: AgentMiddlewareHandler,
     ) -> AgentResponse[Any | None]:
-        # WARN: this might not work with agents handling
-        # different threads at the same time.
-        self._deadline = monotonic() + self._seconds
-        return await handler(request)
+        try:
+            # Agent loop starting.
+            self._deadline_per_thread_id[request.thread_id] = (
+                monotonic() + self._seconds
+            )
+            return await handler(request)
+        finally:
+            del self._deadline_per_thread_id[request.thread_id]  # don't leak memory
 
     @override
     async def model_middleware(
@@ -205,7 +209,7 @@ class TimeoutLimitMiddleware(AgentMiddleware):
         request: ModelRequest,
         handler: ModelMiddlewareHandler,
     ) -> ModelResponse:
-        if self._deadline is not None and monotonic() >= self._deadline:
+        if monotonic() >= self._deadline_per_thread_id[request.state.thread_id]:
             raise TimeoutExceededException(timeout_seconds=self._seconds)
         return await handler(request)
 

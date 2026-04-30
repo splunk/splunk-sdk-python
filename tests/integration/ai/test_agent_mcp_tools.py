@@ -803,7 +803,7 @@ class TestHandlingToolNameCollision(AITestCase):
                 assert len(agent.tools) == 2
 
                 content = "Call tools to populate output."
-                response = await agent.invoke([HumanMessage(content)])
+                response = await agent.invoke([HumanMessage(content=content)])
                 print(response.structured_output)
                 assert response.structured_output.remote_temperature == "31.5C"
                 assert response.structured_output.local_temperature == "22.1C"

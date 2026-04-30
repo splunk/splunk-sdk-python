@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from splunklib.ai.tools import ToolMetadata
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolAllowlist:
     """Holds tool names and tags allowed to be used by Agents.
 
@@ -41,17 +41,17 @@ class ToolAllowlist:
         return self.custom_predicate(tool) if self.custom_predicate else False
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class RemoteToolSettings:
     allowlist: ToolAllowlist
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class LocalToolSettings:
     allowlist: ToolAllowlist
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolSettings:
     local: LocalToolSettings | bool
     """Controls local tool loading (via ``bin/tools.py``).

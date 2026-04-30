@@ -67,7 +67,7 @@ def test_filtering(
     initial_tools: Sequence[Tool],
     expected_tools: Sequence[Tool],
 ) -> None:
-    filters = ToolAllowlist(allowed_names, allowed_tags)
+    filters = ToolAllowlist(names=allowed_names, tags=allowed_tags)
     filtered_tools = [t for t in initial_tools if filters.is_allowed(t)]
 
     assert filtered_tools == expected_tools

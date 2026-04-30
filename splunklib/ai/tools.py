@@ -38,7 +38,7 @@ class ToolException(Exception):
     """Custom exception to indicate tool execution errors."""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolResult:
     content: str
     structured_content: dict[str, Any] | None
@@ -49,7 +49,7 @@ class ToolType(Enum):
     REMOTE = "remote"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolMetadata:
     name: str
     description: str
@@ -58,7 +58,7 @@ class ToolMetadata:
     tags: list[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Tool(ToolMetadata):
     func: Callable[..., Awaitable[ToolResult]]
 

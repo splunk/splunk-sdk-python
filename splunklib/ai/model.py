@@ -18,14 +18,14 @@ from typing import Any, Mapping
 import httpx
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class PredefinedModel:
     """Base class for models that are predefined in the SDK"""
 
     model: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class OpenAIModel(PredefinedModel):
     """Predefined OpenAI Model"""
 
@@ -53,7 +53,7 @@ class OpenAIModel(PredefinedModel):
     """
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AnthropicModel(PredefinedModel):
     """Predefined Anthropic Model"""
 

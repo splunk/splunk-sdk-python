@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field, model_validator
 from pydantic.dataclasses import dataclass
 
 from splunklib.ai import Agent
-from splunklib.ai.hooks import (
+from splunklib.ai.limits import (
     StructuredOutputRetryLimitExceededException,
     StructuredOutputRetryLimitMiddleware,
 )

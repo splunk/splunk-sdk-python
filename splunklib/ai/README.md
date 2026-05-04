@@ -958,7 +958,7 @@ class. The default for that limit is suppressed automatically - the other defaul
 remain active:
 
 ```py
-from splunklib.ai.hooks import (
+from splunklib.ai.limits import (
     TokenLimitMiddleware,
     StepLimitMiddleware,
     TimeoutLimitMiddleware,

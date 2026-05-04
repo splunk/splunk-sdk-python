@@ -485,6 +485,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                         id=call["id"],
                         name=call["name"],
                         args=unpacked_args,
+                        type="tool_call",
                     )
 
                 return call
@@ -1142,6 +1143,7 @@ def _convert_model_response_to_model_result(
                 id=call.id,
                 name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
                 args=call.args,
+                type="tool_call",
             )
             for call in resp.message.structured_output_calls
         )
@@ -1646,7 +1648,7 @@ def _map_tool_call_to_langchain(call: ToolCall | SubagentCall) -> LC_ToolCall:
             name = _normalize_tool_name(call.name, call.type)
             args = call.args
 
-    return LC_ToolCall(id=call.id, name=name, args=args)
+    return LC_ToolCall(id=call.id, name=name, args=args, type="tool_call")
 
 
 def _map_content_from_langchain(
@@ -1754,6 +1756,7 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
                     id=call.id,
                     name=f"{TOOL_STRATEGY_TOOL_PREFIX}{call.name}",
                     args=call.args,
+                    type="tool_call",
                 )
                 for call in message.structured_output_calls
             )

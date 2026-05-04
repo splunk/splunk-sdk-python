@@ -184,6 +184,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             name=f"{lc.AGENT_PREFIX}assistant",
             args={"args": {"q": "test"}, "thread_id": None},
             id="tc-2",
+            type="tool_call",
         )
         message = LC_AIMessage(content="done", tool_calls=[tool_call])
         mapped = lc._map_message_from_langchain(message)
@@ -199,11 +200,14 @@ class TestMapMessageFromLangchain(unittest.TestCase):
         ]
 
     def test_map_message_from_langchain_ai_with_mixed_calls(self) -> None:
-        tool_call = LC_ToolCall(name="lookup", args={"q": "test"}, id="tc-1")
+        tool_call = LC_ToolCall(
+            name="lookup", args={"q": "test"}, id="tc-1", type="tool_call"
+        )
         agent_call = LC_ToolCall(
             name=f"{lc.AGENT_PREFIX}assistant",
             args={"args": {"q": "test"}, "thread_id": None},
             id="tc-2",
+            type="tool_call",
         )
         message = LC_AIMessage(content="done", tool_calls=[tool_call, agent_call])
 
@@ -280,7 +284,9 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
         assert isinstance(mapped, LC_AIMessage)
         assert mapped.content == "hi"
-        assert mapped.tool_calls == [LC_ToolCall(name="lookup", args={}, id="tc-1")]
+        assert mapped.tool_calls == [
+            LC_ToolCall(name="lookup", args={}, id="tc-1", type="tool_call")
+        ]
 
     def test_map_message_to_langchain_ai_with_text_content_block(self) -> None:
         extras = {
@@ -389,6 +395,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
                 name=f"{lc.AGENT_PREFIX}assistant",
                 args={"args": {"q": "test"}, "thread_id": None},
                 id="tc-2",
+                type="tool_call",
             )
         ]
 
@@ -424,6 +431,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
                 name=f"__local-startup_time",
                 args={"q": "test"},
                 id="tc-2",
+                type="tool_call",
             )
         ]
         assert mapped.additional_kwargs == extras
@@ -451,7 +459,9 @@ class MapMessageToLangchainTests(unittest.TestCase):
         )
         assert isinstance(message, LC_AIMessage)
         assert message.tool_calls == [
-            LC_ToolCall(name="__tool-__agent-bad-tool", args={}, id="tc-1")
+            LC_ToolCall(
+                name="__tool-__agent-bad-tool", args={}, id="tc-1", type="tool_call"
+            )
         ]
 
         message = lc._map_message_to_langchain(
@@ -466,7 +476,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
         )
         assert isinstance(message, LC_AIMessage)
         assert message.tool_calls == [
-            LC_ToolCall(name="__tool-__bad-tool", args={}, id="tc-2")
+            LC_ToolCall(name="__tool-__bad-tool", args={}, id="tc-2", type="tool_call")
         ]
 
         message = lc._map_message_to_langchain(
@@ -535,6 +545,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
                 name="__agent-__agent-bad-agent",
                 args={"args": {}, "thread_id": None},
                 id="tc-1",
+                type="tool_call",
             )
         ]
 

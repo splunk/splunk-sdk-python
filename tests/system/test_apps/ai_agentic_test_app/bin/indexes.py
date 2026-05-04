@@ -14,11 +14,10 @@
 
 import os
 import sys
+from typing import override
 
 sys.path.insert(0, "/splunklib-deps")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
-
-from typing import override
 
 from pydantic import BaseModel, Field
 

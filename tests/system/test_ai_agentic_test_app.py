@@ -107,6 +107,36 @@ class TestAgenticApp(AITestCase):
         app.delete()
         self.restart_splunk()  # app removal requires a restart
 
+    def test_mcp_server_app_returns_tags(self) -> None:
+        pytest.importorskip("langchain_openai")
+        self.requires_splunk_10_2()
+
+        # Skip test in case the instance does not have a /splunk-mcp-server.tgz file.
+        try:
+            resp = self.service.get("agentic_app/has_mcp_app_file")
+            assert resp.status == 200
+        except HTTPError as e:
+            if e.status == 404:
+                pytest.skip("Splunk MCP Server App file not found on Splunk instance")
+            raise
+
+        app = self.service.apps.create(  # pyright: ignore[reportUnknownVariableType]
+            name="/splunk-mcp-server.tgz", filename=True
+        )
+
+        try:
+            resp = self.service.post(
+                "agentic_app/tool-tags",
+                body=self.test_llm_settings.model_dump_json(),
+            )
+            assert resp.status == 200
+
+            body = str(resp.body)  # pyright: ignore[reportUnknownArgumentType]
+            raise Exception(body)
+        finally:
+            app.delete()
+            self.restart_splunk()  # App removal requires a restart
+
     def requires_splunk_10_2(self) -> None:
         if self.service.splunk_version[0] < 10 or self.service.splunk_version[1] < 2:
             pytest.skip("Python 3.13 not available on splunk < 10.2")

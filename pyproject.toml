@@ -33,9 +33,9 @@ dependencies = []
 # Treat the same as NPM's `dependencies`
 [project.optional-dependencies]
 compat = ["six>=1.17.0"]
-ai = ["httpx==0.28.1", "langchain>=1.2.15", "mcp>=1.27.0", "pydantic>=2.13.1"]
-anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.0"]
-openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.1.13"]
+ai = ["httpx==0.28.1", "langchain>=1.2.17", "mcp>=1.27.0", "pydantic>=2.13.3"]
+anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.3"]
+openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.2.1"]
 
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]
@@ -47,10 +47,10 @@ test = [
   "python-dotenv>=1.2.2",
   "vcrpy>=8.1.1",
 ]
-release = ["build>=1.4.3", "jinja2>=3.1.6", "sphinx>=9.1.0", "twine>=6.2.0"]
-lint = ["basedpyright>=1.39.0", "ruff>=0.15.10"]
+release = ["build>=1.5.0", "jinja2>=3.1.6", "sphinx>=9.1.0", "twine>=6.2.0"]
+lint = ["basedpyright>=1.39.3", "ruff>=0.15.12"]
 dev = [
-  "rich>=14.3.3",
+  "rich>=15.0.0",
   "splunk-sdk[openai, anthropic]",
   { include-group = "test" },
   { include-group = "lint" },
@@ -59,7 +59,7 @@ dev = [
 
 [build-system]
 # setuptools v61 introduces pyproject.toml support
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]

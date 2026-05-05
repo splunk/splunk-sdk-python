@@ -509,7 +509,7 @@ class TestMessageValidation(AITestCase):
                     SubagentMessage(
                         name="my_agent",
                         call_id="id-1",
-                        result=SubagentTextResult("foo"),
+                        result=SubagentTextResult(content="foo"),
                     ),
                 ],
                 "thread_id should not be an empty string",

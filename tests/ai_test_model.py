@@ -1,8 +1,4 @@
-import collections.abc
-from typing import override
-
 import httpx
-from httpx import Auth, Request, Response
 from pydantic import BaseModel
 
 from splunklib.ai import OpenAIModel
@@ -37,20 +33,6 @@ async def create_model(s: TestLLMSettings) -> PredefinedModel:
     raise Exception("unreachable")
 
 
-class _InternalAIAuth(Auth):
-    token: str
-
-    def __init__(self, token: str) -> None:
-        self.token = token
-
-    @override
-    def auth_flow(
-        self, request: Request
-    ) -> collections.abc.Generator[Request, Response, None]:
-        request.headers["api-key"] = self.token
-        yield request
-
-
 class _TokenResponse(BaseModel):
     access_token: str
 
@@ -79,14 +61,13 @@ async def _buildInternalAIModel(
 
     token = _TokenResponse.model_validate_json(response.text).access_token
 
-    auth_handler = _InternalAIAuth(token)
     model = "gpt-5-nano"
 
     return OpenAIModel(
         model=model,
         base_url=f"{base_url}/{model}",
-        api_key="",  # unused
+        api_key="test-api-key",  # unused
         extra_body={"user": f'{{"appkey":"{app_key}"}}'},
-        httpx_client=httpx.AsyncClient(auth=auth_handler),
+        httpx_client=httpx.AsyncClient(headers={"api-key": token}),
         temperature=0.0,
     )

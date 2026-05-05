@@ -321,11 +321,15 @@ class TestMiddleware(AITestCase):
         tool_called = False
         subagent_called = False
 
+        want_thread_id = ""
+
         class ExampleMiddleware(AgentMiddleware):
             @override
             async def model_middleware(
                 self, request: ModelRequest, handler: ModelMiddlewareHandler
             ) -> ModelResponse:
+                assert request.state.thread_id == want_thread_id
+
                 nonlocal model_called
                 model_called = True
                 return await handler(request)
@@ -334,6 +338,8 @@ class TestMiddleware(AITestCase):
             async def tool_middleware(
                 self, request: ToolRequest, handler: ToolMiddlewareHandler
             ) -> ToolResponse:
+                assert request.state.thread_id == want_thread_id
+
                 nonlocal tool_called
                 tool_called = True
                 return await handler(request)
@@ -342,6 +348,8 @@ class TestMiddleware(AITestCase):
             async def subagent_middleware(
                 self, request: SubagentRequest, handler: SubagentMiddlewareHandler
             ) -> SubagentResponse:
+                assert request.state.thread_id == want_thread_id
+
                 nonlocal subagent_called
                 subagent_called = True
                 return await handler(request)
@@ -355,6 +363,8 @@ class TestMiddleware(AITestCase):
             middleware=[middleware],
             tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
+            want_thread_id = agent.default_thread_id
+
             tool_result = await agent.invoke(
                 [HumanMessage(content="What is the weather like today in Krakow?")]
             )
@@ -383,6 +393,8 @@ class TestMiddleware(AITestCase):
                 middleware=[middleware],
             ) as supervisor,
         ):
+            want_thread_id = supervisor.default_thread_id
+
             subagent_result = await supervisor.invoke(
                 [HumanMessage(content="Generate a nickname for Chris")]
             )

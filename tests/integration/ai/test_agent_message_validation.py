@@ -492,6 +492,28 @@ class TestMessageValidation(AITestCase):
                 ],
                 "AIMessage contains invalid call type",
             ),
+            (
+                [
+                    HumanMessage(content="hello"),
+                    AIMessage(
+                        content="",
+                        calls=[
+                            SubagentCall(
+                                name="my_agent",
+                                args={},
+                                id="id-1",
+                                thread_id="",
+                            )
+                        ],
+                    ),
+                    SubagentMessage(
+                        name="my_agent",
+                        call_id="id-1",
+                        result=SubagentTextResult("foo"),
+                    ),
+                ],
+                "thread_id should not be an empty string",
+            ),
         ]
 
         async with Agent(

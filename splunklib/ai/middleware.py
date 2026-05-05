@@ -41,6 +41,8 @@ class AgentState:
     # tokens used so far in the conversation
     token_count: int
 
+    thread_id: str
+
 
 @dataclass(frozen=True, kw_only=True)
 class ToolRequest:
@@ -97,6 +99,7 @@ ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 @dataclass(frozen=True, kw_only=True)
 class AgentRequest:
     messages: Sequence[BaseMessage]
+    thread_id: str
 
 
 AgentMiddlewareHandler = Callable[[AgentRequest], Awaitable[AgentResponse[Any | None]]]

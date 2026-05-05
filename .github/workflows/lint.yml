@@ -2,7 +2,7 @@ name: Python SDK Lint
 on: [push, workflow_dispatch]
 
 jobs:
-  lint-stage:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -12,5 +12,5 @@ jobs:
           deps-group: lint
       - name: Verify uv.lock is up-to-date
         run: uv lock --check
-      - name: Verify against basedpyright baseline
-        run: uv run --frozen basedpyright
+      - name: Verify files are linted and formatted
+        run: make ci-lint

@@ -65,7 +65,7 @@ def log_server() -> None:
             autologin=True,
         )
 
-        splunk_index: client.Index = splunk_service.indexes["main"]  # pyright: ignore[reportUnknownVariableType]
+        splunk_index: client.Index = splunk_service.indexes["main"]
         for _ in range(BURST_QUANTITY):
             event = generate_event()
             splunk_index.submit(json.dumps(event), sourcetype=f"{APP_NAME}:threat_log")

@@ -24,6 +24,7 @@ If you want a friendlier interface to the Splunk REST API, use the
 :mod:`splunklib.client` module.
 """
 
+import importlib.metadata
 import io
 import json
 import logging
@@ -34,14 +35,13 @@ from base64 import b64encode
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
-from io import BytesIO
-from urllib import parse
 from http import client
 from http.cookies import SimpleCookie
+from io import BytesIO
+from urllib import parse
 from xml.etree.ElementTree import XML, ParseError
-from .data import record
-from . import __version__
 
+from .data import record
 
 logger = logging.getLogger(__name__)
 
@@ -1787,9 +1787,11 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
     def request(url, message, **kwargs):
         scheme, host, port, path = _spliturl(url)
         body = message.get("body", "")
+
+        sdk_version = importlib.metadata.version("splunk-sdk")
         head = {
             "Content-Length": str(len(body)),
-            "User-Agent": "splunk-sdk-python/%s" % __version__,
+            "User-Agent": f"splunk-sdk-python/{sdk_version}",
             "Accept": "*/*",
             "Connection": "Close",
         }  # defaults

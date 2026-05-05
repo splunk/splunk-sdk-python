@@ -10,7 +10,7 @@ jobs:
   publish-to-pypi:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # Required for publishing
     environment:
       name: splunk-pypi
     steps:
@@ -21,6 +21,8 @@ jobs:
           deps-group: release
       - name: Build packages for distribution
         run: uv build
+      - name: Run AppInspect
+        uses: ./.github/actions/run-appinspect
       - name: Publish packages to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:

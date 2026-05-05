@@ -6,13 +6,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-stage:
-    runs-on: ${{ matrix.os }}
+  test:
     strategy:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.13]
         splunk-version: [latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: ./.github/actions/setup-sdk-environment
@@ -20,27 +20,27 @@ jobs:
           python-version: ${{ matrix.python-version }}
           deps-group: test
       - name: Download Splunk MCP Server App
-        run: uv run ./scripts/download_splunk_mcp_server_app.py
         env:
           SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
           SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
+        run: uv run ./scripts/download_splunk_mcp_server_app.py
       - name: Launch Splunk Docker instance
         run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
       - name: Set up .env
         run: cp .env.template .env
       - name: Write internal AI secrets to .env
-        run: |
-          echo "internal_ai_app_key=$INTERNAL_AI_APP_KEY" >> .env
-          echo "internal_ai_client_id=$INTERNAL_AI_CLIENT_ID" >> .env
-          echo "internal_ai_client_secret=$INTERNAL_AI_CLIENT_SECRET" >> .env
-          echo "internal_ai_token_url=$INTERNAL_AI_TOKEN_URL" >> .env
-          echo "internal_ai_base_url=$INTERNAL_AI_BASE_URL" >> .env
         env:
           INTERNAL_AI_APP_KEY: ${{ secrets.INTERNAL_AI_APP_KEY }}
           INTERNAL_AI_CLIENT_ID: ${{ secrets.INTERNAL_AI_CLIENT_ID }}
           INTERNAL_AI_CLIENT_SECRET: ${{ secrets.INTERNAL_AI_CLIENT_SECRET }}
           INTERNAL_AI_TOKEN_URL: ${{ secrets.INTERNAL_AI_TOKEN_URL }}
           INTERNAL_AI_BASE_URL: ${{ secrets.INTERNAL_AI_BASE_URL }}
+        run: |
+          echo "internal_ai_app_key=$INTERNAL_AI_APP_KEY" >> .env
+          echo "internal_ai_client_id=$INTERNAL_AI_CLIENT_ID" >> .env
+          echo "internal_ai_client_secret=$INTERNAL_AI_CLIENT_SECRET" >> .env
+          echo "internal_ai_token_url=$INTERNAL_AI_TOKEN_URL" >> .env
+          echo "internal_ai_base_url=$INTERNAL_AI_BASE_URL" >> .env
       - name: Restore pytest cache
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -51,5 +51,5 @@ jobs:
             pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
       - name: Run unit tests
         run: make test-unit
-      - name: Run entire test suite
+      - name: Run integration/system tests
         run: make test-integration

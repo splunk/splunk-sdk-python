@@ -1,14 +1,19 @@
-name: Publish SDK to Test PyPI
-on: [workflow_dispatch]
+name: Publish pre-release to Test PyPI
+on:
+  push:
+    branches:
+      - develop
+      - release/2.x
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: 3.13
 
 jobs:
-  publish-to-test-pypi:
+  publish-pre-release:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # Required for publishing
     environment:
       name: splunk-test-pypi
     steps:
@@ -17,8 +22,16 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           deps-group: release
+      - name: Set temporary pre-release version
+        run: |
+          VERSION_BASE="$(uv version --short)"
+          RUN_NUMBER="${{ github.run_number }}"
+          COMMIT_SHA="$(git rev-parse --short HEAD)"
+          uv version --frozen "${VERSION_BASE}.dev${RUN_NUMBER}+g${COMMIT_SHA}"
       - name: Build packages for distribution
         run: uv build
+      - name: Run AppInspect
+        uses: ./.github/actions/run-appinspect
       - name: Publish packages to Test PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:

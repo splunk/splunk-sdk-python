@@ -1,9 +1,8 @@
 name: Validate SDK with Splunk AppInspect
-on: [ push, workflow_dispatch ]
+on: [push, workflow_dispatch]
 
 env:
   PYTHON_VERSION: 3.13
-  MOCK_APP_PATH: ./tests/system/test_apps/generating_app
 
 jobs:
   appinspect:
@@ -14,16 +13,5 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           deps-group: lint
-      - name: Install splunk-appinspect dependencies
-        run: sudo apt-get install -y libmagic1
-      - name: Install packages for the mock app
-        run: |
-          mkdir -p ${{ env.MOCK_APP_PATH }}/bin/lib
-          uv pip install ".[openai, anthropic]" --target ${{ env.MOCK_APP_PATH }}/bin/lib
-      - name: Copy splunklib to a test app and package it as a mock app
-        run: |
-          cd ${{ env.MOCK_APP_PATH }}
-          tar -czf mock_app.tgz --exclude="__pycache__" bin default metadata
-      - name: Validate mock app with splunk-appinspect
-        run: uvx splunk-appinspect inspect ${{ env.MOCK_APP_PATH }}/mock_app.tgz
-          --included-tags cloud
+      - name: Run AppInspect
+        uses: ./.github/actions/run-appinspect

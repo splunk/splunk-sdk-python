@@ -5,9 +5,11 @@ inputs:
   python-version:
     description: Python version used for this run
     required: true
+    default: "3.13"
   deps-group:
     description: Dependency groups passed to `uv sync --group`
     required: true
+    default: dev
 
 runs:
   using: composite
@@ -15,8 +17,12 @@ runs:
     - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
       with:
         version: 0.11.6
-        activate-environment: true
         python-version: ${{ inputs.python-version }}
-    - name: Install dependencies from the ${{ inputs.deps-group }} group(s)
-      run: SDK_DEPS_GROUP="${{ inputs.deps-group }}" make uv-sync-ci
+        activate-environment: true
+        enable-cache: true
+        cache-python: true
+    - name: Install dependencies from the ${{ inputs.deps-group }} group
+      env:
+        SDK_DEPS_GROUP: ${{ inputs.deps-group }}
       shell: bash
+      run: SDK_DEPS_GROUP="${{ inputs.deps-group }}" make ci-install

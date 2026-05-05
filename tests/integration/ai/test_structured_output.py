@@ -699,7 +699,7 @@ class TestStructuredOutput(AITestCase):
                 raise StructuredOutputGenerationException(
                     message=resp.message,
                     error=StructuredOutputValidationError(
-                        "Validation error: name must have ALL letters capitalized"
+                        validation_error="Validation error: name must have ALL letters capitalized"
                     ),
                 )
             return resp
@@ -736,7 +736,7 @@ class TestStructuredOutput(AITestCase):
                 raise StructuredOutputGenerationException(
                     message=resp.message,
                     error=StructuredOutputValidationError(
-                        "Validation error: name must have ALL letters capitalized"
+                        validation_error="Validation error: name must have ALL letters capitalized"
                     ),
                 )
             return resp

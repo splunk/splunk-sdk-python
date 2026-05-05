@@ -129,7 +129,7 @@ class TestConversationStore(AITestCase):
             if not after_first_call:
                 return AgentResponse(
                     messages=[
-                        HumanMessage("My name is Mike"),
+                        HumanMessage(content="My name is Mike"),
                         AIMessage(content="Hi Mike!", calls=[]),
                     ],
                     structured_output=None,

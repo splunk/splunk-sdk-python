@@ -17,12 +17,12 @@ from dataclasses import dataclass
 from splunklib.ai.messages import AIMessage
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class StructuredOutputMultipleToolCallsError:
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class StructuredOutputValidationError:
     validation_error: str
 

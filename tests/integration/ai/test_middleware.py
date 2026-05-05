@@ -191,7 +191,9 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return ToolResponse(ToolResult(content="0.5C", structured_content=None))
+            return ToolResponse(
+                result=ToolResult(content="0.5C", structured_content=None)
+            )
 
         async with Agent(
             model=await self.model(),
@@ -475,7 +477,9 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return SubagentResponse(SubagentTextResult(content="Chris-superstar"))
+            return SubagentResponse(
+                result=SubagentTextResult(content="Chris-superstar")
+            )
 
         async with (
             Agent(

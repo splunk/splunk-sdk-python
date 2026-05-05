@@ -30,7 +30,7 @@ from splunklib.ai.messages import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AgentState:
     """AgentState is available through certain middlewares and contains information about the current state of an agent execution."""
 
@@ -42,13 +42,13 @@ class AgentState:
     token_count: int
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolRequest:
     call: ToolCall
     state: AgentState
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolResponse:
     result: ToolResult | ToolFailureResult
 
@@ -56,13 +56,13 @@ class ToolResponse:
 ToolMiddlewareHandler = Callable[[ToolRequest], Awaitable[ToolResponse]]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentRequest:
     call: SubagentCall
     state: AgentState
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentResponse:
     result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
@@ -73,13 +73,13 @@ SubagentMiddlewareHandler = Callable[
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ModelRequest:
     system_message: str
     state: AgentState
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ModelResponse:
     message: AIMessage
     structured_output: Any | None = None
@@ -94,7 +94,7 @@ class ModelResponse:
 ModelMiddlewareHandler = Callable[[ModelRequest], Awaitable[ModelResponse]]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AgentRequest:
     messages: Sequence[BaseMessage]
 

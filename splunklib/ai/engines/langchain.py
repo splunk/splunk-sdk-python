@@ -286,9 +286,13 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                     assert resp.artifact is None, "artifact is already populated"
 
                     if resp.name.startswith(AGENT_PREFIX):
-                        resp.artifact = SubagentFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
+                        resp.artifact = SubagentFailureResult(
+                            error_message=str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
+                        )
                     else:
-                        resp.artifact = ToolFailureResult(str(resp.content))  # pyright: ignore[reportUnknownArgumentType]
+                        resp.artifact = ToolFailureResult(
+                            error_message=str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
+                        )
 
                 return resp
 
@@ -863,7 +867,9 @@ class _Middleware(LC_AgentMiddleware):
                     case LC_StructuredOutputValidationError():
                         raise StructuredOutputGenerationException(
                             message=msg,
-                            error=StructuredOutputValidationError(str(e.source)),
+                            error=StructuredOutputValidationError(
+                                validation_error=str(e.source)
+                            ),
                         )
                     case LC_StructuredOutputError():
                         # Langchain only returns the above handled exceptions, LC_StructuredOutputError
@@ -1013,7 +1019,7 @@ def _convert_tool_handler_from_lc(
         assert isinstance(sdk_result, ToolMessage), (
             "Expected tool response from tool middleware handler"
         )
-        return ToolResponse(sdk_result.result)
+        return ToolResponse(result=sdk_result.result)
 
     return _sdk_handler
 
@@ -1033,7 +1039,7 @@ def _convert_subagent_handler_from_lc(
         assert isinstance(sdk_result, SubagentMessage), (
             "Expected subagent response from subagent middleware handler"
         )
-        return SubagentResponse(sdk_result.result)
+        return SubagentResponse(result=sdk_result.result)
 
     return _sdk_handler
 
@@ -1276,10 +1282,10 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
 
         tool_strategy_messages = [
             StructuredOutputMessage(
-                m.tool_call_id,
-                m.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX) if m.name else "",
-                m.status,
-                str(m.content),  # pyright: ignore[reportUnknownArgumentType]
+                call_id=m.tool_call_id,
+                name=m.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX) if m.name else "",
+                status=m.status,
+                content=str(m.content),  # pyright: ignore[reportUnknownArgumentType]
             )
             for m in model_response.result
             if isinstance(m, LC_ToolMessage)
@@ -1404,7 +1410,9 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
                 "ToolException from LangChain should not be raised in tool.func"
             )
 
-        artifact = ToolResult(result.content, result.structured_content)
+        artifact = ToolResult(
+            content=result.content, structured_content=result.structured_content
+        )
 
         if result.structured_content:
             # For both local tools and remote tools (Splunk MCP Server App), the primary
@@ -1721,9 +1729,9 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
                 ],
                 structured_output_calls=[
                     StructuredOutputCall(
-                        tc["id"] or "",
-                        tc["name"].removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
-                        tc["args"],
+                        id=tc["id"] or "",
+                        name=tc["name"].removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
+                        args=tc["args"],
                     )
                     for tc in message.tool_calls
                     if tc["name"].startswith(TOOL_STRATEGY_TOOL_PREFIX)

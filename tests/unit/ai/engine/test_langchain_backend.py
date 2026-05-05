@@ -243,7 +243,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             content="result",
             tool_call_id="call-1",
             status="error",
-            artifact=ToolFailureResult("result"),
+            artifact=ToolFailureResult(error_message="result"),
         )
         mapped = lc._map_message_from_langchain(message)
 
@@ -259,7 +259,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             content="subagent output",
             tool_call_id="call-2",
             status="error",
-            artifact=SubagentFailureResult("subagent output"),
+            artifact=SubagentFailureResult(error_message="subagent output"),
         )
         mapped = lc._map_message_from_langchain(message)
 
@@ -561,7 +561,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
             name="lookup",
             call_id="call-1",
             type=ToolType.REMOTE,
-            result=ToolFailureResult("result"),
+            result=ToolFailureResult(error_message="result"),
         )
         mapped = lc._map_message_to_langchain(message)
 
@@ -573,7 +573,9 @@ class MapMessageToLangchainTests(unittest.TestCase):
 
     def test_map_message_to_langchain_subagent(self) -> None:
         message = SubagentMessage(
-            name="My Agent", call_id="call-2", result=SubagentFailureResult("ping")
+            name="My Agent",
+            call_id="call-2",
+            result=SubagentFailureResult(error_message="ping"),
         )
         mapped = lc._map_message_to_langchain(message)
 

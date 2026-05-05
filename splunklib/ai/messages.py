@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from splunklib.ai.tools import ToolType
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class TextBlock:
     """Plain text content block returned by a model."""
 
@@ -36,7 +36,7 @@ class TextBlock:
     """
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class OpaqueBlock:
     """Content block of an unrecognized or unsupported type.
 
@@ -62,7 +62,7 @@ class OpaqueBlock:
 ContentBlock = TextBlock | OpaqueBlock
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolCall:
     id: str
     name: str
@@ -70,7 +70,7 @@ class ToolCall:
     args: dict[str, Any]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentCall:
     id: str
     name: str
@@ -78,14 +78,14 @@ class SubagentCall:
     thread_id: str | None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class StructuredOutputCall:
     id: str
     name: str
     args: dict[str, Any]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class BaseMessage:
     role: str = field(init=False)
 
@@ -96,7 +96,7 @@ class BaseMessage:
             )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class HumanMessage(BaseMessage):
     """
     Message originating from a human user.
@@ -110,7 +110,7 @@ class HumanMessage(BaseMessage):
     content: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AIMessage(BaseMessage):
     """
     Message produced by an LLM.
@@ -141,7 +141,7 @@ class AIMessage(BaseMessage):
     """
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolResult:
     """
     ToolResult represents a result of a successful tool call.
@@ -151,7 +151,7 @@ class ToolResult:
     structured_content: dict[str, Any] | None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentStructuredResult:
     """
     SubagentStructuredResult represents a result of a successful subagent call.
@@ -161,7 +161,7 @@ class SubagentStructuredResult:
     structured_output: dict[str, Any]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentTextResult:
     """
     SubagentTextResult represents a result of a successful subagent call.
@@ -171,7 +171,7 @@ class SubagentTextResult:
     content: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolFailureResult:
     """
     Represents the result of a failed sub-agent call.
@@ -183,7 +183,7 @@ class ToolFailureResult:
     error_message: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentFailureResult:
     """
     Represents the result of a failed tool call.
@@ -195,7 +195,7 @@ class SubagentFailureResult:
     error_message: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolMessage(BaseMessage):
     """ToolMessage represents a response of a tool call"""
 
@@ -208,7 +208,7 @@ class ToolMessage(BaseMessage):
 
 
 # TODO: do we have a test that uses this?
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SystemMessage(BaseMessage):
     """
     A message used to prime or control agent behavior.
@@ -218,7 +218,7 @@ class SystemMessage(BaseMessage):
     content: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SubagentMessage(BaseMessage):
     """
     SubagentMessage represents a response of an agent invocation
@@ -231,7 +231,7 @@ class SubagentMessage(BaseMessage):
     result: SubagentStructuredResult | SubagentTextResult | SubagentFailureResult
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class StructuredOutputMessage(BaseMessage):
     """
     StructuredMessage represents a response to the StructuredOutputCall.
@@ -254,7 +254,7 @@ OutputT = TypeVar("OutputT", default=None, covariant=True, bound=BaseModel | Non
 # where developers might want to store messages in say KV store.
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AgentResponse(Generic[OutputT]):
     # in case output_schema is provided, this will hold the parsed structured output
     structured_output: OutputT

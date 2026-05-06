@@ -111,10 +111,6 @@ class TestDefaultLimitsInjection(unittest.TestCase):
         assert len([m for m in mw if isinstance(m, TimeoutLimitMiddleware)]) == 1
 
 
-async def _noop_agent_handler(_request: AgentRequest) -> AgentResponse[None]:
-    return AgentResponse(messages=[], structured_output=None)
-
-
 async def _noop_model_handler(_request: ModelRequest) -> ModelResponse:
     return ModelResponse(message=AIMessage(content="", calls=[]))
 
@@ -124,23 +120,33 @@ class TestTimeoutLimitMiddleware(unittest.IsolatedAsyncioTestCase):
         mw = TimeoutLimitMiddleware(60.0)
         request = _make_agent_request()
 
-        await mw.agent_middleware(request, _noop_agent_handler)
-        first_deadline = mw._deadline  # pyright: ignore[reportPrivateUsage]
+        first_deadline: float | None = None
+        second_deadline: float | None = None
 
-        await mw.agent_middleware(request, _noop_agent_handler)
-        second_deadline = mw._deadline  # pyright: ignore[reportPrivateUsage]
+        async def _first_agent_handler(_request: AgentRequest) -> AgentResponse[None]:
+            nonlocal first_deadline
+            first_deadline = mw._deadline_per_thread_id["foo"]  # pyright: ignore[reportPrivateUsage]
+            return AgentResponse(messages=[], structured_output=None)
+
+        async def _second_agent_handler(_request: AgentRequest) -> AgentResponse[None]:
+            nonlocal second_deadline
+            second_deadline = mw._deadline_per_thread_id["foo"]  # pyright: ignore[reportPrivateUsage]
+            return AgentResponse(messages=[], structured_output=None)
+
+        await mw.agent_middleware(request, _first_agent_handler)
+        await mw.agent_middleware(request, _second_agent_handler)
 
         assert first_deadline is not None
-        assert second_deadline is not None
+        assert second_deadline is not None  # pyright: ignore[reportUnreachable]
         assert second_deadline >= first_deadline
 
     async def test_deadline_is_none_before_first_invoke(self) -> None:
         mw = TimeoutLimitMiddleware(60.0)
-        assert mw._deadline is None  # pyright: ignore[reportPrivateUsage]
+        assert mw._deadline_per_thread_id.get("foo") is None  # pyright: ignore[reportPrivateUsage]
 
     async def test_timeout_fires_when_deadline_exceeded(self) -> None:
         mw = TimeoutLimitMiddleware(60.0)
-        mw._deadline = monotonic() - 1.0  # pyright: ignore[reportPrivateUsage]  # already in the past
+        mw._deadline_per_thread_id["foo"] = monotonic() - 1.0  # pyright: ignore[reportPrivateUsage]  # already in the past
 
         state = AgentState(messages=[], total_steps=0, token_count=0, thread_id="foo")
         request = ModelRequest(system_message="", state=state)

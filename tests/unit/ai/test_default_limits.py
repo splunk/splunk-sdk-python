@@ -16,7 +16,7 @@ import unittest
 from time import monotonic
 
 from splunklib.ai.agent import Agent
-from splunklib.ai.hooks import (
+from splunklib.ai.limits import (
     DEFAULT_STEP_LIMIT,
     DEFAULT_TIMEOUT_SECONDS,
     DEFAULT_TOKEN_LIMIT,

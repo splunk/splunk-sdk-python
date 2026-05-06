@@ -21,7 +21,7 @@ from typing import Any, Generic
 from pydantic import BaseModel
 
 from splunklib.ai.conversation_store import ConversationStore
-from splunklib.ai.hooks import (
+from splunklib.ai.limits import (
     DEFAULT_STEP_LIMIT,
     DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT,
     DEFAULT_TIMEOUT_SECONDS,

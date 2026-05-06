@@ -21,12 +21,19 @@ from pydantic import BaseModel, Field, model_validator
 from pydantic.dataclasses import dataclass
 
 from splunklib.ai import Agent
+from splunklib.ai.hooks import (
+    StructuredOutputRetryLimitExceededException,
+    StructuredOutputRetryLimitMiddleware,
+)
 from splunklib.ai.messages import (
     AgentResponse,
     AIMessage,
     HumanMessage,
     StructuredOutputCall,
     StructuredOutputMessage,
+    SubagentCall,
+    SubagentFailureResult,
+    SubagentMessage,
     ToolCall,
 )
 from splunklib.ai.middleware import (
@@ -43,6 +50,7 @@ from splunklib.ai.middleware import (
     ToolRequest,
     ToolResponse,
     model_middleware,
+    subagent_middleware,
     tool_middleware,
 )
 from splunklib.ai.structured_output import (
@@ -929,6 +937,258 @@ class TestStructuredOutput(AITestCase):
             )
             assert len(result.messages) == 3
             assert result.structured_output.name == "MIKE"
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_default_retry_limit(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Person(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        model_call_count = 0
+
+        @model_middleware
+        async def _model_middleware(
+            _request: ModelRequest,
+            _handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            nonlocal model_call_count
+            model_call_count += 1
+
+            raise StructuredOutputGenerationException(
+                message=AIMessage(content="", calls=[]),
+                error=StructuredOutputValidationError(
+                    validation_error="Invalid output"
+                ),
+            )
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="Respond with structured data",
+            output_schema=Person,
+            service=self.service,
+            middleware=[_model_middleware],
+        ) as agent:
+            with pytest.raises(
+                StructuredOutputRetryLimitExceededException,
+                match="Structured output retry limit of 3 exceeded",
+            ):
+                await agent.invoke(
+                    [HumanMessage(content="My name is Mike, what is my name?")]
+                )
+
+        assert model_call_count == 4
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_custom_retry_limit_retry(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Person(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        limits = [0, 1, 20]
+        for limit in limits:
+            with self.subTest(limit):
+                model_call_count = 0
+
+                @model_middleware
+                async def _model_middleware(
+                    _request: ModelRequest,
+                    _handler: ModelMiddlewareHandler,
+                ) -> ModelResponse:
+                    nonlocal model_call_count
+                    model_call_count += 1
+
+                    raise StructuredOutputGenerationException(
+                        message=AIMessage(content="", calls=[]),
+                        error=StructuredOutputValidationError(
+                            validation_error="Invalid output"
+                        ),
+                    )
+
+                async with Agent(
+                    model=(await self.model()),
+                    system_prompt="Respond with structured data",
+                    output_schema=Person,
+                    service=self.service,
+                    middleware=[
+                        StructuredOutputRetryLimitMiddleware(limit),
+                        _model_middleware,
+                    ],
+                ) as agent:
+                    with pytest.raises(
+                        StructuredOutputRetryLimitExceededException,
+                        match=f"Structured output retry limit of {limit} exceeded",
+                    ):
+                        await agent.invoke(
+                            [HumanMessage(content="My name is Mike, what is my name?")]
+                        )
+
+                # We expect limit + 1, since first LLM call is not a retry.
+                assert model_call_count == limit + 1
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_retry_limit_is_per_agent_loop(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        class Person(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        after_first_call = False
+
+        @model_middleware
+        async def _model_middleware(
+            _request: ModelRequest,
+            _handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            if after_first_call:
+                return ModelResponse(
+                    message=AIMessage(content="", calls=[]),
+                    structured_output=Person(name="Mike"),
+                )
+            else:
+                raise StructuredOutputGenerationException(
+                    message=AIMessage(content="", calls=[]),
+                    error=StructuredOutputValidationError(
+                        validation_error="Invalid output"
+                    ),
+                )
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="Respond with structured data",
+            output_schema=Person,
+            service=self.service,
+            middleware=[
+                _model_middleware,
+            ],
+        ) as agent:
+            with pytest.raises(
+                StructuredOutputRetryLimitExceededException,
+                match="Structured output retry limit of 3 exceeded",
+            ):
+                await agent.invoke(
+                    [HumanMessage(content="My name is Mike, what is my name?")]
+                )
+
+            after_first_call = True
+
+            # Since structured output retry limit is per agent loop, this should not fail.
+            await agent.invoke(
+                [HumanMessage(content="My name is Mike, what is my name?")]
+            )
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_retry_limit_subagents(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # This test uses subagent to make sure that StructuredOutputRetryLimitMiddleware
+        # works properly with different thread_ids, since each subagent call gets a different
+        # thread_id and also makes sure that it works while used concurrently, since
+        # subagents are called in such way.
+
+        class Person(BaseModel):
+            name: str = Field(description="The person's full name", min_length=1)
+
+        subagent_llm_call_count = 0
+
+        @model_middleware
+        async def _subagent_model_middleware(
+            _request: ModelRequest,
+            _handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            nonlocal subagent_llm_call_count
+            subagent_llm_call_count += 1
+
+            raise StructuredOutputGenerationException(
+                message=AIMessage(content="", calls=[]),
+                error=StructuredOutputValidationError(
+                    validation_error="Invalid output"
+                ),
+            )
+
+        after_first_model_response = False
+
+        @model_middleware
+        async def _supervisor_model_middleware(
+            request: ModelRequest,
+            _handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            nonlocal after_first_model_response
+            if after_first_model_response:
+                messages = request.state.messages
+                assert len(messages) == 5
+                assert isinstance(messages[0], HumanMessage)
+                assert isinstance(messages[1], AIMessage)
+
+                for subagent_message in messages[2:]:
+                    assert isinstance(subagent_message, SubagentMessage)
+                    assert isinstance(subagent_message.result, SubagentFailureResult)
+                    assert (
+                        subagent_message.result.error_message
+                        == "Subagent invocation failed: Structured output retry limit of 3 exceeded"
+                    )
+
+                return ModelResponse(
+                    message=AIMessage(content="End agent loop", calls=[])
+                )
+            else:
+                after_first_model_response = True
+                return ModelResponse(
+                    message=AIMessage(
+                        content="Calling subagents",
+                        calls=[
+                            SubagentCall(id="a-1", name="foo", args="", thread_id=None),
+                            SubagentCall(id="a-2", name="foo", args="", thread_id=None),
+                            SubagentCall(id="a-3", name="foo", args="", thread_id=None),
+                        ],
+                    ),
+                )
+
+        # Middleware that makes the StructuredOutputRetryLimitExceededException non-fatal.
+        @subagent_middleware
+        async def _supervisor_subagent_middleware(
+            request: SubagentRequest,
+            handler: SubagentMiddlewareHandler,
+        ) -> SubagentResponse:
+            try:
+                return await handler(request)
+            except StructuredOutputRetryLimitExceededException as e:
+                return SubagentResponse(
+                    result=SubagentFailureResult(
+                        error_message=f"Subagent invocation failed: {e}"
+                    )
+                )
+
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt="Respond with structured data",
+                output_schema=Person,
+                service=self.service,
+                middleware=[_subagent_model_middleware],
+                name="foo",
+            ) as subagent,
+            Agent(
+                model=(await self.model()),
+                system_prompt="Respond with structured data",
+                service=self.service,
+                middleware=[
+                    _supervisor_model_middleware,
+                    _supervisor_subagent_middleware,
+                ],
+                agents=[subagent],
+            ) as supervisor,
+        ):
+            await supervisor.invoke(
+                [HumanMessage(content="My name is Mike, what is my name?")]
+            )
+
+        assert subagent_llm_call_count == 12
 
     # TODO: test what happens if model/agent middleware removes the structured_output.
     #       do we detect that? We should and raise in invoke, that output was removed.

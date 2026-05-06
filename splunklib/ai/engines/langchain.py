@@ -889,11 +889,6 @@ class _Middleware(LC_AgentMiddleware):
         except StructuredOutputGenerationException as e:
             # Structured output generation failed, retry.
 
-            # TODO: we should provide a mechanism to limit the amount of retries
-            # thath happen sequentially (say 3), otherwise raise a different exception.
-            # For now this can be done with the use of model middleware that counts
-            # the amount of StructuredOutputGenerationException that were raised.
-
             ai_msg = _map_message_to_langchain(e.message)
             assert isinstance(ai_msg, LC_AIMessage)
 

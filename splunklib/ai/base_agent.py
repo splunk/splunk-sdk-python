@@ -94,9 +94,9 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
         ]
 
         self._middleware = (
-            *{m for m in predefined_before if type(m) not in user_middleware_types},
+            *[m for m in predefined_before if type(m) not in user_middleware_types],
             *user_middleware,
-            *{m for m in predefined_after if type(m) not in user_middleware_types},
+            *[m for m in predefined_after if type(m) not in user_middleware_types],
         )
 
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters

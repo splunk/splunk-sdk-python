@@ -12,9 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests import testlib
-
 from splunklib import client
+from tests import testlib
 
 
 class Tests(testlib.SDKTestCase):

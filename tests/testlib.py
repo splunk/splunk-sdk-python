@@ -15,24 +15,20 @@
 """Shared unit test utilities."""
 
 import contextlib
-
-import os
-import time
 import logging
+import os
 import sys
+import time
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, "../")
 
-from time import sleep
-from datetime import datetime, timedelta
-
 import unittest
-
-from utils import parse
+from datetime import datetime, timedelta
+from time import sleep
 
 from splunklib import client
-
+from utils import parse
 
 logging.basicConfig(
     filename="test.log",

@@ -13,13 +13,13 @@
 # under the License.
 
 import datetime
-import pytest
-from tests import testlib
 import logging
-
 from time import sleep
 
+import pytest
+
 from splunklib import client
+from tests import testlib
 
 
 @pytest.mark.smoke

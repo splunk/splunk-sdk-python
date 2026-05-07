@@ -13,17 +13,16 @@
 # under the License.
 
 
-from unittest import main, TestCase
 import sys
-
 from io import TextIOWrapper
+from unittest import TestCase, main
+
 import pytest
 
 from splunklib.searchcommands import Configuration, Option, environment, validators
 from splunklib.searchcommands.decorators import ConfigurationSetting
 from splunklib.searchcommands.internals import json_encode_string
 from splunklib.searchcommands.search_command import SearchCommand
-
 from tests.unit.searchcommands import rebase_environment
 
 

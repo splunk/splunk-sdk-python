@@ -12,12 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests import testlib
 import logging
-
 from contextlib import contextmanager
 
 from splunklib import client
+from tests import testlib
 
 collections = [
     "apps",

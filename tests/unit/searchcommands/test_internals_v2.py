@@ -17,23 +17,20 @@ import os
 import random
 import sys
 import warnings
-
-import pytest
+from collections import OrderedDict, namedtuple
+from io import BytesIO
 from sys import float_info
 from time import time
-from unittest import main, TestCase
+from unittest import TestCase, main
 
-from collections import OrderedDict
-from collections import namedtuple
+import pytest
 
+from splunklib.searchcommands import SearchMetric
 from splunklib.searchcommands.internals import (
     MetadataDecoder,
     MetadataEncoder,
     RecordWriterV2,
 )
-from splunklib.searchcommands import SearchMetric
-from io import BytesIO
-
 
 # region Functions for producing random apps
 

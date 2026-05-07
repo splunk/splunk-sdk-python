@@ -15,10 +15,10 @@
 import csv
 import os
 import re
-from io import open, StringIO
-from os import getcwd
-from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
+from io import StringIO, open
+from json.encoder import encode_basestring_ascii as json_encode_string
+from os import getcwd
 
 
 class Validator:

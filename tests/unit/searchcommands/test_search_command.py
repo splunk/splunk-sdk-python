@@ -12,25 +12,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from json.encoder import encode_basestring as encode_string
-from unittest import main, TestCase
-
-import os
 import logging
+import os
 import warnings
-
-from io import TextIOWrapper
+from io import BytesIO, TextIOWrapper
+from json.encoder import encode_basestring as encode_string
+from unittest import TestCase, main
 
 import pytest
 
+from splunklib.client import Service
 from splunklib.searchcommands import Configuration, StreamingCommand
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.internals import ObjectView
 from splunklib.searchcommands.search_command import SearchCommand
-from splunklib.client import Service
 from splunklib.utils import ensure_binary
-
-from io import BytesIO
 
 
 def build_command_input(getinfo_metadata, execute_metadata, execute_body):

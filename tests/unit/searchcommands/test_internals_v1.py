@@ -12,22 +12,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from contextlib import closing
-from unittest import main, TestCase
 import os
-from io import StringIO, BytesIO
+from contextlib import closing
 from functools import reduce
+from io import BytesIO, StringIO
+from unittest import TestCase, main
+
 import pytest
 
+from splunklib.searchcommands.decorators import Configuration, Option
 from splunklib.searchcommands.internals import (
     CommandLineParser,
     InputHeader,
     RecordWriterV1,
 )
-from splunklib.searchcommands.decorators import Configuration, Option
-from splunklib.searchcommands.validators import Boolean
-
 from splunklib.searchcommands.search_command import SearchCommand
+from splunklib.searchcommands.validators import Boolean
 
 
 @pytest.mark.smoke

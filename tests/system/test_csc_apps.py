@@ -13,10 +13,11 @@
 # under the License.
 
 import unittest
+
 import pytest
 
-from tests import testlib
 from splunklib import results
+from tests import testlib
 
 
 @pytest.mark.smoke

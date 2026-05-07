@@ -14,10 +14,10 @@
 
 from itertools import chain
 
-from .internals import ConfigurationSettingsType, json_encode_string
 from .decorators import ConfigurationSetting, Option
-from .streaming_command import StreamingCommand
+from .internals import ConfigurationSettingsType, json_encode_string
 from .search_command import SearchCommand
+from .streaming_command import StreamingCommand
 from .validators import Set
 
 

@@ -12,11 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 import logging
-import pytest
-from splunklib.binding import HTTPError
 
-from tests import testlib
+import pytest
+
 from splunklib import client
+from splunklib.binding import HTTPError
+from tests import testlib
 
 
 def highest_port(service, base_port, *kinds):

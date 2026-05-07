@@ -13,20 +13,18 @@
 # under the License.
 
 
+import logging
 import os
 import sys
-import logging
-
-from unittest import main, TestCase
-import pytest
 from io import StringIO
+from unittest import TestCase, main
 
+import pytest
 
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
-
-from tests.unit.searchcommands import rebase_environment, package_directory
+from tests.unit.searchcommands import package_directory, rebase_environment
 
 
 # portable log level names

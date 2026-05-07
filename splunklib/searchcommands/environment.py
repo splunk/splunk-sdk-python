@@ -13,10 +13,10 @@
 # under the License.
 
 
-from logging import getLogger, root, StreamHandler
-from logging.config import fileConfig
-from os import chdir, environ, path, getcwd
 import sys
+from logging import StreamHandler, getLogger, root
+from logging.config import fileConfig
+from os import chdir, environ, getcwd, path
 
 
 def configure_logging(logger_name, filename=None):

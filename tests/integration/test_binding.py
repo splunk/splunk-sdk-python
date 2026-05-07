@@ -12,27 +12,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
+import logging
+import socket
+import ssl
+import unittest
 from http import server as BaseHTTPServer
 from io import BytesIO, StringIO
 from threading import Thread
 from urllib.request import Request, urlopen
-
 from xml.etree.ElementTree import XML
 
-import json
-import logging
-from tests import testlib
-import unittest
-import socket
-import ssl
+import pytest
 
 import splunklib
-from splunklib import binding
-from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
-from splunklib import data
+from splunklib import binding, data
+from splunklib.binding import AuthenticationError, HTTPError, UrlEncoded
 from splunklib.utils import ensure_str
-
-import pytest
+from tests import testlib
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"

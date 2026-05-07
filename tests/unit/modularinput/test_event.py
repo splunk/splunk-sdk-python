@@ -19,9 +19,9 @@ from io import StringIO
 
 import pytest
 
-from tests.unit.modularinput.modularinput_testlib import xml_compare, data_open
-from splunklib.modularinput.event import Event, ET
+from splunklib.modularinput.event import ET, Event
 from splunklib.modularinput.event_writer import EventWriter
+from tests.unit.modularinput.modularinput_testlib import data_open, xml_compare
 
 
 def test_event_without_enough_fields_fails(capsys):

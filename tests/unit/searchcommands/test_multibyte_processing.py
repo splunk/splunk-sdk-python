@@ -1,10 +1,9 @@
-import io
 import gzip
+import io
 import sys
-
 from os import path
 
-from splunklib.searchcommands import StreamingCommand, Configuration
+from splunklib.searchcommands import Configuration, StreamingCommand
 
 
 def build_test_command():

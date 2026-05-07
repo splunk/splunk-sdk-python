@@ -22,8 +22,10 @@
 # * If a value is set in code, it overrides the value specified in commands.conf
 
 
-from unittest import main, TestCase
+from unittest import TestCase, main
+
 import pytest
+
 from splunklib.searchcommands.decorators import Configuration
 
 

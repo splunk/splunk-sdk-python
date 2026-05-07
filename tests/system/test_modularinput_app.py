@@ -13,8 +13,8 @@
 # under the License.
 
 from splunklib import results
-from tests import testlib
 from splunklib.binding import HTTPError
+from tests import testlib
 
 
 class ModularInput(testlib.SDKTestCase):

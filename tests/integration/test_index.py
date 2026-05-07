@@ -14,9 +14,11 @@
 
 import logging
 import time
+
 import pytest
-from tests import testlib
+
 from splunklib import client
+from tests import testlib
 
 
 class IndexTest(testlib.SDKTestCase):

@@ -16,7 +16,6 @@
 from collections import OrderedDict
 from inspect import getmembers, isclass, isfunction
 
-
 from .internals import ConfigurationSettingsType, json_encode_string
 from .validators import OptionName
 

@@ -22,13 +22,13 @@ from splunklib.ai.limits import (
     DEFAULT_TOKEN_LIMIT,
     StepLimitMiddleware,
     StepsLimitExceededException,
+    StructuredOutputRetryLimitMiddleware,
     TimeoutExceededException,
     TimeoutLimitMiddleware,
     TokenLimitExceededException,
     TokenLimitMiddleware,
-    StructuredOutputRetryLimitMiddleware,
 )
-from splunklib.ai.messages import AIMessage, AgentResponse
+from splunklib.ai.messages import AgentResponse, AIMessage
 from splunklib.ai.middleware import (
     AgentMiddleware,
     AgentRequest,

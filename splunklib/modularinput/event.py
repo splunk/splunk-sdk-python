@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from io import TextIOBase
 import xml.etree.ElementTree as ET
+from io import TextIOBase
 
 from ..utils import ensure_str
 

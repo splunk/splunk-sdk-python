@@ -12,24 +12,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import io
+import unittest
+import warnings
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from time import sleep
-from datetime import datetime
-
-import io
-
-from tests import testlib
-
-import unittest
-
-from splunklib import client
-from splunklib import results
-
-from splunklib.binding import _log_duration, HTTPError
 
 import pytest
-import warnings
+
+from splunklib import client, results
+from splunklib.binding import HTTPError, _log_duration
+from tests import testlib
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -75,8 +70,7 @@ class TestUtilities(testlib.SDKTestCase):
         self.assertTrue(len(nonmessages) <= 3)
 
     def test_export_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         rr = results.JSONResultsReader(service.jobs.export("search * | head 5", output_mode="json"))
@@ -107,8 +101,7 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
 
     def test_preview_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
@@ -126,8 +119,7 @@ class TestUtilities(testlib.SDKTestCase):
             pass  # print("Job is finished. Results are final.")
 
     def test_oneshot_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         rr = results.JSONResultsReader(

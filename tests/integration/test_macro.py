@@ -13,14 +13,15 @@
 # under the License.
 
 from __future__ import absolute_import
-from splunklib.binding import HTTPError
-from tests import testlib
+
 import logging
+
+import pytest
 
 import splunklib.client as client
 from splunklib import results
-
-import pytest
+from splunklib.binding import HTTPError
+from tests import testlib
 
 
 @pytest.mark.smoke

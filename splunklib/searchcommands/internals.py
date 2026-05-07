@@ -17,15 +17,13 @@ import gzip
 import os
 import re
 import sys
-import warnings
 import urllib.parse
-from io import TextIOWrapper, StringIO
-from collections import deque, namedtuple
-from collections import OrderedDict
+import warnings
+from collections import OrderedDict, deque, namedtuple
+from io import StringIO, TextIOWrapper
 from itertools import chain
 from json import JSONDecoder, JSONEncoder
 from json.encoder import encode_basestring_ascii as json_encode_string
-
 
 from . import environment
 

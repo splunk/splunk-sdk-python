@@ -13,10 +13,9 @@
 # under the License.
 
 import sys
-from os import path
-import xml.etree.ElementTree as et
-
 import unittest
+import xml.etree.ElementTree as et
+from os import path
 
 from splunklib import data
 

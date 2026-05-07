@@ -12,17 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from logging import getLogger
 import os
 import sys
 import traceback
+from logging import getLogger
+
 from . import splunklib_logger as logger
 
-
 if sys.platform == "win32":
-    from signal import signal, CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM
-    from subprocess import Popen
     import atexit
+    from signal import CTRL_BREAK_EVENT, SIGBREAK, SIGINT, SIGTERM, signal
+    from subprocess import Popen
 
 
 # P1 [ ] TODO: Add ExternalSearchCommand class documentation

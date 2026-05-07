@@ -13,13 +13,13 @@
 # under the License.
 
 import unittest
+
 import pytest
-from tests import testlib
 
 from splunklib import client
-from splunklib.binding import AuthenticationError
+from splunklib.binding import AuthenticationError, HTTPError
 from splunklib.client import Service
-from splunklib.binding import HTTPError
+from tests import testlib
 
 
 class ServiceTestCase(testlib.SDKTestCase):

@@ -13,8 +13,9 @@
 # under the License.
 
 import json
-from tests import testlib
+
 from splunklib import client
+from tests import testlib
 
 
 class KVStoreConfTestCase(testlib.SDKTestCase):

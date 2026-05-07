@@ -21,17 +21,19 @@ import re
 import sys
 import tempfile
 import traceback
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict, namedtuple
 from copy import deepcopy
 from io import StringIO
 from itertools import chain, islice
 from logging import _nameToLevel as _levelNames, getLevelName, getLogger
 from shutil import make_archive
 from time import time
-from urllib.parse import unquote
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 from warnings import warn
 from xml.etree import ElementTree
+
+from ..client import Service
+from ..utils import ensure_str
 
 # Relative imports
 from . import Boolean, Option, environment
@@ -48,9 +50,6 @@ from .internals import (
     RecordWriterV2,
     json_encode_string,
 )
-from ..client import Service
-from ..utils import ensure_str
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 

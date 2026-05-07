@@ -26,6 +26,7 @@ from splunklib.ai.limits import (
     TimeoutLimitMiddleware,
     TokenLimitExceededException,
     TokenLimitMiddleware,
+    StructuredOutputRetryLimitMiddleware,
 )
 from splunklib.ai.messages import AIMessage, AgentResponse
 from splunklib.ai.middleware import AgentMiddleware, AgentRequest, AgentState, ModelRequest, ModelResponse
@@ -173,3 +174,12 @@ class TestStepLimitMiddleware(unittest.IsolatedAsyncioTestCase):
         await mw.model_middleware(_make_model_request(total_steps=2), _noop_model_handler)
         with self.assertRaises(StepsLimitExceededException):
             await mw.model_middleware(_make_model_request(total_steps=3), _noop_model_handler)
+
+
+def test_default_middleware() -> None:
+    agent = _make_agent()
+    mw = list(agent.middleware or [])
+    assert isinstance(mw[0], StructuredOutputRetryLimitMiddleware)
+    assert isinstance(mw[1], TokenLimitMiddleware)
+    assert isinstance(mw[2], StepLimitMiddleware)
+    assert isinstance(mw[3], TimeoutLimitMiddleware)

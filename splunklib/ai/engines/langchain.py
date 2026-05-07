@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import string
+from time import monotonic
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
@@ -72,6 +73,12 @@ from splunklib.ai.core.backend import (
 from splunklib.ai.hooks import (
     after_model as hook_after_model,
     before_model as hook_before_model,
+)
+from splunklib.ai.limits import (
+    StepsLimitExceededException,
+    StructuredOutputRetryLimitExceededException,
+    TimeoutExceededException,
+    TokenLimitExceededException,
 )
 from splunklib.ai.messages import (
     AgentResponse,
@@ -217,6 +224,7 @@ class InvokeContext:
 class LangChainAgentImpl(AgentImpl[OutputT]):
     _agent: CompiledStateGraph[Any, InvokeContext]
     _sdk_agent: BaseAgent[OutputT]
+    _middleware: list[AgentMiddleware]
 
     def __init__(self, agent: BaseAgent[OutputT]) -> None:
         super().__init__()
@@ -256,13 +264,32 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             agent.logger
         )
 
-        middleware = before_user_middlewares
-        middleware.extend(agent.middleware or [])
-        middleware.extend(after_user_middlewares)
+        self._agent_middleware: list[AgentMiddleware] = []
+        if agent.limits.max_structured_output_retires is not None:
+            self._agent_middleware.append(
+                _StructuredOutputRetryLimitMiddleware(
+                    agent.limits.max_structured_output_retires
+                )
+            )
+
+        self._agent_middleware.extend(before_user_middlewares)
+        self._agent_middleware.extend(agent.middleware or [])
+        self._agent_middleware.extend(after_user_middlewares)
+
+        if agent.limits.max_tokens is not None:
+            self._agent_middleware.append(
+                _TokenLimitMiddleware(agent.limits.max_tokens)
+            )
+        if agent.limits.max_steps is not None:
+            self._agent_middleware.append(_StepLimitMiddleware(agent.limits.max_steps))
+        if agent.limits.timeout is not None:
+            self._agent_middleware.append(_TimeoutLimitMiddleware(agent.limits.timeout))
 
         model_impl = _create_langchain_model(agent.model)
 
-        lc_middleware: list[LC_AgentMiddleware] = [_Middleware(middleware, model_impl)]
+        lc_middleware: list[LC_AgentMiddleware] = [
+            _Middleware(self._agent_middleware, model_impl)
+        ]
 
         # This middleware is executed just after the tool execution and populates
         # the artifact field for failed tool calls, since in such cases we can't
@@ -625,7 +652,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         # so the first middleware in the list becomes the outermost one.
 
         invoke = agent_invoke
-        for middleware in reversed(self._sdk_agent.middleware or []):
+        for middleware in reversed(self._agent_middleware or []):
 
             def make_next(
                 m: AgentMiddleware, h: AgentMiddlewareHandler
@@ -1988,3 +2015,123 @@ def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) ->
             raise _InvalidMessagesException("messages does not have an AIMessage")
         if len(last_ai_message.calls) != 0:
             raise _InvalidMessagesException("last AIMessage has tool calls")
+
+
+class _TokenLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the token count of messages passed to the model exceeds the given limit."""
+
+    _limit: int
+
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if request.state.token_count >= self._limit:
+            raise TokenLimitExceededException(token_limit=self._limit)
+        return await handler(request)
+
+
+class _StepLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the number of steps taken reaches the given limit."""
+
+    _limit: int
+
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if request.state.total_steps >= self._limit:
+            raise StepsLimitExceededException(steps_limit=self._limit)
+        return await handler(request)
+
+
+class _TimeoutLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when wall-clock time within an invoke exceeds the given seconds.
+
+    The deadline resets on every invoke call - it measures time from the start of
+    each invocation, not from agent construction.
+
+    Do not share instances between agents.
+    """
+
+    _seconds: float
+    _deadline_per_thread_id: dict[str, float]
+
+    def __init__(self, seconds: float) -> None:
+        self._seconds = seconds
+        self._deadline_per_thread_id = {}
+
+    @override
+    async def agent_middleware(
+        self,
+        request: AgentRequest,
+        handler: AgentMiddlewareHandler,
+    ) -> AgentResponse[Any | None]:
+        try:
+            # Agent loop starting.
+            self._deadline_per_thread_id[request.thread_id] = (
+                monotonic() + self._seconds
+            )
+            return await handler(request)
+        finally:
+            del self._deadline_per_thread_id[request.thread_id]  # don't leak memory
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        if monotonic() >= self._deadline_per_thread_id[request.state.thread_id]:
+            raise TimeoutExceededException(timeout_seconds=self._seconds)
+        return await handler(request)
+
+
+class _StructuredOutputRetryLimitMiddleware(AgentMiddleware):
+    """Stops agent execution when the agent exceeds structured output
+    retry limit during a single agent loop invocation. Pass 0 to disable retires.
+    """
+
+    _limit: int
+    _retries_per_thread_id: dict[str, int]
+
+    def __init__(self, limit: int) -> None:
+        self._limit = limit
+        self._retries_per_thread_id = {}
+
+    @override
+    async def agent_middleware(
+        self,
+        request: AgentRequest,
+        handler: AgentMiddlewareHandler,
+    ) -> AgentResponse[Any | None]:
+        try:
+            # Agent loop starting.
+            self._retries_per_thread_id[request.thread_id] = 0
+            return await handler(request)
+        finally:
+            del self._retries_per_thread_id[request.thread_id]  # don't leak memory
+
+    @override
+    async def model_middleware(
+        self,
+        request: ModelRequest,
+        handler: ModelMiddlewareHandler,
+    ) -> ModelResponse:
+        try:
+            return await handler(request)
+        except StructuredOutputGenerationException:
+            self._retries_per_thread_id[request.state.thread_id] += 1
+            if self._retries_per_thread_id[request.state.thread_id] > self._limit:
+                raise StructuredOutputRetryLimitExceededException(self._limit)
+            raise  # re-raise, to retry structured output generation

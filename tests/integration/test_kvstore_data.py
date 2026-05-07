@@ -31,9 +31,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
 
     def test_insert_query_delete_data(self):
         for x in range(50):
-            self.col.insert(
-                json.dumps({"_key": str(x), "data": "#" + str(x), "num": x})
-            )
+            self.col.insert(json.dumps({"_key": str(x), "data": "#" + str(x), "num": x}))
         self.assertEqual(len(self.col.query()), 50)
         self.assertEqual(len(self.col.query(query='{"num": 10}')), 1)
         self.assertEqual(self.col.query(query='{"num": 10}')[0]["data"], "#10")
@@ -44,9 +42,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
 
     def test_update_delete_data(self):
         for x in range(50):
-            self.col.insert(
-                json.dumps({"_key": str(x), "data": "#" + str(x), "num": x})
-            )
+            self.col.insert(json.dumps({"_key": str(x), "data": "#" + str(x), "num": x}))
         self.assertEqual(len(self.col.query()), 50)
         self.assertEqual(self.col.query(query='{"num": 49}')[0]["data"], "#49")
         self.col.update(str(49), json.dumps({"data": "#50", "num": 50}))
@@ -62,9 +58,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         self.confs.create("test1")
         self.col = self.confs["test1"].data
         for x in range(10):
-            self.col.insert(
-                json.dumps({"_key": str(x), "data": "#" + str(x), "num": x})
-            )
+            self.col.insert(json.dumps({"_key": str(x), "data": "#" + str(x), "num": x}))
         data = self.col.query(sort="data:-1", skip=9)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["data"], "#0")
@@ -76,9 +70,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
     def test_invalid_insert_update(self):
         self.assertRaises(client.HTTPError, lambda: self.col.insert("NOT VALID DATA"))
         id = self.col.insert(json.dumps({"foo": "bar"}))["_key"]
-        self.assertRaises(
-            client.HTTPError, lambda: self.col.update(id, "NOT VALID DATA")
-        )
+        self.assertRaises(client.HTTPError, lambda: self.col.update(id, "NOT VALID DATA"))
         self.assertEqual(self.col.query_by_id(id)["foo"], "bar")
 
     def test_params_data_type_conversion(self):

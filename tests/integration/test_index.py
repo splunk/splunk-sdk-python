@@ -36,9 +36,7 @@ class IndexTest(testlib.SDKTestCase):
             if self.index_name in self.service.indexes:
                 time.sleep(5)
                 self.service.indexes.delete(self.index_name)
-                self.assertEventuallyTrue(
-                    lambda: self.index_name not in self.service.indexes
-                )
+                self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
         else:
             logging.warning(
                 "test_index.py:TestDeleteIndex: Skipped: cannot "
@@ -54,9 +52,7 @@ class IndexTest(testlib.SDKTestCase):
             self.assertTrue(self.index_name in self.service.indexes)
             time.sleep(5)
             self.service.indexes.delete(self.index_name)
-            self.assertEventuallyTrue(
-                lambda: self.index_name not in self.service.indexes
-            )
+            self.assertEventuallyTrue(lambda: self.index_name not in self.service.indexes)
 
     def test_integrity(self):
         self.check_entity(self.index)
@@ -95,9 +91,7 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEqual(self.index["sync"], "0")
         self.assertEqual(self.index["disabled"], "0")
         self.index.submit("Hello again!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=50
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
 
     def test_submit_namespaced(self):
         s = client.connect(
@@ -114,18 +108,14 @@ class IndexTest(testlib.SDKTestCase):
         self.assertEqual(i["sync"], "0")
         self.assertEqual(i["disabled"], "0")
         i.submit("Hello again namespaced!", sourcetype="Boris", host="meep")
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=50
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=50)
 
     def test_submit_via_attach(self):
         event_count = int(self.index["totalEventCount"])
         cn = self.index.attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_using_token_header(self):
         # Remove the prefix from the token
@@ -137,18 +127,14 @@ class IndexTest(testlib.SDKTestCase):
         cn = i.attach()
         cn.send(b"Hello Boris 5!\r\n")
         cn.close()
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attached_socket(self):
         event_count = int(self.index["totalEventCount"])
         f = self.index.attached_socket
         with f() as sock:
             sock.send(b"Hello world!\r\n")
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_with_cookie_header(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
@@ -167,9 +153,7 @@ class IndexTest(testlib.SDKTestCase):
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     def test_submit_via_attach_with_multiple_cookie_headers(self):
         # Skip this test if running below Splunk 6.2, cookie-auth didn't exist before
@@ -187,9 +171,7 @@ class IndexTest(testlib.SDKTestCase):
         cn = service.indexes[self.index_name].attach()
         cn.send(b"Hello Boris!\r\n")
         cn.close()
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 1, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 1, timeout=60)
 
     @pytest.mark.app
     def test_upload(self):
@@ -199,9 +181,7 @@ class IndexTest(testlib.SDKTestCase):
 
         path = self.pathInApp("file_to_upload", ["log.txt"])
         self.index.upload(path)
-        self.assertEventuallyTrue(
-            lambda: self.totalEventCount() == event_count + 4, timeout=60
-        )
+        self.assertEventuallyTrue(lambda: self.totalEventCount() == event_count + 4, timeout=60)
 
 
 if __name__ == "__main__":

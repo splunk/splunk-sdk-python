@@ -77,7 +77,8 @@ class JSONResultsReader:
     **Example**::
 
         import results
-        response = ... # the body of an HTTP response
+
+        response = ...  # the body of an HTTP response
         reader = results.JSONResultsReader(response)
         for result in reader:
             if isinstance(result, dict):

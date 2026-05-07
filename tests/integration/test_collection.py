@@ -38,10 +38,7 @@ expected_fields_keys = set(["required", "optional", "wildcard"])
 class CollectionTestCase(testlib.SDKTestCase):
     def setUp(self):
         super().setUp()
-        if (
-            self.service.splunk_version[0] >= 5
-            and "modular_input_kinds" not in collections
-        ):
+        if self.service.splunk_version[0] >= 5 and "modular_input_kinds" not in collections:
             collections.append("modular_input_kinds")  # Not supported before Splunk 5.0
         else:
             logging.info(
@@ -157,9 +154,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             if coll_name == "jobs":
                 expected_kwargs["sort_key"] = "sid"
                 found_kwargs["sort_key"] = "sid"
-            expected = list(
-                reversed([ent.name.lower() for ent in coll.list(**expected_kwargs)])
-            )
+            expected = list(reversed([ent.name.lower() for ent in coll.list(**expected_kwargs)]))
             if len(expected) == 0:
                 logging.debug(f"No entities in collection {coll_name}; skipping test.")
             found = [ent.name.lower() for ent in coll.list(**found_kwargs)]
@@ -185,10 +180,7 @@ class CollectionTestCase(testlib.SDKTestCase):
             coll = getattr(self.service, coll_name)
             if coll_name == "jobs":
                 expected = [
-                    ent.name
-                    for ent in coll.list(
-                        sort_mode="auto", sort_dir="asc", sort_key="sid"
-                    )
+                    ent.name for ent in coll.list(sort_mode="auto", sort_dir="asc", sort_key="sid")
                 ]
             else:
                 expected = [ent.name for ent in coll.list(sort_mode="auto")]

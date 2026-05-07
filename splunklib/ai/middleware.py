@@ -192,9 +192,7 @@ def model_middleware(
 
 
 def agent_middleware(
-    func: Callable[
-        [AgentRequest, AgentMiddlewareHandler], Awaitable[AgentResponse[Any | None]]
-    ],
+    func: Callable[[AgentRequest, AgentMiddlewareHandler], Awaitable[AgentResponse[Any | None]]],
 ) -> AgentMiddleware:
     class _CustomMiddleware(AgentMiddleware):
         @override

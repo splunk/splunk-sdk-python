@@ -421,14 +421,10 @@ class TestDuplicateName(unittest.TestCase):
                 return 0
 
         register(r)
-        with pytest.raises(
-            ToolRegistryRuntimeError, match="Tool tool_name already defined"
-        ):
+        with pytest.raises(ToolRegistryRuntimeError, match="Tool tool_name already defined"):
             register(r)
 
-        with pytest.raises(
-            ToolRegistryRuntimeError, match="Tool tool_name already defined"
-        ):
+        with pytest.raises(ToolRegistryRuntimeError, match="Tool tool_name already defined"):
             register_name(r)
 
 
@@ -510,9 +506,7 @@ class TestFailingToolRegistry(TestRegistryTestCase):
         async with self.connect("failing_tool.py") as session:
             res = await session.call_tool("failing_tool", arguments={})
             assert res.isError
-            assert res.content == [
-                TextContent(type="text", text="Some tool failure error")
-            ]
+            assert res.content == [TextContent(type="text", text="Some tool failure error")]
             assert res.structuredContent is None
 
 

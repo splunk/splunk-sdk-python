@@ -27,8 +27,8 @@ def rebase_environment(name):
     logging.Logger.manager.loggerDict.clear()
     del logging.root.handlers[:]
 
-    environment.splunklib_logger, environment.logging_configuration = (
-        environment.configure_logging("splunklib")
+    environment.splunklib_logger, environment.logging_configuration = environment.configure_logging(
+        "splunklib"
     )
     searchcommands.logging_configuration = environment.logging_configuration
     searchcommands.splunklib_logger = environment.splunklib_logger

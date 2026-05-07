@@ -87,9 +87,7 @@ class TestMacro(testlib.SDKTestCase):
 
     def test_cannot_update_name(self):
         new_name = self.macro_name + "-alteration"
-        self.assertRaises(
-            client.IllegalOperationException, self.macro.update, name=new_name
-        )
+        self.assertRaises(client.IllegalOperationException, self.macro.update, name=new_name)
 
     def test_name_collision(self):
         opts = self.opts.kwargs.copy()
@@ -125,9 +123,7 @@ class TestMacro(testlib.SDKTestCase):
 
     def test_acl(self):
         self.assertEqual(self.macro.access["perms"], None)
-        self.macro.acl_update(
-            sharing="app", owner="admin", **{"perms.read": "admin, nobody"}
-        )
+        self.macro.acl_update(sharing="app", owner="admin", **{"perms.read": "admin, nobody"})
         self.assertEqual(self.macro.access["owner"], "admin")
         self.assertEqual(self.macro.access["sharing"], "app")
         self.assertEqual(self.macro.access["perms"]["read"], ["admin", "nobody"])
@@ -273,9 +269,7 @@ class TestPrivileges(testlib.SDKTestCase):
         testlib.SDKTestCase.setUp(self)
         self.cleanUsers()
 
-        self.service.users.create(
-            username=self.username, password=self.password, roles=["user"]
-        )
+        self.service.users.create(username=self.username, password=self.password, roles=["user"])
 
         self.service.logout()
         kwargs = self.opts.kwargs.copy()

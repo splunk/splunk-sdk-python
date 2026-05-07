@@ -126,9 +126,7 @@ class TimeoutLimitMiddleware(AgentMiddleware):
     ) -> AgentResponse[Any | None]:
         try:
             # Agent loop starting.
-            self._deadline_per_thread_id[request.thread_id] = (
-                monotonic() + self._seconds
-            )
+            self._deadline_per_thread_id[request.thread_id] = monotonic() + self._seconds
             return await handler(request)
         finally:
             del self._deadline_per_thread_id[request.thread_id]  # don't leak memory

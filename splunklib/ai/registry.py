@@ -258,9 +258,7 @@ class ToolRegistry:
     def _list_tools(self) -> list[types.Tool]:
         return self._tools
 
-    async def _call_tool(
-        self, name: str, arguments: dict[str, Any]
-    ) -> types.CallToolResult:
+    async def _call_tool(self, name: str, arguments: dict[str, Any]) -> types.CallToolResult:
         func = self._tools_func.get(name)
         if func is None:
             raise ValueError(f"Tool {name} does not exist")
@@ -289,9 +287,7 @@ class ToolRegistry:
                 if meta is not None:
                     splunk_meta = meta.model_dump().get("splunk")
                     if splunk_meta is not None:
-                        service = SerializedService.model_validate(
-                            splunk_meta.get("service")
-                        )
+                        service = SerializedService.model_validate(splunk_meta.get("service"))
 
                 ctx = ToolContext(
                     params=_ToolContextParams(
@@ -371,22 +367,16 @@ class ToolRegistry:
         """
 
         sig = inspect.signature(func)
-        output_schema = TypeAdapter(sig.return_annotation).json_schema(
-            mode="serialization"
-        )
+        output_schema = TypeAdapter(sig.return_annotation).json_schema(mode="serialization")
 
         # Since all structured results must be an object in MCP,
         # if the result type of the provided function is not an object,
         # then wrap it in a _WrappedResult to make it a object.
-        is_object = (
-            output_schema.get("type") == "object" or "properties" in output_schema
-        )
+        is_object = output_schema.get("type") == "object" or "properties" in output_schema
         if not is_object:
             output_schema = TypeAdapter(
                 _WrappedResult[
-                    get_type_hints(func, include_extras=True).get(
-                        "return", sig.return_annotation
-                    )
+                    get_type_hints(func, include_extras=True).get("return", sig.return_annotation)
                 ]
             ).json_schema(mode="serialization")
             return output_schema, True
@@ -495,9 +485,7 @@ def _drop_type_annotations_of(
     import types
 
     original_annotations = getattr(fn, "__annotations__", {})
-    new_annotations = {
-        k: v for k, v in original_annotations.items() if k not in exclude_params
-    }
+    new_annotations = {k: v for k, v in original_annotations.items() if k not in exclude_params}
 
     new_func = types.FunctionType(
         fn.__code__,

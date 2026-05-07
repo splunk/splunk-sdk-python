@@ -191,9 +191,7 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return ToolResponse(
-                result=ToolResult(content="0.5C", structured_content=None)
-            )
+            return ToolResponse(result=ToolResult(content="0.5C", structured_content=None))
 
         async with Agent(
             model=await self.model(),
@@ -209,9 +207,7 @@ class TestMiddleware(AITestCase):
             response = self.parse_content(res.final_message)
             assert "0.5" in response, "Invalid response from LLM"
 
-            tool_message = next(
-                (tm for tm in res.messages if isinstance(tm, ToolMessage)), None
-            )
+            tool_message = next((tm for tm in res.messages if isinstance(tm, ToolMessage)), None)
             assert tool_message, "ToolMessage not found in messages"
             assert isinstance(tool_message.result, ToolResult)
             assert tool_message.result.content == "0.5C", "Invalid response from Tool"
@@ -452,11 +448,7 @@ class TestMiddleware(AITestCase):
             ) as supervisor,
         ):
             result = await supervisor.invoke(
-                [
-                    HumanMessage(
-                        content="hi, my name is Chris. Generate a nickname for me"
-                    )
-                ]
+                [HumanMessage(content="hi, my name is Chris. Generate a nickname for me")]
             )
 
             subagent_message = next(
@@ -489,9 +481,7 @@ class TestMiddleware(AITestCase):
 
             call = request.call
             assert call.id, "Invalid call id received"
-            return SubagentResponse(
-                result=SubagentTextResult(content="Chris-superstar")
-            )
+            return SubagentResponse(result=SubagentTextResult(content="Chris-superstar"))
 
         async with (
             Agent(
@@ -577,9 +567,7 @@ class TestMiddleware(AITestCase):
             middleware=[test_middleware],
             tool_settings=ToolSettings(local=True, remote=None),
         ) as agent:
-            await agent.invoke(
-                [HumanMessage(content="What is the weather like today in Kraków?")]
-            )
+            await agent.invoke([HumanMessage(content="What is the weather like today in Kraków?")])
 
             assert middleware_called, "Middleware was not called"
 
@@ -613,14 +601,8 @@ class TestMiddleware(AITestCase):
                 second_subagent_call = first_result.message.calls[0]
                 assert isinstance(second_subagent_call, SubagentCall)
 
-                assert (
-                    subagent_call.name
-                    == second_subagent_call.name
-                    == "NicknameGeneratorAgent"
-                )
-                assert (
-                    subagent_call.args == second_subagent_call.args == {"name": "Chris"}
-                )
+                assert subagent_call.name == second_subagent_call.name == "NicknameGeneratorAgent"
+                assert subagent_call.args == second_subagent_call.args == {"name": "Chris"}
 
             return second_result
 
@@ -667,9 +649,7 @@ class TestMiddleware(AITestCase):
             nonlocal middleware_called
             middleware_called = True
 
-            return ModelResponse(
-                message=AIMessage(content="My response is made up", calls=[])
-            )
+            return ModelResponse(message=AIMessage(content="My response is made up", calls=[]))
 
         async with Agent(
             model=await self.model(),
@@ -678,11 +658,7 @@ class TestMiddleware(AITestCase):
             middleware=[test_middleware],
         ) as agent:
             res = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="Dzień dobry, what is the weather like today in Kraków?"
-                    )
-                ]
+                [HumanMessage(content="Dzień dobry, what is the weather like today in Kraków?")]
             )
 
             response = self.parse_content(res.final_message)
@@ -709,11 +685,7 @@ class TestMiddleware(AITestCase):
         ) as agent:
             with pytest.raises(Exception, match="testing"):
                 await agent.invoke(
-                    [
-                        HumanMessage(
-                            content="Dzień dobry, what is the weather like today in Kraków?"
-                        )
-                    ]
+                    [HumanMessage(content="Dzień dobry, what is the weather like today in Kraków?")]
                 )
 
     @pytest.mark.asyncio
@@ -739,9 +711,7 @@ class TestMiddleware(AITestCase):
             service=self.service,
             middleware=[mutating_middleware],
         ) as agent:
-            res = await agent.invoke(
-                [HumanMessage(content="What is the capital of Germany?")]
-            )
+            res = await agent.invoke([HumanMessage(content="What is the capital of Germany?")])
             assert "Paris" in self.parse_content(res.final_message)
 
     @patch(
@@ -822,9 +792,7 @@ class TestMiddleware(AITestCase):
                 middleware=[mutating_middleware],
             ) as supervisor,
         ):
-            result = await supervisor.invoke(
-                [HumanMessage(content="Generate a nickname for Bob")]
-            )
+            result = await supervisor.invoke([HumanMessage(content="Generate a nickname for Bob")])
             assert "Alice-zilla" in self.parse_content(result.final_message)
 
     @pytest.mark.asyncio
@@ -954,9 +922,7 @@ class TestMiddleware(AITestCase):
             ) -> AgentResponse[Any | None]:
                 return AgentResponse(
                     messages=[
-                        HumanMessage(
-                            content="What is the weather like today in Krakow?"
-                        ),
+                        HumanMessage(content="What is the weather like today in Krakow?"),
                         AIMessage(content="Cloudy", calls=[]),
                     ],
                     structured_output=None,

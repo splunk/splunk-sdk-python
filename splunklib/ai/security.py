@@ -22,18 +22,10 @@ from typing import Any
 # Common prompt injection patterns - covers direct instruction overrides,
 # role-play jailbreaks, and system prompt extraction attempts.
 _INJECTION_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(
-        r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE
-    ),
-    re.compile(
-        r"disregard\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE
-    ),
-    re.compile(
-        r"forget\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE
-    ),
-    re.compile(
-        r"override\s+(all\s+)?(previous|prior|above)?\s*instructions?", re.IGNORECASE
-    ),
+    re.compile(r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE),
+    re.compile(r"disregard\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE),
+    re.compile(r"forget\s+(all\s+)?(previous|prior|above)\s+instructions?", re.IGNORECASE),
+    re.compile(r"override\s+(all\s+)?(previous|prior|above)?\s*instructions?", re.IGNORECASE),
     re.compile(
         r"you\s+are\s+now\s+(?:in\s+)?(?:developer|jailbreak|dan|unrestricted)\s+mode",
         re.IGNORECASE,
@@ -43,12 +35,8 @@ _INJECTION_PATTERNS: list[re.Pattern[str]] = [
         re.IGNORECASE,
     ),
     re.compile(r"do\s+anything\s+now", re.IGNORECASE),
-    re.compile(
-        r"reveal\s+(your\s+)?(system\s+prompt|instructions?|prompt)", re.IGNORECASE
-    ),
-    re.compile(
-        r"print\s+(your\s+)?(system\s+prompt|instructions?|prompt)", re.IGNORECASE
-    ),
+    re.compile(r"reveal\s+(your\s+)?(system\s+prompt|instructions?|prompt)", re.IGNORECASE),
+    re.compile(r"print\s+(your\s+)?(system\s+prompt|instructions?|prompt)", re.IGNORECASE),
 ]
 
 # Default maximum input length (characters). Matches the OWASP recommendation.

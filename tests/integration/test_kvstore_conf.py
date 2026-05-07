@@ -37,9 +37,7 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
         self.assertTrue("test" not in self.confs)
 
     def test_create_fields(self):
-        self.confs.create(
-            "test", accelerated_fields={"ind1": {"a": 1}}, fields={"a": "number1"}
-        )
+        self.confs.create("test", accelerated_fields={"ind1": {"a": 1}}, fields={"a": "number1"})
         self.assertEqual(self.confs["test"]["field.a"], "number1")
         self.assertEqual(self.confs["test"]["accelerated_fields.ind1"], {"a": 1})
         self.confs["test"].delete()
@@ -47,9 +45,7 @@ class KVStoreConfTestCase(testlib.SDKTestCase):
     def test_update_collection(self):
         self.confs.create("test")
         val = {"a": 1}
-        self.confs["test"].post(
-            **{"accelerated_fields.ind1": json.dumps(val), "field.a": "number"}
-        )
+        self.confs["test"].post(**{"accelerated_fields.ind1": json.dumps(val), "field.a": "number"})
         self.assertEqual(self.confs["test"]["field.a"], "number")
         self.assertEqual(self.confs["test"]["accelerated_fields.ind1"], {"a": 1})
         self.confs["test"].delete()

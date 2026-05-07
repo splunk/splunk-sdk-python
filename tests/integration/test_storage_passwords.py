@@ -99,9 +99,7 @@ class Tests(testlib.SDKTestCase):
         username = testlib.tmpname()
         realm = testlib.tmpname()
 
-        p = self.storage_passwords.create(
-            "changeme", username + ":end", ":start" + realm
-        )
+        p = self.storage_passwords.create("changeme", username + ":end", ":start" + realm)
         self.assertEqual(start_count + 1, len(self.storage_passwords))
         self.assertEqual(p.realm, ":start" + realm)
         self.assertEqual(p.username, username + ":end")
@@ -119,9 +117,7 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(p.realm, realm)
         self.assertEqual(p.username, user)
         # self.assertEqual(p.clear_password, "changeme")
-        self.assertEqual(
-            p.name, prefix + "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::"
-        )
+        self.assertEqual(p.name, prefix + "\\:r\\:e\\:a\\:l\\:m\\::\\:u\\:s\\:e\\:r\\::")
 
         p.delete()
         self.assertEqual(start_count, len(self.storage_passwords))
@@ -213,9 +209,7 @@ class Tests(testlib.SDKTestCase):
         self.assertEqual(start_count, len(self.storage_passwords))
 
         # Test named parameters
-        self.storage_passwords.create(
-            password="changeme", username=username, realm="myrealm"
-        )
+        self.storage_passwords.create(password="changeme", username=username, realm="myrealm")
         self.assertEqual(start_count + 1, len(self.storage_passwords))
 
         self.storage_passwords.delete(username, "myrealm")

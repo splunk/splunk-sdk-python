@@ -224,9 +224,7 @@ class GeneratingCommand(SearchCommand):
         else:
             self._finished = True
 
-    def process(
-        self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True
-    ):
+    def process(self, argv=sys.argv, ifile=sys.stdin, ofile=sys.stdout, allow_empty_input=True):
         """Process data.
 
         :param argv: Command line arguments.
@@ -251,12 +249,8 @@ class GeneratingCommand(SearchCommand):
         # so ensure that allow_empty_input is always True
 
         if not allow_empty_input:
-            raise ValueError(
-                "allow_empty_input cannot be False for Generating Commands"
-            )
-        return super().process(
-            argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True
-        )
+            raise ValueError("allow_empty_input cannot be False for Generating Commands")
+        return super().process(argv=argv, ifile=ifile, ofile=ofile, allow_empty_input=True)
 
     # endregion
 
@@ -387,9 +381,7 @@ class GeneratingCommand(SearchCommand):
             version = self.command.protocol_version
             if version == 2:
                 iteritems = [
-                    name_value1
-                    for name_value1 in iteritems
-                    if name_value1[0] != "distributed"
+                    name_value1 for name_value1 in iteritems if name_value1[0] != "distributed"
                 ]
                 if not self.distributed and self.type == "streaming":
                     iteritems = [

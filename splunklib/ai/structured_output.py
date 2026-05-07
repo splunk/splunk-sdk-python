@@ -48,9 +48,7 @@ class StructuredOutputGenerationException(Exception):
         if len(self.message.structured_output_calls) <= 1 and not isinstance(
             self._error, StructuredOutputValidationError
         ):
-            raise AssertionError(
-                "error is not StructuredOutputValidationError, but should be"
-            )
+            raise AssertionError("error is not StructuredOutputValidationError, but should be")
 
         match self.error:
             case StructuredOutputValidationError():

@@ -35,9 +35,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
             "is_scheduled": "1",
             "cron_schedule": "* * * * *",
         }
-        self.saved_search = saved_searches.create(
-            self.saved_search_name, query, **kwargs
-        )
+        self.saved_search = saved_searches.create(self.saved_search_name, query, **kwargs)
 
     def tearDown(self):
         super().tearDown()
@@ -68,9 +66,7 @@ class FiredAlertTestCase(testlib.SDKTestCase):
         self.assertEqual(self.index["sync"], "0")
         self.assertEqual(self.index["disabled"], "0")
         self.index.refresh()
-        self.index.submit(
-            "This is a test " + testlib.tmpname(), sourcetype="sdk_use", host="boris"
-        )
+        self.index.submit("This is a test " + testlib.tmpname(), sourcetype="sdk_use", host="boris")
 
         def f():
             self.index.refresh()

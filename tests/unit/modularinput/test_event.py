@@ -128,8 +128,7 @@ def test_error_in_event_writer():
     with pytest.raises(ValueError) as excinfo:
         ew.write_event(e)
     assert (
-        str(excinfo.value)
-        == "Events must have at least the data field set to be written to XML."
+        str(excinfo.value) == "Events must have at least the data field set to be written to XML."
     )
 
 

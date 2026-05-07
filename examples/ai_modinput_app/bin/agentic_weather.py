@@ -44,9 +44,7 @@ from splunklib.modularinput.script import Script
 # one that might not exist on the filesystem. In such case we unset the env, which
 # causes the default Certificate Authorities to be used instead.
 CA_TRUST_STORE = "/opt/splunk/openssl/cert.pem"
-if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(
-    CA_TRUST_STORE
-):
+if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(CA_TRUST_STORE):
     del os.environ["SSL_CERT_FILE"]
 
 

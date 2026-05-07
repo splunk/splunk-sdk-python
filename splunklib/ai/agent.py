@@ -183,9 +183,7 @@ class Agent(BaseAgent[OutputT]):
                 "internal error: _impl was not set to None after agent invocation"
             )
 
-            splunk_username = await asyncio.to_thread(
-                lambda: _get_splunk_username(self._service)
-            )
+            splunk_username = await asyncio.to_thread(lambda: _get_splunk_username(self._service))
             _validate_agent_privileges(splunk_username)
 
             self.logger.debug(f"Creating agent {self.name=}; {self.trace_id=}")
@@ -201,9 +199,7 @@ class Agent(BaseAgent[OutputT]):
 
             self._impl = None
 
-    async def _load_tools(
-        self, stack: AsyncExitStack, splunk_username: str
-    ) -> list[Tool]:
+    async def _load_tools(self, stack: AsyncExitStack, splunk_username: str) -> list[Tool]:
         tools: list[Tool] = []
         if not self.tool_settings.local and not self.tool_settings.remote:
             return tools
@@ -234,9 +230,7 @@ class Agent(BaseAgent[OutputT]):
         if self.tool_settings.remote:
             self.logger.debug("Probing MCP Server App availability")
             remote_session = await stack.enter_async_context(
-                connect_remote_mcp(
-                    self._service, app_id, self.trace_id, splunk_username
-                )
+                connect_remote_mcp(self._service, app_id, self.trace_id, splunk_username)
             )
 
             if remote_session:
@@ -252,9 +246,7 @@ class Agent(BaseAgent[OutputT]):
                 allowlist = self.tool_settings.remote.allowlist
                 remote_tools = [rt for rt in remote_tools if allowlist.is_allowed(rt)]
 
-                self.logger.debug(
-                    f"Loaded remote_tools={[t.name for t in remote_tools]}"
-                )
+                self.logger.debug(f"Loaded remote_tools={[t.name for t in remote_tools]}")
                 tools.extend(remote_tools)
 
         return tools
@@ -265,13 +257,9 @@ class Agent(BaseAgent[OutputT]):
         self._agent_context_manager = self._start_agent()
         return await self._agent_context_manager.__aenter__()
 
-    async def __aexit__(
-        self, exc_type: ..., exc_value: ..., traceback: ...
-    ) -> bool | None:
+    async def __aexit__(self, exc_type: ..., exc_value: ..., traceback: ...) -> bool | None:
         assert self._agent_context_manager is not None
-        result = await self._agent_context_manager.__aexit__(
-            exc_type, exc_value, traceback
-        )
+        result = await self._agent_context_manager.__aexit__(exc_type, exc_value, traceback)
         self._agent_context_manager = None
         return result
 
@@ -324,9 +312,7 @@ def _local_tools_path() -> tuple[str | None, str]:
         app_id, app_dir = locate_app()
         local_tools_path = build_local_tools_path(app_dir)
 
-    assert app_id is not None, (
-        "_load_tools_from_mcp was mocked, but _testing_app_id not"
-    )
+    assert app_id is not None, "_load_tools_from_mcp was mocked, but _testing_app_id not"
 
     if not os.path.exists(local_tools_path):
         local_tools_path = None

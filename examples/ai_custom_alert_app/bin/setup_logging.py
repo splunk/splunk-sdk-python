@@ -26,11 +26,7 @@ def setup_logging(app_name: str) -> logging.Logger:
     logger = logging.getLogger(app_name)
     logger.setLevel(logging.DEBUG)
 
-    handler = logging.handlers.RotatingFileHandler(
-        LOG_PATH, maxBytes=1024 * 1024, backupCount=5
-    )
-    handler.setFormatter(
-        logging.Formatter(f"%(asctime)s %(levelname)s [{app_name}] %(message)s")
-    )
+    handler = logging.handlers.RotatingFileHandler(LOG_PATH, maxBytes=1024 * 1024, backupCount=5)
+    handler.setFormatter(logging.Formatter(f"%(asctime)s %(levelname)s [{app_name}] %(message)s"))
     logger.addHandler(handler)
     return logger

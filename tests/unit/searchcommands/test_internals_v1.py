@@ -114,9 +114,7 @@ class TestInternals(TestCase):
         # Command line with missing required options, with or without fieldnames or unnecessary options
 
         options = ["unnecessary_option=true"]
-        self.assertRaises(
-            ValueError, CommandLineParser.parse, command, options + fieldnames
-        )
+        self.assertRaises(ValueError, CommandLineParser.parse, command, options + fieldnames)
         self.assertRaises(ValueError, CommandLineParser.parse, command, options)
         self.assertRaises(ValueError, CommandLineParser.parse, command, [])
 
@@ -247,18 +245,14 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("this%20is%20an%20unnamed%20single-line%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("this%20is%20an%20unnamed%20single-line%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("this%20is%20an%20unnamed\nmulti-\nline%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("this%20is%20an%20unnamed\nmulti-\nline%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 0)
@@ -267,9 +261,7 @@ class TestInternals(TestCase):
 
         input_header = InputHeader()
 
-        with closing(
-            StringIO("Foo:this%20is%20a%20single-line%20item\n\n")
-        ) as input_file:
+        with closing(StringIO("Foo:this%20is%20a%20single-line%20item\n\n")) as input_file:
             input_header.read(input_file)
 
         self.assertEqual(len(input_header), 1)

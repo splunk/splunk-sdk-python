@@ -58,9 +58,7 @@ class TestBuiltinOptions(TestCase):
         rebase_environment("app_without_logging_configuration")
 
         self.assertIsNone(environment.logging_configuration)
-        self.assertTrue(
-            any(isinstance(h, logging.StreamHandler) for h in logging.root.handlers)
-        )
+        self.assertTrue(any(isinstance(h, logging.StreamHandler) for h in logging.root.handlers))
         self.assertTrue("splunklib" in logging.Logger.manager.loggerDict)
         self.assertEqual(
             environment.splunklib_logger, logging.Logger.manager.loggerDict["splunklib"]
@@ -81,9 +79,7 @@ class TestBuiltinOptions(TestCase):
         self.assertIsInstance(root_handler, logging.StreamHandler)
         self.assertEqual(root_handler.stream, sys.stderr)
 
-        self.assertEqual(
-            command.logging_level, logging.getLevelName(logging.root.level)
-        )
+        self.assertEqual(command.logging_level, logging.getLevelName(logging.root.level))
         root_handler.stream = StringIO()
         message = "Test that output is directed to stderr without formatting"
         command.logger.warning(message)
@@ -111,9 +107,7 @@ class TestBuiltinOptions(TestCase):
 
         # Setting logging_configuration loads a new logging configuration file on an absolute path
 
-        app_root_logging_configuration = os.path.join(
-            environment.app_root, "logging.conf"
-        )
+        app_root_logging_configuration = os.path.join(environment.app_root, "logging.conf")
         command.logging_configuration = app_root_logging_configuration
 
         self.assertEqual(command.logging_configuration, app_root_logging_configuration)

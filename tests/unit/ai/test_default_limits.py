@@ -29,7 +29,13 @@ from splunklib.ai.limits import (
     StructuredOutputRetryLimitMiddleware,
 )
 from splunklib.ai.messages import AIMessage, AgentResponse
-from splunklib.ai.middleware import AgentMiddleware, AgentRequest, AgentState, ModelRequest, ModelResponse
+from splunklib.ai.middleware import (
+    AgentMiddleware,
+    AgentRequest,
+    AgentState,
+    ModelRequest,
+    ModelResponse,
+)
 from splunklib.ai.model import OpenAIModel
 from splunklib.client import Service
 
@@ -104,7 +110,11 @@ class TestDefaultLimitsInjection(unittest.TestCase):
 
     def test_all_user_limits_suppress_all_defaults(self) -> None:
         agent = _make_agent(
-            middleware=[TokenLimitMiddleware(50_000), StepLimitMiddleware(10), TimeoutLimitMiddleware(30.0)]
+            middleware=[
+                TokenLimitMiddleware(50_000),
+                StepLimitMiddleware(10),
+                TimeoutLimitMiddleware(30.0),
+            ]
         )
         mw = list(agent.middleware or [])
         assert len([m for m in mw if isinstance(m, TokenLimitMiddleware)]) == 1

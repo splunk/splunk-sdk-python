@@ -199,9 +199,7 @@ class StreamingCommand(SearchCommand):
                     ]
             else:
                 iteritems = [
-                    name_value2
-                    for name_value2 in iteritems
-                    if name_value2[0] != "distributed"
+                    name_value2 for name_value2 in iteritems if name_value2[0] != "distributed"
                 ]
                 if not self.distributed:
                     iteritems = [

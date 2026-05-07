@@ -24,8 +24,8 @@ exposed via the REST API. Typically you connect to a running Splunk instance
 with the :func:`connect` function::
 
     import splunklib.client as client
-    service = client.connect(host='localhost', port=8089,
-                       username='admin', password='...')
+
+    service = client.connect(host="localhost", port=8089, username="admin", password="...")
     assert isinstance(service, client.Service)
 
 :class:`Service` objects have fields for the various Splunk resources (such as apps,
@@ -33,15 +33,15 @@ jobs, saved searches, inputs, and indexes). All of these fields are
 :class:`Collection` objects::
 
     appcollection = service.apps
-    my_app = appcollection.create('my_app')
-    my_app = appcollection['my_app']
-    appcollection.delete('my_app')
+    my_app = appcollection.create("my_app")
+    my_app = appcollection["my_app"]
+    appcollection.delete("my_app")
 
 The individual elements of the collection, in this case *applications*,
 are subclasses of :class:`Entity`. An ``Entity`` object has fields for its
 attributes, and methods that are specific to each kind of entity. For example::
 
-    print(my_app['author'])  # Or: print(my_app.author)
+    print(my_app["author"])  # Or: print(my_app.author)
     my_app.package()  # Creates a compressed package of this application
 
 The purpose of this module is to provide a friendlier domain interface to
@@ -197,9 +197,7 @@ def _filter_content(content, *args):
     if len(args) > 0:
         return record((k, content[k]) for k in args)
     return record(
-        (k, v)
-        for k, v in content.items()
-        if k not in ["eai:acl", "eai:attributes", "type"]
+        (k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes", "type"]
     )
 
 
@@ -261,9 +259,7 @@ def _parse_atom_entry(entry):
     metadata = _parse_atom_metadata(content)
 
     # Filter some of the noise out of the content record
-    content = record(
-        (k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes"]
-    )
+    content = record((k, v) for k, v in content.items() if k not in ["eai:acl", "eai:attributes"])
 
     if "type" in content:
         if isinstance(content["type"], list):
@@ -364,6 +360,7 @@ def connect(**kwargs):
     **Example**::
 
         import splunklib.client as client
+
         s = client.connect(...)
         a = s.apps["my_app"]
         ...
@@ -573,9 +570,7 @@ class Service(_BaseService):
         """
         if self.splunk_version >= (5,):
             return ReadOnlyCollection(self, PATH_MODULAR_INPUTS, item=ModularInputKind)
-        raise IllegalOperationException(
-            "Modular inputs are not supported before Splunk version 5."
-        )
+        raise IllegalOperationException("Modular inputs are not supported before Splunk version 5.")
 
     @property
     def storage_passwords(self):
@@ -625,9 +620,7 @@ class Service(_BaseService):
         :param timeout: A timeout period, in seconds.
         :type timeout: ``integer``
         """
-        msg = {
-            "value": f"Restart requested by {self.username} via the Splunk SDK for Python"
-        }
+        msg = {"value": f"Restart requested by {self.username} via the Splunk SDK for Python"}
         # This message will be deleted once the server actually restarts.
         self.messages.create(name="restart_required", **msg)
         result = self.post("/services/server/control/restart")
@@ -748,9 +741,7 @@ class Service(_BaseService):
         :return: A ``tuple`` of ``integers``.
         """
         if self._splunk_version is None:
-            self._splunk_version = tuple(
-                int(p) for p in self.info["version"].split(".")
-            )
+            self._splunk_version = tuple(int(p) for p in self.info["version"].split("."))
         return self._splunk_version
 
     @property
@@ -833,9 +824,7 @@ class Endpoint:
         # For example, "/services/search/jobs" is using API v1
         api_version = 1
 
-        versionSearch = re.search(
-            r"(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/", path
-        )
+        versionSearch = re.search(r"(?:servicesNS\/[^/]+\/[^/]+|services)\/[^/]+\/v(\d+)\/", path)
         if versionSearch:
             api_version = int(versionSearch.group(1))
 
@@ -916,9 +905,7 @@ class Endpoint:
 
         if api_version == 1:
             if isinstance(path, UrlEncoded):
-                path = UrlEncoded(
-                    path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True
-                )
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
             else:
                 path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
@@ -993,9 +980,7 @@ class Endpoint:
 
         if api_version == 1:
             if isinstance(path, UrlEncoded):
-                path = UrlEncoded(
-                    path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True
-                )
+                path = UrlEncoded(path.replace(PATH_JOBS_V2, PATH_JOBS), skip_encode=True)
             else:
                 path = path.replace(PATH_JOBS_V2, PATH_JOBS)
 
@@ -1015,9 +1000,9 @@ class Entity(Endpoint):
     An ``Entity`` is addressed like a dictionary, with a few extensions,
     so the following all work, for example in saved searches::
 
-        ent['action.email']
-        ent['alert_type']
-        ent['search']
+        ent["action.email"]
+        ent["alert_type"]
+        ent["search"]
 
     You can also access the fields as though they were the fields of a Python
     object, as in::
@@ -1086,9 +1071,10 @@ class Entity(Endpoint):
         such as::
 
             import splunklib.client as client
+
             c = client.connect(...)
             saved_searches = c.saved_searches
-            x = saved_searches['asearch']
+            x = saved_searches["asearch"]
 
         but then ``x != saved_searches['asearch']``.
 
@@ -1184,9 +1170,7 @@ class Entity(Endpoint):
 
     def post(self, path_segment="", owner=None, app=None, sharing=None, **query):
         owner, app, sharing = self._proper_namespace(owner, app, sharing)
-        return super().post(
-            path_segment, owner=owner, app=app, sharing=sharing, **query
-        )
+        return super().post(path_segment, owner=owner, app=app, sharing=sharing, **query)
 
     def refresh(self, state=None):
         """Refreshes the state of this entity.
@@ -1205,8 +1189,9 @@ class Entity(Endpoint):
         **Example**::
 
             import splunklib.client as client
+
             s = client.connect(...)
-            search = s.apps['search']
+            search = s.apps["search"]
             search.refresh()
         """
         if state is not None:
@@ -1299,9 +1284,12 @@ class Entity(Endpoint):
         **Example**::
 
             import splunklib.client as client
+
             service = client.connect(...)
             saved_search = service.saved_searches["name"]
-            saved_search.acl_update(sharing="app", owner="nobody", app="search", **{"perms.read": "admin, nobody"})
+            saved_search.acl_update(
+                sharing="app", owner="nobody", app="search", **{"perms.read": "admin, nobody"}
+            )
         """
         if "body" not in kwargs:
             kwargs = {"body": kwargs}
@@ -1342,7 +1330,7 @@ class Entity(Endpoint):
         such keys::
 
             # This works
-            x.update(**{'check-new': False, 'email.to': 'boris@utopia.net'})
+            x.update(**{"check-new": False, "email.to": "boris@utopia.net"})
 
         :param kwargs: Additional entity-specific arguments (optional).
         :type kwargs: ``dict``
@@ -1356,9 +1344,7 @@ class Entity(Endpoint):
         # check for 'name' in kwargs and throw an error if it is
         # there.
         if "name" in kwargs:
-            raise IllegalOperationException(
-                "Cannot update the name of an Entity via the REST API."
-            )
+            raise IllegalOperationException("Cannot update the name of an Entity via the REST API.")
         self.post(**kwargs)
         return self
 
@@ -1421,21 +1407,19 @@ class ReadOnlyCollection(Endpoint):
             s = client.connect(...)
             saved_searches = s.saved_searches
             x1 = saved_searches.create(
-                'mysearch', 'search * | head 1',
-                owner='admin', app='search', sharing='app')
+                "mysearch", "search * | head 1", owner="admin", app="search", sharing="app"
+            )
             x2 = saved_searches.create(
-                'mysearch', 'search * | head 1',
-                owner='admin', app='search', sharing='user')
+                "mysearch", "search * | head 1", owner="admin", app="search", sharing="user"
+            )
             # Raises ValueError:
-            saved_searches['mysearch']
+            saved_searches["mysearch"]
             # Fetches x1
-            saved_searches[
-                'mysearch',
-                client.namespace(sharing='app', app='search')]
+            saved_searches["mysearch", client.namespace(sharing="app", app="search")]
             # Fetches x2
             saved_searches[
-                'mysearch',
-                client.namespace(sharing='user', owner='boris', app='search')]
+                "mysearch", client.namespace(sharing="user", owner="boris", app="search")
+            ]
         """
         try:
             if isinstance(key, tuple) and len(key) == 2:
@@ -1476,6 +1460,7 @@ class ReadOnlyCollection(Endpoint):
         **Example**::
 
             import splunklib.client as client
+
             c = client.connect(...)
             saved_searches = c.saved_searches
             for entity in saved_searches:
@@ -1499,6 +1484,7 @@ class ReadOnlyCollection(Endpoint):
         **Example**::
 
             import splunklib.client as client
+
             c = client.connect(...)
             saved_searches = c.saved_searches
             n = len(saved_searches)
@@ -1574,28 +1560,38 @@ class ReadOnlyCollection(Endpoint):
 
             import splunklib.client as client
             import pprint
+
             s = client.connect(...)
             pprint.pprint(s.apps.itemmeta())
-            {'access': {'app': 'search',
-                                    'can_change_perms': '1',
-                                    'can_list': '1',
-                                    'can_share_app': '1',
-                                    'can_share_global': '1',
-                                    'can_share_user': '1',
-                                    'can_write': '1',
-                                    'modifiable': '1',
-                                    'owner': 'admin',
-                                    'perms': {'read': ['*'], 'write': ['admin']},
-                                    'removable': '0',
-                                    'sharing': 'user'},
-             'fields': {'optional': ['author',
-                                        'configured',
-                                        'description',
-                                        'label',
-                                        'manageable',
-                                        'template',
-                                        'visible'],
-                                        'required': ['name'], 'wildcard': []}}
+            {
+                "access": {
+                    "app": "search",
+                    "can_change_perms": "1",
+                    "can_list": "1",
+                    "can_share_app": "1",
+                    "can_share_global": "1",
+                    "can_share_user": "1",
+                    "can_write": "1",
+                    "modifiable": "1",
+                    "owner": "admin",
+                    "perms": {"read": ["*"], "write": ["admin"]},
+                    "removable": "0",
+                    "sharing": "user",
+                },
+                "fields": {
+                    "optional": [
+                        "author",
+                        "configured",
+                        "description",
+                        "label",
+                        "manageable",
+                        "template",
+                        "visible",
+                    ],
+                    "required": ["name"],
+                    "wildcard": [],
+                },
+            }
         """
         response = self.get("_new")
         content = _load_atom(response, MATCH_ENTRY_CONTENT)
@@ -1631,6 +1627,7 @@ class ReadOnlyCollection(Endpoint):
         **Example**::
 
             import splunklib.client as client
+
             s = client.connect(...)
             for saved_search in s.saved_searches.iter(pagesize=10):
                 # Loads 10 saved searches at a time from the
@@ -1712,11 +1709,14 @@ class Collection(ReadOnlyCollection):
     **Example**::
 
         import splunklib.client as client
+
         service = client.connect(...)
         mycollection = service.saved_searches
-        mysearch = mycollection['my_search', client.namespace(owner='boris', app='natasha', sharing='user')]
+        mysearch = mycollection[
+            "my_search", client.namespace(owner="boris", app="natasha", sharing="user")
+        ]
         # Or if there is only one search visible named 'my_search'
-        mysearch = mycollection['my_search']
+        mysearch = mycollection["my_search"]
 
     Similarly, ``name`` in ``mycollection`` works as you might expect (though
     you cannot currently pass a namespace to the ``in`` operator), as does
@@ -1762,6 +1762,7 @@ class Collection(ReadOnlyCollection):
         **Example**::
 
             import splunklib.client as client
+
             s = client.connect(...)
             applications = s.apps
             new_app = applications.create("my_fake_app")
@@ -1801,13 +1802,13 @@ class Collection(ReadOnlyCollection):
         **Example**::
 
             import splunklib.client as client
+
             c = client.connect(...)
             saved_searches = c.saved_searches
-            saved_searches.create('my_saved_search',
-                                  'search * | head 1')
-            assert 'my_saved_search' in saved_searches
-            saved_searches.delete('my_saved_search')
-            assert 'my_saved_search' not in saved_searches
+            saved_searches.create("my_saved_search", "search * | head 1")
+            assert "my_saved_search" in saved_searches
+            saved_searches.delete("my_saved_search")
+            assert "my_saved_search" not in saved_searches
         """
         name = UrlEncoded(name, encode_slash=True)
         if "namespace" in params:
@@ -1911,9 +1912,7 @@ class Configurations(Collection):
         # that multiple entities means a name collision, so we have to override it here.
         try:
             self.get(key)
-            return ConfigurationFile(
-                self.service, PATH_CONF % key, state={"title": key}
-            )
+            return ConfigurationFile(self.service, PATH_CONF % key, state={"title": key})
         except HTTPError as he:
             if he.status == 404:  # No entity matching key
                 raise KeyError(key)
@@ -1960,9 +1959,7 @@ class Configurations(Collection):
 
     def delete(self, key):
         """Raises `IllegalOperationException`."""
-        raise IllegalOperationException(
-            "Cannot delete configuration files from the REST API."
-        )
+        raise IllegalOperationException("Cannot delete configuration files from the REST API.")
 
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects
@@ -1991,11 +1988,7 @@ class Stanza(Entity):
         # and 'disabled', so to get an accurate length, we have to filter those out and have just
         # the stanza keys.
         return len(
-            [
-                x
-                for x in self._state.content.keys()
-                if not x.startswith("eai") and x != "disabled"
-            ]
+            [x for x in self._state.content.keys() if not x.startswith("eai") and x != "disabled"]
         )
 
 
@@ -2096,9 +2089,7 @@ class StoragePasswords(Collection):
         else:
             # Encode each component separately
             name = (
-                UrlEncoded(realm, encode_slash=True)
-                + ":"
-                + UrlEncoded(username, encode_slash=True)
+                UrlEncoded(realm, encode_slash=True) + ":" + UrlEncoded(username, encode_slash=True)
             )
 
         # Append the : expected at the end of the name
@@ -2161,8 +2152,7 @@ class Indexes(Collection):
             Collection.delete(self, name)
         else:
             raise IllegalOperationException(
-                "Deleting indexes via the REST API is "
-                "not supported before Splunk version 5."
+                "Deleting indexes via the REST API is not supported before Splunk version 5."
             )
 
 
@@ -2193,9 +2183,7 @@ class Index(Entity):
             args["source"] = source
         if sourcetype is not None:
             args["sourcetype"] = sourcetype
-        path = UrlEncoded(
-            PATH_RECEIVERS_STREAM + "?" + parse.urlencode(args), skip_encode=True
-        )
+        path = UrlEncoded(PATH_RECEIVERS_STREAM + "?" + parse.urlencode(args), skip_encode=True)
 
         cookie_header = (
             self.service.token
@@ -2247,10 +2235,11 @@ class Index(Entity):
         **Example**::
 
             import splunklib.client as client
+
             s = client.connect(...)
-            index = s.indexes['some_index']
-            with index.attached_socket(sourcetype='test') as sock:
-                sock.send('Test event\\r\\n')
+            index = s.indexes["some_index"]
+            with index.attached_socket(sourcetype="test") as sock:
+                sock.send("Test event\\r\\n")
 
         """
         try:
@@ -2479,9 +2468,7 @@ class Inputs(Collection):
                     if len(entries) == 0:
                         pass
                     else:
-                        if (
-                            candidate is not None
-                        ):  # Already found at least one candidate
+                        if candidate is not None:  # Already found at least one candidate
                             raise AmbiguousReferenceException(
                                 f"Found multiple inputs named {key}, please specify a kind"
                             )
@@ -2567,9 +2554,7 @@ class Inputs(Collection):
         name = UrlEncoded(name, encode_slash=True)
         path = _path(
             self.path + kindpath,
-            f"{kwargs['restrictToHost']}:{name}"
-            if "restrictToHost" in kwargs
-            else name,
+            f"{kwargs['restrictToHost']}:{name}" if "restrictToHost" in kwargs else name,
         )
         return Input(self.service, path, kind)
 
@@ -3008,15 +2993,16 @@ class Job(Entity):
             import splunklib.client as client
             import splunklib.results as results
             from time import sleep
+
             service = client.connect(...)
             job = service.jobs.create("search * | head 5")
             while not job.is_done():
-                sleep(.2)
-            rr = results.JSONResultsReader(job.results(output_mode='json'))
+                sleep(0.2)
+            rr = results.JSONResultsReader(job.results(output_mode="json"))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print(f'{result.type}: {result.message}')
+                    print(f"{result.type}: {result.message}")
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
                     print(result)
@@ -3054,13 +3040,14 @@ class Job(Entity):
 
             import splunklib.client as client
             import splunklib.results as results
+
             service = client.connect(...)
             job = service.jobs.create("search * | head 5")
-            rr = results.JSONResultsReader(job.preview(output_mode='json'))
+            rr = results.JSONResultsReader(job.preview(output_mode="json"))
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print(f'{result.type}: {result.message}')
+                    print(f"{result.type}: {result.message}")
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
                     print(result)
@@ -3213,9 +3200,7 @@ class Jobs(Collection):
         :return: The :class:`Job`.
         """
         if kwargs.get("exec_mode", None) == "oneshot":
-            raise TypeError(
-                "Cannot specify exec_mode=oneshot; use the oneshot method instead."
-            )
+            raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
         sid = _load_sid(response, kwargs.get("output_mode", None))
         return Job(self.service, sid)
@@ -3228,12 +3213,15 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
+
             service = client.connect(...)
-            rr = results.JSONResultsReader(service.jobs.export("search * | head 5",output_mode='json'))
+            rr = results.JSONResultsReader(
+                service.jobs.export("search * | head 5", output_mode="json")
+            )
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print(f'{result.type}: {result.message}')
+                    print(f"{result.type}: {result.message}")
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
                     print(result)
@@ -3282,12 +3270,15 @@ class Jobs(Collection):
 
             import splunklib.client as client
             import splunklib.results as results
+
             service = client.connect(...)
-            rr = results.JSONResultsReader(service.jobs.oneshot("search * | head 5",output_mode='json'))
+            rr = results.JSONResultsReader(
+                service.jobs.oneshot("search * | head 5", output_mode="json")
+            )
             for result in rr:
                 if isinstance(result, results.Message):
                     # Diagnostic messages may be returned in the results
-                    print(f'{result.type}: {result.message}')
+                    print(f"{result.type}: {result.message}")
                 elif isinstance(result, dict):
                     # Normal events are returned as dicts
                     print(result)
@@ -3392,9 +3383,7 @@ class ModularInputKind(Entity):
 
     def update(self, **kwargs):
         """Raises an error. Modular input kinds are read only."""
-        raise IllegalOperationException(
-            "Modular input kinds cannot be updated via the REST API."
-        )
+        raise IllegalOperationException("Modular input kinds cannot be updated via the REST API.")
 
 
 class SavedSearch(Entity):
@@ -3446,9 +3435,7 @@ class SavedSearch(Entity):
         :rtype: :class:`AlertGroup`
         """
         if self["is_scheduled"] == "0":
-            raise IllegalOperationException(
-                "Unscheduled saved searches have no alerts."
-            )
+            raise IllegalOperationException("Unscheduled saved searches have no alerts.")
         c = Collection(
             self.service,
             self.service._abspath(
@@ -3516,9 +3503,7 @@ class SavedSearch(Entity):
 
         :return: The list of search times.
         """
-        response = self.get(
-            "scheduled_times", earliest_time=earliest_time, latest_time=latest_time
-        )
+        response = self.get("scheduled_times", earliest_time=earliest_time, latest_time=latest_time)
         data = self._load_atom_entry(response)
         rec = _parse_atom_entry(data)
         times = [datetime.fromtimestamp(int(t)) for t in rec.content.scheduled_times]
@@ -3701,11 +3686,7 @@ class User(Entity):
         :rtype: ``list``
         """
         all_role_names = [r.name for r in self.service.roles.list()]
-        return [
-            self.service.roles[name]
-            for name in self.content.roles
-            if name in all_role_names
-        ]
+        return [self.service.roles[name] for name in self.content.roles if name in all_role_names]
 
 
 # Splunk automatically lowercases new user names so we need to match that
@@ -3749,10 +3730,11 @@ class Users(Collection):
         **Example**::
 
             import splunklib.client as client
+
             c = client.connect(...)
             users = c.users
             boris = users.create("boris", "securepassword", roles="user")
-            hilda = users.create("hilda", "anotherpassword", roles=["user","power"])
+            hilda = users.create("hilda", "anotherpassword", roles=["user", "power"])
         """
         if not isinstance(username, str):
             raise ValueError(f"Invalid username: {str(username)}")
@@ -3763,9 +3745,7 @@ class Users(Collection):
         response = self.get(username)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
-        entity = self.item(
-            self.service, parse.unquote(state.links.alternate), state=state
-        )
+        entity = self.item(self.service, parse.unquote(state.links.alternate), state=state)
         return entity
 
     def delete(self, name):
@@ -3796,8 +3776,8 @@ class Role(Entity):
         **Example**::
 
             service = client.connect(...)
-            role = service.roles['somerole']
-            role.grant('change_own_password', 'search')
+            role = service.roles["somerole"]
+            role.grant("change_own_password", "search")
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_grant:
@@ -3821,8 +3801,8 @@ class Role(Entity):
         **Example**::
 
             service = client.connect(...)
-            role = service.roles['somerole']
-            role.revoke('change_own_password', 'search')
+            role = service.roles["somerole"]
+            role.revoke("change_own_password", "search")
         """
         possible_capabilities = self.service.capabilities
         for capability in capabilities_to_revoke:
@@ -3873,6 +3853,7 @@ class Roles(Collection):
         **Example**::
 
             import splunklib.client as client
+
             c = client.connect(...)
             roles = c.roles
             paltry = roles.create("paltry", imported_roles="user", defaultApp="search")
@@ -3886,9 +3867,7 @@ class Roles(Collection):
         response = self.get(name)
         entry = _load_atom(response, XNAME_ENTRY).entry
         state = _parse_atom_entry(entry)
-        entity = self.item(
-            self.service, parse.unquote(state.links.alternate), state=state
-        )
+        entity = self.item(self.service, parse.unquote(state.links.alternate), state=state)
         return entity
 
     def delete(self, name):
@@ -3924,9 +3903,7 @@ class Application(Entity):
 
 class KVStoreCollections(Collection):
     def __init__(self, service):
-        Collection.__init__(
-            self, service, "storage/collections/config", item=KVStoreCollection
-        )
+        Collection.__init__(self, service, "storage/collections/config", item=KVStoreCollection)
 
     def __getitem__(self, item):
         res = Collection.__getitem__(self, item)
@@ -4011,9 +3988,7 @@ class KVStoreCollectionData:
         self.collection = collection
         self.owner, self.app, self.sharing = collection._proper_namespace()
         self.path = (
-            "storage/collections/data/"
-            + UrlEncoded(self.collection.name, encode_slash=True)
-            + "/"
+            "storage/collections/data/" + UrlEncoded(self.collection.name, encode_slash=True) + "/"
         )
 
     def _get(self, url, **kwargs):
@@ -4071,9 +4046,7 @@ class KVStoreCollectionData:
         :rtype: ``dict``
         """
         return json.loads(
-            self._get(UrlEncoded(str(id), encode_slash=True))
-            .body.read()
-            .decode("utf-8")
+            self._get(UrlEncoded(str(id), encode_slash=True)).body.read().decode("utf-8")
         )
 
     def insert(self, data):
@@ -4156,9 +4129,7 @@ class KVStoreCollectionData:
         data = json.dumps(dbqueries)
 
         return json.loads(
-            self._post(
-                "batch_find", headers=KVStoreCollectionData.JSON_HEADER, body=data
-            )
+            self._post("batch_find", headers=KVStoreCollectionData.JSON_HEADER, body=data)
             .body.read()
             .decode("utf-8")
         )
@@ -4179,9 +4150,7 @@ class KVStoreCollectionData:
         data = json.dumps(documents)
 
         return json.loads(
-            self._post(
-                "batch_save", headers=KVStoreCollectionData.JSON_HEADER, body=data
-            )
+            self._post("batch_save", headers=KVStoreCollectionData.JSON_HEADER, body=data)
             .body.read()
             .decode("utf-8")
         )

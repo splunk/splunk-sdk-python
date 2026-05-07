@@ -92,15 +92,11 @@ class TestSavedSearch(testlib.SDKTestCase):
         is_visible = testlib.to_bool(self.saved_search["is_visible"])
         self.saved_search.update(is_visible=not is_visible)
         self.saved_search.refresh()
-        self.assertEqual(
-            testlib.to_bool(self.saved_search["is_visible"]), not is_visible
-        )
+        self.assertEqual(testlib.to_bool(self.saved_search["is_visible"]), not is_visible)
 
     def test_cannot_update_name(self):
         new_name = self.saved_search_name + "-alteration"
-        self.assertRaises(
-            client.IllegalOperationException, self.saved_search.update, name=new_name
-        )
+        self.assertRaises(client.IllegalOperationException, self.saved_search.update, name=new_name)
 
     def test_name_collision(self):
         opts = self.opts.kwargs.copy()
@@ -119,9 +115,7 @@ class TestSavedSearch(testlib.SDKTestCase):
         saved_search2 = saved_searches.create(name, query2, namespace=namespace1)
         saved_search1 = saved_searches.create(name, query1, namespace=namespace2)
 
-        self.assertRaises(
-            client.AmbiguousReferenceException, saved_searches.__getitem__, name
-        )
+        self.assertRaises(client.AmbiguousReferenceException, saved_searches.__getitem__, name)
         search1 = saved_searches[name, namespace1]
         self.check_saved_search(search1)
         search1.update(**{"action.email.from": "nobody@nowhere.com"})
@@ -191,18 +185,14 @@ class TestSavedSearch(testlib.SDKTestCase):
         self.saved_search.update(cron_schedule="*/5 * * * *", is_scheduled=True)
         scheduled_times = self.saved_search.scheduled_times()
         logging.debug("Scheduled times: %s", scheduled_times)
-        self.assertTrue(
-            all([isinstance(x, datetime.datetime) for x in scheduled_times])
-        )
+        self.assertTrue(all([isinstance(x, datetime.datetime) for x in scheduled_times]))
         time_pairs = list(zip(scheduled_times[:-1], scheduled_times[1:]))
         for earlier, later in time_pairs:
             diff = later - earlier
             self.assertEqual(diff.total_seconds() / 60.0, 5)
 
     def test_no_equality(self):
-        self.assertRaises(
-            client.IncomparableException, self.saved_search.__eq__, self.saved_search
-        )
+        self.assertRaises(client.IncomparableException, self.saved_search.__eq__, self.saved_search)
 
     def test_suppress(self):
         suppressed_time = self.saved_search["suppressed"]

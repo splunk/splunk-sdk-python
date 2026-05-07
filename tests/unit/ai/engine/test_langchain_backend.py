@@ -135,9 +135,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
             "type": "text",
             "text": "test",
         }
-        message = LC_AIMessage(
-            content=[content_block, text_block, "test"], tool_calls=[]
-        )
+        message = LC_AIMessage(content=[content_block, text_block, "test"], tool_calls=[])
 
         mapped = lc._map_message_from_langchain(message)
 
@@ -200,9 +198,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
         ]
 
     def test_map_message_from_langchain_ai_with_mixed_calls(self) -> None:
-        tool_call = LC_ToolCall(
-            name="lookup", args={"q": "test"}, id="tc-1", type="tool_call"
-        )
+        tool_call = LC_ToolCall(name="lookup", args={"q": "test"}, id="tc-1", type="tool_call")
         agent_call = LC_ToolCall(
             name=f"{lc.AGENT_PREFIX}assistant",
             args={"args": {"q": "test"}, "thread_id": None},
@@ -215,12 +211,8 @@ class TestMapMessageFromLangchain(unittest.TestCase):
 
         assert isinstance(mapped, AIMessage)
         assert mapped.calls == [
-            ToolCall(
-                name="lookup", args={"q": "test"}, id="tc-1", type=ToolType.REMOTE
-            ),
-            SubagentCall(
-                name="assistant", args={"q": "test"}, id="tc-2", thread_id=None
-            ),
+            ToolCall(name="lookup", args={"q": "test"}, id="tc-1", type=ToolType.REMOTE),
+            SubagentCall(name="assistant", args={"q": "test"}, id="tc-2", thread_id=None),
         ]
 
     def test_map_message_from_langchain_human(self) -> None:
@@ -459,19 +451,13 @@ class MapMessageToLangchainTests(unittest.TestCase):
         )
         assert isinstance(message, LC_AIMessage)
         assert message.tool_calls == [
-            LC_ToolCall(
-                name="__tool-__agent-bad-tool", args={}, id="tc-1", type="tool_call"
-            )
+            LC_ToolCall(name="__tool-__agent-bad-tool", args={}, id="tc-1", type="tool_call")
         ]
 
         message = lc._map_message_to_langchain(
             AIMessage(
                 content="hi",
-                calls=[
-                    ToolCall(
-                        name="__bad-tool", args={}, id="tc-2", type=ToolType.REMOTE
-                    )
-                ],
+                calls=[ToolCall(name="__bad-tool", args={}, id="tc-2", type=ToolType.REMOTE)],
             )
         )
         assert isinstance(message, LC_AIMessage)
@@ -713,9 +699,7 @@ class CreateLangchainModelTests(unittest.TestCase):
         ),
     ],
 )
-def test_normalize_tool_name(
-    name: str, tool_type: ToolType, expected_name: str
-) -> None:
+def test_normalize_tool_name(name: str, tool_type: ToolType, expected_name: str) -> None:
     got_name = lc._normalize_tool_name(name, tool_type)
 
     assert got_name == expected_name

@@ -86,15 +86,11 @@ def locate_app(
     apps_path = os.path.join(splunk_home, "etc", "apps") + os.path.sep
 
     if not sdk_location_path.startswith(apps_path):
-        raise RuntimeError(
-            f"Failed to locate app: Script not located in {apps_path}<app-id>"
-        )
+        raise RuntimeError(f"Failed to locate app: Script not located in {apps_path}<app-id>")
 
     parts = Path(sdk_location_path).relative_to(apps_path).parts
     if len(parts) == 0:
-        raise RuntimeError(
-            f"Failed to locate app: Script not located in {apps_path}<app-id>"
-        )
+        raise RuntimeError(f"Failed to locate app: Script not located in {apps_path}<app-id>")
 
     assert parts[0] != "."
     assert parts[1] != ".."
@@ -242,9 +238,7 @@ def _convert_tool_result(
         if isinstance(content, TextContent):
             text_contents.append(content.text)
 
-    return ToolResult(
-        content="\n".join(text_contents), structured_content=result.structuredContent
-    )
+    return ToolResult(content="\n".join(text_contents), structured_content=result.structuredContent)
 
 
 def _get_mcp_token(splunk_username: str, service: Service) -> str | None:
@@ -278,9 +272,7 @@ async def connect_local_mcp(
 
     async with stdio_client(server_params) as (read, write):
         logging_handler = _MCPLoggingHandler(logger)
-        async with ClientSession(
-            read, write, logging_callback=logging_handler
-        ) as session:
+        async with ClientSession(read, write, logging_callback=logging_handler) as session:
             await session.initialize()
 
             _ = await session.set_logging_level(logging_handler.level)
@@ -302,9 +294,7 @@ async def connect_remote_mcp(
 ) -> AsyncGenerator[ClientSession | None]:
     management_url = f"{service.scheme}://{service.host}:{service.port}"
     mcp_url = f"{management_url}/services/mcp"
-    mcp_token = await asyncio.to_thread(
-        lambda: _get_mcp_token(splunk_username, service)
-    )
+    mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(splunk_username, service))
     if mcp_token is not None:
         async with streamable_http_client(
             url=mcp_url,
@@ -316,9 +306,7 @@ async def connect_remote_mcp(
                 auth=_MCPAuth(f"Bearer {mcp_token}"),
                 verify=False,
                 follow_redirects=True,
-                timeout=httpx.Timeout(
-                    _MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT
-                ),
+                timeout=httpx.Timeout(_MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT),
             ),
         ) as (read, write, _):
             async with ClientSession(read, write) as session:
@@ -336,7 +324,4 @@ async def load_mcp_tools(
     service: Service,
 ) -> list[Tool]:
     tools = await _list_all_tools(session)
-    return [
-        _convert_mcp_tool(session, type, app_id, trace_id, tool, service)
-        for tool in tools
-    ]
+    return [_convert_mcp_tool(session, type, app_id, trace_id, tool, service) for tool in tools]

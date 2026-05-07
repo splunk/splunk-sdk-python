@@ -92,9 +92,7 @@ def random_unicode():
     return "".join(
         [
             str(x)
-            for x in random.sample(
-                list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length)
-            )
+            for x in random.sample(list(range(MAX_NARROW_UNICODE)), random.randint(0, max_length))
         ]
     )
 
@@ -198,9 +196,7 @@ class TestInternals(TestCase):
         self.assertListEqual(writer._inspector["messages"], messages)
 
         self.assertDictEqual(
-            dict(
-                k_v for k_v in writer._inspector.items() if k_v[0].startswith("metric.")
-            ),
+            dict(k_v for k_v in writer._inspector.items() if k_v[0].startswith("metric.")),
             dict(("metric." + k_v1[0], k_v1[1]) for k_v1 in metrics.items()),
         )
 
@@ -246,17 +242,13 @@ class TestInternals(TestCase):
                     n, chunk_1.metadata, chunk_2.metadata
                 ),
             )
-            self.assertMultiLineEqual(
-                chunk_1.body, chunk_2.body, "Chunk {0}: data error".format(n)
-            )
+            self.assertMultiLineEqual(chunk_1.body, chunk_2.body, "Chunk {0}: data error".format(n))
             n += 1
 
     def _load_chunks(self, ifile):
         import re
 
-        pattern = re.compile(
-            r"chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)\n"
-        )
+        pattern = re.compile(r"chunked 1.0,(?P<metadata_length>\d+),(?P<body_length>\d+)\n")
         decoder = json.JSONDecoder()
 
         chunks = []

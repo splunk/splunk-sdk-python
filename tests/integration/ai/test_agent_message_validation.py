@@ -97,11 +97,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(
-                                name="my_tool", args={}, id="id-1", type=ToolType.LOCAL
-                            )
-                        ],
+                        calls=[ToolCall(name="my_tool", args={}, id="id-1", type=ToolType.LOCAL)],
                     ),
                 ],
                 "ToolCall does not have a corresponding ToolMessage; ids=\\['id-1'\\]",
@@ -111,11 +107,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            SubagentCall(
-                                name="my_agent", args={}, id="id-1", thread_id=None
-                            )
-                        ],
+                        calls=[SubagentCall(name="my_agent", args={}, id="id-1", thread_id=None)],
                     ),
                 ],
                 "SubagentCall does not have a corresponding SubagentMessage; ids=\\['id-1'\\]",
@@ -138,11 +130,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(
-                                name="my_tool", args={}, id="id-1", type=ToolType.LOCAL
-                            )
-                        ],
+                        calls=[ToolCall(name="my_tool", args={}, id="id-1", type=ToolType.LOCAL)],
                     ),
                     HumanMessage(content="hello"),
                 ],
@@ -153,11 +141,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            SubagentCall(
-                                name="my_agent", args={}, id="id-1", thread_id=None
-                            )
-                        ],
+                        calls=[SubagentCall(name="my_agent", args={}, id="id-1", thread_id=None)],
                     ),
                     HumanMessage(content="hello"),
                 ],
@@ -261,11 +245,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(
-                                name="my_tool", args={}, id="id-1", type=ToolType.LOCAL
-                            )
-                        ],
+                        calls=[ToolCall(name="my_tool", args={}, id="id-1", type=ToolType.LOCAL)],
                     ),
                     ToolMessage(
                         name="wrong",
@@ -282,11 +262,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            SubagentCall(
-                                name="my_agent", args={}, id="id-1", thread_id=None
-                            )
-                        ],
+                        calls=[SubagentCall(name="my_agent", args={}, id="id-1", thread_id=None)],
                     ),
                     SubagentMessage(
                         name="wrong",
@@ -360,12 +336,8 @@ class TestMessageValidation(AITestCase):
                     AIMessage(
                         content="",
                         calls=[
-                            ToolCall(
-                                name="t", args={}, id="shared", type=ToolType.LOCAL
-                            ),
-                            SubagentCall(
-                                name="a", args={}, id="shared", thread_id=None
-                            ),
+                            ToolCall(name="t", args={}, id="shared", type=ToolType.LOCAL),
+                            SubagentCall(name="a", args={}, id="shared", thread_id=None),
                         ],
                     ),
                 ],
@@ -397,9 +369,7 @@ class TestMessageValidation(AITestCase):
                     AIMessage(
                         content="",
                         calls=[],
-                        structured_output_calls=[
-                            StructuredOutputCall(name="s", args={}, id="")
-                        ],
+                        structured_output_calls=[StructuredOutputCall(name="s", args={}, id="")],
                     ),
                 ],
                 "Empty structured output tool call_id",
@@ -409,9 +379,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(name="", args={}, id="id-x", type=ToolType.LOCAL)
-                        ],
+                        calls=[ToolCall(name="", args={}, id="id-x", type=ToolType.LOCAL)],
                     ),
                 ],
                 "Empty tool name",
@@ -421,9 +389,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            SubagentCall(name="", args={}, id="id-x", thread_id=None)
-                        ],
+                        calls=[SubagentCall(name="", args={}, id="id-x", thread_id=None)],
                     ),
                 ],
                 "Empty subagent name",
@@ -434,9 +400,7 @@ class TestMessageValidation(AITestCase):
                     AIMessage(
                         content="",
                         calls=[],
-                        structured_output_calls=[
-                            StructuredOutputCall(name="", args={}, id="id-x")
-                        ],
+                        structured_output_calls=[StructuredOutputCall(name="", args={}, id="id-x")],
                     ),
                 ],
                 "Empty structured output tool name",
@@ -453,9 +417,7 @@ class TestMessageValidation(AITestCase):
                     AIMessage(
                         content="",
                         calls=[
-                            _AlienToolCall(
-                                name="my_tool", args={}, id="id-1", type=ToolType.LOCAL
-                            )
+                            _AlienToolCall(name="my_tool", args={}, id="id-1", type=ToolType.LOCAL)
                         ],
                     ),
                 ],
@@ -468,9 +430,7 @@ class TestMessageValidation(AITestCase):
                     AIMessage(
                         content="",
                         calls=[
-                            _AlienSubagentCall(
-                                name="my_agent", args={}, id="id-1", thread_id=None
-                            )
+                            _AlienSubagentCall(name="my_agent", args={}, id="id-1", thread_id=None)
                         ],
                     ),
                 ],
@@ -484,9 +444,7 @@ class TestMessageValidation(AITestCase):
                         content="",
                         calls=[],
                         structured_output_calls=[
-                            _AlienStructuredOutputCall(
-                                name="my_schema", args={}, id="id-1"
-                            )
+                            _AlienStructuredOutputCall(name="my_schema", args={}, id="id-1")
                         ],
                     ),
                 ],
@@ -568,11 +526,7 @@ class TestMessageValidation(AITestCase):
                 HumanMessage(content="hello"),
                 AIMessage(
                     content="",
-                    calls=[
-                        ToolCall(
-                            name="my_tool", args={}, id="id-1", type=ToolType.LOCAL
-                        )
-                    ],
+                    calls=[ToolCall(name="my_tool", args={}, id="id-1", type=ToolType.LOCAL)],
                 ),
             ],
         )
@@ -625,9 +579,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(name="t", args={}, id="id-1", type=ToolType.LOCAL)
-                        ],
+                        calls=[ToolCall(name="t", args={}, id="id-1", type=ToolType.LOCAL)],
                     ),
                     ToolMessage(
                         name="t",
@@ -650,9 +602,7 @@ class TestMessageValidation(AITestCase):
                     HumanMessage(content="hello"),
                     AIMessage(
                         content="",
-                        calls=[
-                            ToolCall(name="t", args={}, id="id-1", type=ToolType.LOCAL)
-                        ],
+                        calls=[ToolCall(name="t", args={}, id="id-1", type=ToolType.LOCAL)],
                     ),
                     AIMessage(content="done", calls=[]),
                 ],

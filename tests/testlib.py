@@ -198,11 +198,11 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
         `install_app_from_collection`. For example, the app `file_to_upload` in
         the collection contains `log.txt`. To get the path to it, call::
 
-            pathInApp('file_to_upload', ['log.txt'])
+            pathInApp("file_to_upload", ["log.txt"])
 
         The path to `setup.xml` in `has_setup_xml` would be fetched with::
 
-            pathInApp('has_setup_xml', ['default', 'setup.xml'])
+            pathInApp("has_setup_xml", ["default", "setup.xml"])
 
         `pathInApp` figures out the correct separator to use (based on whether
         splunkd is running on Windows or Unix) and joins the elements in
@@ -267,8 +267,6 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
                 except HTTPError as error:
                     if not (os.name == "nt" and error.status == 500):
                         raise
-                    print(
-                        f"Ignoring failure to delete {appName} during tear down: {error}"
-                    )
+                    print(f"Ignoring failure to delete {appName} during tear down: {error}")
         if self.service.restart_required:
             self.clear_restart_message()

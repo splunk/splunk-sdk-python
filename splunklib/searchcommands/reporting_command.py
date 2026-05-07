@@ -95,9 +95,7 @@ class ReportingCommand(SearchCommand):
             return
 
         if self.phase == "reduce":
-            streaming_preop = chain(
-                (self.name, 'phase="map"', str(self._options)), self.fieldnames
-            )
+            streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
             self._configuration.streaming_preop = " ".join(streaming_preop)
             return
 

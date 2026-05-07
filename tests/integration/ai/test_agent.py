@@ -65,15 +65,8 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            response = (
-                self.parse_content(result.final_message)
-                .strip()
-                .lower()
-                .replace(".", "")
-            )
-            assert result.structured_output is None, (
-                "The structured output should not be populated"
-            )
+            response = self.parse_content(result.final_message).strip().lower().replace(".", "")
+            assert result.structured_output is None, "The structured output should not be populated"
             assert "stefan" in response
 
     @pytest.mark.asyncio
@@ -131,9 +124,7 @@ class TestAgent(AITestCase):
         )
 
         async with agent:
-            with pytest.raises(
-                Exception, match="Agent is already in `async with` context"
-            ):
+            with pytest.raises(Exception, match="Agent is already in `async with` context"):
                 async with agent:
                     pass
 
@@ -170,9 +161,7 @@ class TestAgent(AITestCase):
 
             # check if the last message contains the response in natural language
             assert response.name in last_message, "Name field not found in the message"
-            assert str(response.age) in last_message, (
-                "Age field not found in the message"
-            )
+            assert str(response.age) in last_message, "Age field not found in the message"
 
     @pytest.mark.asyncio
     @ai_snapshot_test()
@@ -210,9 +199,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            first_ai_message = next(
-                m for m in result.messages if isinstance(m, AIMessage)
-            )
+            first_ai_message = next(m for m in result.messages if isinstance(m, AIMessage))
             assert first_ai_message
             assert len(first_ai_message.calls) == 1
             assert isinstance(first_ai_message.calls[0], SubagentCall)
@@ -224,12 +211,8 @@ class TestAgent(AITestCase):
 
             assert first_ai_message.calls[0].thread_id is None, "unexpected thread_id"
 
-            subagent_message = next(
-                filter(lambda m: m.role == "subagent", result.messages), None
-            )
-            assert isinstance(subagent_message, SubagentMessage), (
-                "Invalid subagent message"
-            )
+            subagent_message = next(filter(lambda m: m.role == "subagent", result.messages), None)
+            assert isinstance(subagent_message, SubagentMessage), "Invalid subagent message"
             assert subagent_message, "No subagent message found in response"
 
             response = self.parse_content(result.final_message)
@@ -267,9 +250,7 @@ class TestAgent(AITestCase):
                 ]
             )
 
-            first_ai_message = next(
-                m for m in result.messages if isinstance(m, AIMessage)
-            )
+            first_ai_message = next(m for m in result.messages if isinstance(m, AIMessage))
             assert first_ai_message
             assert len(first_ai_message.calls) == 1
             assert isinstance(first_ai_message.calls[0], SubagentCall)
@@ -379,12 +360,8 @@ class TestAgent(AITestCase):
                 )
 
                 response = result.structured_output
-                assert type(response) == SupervisorOutput, (
-                    "Response is not of type Team"
-                )
-                assert len(response.member_descriptions) == 3, (
-                    "Team does not have 3 members"
-                )
+                assert type(response) == SupervisorOutput, "Response is not of type Team"
+                assert len(response.member_descriptions) == 3, "Team does not have 3 members"
 
     @pytest.mark.asyncio
     @ai_snapshot_test()
@@ -536,9 +513,7 @@ class TestAgent(AITestCase):
 
             # Override the arguments, such that are invalid.
             resp = await handler(replace(request, call=replace(request.call, args={})))
-            assert isinstance(resp.result, SubagentFailureResult), (
-                "subagent call did not fail"
-            )
+            assert isinstance(resp.result, SubagentFailureResult), "subagent call did not fail"
 
             after_subagent_call = True
             return resp
@@ -838,6 +813,4 @@ class TestAgent(AITestCase):
             assert captured[0].thread_id != subagent.default_thread_id
             assert captured[1].thread_id != subagent.default_thread_id
 
-            assert captured[0].thread_id != captured[1].thread_id, (
-                "thread_ids do not difer"
-            )
+            assert captured[0].thread_id != captured[1].thread_id, "thread_ids do not difer"

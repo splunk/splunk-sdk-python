@@ -39,9 +39,7 @@ OPENAI_API_KEY = "ollama"
 # does not exist on the filesystem. As a workaround in such case if it does not exist,
 # remove the env, this causes the default CAs to be used instead.
 CA_TRUST_STORE = "/opt/splunk/openssl/cert.pem"
-if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(
-    CA_TRUST_STORE
-):
+if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(CA_TRUST_STORE):
     os.environ["SSL_CERT_FILE"] = ""
 
 
@@ -81,12 +79,7 @@ class AgentNameHandler(CRETestHandler):
                 [HumanMessage(content="What is your name? Answer in one word")]
             )
 
-            response = (
-                self.parse_content(result.final_message)
-                .strip()
-                .lower()
-                .replace(".", "")
-            )
+            response = self.parse_content(result.final_message).strip().lower().replace(".", "")
             self.response.write(response)
 
     def _parse_content_block(self, block: str | ContentBlock) -> str | None:

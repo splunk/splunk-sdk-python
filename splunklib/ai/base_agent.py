@@ -22,14 +22,7 @@ from pydantic import BaseModel
 
 from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.limits import (
-    DEFAULT_STEP_LIMIT,
-    DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT,
-    DEFAULT_TIMEOUT_SECONDS,
-    DEFAULT_TOKEN_LIMIT,
-    StepLimitMiddleware,
-    StructuredOutputRetryLimitMiddleware,
-    TimeoutLimitMiddleware,
-    TokenLimitMiddleware,
+    AgentLimits,
 )
 from splunklib.ai.messages import AgentResponse, BaseMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
@@ -53,6 +46,7 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
     _logger: logging.Logger
     _conversation_store: ConversationStore | None = None
     _thread_id: str
+    _limits: AgentLimits
 
     def __init__(
         self,
@@ -69,6 +63,7 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
         logger: logging.Logger | None,
         conversation_store: ConversationStore | None,
         thread_id: str,
+        limits: AgentLimits,
     ) -> None:
         self._system_prompt = system_prompt
         self._model = model
@@ -79,26 +74,8 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
         self._agents = tuple(agents) if agents else ()
         self._input_schema = input_schema
         self._output_schema = output_schema
-        user_middleware = tuple(middleware) if middleware else ()
-        user_middleware_types = {type(m) for m in user_middleware}
-
-        # NOTE: we're creating separate instances per agent - TimeoutLimitMiddleware is stateful
-        # and sharing one would cause agents to overwrite each other's deadline.
-        predefined_before: list[AgentMiddleware] = [
-            StructuredOutputRetryLimitMiddleware(DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT),
-        ]
-        predefined_after: list[AgentMiddleware] = [
-            TokenLimitMiddleware(DEFAULT_TOKEN_LIMIT),
-            StepLimitMiddleware(DEFAULT_STEP_LIMIT),
-            TimeoutLimitMiddleware(DEFAULT_TIMEOUT_SECONDS),
-        ]
-
-        self._middleware = (
-            *[m for m in predefined_before if type(m) not in user_middleware_types],
-            *user_middleware,
-            *[m for m in predefined_after if type(m) not in user_middleware_types],
-        )
-
+        self._limits = limits
+        self._middleware = middleware
         self._trace_id = secrets.token_hex(16)  # 32 Hex characters
         self._conversation_store = conversation_store
         self._thread_id = thread_id
@@ -177,3 +154,7 @@ class BaseAgent(Generic[OutputT], ABC):  # noqa: UP046 TODO[BJ]
     @property
     def default_thread_id(self) -> str:
         return self._thread_id
+
+    @property
+    def limits(self) -> AgentLimits:
+        return self._limits

@@ -26,6 +26,7 @@ from splunklib.ai.base_agent import BaseAgent
 from splunklib.ai.conversation_store import ConversationStore
 from splunklib.ai.core.backend import AgentImpl
 from splunklib.ai.core.backend_registry import get_backend
+from splunklib.ai.limits import AgentLimits
 from splunklib.ai.messages import AgentResponse, BaseMessage, HumanMessage, OutputT
 from splunklib.ai.middleware import AgentMiddleware
 from splunklib.ai.model import PredefinedModel
@@ -47,6 +48,8 @@ _testing_local_tools_path: str | None = None
 _testing_app_id: str | None = None
 
 DEFAULT_TOOL_SETTINGS = ToolSettings(local=False, remote=None)
+DEFAULT_AGENT_LIMITS = AgentLimits()
+
 _SPLUNK_SYSTEM_USER = "splunk-system-user"
 
 
@@ -133,6 +136,10 @@ class Agent(BaseAgent[OutputT]):
 
             Never invoke an Agent using the same thread_id more than once concurrently
             while using the same conversation_store.
+
+        limits:
+            Optional `AgentLimits` instance controlling the built-in safety limits.
+            When omitted, sane defaults are applied automatically.
     """
 
     _impl: AgentImpl[OutputT] | None
@@ -149,6 +156,7 @@ class Agent(BaseAgent[OutputT]):
         output_schema: type[OutputT] | None = None,
         input_schema: type[BaseModel] | None = None,  # Only used by Subagents
         middleware: Sequence[AgentMiddleware] | None = None,
+        limits: AgentLimits = DEFAULT_AGENT_LIMITS,
         name: str = "",  # Only used by Subagents
         description: str = "",  # Only used by Subagents
         logger: Logger | None = None,
@@ -169,6 +177,7 @@ class Agent(BaseAgent[OutputT]):
             logger=logger,
             conversation_store=conversation_store,
             thread_id=thread_id if thread_id is not None else str(uuid4()),
+            limits=limits,
         )
 
         self._service = service

@@ -24,20 +24,16 @@ from splunklib.ai.hooks import (
     before_model,
 )
 from splunklib.ai.limits import (
-    StepLimitMiddleware,
+    AgentLimits,
     StepsLimitExceededException,
     TimeoutExceededException,
-    TimeoutLimitMiddleware,
     TokenLimitExceededException,
-    TokenLimitMiddleware,
 )
-from splunklib.ai.messages import AgentResponse, AIMessage, HumanMessage
+from splunklib.ai.messages import AgentResponse, HumanMessage
 from splunklib.ai.middleware import (
     AgentRequest,
-    ModelMiddlewareHandler,
     ModelRequest,
     ModelResponse,
-    model_middleware,
 )
 from tests.ai_testlib import AITestCase, ai_snapshot_test
 
@@ -182,7 +178,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[TokenLimitMiddleware(5)],
+            limits=AgentLimits(max_tokens=5),
         ) as agent:
             with pytest.raises(TokenLimitExceededException, match="Token limit of 5 exceeded"):
                 _ = await agent.invoke(
@@ -202,7 +198,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[StepLimitMiddleware(2)],
+            limits=AgentLimits(max_steps=2),
         ) as agent:
             with pytest.raises(StepsLimitExceededException, match="Steps limit of 2 exceeded"):
                 _ = await agent.invoke(
@@ -223,7 +219,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[StepLimitMiddleware(2)],
+            limits=AgentLimits(max_steps=2),
             conversation_store=InMemoryStore(),
         ) as agent:
             _ = await agent.invoke([HumanMessage(content="hi, my name is Chris")])
@@ -243,19 +239,11 @@ class TestHook(AITestCase):
     ) -> None:
         pytest.importorskip("langchain_openai")
 
-        step_limit = StepLimitMiddleware(2)
-
-        @model_middleware
-        async def fixed_response(
-            _request: ModelRequest, _handler: ModelMiddlewareHandler
-        ) -> ModelResponse:
-            return ModelResponse(message=AIMessage(content="ok", calls=[]))
-
         async with Agent(
             model=(await self.model()),
             system_prompt="You are a helpful assistant.",
             service=self.service,
-            middleware=[step_limit, fixed_response],
+            limits=AgentLimits(max_steps=2),
             conversation_store=InMemoryStore(),
         ) as agent:
             _ = await agent.invoke([HumanMessage(content="hi")])
@@ -274,7 +262,7 @@ class TestHook(AITestCase):
             model=(await self.model()),
             system_prompt="You are a helpful assistant that responds in structured data.",
             service=self.service,
-            middleware=[TimeoutLimitMiddleware(0.001)],
+            limits=AgentLimits(timeout=0.001),
         ) as agent:
             with pytest.raises(TimeoutExceededException, match="Timed out after 0.001 seconds."):
                 _ = await agent.invoke(

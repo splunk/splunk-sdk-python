@@ -22,8 +22,8 @@ from pydantic.dataclasses import dataclass
 
 from splunklib.ai import Agent
 from splunklib.ai.limits import (
+    AgentLimits,
     StructuredOutputRetryLimitExceededException,
-    StructuredOutputRetryLimitMiddleware,
 )
 from splunklib.ai.messages import (
     AgentResponse,
@@ -971,8 +971,8 @@ class TestStructuredOutput(AITestCase):
                     system_prompt="Respond with structured data",
                     output_schema=Person,
                     service=self.service,
+                    limits=AgentLimits(max_structured_output_retires=limit),
                     middleware=[
-                        StructuredOutputRetryLimitMiddleware(limit),
                         _model_middleware,
                     ],
                 ) as agent:

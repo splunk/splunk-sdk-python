@@ -41,7 +41,7 @@ from splunklib.ai.messages import (
     ToolMessage,
     ToolResult,
 )
-from splunklib.ai.model import AnthropicModel, OpenAIModel, PredefinedModel
+from splunklib.ai.model import AnthropicModel, GoogleModel, OpenAIModel, PredefinedModel
 from splunklib.ai.tools import ToolType
 
 
@@ -645,6 +645,56 @@ class CreateLangchainModelTests(unittest.TestCase):
         assert result.temperature == model.temperature
         # ChatAnthropic stores base_url in anthropic_api_url
         assert result.anthropic_api_url == model.base_url
+
+    def test_create_langchain_model_google_gemini_api(self) -> None:
+        pytest.importorskip("langchain_google_genai")
+        import langchain_google_genai
+
+        model = GoogleModel(model="gemini-2.0-flash", api_key="test-key")
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_google_genai.ChatGoogleGenerativeAI)
+        assert result.model == model.model
+        assert result._use_vertexai is False  # pyright: ignore[reportAttributeAccessIssue]
+
+    def test_create_langchain_model_google_vertex_ai_via_project(self) -> None:
+        pytest.importorskip("langchain_google_genai")
+        import langchain_google_genai
+
+        model = GoogleModel(
+            model="gemini-2.0-flash",
+            api_key="test-key",
+            project="my-project",
+        )
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_google_genai.ChatGoogleGenerativeAI)
+        assert result.project == model.project
+        assert result._use_vertexai is True  # pyright: ignore[reportAttributeAccessIssue]
+
+    def test_create_langchain_model_google_vertex_ai_explicit_flag(self) -> None:
+        pytest.importorskip("langchain_google_genai")
+        import langchain_google_genai
+
+        model = GoogleModel(
+            model="gemini-2.0-flash",
+            api_key="test-key",
+            vertexai=True,
+        )
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_google_genai.ChatGoogleGenerativeAI)
+        assert result._use_vertexai is True  # pyright: ignore[reportAttributeAccessIssue]
+
+    def test_create_langchain_model_google_temperature(self) -> None:
+        pytest.importorskip("langchain_google_genai")
+        import langchain_google_genai
+
+        model = GoogleModel(model="gemini-2.0-flash", api_key="test-key", temperature=0.5)
+        result = lc._create_langchain_model(model)
+
+        assert isinstance(result, langchain_google_genai.ChatGoogleGenerativeAI)
+        assert result.temperature == model.temperature
 
 
 @pytest.mark.parametrize(

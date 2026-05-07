@@ -12,10 +12,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+if TYPE_CHECKING:
+    from google.oauth2 import service_account
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -63,8 +67,40 @@ class AnthropicModel(PredefinedModel):
     temperature: float | None = None
 
 
+@dataclass(frozen=True, kw_only=True)
+class GoogleModel(PredefinedModel):
+    """Predefined Google Model
+
+    Supports the Gemini API and Vertex AI. The backend is chosen
+    automatically: Vertex AI when ``project`` or ``credentials`` is set,
+    otherwise the Gemini API. Override with ``vertexai=True/False``.
+
+    See the README for full usage examples and authentication options.
+    """
+
+    model: str
+    api_key: str | None = None
+    """API key for the Gemini API or Vertex AI."""
+
+    project: str | None = None
+    """Google Cloud project ID (Vertex AI only)."""
+
+    location: str | None = None
+    """Vertex AI region, e.g. ``"us-central1"`` or ``"europe-west4"``."""
+
+    credentials: "service_account.Credentials | None" = None
+    """Service account credentials for Vertex AI. When set, ``api_key`` is not required."""
+
+    vertexai: bool | None = None
+    """Force backend selection: ``True`` for Vertex AI, ``False`` for Gemini API, ``None`` to auto-detect."""
+
+    temperature: float | None = None
+    """Sampling temperature in the range ``[0.0, 2.0]``."""
+
+
 __all__ = [
     "AnthropicModel",
+    "GoogleModel",
     "OpenAIModel",
     "PredefinedModel",
 ]

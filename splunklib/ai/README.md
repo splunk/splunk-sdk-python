@@ -47,6 +47,7 @@ We support following predefined models:
 
 - `OpenAIModel` - works with OpenAI and any [OpenAI-compatible API](https://platform.openai.com/docs/api-reference).
 - `AnthropicModel` - works with Anthropic and any [Anthropic-compatible API](https://docs.anthropic.com/en/api).
+- `GoogleModel` - works with Google's Gemini models via the [Gemini API](https://ai.google.dev/gemini-api/docs) or [Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/overview).
 
 ### OpenAI
 
@@ -75,6 +76,88 @@ model = AnthropicModel(
 
 async with Agent(model=model) as agent: ....
 ```
+
+### Google
+
+`GoogleModel` supports two backends: the [Gemini API](https://ai.google.dev/gemini-api/docs) and [Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/overview).
+The backend is selected automatically based on the parameters you provide, or you can
+force it with the `vertexai` flag.
+
+Requires the `google` optional extra:
+
+```sh
+pip install "splunk-sdk[google]"
+# or with uv:
+uv add splunk-sdk[google]
+```
+
+#### Gemini API
+
+Use this when you have a Google AI Studio API key and do not need Vertex AI infrastructure.
+Only `model` and `api_key` are required.
+
+```py
+from splunklib.ai import Agent, GoogleModel
+
+model = GoogleModel(
+    model="gemini-2.0-flash",
+    api_key="YOUR_GOOGLE_API_KEY",
+)
+
+async with Agent(model=model) as agent: ...
+```
+
+#### Vertex AI - API key
+
+Use this to route requests through Vertex AI with an API key. Providing `project` is enough
+for the SDK to switch to the Vertex AI backend automatically.
+
+```py
+from splunklib.ai import Agent, GoogleModel
+
+model = GoogleModel(
+    model="gemini-2.0-flash",
+    api_key="YOUR_VERTEX_API_KEY",
+    project="your-gcp-project-id",
+    # location="us-central1",  # optional, defaults to us-central1
+)
+
+async with Agent(model=model) as agent: ...
+```
+
+#### Vertex AI - service account credentials
+
+Use this when authenticating with a service account key file (or any
+`google.auth.credentials.Credentials`-compatible object). No `api_key` is needed.
+
+```py
+from google.oauth2 import service_account
+from splunklib.ai import Agent, GoogleModel
+
+credentials = service_account.Credentials.from_service_account_file(
+    "path/to/service-account.json",
+    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+)
+
+model = GoogleModel(
+    model="gemini-2.0-flash",
+    project="your-gcp-project-id",
+    credentials=credentials,
+    # location="us-central1",  # optional, defaults to us-central1
+)
+
+async with Agent(model=model) as agent: ...
+```
+
+#### Backend selection rules
+
+| `project` | `credentials` | `vertexai` | Backend used |
+|---|---|---|---|
+| not set | not set | `None` (default) | Gemini API |
+| set | - | `None` (default) | Vertex AI |
+| - | set | `None` (default) | Vertex AI |
+| any | any | `True` | Vertex AI (forced) |
+| any | any | `False` | Gemini API (forced) |
 
 ### Self-hosted models via Ollama
 

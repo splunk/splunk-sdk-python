@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: |
         mkdir -p ${{ inputs.mock-app-path }}/bin/lib
-        uv pip install ".[openai, anthropic]" --target ${{ inputs.mock-app-path }}/bin/lib
+        uv pip install ".[openai, anthropic, google]" --target ${{ inputs.mock-app-path }}/bin/lib
     - name: Package the mock app
       shell: bash
       run: |

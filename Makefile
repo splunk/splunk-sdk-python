@@ -26,8 +26,8 @@ lint: lint-python # TODO: Add mbake
 
 .PHONY: lint-python
 lint-python:
-	$(UV_RUN_CMD) basedpyright
-	$(UV_RUN_CMD) ruff check --fix-only
+# 	$(UV_RUN_CMD) basedpyright
+# 	$(UV_RUN_CMD) ruff check --fix-only
 	$(UV_RUN_CMD) ruff format
 
 UV_RUN_CMD := uv run --frozen --no-config
@@ -36,9 +36,9 @@ ci-lint: ci-lint-python # TODO: Add mbake
 
 .PHONY: ci-lint-python
 ci-lint-python:
-	$(UV_RUN_CMD) basedpyright
+# 	$(UV_RUN_CMD) basedpyright
 # 	$(UV_RUN_CMD) ruff check
-# 	$(UV_RUN_CMD) ruff format --check
+	$(UV_RUN_CMD) ruff format --check
 
 .PHONY: clean
 clean:

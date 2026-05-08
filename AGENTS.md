@@ -11,10 +11,10 @@
 This project uses [`uv`](https://docs.astral.sh/uv/) for dependency management and running Python tools. All Python and pytest invocations should be prefixed with `uv run`. Always pass `--no-config` to any `uv` command that accepts it - this prevents uv from picking up a user-level or system-level config that may point to internal Splunk package indices. To install/sync dependencies:
 
 ```sh
-make uv-sync
+make install
 ```
 
-If you manually edit `pyproject.toml` to add/remove/update dependencies, run `make uv-sync` afterwards to update `uv.lock`.
+If you manually edit `pyproject.toml` to add/remove/update dependencies, run `make install` afterwards to update `uv.lock`.
 
 The `Makefile` wraps `uv` commands - prefer `make` targets over invoking `uv` directly where a target exists.
 
@@ -22,7 +22,7 @@ The `Makefile` wraps `uv` commands - prefer `make` targets over invoking `uv` di
 
 See the `Makefile` for all available targets. Common ones:
 
-- `make uv-sync` - set up / update virtualenv
+- `make install` - set up / update virtualenv
 - `make test` - run the full pytest suite.
 - `make test-unit` - unit tests only; fastest feedback loop.
 - `make test-integration` - integration + system coverage; requires Splunk services available (see docker targets).
@@ -43,17 +43,12 @@ See the `Makefile` for all available targets. Common ones:
 **After editing any Python file**, format it:
 
 ```sh
-# Sort imports, then format
-uv run ruff check --fix $FILE
-uv run ruff format $FILE
+make lint
 ```
 
 **Before declaring a change done**, run:
 
 ```sh
-# linter
-uv run basedpyright
-
 # testing
 make test-unit
 make test-ai

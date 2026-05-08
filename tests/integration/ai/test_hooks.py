@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from dataclasses import replace
 import pytest
 from pydantic import BaseModel, Field
 
@@ -32,8 +33,10 @@ from splunklib.ai.limits import (
 from splunklib.ai.messages import AgentResponse, HumanMessage
 from splunklib.ai.middleware import (
     AgentRequest,
+    ModelMiddlewareHandler,
     ModelRequest,
     ModelResponse,
+    model_middleware,
 )
 from tests.ai_testlib import AITestCase, ai_snapshot_test
 
@@ -290,3 +293,42 @@ class TestHook(AITestCase):
                         )
                     ]
                 )
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_agent_loop_stop_conditions_step_limit_model_middleware(
+        self,
+    ) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # This test makes sure that step limit takes into account overridden messages.
+
+        @model_middleware
+        async def _model_middleware(
+            request: ModelRequest,
+            handler: ModelMiddlewareHandler,
+        ) -> ModelResponse:
+            request = replace(
+                request,
+                state=replace(
+                    request.state,
+                    messages=[
+                        HumanMessage(content="foo"),
+                        HumanMessage(content="foo"),
+                        HumanMessage(content="foo"),
+                    ],
+                ),
+            )
+            return await handler(request)
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="",
+            service=self.service,
+            limits=AgentLimits(max_steps=2),
+            middleware=[_model_middleware],
+        ) as agent:
+            with pytest.raises(
+                StepsLimitExceededException, match="Steps limit of 2 exceeded"
+            ):
+                _ = await agent.invoke([HumanMessage(content="foo")])

@@ -1817,7 +1817,6 @@ def _convert_agent_state_from_langchain(
     messages = [_map_message_from_langchain(m) for m in state["messages"]]
     return AgentState(
         messages=messages,
-        total_steps=len(messages),
         token_count=total_tokens,
         thread_id=thread_id,
     )
@@ -2050,7 +2049,7 @@ class _StepLimitMiddleware(AgentMiddleware):
         request: ModelRequest,
         handler: ModelMiddlewareHandler,
     ) -> ModelResponse:
-        if request.state.total_steps >= self._limit:
+        if len(request.state.messages) >= self._limit:
             raise StepsLimitExceededException(steps_limit=self._limit)
         return await handler(request)
 

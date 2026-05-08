@@ -36,10 +36,6 @@ class AgentState:
 
     # holds messages exchanged so far in the conversation
     messages: Sequence[BaseMessage]
-    # steps taken so far in the conversation
-    total_steps: int
-    # tokens used so far in the conversation
-    token_count: int
 
     thread_id: str
 

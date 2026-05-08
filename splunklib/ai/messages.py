@@ -91,9 +91,7 @@ class BaseMessage:
 
     def __post_init__(self) -> None:
         if type(self) is BaseMessage:
-            raise TypeError(
-                "BaseMessage is an abstract class and cannot be instantiated"
-            )
+            raise TypeError("BaseMessage is an abstract class and cannot be instantiated")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -129,9 +127,7 @@ class AIMessage(BaseMessage):
     content: str | list[str | ContentBlock]
 
     calls: Sequence[ToolCall | SubagentCall]
-    structured_output_calls: Sequence[StructuredOutputCall] = field(
-        default_factory=tuple
-    )
+    structured_output_calls: Sequence[StructuredOutputCall] = field(default_factory=tuple)
     extras: dict[str, Any] | None = field(default=None)
     """ This field contains LLM-specific metadata.
 
@@ -237,9 +233,7 @@ class StructuredOutputMessage(BaseMessage):
     StructuredMessage represents a response to the StructuredOutputCall.
     """
 
-    role: Literal["tool-strategy-response"] = field(
-        default="tool-strategy-response", init=False
-    )
+    role: Literal["tool-strategy-response"] = field(default="tool-strategy-response", init=False)
 
     call_id: str
     name: str
@@ -286,6 +280,4 @@ class AgentResponse(Generic[OutputT]):
                     f"AgentResponse.messages is invalid; unexpected message type {type(msg)}"
                 )
 
-        raise AssertionError(
-            "AgentResponse.messages is invalid; there are no messages in the list"
-        )
+        raise AssertionError("AgentResponse.messages is invalid; there are no messages in the list")

@@ -14,20 +14,17 @@
 
 import csv
 import gzip
-import os
 import re
 import sys
-import warnings
 import urllib.parse
-from io import TextIOWrapper, StringIO
-from collections import deque, namedtuple
-from collections import OrderedDict
+import warnings
+from collections import OrderedDict, deque, namedtuple
+from io import StringIO, TextIOWrapper
 from itertools import chain
 from json import JSONDecoder, JSONEncoder
 from json.encoder import encode_basestring_ascii as json_encode_string
 
-
-from . import environment
+from splunklib.searchcommands.environment import splunklib_logger
 
 csv.field_size_limit(
     10485760
@@ -111,7 +108,7 @@ class CommandLineParser:
         ``ValueError``: Unrecognized option/field name, or an illegal field value.
 
         """
-        debug = environment.splunklib_logger.debug
+        debug = splunklib_logger.debug
         command_class = type(command).__name__
 
         # Prepare
@@ -143,9 +140,7 @@ class CommandLineParser:
                 raise ValueError(
                     f"Values for these {command.name} command options are required: {', '.join(missing)}"
                 )
-            raise ValueError(
-                f"A value for {command.name} command option {missing[0]} is required"
-            )
+            raise ValueError(f"A value for {command.name} command option {missing[0]} is required")
 
         # Parse field names
 
@@ -155,8 +150,7 @@ class CommandLineParser:
             command.fieldnames = []
         else:
             command.fieldnames = [
-                cls.unquote(value.group(0))
-                for value in cls._fieldnames_re.finditer(fieldnames)
+                cls.unquote(value.group(0)) for value in cls._fieldnames_re.finditer(fieldnames)
             ]
 
         debug("  %s: %s", command_class, command)
@@ -287,39 +281,23 @@ class ConfigurationSettingsType(type):
         "clear_required_fields": specification(
             type=bool, constraint=None, supporting_protocols=[1]
         ),
-        "distributed": specification(
-            type=bool, constraint=None, supporting_protocols=[2]
-        ),
-        "generates_timeorder": specification(
-            type=bool, constraint=None, supporting_protocols=[1]
-        ),
-        "generating": specification(
-            type=bool, constraint=None, supporting_protocols=[1, 2]
-        ),
+        "distributed": specification(type=bool, constraint=None, supporting_protocols=[2]),
+        "generates_timeorder": specification(type=bool, constraint=None, supporting_protocols=[1]),
+        "generating": specification(type=bool, constraint=None, supporting_protocols=[1, 2]),
         "local": specification(type=bool, constraint=None, supporting_protocols=[1]),
         "maxinputs": specification(
             type=int,
             constraint=lambda value: 0 <= value <= sys.maxsize,
             supporting_protocols=[2],
         ),
-        "overrides_timeorder": specification(
-            type=bool, constraint=None, supporting_protocols=[1]
-        ),
+        "overrides_timeorder": specification(type=bool, constraint=None, supporting_protocols=[1]),
         "required_fields": specification(
             type=(list, set, tuple), constraint=None, supporting_protocols=[1, 2]
         ),
-        "requires_preop": specification(
-            type=bool, constraint=None, supporting_protocols=[1]
-        ),
-        "retainsevents": specification(
-            type=bool, constraint=None, supporting_protocols=[1]
-        ),
-        "run_in_preview": specification(
-            type=bool, constraint=None, supporting_protocols=[2]
-        ),
-        "streaming": specification(
-            type=bool, constraint=None, supporting_protocols=[1]
-        ),
+        "requires_preop": specification(type=bool, constraint=None, supporting_protocols=[1]),
+        "retainsevents": specification(type=bool, constraint=None, supporting_protocols=[1]),
+        "run_in_preview": specification(type=bool, constraint=None, supporting_protocols=[2]),
+        "streaming": specification(type=bool, constraint=None, supporting_protocols=[1]),
         "streaming_preop": specification(
             type=(bytes, str), constraint=None, supporting_protocols=[1, 2]
         ),
@@ -570,9 +548,7 @@ class RecordWriter:
 
         if fieldnames is None:
             self._fieldnames = fieldnames = list(record.keys())
-            self._fieldnames.extend(
-                [i for i in self.custom_fields if i not in self._fieldnames]
-            )
+            self._fieldnames.extend([i for i in self.custom_fields if i not in self._fieldnames])
             value_list = map(lambda fn: (str(fn), str("__mv_") + str(fn)), fieldnames)
             self._writerow(list(chain.from_iterable(value_list)))
 
@@ -611,20 +587,12 @@ class RecordWriter:
                                 value = str(value.real)
                             elif value_t is str:
                                 value = value
-                            elif (
-                                isinstance(value, int)
-                                or value_t is float
-                                or value_t is complex
-                            ):
+                            elif isinstance(value, int) or value_t is float or value_t is complex:
                                 value = str(value)
                             elif issubclass(value_t, (dict, list, tuple)):
-                                value = str(
-                                    "".join(RecordWriter._iterencode_json(value, 0))
-                                )
+                                value = str("".join(RecordWriter._iterencode_json(value, 0)))
                             else:
-                                value = repr(value).encode(
-                                    "utf-8", errors="backslashreplace"
-                                )
+                                value = repr(value).encode("utf-8", errors="backslashreplace")
 
                         sv += value + "\n"
                         mv += value.replace("$", "$$") + "$;$"
@@ -807,9 +775,7 @@ class RecordWriterV2(RecordWriter):
         if metadata:
             metadata = str(
                 "".join(
-                    self._iterencode_json(
-                        dict((n, v) for n, v in metadata if v is not None), 0
-                    )
+                    self._iterencode_json(dict((n, v) for n, v in metadata if v is not None), 0)
                 )
             )
             if sys.version_info >= (3, 0):

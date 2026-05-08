@@ -21,9 +21,7 @@ from splunklib.ai.messages import BaseMessage
 class ConversationStore(Protocol):
     async def get_messages(self, thread_id: str) -> Sequence[BaseMessage]: ...
 
-    async def store_messages(
-        self, thread_id: str, messages: list[BaseMessage]
-    ) -> None: ...
+    async def store_messages(self, thread_id: str, messages: list[BaseMessage]) -> None: ...
 
 
 class InMemoryStore(ConversationStore):

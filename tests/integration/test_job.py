@@ -12,24 +12,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import io
+import unittest
+import warnings
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from time import sleep
-from datetime import datetime
-
-import io
-
-from tests import testlib
-
-import unittest
-
-from splunklib import client
-from splunklib import results
-
-from splunklib.binding import _log_duration, HTTPError
 
 import pytest
-import warnings
+
+from splunklib import client, results
+from splunklib.binding import HTTPError, _log_duration
+from tests import testlib
 
 
 class TestUtilities(testlib.SDKTestCase):
@@ -52,9 +47,7 @@ class TestUtilities(testlib.SDKTestCase):
     @pytest.mark.smoke
     def test_oneshot(self):
         jobs = self.service.jobs
-        stream = jobs.oneshot(
-            "search index=_internal earliest=-1m | head 3", output_mode="json"
-        )
+        stream = jobs.oneshot("search index=_internal earliest=-1m | head 3", output_mode="json")
         result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
@@ -68,9 +61,7 @@ class TestUtilities(testlib.SDKTestCase):
 
     def test_export(self):
         jobs = self.service.jobs
-        stream = jobs.export(
-            "search index=_internal earliest=-1m | head 3", output_mode="json"
-        )
+        stream = jobs.export("search index=_internal earliest=-1m | head 3", output_mode="json")
         result = results.JSONResultsReader(stream)
         ds = list(result)
         self.assertEqual(result.is_preview, False)
@@ -79,13 +70,10 @@ class TestUtilities(testlib.SDKTestCase):
         self.assertTrue(len(nonmessages) <= 3)
 
     def test_export_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
-        rr = results.JSONResultsReader(
-            service.jobs.export("search * | head 5", output_mode="json")
-        )
+        rr = results.JSONResultsReader(service.jobs.export("search * | head 5", output_mode="json"))
         for result in rr:
             if isinstance(result, results.Message):
                 # Diagnostic messages may be returned in the results
@@ -113,8 +101,7 @@ class TestUtilities(testlib.SDKTestCase):
         assert rr.is_preview == False
 
     def test_preview_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         job = service.jobs.create("search * | head 5")
@@ -132,8 +119,7 @@ class TestUtilities(testlib.SDKTestCase):
             pass  # print("Job is finished. Results are final.")
 
     def test_oneshot_docstring_sample(self):
-        from splunklib import client
-        from splunklib import results
+        from splunklib import client, results
 
         service = self.service  # cheat
         rr = results.JSONResultsReader(
@@ -404,10 +390,7 @@ class TestJob(testlib.SDKTestCase):
         try:
             self.service.jobs.create("invalid query", **args)
         except SyntaxError as pe:
-            self.fail(
-                "Something went wrong with parsing the REST API response. %s"
-                % pe.message
-            )
+            self.fail("Something went wrong with parsing the REST API response. %s" % pe.message)
         except HTTPError as he:
             self.assertEqual(he.status, 400)
         except Exception as e:

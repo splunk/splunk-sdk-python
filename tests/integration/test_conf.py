@@ -12,9 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests import testlib
-
 from splunklib import client
+from tests import testlib
 
 
 class TestRead(testlib.SDKTestCase):
@@ -79,9 +78,7 @@ class TestConfs(testlib.SDKTestCase):
         key = testlib.tmpname()
         val = testlib.tmpname()
         stanza.update(**{key: val})
-        self.assertEventuallyTrue(
-            lambda: stanza.refresh() and len(stanza) == 1, pause_time=0.2
-        )
+        self.assertEventuallyTrue(lambda: stanza.refresh() and len(stanza) == 1, pause_time=0.2)
         self.assertEqual(len(stanza), 1)
         self.assertTrue(key in stanza)
 

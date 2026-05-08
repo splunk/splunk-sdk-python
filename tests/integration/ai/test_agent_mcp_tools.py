@@ -91,9 +91,7 @@ class TestTools(AITestCase):
                 ]
             )
 
-            tool_message = next(
-                filter(lambda m: m.role == "tool", result.messages), None
-            )
+            tool_message = next(filter(lambda m: m.role == "tool", result.messages), None)
             assert isinstance(tool_message, ToolMessage), "Invalid tool message"
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "temperature", "Invalid tool name"
@@ -128,10 +126,7 @@ class TestTools(AITestCase):
             assert isinstance(resp.result, ToolResult)
             assert resp.result.content == ""
             assert resp.result.structured_content is not None
-            assert (
-                resp.result.structured_content["result"]
-                == f"{self.service.info.startup_time}"
-            )
+            assert resp.result.structured_content["result"] == f"{self.service.info.startup_time}"
             resp.result.structured_content["result"] = fake_result
             return resp
 
@@ -153,9 +148,7 @@ class TestTools(AITestCase):
                 ]
             )
 
-            tool_message = next(
-                filter(lambda m: m.role == "tool", result.messages), None
-            )
+            tool_message = next(filter(lambda m: m.role == "tool", result.messages), None)
             assert isinstance(tool_message, ToolMessage), "Invalid tool message"
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "startup_time", "Invalid tool name"
@@ -299,9 +292,7 @@ async def mcp_token_handler(_: Request) -> Response:
 
 
 async def current_context_handler(_: Request) -> Response:
-    return JSONResponse(
-        content={"entry": [{"content": {"username": "admin"}}]}, status_code=200
-    )
+    return JSONResponse(content={"entry": [{"content": {"username": "admin"}}]}, status_code=200)
 
 
 class TestRemoteTools(AITestCase):
@@ -398,9 +389,7 @@ class TestRemoteTools(AITestCase):
                 service=service,
                 tool_settings=ToolSettings(
                     local=False,
-                    remote=RemoteToolSettings(
-                        allowlist=ToolAllowlist(names=["temperature"])
-                    ),
+                    remote=RemoteToolSettings(allowlist=ToolAllowlist(names=["temperature"])),
                 ),
             ) as agent:
                 result = await agent.invoke(
@@ -414,9 +403,7 @@ class TestRemoteTools(AITestCase):
                     ]
                 )
 
-                tool_message = next(
-                    filter(lambda m: m.role == "tool", result.messages), None
-                )
+                tool_message = next(filter(lambda m: m.role == "tool", result.messages), None)
                 assert isinstance(tool_message, ToolMessage), "Invalid tool message"
                 assert tool_message, "No tool message found in response"
                 assert tool_message.name == "temperature", "Invalid tool name"
@@ -471,12 +458,7 @@ class TestRemoteTools(AITestCase):
                     [HumanMessage(content="What is your name? Answer in one word")]
                 )
 
-                response = (
-                    self.parse_content(result.final_message)
-                    .strip()
-                    .lower()
-                    .replace(".", "")
-                )
+                response = self.parse_content(result.final_message).strip().lower().replace(".", "")
                 assert "stefan" in response
 
     @patch(
@@ -536,9 +518,7 @@ class TestRemoteTools(AITestCase):
                 service=service,
                 tool_settings=ToolSettings(
                     local=False,
-                    remote=RemoteToolSettings(
-                        allowlist=ToolAllowlist(names=["temperature"])
-                    ),
+                    remote=RemoteToolSettings(allowlist=ToolAllowlist(names=["temperature"])),
                 ),
             ) as agent:
                 result = await agent.invoke(
@@ -549,9 +529,7 @@ class TestRemoteTools(AITestCase):
                         )
                     ]
                 )
-                tool_messages = [
-                    tm for tm in result.messages if isinstance(tm, ToolMessage)
-                ]
+                tool_messages = [tm for tm in result.messages if isinstance(tm, ToolMessage)]
                 assert len(tool_messages) == 2, "Expected 2 tool calls due to retries"
                 assert type(tool_messages[0].result) is ToolFailureResult
                 assert type(tool_messages[1].result) is ToolResult
@@ -629,9 +607,7 @@ class TestRemoteTools(AITestCase):
                 service=service,
                 tool_settings=ToolSettings(
                     local=False,
-                    remote=RemoteToolSettings(
-                        allowlist=ToolAllowlist(names=["temperature"])
-                    ),
+                    remote=RemoteToolSettings(allowlist=ToolAllowlist(names=["temperature"])),
                 ),
             ) as agent:
                 result = await agent.invoke(
@@ -659,9 +635,7 @@ class TestRemoteTools(AITestCase):
                             in tool_result.content
                         )
                         assert tool_result.structured_content is not None
-                        assert (
-                            tool_result.structured_content["celsius_degrees"] == "31.5C"
-                        )
+                        assert tool_result.structured_content["celsius_degrees"] == "31.5C"
                 assert found_tool_message, "missing ToolMessage in agent response"
 
                 response = self.parse_content(result.final_message)
@@ -696,9 +670,7 @@ class TestRemoteTools(AITestCase):
         responses = (m for m in messages)
 
         @model_middleware
-        async def middleware(
-            req: ModelRequest, handler: ModelMiddlewareHandler
-        ) -> ModelResponse:
+        async def middleware(req: ModelRequest, handler: ModelMiddlewareHandler) -> ModelResponse:
             return ModelResponse(message=next(responses))
 
         async with Agent(
@@ -719,9 +691,7 @@ class TestRemoteTools(AITestCase):
                 ]
             )
 
-            tool_message = next(
-                filter(lambda m: m.role == "tool", result.messages), None
-            )
+            tool_message = next(filter(lambda m: m.role == "tool", result.messages), None)
             assert isinstance(tool_message, ToolMessage), "Invalid tool message"
             assert tool_message, "No tool message found in response"
             assert tool_message.name == "temperature", "Invalid tool name"
@@ -781,12 +751,8 @@ class TestHandlingToolNameCollision(AITestCase):
             )
 
             class ToolResults(BaseModel):
-                local_temperature: str = Field(
-                    description=f"Result from {local_tool_name=}"
-                )
-                remote_temperature: str = Field(
-                    description=f"Result from {remote_tool_name=}"
-                )
+                local_temperature: str = Field(description=f"Result from {local_tool_name=}")
+                remote_temperature: str = Field(description=f"Result from {remote_tool_name=}")
 
             async with Agent(
                 model=await self.model(),

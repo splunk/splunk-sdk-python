@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from io import TextIOBase
 import xml.etree.ElementTree as ET
+from io import TextIOBase
 
 from ..utils import ensure_str
 
@@ -43,7 +43,7 @@ class Event:
             my_event = Event(
                 data="This is a test of my new event.",
                 stanza="myStanzaName",
-                time="%.3f" % 1372187084.000
+                time="%.3f" % 1372187084.000,
             )
 
         **Example with full configuration**::
@@ -57,7 +57,7 @@ class Event:
                 source="Splunk",
                 sourcetype="misc",
                 done=True,
-                unbroken=True
+                unbroken=True,
             )
 
         :param data: ``string``, the event's text.
@@ -89,9 +89,7 @@ class Event:
         :param stream: stream to write XML to.
         """
         if self.data is None:
-            raise ValueError(
-                "Events must have at least the data field set to be written to XML."
-            )
+            raise ValueError("Events must have at least the data field set to be written to XML.")
 
         event = ET.Element("event")
         if self.stanza is not None:

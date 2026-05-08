@@ -12,14 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import unittest
 import xml.etree.ElementTree as ET
-from tests.unit.modularinput.modularinput_testlib import (
-    unittest,
-    xml_compare,
-    data_open,
-)
-from splunklib.modularinput.scheme import Scheme
+
 from splunklib.modularinput.argument import Argument
+from splunklib.modularinput.scheme import Scheme
+from splunklib.modularinput.utils import xml_compare
+from tests.unit.modularinput.modularinput_testlib import data_open
 
 
 class SchemeTest(unittest.TestCase):

@@ -14,8 +14,9 @@
 
 
 import logging
-from tests import testlib
+
 from splunklib import client
+from tests import testlib
 
 
 class TestApp(testlib.SDKTestCase):

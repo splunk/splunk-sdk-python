@@ -13,13 +13,13 @@
 # under the License.
 
 import unittest
+
 import pytest
-from tests import testlib
 
 from splunklib import client
-from splunklib.binding import AuthenticationError
+from splunklib.binding import AuthenticationError, HTTPError
 from splunklib.client import Service
-from splunklib.binding import HTTPError
+from tests import testlib
 
 
 class ServiceTestCase(testlib.SDKTestCase):
@@ -33,9 +33,7 @@ class ServiceTestCase(testlib.SDKTestCase):
         capabilities = self.service.capabilities
         self.assertTrue(isinstance(capabilities, list))
         self.assertTrue(all([isinstance(c, str) for c in capabilities]))
-        self.assertTrue(
-            "change_own_password" in capabilities
-        )  # This should always be there...
+        self.assertTrue("change_own_password" in capabilities)  # This should always be there...
 
     def test_info(self):
         info = self.service.info
@@ -193,9 +191,7 @@ class ServiceTestCase(testlib.SDKTestCase):
             port=8088,
             token="11111111-1111-1111-1111-1111111111113",
         )
-        event_collector_endpoint = client.Endpoint(
-            service_hec, "/services/collector/event"
-        )
+        event_collector_endpoint = client.Endpoint(service_hec, "/services/collector/event")
         msg = {"index": "main", "event": "Hello World"}
         response = event_collector_endpoint.post("", body=json.dumps(msg))
         self.assertEqual(response.status, 200)
@@ -301,14 +297,10 @@ class TestCookieAuthentication(unittest.TestCase):
             self.service.get_cookies().update({"bad": "cookie"})
             self.assertEqual(service2.get_cookies(), self.service.get_cookies())
             self.assertEqual(len(service2.get_cookies()), 2)
-            self.assertTrue(
-                [cookie for cookie in service2.get_cookies() if "splunkd_" in cookie]
-            )
+            self.assertTrue([cookie for cookie in service2.get_cookies() if "splunkd_" in cookie])
             self.assertTrue("bad" in service2.get_cookies())
             self.assertEqual(service2.get_cookies()["bad"], "cookie")
-            self.assertEqual(
-                set(self.service.get_cookies()), set(service2.get_cookies())
-            )
+            self.assertEqual(set(self.service.get_cookies()), set(service2.get_cookies()))
             service2.login()
             self.assertEqual(service2.apps.get().status, 200)
 
@@ -360,9 +352,7 @@ class TestTrailing(unittest.TestCase):
         self.assertRaises(ValueError, client._trailing, "this is a test", "boris")
 
     def test_raises_when_not_found_second(self):
-        self.assertRaises(
-            ValueError, client._trailing, "this is a test", "s is", "boris"
-        )
+        self.assertRaises(ValueError, client._trailing, "this is a test", "s is", "boris")
 
     def test_no_args_is_identity(self):
         self.assertEqual(self.template, client._trailing(self.template))
@@ -383,9 +373,7 @@ class TestTrailing(unittest.TestCase):
 class TestEntityNamespacing(testlib.SDKTestCase):
     def test_proper_namespace_with_arguments(self):
         entity = self.service.apps["search"]
-        self.assertEqual(
-            (None, None, "global"), entity._proper_namespace(sharing="global")
-        )
+        self.assertEqual((None, None, "global"), entity._proper_namespace(sharing="global"))
         self.assertEqual(
             (None, "search", "app"),
             entity._proper_namespace(sharing="app", app="search"),

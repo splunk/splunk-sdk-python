@@ -13,10 +13,10 @@
 # under the License.
 
 
-from logging import getLogger, root, StreamHandler
-from logging.config import fileConfig
-from os import chdir, environ, path, getcwd
 import sys
+from logging import StreamHandler, getLogger, root
+from logging.config import fileConfig
+from os import chdir, environ, getcwd, path
 
 
 def configure_logging(logger_name, filename=None):
@@ -35,10 +35,10 @@ def configure_logging(logger_name, filename=None):
     This function looks for a logging configuration file at each of these locations, loading the first, if any,
     logging configuration file that it finds::
 
-        local/{name}.logging.conf
-        default/{name}.logging.conf
-        local/logging.conf
-        default/logging.conf
+        local / {name}.logging.conf
+        default / {name}.logging.conf
+        local / logging.conf
+        default / logging.conf
 
     The current working directory is set to *<app-root>* before the logging configuration file is loaded. Hence, paths
     in the logging configuration file are relative to *<app-root>*. The current directory is reset before return.

@@ -190,9 +190,7 @@ class TestConversationStore(AITestCase):
                 thread_id="2",
             )
             response = self.parse_content(result.final_message)
-            assert "Mike" not in response, (
-                "Agent remembered the name from a different thread_id"
-            )
+            assert "Mike" not in response, "Agent remembered the name from a different thread_id"
 
         assert model_middleware_called
 

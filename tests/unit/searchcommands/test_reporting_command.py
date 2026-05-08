@@ -1,6 +1,7 @@
 import io
 
 from splunklib import searchcommands
+
 from . import chunked_data_stream as chunky
 
 

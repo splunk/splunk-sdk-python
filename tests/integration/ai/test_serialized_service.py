@@ -33,9 +33,7 @@ class TestSerializedService(testlib.SDKTestCase):
         assert service.auth_cookies is not None
         assert service.token  # populated after self.service.login
         assert len(service.auth_cookies) == 1
-        assert service.auth_cookies.get(
-            "splunkd_8089"
-        )  # populated after self.service.login
+        assert service.auth_cookies.get("splunkd_8089")  # populated after self.service.login
         assert service.bearer_token is None
 
         self.do_test_service(service)

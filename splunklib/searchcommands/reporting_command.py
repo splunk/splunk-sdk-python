@@ -13,12 +13,13 @@
 # under the License.
 
 from itertools import chain
+from json.encoder import encode_basestring_ascii as json_encode_string
 
-from .internals import ConfigurationSettingsType, json_encode_string
-from .decorators import ConfigurationSetting, Option
-from .streaming_command import StreamingCommand
-from .search_command import SearchCommand
-from .validators import Set
+from splunklib.searchcommands.decorators import ConfigurationSetting, Option
+from splunklib.searchcommands.internals import ConfigurationSettingsType
+from splunklib.searchcommands.search_command import SearchCommand
+from splunklib.searchcommands.streaming_command import StreamingCommand
+from splunklib.searchcommands.validators import Set
 
 
 class ReportingCommand(SearchCommand):
@@ -95,9 +96,7 @@ class ReportingCommand(SearchCommand):
             return
 
         if self.phase == "reduce":
-            streaming_preop = chain(
-                (self.name, 'phase="map"', str(self._options)), self.fieldnames
-            )
+            streaming_preop = chain((self.name, 'phase="map"', str(self._options)), self.fieldnames)
             self._configuration.streaming_preop = " ".join(streaming_preop)
             return
 

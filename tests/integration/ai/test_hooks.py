@@ -101,12 +101,7 @@ class TestHook(AITestCase):
                 ]
             )
 
-            response = (
-                self.parse_content(result.final_message)
-                .strip()
-                .lower()
-                .replace(".", "")
-            )
+            response = self.parse_content(result.final_message).strip().lower().replace(".", "")
             assert "stefan" == response
             assert hook_calls == 4
 
@@ -174,12 +169,7 @@ class TestHook(AITestCase):
                 ]
             )
 
-            response = (
-                self.parse_content(result.final_message)
-                .strip()
-                .lower()
-                .replace(".", "")
-            )
+            response = self.parse_content(result.final_message).strip().lower().replace(".", "")
             assert '{"name":"stefan"}' == response
             assert hook_calls == 4
 
@@ -194,9 +184,7 @@ class TestHook(AITestCase):
             service=self.service,
             middleware=[TokenLimitMiddleware(5)],
         ) as agent:
-            with pytest.raises(
-                TokenLimitExceededException, match="Token limit of 5 exceeded"
-            ):
+            with pytest.raises(TokenLimitExceededException, match="Token limit of 5 exceeded"):
                 _ = await agent.invoke(
                     [
                         HumanMessage(
@@ -216,9 +204,7 @@ class TestHook(AITestCase):
             service=self.service,
             middleware=[StepLimitMiddleware(2)],
         ) as agent:
-            with pytest.raises(
-                StepsLimitExceededException, match="Steps limit of 2 exceeded"
-            ):
+            with pytest.raises(StepsLimitExceededException, match="Steps limit of 2 exceeded"):
                 _ = await agent.invoke(
                     [
                         HumanMessage(content="hi, my name is Chris"),
@@ -242,9 +228,7 @@ class TestHook(AITestCase):
         ) as agent:
             _ = await agent.invoke([HumanMessage(content="hi, my name is Chris")])
 
-            with pytest.raises(
-                StepsLimitExceededException, match="Steps limit of 2 exceeded"
-            ):
+            with pytest.raises(StepsLimitExceededException, match="Steps limit of 2 exceeded"):
                 _ = await agent.invoke(
                     [
                         HumanMessage(content="What is my name?"),
@@ -292,9 +276,7 @@ class TestHook(AITestCase):
             service=self.service,
             middleware=[TimeoutLimitMiddleware(0.001)],
         ) as agent:
-            with pytest.raises(
-                TimeoutExceededException, match="Timed out after 0.001 seconds."
-            ):
+            with pytest.raises(TimeoutExceededException, match="Timed out after 0.001 seconds."):
                 _ = await agent.invoke(
                     [
                         HumanMessage(

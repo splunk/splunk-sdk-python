@@ -124,9 +124,9 @@ def _parse_cookies(cookie_str, dictionary):
     **Example**::
 
         dictionary = {}
-        _parse_cookies('my=value', dictionary)
+        _parse_cookies("my=value", dictionary)
         # Now the following is True
-        dictionary['my'] == 'value'
+        dictionary["my"] == "value"
 
     :param cookie_str: A string containing "key=value" pairs from an HTTP "Set-Cookie" header.
     :type cookie_str: ``str``
@@ -196,15 +196,16 @@ class UrlEncoded(str):
     **Example**::
 
         import urllib
-        UrlEncoded(f'{scheme}://{urllib.quote(host)}', skip_encode=True)
+
+        UrlEncoded(f"{scheme}://{urllib.quote(host)}", skip_encode=True)
 
     If you append ``str`` strings and ``UrlEncoded`` strings, the result is also
     URL encoded.
 
     **Example**::
 
-        UrlEncoded('ab c') + 'de f' == UrlEncoded('ab cde f')
-        'ab c' + UrlEncoded('de f') == UrlEncoded('ab cde f')
+        UrlEncoded("ab c") + "de f" == UrlEncoded("ab cde f")
+        "ab c" + UrlEncoded("de f") == UrlEncoded("ab cde f")
     """
 
     def __new__(self, val="", skip_encode=False, encode_slash=False):
@@ -270,7 +271,7 @@ def _handle_auth_error(msg):
     **Example**::
 
         with _handle_auth_error("Your login failed."):
-             ... # make an HTTP request
+            ...  # make an HTTP request
     """
     try:
         yield
@@ -308,11 +309,16 @@ def _authentication(request_fun):
     **Example**::
 
         import splunklib.binding as binding
+
         c = binding.connect(..., autologin=True)
         c.logout()
+
+
         def f():
             c.get("/services")
             return 42
+
+
         print(_authentication(f))
     """
 
@@ -345,9 +351,7 @@ def _authentication(request_fun):
                 ):
                     return request_fun(self, *args, **kwargs)
             elif he.status == 401 and not self.autologin:
-                raise AuthenticationError(
-                    "Request failed: Session is not logged in.", he
-                )
+                raise AuthenticationError("Request failed: Session is not logged in.", he)
             else:
                 raise
 
@@ -449,6 +453,7 @@ def namespace(sharing=None, owner=None, app=None, **kwargs):
     **Example**::
 
         import splunklib.binding as binding
+
         n = binding.namespace(sharing="user", owner="boris", app="search")
         n = binding.namespace(sharing="global", app="search")
     """
@@ -612,9 +617,7 @@ class Context:
         if token:
             header.append(("Authorization", token))
         if self.get_cookies():
-            header.append(
-                ("Cookie", _make_cookie_header(list(self.get_cookies().items())))
-            )
+            header.append(("Cookie", _make_cookie_header(list(self.get_cookies().items()))))
 
         return header
 
@@ -630,6 +633,7 @@ class Context:
         **Example**::
 
             import splunklib.binding as binding
+
             c = binding.connect(...)
             socket = c.connect()
             socket.write("POST %s HTTP/1.1\\r\\n" % "some/path/to/post/to")
@@ -703,20 +707,14 @@ class Context:
             c.logout()
             c.delete('apps/local') # raises AuthenticationError
         """
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
-        logger.debug(
-            "DELETE request to %s (body: %s)", path, mask_sensitive_data(query)
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
+        logger.debug("DELETE request to %s (body: %s)", path, mask_sensitive_data(query))
         response = self.http.delete(path, self._auth_headers, **query)
         return response
 
     @_authentication
     @_log_duration
-    def get(
-        self, path_segment, owner=None, app=None, headers=None, sharing=None, **query
-    ):
+    def get(self, path_segment, owner=None, app=None, headers=None, sharing=None, **query):
         """Performs a GET operation from the REST path segment with the given
         namespace and query.
 
@@ -771,9 +769,7 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
         logger.debug("GET request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
         response = self.http.get(path, all_headers, **query)
@@ -781,9 +777,7 @@ class Context:
 
     @_authentication
     @_log_duration
-    def post(
-        self, path_segment, owner=None, app=None, sharing=None, headers=None, **query
-    ):
+    def post(self, path_segment, owner=None, app=None, sharing=None, headers=None, **query):
         """Performs a POST operation from the REST path segment with the given
         namespace and query.
 
@@ -853,9 +847,7 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         logger.debug("POST request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
@@ -920,18 +912,16 @@ class Context:
             # Call an HTTP endpoint, exposed as Custom Rest Endpoint in a Splunk App.
             # PUT /servicesNS/-/app_name/custom_rest_endpoint
             c.put(
-                 app="app_name",
-                 path_segment="custom_rest_endpoint",
-                 body=json.dumps({"key": "val"}),
-                 headers=[("Content-Type", "application/json")],
+                app="app_name",
+                path_segment="custom_rest_endpoint",
+                body=json.dumps({"key": "val"}),
+                headers=[("Content-Type", "application/json")],
             )
         """
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         logger.debug("PUT request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
@@ -996,18 +986,16 @@ class Context:
             # Call an HTTP endpoint, exposed as Custom Rest Endpoint in a Splunk App.
             # PATCH /servicesNS/-/app_name/custom_rest_endpoint
             c.patch(
-                 app="app_name",
-                 path_segment="custom_rest_endpoint",
-                 body=json.dumps({"key": "val"}),
-                 headers=[("Content-Type", "application/json")],
+                app="app_name",
+                path_segment="custom_rest_endpoint",
+                body=json.dumps({"key": "val"}),
+                headers=[("Content-Type", "application/json")],
             )
         """
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         logger.debug("PATCH request to %s (body: %s)", path, mask_sensitive_data(query))
         all_headers = headers + self.additional_headers + self._auth_headers
@@ -1078,9 +1066,7 @@ class Context:
         if headers is None:
             headers = []
 
-        path = self.authority + self._abspath(
-            path_segment, owner=owner, app=app, sharing=sharing
-        )
+        path = self.authority + self._abspath(path_segment, owner=owner, app=app, sharing=sharing)
 
         all_headers = headers + self.additional_headers + self._auth_headers
         logger.debug(
@@ -1125,6 +1111,7 @@ class Context:
         **Example**::
 
             import splunklib.binding as binding
+
             c = binding.Context(...).login()
             # Then issue requests...
         """
@@ -1135,9 +1122,7 @@ class Context:
             # logged in.
             return
 
-        if self.token is not _NoAuthenticationToken and (
-            not self.username and not self.password
-        ):
+        if self.token is not _NoAuthenticationToken and (not self.username and not self.password):
             # If we were passed a session token, but no username or
             # password, then login is a nop, since we're automatically
             # logged in.
@@ -1234,9 +1219,7 @@ class Context:
 
         oname = "nobody" if ns.owner is None else ns.owner
         aname = "system" if ns.app is None else ns.app
-        path = UrlEncoded(
-            f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode
-        )
+        path = UrlEncoded(f"/servicesNS/{oname}/{aname}/{path_segment}", skip_encode=skip_encode)
         return path
 
 
@@ -1290,6 +1273,7 @@ def connect(**kwargs):
     **Example**::
 
         import splunklib.binding as binding
+
         c = binding.connect(...)
         response = c.get("apps/local")
     """
@@ -1379,11 +1363,7 @@ def _spliturl(url):
     parsed_url = parse.urlparse(url)
     host = parsed_url.hostname
     port = parsed_url.port
-    path = (
-        "?".join((parsed_url.path, parsed_url.query))
-        if parsed_url.query
-        else parsed_url.path
-    )
+    path = "?".join((parsed_url.path, parsed_url.query)) if parsed_url.query else parsed_url.path
     # Strip brackets if its an IPv6 address
     if host.startswith("[") and host.endswith("]"):
         host = host[1:-1]
@@ -1806,10 +1786,7 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
             if timeout is not None:
                 connection.sock.settimeout(timeout)
             response = connection.getresponse()
-            is_keepalive = (
-                "keep-alive"
-                in response.getheader("connection", default="close").lower()
-            )
+            is_keepalive = "keep-alive" in response.getheader("connection", default="close").lower()
         finally:
             if not is_keepalive:
                 connection.close()

@@ -13,8 +13,8 @@
 # under the License.
 
 
-from .decorators import ConfigurationSetting
-from .search_command import SearchCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting
+from splunklib.searchcommands.search_command import SearchCommand
 
 
 class EventingCommand(SearchCommand):

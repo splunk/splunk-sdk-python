@@ -12,11 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from os import path
 import logging
+from os import path
 
-from splunklib.searchcommands import environment
 from splunklib import searchcommands
+from splunklib.searchcommands import environment
 
 package_directory = path.dirname(path.realpath(__file__))
 project_root = path.dirname(path.dirname(package_directory))
@@ -27,8 +27,8 @@ def rebase_environment(name):
     logging.Logger.manager.loggerDict.clear()
     del logging.root.handlers[:]
 
-    environment.splunklib_logger, environment.logging_configuration = (
-        environment.configure_logging("splunklib")
+    environment.splunklib_logger, environment.logging_configuration = environment.configure_logging(
+        "splunklib"
     )
     searchcommands.logging_configuration = environment.logging_configuration
     searchcommands.splunklib_logger = environment.splunklib_logger

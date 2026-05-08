@@ -15,24 +15,20 @@
 """Shared unit test utilities."""
 
 import contextlib
-
-import os
-import time
 import logging
+import os
 import sys
+import time
 
 # Run the test suite on the SDK without installing it.
 sys.path.insert(0, "../")
 
-from time import sleep
-from datetime import datetime, timedelta
-
 import unittest
-
-from utils import parse
+from datetime import datetime, timedelta
+from time import sleep
 
 from splunklib import client
-
+from utils import parse
 
 logging.basicConfig(
     filename="test.log",
@@ -198,11 +194,11 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
         `install_app_from_collection`. For example, the app `file_to_upload` in
         the collection contains `log.txt`. To get the path to it, call::
 
-            pathInApp('file_to_upload', ['log.txt'])
+            pathInApp("file_to_upload", ["log.txt"])
 
         The path to `setup.xml` in `has_setup_xml` would be fetched with::
 
-            pathInApp('has_setup_xml', ['default', 'setup.xml'])
+            pathInApp("has_setup_xml", ["default", "setup.xml"])
 
         `pathInApp` figures out the correct separator to use (based on whether
         splunkd is running on Windows or Unix) and joins the elements in
@@ -267,8 +263,6 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
                 except HTTPError as error:
                     if not (os.name == "nt" and error.status == 500):
                         raise
-                    print(
-                        f"Ignoring failure to delete {appName} during tear down: {error}"
-                    )
+                    print(f"Ignoring failure to delete {appName} during tear down: {error}")
         if self.service.restart_required:
             self.clear_restart_message()

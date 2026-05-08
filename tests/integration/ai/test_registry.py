@@ -68,9 +68,7 @@ class TestToolContextRegistry(TestRegistryTestCase):
             )
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
-            self.assertEqual(
-                res.structuredContent, {"result": f"{self.service.info.startup_time}"}
-            )
+            self.assertEqual(res.structuredContent, {"result": f"{self.service.info.startup_time}"})
 
     async def test_startup_time_and_str(self):
         async with self.connect("tool_context.py") as session:
@@ -128,9 +126,7 @@ class TestTemperatureAsDictRegistry(TestRegistryTestCase):
             )
             self.assertEqual(res.isError, False)
             self.assertEqual(res.content, [])
-            self.assertEqual(
-                res.structuredContent, {"city": "Krakow", "temperature": 22}
-            )
+            self.assertEqual(res.structuredContent, {"city": "Krakow", "temperature": 22})
 
 
 @dataclass

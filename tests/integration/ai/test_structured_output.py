@@ -115,17 +115,12 @@ class TestStructuredOutput(AITestCase):
             try:
                 resp = await handler(request)
             except StructuredOutputGenerationException:
-                raise AssertionError(
-                    "handler failed with StructuredOutputGenerationException"
-                )
+                raise AssertionError("handler failed with StructuredOutputGenerationException")
 
             assert resp.structured_output is not None
 
             assert len(resp.message.structured_output_calls) == 1
-            assert (
-                Person(**resp.message.structured_output_calls[0].args)
-                == resp.structured_output
-            )
+            assert Person(**resp.message.structured_output_calls[0].args) == resp.structured_output
             assert resp.message.structured_output_calls[0].name == "Person"
 
             return resp
@@ -187,14 +182,10 @@ class TestStructuredOutput(AITestCase):
             try:
                 resp = await handler(request)
             except StructuredOutputGenerationException as e:
-                assert not after_first_model_call, (
-                    "generation error after first model call"
-                )
+                assert not after_first_model_call, "generation error after first model call"
                 after_first_model_call = True
 
-                assert isinstance(e.error, StructuredOutputValidationError), (
-                    "invalid e.error"
-                )
+                assert isinstance(e.error, StructuredOutputValidationError), "invalid e.error"
                 assert "ALL letters must be capitalized" in e.error.validation_error, (
                     "invalid validation_error"
                 )
@@ -221,8 +212,7 @@ class TestStructuredOutput(AITestCase):
                 "invalid structured output tool name"
             )
             assert (
-                Person(**resp.message.structured_output_calls[0].args)
-                == resp.structured_output
+                Person(**resp.message.structured_output_calls[0].args) == resp.structured_output
             ), "invalid structured_output"
 
             return resp
@@ -300,14 +290,10 @@ class TestStructuredOutput(AITestCase):
             try:
                 resp = await handler(request)
             except StructuredOutputGenerationException as e:
-                assert not after_first_model_call, (
-                    "generation error after first model call"
-                )
+                assert not after_first_model_call, "generation error after first model call"
                 after_first_model_call = True
 
-                assert isinstance(e.error, StructuredOutputValidationError), (
-                    "invalid e.error"
-                )
+                assert isinstance(e.error, StructuredOutputValidationError), "invalid e.error"
                 assert "ALL letters must be capitalized" in e.error.validation_error, (
                     "invalid validation_error"
                 )
@@ -479,9 +465,7 @@ class TestStructuredOutput(AITestCase):
                 message=AIMessage(
                     content="",
                     structured_output_calls=[
-                        StructuredOutputCall(
-                            id="call-2", name="Person", args={"name": "Mike"}
-                        ),
+                        StructuredOutputCall(id="call-2", name="Person", args={"name": "Mike"}),
                     ],
                     calls=[
                         ToolCall(
@@ -569,9 +553,7 @@ class TestStructuredOutput(AITestCase):
                         )
                     ],
                 ),
-                error=StructuredOutputValidationError(
-                    validation_error="Invalid output"
-                ),
+                error=StructuredOutputValidationError(validation_error="Invalid output"),
             )
 
         tool_called = False
@@ -647,14 +629,10 @@ class TestStructuredOutput(AITestCase):
                         )
                     ],
                     structured_output_calls=[
-                        StructuredOutputCall(
-                            id="call-2", name="Person", args={"name": "Mike"}
-                        ),
+                        StructuredOutputCall(id="call-2", name="Person", args={"name": "Mike"}),
                     ],
                 ),
-                error=StructuredOutputValidationError(
-                    validation_error="Invalid output"
-                ),
+                error=StructuredOutputValidationError(validation_error="Invalid output"),
             )
 
         tool_called = False
@@ -719,9 +697,7 @@ class TestStructuredOutput(AITestCase):
             service=self.service,
             middleware=[_model_middleware, AssertNoCallMiddleware()],
         ) as agent:
-            result = await agent.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            result = await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
             assert result.structured_output.name == "MIKE"
 
     @pytest.mark.asyncio
@@ -756,9 +732,7 @@ class TestStructuredOutput(AITestCase):
             service=self.service,
             middleware=[_model_middleware, AssertSingleAgentMiddlewareCall()],
         ) as agent:
-            result = await agent.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            result = await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
             assert result.structured_output.name == "MIKE"
 
     @pytest.mark.asyncio
@@ -785,9 +759,7 @@ class TestStructuredOutput(AITestCase):
 
                 name1 = e.message.structured_output_calls[0].args["name"].lower()
                 name2 = e.message.structured_output_calls[0].args["name"].lower()
-                assert (name1 == "mike" and name2 == "john") or (
-                    name1 == "john" or name2 == "mike"
-                )
+                assert (name1 == "mike" and name2 == "john") or (name1 == "john" or name2 == "mike")
 
                 raise
 
@@ -846,9 +818,7 @@ class TestStructuredOutput(AITestCase):
                 assert "ALL letters must be capitalized" in e.error.validation_error
                 assert len(e.message.structured_output_calls) == 0
 
-                args = PersonNotRestricted.model_validate_json(
-                    self.parse_content(e.message)
-                )
+                args = PersonNotRestricted.model_validate_json(self.parse_content(e.message))
                 args.name = args.name.upper()
 
                 return ModelResponse(
@@ -871,9 +841,7 @@ class TestStructuredOutput(AITestCase):
                 AssertSingleAgentMiddlewareCall(),
             ],
         ) as agent:
-            result = await agent.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            result = await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
             assert len(result.messages) == 2
             assert result.structured_output.name == "MIKE"
 
@@ -907,9 +875,7 @@ class TestStructuredOutput(AITestCase):
                 assert "ALL letters must be capitalized" in e.error.validation_error
                 assert len(e.message.structured_output_calls) == 1
 
-                args = PersonNotRestricted.model_validate(
-                    e.message.structured_output_calls[0].args
-                )
+                args = PersonNotRestricted.model_validate(e.message.structured_output_calls[0].args)
                 args.name = args.name.upper()
 
                 return ModelResponse(
@@ -932,9 +898,7 @@ class TestStructuredOutput(AITestCase):
                 AssertSingleAgentMiddlewareCall(),
             ],
         ) as agent:
-            result = await agent.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            result = await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
             assert len(result.messages) == 3
             assert result.structured_output.name == "MIKE"
 
@@ -958,9 +922,7 @@ class TestStructuredOutput(AITestCase):
 
             raise StructuredOutputGenerationException(
                 message=AIMessage(content="", calls=[]),
-                error=StructuredOutputValidationError(
-                    validation_error="Invalid output"
-                ),
+                error=StructuredOutputValidationError(validation_error="Invalid output"),
             )
 
         async with Agent(
@@ -974,9 +936,7 @@ class TestStructuredOutput(AITestCase):
                 StructuredOutputRetryLimitExceededException,
                 match="Structured output retry limit of 3 exceeded",
             ):
-                await agent.invoke(
-                    [HumanMessage(content="My name is Mike, what is my name?")]
-                )
+                await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
 
         assert model_call_count == 4
 
@@ -1003,9 +963,7 @@ class TestStructuredOutput(AITestCase):
 
                     raise StructuredOutputGenerationException(
                         message=AIMessage(content="", calls=[]),
-                        error=StructuredOutputValidationError(
-                            validation_error="Invalid output"
-                        ),
+                        error=StructuredOutputValidationError(validation_error="Invalid output"),
                     )
 
                 async with Agent(
@@ -1052,9 +1010,7 @@ class TestStructuredOutput(AITestCase):
             else:
                 raise StructuredOutputGenerationException(
                     message=AIMessage(content="", calls=[]),
-                    error=StructuredOutputValidationError(
-                        validation_error="Invalid output"
-                    ),
+                    error=StructuredOutputValidationError(validation_error="Invalid output"),
                 )
 
         async with Agent(
@@ -1070,16 +1026,12 @@ class TestStructuredOutput(AITestCase):
                 StructuredOutputRetryLimitExceededException,
                 match="Structured output retry limit of 3 exceeded",
             ):
-                await agent.invoke(
-                    [HumanMessage(content="My name is Mike, what is my name?")]
-                )
+                await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
 
             after_first_call = True
 
             # Since structured output retry limit is per agent loop, this should not fail.
-            await agent.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            await agent.invoke([HumanMessage(content="My name is Mike, what is my name?")])
 
     @pytest.mark.asyncio
     @ai_snapshot_test()
@@ -1106,9 +1058,7 @@ class TestStructuredOutput(AITestCase):
 
             raise StructuredOutputGenerationException(
                 message=AIMessage(content="", calls=[]),
-                error=StructuredOutputValidationError(
-                    validation_error="Invalid output"
-                ),
+                error=StructuredOutputValidationError(validation_error="Invalid output"),
             )
 
         after_first_model_response = False
@@ -1133,9 +1083,7 @@ class TestStructuredOutput(AITestCase):
                         == "Subagent invocation failed: Structured output retry limit of 3 exceeded"
                     )
 
-                return ModelResponse(
-                    message=AIMessage(content="End agent loop", calls=[])
-                )
+                return ModelResponse(message=AIMessage(content="End agent loop", calls=[]))
             else:
                 after_first_model_response = True
                 return ModelResponse(
@@ -1159,9 +1107,7 @@ class TestStructuredOutput(AITestCase):
                 return await handler(request)
             except StructuredOutputRetryLimitExceededException as e:
                 return SubagentResponse(
-                    result=SubagentFailureResult(
-                        error_message=f"Subagent invocation failed: {e}"
-                    )
+                    result=SubagentFailureResult(error_message=f"Subagent invocation failed: {e}")
                 )
 
         async with (
@@ -1184,9 +1130,7 @@ class TestStructuredOutput(AITestCase):
                 agents=[subagent],
             ) as supervisor,
         ):
-            await supervisor.invoke(
-                [HumanMessage(content="My name is Mike, what is my name?")]
-            )
+            await supervisor.invoke([HumanMessage(content="My name is Mike, what is my name?")])
 
         assert subagent_llm_call_count == 12
 

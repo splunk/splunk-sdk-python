@@ -53,9 +53,7 @@ class SerializedService(BaseModel):
             password=self.password if self.password else None,
             token=self.token if self.token else None,
             splunkToken=self.bearer_token if self.bearer_token else None,
-            cookie="; ".join(
-                f"{key}={self.auth_cookies[key]}" for key in self.auth_cookies
-            )
+            cookie="; ".join(f"{key}={self.auth_cookies[key]}" for key in self.auth_cookies)
             if self.auth_cookies
             else None,
             autologin=True,

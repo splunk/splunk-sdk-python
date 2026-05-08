@@ -14,9 +14,10 @@
 
 """Command line utilities shared by command line tools & unit tests."""
 
-from os import path
-from optparse import OptionParser
 import sys
+from optparse import OptionParser
+from os import path
+
 from dotenv import dotenv_values
 
 __all__ = ["error", "Parser", "cmdline"]

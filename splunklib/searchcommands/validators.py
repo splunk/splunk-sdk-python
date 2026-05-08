@@ -15,10 +15,10 @@
 import csv
 import os
 import re
-from io import open, StringIO
-from os import getcwd
-from json.encoder import encode_basestring_ascii as json_encode_string
 from collections import namedtuple
+from io import StringIO, open
+from json.encoder import encode_basestring_ascii as json_encode_string
+from os import getcwd
 
 
 class Validator:
@@ -180,16 +180,12 @@ class Integer(Validator):
 
             def check_range(value):
                 if value < minimum:
-                    raise ValueError(
-                        f"Expected integer in the range [{minimum},+∞], not {value}"
-                    )
+                    raise ValueError(f"Expected integer in the range [{minimum},+∞], not {value}")
         elif maximum is not None:
 
             def check_range(value):
                 if value > maximum:
-                    raise ValueError(
-                        f"Expected integer in the range [-∞,{maximum}], not {value}"
-                    )
+                    raise ValueError(f"Expected integer in the range [-∞,{maximum}], not {value}")
 
         else:
 
@@ -228,16 +224,12 @@ class Float(Validator):
 
             def check_range(value):
                 if value < minimum:
-                    raise ValueError(
-                        f"Expected float in the range [{minimum},+∞], not {value}"
-                    )
+                    raise ValueError(f"Expected float in the range [{minimum},+∞], not {value}")
         elif maximum is not None:
 
             def check_range(value):
                 if value > maximum:
-                    raise ValueError(
-                        f"Expected float in the range [-∞,{maximum}], not {value}"
-                    )
+                    raise ValueError(f"Expected float in the range [-∞,{maximum}], not {value}")
         else:
 
             def check_range(value):
@@ -370,9 +362,7 @@ class Map(Validator):
         return (
             None
             if value is None
-            else list(self.membership.keys())[
-                list(self.membership.values()).index(value)
-            ]
+            else list(self.membership.keys())[list(self.membership.values()).index(value)]
         )
 
 

@@ -130,9 +130,7 @@ _DEBUG = False
 # Disallow _DEBUG == True in CI.
 # Github actions sets the CI env var.
 if _DEBUG and os.environ.get("CI") is not None:
-    raise Exception(
-        "_DEBUG can only be used in a local dev env and shouldn't ever be committed!"
-    )
+    raise Exception("_DEBUG can only be used in a local dev env and shouldn't ever be committed!")
 
 # Represents a prefix reserved only for internal use.
 # No user-visible tool or subagent name can be prefixed with it.
@@ -235,9 +233,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                 tool = _agent_as_tool(subagent)
 
                 if subagent.name in seen_names:
-                    raise AssertionError(
-                        f"Subagents share the same name: {subagent.name}"
-                    )
+                    raise AssertionError(f"Subagents share the same name: {subagent.name}")
 
                 seen_names.add(subagent.name)
                 tools.append(tool)
@@ -252,9 +248,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         system_prompt = system_prompt + PROMPT_INJECTION_SYSTEM_INSTRUCTION
 
-        before_user_middlewares, after_user_middlewares = _debugging_middleware(
-            agent.logger
-        )
+        before_user_middlewares, after_user_middlewares = _debugging_middleware(agent.logger)
 
         middleware = before_user_middlewares
         middleware.extend(agent.middleware or [])
@@ -444,9 +438,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                         is_conversational = name in conversational_subagents
                         if is_conversational:
                             args = SubagentLCArgs(
-                                call["args"].get(
-                                    "content", {} if is_structured else ""
-                                ),
+                                call["args"].get("content", {} if is_structured else ""),
                                 call["args"].get("thread_id"),
                             )
                         elif not is_structured:
@@ -516,11 +508,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                         ai_message = ai_message.model_response
                     if isinstance(ai_message, LC_ModelResponse):
                         ai_message = next(
-                            (
-                                m
-                                for m in ai_message.result
-                                if isinstance(m, LC_AIMessage)
-                            ),
+                            (m for m in ai_message.result if isinstance(m, LC_AIMessage)),
                             None,
                         )
                         assert ai_message, "AIMessage not found found in response"
@@ -627,9 +615,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         invoke = agent_invoke
         for middleware in reversed(self._sdk_agent.middleware or []):
 
-            def make_next(
-                m: AgentMiddleware, h: AgentMiddlewareHandler
-            ) -> AgentMiddlewareHandler:
+            def make_next(m: AgentMiddleware, h: AgentMiddlewareHandler) -> AgentMiddlewareHandler:
                 async def next(r: AgentRequest) -> AgentResponse[Any | None]:
                     return await m.agent_middleware(r, h)
 
@@ -640,9 +626,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         return invoke
 
     @override
-    async def invoke(
-        self, messages: list[BaseMessage], thread_id: str
-    ) -> AgentResponse[OutputT]:
+    async def invoke(self, messages: list[BaseMessage], thread_id: str) -> AgentResponse[OutputT]:
         async def invoke_agent(req: AgentRequest) -> AgentResponse[Any | None]:
             langchain_msgs = []
 
@@ -725,9 +709,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             # Store the resulting messages in the conversation store, after all
             # agent middlewares have been executed.
             if self._sdk_agent.conversation_store:
-                await self._sdk_agent.conversation_store.store_messages(
-                    thread_id, result.messages
-                )
+                await self._sdk_agent.conversation_store.store_messages(thread_id, result.messages)
 
             return AgentResponse[OutputT](
                 messages=result.messages,
@@ -735,16 +717,12 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             )
         else:
             if result.structured_output is not None:
-                raise AssertionError(
-                    "Agent middleware unexpectedly included a structured output"
-                )
+                raise AssertionError("Agent middleware unexpectedly included a structured output")
 
             # Store the resulting messages in the conversation store, after all
             # agent middlewares have been executed.
             if self._sdk_agent.conversation_store:
-                await self._sdk_agent.conversation_store.store_messages(
-                    thread_id, result.messages
-                )
+                await self._sdk_agent.conversation_store.store_messages(thread_id, result.messages)
 
             return AgentResponse[OutputT](
                 messages=result.messages,
@@ -777,9 +755,7 @@ class _Middleware(LC_AgentMiddleware):
         invoke = model_invoke
         for middleware in reversed(self._middleware or []):
 
-            def make_next(
-                m: AgentMiddleware, h: ModelMiddlewareHandler
-            ) -> ModelMiddlewareHandler:
+            def make_next(m: AgentMiddleware, h: ModelMiddlewareHandler) -> ModelMiddlewareHandler:
                 async def next(r: ModelRequest) -> ModelResponse:
                     return await m.model_middleware(r, h)
 
@@ -795,9 +771,7 @@ class _Middleware(LC_AgentMiddleware):
         invoke = tool_invoke
         for middleware in reversed(self._middleware or []):
 
-            def make_next(
-                m: AgentMiddleware, h: ToolMiddlewareHandler
-            ) -> ToolMiddlewareHandler:
+            def make_next(m: AgentMiddleware, h: ToolMiddlewareHandler) -> ToolMiddlewareHandler:
                 async def next(r: ToolRequest) -> ToolResponse:
                     return await m.tool_middleware(r, h)
 
@@ -843,9 +817,7 @@ class _Middleware(LC_AgentMiddleware):
         request.runtime.context.retry = False
 
         req = _convert_model_request_from_lc(request, self._model)
-        final_handler = _convert_model_handler_from_lc(
-            handler, original_request=request
-        )
+        final_handler = _convert_model_handler_from_lc(handler, original_request=request)
 
         async def llm_handler(req: ModelRequest) -> ModelResponse:
             try:
@@ -864,9 +836,7 @@ class _Middleware(LC_AgentMiddleware):
                     case LC_StructuredOutputValidationError():
                         raise StructuredOutputGenerationException(
                             message=msg,
-                            error=StructuredOutputValidationError(
-                                validation_error=str(e.source)
-                            ),
+                            error=StructuredOutputValidationError(validation_error=str(e.source)),
                         )
                     case LC_StructuredOutputError():
                         # Langchain only returns the above handled exceptions, LC_StructuredOutputError
@@ -933,17 +903,13 @@ class _Middleware(LC_AgentMiddleware):
     async def awrap_tool_call(
         self,
         request: LC_ToolCallRequest,
-        handler: Callable[
-            [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
-        ],
+        handler: Callable[[LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]],
     ) -> LC_ToolMessage | LC_Command[None]:
         call = _map_tool_call_from_langchain(request.tool_call)
 
         if isinstance(call, ToolCall):
             req = _convert_tool_request_from_lc(request, self._model)
-            final_handler = _convert_tool_handler_from_lc(
-                handler, original_request=request
-            )
+            final_handler = _convert_tool_handler_from_lc(handler, original_request=request)
             sdk_response = await self._with_tool_call_middleware(final_handler)(req)
 
             sdk_result = sdk_response.result
@@ -969,9 +935,7 @@ class _Middleware(LC_AgentMiddleware):
             )
 
         req = _convert_subagent_request_from_lc(request, self._model)
-        final_handler = _convert_subagent_handler_from_lc(
-            handler, original_request=request
-        )
+        final_handler = _convert_subagent_handler_from_lc(handler, original_request=request)
         sdk_response = await self._with_subagent_call_middleware(final_handler)(req)
 
         sdk_result = sdk_response.result
@@ -999,9 +963,7 @@ class _Middleware(LC_AgentMiddleware):
 
 
 def _convert_tool_handler_from_lc(
-    handler: Callable[
-        [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
-    ],
+    handler: Callable[[LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]],
     original_request: LC_ToolCallRequest,
 ) -> ToolMiddlewareHandler:
     async def _sdk_handler(request: ToolRequest) -> ToolResponse:
@@ -1017,9 +979,7 @@ def _convert_tool_handler_from_lc(
 
 
 def _convert_subagent_handler_from_lc(
-    handler: Callable[
-        [LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]
-    ],
+    handler: Callable[[LC_ToolCallRequest], Awaitable[LC_ToolMessage | LC_Command[None]]],
     original_request: LC_ToolCallRequest,
 ) -> SubagentMiddlewareHandler:
     async def _sdk_handler(
@@ -1049,14 +1009,10 @@ def _convert_model_handler_from_lc(
     return _sdk_handler
 
 
-def _convert_model_request_from_lc(
-    request: LC_ModelRequest, model: BaseChatModel
-) -> ModelRequest:
+def _convert_model_request_from_lc(request: LC_ModelRequest, model: BaseChatModel) -> ModelRequest:
     thread_id = request.runtime.context.thread_id
 
-    system_message = (
-        request.system_message.content.__str__() if request.system_message else ""
-    )
+    system_message = request.system_message.content.__str__() if request.system_message else ""
 
     return ModelRequest(
         system_message=system_message,
@@ -1064,9 +1020,7 @@ def _convert_model_request_from_lc(
     )
 
 
-def _convert_tool_request_from_lc(
-    request: LC_ToolCallRequest, model: BaseChatModel
-) -> ToolRequest:
+def _convert_tool_request_from_lc(request: LC_ToolCallRequest, model: BaseChatModel) -> ToolRequest:
     assert isinstance(request.runtime.context, InvokeContext)
     thread_id = request.runtime.context.thread_id
 
@@ -1235,9 +1189,7 @@ def _convert_tool_message_from_lc(
             )
         case LC_ToolMessage():
             # If this is reached, we likely passed an invalid tool name to LangChain.
-            assert message.name is not None, (
-                "LangChain responded with a nameless tool call"
-            )
+            assert message.name is not None, "LangChain responded with a nameless tool call"
 
             if message.name.startswith(TOOL_STRATEGY_TOOL_PREFIX):
                 return StructuredOutputMessage(
@@ -1252,9 +1204,7 @@ def _convert_tool_message_from_lc(
             )
 
             tool_type: ToolType = (
-                ToolType.LOCAL
-                if message.name.startswith(LOCAL_TOOL_PREFIX)
-                else ToolType.REMOTE
+                ToolType.LOCAL if message.name.startswith(LOCAL_TOOL_PREFIX) else ToolType.REMOTE
             )
             return ToolMessage(
                 name=_denormalize_tool_name(message.name),
@@ -1274,9 +1224,7 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
         model_response = model_response.model_response
 
     if isinstance(model_response, LC_ModelResponse):
-        ai_message = next(
-            (m for m in model_response.result if isinstance(m, LC_AIMessage)), None
-        )
+        ai_message = next((m for m in model_response.result if isinstance(m, LC_AIMessage)), None)
         assert ai_message, "ModelResponse should contain at least one LC_AIMessage"
         structured_response = model_response.structured_response
 
@@ -1329,9 +1277,7 @@ def _debugging_middleware(
     logger: logging.Logger,
 ) -> tuple[list[AgentMiddleware], list[AgentMiddleware]]:
     @tool_middleware
-    async def _tool_call(
-        request: ToolRequest, handler: ToolMiddlewareHandler
-    ) -> ToolResponse:
+    async def _tool_call(request: ToolRequest, handler: ToolMiddlewareHandler) -> ToolResponse:
         call = request.call
         logger.debug(f"Tool call {call.name} stared; id={call.id}")
         try:
@@ -1373,14 +1319,10 @@ def _debugging_middleware(
     @hook_after_model
     def _debug_after_model(resp: ModelResponse) -> None:
         requested_tool_calls = [
-            (call.name, call.id)
-            for call in resp.message.calls
-            if isinstance(call, ToolCall)
+            (call.name, call.id) for call in resp.message.calls if isinstance(call, ToolCall)
         ]
         requested_subagent_calls = [
-            (call.name, call.id)
-            for call in resp.message.calls
-            if isinstance(call, SubagentCall)
+            (call.name, call.id) for call in resp.message.calls if isinstance(call, SubagentCall)
         ]
         logger.debug(
             "LLM model invocation ended; "
@@ -1410,9 +1352,7 @@ def _create_langchain_tool(tool: Tool) -> BaseTool:
                 "ToolException from LangChain should not be raised in tool.func"
             )
 
-        artifact = ToolResult(
-            content=result.content, structured_content=result.structured_content
-        )
+        artifact = ToolResult(content=result.content, structured_content=result.structured_content)
 
         if result.structured_content:
             # For both local tools and remote tools (Splunk MCP Server App), the primary
@@ -1495,9 +1435,7 @@ def _parse_content(content: str | list[str | ContentBlock]) -> str:
         return content
 
     return " ".join(
-        parsed_block
-        for block in content
-        if (parsed_block := _parse_content_block(block))
+        parsed_block for block in content if (parsed_block := _parse_content_block(block))
     )
 
 
@@ -1516,9 +1454,7 @@ def _agent_as_tool(agent: BaseAgent[OutputT]) -> StructuredTool:
         OutputT | str,
         SubagentStructuredResult | SubagentTextResult,
     ]:
-        result = await agent.invoke(
-            [message], thread_id=thread_id or _thread_id_new_uuid()
-        )
+        result = await agent.invoke([message], thread_id=thread_id or _thread_id_new_uuid())
 
         if agent.output_schema:
             assert result.structured_output is not None
@@ -1638,9 +1574,7 @@ def _map_tool_call_from_langchain(tool_call: LC_ToolCall) -> ToolCall | Subagent
             id=tool_call["id"] or "",
         )
 
-    tool_type: ToolType = (
-        ToolType.LOCAL if name.startswith(LOCAL_TOOL_PREFIX) else ToolType.REMOTE
-    )
+    tool_type: ToolType = ToolType.LOCAL if name.startswith(LOCAL_TOOL_PREFIX) else ToolType.REMOTE
     return ToolCall(
         name=_denormalize_tool_name(name),
         args=tool_call["args"],
@@ -1680,9 +1614,7 @@ def _map_content_block_from_langchain(
 
     match block.get("type"):
         case "text":
-            return TextBlock(
-                text=block["text"], extras=block.get("extras"), id=block.get("id")
-            )
+            return TextBlock(text=block["text"], extras=block.get("extras"), id=block.get("id"))
         case _:
             # NOTE: we return data we're not handling
             # as opaque content blocks so they
@@ -1758,9 +1690,7 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
                 additional_kwargs=message.extras or {},
             )
             # This field can't be set via constructor
-            lc_message.tool_calls = [
-                _map_tool_call_to_langchain(c) for c in message.calls
-            ]
+            lc_message.tool_calls = [_map_tool_call_to_langchain(c) for c in message.calls]
             lc_message.tool_calls.extend(
                 LC_ToolCall(
                     id=call.id,
@@ -1878,9 +1808,7 @@ def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
                     + "uv add splunk-sdk[google]"
                 )
         case _:
-            raise InvalidModelError(
-                "Cannot create langchain model - invalid SDK model provided"
-            )
+            raise InvalidModelError("Cannot create langchain model - invalid SDK model provided")
 
 
 class _InvalidMessagesException(Exception):
@@ -1952,9 +1880,7 @@ def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) ->
                     pending_subagent_calls[call.id] = call.name
 
                     if call.thread_id == "":
-                        raise _InvalidMessagesException(
-                            "thread_id should not be an empty string"
-                        )
+                        raise _InvalidMessagesException("thread_id should not be an empty string")
                 else:
                     raise _InvalidMessagesException(
                         f"AIMessage contains invalid call type: {type(call)}"

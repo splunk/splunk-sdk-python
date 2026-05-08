@@ -1,14 +1,12 @@
-import sys
-
 import io
 import re
+import sys
 import xml.etree.ElementTree as ET
-from splunklib.client import Service
-from splunklib.modularinput import Script, EventWriter, Scheme, Argument, Event
 
+from splunklib.client import Service
+from splunklib.modularinput import Argument, Event, EventWriter, Scheme, Script
 from splunklib.modularinput.utils import xml_compare
 from tests.unit.modularinput.modularinput_testlib import data_open
-
 
 TEST_SCRIPT_PATH = "__IGNORED_SCRIPT_PATH__"
 
@@ -39,7 +37,7 @@ def test_error_on_script_with_null_scheme(capsys):
 
     assert captured.out == ""
     assert captured.err == "FATAL Modular input script returned a null scheme.\n"
-    assert 0 != return_value
+    assert return_value != 0
 
 
 def test_scheme_properly_generated_by_script(capsys):

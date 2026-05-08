@@ -123,9 +123,7 @@ class TestJSONCustomRestEndpointGenericRequest(testlib.SDKTestCase):
                 app=self.app_name, method="GET", path_segment="execute", body="str"
             )
 
-        self.assertRaisesRegex(
-            Exception, "Unable to set body on GET request", with_body
-        )
+        self.assertRaisesRegex(Exception, "Unable to set body on GET request", with_body)
 
     def test_GET(self):
         resp = self.service.request(

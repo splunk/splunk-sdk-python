@@ -1,6 +1,7 @@
 import io
 
-from splunklib.searchcommands import StreamingCommand, Configuration
+from splunklib.searchcommands import Configuration, StreamingCommand
+
 from . import chunked_data_stream as chunky
 
 

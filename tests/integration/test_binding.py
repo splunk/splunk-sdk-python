@@ -12,27 +12,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
+import logging
+import socket
+import ssl
+import unittest
 from http import server as BaseHTTPServer
 from io import BytesIO, StringIO
 from threading import Thread
 from urllib.request import Request, urlopen
-
 from xml.etree.ElementTree import XML
 
-import json
-import logging
-from tests import testlib
-import unittest
-import socket
-import ssl
+import pytest
 
 import splunklib
-from splunklib import binding
-from splunklib.binding import HTTPError, AuthenticationError, UrlEncoded
-from splunklib import data
+from splunklib import binding, data
+from splunklib.binding import AuthenticationError, HTTPError, UrlEncoded
 from splunklib.utils import ensure_str
-
-import pytest
+from tests import testlib
 
 # splunkd endpoint paths
 PATH_USERS = "authentication/users/"
@@ -274,13 +271,9 @@ class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()
         socket.write(
-            (
-                f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n"
-            ).encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
         )
-        socket.write(
-            (f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8")
-        )
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
         socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
         socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
@@ -378,9 +371,7 @@ class TestAbspath(BindingTestCase):
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_sharing_system(self):
-        path = self.context._abspath(
-            "foo bar", owner="me", app="MyApp", sharing="system"
-        )
+        path = self.context._abspath("foo bar", owner="me", app="MyApp", sharing="system")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo%20bar")
 
@@ -414,9 +405,7 @@ class TestAbspath(BindingTestCase):
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
 
     def test_context_with_user_sharing(self):
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="user", **self.kwargs
-        )
+        context = binding.connect(owner="me", app="MyApp", sharing="user", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/me/MyApp/foo")
@@ -428,17 +417,13 @@ class TestAbspath(BindingTestCase):
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_context_with_global_sharing(self):
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="global", **self.kwargs
-        )
+        context = binding.connect(owner="me", app="MyApp", sharing="global", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/MyApp/foo")
 
     def test_context_with_system_sharing(self):
-        context = binding.connect(
-            owner="me", app="MyApp", sharing="system", **self.kwargs
-        )
+        context = binding.connect(owner="me", app="MyApp", sharing="system", **self.kwargs)
         path = context._abspath("foo")
         self.assertTrue(isinstance(path, UrlEncoded))
         self.assertEqual(path, "/servicesNS/nobody/system/foo")
@@ -535,9 +520,7 @@ class TestCookiePersistence(testlib.SDKTestCase):
             "Connecting with urllib2_insert_cookie_handler %s",
             urllib2_insert_cookie_handler,
         )
-        context = binding.connect(
-            handler=urllib2_insert_cookie_handler, **self.opts.kwargs
-        )
+        context = binding.connect(handler=urllib2_insert_cookie_handler, **self.opts.kwargs)
 
         persisted_cookies = context.get_cookies()
 
@@ -548,9 +531,7 @@ class TestCookiePersistence(testlib.SDKTestCase):
                 break
 
         self.assertEqual(splunk_token_found, True)
-        self.assertEqual(
-            persisted_cookies["BIGipServer_splunk-shc-8089"], "1234567890.12345.0000"
-        )
+        self.assertEqual(persisted_cookies["BIGipServer_splunk-shc-8089"], "1234567890.12345.0000")
         self.assertEqual(persisted_cookies["home_made"], "yummy")
 
 
@@ -645,9 +626,7 @@ class TestCookieAuthentication(unittest.TestCase):
                 self.assertEqual(len(old_cookies), 1)
                 self.assertTrue(len(list(new_cookies.values())), 1)
                 self.assertEqual(old_cookies, new_cookies)
-                self.assertEqual(
-                    list(new_cookies.values())[0], list(old_cookies.values())[0]
-                )
+                self.assertEqual(list(new_cookies.values())[0], list(old_cookies.values())[0])
         self.assertTrue(found)
 
     @pytest.mark.smoke
@@ -824,13 +803,9 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (
-                f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n"
-            ).encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
         )
-        socket.write(
-            (f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8")
-        )
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
         socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
         socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
@@ -855,13 +830,9 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (
-                f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n"
-            ).encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
         )
-        socket.write(
-            (f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8")
-        )
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
         socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
         socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
@@ -881,13 +852,9 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (
-                f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n"
-            ).encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
         )
-        socket.write(
-            (f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8")
-        )
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
         socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
         socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
         socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
@@ -908,9 +875,7 @@ class TestPostWithBodyParam(unittest.TestCase):
             )
 
         ctx = binding.Context(handler=handler)
-        ctx.post(
-            "foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"}
-        )
+        ctx.post("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
 
     def test_post_with_params_and_body(self):
         def handler(url, message, **kwargs):
@@ -987,9 +952,7 @@ class TestPutWithBodyParam(unittest.TestCase):
             )
 
         ctx = binding.Context(handler=handler)
-        ctx.put(
-            "foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"}
-        )
+        ctx.put("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
 
     def test_put_with_params_and_body_form(self):
         def handler(url, message, **kwargs):
@@ -1066,9 +1029,7 @@ class TestPatchWithBodyParam(unittest.TestCase):
             )
 
         ctx = binding.Context(handler=handler)
-        ctx.patch(
-            "foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"}
-        )
+        ctx.patch("foo/bar", owner="testowner", app="testapp", body={"testkey": "testvalue"})
 
     def test_patch_with_params_and_body_form(self):
         def handler(url, message, **kwargs):
@@ -1148,18 +1109,14 @@ class MockServer:
         methods = {"do_" + k: _wrap_handler(v) for (k, v) in handlers.items()}
 
         def init(handler_self, socket, address, server):
-            BaseHTTPServer.BaseHTTPRequestHandler.__init__(
-                handler_self, socket, address, server
-            )
+            BaseHTTPServer.BaseHTTPRequestHandler.__init__(handler_self, socket, address, server)
 
         def log(*args):  # To silence server access logs
             pass
 
         methods["__init__"] = init
         methods["log_message"] = log
-        Handler = type(
-            "Handler", (BaseHTTPServer.BaseHTTPRequestHandler, object), methods
-        )
+        Handler = type("Handler", (BaseHTTPServer.BaseHTTPRequestHandler, object), methods)
         self._svr = BaseHTTPServer.HTTPServer(("localhost", port), Handler)
 
         def run():
@@ -1208,9 +1165,7 @@ class TestFullPost(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get("content-length", 0))
             body = handler.rfile.read(length)
-            assert (
-                handler.headers["content-type"] == "application/x-www-form-urlencoded"
-            )
+            assert handler.headers["content-type"] == "application/x-www-form-urlencoded"
             assert ensure_str(body) in ["baz=baf&hep=cat", "hep=cat&baz=baf"]
 
         with MockServer(POST=check_response):
@@ -1249,9 +1204,7 @@ class TestFullPut(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get("content-length", 0))
             body = handler.rfile.read(length)
-            assert (
-                handler.headers["content-type"] == "application/x-www-form-urlencoded"
-            )
+            assert handler.headers["content-type"] == "application/x-www-form-urlencoded"
             assert ensure_str(body) in ["baz=baf&hep=cat", "hep=cat&baz=baf"]
 
         with MockServer(PUT=check_response):
@@ -1290,9 +1243,7 @@ class TestFullPatch(unittest.TestCase):
         def check_response(handler):
             length = int(handler.headers.get("content-length", 0))
             body = handler.rfile.read(length)
-            assert (
-                handler.headers["content-type"] == "application/x-www-form-urlencoded"
-            )
+            assert handler.headers["content-type"] == "application/x-www-form-urlencoded"
             assert ensure_str(body) in ["baz=baf&hep=cat", "hep=cat&baz=baf"]
 
         with MockServer(PATCH=check_response):

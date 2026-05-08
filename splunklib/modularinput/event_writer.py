@@ -76,9 +76,7 @@ class EventWriter:
         :param severity: ``string``, severity of message, see severities defined as class constants. Default severity: ERROR
         """
         if exception is not None:
-            tb_str = traceback.format_exception(
-                type(exception), exception, exception.__traceback__
-            )
+            tb_str = traceback.format_exception(type(exception), exception, exception.__traceback__)
         else:
             tb_str = traceback.format_exc()
 

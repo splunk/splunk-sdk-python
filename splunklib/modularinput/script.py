@@ -12,9 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from abc import ABCMeta, abstractmethod
 import sys
 import xml.etree.ElementTree as ET
+from abc import ABCMeta, abstractmethod
 from urllib.parse import urlsplit
 
 from ..client import Service

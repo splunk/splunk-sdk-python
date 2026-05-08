@@ -31,9 +31,7 @@ from tests.cre_testlib import CRETestHandler
 # does not exist on the filesystem. As a workaround in such case if it does not exist,
 # remove the env, this causes the default CAs to be used instead.
 CA_TRUST_STORE = "/opt/splunk/openssl/cert.pem"
-if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(
-    CA_TRUST_STORE
-):
+if os.environ.get("SSL_CERT_FILE") == CA_TRUST_STORE and not os.path.exists(CA_TRUST_STORE):
     os.environ["SSL_CERT_FILE"] = ""
 
 # This app uses the splunk_get_indexes remote tool (from Splunk MCP Server App).
@@ -51,24 +49,18 @@ class IndexesHandler(CRETestHandler):
             system_prompt="You are a helpful Splunk assistant",
             tool_settings=ToolSettings(
                 local=False,
-                remote=RemoteToolSettings(
-                    allowlist=ToolAllowlist(names=["splunk_get_indexes"])
-                ),
+                remote=RemoteToolSettings(allowlist=ToolAllowlist(names=["splunk_get_indexes"])),
             ),
             service=self.service,
             output_schema=Output,
         ) as agent:
             assert len(agent.tools) == 1, "Invalid tool count"
-            assert (
-                len([t for t in agent.tools if t.name == "splunk_get_indexes"]) == 1
-            ), "splunk_get_indexes not present"
+            assert len([t for t in agent.tools if t.name == "splunk_get_indexes"]) == 1, (
+                "splunk_get_indexes not present"
+            )
 
             result = await agent.invoke(
-                [
-                    HumanMessage(
-                        content="List all indexes available on the splunk instance."
-                    )
-                ]
+                [HumanMessage(content="List all indexes available on the splunk instance.")]
             )
 
             self.response.write(result.structured_output.model_dump_json())

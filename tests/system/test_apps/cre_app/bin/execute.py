@@ -51,7 +51,5 @@ class Handler(splunk.rest.BaseRestHandler):
 
     def headers(self):
         return {
-            k: v
-            for k, v in self.request.get("headers", {}).items()
-            if k.lower().startswith("x")
+            k: v for k, v in self.request.get("headers", {}).items() if k.lower().startswith("x")
         }

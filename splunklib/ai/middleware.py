@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from collections.abc import Sequence, Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, override
 
@@ -192,9 +192,7 @@ def model_middleware(
 
 
 def agent_middleware(
-    func: Callable[
-        [AgentRequest, AgentMiddlewareHandler], Awaitable[AgentResponse[Any | None]]
-    ],
+    func: Callable[[AgentRequest, AgentMiddlewareHandler], Awaitable[AgentResponse[Any | None]]],
 ) -> AgentMiddleware:
     class _CustomMiddleware(AgentMiddleware):
         @override

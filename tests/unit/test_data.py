@@ -13,10 +13,9 @@
 # under the License.
 
 import sys
-from os import path
-import xml.etree.ElementTree as et
-
 import unittest
+import xml.etree.ElementTree as et
+from os import path
 
 from splunklib import data
 
@@ -82,9 +81,7 @@ class DataTestCase(unittest.TestCase):
         self.assertEqual(result, {"e": {"a1": ["v2", "v1"]}})
 
         result = data.load("<e1 a1='v1'><e2 a1='v1'>v2</e2></e1>")
-        self.assertEqual(
-            result, {"e1": {"a1": "v1", "e2": {"$text": "v2", "a1": "v1"}}}
-        )
+        self.assertEqual(result, {"e1": {"a1": "v1", "e2": {"$text": "v2", "a1": "v1"}}})
 
     def test_real(self):
         """Test some real Splunk response examples."""
@@ -185,9 +182,7 @@ class DataTestCase(unittest.TestCase):
               </dict>
             </content>"""
         )
-        self.assertEqual(
-            result, {"content": {"n1": {"n1n1": "n1v1"}, "n2": {"n2n1": "n2v1"}}}
-        )
+        self.assertEqual(result, {"content": {"n1": {"n1n1": "n1v1"}, "n2": {"n2n1": "n2v1"}}})
 
         result = data.load(
             """
@@ -269,9 +264,7 @@ class DataTestCase(unittest.TestCase):
 
     def test_record(self):
         d = data.record()
-        d.update(
-            {"foo": 5, "bar.baz": 6, "bar.qux": 7, "bar.zrp.meep": 8, "bar.zrp.peem": 9}
-        )
+        d.update({"foo": 5, "bar.baz": 6, "bar.qux": 7, "bar.zrp.meep": 8, "bar.zrp.peem": 9})
         self.assertEqual(d["foo"], 5)
         self.assertEqual(d["bar.baz"], 6)
         self.assertEqual(d["bar"], {"baz": 6, "qux": 7, "zrp": {"meep": 8, "peem": 9}})

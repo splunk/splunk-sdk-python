@@ -13,8 +13,8 @@
 # under the License.
 
 
-from .decorators import ConfigurationSetting
-from .search_command import SearchCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting
+from splunklib.searchcommands.search_command import SearchCommand
 
 
 class StreamingCommand(SearchCommand):
@@ -199,9 +199,7 @@ class StreamingCommand(SearchCommand):
                     ]
             else:
                 iteritems = [
-                    name_value2
-                    for name_value2 in iteritems
-                    if name_value2[0] != "distributed"
+                    name_value2 for name_value2 in iteritems if name_value2[0] != "distributed"
                 ]
                 if not self.distributed:
                     iteritems = [

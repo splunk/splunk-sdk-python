@@ -99,27 +99,21 @@ def ai_snapshot_test() -> Callable[
             settings = self.test_llm_settings
             assert settings.internal_ai is not None
 
-            internal_ai_hostname = parse.urlparse(
-                settings.internal_ai.base_url
-            ).hostname
+            internal_ai_hostname = parse.urlparse(settings.internal_ai.base_url).hostname
             assert internal_ai_hostname is not None
 
             class _JSONFriendlySerializer:
                 def deserialize(self, serialized: str) -> Any:
                     assert settings.internal_ai is not None
-                    serialized = serialized.replace(
-                        REDACTED_APP_KEY, settings.internal_ai.app_key
-                    )
+                    serialized = serialized.replace(REDACTED_APP_KEY, settings.internal_ai.app_key)
 
                     data = json.loads(serialized)
                     for interaction in data.get("interactions", []):
-                        interaction["request"]["uri"] = interaction["request"][
-                            "uri"
-                        ].replace("internal-ai-host", internal_ai_hostname, 1)
-
-                        interaction["request"]["body"] = json.dumps(
-                            interaction["request"]["body"]
+                        interaction["request"]["uri"] = interaction["request"]["uri"].replace(
+                            "internal-ai-host", internal_ai_hostname, 1
                         )
+
+                        interaction["request"]["body"] = json.dumps(interaction["request"]["body"])
                         body = interaction["response"]["body"]
                         interaction["response"]["body"] = {}
                         interaction["response"]["body"]["string"] = json.dumps(body)
@@ -128,9 +122,9 @@ def ai_snapshot_test() -> Callable[
 
                 def serialize(self, dict: Any) -> str:
                     for interaction in dict.get("interactions", []):
-                        interaction["request"]["uri"] = interaction["request"][
-                            "uri"
-                        ].replace(internal_ai_hostname, "internal-ai-host", 1)
+                        interaction["request"]["uri"] = interaction["request"]["uri"].replace(
+                            internal_ai_hostname, "internal-ai-host", 1
+                        )
 
                         body = interaction["request"]["body"]
                         interaction["request"]["body"] = json.loads(body)

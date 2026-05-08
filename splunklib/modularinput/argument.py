@@ -35,7 +35,7 @@ class Argument:
                 validation="is_pos_int('some_name')",
                 data_type=Argument.data_type_number,
                 required_on_edit=True,
-                required_on_create=True
+                required_on_create=True,
             )
     """
 

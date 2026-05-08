@@ -12,10 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from tests import testlib
 import logging
 
 from splunklib import client
+from tests import testlib
 
 
 class RoleTestCase(testlib.SDKTestCase):
@@ -81,14 +81,10 @@ class RoleTestCase(testlib.SDKTestCase):
         self.assertFalse("change_own_password" in self.role.capabilities)
 
     def test_invalid_grant(self):
-        self.assertRaises(
-            client.NoSuchCapability, self.role.grant, "i-am-an-invalid-capability"
-        )
+        self.assertRaises(client.NoSuchCapability, self.role.grant, "i-am-an-invalid-capability")
 
     def test_invalid_revoke(self):
-        self.assertRaises(
-            client.NoSuchCapability, self.role.revoke, "i-am-an-invalid-capability"
-        )
+        self.assertRaises(client.NoSuchCapability, self.role.revoke, "i-am-an-invalid-capability")
 
     def test_revoke_capability_not_granted(self):
         self.role.revoke("change_own_password")

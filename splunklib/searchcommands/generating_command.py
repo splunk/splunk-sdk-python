@@ -14,8 +14,8 @@
 
 import sys
 
-from .decorators import ConfigurationSetting
-from .search_command import SearchCommand
+from splunklib.searchcommands.decorators import ConfigurationSetting
+from splunklib.searchcommands.search_command import SearchCommand
 
 # P1 [O] TODO: Discuss generates_timeorder in the class-level documentation for GeneratingCommand
 

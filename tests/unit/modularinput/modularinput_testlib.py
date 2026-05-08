@@ -15,11 +15,8 @@
 import io
 import os
 import sys
-import unittest
 
 sys.path.insert(0, os.path.join("../../splunklib", ".."))
-
-from splunklib.modularinput.utils import parse_parameters, parse_xml_data, xml_compare
 
 
 def data_open(filepath):

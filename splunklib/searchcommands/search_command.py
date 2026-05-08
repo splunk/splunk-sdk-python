@@ -25,6 +25,7 @@ from collections import OrderedDict, namedtuple
 from copy import deepcopy
 from io import StringIO
 from itertools import chain, islice
+from json.encoder import encode_basestring_ascii as json_encode_string
 from logging import _nameToLevel as _levelNames, getLevelName, getLogger
 from shutil import make_archive
 from time import time
@@ -32,12 +33,10 @@ from urllib.parse import unquote, urlsplit
 from warnings import warn
 from xml.etree import ElementTree
 
-from ..client import Service
-from ..utils import ensure_str
-
-# Relative imports
-from . import Boolean, Option, environment
-from .internals import (
+import splunklib.searchcommands.environment as environment
+from splunklib.client import Service
+from splunklib.searchcommands.decorators import Option
+from splunklib.searchcommands.internals import (
     CommandLineParser,
     CsvDialect,
     InputHeader,
@@ -48,8 +47,9 @@ from .internals import (
     Recorder,
     RecordWriterV1,
     RecordWriterV2,
-    json_encode_string,
 )
+from splunklib.searchcommands.validators import Boolean
+from splunklib.utils import ensure_str
 
 # ----------------------------------------------------------------------------------------------------------------------
 

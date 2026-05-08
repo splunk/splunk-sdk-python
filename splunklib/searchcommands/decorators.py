@@ -15,9 +15,10 @@
 
 from collections import OrderedDict
 from inspect import getmembers, isclass, isfunction
+from json.encoder import encode_basestring_ascii as json_encode_string
 
-from .internals import ConfigurationSettingsType, json_encode_string
-from .validators import OptionName
+from splunklib.searchcommands.internals import ConfigurationSettingsType
+from splunklib.searchcommands.validators import OptionName
 
 
 class Configuration:

@@ -14,7 +14,6 @@
 
 import csv
 import gzip
-import os
 import re
 import sys
 import urllib.parse
@@ -25,7 +24,7 @@ from itertools import chain
 from json import JSONDecoder, JSONEncoder
 from json.encoder import encode_basestring_ascii as json_encode_string
 
-from . import environment
+from splunklib.searchcommands.environment import splunklib_logger
 
 csv.field_size_limit(
     10485760
@@ -109,7 +108,7 @@ class CommandLineParser:
         ``ValueError``: Unrecognized option/field name, or an illegal field value.
 
         """
-        debug = environment.splunklib_logger.debug
+        debug = splunklib_logger.debug
         command_class = type(command).__name__
 
         # Prepare

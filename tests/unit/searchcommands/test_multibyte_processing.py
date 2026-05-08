@@ -10,8 +10,7 @@ def build_test_command():
     @Configuration()
     class TestSearchCommand(StreamingCommand):
         def stream(self, records):
-            for record in records:
-                yield record
+            yield from records
 
     return TestSearchCommand()
 

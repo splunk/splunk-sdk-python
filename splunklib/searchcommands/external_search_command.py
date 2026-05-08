@@ -17,7 +17,7 @@ import sys
 import traceback
 from logging import getLogger
 
-from . import splunklib_logger as logger
+from splunklib.searchcommands.environment import splunklib_logger as logger
 
 if sys.platform == "win32":
     import atexit

@@ -37,7 +37,7 @@ def test_error_on_script_with_null_scheme(capsys):
 
     assert captured.out == ""
     assert captured.err == "FATAL Modular input script returned a null scheme.\n"
-    assert 0 != return_value
+    assert return_value != 0
 
 
 def test_scheme_properly_generated_by_script(capsys):

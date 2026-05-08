@@ -13,8 +13,10 @@
 # under the License.
 
 
+import unittest
+
 from splunklib.modularinput.validation_definition import ValidationDefinition
-from tests.unit.modularinput.modularinput_testlib import data_open, unittest
+from tests.unit.modularinput.modularinput_testlib import data_open
 
 
 class ValidationDefinitionTestCase(unittest.TestCase):

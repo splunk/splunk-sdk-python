@@ -50,7 +50,7 @@ jobs:
           path: docs/_build/html
 
   publish-pre-release:
-    if: startsWith(github.ref, 'refs/tags/') != true
+    if: startsWith(github.ref, 'refs/tags/') == false
     needs: build-distributables
     runs-on: ubuntu-latest
     permissions:
@@ -70,7 +70,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
 
   publish-release:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') == true
     needs: build-distributables
     runs-on: ubuntu-latest
     permissions:

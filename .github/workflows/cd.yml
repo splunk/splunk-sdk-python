@@ -1,0 +1,90 @@
+name: Python CD
+on:
+  push:
+    branches: [develop]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-distributables:
+    # Why building is separate from publishing:
+    # https://github.com/pypa/gh-action-pypi-publish/issues/217#issuecomment-1965727093
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-sdk-environment
+        with:
+          python-version: 3.13
+          deps-group: release
+      - name: Set pre-release version
+        id: set-version
+        if: startsWith(github.ref, 'refs/tags/') != true
+        run: |
+          VERSION_BASE="$(uv version --short)"
+          RUN_NUMBER="${{ github.run_number }}"
+          COMMIT_SHA="$(git rev-parse --short HEAD)"
+          uv version --frozen "${VERSION_BASE}.dev${RUN_NUMBER}+g${COMMIT_SHA}"
+      - name: Get current version
+        id: get-version
+        run: echo "version=$(uv version --short)" >> "$GITHUB_OUTPUT"
+      - name: Build packages for distribution
+        run: uv build
+      - name: Run AppInspect
+        uses: ./.github/actions/run-appinspect
+      - name: Upload distributables
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: splunk-sdk-${{ steps.get-version.outputs.version }}
+          path: dist/
+      - name: Generate API reference
+        run: make -C ./docs html
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: python-sdk-docs
+          path: docs/_build/html
+
+  publish-pre-release:
+    if: startsWith(github.ref, 'refs/tags/') == false
+    needs: build-distributables
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: splunk-test-pypi
+      url: https://test.pypi.org/project/splunk-sdk/
+    steps:
+      - name: Download distributables
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
+          path: dist/
+      - name: Publish packages to Test PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/') == true
+    needs: build-distributables
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: splunk-pypi
+      url: https://pypi.org/project/splunk-sdk/
+    steps:
+      - name: Download distributables
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
+          path: dist/
+      - name: Publish packages to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+        with:
+          repository-url: https://pypi.org/legacy/

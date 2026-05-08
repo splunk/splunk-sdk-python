@@ -7,14 +7,15 @@ concurrency:
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
         python-version: [3.13]
         splunk-version: [latest]
-    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
           python-version: ${{ matrix.python-version }}
@@ -46,7 +47,8 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .pytest_cache
-          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
+          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{
+            github.sha }}
           restore-keys: |
             pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
       - name: Run unit tests

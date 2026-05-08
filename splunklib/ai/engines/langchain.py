@@ -276,10 +276,6 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         self._agent_middleware.extend(agent.middleware or [])
         self._agent_middleware.extend(after_user_middlewares)
 
-        if agent.limits.max_tokens is not None:
-            self._agent_middleware.append(
-                _TokenLimitMiddleware(agent.limits.max_tokens)
-            )
         if agent.limits.max_steps is not None:
             self._agent_middleware.append(_StepLimitMiddleware(agent.limits.max_steps))
         if agent.limits.timeout is not None:
@@ -287,9 +283,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
 
         model_impl = _create_langchain_model(agent.model)
 
-        lc_middleware: list[LC_AgentMiddleware] = [
-            _Middleware(self._agent_middleware, model_impl)
-        ]
+        lc_middleware: list[LC_AgentMiddleware] = [_Middleware(self._agent_middleware)]
 
         # This middleware is executed just after the tool execution and populates
         # the artifact field for failed tool calls, since in such cases we can't
@@ -605,6 +599,27 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         if _DEBUG:
             lc_middleware.append(_DEBUGMiddleware())
 
+        if agent.limits.max_tokens is not None:
+            _max_tokens = agent.limits.max_tokens
+
+            class _TokenLimitMiddleware(LC_AgentMiddleware):
+                @override
+                async def awrap_model_call(
+                    self,
+                    request: LC_ModelRequest,
+                    handler: Callable[[LC_ModelRequest], Awaitable[LC_ModelCallResult]],
+                ) -> LC_ModelCallResult:
+                    token_count = _get_approximate_token_counter(
+                        request.model, request.tools
+                    )(request.state["messages"])
+
+                    if token_count >= _max_tokens:
+                        raise TokenLimitExceededException(token_limit=_max_tokens)
+
+                    return await handler(request)
+
+            lc_middleware.append(_TokenLimitMiddleware())
+
         response_format = None
         if agent.output_schema is not None:
             if _supports_provider_strategy(model_impl):
@@ -792,11 +807,9 @@ def _prepare_langchain_tools(agent_tools: Sequence[Tool]) -> list[BaseTool]:
 
 class _Middleware(LC_AgentMiddleware):
     _middleware: list[AgentMiddleware]
-    _model: BaseChatModel
 
-    def __init__(self, middleware: list[AgentMiddleware], model: BaseChatModel) -> None:
+    def __init__(self, middleware: list[AgentMiddleware]) -> None:
         self._middleware = middleware
-        self._model = model
 
     def _with_model_middleware(
         self, model_invoke: ModelMiddlewareHandler
@@ -869,7 +882,7 @@ class _Middleware(LC_AgentMiddleware):
             request.state["messages"].append(request.runtime.context.retry)
         request.runtime.context.retry = False
 
-        req = _convert_model_request_from_lc(request, self._model)
+        req = _convert_model_request_from_lc(request)
         final_handler = _convert_model_handler_from_lc(
             handler, original_request=request
         )
@@ -967,7 +980,7 @@ class _Middleware(LC_AgentMiddleware):
         call = _map_tool_call_from_langchain(request.tool_call)
 
         if isinstance(call, ToolCall):
-            req = _convert_tool_request_from_lc(request, self._model)
+            req = _convert_tool_request_from_lc(request)
             final_handler = _convert_tool_handler_from_lc(
                 handler, original_request=request
             )
@@ -995,7 +1008,7 @@ class _Middleware(LC_AgentMiddleware):
                 artifact=sdk_result,
             )
 
-        req = _convert_subagent_request_from_lc(request, self._model)
+        req = _convert_subagent_request_from_lc(request)
         final_handler = _convert_subagent_handler_from_lc(
             handler, original_request=request
         )
@@ -1076,9 +1089,7 @@ def _convert_model_handler_from_lc(
     return _sdk_handler
 
 
-def _convert_model_request_from_lc(
-    request: LC_ModelRequest, model: BaseChatModel
-) -> ModelRequest:
+def _convert_model_request_from_lc(request: LC_ModelRequest) -> ModelRequest:
     thread_id = request.runtime.context.thread_id
 
     system_message = (
@@ -1087,12 +1098,12 @@ def _convert_model_request_from_lc(
 
     return ModelRequest(
         system_message=system_message,
-        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
+        state=_convert_agent_state_from_langchain(request.state, thread_id),
     )
 
 
 def _convert_tool_request_from_lc(
-    request: LC_ToolCallRequest, model: BaseChatModel
+    request: LC_ToolCallRequest,
 ) -> ToolRequest:
     assert isinstance(request.runtime.context, InvokeContext)
     thread_id = request.runtime.context.thread_id
@@ -1101,13 +1112,12 @@ def _convert_tool_request_from_lc(
     assert isinstance(tool_call, ToolCall), "Expected tool call"
     return ToolRequest(
         call=tool_call,
-        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
+        state=_convert_agent_state_from_langchain(request.state, thread_id),
     )
 
 
 def _convert_subagent_request_from_lc(
     request: LC_ToolCallRequest,
-    model: BaseChatModel,
 ) -> SubagentRequest:
     assert isinstance(request.runtime.context, InvokeContext)
     thread_id = request.runtime.context.thread_id
@@ -1116,7 +1126,7 @@ def _convert_subagent_request_from_lc(
     assert isinstance(subagent_call, SubagentCall), "Expected subagent call"
     return SubagentRequest(
         call=subagent_call,
-        state=_convert_agent_state_from_langchain(request.state, model, thread_id),
+        state=_convert_agent_state_from_langchain(request.state, thread_id),
     )
 
 
@@ -1809,28 +1819,30 @@ def _map_message_to_langchain(message: BaseMessage) -> LC_AnyMessage:
 
 
 def _convert_agent_state_from_langchain(
-    state: LC_AgentState[Any], model: BaseChatModel, thread_id: str
+    state: LC_AgentState[Any], thread_id: str
 ) -> AgentState:
     messages = state["messages"]
-    total_tokens_counter = _get_approximate_token_counter(model)
-    total_tokens = total_tokens_counter(messages)
     messages = [_map_message_from_langchain(m) for m in state["messages"]]
     return AgentState(
         messages=messages,
-        token_count=total_tokens,
         thread_id=thread_id,
     )
 
 
-def _get_approximate_token_counter(model: BaseChatModel) -> LC_TokenCounter:
+def _get_approximate_token_counter(
+    model: BaseChatModel, tools: list[BaseTool | dict[str, Any]]
+) -> LC_TokenCounter:
     """Tune parameters of approximate token counter based on model type."""
+
+    # TODO: consider using use_usage_metadata_scaling option once
+    # we expose token usage details from LLMs.
 
     # NOTE: This is adapted from the backend provider library
     # 3.3 was estimated in an offline experiment, comparing with Claude's token-counting
     # API: https://platform.claude.com/docs/en/build-with-claude/token-counting
     if model._llm_type == ANTHROPIC_CHAT_MODEL_TYPE:  # pyright: ignore[reportPrivateUsage]
-        return partial(count_tokens_approximately, chars_per_token=3.3)
-    return count_tokens_approximately
+        return partial(count_tokens_approximately, tools=tools, chars_per_token=3.3)
+    return partial(count_tokens_approximately, tools=tools)
 
 
 def _create_langchain_model(model: PredefinedModel) -> BaseChatModel:
@@ -2014,25 +2026,6 @@ def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) ->
             raise _InvalidMessagesException("messages does not have an AIMessage")
         if len(last_ai_message.calls) != 0:
             raise _InvalidMessagesException("last AIMessage has tool calls")
-
-
-class _TokenLimitMiddleware(AgentMiddleware):
-    """Stops agent execution when the token count of messages passed to the model exceeds the given limit."""
-
-    _limit: int
-
-    def __init__(self, limit: int) -> None:
-        self._limit = limit
-
-    @override
-    async def model_middleware(
-        self,
-        request: ModelRequest,
-        handler: ModelMiddlewareHandler,
-    ) -> ModelResponse:
-        if request.state.token_count >= self._limit:
-            raise TokenLimitExceededException(token_limit=self._limit)
-        return await handler(request)
 
 
 class _StepLimitMiddleware(AgentMiddleware):

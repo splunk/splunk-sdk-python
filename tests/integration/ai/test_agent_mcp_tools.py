@@ -27,8 +27,10 @@ from splunklib.ai.agent import (
     _get_splunk_username,  # pyright: ignore[reportPrivateUsage]
 )
 from splunklib.ai.engines.langchain import LOCAL_TOOL_PREFIX
+from splunklib.ai.limits import AgentLimits, TokenLimitExceededException
 from splunklib.ai.messages import (
     AIMessage,
+    BaseMessage,
     HumanMessage,
     ToolCall,
     ToolFailureResult,
@@ -807,6 +809,44 @@ class TestHandlingToolNameCollision(AITestCase):
                 print(response.structured_output)
                 assert response.structured_output.remote_temperature == "31.5C"
                 assert response.structured_output.local_temperature == "22.1C"
+
+    @pytest.mark.asyncio
+    @patch(
+        "splunklib.ai.agent._testing_local_tools_path",
+        os.path.join(
+            os.path.dirname(__file__), "testdata", "tool_with_long_description.py"
+        ),
+    )
+    @patch("splunklib.ai.agent._testing_app_id", "app_id")
+    @ai_snapshot_test()
+    async def test_token_limit_tools(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        # This test makes sure that token limits take into account tool definitions.
+
+        msgs: list[BaseMessage] = [HumanMessage(content="Hi, my name is Chris")]
+
+        # Make sure that without tools we don't trip the limit.
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="",
+            service=self.service,
+            limits=AgentLimits(max_tokens=250),
+        ) as agent:
+            _ = await agent.invoke(msgs)
+
+        # Enabling tools should exceed the limit.
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="",
+            service=self.service,
+            limits=AgentLimits(max_tokens=250),
+            tool_settings=ToolSettings(local=True, remote=None),
+        ) as agent:
+            with pytest.raises(
+                TokenLimitExceededException, match="Token limit of 250 exceeded"
+            ):
+                _ = await agent.invoke(msgs)
 
 
 @contextlib.asynccontextmanager

@@ -26,6 +26,7 @@ from splunklib.ai.messages import (
     SubagentCall,
     SubagentFailureResult,
     SubagentMessage,
+    SystemMessage,
 )
 from splunklib.ai.middleware import (
     AgentMiddlewareHandler,
@@ -814,3 +815,26 @@ class TestAgent(AITestCase):
             assert captured[1].thread_id != subagent.default_thread_id
 
             assert captured[0].thread_id != captured[1].thread_id, "thread_ids do not difer"
+
+    @pytest.mark.asyncio
+    @ai_snapshot_test()
+    async def test_system_message(self) -> None:
+        pytest.importorskip("langchain_openai")
+
+        async with Agent(
+            model=(await self.model()),
+            system_prompt="Your name is stefan",
+            service=self.service,
+        ) as agent:
+            result = await agent.invoke(
+                [
+                    SystemMessage(content="Actually your name now is Mike"),
+                    HumanMessage(
+                        content="What is your name? Answer in one word",
+                    ),
+                ]
+            )
+
+            response = self.parse_content(result.final_message).strip().lower().replace(".", "")
+            assert result.structured_output is None, "The structured output should not be populated"
+            assert "mike" in response

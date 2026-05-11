@@ -696,7 +696,7 @@ triggers the retry logic described above. A custom `model_middleware` can interc
 to observe, log, or override the retry behavior. A custom `model_middleware` can also raise
 the `StructuredOutputGenerationException` manually to reject structured output and force a re-generation.
 
-The maximal number of re-tries is limited per agent loop invocation see [Default limit middlewares](#default-limit-middlewares).
+The maximal number of re-tries is limited per agent loop invocation see [Default limits](#default-limits).
 
 ### Subagents with structured output/input
 
@@ -977,29 +977,28 @@ model = OpenAIModel(...)
 service = connect(...)
 
 @before_model
-def log_usage(req: ModelRequest) -> None:
-    logger.debug(f"Steps: {req.state.total_steps}, Tokens: {req.state.token_count}")
+def log_steps(req: ModelRequest) -> None:
+    logger.debug(f"Steps: {len(req.state.messages)}")
 
 
 async with Agent(
     model=model,
     service=service,
     system_prompt="...",
-    middleware=[log_usage],
+    middleware=[log_steps],
 ) as agent: ...
 ```
 
-The hooks can stop the Agentic Loop under custom conditions by raising exceptions.
-The logic of the hook can be more advanced and include multiple conditions, for example, based on both token usage and execution time:
+The hooks can stop the Agentic Loop under custom conditions by raising exceptions, for example:
 
 ```py
 from splunklib.ai.hooks import before_model
 from splunklib.ai.middleware import AgentMiddleware, ModelRequest
 
-def token_and_step_limit(token_limit: float, step_limit: int) -> AgentMiddleware:
+def message_limit(message_limit: int) -> AgentMiddleware:
     @before_model
     def _hook(req: ModelRequest) -> None:
-        if req.state.token_count > token_limit or req.state.total_steps >= step_limit:
+        if len(req.state.messages) >= message_limit:
             raise Exception("Stopping Agentic Loop")
 
     return _hook
@@ -1007,72 +1006,57 @@ def token_and_step_limit(token_limit: float, step_limit: int) -> AgentMiddleware
 
 async with Agent(
     ...,
-    middleware=[token_and_step_limit(token_limit=10_000, step_limit=5)],
+    middleware=[message_limit(message_limit=5)],
 ) as agent: ...
 ```
 
-## Default limit middlewares
+## Default limits
 
 Every `Agent` automatically applies sane default limits to prevent runaway execution
-or excessive token usage. Default limit middlewares are appended after any user-supplied
-middleware, so they always act on the final state of the request. If you override one of
-the defaults by passing your own instance, you are responsible for its position in the
-chain - place it last if you want the same behavior.
+or excessive token usage.
 
-| Middleware | Default | Measured |
+| Limit | Default | Measured |
 |---|---|---|
-| `TokenLimitMiddleware` | 200 000 tokens | token count of messages passed to the model |
-| `StepLimitMiddleware` | 100 steps | steps taken |
-| `TimeoutLimitMiddleware` | 600 seconds (10 minutes) | per `invoke` call |
-| `StructuredOutputRetryLimitMiddleware` | 3 retries | per `invoke` call |
+| `max_tokens` | 200 000 tokens | token count of messages passed to the model |
+| `max_steps` | 100 steps | number of messages in the conversation |
+| `timeout` | 600 seconds (10 minutes) | per `invoke` call |
+| `max_structured_output_retires` | 3 retries | per `invoke` call |
 
-`TokenLimitMiddleware` and `StepLimitMiddleware` check the values from the messages passed to the
-model on each call. `TimeoutLimitMiddleware`  and `StructuredOutputRetryLimitMiddlewa` resets its
-deadline/limit on each `invoke`, so effectively these limit only the agent loop.
+`max_tokens` and `max_steps` are checked against the messages passed to the model on each call.
+`timeout` and `max_structured_output_retires` reset on each `invoke`, so they limit only the
+current agent loop invocation.
 
 When a limit is exceeded, the agent raises the corresponding exception:
-`TokenLimitExceededException`, `StepsLimitExceededException`, or `TimeoutExceededException`,
+`TokenLimitExceededException`, `StepsLimitExceededException`, `TimeoutExceededException`, or
 `StructuredOutputRetryLimitExceededException`.
 
 ### Overriding defaults
 
-To override a specific limit, pass your own instance of the corresponding middleware
-class. The default for that limit is suppressed automatically - the other defaults
-remain active:
+Limits are configured via the `AgentLimits` dataclass passed to the `Agent` constructor.
+Only the fields you specify are overridden; the rest keep their defaults:
 
 ```py
-from splunklib.ai.limits import (
-    TokenLimitMiddleware,
-    StepLimitMiddleware,
-    TimeoutLimitMiddleware,
-    StructuredOutputRetryLimitMiddleware,
-)
+from splunklib.ai.limits import AgentLimits
 
 async with Agent(
     ...,
-    middleware=[
-        TokenLimitMiddleware(50_000),   # overrides default 200 000; other defaults still apply
-    ],
+    limits=AgentLimits(max_tokens=50_000),  # overrides default 200 000; other defaults still apply
 ) as agent: ...
 ```
 
-To override all defaults, pass all of these to Agent's middleware list:
+To override all defaults:
 
 ```py
 async with Agent(
     ...,
-    middleware=[
-        StructuredOutputRetryLimitMiddleware(0), # no-retries.
-        TokenLimitMiddleware(50_000),
-        StepLimitMiddleware(10),
-        TimeoutLimitMiddleware(30.0),
-    ],
+    limits=AgentLimits(
+        max_tokens=50_000,
+        max_steps=10,
+        timeout=30.0,
+        max_structured_output_retires=0,  # no retries
+    ),
 ) as agent: ...
 ```
-
-**Note**: When overriding limit middlewares, order matters. Place `StructuredOutputRetryLimitMiddleware`
-first and `TokenLimitMiddleware`, `StepLimitMiddleware`, and `TimeoutLimitMiddleware` last,
-otherwise the limits may not behave as expected.
 
 There is no explicit opt-out - the intent is that agents should always have some guardrails.
 

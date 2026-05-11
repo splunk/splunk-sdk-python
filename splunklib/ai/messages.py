@@ -203,7 +203,6 @@ class ToolMessage(BaseMessage):
     result: ToolResult | ToolFailureResult
 
 
-# TODO: do we have a test that uses this?
 @dataclass(frozen=True, kw_only=True)
 class SystemMessage(BaseMessage):
     """

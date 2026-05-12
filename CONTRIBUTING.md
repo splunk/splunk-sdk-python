@@ -32,4 +32,3 @@ To create a pull request:
 If you have a paid Splunk Enterprise or Splunk Cloud license, you can contact [Support](https://www.splunk.com/en_us/support-and-services.html) with questions.
 
 You can reach the Splunk Developer Platform team at _devinfo@splunk.com_.
-

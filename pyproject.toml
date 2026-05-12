@@ -33,13 +33,13 @@ dependencies = []
 # Treat the same as NPM's `dependencies`
 [project.optional-dependencies]
 compat = ["six>=1.17.0"]
-ai = ["httpx==0.28.1", "langchain>=1.2.16", "mcp>=1.27.0", "pydantic>=2.13.4"]
+ai = ["httpx==0.28.1", "langchain>=1.2.18", "mcp>=1.27.1", "pydantic>=2.13.4"]
 anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.3"]
 openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.2.1"]
 google = [
   "splunk-sdk[ai]>=2.1.1",
   "langchain-google-genai==4.2.2",
-  "google-auth>=2.51.0",
+  "google-auth>=2.52.0",
 ]
 
 # Treat the same as NPM's `devDependencies`
@@ -53,7 +53,7 @@ test = [
   "vcrpy>=8.1.1",
 ]
 release = ["build>=1.5.0", "jinja2>=3.1.6", "sphinx>=9.1.0", "twine>=6.2.0"]
-lint = ["basedpyright>=1.39.3", "ruff>=0.15.12", "mbake>=1.4.6"]
+lint = ["basedpyright>=1.39.4", "ruff>=0.15.12", "mbake>=1.4.6"]
 dev = [
   "rich>=15.0.0",
   { include-group = "test" },

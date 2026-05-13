@@ -58,7 +58,9 @@ class Agent(BaseAgent[OutputT]):
     """
     Core entry point for interacting with LLMs in the Agentic Splunk SDK.
 
-    Agents are async context managers and must be used with `async with`::
+    Agents are async context managers and must be used with `async with`:
+
+    .. code-block:: python
 
         async with Agent(
             model=model,

@@ -169,7 +169,7 @@ class SearchCommand:
 
     record = Option(
         doc="""
-        **Syntax: record=<bool>
+        **Syntax:** record=<bool>
 
         **Description:** When `true`, records the interaction between the command and splunkd. Defaults to `false`.
 
@@ -1166,7 +1166,7 @@ def dispatch(
     execute :code:`command_class`, pass :const:`None` as the value of :code:`module_name`.
 
     :param command_class: Search command class to instantiate and execute.
-    :type command_class: type
+    :type command_class: :class:`type`
     :param argv: List of arguments to the command.
     :type argv: list or tuple
     :param input_file: File from which the command will read data.

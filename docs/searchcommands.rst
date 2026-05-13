@@ -72,31 +72,22 @@ splunklib.searchcommands
     :inherited-members:
     :exclude-members: Item, View, fix_up
 
-.. autoclass:: Boolean
+.. autoclass:: ExternalSearchCommand
     :members:
-    :inherited-members:
 
-.. autoclass:: Duration
-    :members:
-    :inherited-members:
+.. autofunction:: execute
 
-.. autoclass:: File
-    :members:
-    :inherited-members:
+.. autodata:: SearchMetric
 
-.. autoclass:: Integer
-    :members:
-    :inherited-members:
+.. rubric:: Environment helpers
 
-.. autoclass:: Float
-    :members:
-    :inherited-members:
+.. autodata:: app_file
 
-.. autoclass:: RegularExpression
-    :members:
-    :inherited-members:
+.. autodata:: app_root
 
-.. autoclass:: Set
-    :members:
-    :inherited-members:
+.. autodata:: logging_configuration
+
+.. autodata:: splunk_home
+
+.. autodata:: splunklib_logger
 

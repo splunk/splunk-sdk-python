@@ -133,17 +133,17 @@ class StreamingCommand(SearchCommand):
             doc="""
             :const:`True`, if this command should be distributed to indexers.
 
-            Under SCP 1 you must either specify `local = False` or include this line in commands.conf_, if this command
+            Under SCP 1 you must either specify `local = False` or include this line in `commands.conf
+            <http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf>`_, if this command
             should be distributed to indexers.
 
-            ..code:
+            .. code-block:: text
+
                 local = true
 
             Default: :const:`True`
 
             Supported by: SCP 2
-
-            .. commands.conf_: http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf
 
             """,
         )
@@ -153,7 +153,7 @@ class StreamingCommand(SearchCommand):
             Specifies the maximum number of events that can be passed to the command for each invocation.
 
             This limit cannot exceed the value of `maxresultrows` in limits.conf. Under SCP 1 you must specify this
-            value in commands.conf_.
+            value in `commands.conf <http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf>`_.
 
             Default: The value of `maxresultrows`.
 

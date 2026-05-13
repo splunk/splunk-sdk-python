@@ -106,14 +106,14 @@ class EventingCommand(SearchCommand):
             doc="""
             Specifies the maximum number of events that can be passed to the command for each invocation.
 
-            This limit cannot exceed the value of `maxresultrows` as defined in limits.conf_. Under SCP 1 you must
-            specify this value in commands.conf_.
+            This limit cannot exceed the value of `maxresultrows` as defined in `limits.conf
+            <http://docs.splunk.com/Documentation/Splunk/latest/admin/Limitsconf>`_. Under SCP 1 you must
+            specify this value in `commands.conf
+            <http://docs.splunk.com/Documentation/Splunk/latest/Admin/Commandsconf>`_.
 
             Default: The value of `maxresultrows`.
 
             Supported by: SCP 2
-
-            .. _limits.conf: http://docs.splunk.com/Documentation/Splunk/latest/admin/Limitsconf
 
             """
         )

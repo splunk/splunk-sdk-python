@@ -12,6 +12,7 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
    modularinput
    searchcommands
    searchcommandsvalidators
+   ai
 
 
 :doc:`binding`
@@ -139,7 +140,7 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 :doc:`results`
 --------------
 
-    :class:`~splunklib.results.ResultsReader` class
+    :class:`~splunklib.results.JSONResultsReader` class
 
     :class:`~splunklib.results.Message` class
 
@@ -171,4 +172,59 @@ For more information, see the `Splunk Developer Portal <http://dev.splunk.com/vi
 
     :class:`~splunklib.searchcommands.StreamingCommand` class
 
+    :class:`~splunklib.searchcommands.ExternalSearchCommand` class
+
     :class:`~splunklib.searchcommands.Option` class
+
+    :func:`~splunklib.searchcommands.dispatch` function
+
+    :func:`~splunklib.searchcommands.execute` function
+
+    :data:`~splunklib.searchcommands.SearchMetric`
+
+:doc:`ai`
+---------
+
+    :class:`~splunklib.ai.agent.Agent` class
+
+    **Models**
+
+    :class:`~splunklib.ai.model.AnthropicModel` class
+
+    :class:`~splunklib.ai.model.OpenAIModel` class
+
+    :class:`~splunklib.ai.model.GoogleModel` class
+
+    **Messages**
+
+    :class:`~splunklib.ai.messages.HumanMessage` class
+
+    :class:`~splunklib.ai.messages.AIMessage` class
+
+    :class:`~splunklib.ai.messages.AgentResponse` class
+
+    **Middleware**
+
+    :class:`~splunklib.ai.middleware.AgentMiddleware` class
+
+    **Limits**
+
+    :class:`~splunklib.ai.limits.AgentLimits` class
+
+    **Tool settings**
+
+    :class:`~splunklib.ai.tool_settings.ToolSettings` class
+
+    **Conversation store**
+
+    :class:`~splunklib.ai.conversation_store.ConversationStore` class
+
+    :class:`~splunklib.ai.conversation_store.InMemoryStore` class
+
+    **Security**
+
+    :func:`~splunklib.ai.security.detect_injection` function
+
+    :func:`~splunklib.ai.security.truncate_input` function
+
+    :func:`~splunklib.ai.security.create_structured_prompt` function

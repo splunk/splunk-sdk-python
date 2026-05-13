@@ -58,7 +58,7 @@ class Agent(BaseAgent[OutputT]):
     """
     Core entry point for interacting with LLMs in the Agentic Splunk SDK.
 
-    Agents are async context managers and must be used with `async with`:
+    Agents are async context managers and must be used with `async with`::
 
         async with Agent(
             model=model,
@@ -80,9 +80,9 @@ class Agent(BaseAgent[OutputT]):
 
         tool_settings:
             Optional `ToolSettings` instance controlling which MCP tools are
-            loaded and exposed to the model. When provided, the agent loads:
-              * Local tools via `ToolSettings.local` (registered in `<app_path>/bin/tools.py`).
-              * Remote tools via `ToolSettings.remote` (requires Splunk MCP Server App present on SH).
+            loaded and exposed to the model. When provided, the agent loads
+            local tools via ``ToolSettings.local`` (registered in ``<app_path>/bin/tools.py``)
+            and remote tools via ``ToolSettings.remote`` (requires Splunk MCP Server App present on SH).
 
             Each sub-setting accepts an optional allowlist to restrict which
             tools are exposed. No tools are loaded by default.

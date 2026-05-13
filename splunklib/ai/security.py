@@ -70,11 +70,14 @@ def create_structured_prompt(instructions: str, data: str | dict[str, Any]) -> s
     external data (alert payloads, log entries, API responses, etc.) to reduce
     the risk of indirect prompt injection.
 
-    Example:
-        HumanMessage(content=create_structured_prompt(
-            instructions="Summarize this security alert and assess its severity.",
-            data=alert_payload,
-        ))
+    Example::
+
+        HumanMessage(
+            content=create_structured_prompt(
+                instructions="Summarize this security alert and assess its severity.",
+                data=alert_payload,
+            )
+        )
     """
     return (
         f"INSTRUCTIONS:\n"

@@ -178,7 +178,7 @@ class SDKTestCase(unittest.IsolatedAsyncioTestCase):
             self.service.post("apps/local", **kwargs)
         except client.HTTPError as he:
             if he.status == 400:
-                raise IOError(f"App {name} not found in app collection")
+                raise OSError(f"App {name} not found in app collection")
         if self.service.restart_required:
             self.restart_splunk()
         self.installedApps.append(name)

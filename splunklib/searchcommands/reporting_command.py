@@ -89,7 +89,7 @@ class ReportingCommand(SearchCommand):
     def prepare(self):
         if self.phase == "map":
             if self._has_custom_method("map"):
-                phase_method = getattr(self.__class__, "map")
+                phase_method = self.__class__.map
                 self._configuration = phase_method.ConfigurationSettings(self)
             else:
                 self._configuration = self.ConfigurationSettings(self)

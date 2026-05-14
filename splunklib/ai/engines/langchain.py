@@ -16,12 +16,12 @@ import json
 import logging
 import os
 import string
-from time import monotonic
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict, dataclass
 from enum import Enum
 from functools import partial
+from time import monotonic
 from typing import Any, cast, final, override
 
 from langchain.agents import create_agent  # pyright: ignore[reportUnknownVariableType]
@@ -1909,9 +1909,7 @@ def _validate_messages(messages: Sequence[BaseMessage], agent_loop_end: bool) ->
 
     last_ai_message: AIMessage | None = None
     for message in messages:
-        if type(message) is HumanMessage:
-            check_no_pending_calls()
-        elif type(message) is SystemMessage:
+        if type(message) is HumanMessage or type(message) is SystemMessage:
             check_no_pending_calls()
         elif type(message) is AIMessage:
             last_ai_message = message

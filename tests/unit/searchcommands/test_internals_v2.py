@@ -235,11 +235,9 @@ class TestInternals(TestCase):
             self.assertDictEqual(
                 chunk_1.metadata,
                 chunk_2.metadata,
-                'Chunk {0}: metadata error: "{1}" != "{2}"'.format(
-                    n, chunk_1.metadata, chunk_2.metadata
-                ),
+                f'Chunk {n}: metadata error: "{chunk_1.metadata}" != "{chunk_2.metadata}"',
             )
-            self.assertMultiLineEqual(chunk_1.body, chunk_2.body, "Chunk {0}: data error".format(n))
+            self.assertMultiLineEqual(chunk_1.body, chunk_2.body, f"Chunk {n}: data error")
             n += 1
 
     def _load_chunks(self, ifile):

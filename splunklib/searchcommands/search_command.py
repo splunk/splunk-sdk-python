@@ -15,7 +15,6 @@
 # Absolute imports
 
 import csv
-import io
 import os
 import re
 import sys
@@ -279,11 +278,11 @@ class SearchCommand:
             path = os.path.join(dispatch_dir, "info.csv")
 
         try:
-            with io.open(path, "r") as f:
+            with open(path) as f:
                 reader = csv.reader(f, dialect=CsvDialect)
                 fields = next(reader)
                 values = next(reader)
-        except IOError as error:
+        except OSError as error:
             if error.errno == 2:
                 self.logger.error(
                     f"Search results info file {json_encode_string(path)} does not exist."
@@ -606,10 +605,10 @@ class SearchCommand:
         # Save a splunk command line because it is useful for developing tests
 
         with open(recording + ".splunk_cmd", "wb") as f:
-            f.write("splunk cmd python ".encode())
+            f.write(b"splunk cmd python ")
             f.write(os.path.basename(argv[0]).encode())
             for arg in islice(argv, 1, len(argv)):
-                f.write(" ".encode())
+                f.write(b" ")
                 f.write(arg.encode())
 
         return ifile, ofile
@@ -1048,7 +1047,7 @@ class SearchCommand:
 
         filename = origin.tb_frame.f_code.co_filename
         lineno = origin.tb_lineno
-        message = f'{error_type.__name__} at "{filename}", line {str(lineno)} : {error}'
+        message = f'{error_type.__name__} at "{filename}", line {lineno!s} : {error}'
 
         environment.splunklib_logger.error(
             message + "\nTraceback:\n" + "".join(traceback.format_tb(tb))

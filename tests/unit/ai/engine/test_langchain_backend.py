@@ -150,7 +150,7 @@ class TestMapMessageFromLangchain(unittest.TestCase):
         self,
     ) -> None:
         tool_call = LC_ToolCall(
-            name=f"__local-startup_time",
+            name="__local-startup_time",
             args={"q": "test"},
             id="tc-2",
         )
@@ -420,7 +420,7 @@ class MapMessageToLangchainTests(unittest.TestCase):
         assert isinstance(mapped, LC_AIMessage)
         assert mapped.tool_calls == [
             LC_ToolCall(
-                name=f"__local-startup_time",
+                name="__local-startup_time",
                 args={"q": "test"},
                 id="tc-2",
                 type="tool_call",

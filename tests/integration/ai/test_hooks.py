@@ -13,6 +13,7 @@
 # under the License.
 
 from dataclasses import replace
+
 import pytest
 from pydantic import BaseModel, Field
 
@@ -71,7 +72,7 @@ class TestHook(AITestCase):
             hook_calls += 1
 
             response = self.parse_content(resp.message).strip().lower().replace(".", "")
-            assert "stefan" == response
+            assert response == "stefan"
 
         @after_model
         async def test_async_hook_after(resp: ModelResponse) -> None:
@@ -79,7 +80,7 @@ class TestHook(AITestCase):
             hook_calls += 1
 
             response = self.parse_content(resp.message).strip().lower().replace(".", "")
-            assert "stefan" == response
+            assert response == "stefan"
 
         async with Agent(
             model=(await self.model()),
@@ -101,7 +102,7 @@ class TestHook(AITestCase):
             )
 
             response = self.parse_content(result.final_message).strip().lower().replace(".", "")
-            assert "stefan" == response
+            assert response == "stefan"
             assert hook_calls == 4
 
     @pytest.mark.asyncio
@@ -169,7 +170,7 @@ class TestHook(AITestCase):
             )
 
             response = self.parse_content(result.final_message).strip().lower().replace(".", "")
-            assert '{"name":"stefan"}' == response
+            assert response == '{"name":"stefan"}'
             assert hook_calls == 4
 
     @pytest.mark.asyncio

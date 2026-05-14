@@ -218,7 +218,7 @@ class ConfigurationSetting(property):
         try:
             specification = ConfigurationSettingsType.specification_matrix[name]
         except KeyError:
-            raise AttributeError(f"Unknown configuration setting: {name}={repr(self._value)}")
+            raise AttributeError(f"Unknown configuration setting: {name}={self._value!r}")
 
         return ConfigurationSettingsType.validate_configuration_setting, specification
 

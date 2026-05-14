@@ -20,7 +20,7 @@ from os import path
 
 from dotenv import dotenv_values
 
-__all__ = ["error", "Parser", "cmdline"]
+__all__ = ["Parser", "cmdline", "error"]
 
 
 # Print the given message to stderr, and optionally exit

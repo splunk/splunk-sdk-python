@@ -28,8 +28,8 @@ from splunklib.ai.security import (
 __all__ = [
     "Agent",
     "AnthropicModel",
-    "OpenAIModel",
     "GoogleModel",
+    "OpenAIModel",
     "create_structured_prompt",
     "detect_injection",
     "truncate_input",

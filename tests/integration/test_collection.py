@@ -13,7 +13,6 @@
 # under the License.
 
 import logging
-from contextlib import contextmanager
 
 from splunklib import client
 from tests import testlib

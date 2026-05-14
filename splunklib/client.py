@@ -641,7 +641,7 @@ class Service(_BaseService):
                     continue
                 else:
                     return result
-            except Exception as e:
+            except Exception:
                 sleep(1)
         raise Exception("Operation time out.")
 
@@ -1053,7 +1053,7 @@ class Entity(Endpoint):
         Endpoint.__init__(self, service, path)
         self._state = None
         if not kwargs.get("skip_refresh", False):
-            self.refresh(kwargs.get("state", None))  # "Prefresh"
+            self.refresh(kwargs.get("state"))  # "Prefresh"
 
     def __contains__(self, item):
         try:
@@ -1645,7 +1645,7 @@ class ReadOnlyCollection(Endpoint):
             fetched += N
             for item in items:
                 yield item
-            if pagesize is None or N < pagesize:
+            if pagesize is None or pagesize > N:
                 break
             offset += N
             logger.debug(
@@ -1945,7 +1945,7 @@ class Configurations(Collection):
         # a ConfigurationFile (which is a Collection) instead of some
         # Entity.
         if not isinstance(name, str):
-            raise ValueError(f"Invalid name: {repr(name)}")
+            raise ValueError(f"Invalid name: {name!r}")
         response = self.post(__conf=name)
         if response.status == 303:
             return self[name]
@@ -1996,7 +1996,7 @@ class StoragePassword(Entity):
     """This class contains a storage password."""
 
     def __init__(self, service, path, **kwargs):
-        state = kwargs.get("state", None)
+        state = kwargs.get("state")
         kwargs["skip_refresh"] = kwargs.get("skip_refresh", state is not None)
         super().__init__(service, path, **kwargs)
         self._state = state
@@ -2047,7 +2047,7 @@ class StoragePasswords(Collection):
         :return: The :class:`StoragePassword` object created.
         """
         if not isinstance(username, str):
-            raise ValueError(f"Invalid name: {repr(username)}")
+            raise ValueError(f"Invalid name: {username!r}")
 
         if realm is None:
             response = self.post(password=password, name=username)
@@ -2202,8 +2202,8 @@ class Index(Entity):
         # the input mode
         sock = self.service.connect()
         headers = [
-            f"POST {str(self.service._abspath(path))} HTTP/1.1\r\n".encode("utf-8"),
-            f"Host: {self.service.host}:{int(self.service.port)}\r\n".encode("utf-8"),
+            f"POST {self.service._abspath(path)!s} HTTP/1.1\r\n".encode(),
+            f"Host: {self.service.host}:{int(self.service.port)}\r\n".encode(),
             b"Accept-Encoding: identity\r\n",
             cookie_or_auth_header.encode("utf-8"),
             b"X-Splunk-Input-Mode: Streaming\r\n",
@@ -2806,14 +2806,14 @@ class Inputs(Collection):
             entities = entities[kwargs["offset"] :]
         if "count" in kwargs:
             entities = entities[: kwargs["count"]]
-        if kwargs.get("sort_mode", None) == "alpha":
+        if kwargs.get("sort_mode") == "alpha":
             sort_field = kwargs.get("sort_field", "name")
             if sort_field == "name":
                 f = lambda x: x.name.lower()
             else:
                 f = lambda x: x[sort_field].lower()
             entities = sorted(entities, key=f)
-        if kwargs.get("sort_mode", None) == "alpha_case":
+        if kwargs.get("sort_mode") == "alpha_case":
             sort_field = kwargs.get("sort_field", "name")
             if sort_field == "name":
                 f = lambda x: x.name
@@ -3199,10 +3199,10 @@ class Jobs(Collection):
 
         :return: The :class:`Job`.
         """
-        if kwargs.get("exec_mode", None) == "oneshot":
+        if kwargs.get("exec_mode") == "oneshot":
             raise TypeError("Cannot specify exec_mode=oneshot; use the oneshot method instead.")
         response = self.post(search=query, **kwargs)
-        sid = _load_sid(response, kwargs.get("output_mode", None))
+        sid = _load_sid(response, kwargs.get("output_mode"))
         return Job(self.service, sid)
 
     def export(self, query, **params):
@@ -3421,7 +3421,7 @@ class SavedSearch(Entity):
         :return: The :class:`Job`.
         """
         response = self.post("dispatch", **kwargs)
-        sid = _load_sid(response, kwargs.get("output_mode", None))
+        sid = _load_sid(response, kwargs.get("output_mode"))
         return Job(self.service, sid)
 
     @property
@@ -3737,7 +3737,7 @@ class Users(Collection):
             hilda = users.create("hilda", "anotherpassword", roles=["user", "power"])
         """
         if not isinstance(username, str):
-            raise ValueError(f"Invalid username: {str(username)}")
+            raise ValueError(f"Invalid username: {username!s}")
         username = username.lower()
         self.post(name=username, password=password, roles=roles, **params)
         # splunkd doesn't return the user in the POST response body,
@@ -3859,7 +3859,7 @@ class Roles(Collection):
             paltry = roles.create("paltry", imported_roles="user", defaultApp="search")
         """
         if not isinstance(name, str):
-            raise ValueError(f"Invalid role name: {str(name)}")
+            raise ValueError(f"Invalid role name: {name!s}")
         name = name.lower()
         self.post(name=name, **params)
         # splunkd doesn't return the user in the POST response body,

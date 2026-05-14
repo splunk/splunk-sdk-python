@@ -22,7 +22,7 @@ from unittest import TestCase, main
 import pytest
 
 from splunklib.client import Service
-from splunklib.searchcommands import Configuration, StreamingCommand
+from splunklib.searchcommands import Configuration
 from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.internals import ObjectView
 from splunklib.searchcommands.search_command import SearchCommand
@@ -166,7 +166,7 @@ class TestSearchCommand(TestCase):
             # noinspection PyTypeChecker
             command.process(argv, ifile, ofile=result)
         except SystemExit as error:
-            self.fail("Unexpected exception: {}: {}".format(type(error).__name__, error))
+            self.fail(f"Unexpected exception: {type(error).__name__}: {error}")
 
         self.assertEqual(command.logging_configuration, logging_configuration)
         self.assertEqual(command.logging_level, "ERROR")

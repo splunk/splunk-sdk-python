@@ -296,22 +296,24 @@ async def connect_remote_mcp(
     mcp_url = f"{management_url}/services/mcp"
     mcp_token = await asyncio.to_thread(lambda: _get_mcp_token(splunk_username, service))
     if mcp_token is not None:
-        async with streamable_http_client(
-            url=mcp_url,
-            http_client=httpx.AsyncClient(
-                headers={
-                    "x-splunk-trace-id": trace_id,
-                    "x-splunk-app-id": app_id,
-                },
-                auth=_MCPAuth(f"Bearer {mcp_token}"),
-                verify=False,
-                follow_redirects=True,
-                timeout=httpx.Timeout(_MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT),
-            ),
-        ) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                yield session
+        async with (
+            streamable_http_client(
+                url=mcp_url,
+                http_client=httpx.AsyncClient(
+                    headers={
+                        "x-splunk-trace-id": trace_id,
+                        "x-splunk-app-id": app_id,
+                    },
+                    auth=_MCPAuth(f"Bearer {mcp_token}"),
+                    verify=False,
+                    follow_redirects=True,
+                    timeout=httpx.Timeout(_MCP_DEFAULT_TIMEOUT, read=_MCP_DEFAULT_SSE_READ_TIMEOUT),
+                ),
+            ) as (read, write, _),
+            ClientSession(read, write) as session,
+        ):
+            await session.initialize()
+            yield session
     else:
         yield None
 

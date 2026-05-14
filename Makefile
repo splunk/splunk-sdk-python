@@ -15,30 +15,29 @@ upgrade:
 	$(UV_SYNC_CMD) --dev --upgrade
 
 # Workaround for make being unable to pass arguments to underlying cmd
-# $ SDK_DEPS_GROUP="build" make uv-sync-ci
+# $ SDK_DEPS_GROUP="build" make ci-install
 .PHONY: ci-install
 ci-install:
-	$(UV_SYNC_CMD) --group $(SDK_DEPS_GROUP)
+	$(UV_SYNC_CMD) --frozen --group $(SDK_DEPS_GROUP)
 
-UV_RUN_CMD := uv run --frozen --no-config
+UV_RUN_CMD := uv run
 .PHONY: lint
 lint: lint-python # TODO: Add mbake
 
 .PHONY: lint-python
 lint-python:
-	$(UV_RUN_CMD) basedpyright
-# 	$(UV_RUN_CMD) ruff check --fix-only
+	$(UV_RUN_CMD) ruff check --fix-only
 	$(UV_RUN_CMD) ruff format
+	$(UV_RUN_CMD) basedpyright
 
-UV_RUN_CMD := uv run --frozen --no-config
 .PHONY: ci-lint
 ci-lint: ci-lint-python # TODO: Add mbake
 
 .PHONY: ci-lint-python
 ci-lint-python:
-	$(UV_RUN_CMD) basedpyright
-# 	$(UV_RUN_CMD) ruff check
+	$(UV_RUN_CMD) ruff check --fix-only --exit-non-zero-on-fix
 	$(UV_RUN_CMD) ruff format --check
+	$(UV_RUN_CMD) basedpyright
 
 .PHONY: clean
 clean:

@@ -75,6 +75,11 @@ packages = [
   "splunklib.ai.engines",
 ]
 
+[tool.pytest.ini_options]
+markers = ["app: requires sdk-app-collection", "smoke: essential smoke tests"]
+junit_family = "xunit2"
+
+
 [tool.basedpyright]
 exclude = [".venv"]
 allowedUntypedLibraries = ["splunklib"]
@@ -85,6 +90,7 @@ reportUnknownMemberType = false
 reportUnusedCallResult = false
 
 # https://docs.astral.sh/ruff/configuration/
+
 [tool.ruff]
 line-length = 100
 

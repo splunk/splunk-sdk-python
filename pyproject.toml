@@ -8,7 +8,7 @@ issues = "https://github.com/splunk/splunk-sdk-python/issues"
 
 [project]
 name = "splunk-sdk"
-version = "3.0.0"
+version = "3.0.1a0"
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -34,10 +34,10 @@ dependencies = []
 [project.optional-dependencies]
 compat = ["six>=1.17.0"]
 ai = ["httpx==0.28.1", "langchain>=1.2.18", "mcp>=1.27.1", "pydantic>=2.13.4"]
-anthropic = ["splunk-sdk[ai]>=2.1.1", "langchain-anthropic>=1.4.3"]
-openai = ["splunk-sdk[ai]>=2.1.1", "langchain-openai>=1.2.1"]
+anthropic = ["splunk-sdk[ai]>=3.0.0", "langchain-anthropic>=1.4.3"]
+openai = ["splunk-sdk[ai]>=3.0.0", "langchain-openai>=1.2.1"]
 google = [
-  "splunk-sdk[ai]>=2.1.1",
+  "splunk-sdk[ai]>=3.0.0",
   "langchain-google-genai==4.2.2",
   "google-auth>=2.52.0",
 ]
@@ -45,7 +45,7 @@ google = [
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]
 test = [
-  "splunk-sdk[openai, anthropic, google]>=2.1.1",
+  "splunk-sdk[openai, anthropic, google]>=3.0.0",
   "pytest>=9.0.3",
   "pytest-cov>=7.1.0",
   "pytest-asyncio>=1.3.0",

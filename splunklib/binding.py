@@ -47,14 +47,14 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "AuthenticationError",
-    "connect",
     "Context",
-    "handler",
     "HTTPError",
     "UrlEncoded",
+    "_NoAuthenticationToken",
     "_encode",
     "_make_cookie_header",
-    "_NoAuthenticationToken",
+    "connect",
+    "handler",
     "namespace",
 ]
 
@@ -102,7 +102,7 @@ def mask_sensitive_data(data):
     if not isinstance(data, dict):
         try:
             data = json.loads(data)
-        except Exception as ex:
+        except Exception:
             return data
 
     # json.loads will return "123"(str) as 123(int), so return the data if it's not 'dict' type
@@ -252,7 +252,7 @@ class UrlEncoded(str):
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
 
     def __repr__(self):
-        return f"UrlEncoded({repr(parse.unquote(str(self)))})"
+        return f"UrlEncoded({parse.unquote(str(self))!r})"
 
 
 @contextmanager
@@ -1619,7 +1619,7 @@ class HttpLib:
                     time.sleep(self.retryDelay)
                     self.retries -= 1
         response = record(response)
-        if 400 <= response.status:
+        if response.status >= 400:
             raise HTTPError(response)
 
         # Update the cookie with any HTTP request

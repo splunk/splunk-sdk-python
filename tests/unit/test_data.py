@@ -87,7 +87,7 @@ class DataTestCase(unittest.TestCase):
         """Test some real Splunk response examples."""
         testpath = path.dirname(path.abspath(__file__))
 
-        fh = open(path.join(testpath, "data/services.xml"), "r")
+        fh = open(path.join(testpath, "data/services.xml"))
         result = data.load(fh.read())
         self.assertTrue("feed" in result)
         self.assertTrue("author" in result.feed)
@@ -116,7 +116,7 @@ class DataTestCase(unittest.TestCase):
             ],
         )
 
-        fh = open(path.join(testpath, "data/services.server.info.xml"), "r")
+        fh = open(path.join(testpath, "data/services.server.info.xml"))
         result = data.load(fh.read())
         self.assertTrue("feed" in result)
         self.assertTrue("author" in result.feed)

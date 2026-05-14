@@ -229,11 +229,11 @@ class TestBuiltinOptions(TestCase):
                 pass
             except BaseException as error:
                 self.fail(
-                    f"Expected ValueError when setting {option.name}={repr(value)}, but {type(error)} was raised"
+                    f"Expected ValueError when setting {option.name}={value!r}, but {type(error)} was raised"
                 )
             else:
                 self.fail(
-                    f"Expected ValueError, but {option.name}={repr(option.fget(command))} was accepted."
+                    f"Expected ValueError, but {option.name}={option.fget(command)!r} was accepted."
                 )
 
 

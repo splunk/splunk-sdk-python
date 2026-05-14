@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import io
 import os
 import sys
 
@@ -20,4 +19,4 @@ sys.path.insert(0, os.path.join("../../splunklib", ".."))
 
 
 def data_open(filepath):
-    return io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), "rb")
+    return open(os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath), "rb")

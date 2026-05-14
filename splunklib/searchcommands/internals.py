@@ -251,11 +251,11 @@ class ConfigurationSettingsType(type):
     """
 
     def __new__(mcs, module, name, bases):
-        mcs = super(ConfigurationSettingsType, mcs).__new__(mcs, str(name), bases, {})
+        mcs = super().__new__(mcs, str(name), bases, {})
         return mcs
 
     def __init__(cls, module, name, bases):
-        super(ConfigurationSettingsType, cls).__init__(name, bases, None)
+        super().__init__(name, bases, None)
         cls.__module__ = module
 
     @staticmethod
@@ -265,9 +265,9 @@ class ConfigurationSettingsType(type):
                 type_names = specification.type.__name__
             else:
                 type_names = ", ".join(map(lambda t: t.__name__, specification.type))
-            raise ValueError(f"Expected {type_names} value, not {name}={repr(value)}")
+            raise ValueError(f"Expected {type_names} value, not {name}={value!r}")
         if specification.constraint and not specification.constraint(value):
-            raise ValueError(f"Illegal value: {name}={repr(value)}")
+            raise ValueError(f"Illegal value: {name}={value!r}")
         return value
 
     specification = namedtuple(
@@ -549,7 +549,7 @@ class RecordWriter:
         if fieldnames is None:
             self._fieldnames = fieldnames = list(record.keys())
             self._fieldnames.extend([i for i in self.custom_fields if i not in self._fieldnames])
-            value_list = map(lambda fn: (str(fn), str("__mv_") + str(fn)), fieldnames)
+            value_list = map(lambda fn: (str(fn), "__mv_" + str(fn)), fieldnames)
             self._writerow(list(chain.from_iterable(value_list)))
 
         get_value = record.get

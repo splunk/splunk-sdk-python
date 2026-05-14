@@ -271,13 +271,13 @@ class TestSocket(BindingTestCase):
     def test_socket(self):
         socket = self.context.connect()
         socket.write(
-            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode()
         )
-        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
-        socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
-        socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
-        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
-        socket.write("\r\n".encode("utf-8"))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode())
+        socket.write(b"Accept-Encoding: identity\r\n")
+        socket.write((f"Authorization: {self.context.token}\r\n").encode())
+        socket.write(b"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write(b"\r\n")
         socket.close()
 
     # Sockets take bytes not strings
@@ -445,7 +445,7 @@ def urllib2_handler(url, message, **kwargs):
     req = Request(url, data, headers)
     try:
         response = urlopen(req, context=ssl._create_unverified_context())  # nosemgrep
-    except HTTPError as response:
+    except HTTPError:
         pass  # Propagate HTTP errors via the returned response message
     return {
         "status": response.code,
@@ -489,7 +489,7 @@ def urllib2_insert_cookie_handler(url, message, **kwargs):
     req = Request(url, data, headers)
     try:
         response = urlopen(req, context=ssl._create_unverified_context())  # nosemgrep
-    except HTTPError as response:
+    except HTTPError:
         pass  # Propagate HTTP errors via the returned response message
 
     # Mimic the insertion of 3rd party cookies into the response.
@@ -803,13 +803,13 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode()
         )
-        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
-        socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
-        socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
-        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
-        socket.write("\r\n".encode("utf-8"))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode())
+        socket.write(b"Accept-Encoding: identity\r\n")
+        socket.write((f"Authorization: {self.context.token}\r\n").encode())
+        socket.write(b"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write(b"\r\n")
         socket.close()
 
     def test_preexisting_token_sans_splunk(self):
@@ -830,13 +830,13 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode()
         )
-        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
-        socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
-        socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
-        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
-        socket.write("\r\n".encode("utf-8"))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode())
+        socket.write(b"Accept-Encoding: identity\r\n")
+        socket.write((f"Authorization: {self.context.token}\r\n").encode())
+        socket.write(b"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write(b"\r\n")
         socket.close()
 
     def test_connect_with_preexisting_token_sans_user_and_pass(self):
@@ -852,13 +852,13 @@ class TestTokenAuthentication(BindingTestCase):
 
         socket = newContext.connect()
         socket.write(
-            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode("utf-8")
+            (f"POST {self.context._abspath('some/path/to/post/to')} HTTP/1.1\r\n").encode()
         )
-        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode("utf-8"))
-        socket.write("Accept-Encoding: identity\r\n".encode("utf-8"))
-        socket.write((f"Authorization: {self.context.token}\r\n").encode("utf-8"))
-        socket.write("X-Splunk-Input-Mode: Streaming\r\n".encode("utf-8"))
-        socket.write("\r\n".encode("utf-8"))
+        socket.write((f"Host: {self.context.host}:{self.context.port}\r\n").encode())
+        socket.write(b"Accept-Encoding: identity\r\n")
+        socket.write((f"Authorization: {self.context.token}\r\n").encode())
+        socket.write(b"X-Splunk-Input-Mode: Streaming\r\n")
+        socket.write(b"\r\n")
         socket.close()
 
 

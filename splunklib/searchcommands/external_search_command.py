@@ -31,7 +31,7 @@ if sys.platform == "win32":
 class ExternalSearchCommand:
     def __init__(self, path, argv=None, environ=None):
         if not isinstance(path, (bytes, str)):
-            raise ValueError(f"Expected a string value for path, not {repr(path)}")
+            raise ValueError(f"Expected a string value for path, not {path!r}")
 
         self._logger = getLogger(self.__class__.__name__)
         self._path = str(path)
@@ -45,22 +45,22 @@ class ExternalSearchCommand:
 
     @property
     def argv(self):
-        return getattr(self, "_argv")
+        return self._argv
 
     @argv.setter
     def argv(self, value):
         if not (value is None or isinstance(value, (list, tuple))):
-            raise ValueError(f"Expected a list, tuple or value of None for argv, not {repr(value)}")
+            raise ValueError(f"Expected a list, tuple or value of None for argv, not {value!r}")
         self._argv = value
 
     @property
     def environ(self):
-        return getattr(self, "_environ")
+        return self._environ
 
     @environ.setter
     def environ(self, value):
         if not (value is None or isinstance(value, dict)):
-            raise ValueError(f"Expected a dictionary value for environ, not {repr(value)}")
+            raise ValueError(f"Expected a dictionary value for environ, not {value!r}")
         self._environ = value
 
     @property
@@ -83,7 +83,7 @@ class ExternalSearchCommand:
             self._execute(self._path, self._argv, self._environ)
         except:
             error_type, error, tb = sys.exc_info()
-            message = f"Command execution failed: {str(error)}"
+            message = f"Command execution failed: {error!s}"
             self._logger.error(message + "\nTraceback:\n" + "".join(traceback.format_tb(tb)))
             sys.exit(1)
 

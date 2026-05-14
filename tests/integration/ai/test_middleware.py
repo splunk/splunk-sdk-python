@@ -662,7 +662,7 @@ class TestMiddleware(AITestCase):
             )
 
             response = self.parse_content(res.final_message)
-            assert "My response is made up" == response
+            assert response == "My response is made up"
             assert middleware_called, "Middleware was not called"
 
     @pytest.mark.asyncio

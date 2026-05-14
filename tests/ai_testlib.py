@@ -41,7 +41,7 @@ class AITestCase(SDKTestCase):
             case str():
                 return block
             case _:
-                warn(f"Skipping OpaqueBlock when parsing the AIMessage.content")
+                warn("Skipping OpaqueBlock when parsing the AIMessage.content")
                 return None
 
     def parse_content(self, message: AIMessage) -> str:

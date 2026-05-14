@@ -286,16 +286,17 @@ class TestSubagentsWithConversationStore(AITestCase):
             after_first_call = True
             return await handler(request)
 
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant. ",
-            service=self.service,
-            name="MemoryAgent",
-            description=("A conversational agent that remembers user information. "),
-            conversation_store=InMemoryStore(),
-            middleware=[_model_middleware],
-        ) as subagent:
-            async with Agent(
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt="You are a helpful assistant. ",
+                service=self.service,
+                name="MemoryAgent",
+                description=("A conversational agent that remembers user information. "),
+                conversation_store=InMemoryStore(),
+                middleware=[_model_middleware],
+            ) as subagent,
+            Agent(
                 model=(await self.model()),
                 system_prompt=(
                     "You are a supervisor assistant. "
@@ -305,33 +306,34 @@ class TestSubagentsWithConversationStore(AITestCase):
                 service=self.service,
                 conversation_store=InMemoryStore(),
                 agents=[subagent],
-            ) as supervisor:
-                resp = await supervisor.invoke(
-                    [HumanMessage(content="Tell MemoryAgent that my name is Chris.")]
-                )
+            ) as supervisor,
+        ):
+            resp = await supervisor.invoke(
+                [HumanMessage(content="Tell MemoryAgent that my name is Chris.")]
+            )
 
-                assert after_first_call, "middleware not called"
+            assert after_first_call, "middleware not called"
 
-                ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
-                assert len(ai_msgs) == 2, "invalid AIMessage count"
+            ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
+            assert len(ai_msgs) == 2, "invalid AIMessage count"
 
-                first_ai_msg = ai_msgs[0]
-                assert isinstance(first_ai_msg.calls[0], SubagentCall)
-                thread_id = first_ai_msg.calls[0].thread_id
-                assert thread_id is not None, "missing thread_id"
+            first_ai_msg = ai_msgs[0]
+            assert isinstance(first_ai_msg.calls[0], SubagentCall)
+            thread_id = first_ai_msg.calls[0].thread_id
+            assert thread_id is not None, "missing thread_id"
 
-                resp = await supervisor.invoke(
-                    [HumanMessage(content="Ask MemoryAgent what my name is.")]
-                )
+            resp = await supervisor.invoke(
+                [HumanMessage(content="Ask MemoryAgent what my name is.")]
+            )
 
-                ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
-                assert len(ai_msgs) == 4, "invalid AIMessage count"
+            ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
+            assert len(ai_msgs) == 4, "invalid AIMessage count"
 
-                third_ai_msg = ai_msgs[2]
-                assert isinstance(third_ai_msg.calls[0], SubagentCall)
-                assert thread_id == third_ai_msg.calls[0].thread_id, "missing thread_id"
+            third_ai_msg = ai_msgs[2]
+            assert isinstance(third_ai_msg.calls[0], SubagentCall)
+            assert thread_id == third_ai_msg.calls[0].thread_id, "missing thread_id"
 
-                assert "chris" in self.parse_content(resp.final_message).lower()
+            assert "chris" in self.parse_content(resp.final_message).lower()
 
     @pytest.mark.asyncio
     @deterministic_thread_ids()
@@ -360,17 +362,18 @@ class TestSubagentsWithConversationStore(AITestCase):
         class MemoryAgentInput(BaseModel):
             message: str = Field(description="The message to send to the memory agent")
 
-        async with Agent(
-            model=(await self.model()),
-            system_prompt="You are a helpful assistant. ",
-            service=self.service,
-            name="MemoryAgent",
-            description=("A conversational agent that remembers user information. "),
-            conversation_store=InMemoryStore(),
-            input_schema=MemoryAgentInput,
-            middleware=[_model_middleware],
-        ) as subagent:
-            async with Agent(
+        async with (
+            Agent(
+                model=(await self.model()),
+                system_prompt="You are a helpful assistant. ",
+                service=self.service,
+                name="MemoryAgent",
+                description=("A conversational agent that remembers user information. "),
+                conversation_store=InMemoryStore(),
+                input_schema=MemoryAgentInput,
+                middleware=[_model_middleware],
+            ) as subagent,
+            Agent(
                 model=(await self.model()),
                 system_prompt=(
                     "You are a supervisor assistant. "
@@ -380,30 +383,31 @@ class TestSubagentsWithConversationStore(AITestCase):
                 service=self.service,
                 conversation_store=InMemoryStore(),
                 agents=[subagent],
-            ) as supervisor:
-                resp = await supervisor.invoke(
-                    [HumanMessage(content="Tell MemoryAgent that my name is Chris.")]
-                )
+            ) as supervisor,
+        ):
+            resp = await supervisor.invoke(
+                [HumanMessage(content="Tell MemoryAgent that my name is Chris.")]
+            )
 
-                assert after_first_call, "middleware not called"
+            assert after_first_call, "middleware not called"
 
-                ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
-                assert len(ai_msgs) == 2, "invalid AIMessage count"
+            ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
+            assert len(ai_msgs) == 2, "invalid AIMessage count"
 
-                first_ai_msg = ai_msgs[0]
-                assert isinstance(first_ai_msg.calls[0], SubagentCall)
-                thread_id = first_ai_msg.calls[0].thread_id
-                assert thread_id is not None, "missing thread_id"
+            first_ai_msg = ai_msgs[0]
+            assert isinstance(first_ai_msg.calls[0], SubagentCall)
+            thread_id = first_ai_msg.calls[0].thread_id
+            assert thread_id is not None, "missing thread_id"
 
-                resp = await supervisor.invoke(
-                    [HumanMessage(content="Ask MemoryAgent what my name is.")]
-                )
+            resp = await supervisor.invoke(
+                [HumanMessage(content="Ask MemoryAgent what my name is.")]
+            )
 
-                ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
-                assert len(ai_msgs) == 4, "invalid AIMessage count"
+            ai_msgs = [m for m in resp.messages if isinstance(m, AIMessage)]
+            assert len(ai_msgs) == 4, "invalid AIMessage count"
 
-                third_ai_msg = ai_msgs[2]
-                assert isinstance(third_ai_msg.calls[0], SubagentCall)
-                assert thread_id == third_ai_msg.calls[0].thread_id, "invalid thread_id"
+            third_ai_msg = ai_msgs[2]
+            assert isinstance(third_ai_msg.calls[0], SubagentCall)
+            assert thread_id == third_ai_msg.calls[0].thread_id, "invalid thread_id"
 
-                assert "chris" in self.parse_content(resp.final_message).lower()
+            assert "chris" in self.parse_content(resp.final_message).lower()

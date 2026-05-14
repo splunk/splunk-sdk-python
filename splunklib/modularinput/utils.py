@@ -73,6 +73,6 @@ def parse_xml_data(parent_node, child_node_tag):
                 data[child_name] = {"__app": child.get("app", None)}
                 for param in child:
                     data[child_name][param.get("name")] = parse_parameters(param)
-        elif "item" == parent_node.tag:
+        elif parent_node.tag == "item":
             data[child_name] = parse_parameters(child)
     return data

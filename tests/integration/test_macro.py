@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import
 
 import logging
 
@@ -27,7 +26,7 @@ from tests import testlib
 @pytest.mark.smoke
 class TestMacro(testlib.SDKTestCase):
     def setUp(self):
-        super(TestMacro, self).setUp()
+        super().setUp()
         macros = self.service.macros
         logging.debug("Macros namespace: %s", macros.service.namespace)
         self.macro_name = testlib.tmpname()
@@ -35,7 +34,7 @@ class TestMacro(testlib.SDKTestCase):
         self.macro = macros.create(self.macro_name, definition)
 
     def tearDown(self):
-        super(TestMacro, self).setUp()
+        super().setUp()
         for macro in self.service.macros:
             if macro.name.startswith("delete-me"):
                 self.service.macros.delete(macro.name)

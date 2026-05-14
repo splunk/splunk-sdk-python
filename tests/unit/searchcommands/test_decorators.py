@@ -332,10 +332,10 @@ class TestDecorators(TestCase):
                     self.assertIsInstance(
                         error,
                         ValueError,
-                        f"Expected ValueError, not {type(error).__name__}({error}) for {name}={repr(value)}",
+                        f"Expected ValueError, not {type(error).__name__}({error}) for {name}={value!r}",
                     )
                 else:
-                    self.fail(f"Expected ValueError, not success for {name}={repr(value)}")
+                    self.fail(f"Expected ValueError, not success for {name}={value!r}")
 
                 settings_class = new_configuration_settings_class()
                 settings_instance = settings_class(command=None)

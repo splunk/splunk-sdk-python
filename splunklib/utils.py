@@ -44,4 +44,4 @@ def ensure_str(s, encoding="utf-8", errors="strict"):
 
 
 def assertRegex(self, *args, **kwargs):
-    return getattr(self, "assertRegex")(*args, **kwargs)
+    return self.assertRegex(*args, **kwargs)

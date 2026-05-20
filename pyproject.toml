@@ -81,7 +81,7 @@ junit_family = "xunit2"
 
 
 [tool.basedpyright]
-exclude = [".venv"]
+exclude = [".venv", "**/bin/lib"]
 allowedUntypedLibraries = ["splunklib"]
 reportAny = false
 reportExplicitAny = false

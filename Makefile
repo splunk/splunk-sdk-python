@@ -80,7 +80,7 @@ SPLUNK_HOME := /opt/splunk
 docker-up:
 	# For podman (at least on macOS) you might need to add DOCKER_BUILDKIT=0
 	# --build forces Docker to build a new image instead of using an existing one
-	@docker-compose up -d --build
+	docker compose up -d --build
 
 .PHONY: docker-ensure-up
 docker-ensure-up:
@@ -97,14 +97,14 @@ docker-start: docker-up docker-ensure-up
 
 .PHONY: docker-down
 docker-down:
-	docker-compose stop
+	docker compose stop
 
 .PHONY: docker-restart
 docker-restart: docker-down docker-start
 
 .PHONY: docker-remove
 docker-remove:
-	docker-compose rm -f -s
+	docker compose rm -f -s
 
 .PHONY: docker-refresh
 docker-refresh: docker-remove docker-start

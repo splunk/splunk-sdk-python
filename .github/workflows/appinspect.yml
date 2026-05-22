@@ -1,5 +1,9 @@
 name: Validate SDK with Splunk AppInspect
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: 3.13

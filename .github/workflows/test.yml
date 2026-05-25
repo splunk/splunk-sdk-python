@@ -1,5 +1,9 @@
 name: Python SDK CI
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

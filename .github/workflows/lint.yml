@@ -1,5 +1,9 @@
 name: Python SDK Lint
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   lint:

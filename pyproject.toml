@@ -79,6 +79,8 @@ packages = [
 markers = ["app: requires sdk-app-collection", "smoke: essential smoke tests"]
 junit_family = "xunit2"
 
+[tool.coverage.run]
+omit = ["docs/*", "tests/*", "examples/*", "scripts/*"]
 
 [tool.basedpyright]
 exclude = [".venv"]
@@ -90,7 +92,6 @@ reportUnknownMemberType = false
 reportUnusedCallResult = false
 
 # https://docs.astral.sh/ruff/configuration/
-
 [tool.ruff]
 line-length = 100
 

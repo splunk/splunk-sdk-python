@@ -527,7 +527,8 @@ class RecordWriter:
 
     def write_records(self, records):
         self._ensure_validity()
-        records = [] if records is NotImplemented else list(records)
+        if records is NotImplemented:
+            return
         write_record = self._write_record
         for record in records:
             write_record(record)

@@ -463,6 +463,10 @@ class RecordWriter:
         self.custom_fields = set()
 
     @property
+    def maxresultrows(self):
+        return self._maxresultrows
+
+    @property
     def is_flushed(self):
         return self._flushed
 

@@ -211,10 +211,10 @@ class GeneratingCommand(SearchCommand):
         for row in process:
             self._record_writer.write_record(row)
             count += 1
-            if count == self._record_writer._maxresultrows:
+            if count == self._record_writer.maxresultrows:
                 break
 
-        if count == self._record_writer._maxresultrows:
+        if count == self._record_writer.maxresultrows:
             self._finished = False
         else:
             self._finished = True

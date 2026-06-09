@@ -153,6 +153,7 @@ from splunklib.searchcommands.environment import (
 from splunklib.searchcommands.eventing_command import EventingCommand
 from splunklib.searchcommands.external_search_command import ExternalSearchCommand, execute
 from splunklib.searchcommands.generating_command import GeneratingCommand
+from splunklib.searchcommands.internals import DiskBufferSettings
 from splunklib.searchcommands.reporting_command import ReportingCommand
 from splunklib.searchcommands.search_command import SearchMetric, dispatch
 from splunklib.searchcommands.streaming_command import StreamingCommand
@@ -173,6 +174,7 @@ __all__ = [
     "Boolean",
     "Code",
     "Configuration",
+    "DiskBufferSettings",
     "Duration",
     "EventingCommand",
     "ExternalSearchCommand",

@@ -34,10 +34,11 @@ from xml.etree import ElementTree
 
 import splunklib.searchcommands.environment as environment
 from splunklib.client import Service
-from splunklib.searchcommands.decorators import Option
+from splunklib.searchcommands.decorators import ConfigurationSetting, Option
 from splunklib.searchcommands.internals import (
     CommandLineParser,
     CsvDialect,
+    DiskBufferSettings,
     InputHeader,
     Message,
     MetadataDecoder,
@@ -46,6 +47,7 @@ from splunklib.searchcommands.internals import (
     Recorder,
     RecordWriterV1,
     RecordWriterV2,
+    RecordWriterV3,
 )
 from splunklib.searchcommands.validators import Boolean
 from splunklib.utils import ensure_str
@@ -746,9 +748,12 @@ class SearchCommand:
         # Write search command configuration for consumption by splunkd
         # noinspection PyBroadException
         try:
-            self._record_writer = RecordWriterV2(
-                ofile, getattr(self._metadata.searchinfo, "maxresultrows", None)
-            )
+            _disk_buffer = getattr(self._configuration, "disk_buffer", None)
+            _maxresultrows = getattr(self._metadata.searchinfo, "maxresultrows", None)
+            if _disk_buffer is not None:
+                self._record_writer = RecordWriterV3(ofile, _maxresultrows, disk_buffer=_disk_buffer)
+            else:
+                self._record_writer = RecordWriterV2(ofile, _maxresultrows)
             self.fieldnames = []
             self.options.reset()
 
@@ -1132,6 +1137,28 @@ class SearchCommand:
         # N.B.: Does not use Python 3 dict view semantics
 
         items = iteritems
+
+        # endregion
+
+        # region SDK-only settings (not sent to Splunk)
+
+        disk_buffer = ConfigurationSetting(
+            doc="""
+            Enable disk-spill buffering for the CSV reply buffer.
+
+            Set to a :class:`DiskBufferSettings` instance to have the SDK write the
+            CEXC reply payload to a :mod:`tempfile.SpooledTemporaryFile` instead of
+            a ``StringIO``.  The spool file stays in RAM up to ``spool_size`` bytes,
+            then spills to a temp directory.
+
+            This trades I/O overhead for bounded peak memory usage — useful for
+            commands that generate or pass through very large result sets.
+
+            Default: :const:`None` (StringIO, original behaviour)
+
+            Supported by: SDK only (not sent to Splunk)
+            """
+        )
 
         # endregion
 

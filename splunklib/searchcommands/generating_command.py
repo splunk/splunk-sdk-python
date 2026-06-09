@@ -212,13 +212,13 @@ class GeneratingCommand(SearchCommand):
         for row in process:
             records.append(row)
             count += 1
-            if count == self._record_writer._maxresultrows:
+            if count == self._record_writer.maxresultrows:
                 break
 
         for row in records:
             self._record_writer.write_record(row)
 
-        if count == self._record_writer._maxresultrows:
+        if count == self._record_writer.maxresultrows:
             self._finished = False
         else:
             self._finished = True

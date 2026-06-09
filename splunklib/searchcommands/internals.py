@@ -15,10 +15,13 @@
 import csv
 import gzip
 import re
+import shutil
 import sys
+import tempfile
 import urllib.parse
 import warnings
 from collections import OrderedDict, deque, namedtuple
+from dataclasses import dataclass
 from io import StringIO, TextIOWrapper
 from itertools import chain
 from json import JSONDecoder, JSONEncoder
@@ -229,6 +232,23 @@ class CommandLineParser:
     # endregion
 
 
+@dataclass(frozen=True, kw_only=True)
+class DiskBufferSettings:
+    """Controls disk-spill buffering for RecordWriterV3.
+
+    When set on a command via ``@Configuration(disk_buffer=DiskBufferSettings())``,
+    the CSV reply buffer spills to a temp file instead of accumulating entirely in
+    RAM.  This trades some I/O overhead for a bounded memory footprint regardless
+    of result set size.
+
+    Args:
+        spool_size: Bytes kept in RAM before spilling to disk.  Defaults to 4 MB.
+                    Set to 0 to always write directly to disk.
+    """
+
+    spool_size: int = 4 * 1024 * 1024
+
+
 class ConfigurationSettingsType(type):
     """Metaclass for constructing ConfigurationSettings classes.
 
@@ -305,6 +325,12 @@ class ConfigurationSettingsType(type):
             type=(bytes, str),
             constraint=lambda value: value in ("events", "reporting", "streaming"),
             supporting_protocols=[2],
+        ),
+        # SDK-only: never sent to Splunk. supporting_protocols=[] keeps it out of iteritems().
+        "disk_buffer": specification(
+            type=DiskBufferSettings,
+            constraint=None,
+            supporting_protocols=[],
         ),
     }
 
@@ -461,6 +487,10 @@ class RecordWriter:
         self._pending_record_count = 0
         self._committed_record_count = 0
         self.custom_fields = set()
+
+    @property
+    def maxresultrows(self):
+        return self._maxresultrows
 
     @property
     def is_flushed(self):
@@ -797,3 +827,78 @@ class RecordWriterV2(RecordWriter):
         self.write(body)
         self._ofile.flush()
         self._flushed = True
+
+
+class RecordWriterV3(RecordWriterV2):
+    """RecordWriterV2 with disk-spill buffering via SpooledTemporaryFile.
+
+    Used when a command is configured with ``@Configuration(disk_buffer=DiskBufferSettings())``.
+    The CSV reply buffer spills to a temp file instead of accumulating in a StringIO,
+    so peak RAM is bounded by ``spool_size`` rather than the full result payload.
+    """
+
+    def __init__(self, ofile, maxresultrows=None, disk_buffer=None):
+        if disk_buffer is None:
+            raise ValueError("RecordWriterV3 requires a DiskBufferSettings instance")
+        self._disk_buffer = disk_buffer
+        super().__init__(ofile, maxresultrows)
+        # Replace the StringIO created by RecordWriter.__init__ with a spool file
+        raw = tempfile.SpooledTemporaryFile(
+            max_size=self._disk_buffer.spool_size,
+            mode="w+b",
+        )
+        self._buffer_raw = raw
+        self._buffer = TextIOWrapper(raw, encoding="utf-8", newline="")
+        self._writer = csv.writer(self._buffer, dialect=CsvDialect)
+        self._writerow = self._writer.writerow
+
+    def write_chunk(self, finished=None):
+        inspector = self._inspector
+        self._committed_record_count += self.pending_record_count
+        self._chunk_count += 1
+
+        if len(inspector) == 0:
+            inspector = None
+
+        metadata = [("inspector", inspector), ("finished", finished)]
+
+        if metadata:
+            metadata_bytes = str(
+                "".join(
+                    self._iterencode_json(
+                        dict((n, v) for n, v in metadata if v is not None), 0
+                    )
+                )
+            ).encode("utf-8")
+            metadata_length = len(metadata_bytes)
+        else:
+            metadata_bytes = b""
+            metadata_length = 0
+
+        # Flush TextIOWrapper so all pending CSV data lands in the binary spool file
+        self._buffer.flush()
+
+        self._buffer_raw.seek(0, 2)
+        body_length = self._buffer_raw.tell()
+        self._buffer_raw.seek(0)
+
+        if metadata_length > 0 or body_length > 0:
+            start_line = f"chunked 1.0,{metadata_length},{body_length}\n".encode("utf-8")
+            self._ofile.write(start_line)
+            self._ofile.write(metadata_bytes)
+            shutil.copyfileobj(self._buffer_raw, self._ofile, length=65536)
+            self._ofile.flush()
+            self._flushed = True
+
+        self._clear()
+
+    def _clear(self):
+        # Flush wrapper, reset the raw spool, re-sync wrapper position
+        self._buffer.flush()
+        self._buffer_raw.seek(0)
+        self._buffer_raw.truncate()
+        # Discard the wrapper's internal position cache by seeking it too
+        self._buffer.seek(0)
+        self._inspector.clear()
+        self._pending_record_count = 0
+        self._fieldnames = None

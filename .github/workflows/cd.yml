@@ -52,12 +52,12 @@ jobs:
           name: splunk-sdk-${{ steps.get-version.outputs.version }}
           path: ${{ env.DIST_DIR }}
       - name: Generate API reference
-        run: make -C ./docs html
+        run: make -C ./docs zip
       - name: Upload docs artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: python-sdk-docs
-          path: docs/_build/html
+          path: docs/_build/splunk-sdk-python-docs.zip
 
   publish-pre-release:
     if: startsWith(github.ref, 'refs/tags/') == false

@@ -14,7 +14,7 @@ You may be asking:
 - [Where does the SDK fit in all this?](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/)
 - What's the difference between `import splunklib` and `import splunk`?
   - This repo contains `splunklib`, whereas `splunk` is an internal library bundled with the Splunk platform.
-- [How do I use AI in Splunk Apps?](splunklib/ai/README.md)
+- [How do I use AI in Splunk Apps?](https://github.com/splunk/splunk-sdk-python/blob/develop/splunklib/ai/README.md)
 
 ## Getting started
 
@@ -75,11 +75,11 @@ gtar --transform='s,^,<your_app>/,' \
 
 The easiest and most effective way of learning how to use this library should be reading through the apps in our test suite, as well as the [splunk-app-examples](https://github.com/splunk/splunk-app-examples) repository. They show how to programmatically interact with the Splunk platform in a variety of scenarios - from basic metadata retrieval, one-shot searching and managing saved searches to building complete applications with modular inputs and custom search commands.
 
-For details, see the [examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal, as well as the [Splunk Enterprise SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK)
+For details, see the [examples using the Splunk Enterprise SDK for Python](https://dev.splunk.com/enterprise/docs/devtools/python/sdk-python/examplespython) on the Splunk Developer Portal, as well as the [Splunk Enterprise SDK for Python Reference](https://docs.splunk.com/Documentation/PythonSDK)
 
 #### Using AI in Splunk Apps
 
-You can now leverage AI capabilities within your Splunk Apps using the `splunklib.ai` package. Take a look at its [README](splunklib/ai/README.md) to find out how to enhance your Apps agentic behaviour, custom tools and more.
+You can now leverage AI capabilities within your Splunk Apps using the `splunklib.ai` package. Take a look at its [README](https://github.com/splunk/splunk-sdk-python/blob/develop/splunklib/ai/README.md) to find out how to enhance your Apps agentic behaviour, custom tools and more.
 
 #### Connecting to a Splunk Enterprise instance
 
@@ -196,7 +196,7 @@ class MyScript(Script):
 ### Contributions
 
 We welcome all contributions!
-If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](CONTRIBUTING.md).
+If you would like to contribute to the SDK, see [Contributing to Splunk](https://www.splunk.com/en_us/form/contributions.html). For additional guidelines, see [CONTRIBUTING](https://github.com/splunk/splunk-sdk-python/blob/develop/CONTRIBUTING.md).
 
 ### Setting up a development environment
 
@@ -264,7 +264,7 @@ setup_logging(logging.DEBUG)
 | :------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
 | [Splunk Developer Portal](http://dev.splunk.com)                                                                           | General developer documentation, tools, and examples |
 | [Integrate the Splunk platform using development tools for Python](https://dev.splunk.com/enterprise/docs/devtools/python) | Documentation for Python development                 |
-| [Splunk Enterprise SDK for Python Reference](http://docs.splunk.com/Documentation/PythonSDK)                               | SDK API reference documentation                      |
+| [Splunk Enterprise SDK for Python Reference](https://docs.splunk.com/Documentation/PythonSDK)                               | SDK API reference documentation                      |
 | [REST API Reference Manual](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog)                        | Splunk REST API reference documentation              |
 | [Splunk>Docs](https://docs.splunk.com/Documentation)                                                                       | General documentation for the Splunk platform        |
 | [GitHub Wiki](https://github.com/splunk/splunk-sdk-python/wiki/)                                                           | Documentation for this SDK's repository on GitHub    |

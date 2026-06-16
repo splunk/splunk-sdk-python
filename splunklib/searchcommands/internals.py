@@ -487,6 +487,7 @@ class RecordWriter:
         self._pending_record_count = 0
         self._committed_record_count = 0
         self.custom_fields = set()
+        self.fields_declared = False
 
     @property
     def maxresultrows(self):
@@ -557,7 +558,10 @@ class RecordWriter:
 
     def write_records(self, records):
         self._ensure_validity()
-        records = [] if records is NotImplemented else list(records)
+        if records is NotImplemented:
+            return
+        if not self.fields_declared:
+            records = list(records)
         write_record = self._write_record
         for record in records:
             write_record(record)

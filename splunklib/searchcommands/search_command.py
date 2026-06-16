@@ -168,6 +168,30 @@ class SearchCommand:
         self._record_writer.custom_fields |= set(record.keys())
         return record
 
+    def declare_fields(self, *field_names: str) -> None:
+        """Pre-declare all custom fields before any records are yielded.
+
+        When every extra field is declared upfront the SDK streams records
+        lazily without materialising them into a list first, reducing peak
+        memory for large result sets.
+
+        Must be called before the first ``yield`` in ``generate()`` or
+        ``stream()``.  Incompatible with ``add_field``/``gen_record``, which
+        populate fields lazily and require the full-materialisation path.
+
+        Example::
+
+            @Configuration()
+            class MyCommand(GeneratingCommand):
+                def generate(self):
+                    self.declare_fields('extra_field')
+                    for row in huge_dataset():
+                        row['extra_field'] = compute(row)
+                        yield row
+        """
+        self._record_writer.custom_fields.update(field_names)
+        self._record_writer.fields_declared = True
+
     record = Option(
         doc="""
         **Syntax:** record=<bool>

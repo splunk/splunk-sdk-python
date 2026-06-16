@@ -208,15 +208,21 @@ class GeneratingCommand(SearchCommand):
 
     def _execute_chunk_v2(self, process, chunk):
         count = 0
-        records = []
-        for row in process:
-            records.append(row)
-            count += 1
-            if count == self._record_writer.maxresultrows:
-                break
-
-        for row in records:
-            self._record_writer.write_record(row)
+        if self._record_writer.fields_declared:
+            for row in process:
+                self._record_writer.write_record(row)
+                count += 1
+                if count == self._record_writer.maxresultrows:
+                    break
+        else:
+            records = []
+            for row in process:
+                records.append(row)
+                count += 1
+                if count == self._record_writer.maxresultrows:
+                    break
+            for row in records:
+                self._record_writer.write_record(row)
 
         if count == self._record_writer.maxresultrows:
             self._finished = False

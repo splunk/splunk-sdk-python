@@ -265,3 +265,100 @@ def test_benchmark_v2_vs_v3(capsys: pytest.CaptureFixture[str]) -> None:
             f"{'RecordWriterV3 (SpoolFile)':26s}  {wall_v3:>10.3f}  {heap_v3 / mb:>10.1f} MB\n"
             f"{'Overhead':26s}  {(wall_v3 - wall_v2):>+10.3f}  {(heap_v3 - heap_v2) / mb:>+10.1f} MB\n"
         )
+
+
+# ---------------------------------------------------------------------------
+# declare_fields: opt-in streaming without list() materialisation
+# ---------------------------------------------------------------------------
+
+
+def test_declare_fields_streaming_output_matches_default() -> None:
+    """declare_fields() path must produce identical output to the default list() path."""
+    records_data = [{"payload": "x" * 100, "idx": str(i), "extra": str(i * 2)} for i in range(200)]
+
+    @Configuration()
+    class DefaultCmd(StreamingCommand):
+        def stream(self, records: Iterator[dict]) -> Generator[dict]:
+            yield from records
+
+    @Configuration()
+    class DeclaredCmd(StreamingCommand):
+        def stream(self, records: Iterator[dict]) -> Generator[dict]:
+            self.declare_fields("payload", "idx", "extra")
+            yield from records
+
+    def run_command(cmd_class: type) -> bytes:
+        ifile = io.BytesIO()
+        ifile.write(chunky.build_getinfo_chunk())
+        ifile.write(chunky.build_data_chunk(records_data, finished=True))
+        ifile.seek(0)
+        ofile = io.BytesIO()
+        cmd_class()._process_protocol_v2([], ifile, ofile)
+        return ofile.getvalue()
+
+    assert run_command(DefaultCmd) == run_command(DeclaredCmd)
+
+
+def test_declare_fields_generating_output_matches_default() -> None:
+    """declare_fields() on GeneratingCommand must produce identical output."""
+
+    @Configuration()
+    class DefaultGen(GeneratingCommand):
+        def generate(self) -> Generator[dict]:
+            for i in range(200):
+                yield {"idx": str(i), "val": "y" * 50}
+
+    @Configuration()
+    class DeclaredGen(GeneratingCommand):
+        def generate(self) -> Generator[dict]:
+            self.declare_fields("idx", "val")
+            for i in range(200):
+                yield {"idx": str(i), "val": "y" * 50}
+
+    def run_command(cmd_class: type) -> bytes:
+        ifile = io.BytesIO()
+        ifile.write(chunky.build_getinfo_chunk())
+        ifile.write(chunky.build_chunk({"action": "execute"}))
+        ifile.seek(0)
+        ofile = io.BytesIO()
+        cmd_class()._process_protocol_v2([], ifile, ofile)
+        return ofile.getvalue()
+
+    assert run_command(DefaultGen) == run_command(DeclaredGen)
+
+
+def test_declare_fields_sets_flag() -> None:
+    """declare_fields() must set fields_declared=True on the record writer."""
+
+    @Configuration()
+    class FlagCmd(GeneratingCommand):
+        def generate(self) -> Generator[dict]:
+            self.declare_fields("a", "b")
+            yield {"a": "1", "b": "2"}
+
+    ifile = io.BytesIO()
+    ifile.write(chunky.build_getinfo_chunk())
+    ifile.write(chunky.build_chunk({"action": "execute"}))
+    ifile.seek(0)
+    cmd = FlagCmd()
+    cmd._process_protocol_v2([], ifile, io.BytesIO())
+    assert cmd._record_writer.fields_declared is True
+    assert "a" in cmd._record_writer.custom_fields
+    assert "b" in cmd._record_writer.custom_fields
+
+
+def test_declare_fields_without_declaration_flag_is_false() -> None:
+    """Without declare_fields(), fields_declared must remain False."""
+
+    @Configuration()
+    class NoDeclareCmd(GeneratingCommand):
+        def generate(self) -> Generator[dict]:
+            yield {"a": "1"}
+
+    ifile = io.BytesIO()
+    ifile.write(chunky.build_getinfo_chunk())
+    ifile.write(chunky.build_chunk({"action": "execute"}))
+    ifile.seek(0)
+    cmd = NoDeclareCmd()
+    cmd._process_protocol_v2([], ifile, io.BytesIO())
+    assert cmd._record_writer.fields_declared is False

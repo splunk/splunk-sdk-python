@@ -2,10 +2,6 @@ name: Set up SDK environment
 description: Perform all the shared setup steps
 
 inputs:
-  python-version:
-    description: Python version used for this run
-    required: true
-    default: "3.13"
   deps-group:
     description: Dependency groups passed to `uv sync --group`
     required: true
@@ -17,7 +13,7 @@ runs:
     - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
       with:
         version: 0.11.6
-        python-version: ${{ inputs.python-version }}
+        python-version: 3.13
         activate-environment: true
         enable-cache: true
         cache-python: true
@@ -25,4 +21,4 @@ runs:
       env:
         SDK_DEPS_GROUP: ${{ inputs.deps-group }}
       shell: bash
-      run: SDK_DEPS_GROUP="${{ inputs.deps-group }}" make ci-install
+      run: make ci-install

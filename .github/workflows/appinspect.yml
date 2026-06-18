@@ -5,11 +5,15 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  PYTHON_VERSION: 3.13
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
   appinspect:
+    name: Run AppInspect
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -17,7 +21,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: 3.13
           deps-group: lint
       - name: Run AppInspect
         uses: ./.github/actions/run-appinspect

@@ -9,8 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   test:
+    name: Run test suite
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,7 +33,9 @@ jobs:
           SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
         run: uv run ./scripts/download_splunk_mcp_server_app.py
       - name: Launch Splunk Docker instance
-        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
+        env:
+          SPLUNK_VERSION: ${{ matrix.splunk-version }}
+        run: docker compose up -d
       - name: Set up .env
         run: cp .env.template .env
       - name: Write internal AI secrets to .env
@@ -51,10 +56,8 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .pytest_cache
-          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{
-            github.sha }}
-          restore-keys: |
-            pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
+          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
       - name: Run unit tests
         run: make test-unit
       - name: Run integration/system tests

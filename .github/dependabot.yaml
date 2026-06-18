@@ -4,18 +4,18 @@ updates:
     directory: "/"
     target-branch: "develop"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       github-actions:
-        patterns: ["*"]
+        update-types: ["major", "minor", "patch"]
     cooldown:
       default-days: 7
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       python-uv-lock:
-        patterns: ["*"]
+        update-types: ["minor", "patch"]
     cooldown:
       default-days: 7

@@ -19,4 +19,4 @@ runs:
         tar -czf mock_app.tgz --exclude="__pycache__" bin default metadata
     - name: Validate the mock app with AppInspect
       shell: bash
-      run: uvx splunk-appinspect inspect ./tests/system/test_apps/generating_app/mock_app.tgz --included-tags cloud
+      run: uvx splunk-appinspect inspect ./tests/system/test_apps/generating_app/mock_app.tgz --included-tags cloud --ci

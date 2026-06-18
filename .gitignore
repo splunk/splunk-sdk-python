@@ -279,6 +279,7 @@ $RECYCLE.BIN/
 
 .vscode/
 docs/_build/
+.claude/
 
 !*.conf.spec
 **/metadata/local.meta

@@ -1,12 +1,6 @@
 name: Run Splunk AppInspect
 description: Package a mock app containing the SDK and its dependencies, then validate it with AppInspect.
 
-inputs:
-  mock-app-path:
-    description: Path to app packaged for scanning with AppInspect
-    required: true
-    default: ./tests/system/test_apps/generating_app
-
 runs:
   using: composite
   steps:
@@ -16,13 +10,13 @@ runs:
     - name: Install the SDK and its dependencies into the mock app
       shell: bash
       run: |
-        mkdir -p ${{ inputs.mock-app-path }}/bin/lib
-        uv pip install ".[openai, anthropic, google]" --target ${{ inputs.mock-app-path }}/bin/lib
+        mkdir -p ./tests/system/test_apps/generating_app/bin/lib
+        uv pip install ".[openai, anthropic, google]" --target ./tests/system/test_apps/generating_app/bin/lib
     - name: Package the mock app
       shell: bash
       run: |
-        cd ${{ inputs.mock-app-path }}
+        cd ./tests/system/test_apps/generating_app
         tar -czf mock_app.tgz --exclude="__pycache__" bin default metadata
     - name: Validate the mock app with AppInspect
       shell: bash
-      run: uvx splunk-appinspect inspect ${{ inputs.mock-app-path }}/mock_app.tgz --included-tags cloud
+      run: uvx splunk-appinspect inspect ./tests/system/test_apps/generating_app/mock_app.tgz --included-tags cloud

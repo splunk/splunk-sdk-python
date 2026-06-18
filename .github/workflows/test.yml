@@ -9,6 +9,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -30,7 +32,9 @@ jobs:
           SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}
         run: uv run ./scripts/download_splunk_mcp_server_app.py
       - name: Launch Splunk Docker instance
-        run: SPLUNK_VERSION=${{ matrix.splunk-version }} docker compose up -d
+        env:
+          SPLUNK_VERSION: ${{ matrix.splunk-version }}
+        run: docker compose up -d
       - name: Set up .env
         run: cp .env.template .env
       - name: Write internal AI secrets to .env

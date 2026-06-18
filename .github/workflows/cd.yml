@@ -12,9 +12,6 @@ concurrency:
 
 permissions: {}
 
-env:
-  DIST_DIR: dist/
-
 jobs:
   build-distributables:
     name: Build release distributables
@@ -59,7 +56,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: splunk-sdk-${{ steps.get-version.outputs.version }}
-          path: ${{ env.DIST_DIR }}
+          path: dist/
       - name: Generate API reference
         run: make -C ./docs zip
       - name: Upload docs artifact
@@ -83,7 +80,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
-          path: ${{ env.DIST_DIR }}
+          path: dist/
       - name: Publish packages to Test PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:
@@ -104,7 +101,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
-          path: ${{ env.DIST_DIR }}
+          path: dist/
       - name: Publish packages to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:

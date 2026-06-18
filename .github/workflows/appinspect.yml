@@ -11,9 +11,6 @@ concurrency:
 
 permissions: {}
 
-env:
-  PYTHON_VERSION: 3.13
-
 jobs:
   appinspect:
     name: Run AppInspect
@@ -24,7 +21,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: 3.13
           deps-group: lint
       - name: Run AppInspect
         uses: ./.github/actions/run-appinspect

@@ -22,7 +22,11 @@ ci-install:
 
 UV_RUN_CMD := uv run
 .PHONY: lint
-lint: lint-python # TODO: Add mbake
+lint: lint-python lint-gh-actions # TODO: Add mbake
+
+.PHONY: lint-gh-actions
+lint-gh-actions:
+	$(UV_RUN_CMD) zizmor --pedantic --collect=all --strict-collection .
 
 .PHONY: lint-python
 lint-python:
@@ -31,7 +35,11 @@ lint-python:
 	$(UV_RUN_CMD) basedpyright
 
 .PHONY: ci-lint
-ci-lint: ci-lint-python # TODO: Add mbake
+ci-lint: ci-lint-python ci-lint-gh-actions # TODO: Add mbake
+
+.PHONY: ci-lint-gh-actions
+ci-lint-gh-actions:
+	$(UV_RUN_CMD) zizmor --pedantic --collect=all --strict-collection --fix .
 
 .PHONY: ci-lint-python
 ci-lint-python:

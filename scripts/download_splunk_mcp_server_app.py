@@ -65,7 +65,7 @@ def run() -> None:
 
     response = client.get(
         result.release.path,
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"X-Auth-Token": token},
     )
     response.raise_for_status()
 

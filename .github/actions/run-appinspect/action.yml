@@ -19,4 +19,11 @@ runs:
         tar -czf mock_app.tgz --exclude="__pycache__" bin default metadata
     - name: Validate the mock app with AppInspect
       shell: bash
-      run: uvx splunk-appinspect inspect ./tests/system/test_apps/generating_app/mock_app.tgz --included-tags cloud --ci
+      run: |
+        # AppInspect doesn't follow UNIX conventions so we swallow all non-zero
+        # exit codes unless its 101, the de facto error code
+        # https://dev.splunk.com/enterprise/reference/appinspect/appinspectcliref#inspect
+        uvx splunk-appinspect inspect \
+          ./tests/system/test_apps/generating_app/mock_app.tgz \
+          --included-tags cloud --ci || exit_code=$?
+        [ "${exit_code:-0}" -ne 101 ] || exit 1

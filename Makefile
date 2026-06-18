@@ -2,9 +2,13 @@
 
 ## VIRTUALENV MANAGEMENT
 
-# https://docs.astral.sh/uv/reference/cli/#uv-run--upgrade
+# https://docs.astral.sh/uv/reference/cli/#uv-sync
 # --no-config skips Splunk's internal PyPI mirror
 UV_SYNC_CMD := uv sync --no-config
+# https://docs.astral.sh/uv/reference/cli/#uv-run
+UV_RUN_CMD := uv run
+# https://docs.zizmor.sh/usage
+ZIZMOR_CMD := $(UV_RUN_CMD) zizmor --pedantic --strict-collection
 
 .PHONY: install
 install:
@@ -20,13 +24,12 @@ upgrade:
 ci-install:
 	$(UV_SYNC_CMD) --frozen --group $(SDK_DEPS_GROUP)
 
-UV_RUN_CMD := uv run
 .PHONY: lint
 lint: lint-python lint-gh-actions # TODO: Add mbake
 
 .PHONY: lint-gh-actions
 lint-gh-actions:
-	$(UV_RUN_CMD) zizmor --pedantic --collect=all --strict-collection .
+	$(ZIZMOR_CMD) ./.github
 
 .PHONY: lint-python
 lint-python:
@@ -39,7 +42,7 @@ ci-lint: ci-lint-python ci-lint-gh-actions # TODO: Add mbake
 
 .PHONY: ci-lint-gh-actions
 ci-lint-gh-actions:
-	$(UV_RUN_CMD) zizmor --pedantic --collect=all --strict-collection --fix .
+	$(ZIZMOR_CMD) ./.github
 
 .PHONY: ci-lint-python
 ci-lint-python:

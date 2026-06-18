@@ -13,6 +13,7 @@ permissions: {}
 
 jobs:
   test:
+    name: Run test suite
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -55,10 +56,8 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .pytest_cache
-          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{
-            github.sha }}
-          restore-keys: |
-            pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
+          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
       - name: Run unit tests
         run: make test-unit
       - name: Run integration/system tests

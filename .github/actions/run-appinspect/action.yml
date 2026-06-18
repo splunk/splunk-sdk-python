@@ -7,7 +7,7 @@ runs:
     - name: Install AppInspect dependencies
       shell: bash
       run: sudo apt-get install -y libmagic1
-    - name: Install the SDK and its dependencies into the mock app
+    - name: Install the SDK and its dependencies into a mock app
       shell: bash
       run: |
         mkdir -p ./tests/system/test_apps/generating_app/bin/lib

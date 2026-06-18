@@ -57,7 +57,7 @@ lint = [
   "basedpyright>=1.39.4",
   "ruff>=0.15.12",
   "mbake>=1.4.6",
-  "zizmor==1.24.1",
+  "zizmor==1.25.2",
 ]
 dev = [
   "rich>=15.0.0",

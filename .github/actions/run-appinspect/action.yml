@@ -20,10 +20,14 @@ runs:
     - name: Validate the mock app with AppInspect
       shell: bash
       run: |
-        # AppInspect doesn't follow UNIX conventions so we swallow all non-zero
-        # exit codes unless its 101, the de facto error code
+        # AppInspect doesn't follow UNIX conventions, gotta handle their exit codes explicitly
         # https://dev.splunk.com/enterprise/reference/appinspect/appinspectcliref#inspect
         uvx splunk-appinspect inspect \
           ./tests/system/test_apps/generating_app/mock_app.tgz \
           --included-tags cloud --ci || exit_code=$?
-        [ "${exit_code:-0}" -ne 101 ] || exit 1
+        case "${exit_code:-0}" in
+          0)   ;;  # all checks passed
+          103) ;;  # warnings (--ci)
+          104) ;;  # future-tag warnings (--ci)
+          *)   exit "${exit_code}" ;;  # 101=failures, 1=packaging, 2=exception, 3=error, etc.
+        esac

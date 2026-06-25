@@ -259,9 +259,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
         before_user_middlewares, after_user_middlewares = _debugging_middleware(agent.logger)
 
         self._agent_middleware: list[AgentMiddleware] = []
-        if agent.limits.max_structured_output_retires is not None:
+        if agent.limits.max_structured_output_retries is not None:
             self._agent_middleware.append(
-                _StructuredOutputRetryLimitMiddleware(agent.limits.max_structured_output_retires)
+                _StructuredOutputRetryLimitMiddleware(agent.limits.max_structured_output_retries)
             )
 
         self._agent_middleware.extend(before_user_middlewares)
@@ -2052,7 +2052,7 @@ class _TimeoutLimitMiddleware(AgentMiddleware):
 
 class _StructuredOutputRetryLimitMiddleware(AgentMiddleware):
     """Stops agent execution when the agent exceeds structured output
-    retry limit during a single agent loop invocation. Pass 0 to disable retires.
+    retry limit during a single agent loop invocation. Pass 0 to disable retries.
     """
 
     _limit: int

@@ -1020,10 +1020,10 @@ or excessive token usage.
 | `max_tokens` | 200 000 tokens | token count of messages passed to the model |
 | `max_steps` | 100 steps | number of messages in the conversation |
 | `timeout` | 600 seconds (10 minutes) | per `invoke` call |
-| `max_structured_output_retires` | 3 retries | per `invoke` call |
+| `max_structured_output_retries` | 3 retries | per `invoke` call |
 
 `max_tokens` and `max_steps` are checked against the messages passed to the model on each call.
-`timeout` and `max_structured_output_retires` reset on each `invoke`, so they limit only the
+`timeout` and `max_structured_output_retries` reset on each `invoke`, so they limit only the
 current agent loop invocation.
 
 When a limit is exceeded, the agent raises the corresponding exception:
@@ -1053,7 +1053,7 @@ async with Agent(
         max_tokens=50_000,
         max_steps=10,
         timeout=30.0,
-        max_structured_output_retires=0,  # no retries
+        max_structured_output_retries=0,  # no retries
     ),
 ) as agent: ...
 ```

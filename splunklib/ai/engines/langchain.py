@@ -418,7 +418,7 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
             # to differentiate that we wrap the resulting args in an SubagentLCArgs.
             #
             # This middleware performs the corresponding pack/unpack at the two
-            # points in the LangChain call graph where raw args are needed/retreived.
+            # points in the LangChain call graph where raw args are needed/retrieved.
             #
             # TODO: we could move this logic to  _Middleware.
             @override

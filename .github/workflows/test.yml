@@ -20,7 +20,7 @@ jobs:
         python-version: [3.13]
         splunk-version: [latest]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
@@ -53,7 +53,7 @@ jobs:
           echo "internal_ai_base_url=$INTERNAL_AI_BASE_URL" >> .env
       - name: Restore pytest cache
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: .pytest_cache
           key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}

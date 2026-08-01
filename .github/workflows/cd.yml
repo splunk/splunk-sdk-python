@@ -21,7 +21,7 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
@@ -82,7 +82,7 @@ jobs:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
           path: dist/
       - name: Publish packages to Test PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247
         with:
           repository-url: https://test.pypi.org/legacy/
 
@@ -103,6 +103,6 @@ jobs:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
           path: dist/
       - name: Publish packages to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247
         with:
           repository-url: https://upload.pypi.org/legacy/

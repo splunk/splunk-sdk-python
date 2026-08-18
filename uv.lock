@@ -1860,7 +1860,7 @@ requires-dist = [
     { name = "langchain-anthropic", marker = "extra == 'anthropic'", specifier = ">=1.4.3" },
     { name = "langchain-google-genai", marker = "extra == 'google'", specifier = "==4.2.2" },
     { name = "langchain-openai", marker = "extra == 'openai'", specifier = ">=1.2.1" },
-    { name = "mcp", marker = "extra == 'ai'", specifier = ">=1.27.1" },
+    { name = "mcp", marker = "extra == 'ai'", specifier = ">=1.27.1,<2" },
     { name = "pydantic", marker = "extra == 'ai'", specifier = ">=2.13.4" },
     { name = "six", marker = "extra == 'compat'", specifier = ">=1.17.0" },
     { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'anthropic'", specifier = ">=3.0.0" },

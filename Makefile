@@ -20,6 +20,8 @@ upgrade:
 
 # Workaround for make being unable to pass arguments to underlying cmd
 # $ SDK_DEPS_GROUP="build" make ci-install
+SDK_DEPS_GROUP ?= dev
+
 .PHONY: ci-install
 ci-install:
 	$(UV_SYNC_CMD) --frozen --group $(SDK_DEPS_GROUP)
@@ -33,44 +35,36 @@ lint-gh-actions:
 
 .PHONY: lint-python
 lint-python:
-	$(UV_RUN_CMD) ruff check --fix-only
-	$(UV_RUN_CMD) ruff format
+	$(UV_RUN_CMD) ruff check --fix-only $(if $(CI),--exit-non-zero-on-fix)
+	$(UV_RUN_CMD) ruff format $(if $(CI),--check)
 	$(UV_RUN_CMD) basedpyright
 
 .PHONY: lint-makefile
 lint-makefile:
-	$(UV_RUN_CMD) mbake format --config ./.bake.toml Makefile docs/Makefile
-
-.PHONY: ci-lint
-ci-lint: ci-lint-python ci-lint-gh-actions ci-lint-makefile
-
-.PHONY: ci-lint-gh-actions
-ci-lint-gh-actions:
-	$(ZIZMOR_CMD) ./.github
-
-.PHONY: ci-lint-python
-ci-lint-python:
-	$(UV_RUN_CMD) ruff check --fix-only --exit-non-zero-on-fix
-	$(UV_RUN_CMD) ruff format --check
-	$(UV_RUN_CMD) basedpyright
-
-.PHONY: ci-lint-makefile
-ci-lint-makefile:
-	$(UV_RUN_CMD) mbake format --config ./.bake.toml --check Makefile docs/Makefile
-	$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile docs/Makefile
-
-.PHONY: ci-lint-makefile
-ci-lint-makefile:
-	$(UV_RUN_CMD) mbake format --config ./.bake.toml --check Makefile docs/Makefile
-	$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile docs/Makefile
+	$(UV_RUN_CMD) mbake format --config ./.bake.toml $(if $(CI),--check) Makefile
+	$(if $(CI),$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile)
 
 .PHONY: clean
 clean:
-	rm -rf ./build ./dist ./.venv ./.ruff_cache ./.pytest_cache ./splunk_sdk.egg-info ./__pycache__ ./**/__pycache__
+	rm -rf ./build ./dist ./.venv ./.ruff_cache ./.pytest_cache ./splunk_sdk.egg-info ./__pycache__
+	find . -name __pycache__ -type d -exec rm -rf {} +
+
+DOCS_BUILDDIR := docs/_build
+DOCS_HTMLDIR := $(DOCS_BUILDDIR)/html
+DOCS_ZIPFILE := $(DOCS_BUILDDIR)/splunk-sdk-python-docs.zip
 
 .PHONY: docs
 docs:
-	make -C ./docs html
+	rm -rf $(DOCS_BUILDDIR)
+	sphinx-build -b html -d $(DOCS_BUILDDIR)/doctrees ./docs $(DOCS_HTMLDIR)
+	sh docs/munge_links.sh $(DOCS_HTMLDIR)
+	@echo "[splunk-sdk] ---"
+	@echo "[splunk-sdk] Build finished. HTML pages available at $(DOCS_HTMLDIR)."
+
+.PHONY: docs-zip
+docs-zip: docs
+	cd $(DOCS_HTMLDIR) && zip -r $(abspath $(DOCS_ZIPFILE)) .
+	@echo "[splunk-sdk] Zip available at $(DOCS_ZIPFILE)."
 
 ## TESTING
 
@@ -90,7 +84,7 @@ test-unit:
 
 .PHONY: test-integration
 test-integration:
-	$(PYTEST_CMD) --ff ./tests/integration ./tests/system
+	$(PYTEST_CMD) ./tests/integration ./tests/system
 
 .PHONY: test-ai
 test-ai:
@@ -136,8 +130,8 @@ docker-refresh: docker-remove docker-start
 
 .PHONY: docker-splunk-restart
 docker-splunk-restart:
-	docker exec -it $(CONTAINER_NAME) sudo sh -c '$(SPLUNK_HOME)/bin/splunk restart --run-as-root'
+	docker exec -u splunk $(CONTAINER_NAME) $(SPLUNK_HOME)/bin/splunk restart
 
 .PHONY: docker-tail-python-log
 docker-tail-python-log:
-	docker exec -it $(CONTAINER_NAME) sudo tail $(SPLUNK_HOME)/var/log/splunk/python.log
+	docker exec -u root $(CONTAINER_NAME) sudo tail -n 20 $(SPLUNK_HOME)/var/log/splunk/python.log

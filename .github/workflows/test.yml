@@ -28,6 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           deps-group: test
       - name: Download Splunk MCP Server App
+        continue-on-error: true
         env:
           SPLUNKBASE_USERNAME: ${{ secrets.SPLUNKBASE_USERNAME }}
           SPLUNKBASE_PASSWORD: ${{ secrets.SPLUNKBASE_PASSWORD }}

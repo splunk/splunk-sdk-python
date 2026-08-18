@@ -33,7 +33,7 @@ dependencies = []
 # Treat the same as NPM's `dependencies`
 [project.optional-dependencies]
 compat = ["six>=1.17.0"]
-ai = ["httpx==0.28.1", "langchain>=1.2.18", "mcp>=1.27.1", "pydantic>=2.13.4"]
+ai = ["httpx==0.28.1", "langchain>=1.2.18", "mcp>=1.27.1,<2", "pydantic>=2.13.4"]
 anthropic = ["splunk-sdk[ai]>=3.0.0", "langchain-anthropic>=1.4.3"]
 openai = ["splunk-sdk[ai]>=3.0.0", "langchain-openai>=1.2.1"]
 google = [

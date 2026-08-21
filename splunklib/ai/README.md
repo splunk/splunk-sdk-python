@@ -35,7 +35,7 @@ async with Agent(
 ) as agent:
     result = await agent.invoke([HumanMessage(content="What is your name?")])
 
-    print(result.final_message.content) # My name is Stefan
+    print(result.final_message.content)  # My name is Stefan
 ```
 
 ## Models
@@ -104,7 +104,8 @@ model = GoogleModel(
     api_key="YOUR_GOOGLE_API_KEY",
 )
 
-async with Agent(model=model) as agent: ...
+async with Agent(model=model) as agent:
+    ...
 ```
 
 #### Vertex AI - API key
@@ -122,7 +123,8 @@ model = GoogleModel(
     # location="us-central1",  # optional, defaults to us-central1
 )
 
-async with Agent(model=model) as agent: ...
+async with Agent(model=model) as agent:
+    ...
 ```
 
 #### Vertex AI - service account credentials
@@ -146,7 +148,8 @@ model = GoogleModel(
     # location="us-central1",  # optional, defaults to us-central1
 )
 
-async with Agent(model=model) as agent: ...
+async with Agent(model=model) as agent:
+    ...
 ```
 
 #### Backend selection rules
@@ -228,7 +231,8 @@ async with Agent(
     system_prompt="Your name is Stefan",
     service=service,
     tool_settings=ToolSettings(local=True, remote=None),
-) as agent: ...
+) as agent:
+    ...
 ```
 
 ### Remote tools
@@ -251,7 +255,8 @@ async with Agent(
             allowlist=ToolAllowlist(names=["splunk_get_indexes"], tags=["tag1"])
         )
     ),
-) as agent: ...
+) as agent:
+    ...
 ```
 
 See [Tool filtering](#tool-filtering) for more details.
@@ -274,6 +279,7 @@ from splunklib.ai.registry import ToolRegistry
 
 registry = ToolRegistry()
 
+
 @registry.tool()
 def hello(name: str) -> str:
     """Returns a hello message"""
@@ -295,12 +301,11 @@ async with Agent(
     system_prompt="...",
     tool_settings=ToolSettings(
         # local=True,  # enable all local tools
-        local=LocalToolSettings(
-            allowlist=ToolAllowlist(names=["tool1"], tags=["tag1"])
-        ),
+        local=LocalToolSettings(allowlist=ToolAllowlist(names=["tool1"], tags=["tag1"])),
         remote=None,
     ),
-) as agent: ...
+) as agent:
+    ...
 ```
 
 See [Tool filtering](#tool-filtering) for more details.
@@ -338,6 +343,7 @@ def run_splunk_query(ctx: ToolContext) -> list[str]:
 
     return output
 
+
 if __name__ == "__main__":
     registry.run()
 ```
@@ -349,10 +355,10 @@ if __name__ == "__main__":
 ```py
 from splunklib.ai.registry import ToolContext
 
+
 @registry.tool()
 def tool(ctx: ToolContext) -> None:
     ctx.logger.info("executing tool")
-
 ```
 
 In this example, the `Logger` instance is accessed via `ctx.logger` and used to emit an informational
@@ -366,7 +372,12 @@ Remote tools must be intentionally allowlisted before they are made available to
 
 ```py
 from splunklib.ai import Agent, OpenAIModel
-from splunklib.ai.tool_settings import LocalToolSettings, RemoteToolSettings, ToolAllowlist, ToolSettings
+from splunklib.ai.tool_settings import (
+    LocalToolSettings,
+    RemoteToolSettings,
+    ToolAllowlist,
+    ToolSettings,
+)
 from splunklib.client import connect
 
 model = OpenAIModel(...)
@@ -382,13 +393,14 @@ async with Agent(
             allowlist=ToolAllowlist(names=["tool_name"], tags=["tag1", "tag2"])
         ),
     ),
-) as agent: ...
+) as agent:
+    ...
 ```
 
 A `custom_predicate` can be used for more flexible filtering:
 
 ```py
-tool_settings=ToolSettings(
+tool_settings = ToolSettings(
     local=LocalToolSettings(
         allowlist=ToolAllowlist(custom_predicate=lambda tool: tool.name.startswith("my_"))
     ),
@@ -399,7 +411,7 @@ tool_settings=ToolSettings(
 As a shorthand, pass `local=True` to load all local tools with no filtering:
 
 ```py
-tool_settings=ToolSettings(local=True, remote=None)
+tool_settings = ToolSettings(local=True, remote=None)
 ```
 
 ## Conversation stores
@@ -607,6 +619,7 @@ from pydantic import BaseModel, Field
 model = OpenAIModel(...)
 service = connect(...)
 
+
 class Output(BaseModel):
     service_name: str = Field(
         description="Name of the service or component where the failure occurred",
@@ -621,6 +634,7 @@ class Output(BaseModel):
         description="Concise human-readable summary of what went wrong",
         min_length=1,
     )
+
 
 async with Agent(
     model=model,
@@ -713,21 +727,21 @@ model = OpenAIModel(...)
 service = connect(...)
 
 
-class Input(BaseModel):
-    ...
+class Input(BaseModel): ...
 
-class Output(BaseModel):
-    ...
+
+class Output(BaseModel): ...
+
 
 async with Agent(
-        model=model,
-        service=service,
-        system_prompt="..." ,
-        name="...",
-        description="...",
-        input_schema=Input,
-        output_schema=Output,
-    ) as subagent:
+    model=model,
+    service=service,
+    system_prompt="...",
+    name="...",
+    description="...",
+    input_schema=Input,
+    output_schema=Output,
+) as subagent:
     async with Agent(
         model=model,
         service=service,
@@ -792,9 +806,7 @@ class ExampleMiddleware(AgentMiddleware):
     ) -> ModelResponse:
         return await handler(
             ModelRequest(
-                system_message=request.system_message.replace(
-                    "SECRET", "[REDACTED]"
-                ),
+                system_message=request.system_message.replace("SECRET", "[REDACTED]"),
                 state=request.state,
             )
         )
@@ -812,7 +824,11 @@ class ExampleMiddleware(AgentMiddleware):
         self, request: SubagentRequest, handler: SubagentMiddlewareHandler
     ) -> SubagentResponse:
         if request.call.name == "SummaryAgent":
-            return SubagentResponse(result=SubagentTextResult(content="Executive summary: no critical incidents detected."))
+            return SubagentResponse(
+                result=SubagentTextResult(
+                    content="Executive summary: no critical incidents detected."
+                )
+            )
         return await handler(request)
 ```
 
@@ -849,15 +865,14 @@ from splunklib.ai.middleware import (
     ModelResponse,
 )
 
+
 @model_middleware
 async def redact_system_prompt(
     request: ModelRequest, handler: ModelMiddlewareHandler
 ) -> ModelResponse:
     return await handler(
         ModelRequest(
-            system_message=request.system_message.replace(
-                "SECRET", "[REDACTED]"
-            ),
+            system_message=request.system_message.replace("SECRET", "[REDACTED]"),
             state=request.state,
         )
     )
@@ -875,9 +890,7 @@ from splunklib.ai.middleware import (
 
 
 @tool_middleware
-async def mock_temperature(
-    request: ToolRequest, handler: ToolMiddlewareHandler
-) -> ToolResponse:
+async def mock_temperature(request: ToolRequest, handler: ToolMiddlewareHandler) -> ToolResponse:
     if request.call.name == "temperature":
         return ToolResponse(result=ToolResult(content="25.0", structured_content=None))
     return await handler(request)
@@ -900,7 +913,9 @@ async def mock_subagent(
     request: SubagentRequest, handler: SubagentMiddlewareHandler
 ) -> SubagentResponse:
     if request.call.name == "SummaryAgent":
-        return SubagentResponse(result=SubagentTextResult(content="Executive summary: no critical incidents detected."))
+        return SubagentResponse(
+            result=SubagentTextResult(content="Executive summary: no critical incidents detected.")
+        )
     return await handler(request)
 ```
 
@@ -915,7 +930,8 @@ from splunklib.ai.middleware import (
 )
 
 
-class RetryableToolError(Exception): pass
+class RetryableToolError(Exception):
+    pass
 
 
 @tool_middleware
@@ -941,7 +957,8 @@ async with Agent(
     service=service,
     system_prompt="...",
     middleware=[redact_system_prompt, mock_temperature, mock_subagent],
-) as agent: ...
+) as agent:
+    ...
 ```
 
 ## Hooks
@@ -976,6 +993,7 @@ logger = logging.getLogger(__name__)
 model = OpenAIModel(...)
 service = connect(...)
 
+
 @before_model
 def log_steps(req: ModelRequest) -> None:
     logger.debug(f"Steps: {len(req.state.messages)}")
@@ -986,7 +1004,8 @@ async with Agent(
     service=service,
     system_prompt="...",
     middleware=[log_steps],
-) as agent: ...
+) as agent:
+    ...
 ```
 
 The hooks can stop the Agentic Loop under custom conditions by raising exceptions, for example:
@@ -994,6 +1013,7 @@ The hooks can stop the Agentic Loop under custom conditions by raising exception
 ```py
 from splunklib.ai.hooks import before_model
 from splunklib.ai.middleware import AgentMiddleware, ModelRequest
+
 
 def message_limit(message_limit: int) -> AgentMiddleware:
     @before_model
@@ -1007,7 +1027,8 @@ def message_limit(message_limit: int) -> AgentMiddleware:
 async with Agent(
     ...,
     middleware=[message_limit(message_limit=5)],
-) as agent: ...
+) as agent:
+    ...
 ```
 
 ## Default limits
@@ -1041,7 +1062,8 @@ from splunklib.ai.limits import AgentLimits
 async with Agent(
     ...,
     limits=AgentLimits(max_tokens=50_000),  # overrides default 200 000; other defaults still apply
-) as agent: ...
+) as agent:
+    ...
 ```
 
 To override all defaults:
@@ -1055,7 +1077,8 @@ async with Agent(
         timeout=30.0,
         max_structured_output_retires=0,  # no retries
     ),
-) as agent: ...
+) as agent:
+    ...
 ```
 
 There is no explicit opt-out - the intent is that agents should always have some guardrails.
@@ -1077,11 +1100,12 @@ logger = logging.getLogger("test")
 logger.setLevel(logging.DEBUG)
 
 async with Agent(
-        model=model,
-        service=service,
-        system_prompt="..." ,
-        logger=logger,
-    ) as agent: ...
+    model=model,
+    service=service,
+    system_prompt="...",
+    logger=logger,
+) as agent:
+    ...
 ```
 
 The agent emits logs for events such as: model interactions, tool calls, subagent calls.
@@ -1132,12 +1156,16 @@ separation and can be used directly inside a `HumanMessage`:
 from splunklib.ai import create_structured_prompt
 from splunklib.ai.messages import HumanMessage
 
-result = await agent.invoke([
-    HumanMessage(content=create_structured_prompt(
-        instructions="Summarize this security alert and assess its severity.",
-        data=alert_payload,
-    ))
-])
+result = await agent.invoke(
+    [
+        HumanMessage(
+            content=create_structured_prompt(
+                instructions="Summarize this security alert and assess its severity.",
+                data=alert_payload,
+            )
+        )
+    ]
+)
 ```
 
 For additional opt-in protection, the SDK provides `truncate_input` and `detect_injection`.
@@ -1156,6 +1184,7 @@ from splunklib.ai.middleware import (
 )
 from splunklib.ai.messages import AgentResponse, HumanMessage
 
+
 @agent_middleware
 async def injection_guard(
     request: AgentRequest, handler: AgentMiddlewareHandler
@@ -1164,6 +1193,7 @@ async def injection_guard(
         if isinstance(msg, HumanMessage) and detect_injection(msg.content):
             raise ValueError("Potential prompt injection detected in input.")
     return await handler(request)
+
 
 async with Agent(
     model=model,
@@ -1202,7 +1232,13 @@ When adding custom logging via middleware or hooks, avoid logging message conten
 that may contain sensitive information or PII. Log metadata instead:
 
 ```py
-from splunklib.ai.middleware import tool_middleware, ToolMiddlewareHandler, ToolRequest, ToolResponse
+from splunklib.ai.middleware import (
+    tool_middleware,
+    ToolMiddlewareHandler,
+    ToolRequest,
+    ToolResponse,
+)
+
 
 @tool_middleware
 async def audit_tool_calls(request: ToolRequest, handler: ToolMiddlewareHandler) -> ToolResponse:

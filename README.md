@@ -118,6 +118,7 @@ TODO: Link docs about this
 ```python
 from splunklib.searchcommands import StreamingCommand
 
+
 class MyCommand(StreamingCommand):
     def get_metadata(self):
         # Access instance metadata
@@ -169,6 +170,7 @@ class GeneratorTest(GeneratingCommand):
 ```python
 from splunklib.modularinput import Script
 
+
 class MyScript(Script):
     def stream_events(self, inputs, ew):
         # Access instance metadata
@@ -185,12 +187,12 @@ class MyScript(Script):
 
   ```python
   def stream_events(self, inputs, ew):
-    # [...]
+      # [...]
 
-    # Access the modular input app's metadata (like server_host, server_uri, etc) from `InputDefinition` object
-    server_host = inputs.metadata["server_host"]
-    server_uri = inputs.metadata["server_uri"]
-    checkpoint_dir = inputs.metadata["checkpoint_dir"]
+      # Access the modular input app's metadata (like server_host, server_uri, etc) from `InputDefinition` object
+      server_host = inputs.metadata["server_host"]
+      server_uri = inputs.metadata["server_uri"]
+      checkpoint_dir = inputs.metadata["checkpoint_dir"]
   ```
 
 ### Contributions

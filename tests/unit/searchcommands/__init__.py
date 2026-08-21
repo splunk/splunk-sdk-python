@@ -22,7 +22,7 @@ package_directory = path.dirname(path.realpath(__file__))
 project_root = path.dirname(path.dirname(package_directory))
 
 
-def rebase_environment(name):
+def rebase_environment(name: str) -> None:
     environment.app_root = path.join(package_directory, "apps", name)
     logging.Logger.manager.loggerDict.clear()
     del logging.root.handlers[:]

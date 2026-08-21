@@ -97,6 +97,12 @@ def configure_logging(logger_name, filename=None):
         global _current_logging_configuration_file
         filename = path.realpath(filename)
 
+        app_root_real = path.realpath(app_root)
+        if path.commonpath([filename, app_root_real]) != app_root_real:  # pyright: ignore[reportUnknownArgumentType]
+            raise ValueError(
+                f'Logging configuration file "{filename}" is outside the app directory'
+            )
+
         if filename != _current_logging_configuration_file:
             working_directory = getcwd()
             chdir(app_root)
@@ -114,9 +120,21 @@ def configure_logging(logger_name, filename=None):
 
 _current_logging_configuration_file = None
 
+
+def _find_app_root(app_file: str, splunk_home: str) -> str:
+    """Return the app root directory for a search command script."""
+    splunk_apps_dir = path.join(splunk_home, "etc", "apps")
+    app_relpath = path.relpath(path.abspath(app_file), splunk_apps_dir)
+    app_dir = app_relpath.split(path.sep, 1)[0]
+    if app_dir == path.pardir:  # app_file not in $SPLUNK_HOME/etc/apps
+        return path.dirname(path.abspath(path.dirname(app_file)))
+
+    return path.join(splunk_apps_dir, app_dir)
+
+
 splunk_home = path.abspath(path.join(getcwd(), environ.get("SPLUNK_HOME", "")))
 app_file = getattr(sys.modules["__main__"], "__file__", sys.executable)
-app_root = path.dirname(path.abspath(path.dirname(app_file)))
+app_root = _find_app_root(app_file, splunk_home)
 
 splunklib_logger, logging_configuration = configure_logging("splunklib")
 

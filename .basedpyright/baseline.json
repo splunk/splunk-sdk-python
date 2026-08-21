@@ -42226,32 +42226,6 @@
                 }
             }
         ],
-        "./tests/unit/searchcommands/__init__.py": [
-            {
-                "code": "reportUnknownParameterType",
-                "range": {
-                    "startColumn": 23,
-                    "endColumn": 27,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportMissingParameterType",
-                "range": {
-                    "startColumn": 23,
-                    "endColumn": 27,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnknownArgumentType",
-                "range": {
-                    "startColumn": 64,
-                    "endColumn": 68,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./tests/unit/searchcommands/chunked_data_stream.py": [
             {
                 "code": "reportUnknownParameterType",
@@ -42752,14 +42726,6 @@
         ],
         "./tests/unit/searchcommands/test_builtin_options.py": [
             {
-                "code": "reportUnknownVariableType",
-                "range": {
-                    "startColumn": 57,
-                    "endColumn": 75,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportDeprecated",
                 "range": {
                     "startColumn": 16,
@@ -42960,14 +42926,6 @@
                 "range": {
                     "startColumn": 47,
                     "endColumn": 65,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnknownVariableType",
-                "range": {
-                    "startColumn": 38,
-                    "endColumn": 56,
                     "lineCount": 1
                 }
             },

@@ -24,7 +24,7 @@ import pytest
 from splunklib.searchcommands import environment
 from splunklib.searchcommands.decorators import Configuration
 from splunklib.searchcommands.search_command import SearchCommand
-from tests.unit.searchcommands import package_directory, rebase_environment
+from tests.unit.searchcommands import rebase_environment
 
 
 # portable log level names
@@ -126,7 +126,7 @@ class TestBuiltinOptions(TestCase):
 
         try:
             command.logging_configuration = os.path.join(
-                package_directory, "non-existent.logging.conf"
+                os.path.dirname(os.path.realpath(__file__)), "non-existent.logging.conf"
             )
         except ValueError:
             pass
@@ -134,6 +134,39 @@ class TestBuiltinOptions(TestCase):
             self.fail(f"Expected ValueError, but {type(e)} was raised")
         else:
             self.fail(
+                f"Expected ValueError, but logging_configuration={command.logging_configuration}"
+            )
+
+        inside_app_root_logging_configuration = os.path.join(
+            environment.app_root, "default", "logging.conf"
+        )
+        command.logging_configuration = inside_app_root_logging_configuration
+        assert command.logging_configuration == inside_app_root_logging_configuration, (
+            "logging_configuration should accept an absolute path inside the app directory"
+        )
+
+        try:
+            command.logging_configuration = os.path.realpath(__file__)
+        except ValueError:
+            pass
+        except BaseException as e:
+            pytest.fail(
+                f"Expected ValueError for a path outside the app directory, but {type(e)} was raised"
+            )
+        else:
+            pytest.fail(
+                f"Expected ValueError for a path outside the app directory, but {command.logging_configuration=}"
+            )
+
+        # logging_configuration raises a value error when a relative path traverses outside the app directory (RCE guard)
+        try:
+            command.logging_configuration = os.path.join("..", "..", "..", "__init__.py")
+        except ValueError:
+            pass
+        except BaseException as e:
+            pytest.fail(f"Expected ValueError, but {type(e)} was raised")
+        else:
+            pytest.fail(
                 f"Expected ValueError, but logging_configuration={command.logging_configuration}"
             )
 

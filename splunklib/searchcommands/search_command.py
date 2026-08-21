@@ -1154,7 +1154,7 @@ def dispatch(
 ):
     """Instantiates and executes a search command class
 
-    This function implements a `conditional script stanza <https://docs.python.org/2/library/__main__.html>`_ based on the value of
+    This function implements a `conditional script stanza <https://docs.python.org/3/library/__main__.html>`_ based on the value of
     :code:`module_name`::
 
         if module_name is None or module_name == '__main__':

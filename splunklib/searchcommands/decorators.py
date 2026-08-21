@@ -249,7 +249,7 @@ class Option(property):
     **Example:**
 
     Long form. Useful when you wish to manage the option value and its deleter/getter/setter side-effects yourself. You
-    must provide a getter and a setter. If your :code:`Option` requires `destruction <https://docs.python.org/2/reference/datamodel.html#object.__del__>`_ you must
+    must provide a getter and a setter. If your :code:`Option` requires `destruction <https://docs.python.org/3/reference/datamodel.html#object.__del__>`_ you must
     also provide a deleter. You must be prepared to accept a value of :const:`None` which indicates that your
     :code:`Option` is unset.
 

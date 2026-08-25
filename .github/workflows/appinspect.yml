@@ -2,11 +2,10 @@ name: Validate SDK with Splunk AppInspect
 on:
   push:
     branches: [develop, master]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions: {}
@@ -21,7 +20,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: 3.13
           deps-group: lint
       - name: Run AppInspect
         uses: ./.github/actions/run-appinspect

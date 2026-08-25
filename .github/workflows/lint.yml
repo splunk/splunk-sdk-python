@@ -21,7 +21,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: ${{ matrix.python-version }}
           deps-group: lint
       - name: Verify uv.lock is up-to-date
         run: uv lock --check

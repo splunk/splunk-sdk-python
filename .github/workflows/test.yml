@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.13]
         splunk-version: [latest]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -25,7 +24,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: ${{ matrix.python-version }}
           deps-group: test
       - name: Download Splunk MCP Server App
         continue-on-error: true
@@ -57,8 +55,8 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: .pytest_cache
-          key: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: pytest-cache-${{ runner.os }}-py${{ matrix.python-version }}-${{ github.ref_name }}-
+          key: pytest-cache-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: pytest-cache-${{ runner.os }}-${{ github.ref_name }}-
       - name: Run unit tests
         run: make test-unit
       - name: Run integration/system tests

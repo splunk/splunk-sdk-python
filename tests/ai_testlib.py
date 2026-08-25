@@ -184,7 +184,7 @@ def ai_snapshot_test() -> Callable[
             my_vcr.register_serializer("json-friendly", _JSONFriendlySerializer())
             my_vcr.register_matcher("jsonbody", _json_body_matcher)
 
-            with my_vcr.use_cassette(snapshot_filename):  # pyright: ignore[reportGeneralTypeIssues]
+            with my_vcr.use_cassette(snapshot_filename):
                 await fn(self, *args, **kwargs)
 
         return wrapper

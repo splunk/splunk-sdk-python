@@ -2,10 +2,11 @@ name: Validate SDK with Splunk AppInspect
 on:
   push:
     branches: [develop, master]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions: {}

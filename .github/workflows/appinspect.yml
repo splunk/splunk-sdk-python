@@ -21,7 +21,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: 3.13
           deps-group: lint
       - name: Run AppInspect
         uses: ./.github/actions/run-appinspect

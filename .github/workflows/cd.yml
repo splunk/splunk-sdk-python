@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions: {}
@@ -51,6 +51,7 @@ jobs:
       - name: Build packages for distribution
         run: uv build
       - name: Run AppInspect
+        if: startsWith(github.ref, 'refs/tags/') == true
         uses: ./.github/actions/run-appinspect
       - name: Upload distributables
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

@@ -115,7 +115,7 @@ class JSONResultsReader:
         """Parse results and messages out of *stream*."""
         msg_type = None
         text = None
-        for line in stream.readlines():
+        for line in stream:
             strip_line = line.strip()
             if strip_line.__len__() == 0:
                 continue

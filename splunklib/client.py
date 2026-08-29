@@ -1964,7 +1964,7 @@ class Configurations(Collection):
     def _entity_path(self, state):
         # Overridden to make all the ConfigurationFile objects
         # returned refer to the configs/ path instead of the
-        # properties/ path used by Configrations.
+        # properties/ path used by Configurations.
         return PATH_CONF % state["title"]
 
 

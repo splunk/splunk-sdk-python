@@ -43,7 +43,7 @@ anthropic = ["splunk-sdk[ai]>=3.0.0", "langchain-anthropic>=1.5.6"]
 openai = ["splunk-sdk[ai]>=3.0.0", "langchain-openai>=1.5.1"]
 google = [
   "splunk-sdk[ai]>=3.0.0",
-  "langchain-google-genai==4.3.4",
+  "langchain-google-genai==4.3.5",
   "google-auth>=2.56.3",
 ]
 

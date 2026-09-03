@@ -8,7 +8,7 @@ issues = "https://github.com/splunk/splunk-sdk-python/issues"
 
 [project]
 name = "splunk-sdk"
-version = "3.0.1a0"
+version = "3.0.1"
 description = "Splunk Software Development Kit for Python"
 readme = "README.md"
 requires-python = ">=3.13"

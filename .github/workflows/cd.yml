@@ -26,10 +26,9 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
-          python-version: 3.13
           deps-group: release
       - name: Set pre-release version
-        if: startsWith(github.ref, 'refs/tags/') != true
+        if: startsWith(github.ref, 'refs/tags/') == false
         env:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
@@ -41,7 +40,8 @@ jobs:
           VERSION_TAG: ${{ github.event.release.tag_name }}
         run: |
           [[ ${VERSION_TAG} != $(uv version --short) ]] && {
-            printf "Git tag should be identical to version field in pyproject.toml"
+            printf "To prevent pre-releases being versioned incorrectly, \
+          target package version needs to be set in pyproject.toml first.\n"
             exit 1
           }
           uv version "${VERSION_TAG}"

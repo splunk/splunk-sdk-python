@@ -5,6 +5,8 @@
 - Core SDK code lives in `splunklib/` (client bindings, search commands, modular input helpers). Keep new modules close to their domain peers (e.g., searchcommand utilities under `splunklib/searchcommands`).
 - `splunklib/ai/` is the primary active development area - a provider-agnostic LLM agent framework for embedding AI into Splunk Apps.
 - Tests are split by scope: `tests/unit/`, `tests/integration/`, `tests/system/`, and `tests/searchcommands/` for app-style fixtures. Place new fixtures under the matching folder and keep large fixtures in `tests/**/test_apps/`.
+- See `splunklib/ai/README.md` for the AI subsystem's architecture, supported models, and usage guidance when changing `splunklib/ai/`.
+- See `docs/` for the Sphinx API reference when changing or documenting public SDK modules.
 
 ## Package Manager
 
@@ -16,16 +18,16 @@ make install
 
 If you manually edit `pyproject.toml` to add/remove/update dependencies, run `make install` afterwards to update `uv.lock`.
 
-The `Makefile` wraps `uv` commands - prefer `make` targets over invoking `uv` directly where a target exists.
+The `Makefile` wraps `uv` commands - see `./Makefile` for available targets, and prefer `make` targets over invoking `uv` directly where a target exists.
 
 ## Build, Test, and Development Commands
 
-See the `Makefile` for all available targets. Common ones:
+See `./Makefile` for all available targets. Common ones:
 
 - `make install` - set up / update virtualenv
 - `make test` - run the full pytest suite.
-- `make test-unit` - unit tests only; fastest feedback loop.
-- `make test-integration` - integration + system coverage; requires Splunk services available (see docker targets).
+- `make test-unit` - unit tests only; fastest feedback loop. See `tests/unit/` for unit-test cases when adding or updating unit tests.
+- `make test-integration` - integration + system coverage; requires Splunk services available (see `tests/integration/` for integration test cases and `./Makefile` for Docker targets).
 - `make test-ai` - AI subsystem tests only.
 - `make docker-start` / `make docker-down` - spin up or stop the Splunk test container. Make sure the instance is live before running integration tests.
 

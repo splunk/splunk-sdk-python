@@ -79,7 +79,7 @@ class KVStoreDataTestCase(testlib.SDKTestCase):
         )
         for x in range(50):
             self.col.insert(json.dumps({"_key": str(x), "data": str(x), "ignore": x}))
-        data = self.col.query(sort="data:-1", limit=20, fields="data,_id:0", skip=10)
+        data = self.col.query(sort="data:-1", limit=20, fields="data", skip=10)
         self.assertEqual(len(data), 20)
         for x in range(20):
             self.assertEqual(data[x]["data"], 39 - x)

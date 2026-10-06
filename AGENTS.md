@@ -62,3 +62,10 @@ New code must not introduce regressions in tests.
 
 Be concise and direct in your responses.
 Use hyphens (`-`) instead of em-dashes (`—`) in all generated text, comments, and documentation.
+
+## Dead code
+
+- SDK does not rely on any dead code detection, since this SDK is held to a backwards-compatibility contract:
+  public API surface (classes, functions, methods) can appear unused within this repo while still being consumed
+  by external callers. Do not remove code solely because it looks unreferenced internally - check whether it's
+  part of the public API first.

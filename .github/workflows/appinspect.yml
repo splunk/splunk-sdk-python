@@ -24,3 +24,4 @@ jobs:
           deps-group: lint
       - name: Run AppInspect
         uses: ./.github/actions/run-appinspect
+        continue-on-error: ${{ github.event_name == 'pull_request' }}

@@ -72,7 +72,8 @@ docs-zip: docs
 # -ra prints a report on all failed tests after a run
 # -vv shows why a test failed while the rest of the suite is running
 PYTHON_CMD := uv run python
-PYTEST_CMD := $(PYTHON_CMD) -m pytest --no-header --ff -ra -vv
+COV_ARGS := --cov=splunklib --cov-report=term-missing --cov-append
+PYTEST_CMD := $(PYTHON_CMD) -m pytest --no-header --ff -ra -vv $(COV_ARGS)
 
 .PHONY: test
 test:
@@ -89,6 +90,10 @@ test-integration:
 .PHONY: test-ai
 test-ai:
 	$(PYTEST_CMD) ./tests/integration/ai ./tests/unit/ai
+
+.PHONY: coverage-report
+coverage-report:
+	$(UV_RUN_CMD) coverage report
 
 ## DOCKER
 

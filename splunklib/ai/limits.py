@@ -41,7 +41,7 @@ class AgentLimits:
     Raises `TokenLimitExceededException` when exceeded.
     """
 
-    max_structured_output_retires: int | None = DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT
+    max_structured_output_retries: int | None = DEFAULT_STRUCTURED_OUTPUT_RETRY_LIMIT
     """Maximum number of structured output generation retries allowed
     within a single `invoke` call.
     Raises `StructuredOutputRetryLimitExceededException` when exceeded.

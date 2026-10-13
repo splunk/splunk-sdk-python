@@ -971,7 +971,7 @@ class TestStructuredOutput(AITestCase):
                     system_prompt="Respond with structured data",
                     output_schema=Person,
                     service=self.service,
-                    limits=AgentLimits(max_structured_output_retires=limit),
+                    limits=AgentLimits(max_structured_output_retries=limit),
                     middleware=[
                         _model_middleware,
                     ],

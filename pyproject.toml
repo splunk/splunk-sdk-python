@@ -115,6 +115,7 @@ select = [
   "E",   # pycodestyle
   "F",   # pyflakes
   "I",   # isort
+  "N",   # pep8-naming
   "PT",  # flake-8-pytest-rules
   "RUF", # ruff-specific rules
   "SIM", # flake8-simplify
@@ -126,6 +127,78 @@ ignore = [
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
+
+[tool.ruff.lint.pep8-naming]
+# Grandfathered legacy names (mostly public API kept for backwards compatibility).
+# Remove entries as names get fixed; do not add new ones without approval.
+extend-ignore-names = [
+  "_buildInternalAIModel",
+  "_InvalidMessagesException",
+  "AGENT_NAME_ALLOWED_CHARS",
+  "AgentStopException",
+  "AmbiguousReferenceException",
+  "appName",
+  "appPath",
+  "assertEventuallyTrue",
+  "assertIsNotNone",
+  "assertRegex",
+  "authType",
+  "checkFilePermissions",
+  "cleanMacros",
+  "cleanUsers",
+  "collectionName",
+  "ElementTree",
+  "eventCount",
+  "expectedDefinition",
+  "handle_DELETE",
+  "handle_GET",
+  "handle_PATCH",
+  "handle_POST",
+  "handle_PUT",
+  "Handler",
+  "IllegalOperationException",
+  "IncomparableException",
+  "INDEX_NAME",
+  "InputSchema",
+  "installedApps",
+  "InvalidNameException",
+  "LOG_FILE",
+  "LOG_PATH",
+  "N",
+  "newContext",
+  "NoSuchCapability",
+  "pathComponents",
+  "pathInApp",
+  "record",
+  "retryDelay",
+  "server",
+  "setupInfo",
+  "SPLUNK_HOME",
+  "splunkHome",
+  "StructuredOutputGenerationException",
+  "tcpKind",
+  "tcpName",
+  "test_3rdPartyInsertedCookiePersistence",
+  "test_cannot_create_with_restrictToHost_in_name",
+  "test_create_tcp_ports_with_restrictToHost",
+  "test_DELETE",
+  "test_filePermissions",
+  "test_GET",
+  "test_input_ToolContext",
+  "test_no_str_body_GET",
+  "test_PATCH",
+  "test_POST",
+  "test_PUT",
+  "test_update_restrictToHost_fails",
+  "test_updateInfo",
+  "testData",
+  "ToolException",
+  "totalEventCount",
+  "udpKind",
+  "udpName",
+  "updateInfo",
+  "versionSearch",
+]
 
 [tool.ruff.format]
 docstring-code-format = true

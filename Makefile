@@ -26,6 +26,10 @@ SDK_DEPS_GROUP ?= dev
 ci-install:
 	$(UV_SYNC_CMD) --frozen --group $(SDK_DEPS_GROUP)
 
+.PHONY: build
+build:
+	uv build --no-config
+
 .PHONY: lint
 lint: lint-python lint-gh-actions lint-makefile
 
@@ -33,16 +37,19 @@ lint: lint-python lint-gh-actions lint-makefile
 lint-gh-actions:
 	$(ZIZMOR_CMD) ./.github
 
+# --fix-only never fails on unfixable violations, so rules that must be enforced
+# get a separate strict `ruff check --select` pass.
 .PHONY: lint-python
 lint-python:
 	$(UV_RUN_CMD) ruff check --fix-only $(if $(CI),--exit-non-zero-on-fix)
+	$(UV_RUN_CMD) ruff check --select N
 	$(UV_RUN_CMD) ruff format $(if $(CI),--check)
 	$(UV_RUN_CMD) basedpyright
 
 .PHONY: lint-makefile
 lint-makefile:
 	$(UV_RUN_CMD) mbake format --config ./.bake.toml $(if $(CI),--check) Makefile
-	$(if $(CI),$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile)
+	$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile
 
 .PHONY: clean
 clean:

@@ -202,7 +202,7 @@ If you would like to contribute to the SDK, see [Contributing to Splunk](https:/
 
 ### Setting up a development environment
 
-Make sure you have `uv` and `docker`/`podman` installed and available in your `$PATH`. Run `make uv-sync` to get a virtualenv set up or updated. After activating it with `source .venv/bin/activate` you should be ready to go!
+Make sure you have `uv` and `docker`/`podman` installed and available in your `$PATH`. Run `make install` to get a virtualenv set up or updated. After activating it with `source .venv/bin/activate` you should be ready to go!
 
 #### Creating an `.env` file
 

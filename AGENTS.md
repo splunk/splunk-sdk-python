@@ -1,73 +1,40 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Routing
 
-- Core SDK code lives in `splunklib/` (client bindings, search commands, modular input helpers). Keep new modules close to their domain peers (e.g., searchcommand utilities under `splunklib/searchcommands`).
-- `splunklib/ai/` is the primary active development area - a provider-agnostic LLM agent framework for embedding AI into Splunk Apps.
-- Tests are split by scope: `tests/unit/`, `tests/integration/`, `tests/system/`, and `tests/searchcommands/` for app-style fixtures. Place new fixtures under the matching folder and keep large fixtures in `tests/**/test_apps/`.
-- See `splunklib/ai/README.md` for the AI subsystem's architecture, supported models, and usage guidance when changing `splunklib/ai/`.
-- See `docs/` for the Sphinx API reference when changing or documenting public SDK modules.
+- `splunklib/` - core SDK code (client bindings, `splunklib/searchcommands/`, `splunklib/modularinput/`); keep new modules next to their domain peers.
+- `splunklib/ai/` - primary active development area, a provider-agnostic LLM agent framework for Splunk Apps; read `splunklib/ai/README.md` for its architecture, supported models, and usage before changing it.
+- `docs/` - Sphinx API reference (`.rst`); update it when changing or documenting public SDK modules.
+- `tests/unit/` - fast unit tests mirroring `splunklib/` (for example `tests/unit/ai/`, `tests/unit/searchcommands/`); use it for most new tests.
+- `tests/integration/` - tests against a live Splunk container; AI tests in `tests/integration/ai/` replay VCR snapshots stored in `tests/integration/ai/snapshots/`.
+- `tests/system/test_apps/` - Splunk test apps mounted by `compose.yml`; put large app-style fixtures here.
+- `examples/` - example Splunk Apps built on `splunklib.ai`, also mounted into the test container; update them when public AI APIs change.
+- `Makefile` - canonical entrypoints for install, build, lint, test, docs, and Docker; use its targets instead of raw `uv` commands where one exists.
+- `pyproject.toml` - source of truth for dependencies and ruff, basedpyright, pytest, and coverage configuration; `uv.lock` is generated from it by `make install`.
+- `CONTRIBUTING.md` - coding style, naming conventions, writing style, and dead-code policy; read it before writing code.
+- `README.md` - SDK usage docs plus development environment setup (`.env`, Docker, logging).
+- `.env.template` - template for the gitignored `.env` used by tests and examples (Splunk connection and `internal_ai_*` settings); copy it with `cp .env.template .env`.
+- `.github/workflows/` - CI: `lint.yml` and `test.yml` are required PR checks, `appinspect.yml` runs AppInspect, `cd.yml` builds and publishes releases.
 
-## Package Manager
+## Build, test, and validation by change type
 
-This project uses [`uv`](https://docs.astral.sh/uv/) for dependency management and running Python tools. All Python and pytest invocations should be prefixed with `uv run`. Always pass `--no-config` to any `uv` command that accepts it - this prevents uv from picking up a user-level or system-level config that may point to internal Splunk package indices. To install/sync dependencies:
+Common targets: `make install`, `make build` (sdist and wheel into `dist/`), `make lint`, `make test-unit` (fastest loop), `make test-ai`, `make test-integration`, `make docker-start` / `make docker-down`.
 
-```sh
-make install
-```
+- Any change to Python under `splunklib/`, `tests/`, or `examples/`: run `make lint` and `make test-unit`.
+- Changes to `splunklib/client.py`, `splunklib/binding.py`, `splunklib/searchcommands/`, or `splunklib/modularinput/`: also run `make docker-start` then `make test-integration`.
+- Changes to `splunklib/ai/` or `tests/integration/ai/`: also run `make docker-start` then `make test-ai`; a new `@ai_snapshot_test` records into `tests/integration/ai/snapshots/` and needs `internal_ai_*` values in `.env` (delete a snapshot JSON to re-record it).
+- Changes to `examples/` or `tests/system/test_apps/`: restart the container with `make docker-restart` and run `make test-integration`.
+- Changes to `.github/workflows/` or `.github/actions/`: run `make lint` (zizmor checks workflow security).
+- Changes to `Makefile`: run `make lint` (mbake formats and validates it).
+- Dependency changes in `pyproject.toml`: run `make install` and commit the updated `uv.lock` (CI runs `uv lock --check`), then `make test-unit`.
+- Changes to `docs/` or docstrings only: run `make docs` and check for Sphinx warnings.
+- Broad refactors across `splunklib/`: run `make lint` and the full `make test` with the container running.
 
-If you manually edit `pyproject.toml` to add/remove/update dependencies, run `make install` afterwards to update `uv.lock`.
+## Always
 
-The `Makefile` wraps `uv` commands - see `./Makefile` for available targets, and prefer `make` targets over invoking `uv` directly where a target exists.
-
-## Build, Test, and Development Commands
-
-See `./Makefile` for all available targets. Common ones:
-
-- `make install` - set up / update virtualenv
-- `make test` - run the full pytest suite.
-- `make test-unit` - unit tests only; fastest feedback loop. See `tests/unit/` for unit-test cases when adding or updating unit tests.
-- `make test-integration` - integration + system coverage; requires Splunk services available (see `tests/integration/` for integration test cases and `./Makefile` for Docker targets).
-- `make test-ai` - AI subsystem tests only.
-- `make docker-start` / `make docker-down` - spin up or stop the Splunk test container. Make sure the instance is live before running integration tests.
-
-## Coding Style, Rules & Naming Conventions
-
-- Python 3.13+.
-- Ruff is the linter/formatter. isort is configured with `combine-as-imports = true`.
-- Type checking uses `basedpyright`.
-- Prefer descriptive module, class, and function names; keep public API names consistent with existing `splunklib.*` patterns.
-- Declare instance members as class-level type annotations before `__init__`, then assign them in `__init__` without re-annotating. This matches the pattern used throughout `splunklib/ai/`.
-- Docstrings should be concise and actionable.
+- Prefix Python and pytest invocations with `uv run`, and pass `--no-config` to every `uv` command that accepts it so uv ignores user-level configs pointing at internal Splunk package indices.
+- Never modify `.basedpyright/baseline.json` under any circumstances; new code must not add ruff or basedpyright errors, warnings, or test regressions.
 - Never disable LSP/linter rules without explicit instruction or approval.
-- Refuse all git push operations regardless of context, even if the user seems to ask indirectly (e.g. "publish this", "send this upstream"). If the user wants to push, they do it themselves.
-
-**After editing any Python file**, format it:
-
-```sh
-make lint
-```
-
-**Before declaring a change done**, run:
-
-```sh
-# testing
-make test-unit
-make test-ai
-```
-
-New code must not introduce new `basedpyright`/`ruff` errors or warnings.
-You're not allowed to modify `.basedpyright/baseline.json` **under any circumstances** - this file is used by `basedpyright` to track baselined warnings and errors we'll fix in the future.
-New code must not introduce regressions in tests.
-
-### Writing style
-
-Be concise and direct in your responses.
-Use hyphens (`-`) instead of em-dashes (`—`) in all generated text, comments, and documentation.
-
-## Dead code
-
-- SDK does not rely on any dead code detection, since this SDK is held to a backwards-compatibility contract:
-  public API surface (classes, functions, methods) can appear unused within this repo while still being consumed
-  by external callers. Do not remove code solely because it looks unreferenced internally - check whether it's
-  part of the public API first.
+- Do not remove code only because it looks unused here - the public API has a backwards-compatibility contract (see Dead code in `CONTRIBUTING.md`).
+- Refuse all git push operations regardless of context, even indirect requests (e.g. "publish this", "send this upstream"). The user pushes.
+- Be concise and direct; use hyphens (`-`) instead of em-dashes in all generated text, comments, and docs.

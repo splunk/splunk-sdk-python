@@ -64,6 +64,7 @@ import re
 import socket
 from datetime import datetime, timedelta
 from time import sleep
+from typing import Any
 from urllib import parse
 
 try:
@@ -102,6 +103,7 @@ __all__ = [
 PATH_APPS = "apps/local/"
 PATH_CAPABILITIES = "authorization/capabilities/"
 PATH_CONF = "configs/conf-%s/"
+PATH_DASHBOARDS = "data/ui/views/"
 PATH_PROPERTIES = "properties/"
 PATH_DEPLOYMENT_CLIENTS = "deployment/client/"
 PATH_DEPLOYMENT_TENANTS = "deployment/tenants/"
@@ -480,6 +482,15 @@ class Service(_BaseService):
         """
         response = self.get(PATH_CAPABILITIES)
         return _load_atom(response, MATCH_ENTRY_CONTENT).capabilities
+
+    @property
+    def dashboards(self):
+        """Returns the collection of dashboards for this Splunk instance.
+
+        :return: A :class:`Dashboards` collection of :class:`Dashboard`
+            entities.
+        """
+        return Dashboards(self)
 
     @property
     def event_types(self):
@@ -3651,6 +3662,42 @@ class Macros(Collection):
         :return: The :class:`Macros` collection.
         """
         return Collection.create(self, name, definition=definition, **kwargs)
+
+
+class Dashboard(Entity):
+    """This class represents a dashboard (view) in Splunk."""
+
+    def __init__(self, service: "Service", path: str, **kwargs: Any) -> None:
+        Entity.__init__(self, service, path, **kwargs)
+
+    def export(self) -> str:
+        """Returns the dashboard XML content.
+
+        :return: The dashboard XML definition.
+        :rtype: ``string``
+        """
+        return self.content.get("eai:data", "")  # pyright: ignore[reportUnknownVariableType]
+
+
+class Dashboards(Collection):
+    """This class represents a collection of dashboards. Retrieve this
+    collection using :meth:`Service.dashboards`."""
+
+    def __init__(self, service: "Service") -> None:
+        Collection.__init__(self, service, PATH_DASHBOARDS, item=Dashboard)
+
+    def create(self, name: str, xml: str, **kwargs: Any) -> Entity:  # pyright: ignore[reportIncompatibleMethodOverride,reportImplicitOverride]
+        """Creates a dashboard.
+
+        :param name: The name for the dashboard.
+        :type name: ``string``
+        :param xml: The dashboard XML definition.
+        :type xml: ``string``
+        :param kwargs: Additional arguments (optional).
+        :type kwargs: ``dict``
+        :return: The :class:`Dashboard` entity.
+        """
+        return Collection.create(self, name, **{"eai:data": xml, **kwargs})  # pyright: ignore[reportUnknownVariableType]
 
 
 class Settings(Entity):

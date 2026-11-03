@@ -64,6 +64,7 @@ import re
 import socket
 from datetime import datetime, timedelta
 from time import sleep
+from typing import Any
 from urllib import parse
 
 try:
@@ -124,6 +125,7 @@ PATH_USERS = "authentication/users/"
 PATH_RECEIVERS_STREAM = "/services/receivers/stream"
 PATH_RECEIVERS_SIMPLE = "/services/receivers/simple"
 PATH_STORAGE_PASSWORDS = "storage/passwords"
+PATH_LOOKUP_TABLE_FILES = "data/lookup-table-files/"
 
 XNAMEF_ATOM = "{http://www.w3.org/2005/Atom}%s"
 XNAME_ENTRY = XNAMEF_ATOM % "entry"
@@ -553,6 +555,14 @@ class Service(_BaseService):
         :return: A :class:`Loggers` collection of logging levels.
         """
         return Loggers(self)
+
+    @property
+    def lookup_table_files(self):
+        """Returns the collection of lookup table files.
+
+        :return: A :class:`LookupTableFiles` collection of :class:`LookupTableFile` entities.
+        """
+        return LookupTableFiles(self)
 
     @property
     def messages(self):
@@ -3879,6 +3889,36 @@ class Roles(Collection):
         :rtype: The :class:`Roles`
         """
         return Collection.delete(self, name.lower())
+
+
+class LookupTableFile(Entity):
+    """Represents a lookup table CSV file."""
+
+    def __init__(self, service: "Service", path: str, **kwargs: Any) -> None:
+        Entity.__init__(self, service, path, **kwargs)
+
+    def download(self) -> Any:
+        """Downloads the lookup file contents via ``| inputlookup``.
+
+        Runs a oneshot search to retrieve the CSV data for this lookup.
+
+        :return: A streaming response handle with the CSV content.
+        :rtype: ``InputStream``
+        """
+        return self.service.jobs.oneshot(  # pyright: ignore[reportUnknownVariableType]
+            f"| inputlookup {self.name}",
+            output_mode="csv",
+        )
+
+
+class LookupTableFiles(Collection):
+    """Provides access to the collection of lookup table files.
+
+    Retrieve this collection using :meth:`Service.lookup_table_files`.
+    """
+
+    def __init__(self, service: "Service") -> None:
+        Collection.__init__(self, service, PATH_LOOKUP_TABLE_FILES, item=LookupTableFile)
 
 
 class Application(Entity):

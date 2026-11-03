@@ -61,6 +61,7 @@ class TestAgenticApp(AITestCase):
     # if it is not .tgz, then you must change it to .tgz.
     #
     # Our CI does this automatically.
+    @pytest.mark.skip("TODO: Unskip after reaching compat witch MCP Server App 2.1.0")
     def test_agentic_app_with_remote_tools(self) -> None:
         pytest.importorskip("langchain_openai")
         self.requires_splunk_10_2()

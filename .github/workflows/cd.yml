@@ -54,14 +54,14 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') == true
         uses: ./.github/actions/run-appinspect
       - name: Upload distributables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: splunk-sdk-${{ steps.get-version.outputs.version }}
           path: dist/
       - name: Generate API reference
         run: make docs-zip
       - name: Upload docs artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: python-sdk-docs
           path: docs/_build/splunk-sdk-python-docs.zip
@@ -78,12 +78,12 @@ jobs:
       url: https://test.pypi.org/project/splunk-sdk/
     steps:
       - name: Download distributables
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
           path: dist/
       - name: Publish packages to Test PyPI
-        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
           repository-url: https://test.pypi.org/legacy/
 
@@ -99,11 +99,11 @@ jobs:
       url: https://pypi.org/project/splunk-sdk/
     steps:
       - name: Download distributables
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: splunk-sdk-${{ needs.build-distributables.outputs.version }}
           path: dist/
       - name: Publish packages to PyPI
-        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
           repository-url: https://upload.pypi.org/legacy/

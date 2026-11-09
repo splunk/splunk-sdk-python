@@ -3770,14 +3770,6 @@
                 }
             },
             {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 55,
-                    "endColumn": 78,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownArgumentType",
                 "range": {
                     "startColumn": 42,

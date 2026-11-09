@@ -1751,11 +1751,17 @@ def handler(key_file=None, cert_file=None, timeout=None, verify=False, context=N
                 # with patched python that includes set_groups on 3.9 and 3.13, thus we
                 # check for the existence of set_groups, not the python version.
                 if hasattr(ctx, "set_groups"):
-                    ctx.set_groups(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
-                        "X25519MLKEM768:SecP256r1MLKEM768:SecP384r1MLKEM1024:"
-                        + "MLKEM512:MLKEM768:MLKEM1024:"
-                        + "X25519:secp256r1:X448:secp384r1:secp521r1:ffdhe2048:ffdhe3072"
-                    )
+                    try:
+                        ctx.set_groups(  # pyright: ignore[reportAttributeAccessIssue]
+                            "X25519MLKEM768:SecP256r1MLKEM768:SecP384r1MLKEM1024:"
+                            + "MLKEM512:MLKEM768:MLKEM1024:"
+                            + "X25519:secp256r1:X448:secp384r1:secp521r1:ffdhe2048:ffdhe3072"
+                        )
+                    except ssl.SSLError:
+                        # FIPS providers (and OpenSSL builds without ML-KEM) reject the
+                        # ML-KEM group names — fall back to the default groups rather
+                        # than failing every connection.
+                        pass
                 kwargs["context"] = ctx
             elif context:
                 # verify is True in elif branch and context is not None

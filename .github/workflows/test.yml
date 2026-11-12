@@ -1,5 +1,7 @@
 name: Python SDK CI
 on:
+  schedule:
+    - cron: "0 0 * * 0"
   push:
     branches: [develop, master]
   pull_request:
@@ -19,12 +21,15 @@ jobs:
       matrix:
         splunk-version: [latest]
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-sdk-environment
         with:
           deps-group: test
+      - name: (weekly deps check) Upgrade dependencies to latest
+        if: github.event_name == 'schedule'
+        run: uv sync --no-config --upgrade --group test
       - name: Download Splunk MCP Server App
         continue-on-error: true
         env:
@@ -52,7 +57,7 @@ jobs:
           echo "internal_ai_base_url=$INTERNAL_AI_BASE_URL" >> .env
       - name: Restore pytest cache
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .pytest_cache
           key: pytest-cache-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}

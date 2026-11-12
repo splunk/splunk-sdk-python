@@ -10,14 +10,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
+    - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       with:
-        version: 0.11.6
         python-version: 3.13
         activate-environment: true
         enable-cache: true
         cache-python: true
-    - name: Install dependencies from the ${{ inputs.deps-group }} group
+    - name: Install dependencies from ${{ inputs.deps-group }} deps group
       env:
         SDK_DEPS_GROUP: ${{ inputs.deps-group }}
       shell: bash

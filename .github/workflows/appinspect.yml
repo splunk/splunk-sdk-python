@@ -16,12 +16,12 @@ jobs:
     name: Run AppInspect
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup-sdk-environment
+      - uses: $/.github/actions/setup-sdk-environment
         with:
           deps-group: lint
       - name: Run AppInspect
-        uses: ./.github/actions/run-appinspect
+        uses: $/.github/actions/run-appinspect
         continue-on-error: ${{ github.event_name == 'pull_request' }}

@@ -64,6 +64,7 @@ import re
 import socket
 from datetime import datetime, timedelta
 from time import sleep
+from typing import Any
 from urllib import parse
 
 try:
@@ -109,6 +110,7 @@ PATH_DEPLOYMENT_SERVERS = "deployment/server/"
 PATH_DEPLOYMENT_SERVERCLASSES = "deployment/serverclass/"
 PATH_EVENT_TYPES = "saved/eventtypes/"
 PATH_FIRED_ALERTS = "alerts/fired_alerts/"
+PATH_HEC_TOKENS = "data/inputs/http/"
 PATH_INDEXES = "data/indexes/"
 PATH_INPUTS = "data/inputs/"
 PATH_JOBS = "search/jobs/"
@@ -497,6 +499,14 @@ class Service(_BaseService):
         :return: A :class:`Collection` of :class:`AlertGroup` entities.
         """
         return Collection(self, PATH_FIRED_ALERTS, item=AlertGroup)
+
+    @property
+    def hec_tokens(self):
+        """Returns the collection of HTTP Event Collector tokens.
+
+        :return: A :class:`HECTokens` collection of :class:`HECToken` entities.
+        """
+        return HECTokens(self)
 
     @property
     def indexes(self):
@@ -2124,6 +2134,39 @@ class AlertGroup(Entity):
         :rtype: ``integer``
         """
         return int(self.content.get("triggered_alert_count", 0))
+
+
+class HECToken(Entity):
+    """This class represents an HTTP Event Collector token."""
+
+    def __init__(self, service: "Service", path: str, **kwargs: Any) -> None:
+        Entity.__init__(self, service, path, **kwargs)
+
+    def disable(self) -> "HECToken":  # pyright: ignore[reportImplicitOverride]
+        """Disables this HEC token.
+
+        :return: The :class:`HECToken`.
+        """
+        self.post(disabled="1")
+        self.refresh()
+        return self
+
+    def enable(self) -> "HECToken":  # pyright: ignore[reportImplicitOverride]
+        """Enables this HEC token.
+
+        :return: The :class:`HECToken`.
+        """
+        self.post(disabled="0")
+        self.refresh()
+        return self
+
+
+class HECTokens(Collection):
+    """This class represents a collection of HTTP Event Collector tokens.
+    Retrieve this collection using :meth:`Service.hec_tokens`."""
+
+    def __init__(self, service: "Service") -> None:
+        Collection.__init__(self, service, PATH_HEC_TOKENS, item=HECToken)
 
 
 class Indexes(Collection):

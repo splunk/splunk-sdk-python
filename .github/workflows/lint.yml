@@ -26,3 +26,6 @@ jobs:
         run: uv lock --check
       - name: Verify files are linted and formatted
         run: make lint
+        env:
+          # Needed for `gh actions-lock --verify`
+          GH_TOKEN: ${{ github.token }}

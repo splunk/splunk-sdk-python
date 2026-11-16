@@ -1,0 +1,5 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        astral-sh/setup-uv: ref-pin

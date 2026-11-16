@@ -29,7 +29,7 @@ jobs:
           deps-group: test
       - name: (weekly deps check) Upgrade dependencies to latest
         if: github.event_name == 'schedule'
-        run: uv sync --no-config --upgrade --group test
+        run: make upgrade
       - name: Download Splunk MCP Server App
         continue-on-error: true
         env:

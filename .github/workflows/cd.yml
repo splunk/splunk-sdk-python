@@ -15,7 +15,8 @@ permissions: {}
 jobs:
   build-distributables:
     name: Build release distributables
-    # Why building is separate from publishing:
+    # We separate building from publishing, as poisoned build deps could
+    # take advantage of escalated privileges during publishing, more info:
     # https://github.com/pypa/gh-action-pypi-publish/issues/217#issuecomment-1965727093
     runs-on: ubuntu-latest
     outputs:

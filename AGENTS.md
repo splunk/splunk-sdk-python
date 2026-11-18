@@ -25,6 +25,7 @@ Common targets: `make install`, `make build` (sdist and wheel into `dist/`), `ma
 - Changes to `splunklib/ai/` or `tests/integration/ai/`: also run `make docker-start` then `make test-ai`; a new `@ai_snapshot_test` records into `tests/integration/ai/snapshots/` and needs `internal_ai_*` values in `.env` (delete a snapshot JSON to re-record it).
 - Changes to `examples/` or `tests/system/test_apps/`: restart the container with `make docker-restart` and run `make test-integration`.
 - Changes to `.github/workflows/` or `.github/actions/`: run `make lint` (zizmor checks workflow security).
+  - [`$/` is a valid GitHub shorthand for repo root.](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#example-using-an-action-in-the-same-repository-as-the-workflow-at-the-running-commit-recommended)
 - Changes to `Makefile`: run `make lint` (mbake formats and validates it).
 - Dependency changes in `pyproject.toml`: run `make install` and commit the updated `uv.lock` (CI runs `uv lock --check`), then `make test-unit`.
 - Changes to `docs/` or docstrings only: run `make docs` and check for Sphinx warnings.

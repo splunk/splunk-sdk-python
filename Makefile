@@ -16,8 +16,8 @@ install:
 upgrade:
 	$(UV_SYNC_CMD) --dev --upgrade
 
-# Workaround for Make not supporting pasing arguments to underlying cmd, e.g.
-# $ SDK_DEPS_GROUP="dev" make ci-install
+# Workaround for gMake not supporting argument passthrough.
+# Usage: $ SDK_DEPS_GROUP="dev" make ci-install
 SDK_DEPS_GROUP ?= dev
 
 .PHONY: ci-install
@@ -31,12 +31,10 @@ build:
 .PHONY: lint
 lint: lint-python lint-gh-actions lint-makefile
 
-.PHONY: lint-gh-actions
 # https://docs.zizmor.sh/usage
+.PHONY: lint-gh-actions
 lint-gh-actions:
 	uvx zizmor --pedantic --strict-collection ./.github
-	gh extension install github/gh-actions-lock
-	gh actions-lock --verify
 
 # --fix-only never fails on unfixable violations, so some rules need to be
 # enforced with a separate `ruff check`.

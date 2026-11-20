@@ -2182,15 +2182,15 @@ requires-dist = [
     { name = "google-auth", marker = "extra == 'google'", specifier = ">=2.62.2" },
     { name = "httpx", marker = "extra == 'ai'", specifier = ">=0.28.1" },
     { name = "langchain", marker = "extra == 'ai'", specifier = ">=1.5.2" },
-    { name = "langchain-anthropic", marker = "extra == 'anthropic'", specifier = ">=1.7.11" },
-    { name = "langchain-google-genai", marker = "extra == 'google'", specifier = ">=4.5.1" },
-    { name = "langchain-openai", marker = "extra == 'openai'", specifier = ">=1.8.3" },
+    { name = "langchain-anthropic", marker = "extra == 'anthropic'", specifier = ">=1.7.12" },
+    { name = "langchain-google-genai", marker = "extra == 'google'", specifier = ">=4.5.2" },
+    { name = "langchain-openai", marker = "extra == 'openai'", specifier = ">=1.8.5" },
     { name = "mcp", marker = "extra == 'ai'", specifier = ">=1.30.0,<2.0.0" },
     { name = "pydantic", marker = "extra == 'ai'", specifier = ">=2.13.5,<2.14.0" },
     { name = "six", marker = "extra == 'compat'", specifier = ">=1.17.0" },
-    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'anthropic'", specifier = ">=3.0.2" },
-    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'google'", specifier = ">=3.0.2" },
-    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'openai'", specifier = ">=3.0.2" },
+    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'anthropic'", specifier = ">=3.0.1" },
+    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'google'", specifier = ">=3.0.1" },
+    { name = "splunk-sdk", extras = ["ai"], marker = "extra == 'openai'", specifier = ">=3.0.1" },
 ]
 provides-extras = ["compat", "ai", "anthropic", "openai", "google"]
 
@@ -2207,7 +2207,7 @@ dev = [
     { name = "rich", specifier = ">=15.0.0" },
     { name = "ruff", specifier = ">=0.17.6" },
     { name = "sphinx", specifier = ">=9.2.0" },
-    { name = "splunk-sdk", extras = ["openai", "anthropic", "google"], specifier = ">=3.0.2" },
+    { name = "splunk-sdk", extras = ["openai", "anthropic", "google"], specifier = ">=3.0.1" },
     { name = "twine", specifier = ">=7.0.0" },
     { name = "vcrpy", specifier = ">=8.3.0" },
     { name = "zizmor", specifier = ">=1.32.0" },
@@ -2229,7 +2229,7 @@ test = [
     { name = "pytest-asyncio", specifier = ">=1.5.0" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "python-dotenv", specifier = ">=1.2.4" },
-    { name = "splunk-sdk", extras = ["openai", "anthropic", "google"], specifier = ">=3.0.2" },
+    { name = "splunk-sdk", extras = ["openai", "anthropic", "google"], specifier = ">=3.0.1" },
     { name = "vcrpy", specifier = ">=8.3.0" },
 ]
 

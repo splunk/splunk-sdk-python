@@ -16,7 +16,7 @@ jobs:
   build-distributables:
     name: Build release distributables
     # We separate building from publishing, as poisoned build deps could
-    # take advantage of escalated privileges during publishing, more info:
+    # take advantage of escalated privileges during publishing. More info:
     # https://github.com/pypa/gh-action-pypi-publish/issues/217#issuecomment-1965727093
     runs-on: ubuntu-latest
     outputs:
@@ -50,7 +50,7 @@ jobs:
         id: get-version
         run: echo "version=$(uv version --short)" >> "$GITHUB_OUTPUT"
       - name: Build packages for distribution
-        run: uv build
+        run: make build
       - name: Run AppInspect
         if: startsWith(github.ref, 'refs/tags/') == true
         uses: $/.github/actions/run-appinspect

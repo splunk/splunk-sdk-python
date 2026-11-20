@@ -93,7 +93,7 @@ junit_family = "xunit2"
 omit = ["docs/*", "tests/*", "examples/*", "scripts/*"]
 
 [tool.basedpyright]
-exclude = [".venv"]
+exclude = ["**/bin/lib", "build"]
 allowedUntypedLibraries = ["splunklib"]
 reportAny = false
 reportExplicitAny = false
@@ -128,9 +128,10 @@ ignore = [
 [tool.ruff.lint.isort]
 combine-as-imports = true
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint.pep8-naming]
-# Grandfathered legacy names (mostly public API kept for backwards compatibility).
-# Remove entries as names get fixed; do not add new ones without approval.
 extend-ignore-names = [
   "_buildInternalAIModel",
   "_InvalidMessagesException",
@@ -199,6 +200,3 @@ extend-ignore-names = [
   "updateInfo",
   "versionSearch",
 ]
-
-[tool.ruff.format]
-docstring-code-format = true

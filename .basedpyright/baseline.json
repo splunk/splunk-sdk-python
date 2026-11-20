@@ -1,15 +1,5 @@
 {
     "files": {
-        "./examples/ai_custom_search_app/bin/agentic_reporting_csc.py": [
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 33,
-                    "endColumn": 62,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./splunklib/__init__.py": [
             {
                 "code": "reportUnknownParameterType",
@@ -78,114 +68,6 @@
                 "range": {
                     "startColumn": 4,
                     "endColumn": 76,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./splunklib/ai/engines/langchain.py": [
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 79,
-                    "endColumn": 104,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 79,
-                    "endColumn": 104,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 69,
-                    "endColumn": 94,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 59,
-                    "endColumn": 84,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 88,
-                    "endColumn": 113,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 89,
-                    "endColumn": 114,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./splunklib/ai/serialized_service.py": [
-            {
-                "code": "reportPrivateUsage",
-                "range": {
-                    "startColumn": 30,
-                    "endColumn": 39,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 99,
-                    "endColumn": 122,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 88,
-                    "endColumn": 111,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 88,
-                    "endColumn": 111,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 96,
-                    "endColumn": 119,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 121,
-                    "endColumn": 139,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnnecessaryTypeIgnoreComment",
-                "range": {
-                    "startColumn": 98,
-                    "endColumn": 121,
                     "lineCount": 1
                 }
             }
@@ -41370,16 +41252,6 @@
                 "range": {
                     "startColumn": 10,
                     "endColumn": 13,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./tests/unit/ai/testdata/tool_defining_tools.py": [
-            {
-                "code": "reportUnusedFunction",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 12,
                     "lineCount": 1
                 }
             }

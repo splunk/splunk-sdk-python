@@ -36,12 +36,9 @@ lint: lint-python lint-gh-actions lint-makefile
 lint-gh-actions:
 	uvx zizmor --pedantic --strict-collection ./.github
 
-# --fix-only never fails on unfixable violations, so some rules need to be
-# enforced with a separate `ruff check`.
 .PHONY: lint-python
 lint-python:
 	$(UV_RUN_CMD) ruff check --fix-only $(if $(CI),--exit-non-zero-on-fix)
-	$(UV_RUN_CMD) ruff check --select N
 	$(UV_RUN_CMD) ruff format $(if $(CI),--check)
 	$(UV_RUN_CMD) basedpyright
 

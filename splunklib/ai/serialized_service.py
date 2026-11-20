@@ -17,7 +17,7 @@ from typing import Self
 
 from pydantic import BaseModel, Field
 
-from splunklib.binding import _spliturl
+from splunklib.binding import _spliturl  # pyright: ignore[reportPrivateUsage]
 from splunklib.client import Service, connect
 
 
@@ -32,11 +32,11 @@ class SerializedService(BaseModel):
     @classmethod
     def from_service(cls, service: Service) -> Self:
         return cls(
-            management_url=f"{service.scheme}://{service.host}:{service.port}",  # pyright: ignore[reportUnknownMemberType]
-            username=service.username if service.username else None,  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-            password=service.password if service.password else None,  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-            token=service.token if isinstance(service.token, str) else None,  # pyright: ignore[reportUnknownMemberType, reportArgumentType]
-            bearer_token=service.bearerToken if service.bearerToken else None,  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+            management_url=f"{service.scheme}://{service.host}:{service.port}",
+            username=service.username if service.username else None,  # pyright: ignore[reportUnknownArgumentType]
+            password=service.password if service.password else None,  # pyright: ignore[reportUnknownArgumentType]
+            token=service.token if isinstance(service.token, str) else None,
+            bearer_token=service.bearerToken if service.bearerToken else None,  # pyright: ignore[reportUnknownArgumentType]
             auth_cookies=(
                 service.get_cookies() if len(service.get_cookies()) != 0 else None  # pyright: ignore[reportUnknownArgumentType]
             ),

@@ -37,7 +37,7 @@ ai = [
   "httpx>=0.28.1",
   "langchain>=1.5.2",
   "mcp>=1.30.0,<2.0.0",
-  "pydantic>=2.13.5, <2.14.0",
+  "pydantic>=2.13.5,<2.15.0",
 ]
 anthropic = ["splunk-sdk[ai]>=3.0.2", "langchain-anthropic>=1.7.11"]
 openai = ["splunk-sdk[ai]>=3.0.2", "langchain-openai>=1.8.3"]

@@ -301,13 +301,9 @@ class LangChainAgentImpl(AgentImpl[OutputT]):
                     assert resp.artifact is None, "artifact is already populated"
 
                     if resp.name.startswith(AGENT_PREFIX):
-                        resp.artifact = SubagentFailureResult(
-                            error_message=str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
-                        )
+                        resp.artifact = SubagentFailureResult(error_message=str(resp.content))
                     else:
-                        resp.artifact = ToolFailureResult(
-                            error_message=str(resp.content)  # pyright: ignore[reportUnknownArgumentType]
-                        )
+                        resp.artifact = ToolFailureResult(error_message=str(resp.content))
 
                 return resp
 
@@ -1247,12 +1243,10 @@ def _convert_tool_message_from_lc(
                     name=message.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX),
                     call_id=message.tool_call_id,
                     status=message.status,
-                    content=str(message.content),  # pyright: ignore[reportUnknownArgumentType]
+                    content=str(message.content),
                 )
 
-            assert isinstance(message.artifact, ToolResult) or isinstance(
-                message.artifact, ToolFailureResult
-            )
+            assert isinstance(message.artifact, (ToolResult, ToolFailureResult))
 
             tool_type: ToolType = (
                 ToolType.LOCAL if message.name.startswith(LOCAL_TOOL_PREFIX) else ToolType.REMOTE
@@ -1284,7 +1278,7 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
                 call_id=m.tool_call_id,
                 name=m.name.removeprefix(TOOL_STRATEGY_TOOL_PREFIX) if m.name else "",
                 status=m.status,
-                content=str(m.content),  # pyright: ignore[reportUnknownArgumentType]
+                content=str(m.content),
             )
             for m in model_response.result
             if isinstance(m, LC_ToolMessage)
@@ -1298,7 +1292,7 @@ def _convert_model_result_from_lc(model_response: LC_ModelCallResult) -> ModelRe
     additional_kwargs = cast(dict[str, Any], ai_message.additional_kwargs)
     return ModelResponse(
         message=AIMessage(
-            content=_map_content_from_langchain(ai_message.content),  # pyright: ignore[reportUnknownArgumentType]
+            content=_map_content_from_langchain(ai_message.content),
             calls=[
                 _map_tool_call_from_langchain(tc)
                 for tc in ai_message.tool_calls
@@ -1706,7 +1700,7 @@ def _map_message_from_langchain(message: LC_BaseMessage) -> BaseMessage:
     match message:
         case LC_AIMessage():
             return AIMessage(
-                content=_map_content_from_langchain(message.content),  # pyright: ignore[reportUnknownArgumentType]
+                content=_map_content_from_langchain(message.content),
                 calls=[
                     _map_tool_call_from_langchain(tc)
                     for tc in message.tool_calls

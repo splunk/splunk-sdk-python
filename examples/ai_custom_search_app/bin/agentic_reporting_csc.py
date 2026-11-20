@@ -34,7 +34,7 @@ from splunklib.data import Record
 from splunklib.searchcommands import (
     Configuration,
     Option,
-    dispatch,  # pyright: ignore[reportPrivateLocalImportUsage]
+    dispatch,
     validators,
 )
 from splunklib.searchcommands.eventing_command import EventingCommand

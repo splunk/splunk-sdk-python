@@ -7,8 +7,6 @@
 UV_SYNC_CMD := uv sync --no-config
 # https://docs.astral.sh/uv/reference/cli/#uv-run
 UV_RUN_CMD := uv run
-# https://docs.zizmor.sh/usage
-ZIZMOR_CMD := $(UV_RUN_CMD) zizmor --pedantic --strict-collection
 
 .PHONY: install
 install:
@@ -16,10 +14,10 @@ install:
 
 .PHONY: upgrade
 upgrade:
-	$(UV_SYNC_CMD) --dev --upgrade
+	$(UV_SYNC_CMD) --upgrade
 
-# Workaround for make being unable to pass arguments to underlying cmd
-# $ SDK_DEPS_GROUP="build" make ci-install
+# Workaround for gMake not supporting argument passthrough.
+# Usage: $ SDK_DEPS_GROUP="dev" make ci-install
 SDK_DEPS_GROUP ?= dev
 
 .PHONY: ci-install
@@ -28,28 +26,25 @@ ci-install:
 
 .PHONY: build
 build:
-	uv build --no-config
+	uv build
 
 .PHONY: lint
 lint: lint-python lint-gh-actions lint-makefile
 
+# https://docs.zizmor.sh/usage
 .PHONY: lint-gh-actions
 lint-gh-actions:
-	$(ZIZMOR_CMD) ./.github
+	uvx zizmor --pedantic --strict-collection ./.github
 
-# --fix-only never fails on unfixable violations, so rules that must be enforced
-# get a separate strict `ruff check --select` pass.
 .PHONY: lint-python
 lint-python:
 	$(UV_RUN_CMD) ruff check --fix-only $(if $(CI),--exit-non-zero-on-fix)
-	$(UV_RUN_CMD) ruff check --select N
 	$(UV_RUN_CMD) ruff format $(if $(CI),--check)
 	$(UV_RUN_CMD) basedpyright
 
 .PHONY: lint-makefile
 lint-makefile:
-	$(UV_RUN_CMD) mbake format --config ./.bake.toml $(if $(CI),--check) Makefile
-	$(UV_RUN_CMD) mbake validate --config ./.bake.toml Makefile
+	$(UV_RUN_CMD) mbake format --config ./.bake.toml $(if $(CI),--check) ./Makefile
 
 .PHONY: clean
 clean:

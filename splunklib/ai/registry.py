@@ -325,7 +325,7 @@ class ToolRegistry:
                 )
         except BaseExceptionGroup as e:
             # Re-raise the first exception.
-            raise e.exceptions[0]
+            raise e.exceptions[0] from e
 
     def _input_schema(self, func: Callable[_P, _R]) -> dict[str, Any]:
         """

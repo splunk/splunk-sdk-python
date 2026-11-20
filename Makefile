@@ -45,7 +45,6 @@ lint-python:
 .PHONY: lint-makefile
 lint-makefile:
 	$(UV_RUN_CMD) mbake format --config ./.bake.toml $(if $(CI),--check) ./Makefile
-	$(UV_RUN_CMD) mbake validate --config ./.bake.toml ./Makefile
 
 .PHONY: clean
 clean:

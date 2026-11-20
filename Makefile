@@ -14,7 +14,7 @@ install:
 
 .PHONY: upgrade
 upgrade:
-	$(UV_SYNC_CMD) --dev --upgrade
+	$(UV_SYNC_CMD) --upgrade
 
 # Workaround for gMake not supporting argument passthrough.
 # Usage: $ SDK_DEPS_GROUP="dev" make ci-install
@@ -26,7 +26,7 @@ ci-install:
 
 .PHONY: build
 build:
-	uv build --no-config
+	uv build
 
 .PHONY: lint
 lint: lint-python lint-gh-actions lint-makefile

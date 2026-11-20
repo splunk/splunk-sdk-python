@@ -39,18 +39,18 @@ ai = [
   "mcp>=1.30.0,<2.0.0",
   "pydantic>=2.13.5, <2.14.0",
 ]
-anthropic = ["splunk-sdk[ai]>=3.0.2", "langchain-anthropic>=1.7.11"]
-openai = ["splunk-sdk[ai]>=3.0.2", "langchain-openai>=1.8.3"]
+anthropic = ["splunk-sdk[ai]>=3.0.1", "langchain-anthropic>=1.7.12"]
+openai = ["splunk-sdk[ai]>=3.0.1", "langchain-openai>=1.8.5"]
 google = [
-  "splunk-sdk[ai]>=3.0.2",
-  "langchain-google-genai>=4.5.1",
+  "splunk-sdk[ai]>=3.0.1",
+  "langchain-google-genai>=4.5.2",
   "google-auth>=2.62.2",
 ]
 
 # Treat the same as NPM's `devDependencies`
 [dependency-groups]
 test = [
-  "splunk-sdk[openai, anthropic, google]>=3.0.2",
+  "splunk-sdk[openai, anthropic, google]>=3.0.1",
   "pytest>=9.2.0",
   "pytest-cov>=7.1.0",
   "pytest-asyncio>=1.5.0",
